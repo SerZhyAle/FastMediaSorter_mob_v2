@@ -318,7 +318,6 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
-                preventSleep = defaults.preventSleep,
                 defaultSortMode = defaults.defaultSortMode,
                 slideshowInterval = defaults.slideshowInterval,
                 slideshowMusicUri = defaults.slideshowMusicUri,
@@ -327,21 +326,14 @@ class SettingsViewModel @Inject constructor(
                 playToEndInSlideshow = defaults.playToEndInSlideshow,
                 allowRename = defaults.allowRename,
                 allowDelete = defaults.allowDelete,
-                useTrash = defaults.useTrash,
                 fileOpsOverflowMenuHintShown = defaults.fileOpsOverflowMenuHintShown,
                 hideSystemUiInFullscreen = defaults.hideSystemUiInFullscreen,
                 defaultShowCommandPanel = defaults.defaultShowCommandPanel,
-                showDetailedErrors = defaults.showDetailedErrors,
                 showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
-                alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
-                isResourceGridMode = defaults.isResourceGridMode,
-                showBlackScreenButton = defaults.showBlackScreenButton,
-                defaultRememberFileList = defaults.defaultRememberFileList,
-                enableCalculator = defaults.enableCalculator,
-                embeddedGameEnabled = defaults.embeddedGameEnabled
+                alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay
             )
         )
-        // Also reset per-type touch zone hints
+        // Touch zone hints live outside AppSettings; explicit repo calls are required to reset them
         viewModelScope.launch {
             try {
                 settingsRepository.setPlayerFirstRun(true)
@@ -352,18 +344,52 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun resetDestinationsSection() {
+    fun resetOperationsSection() {
         val defaults = AppSettings()
         val current = settings.value
         updateSettings(
             current.copy(
+                // Safety group
+                enableSafeMode = defaults.enableSafeMode,
+                confirmDelete = defaults.confirmDelete,
+                confirmMove = defaults.confirmMove,
+                useTrash = defaults.useTrash,
+                // Copy/Move group
                 enableCopying = defaults.enableCopying,
                 goToNextAfterCopy = defaults.goToNextAfterCopy,
                 overwriteOnCopy = defaults.overwriteOnCopy,
                 enableMoving = defaults.enableMoving,
                 overwriteOnMove = defaults.overwriteOnMove,
                 enableUndo = defaults.enableUndo,
-                maxRecipients = defaults.maxRecipients
+                maxRecipients = defaults.maxRecipients,
+                // Behaviour group (moved from Player tab)
+                showDetailedErrors = defaults.showDetailedErrors,
+                resumeOnNextLaunch = defaults.resumeOnNextLaunch,
+                defaultRememberFileList = defaults.defaultRememberFileList,
+                // OtherFeatures group (moved from Player tab)
+                cameraOcrTranslationEnabled = defaults.cameraOcrTranslationEnabled,
+                cameraOcrOnly = defaults.cameraOcrOnly,
+                disableCameraCapture = defaults.disableCameraCapture,
+                skipCameraFilenameDialog = defaults.skipCameraFilenameDialog,
+                cameraCaptureOpenForEditing = defaults.cameraCaptureOpenForEditing,
+                disableVideoCapture = defaults.disableVideoCapture,
+                videoCaptureOpenInPlayer = defaults.videoCaptureOpenInPlayer,
+                micRecordingEnabled = defaults.micRecordingEnabled,
+                micRecordingAskFilename = defaults.micRecordingAskFilename,
+                showBlackScreenButton = defaults.showBlackScreenButton,
+                enableCalculator = defaults.enableCalculator,
+                embeddedGameEnabled = defaults.embeddedGameEnabled,
+                // SystemApps group (moved from Player tab)
+                preventSleep = defaults.preventSleep,
+                followSystemRotation = defaults.followSystemRotation,
+                isPrimaryMediaPlayer = defaults.isPrimaryMediaPlayer,
+                acceptSharedFiles = defaults.acceptSharedFiles,
+                linkAutoDownloadEnabled = defaults.linkAutoDownloadEnabled,
+                linkAutoDownloadOpenInPlayer = defaults.linkAutoDownloadOpenInPlayer,
+                linkAutoDownloadResourceId = defaults.linkAutoDownloadResourceId,
+                // ScreenGestures group (moved from Player tab)
+                gestureOverlayEnabled = defaults.gestureOverlayEnabled,
+                screenshotGestureDownEnabled = defaults.screenshotGestureDownEnabled
             )
         )
     }

@@ -111,6 +111,18 @@
 
                     </LinearLayout>
 
+                    <!-- S0160: Resource ops overflow toggle (moved from File browser - it is a UI setting, not a browser one). -->
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -135,7 +147,7 @@
                             android:id="@+id/rowAllFiles"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:str_title="@string/all_files"
+                            app:str_title="@string/setting_all_files_allow_title"
                             app:str_subtitle="@string/setting_all_files_desc"
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_all_files_title"
@@ -143,34 +155,18 @@
 
                     </LinearLayout>
 
-                    <!-- Row: Show Hidden Files | Resource Ops in Overflow Menu (S0160) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
+                    <!-- Show Hidden Files (resource-ops moved to the Interface group, S0160) -->
+                    <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowShowHiddenFiles"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/show_hidden_files"
-                                app:str_subtitle="@string/setting_show_hidden_files_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_show_hidden_files_title"
-                                app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
-
-                        </LinearLayout>
-
-                        <!-- S0160: Resource ops overflow toggle. Landscape-only placement: shares a row with Show Hidden Files after All Files takes the full-width CTA row. -->
-                        <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowResourceOpsInOverflowMenu"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/resource_ops_in_overflow_menu"
-                                app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
-
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowShowHiddenFiles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/show_hidden_files"
+                            app:str_subtitle="@string/setting_show_hidden_files_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_show_hidden_files_title"
+                            app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
 
                     </LinearLayout>
 

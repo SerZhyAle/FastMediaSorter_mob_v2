@@ -41,6 +41,9 @@ import timber.log.Timber
  */
 object DefaultPlayerHelper {
     private const val PDF_MIME_TYPE = "application/pdf"
+    // .txt and .log both resolve to text/plain - one registration covers both.
+    private const val TEXT_MIME_TYPE = "text/plain"
+    private const val EPUB_MIME_TYPE = "application/epub+zip"
     private const val OFFICE_DOCX_MIME_TYPE =
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -110,14 +113,23 @@ object DefaultPlayerHelper {
             .show()
     }
 
-    fun showSetDefaultDocumentDialog(fragment: Fragment) {
+    /**
+     * Lets the user register the app as default for a document type. PDF and plain text (TXT, LOG) are
+     * always offered; EPUB is added when [includeEpub]; Office/DOCX is added only when the current
+     * flavor declares office MIME types (noLegal).
+     */
+    fun showSetDefaultDocumentDialog(fragment: Fragment, includeEpub: Boolean = true) {
         if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
         val context = fragment.requireContext()
         DefaultPlayerManager.applyPrimaryPlayerState(context, true)
 
         val options = mutableListOf(
-            R.string.settings_default_document_type_pdf to PDF_MIME_TYPE
+            R.string.settings_default_document_type_pdf to PDF_MIME_TYPE,
+            R.string.settings_default_document_type_text to TEXT_MIME_TYPE,
         )
+        if (includeEpub) {
+            options += R.string.settings_default_document_type_epub to EPUB_MIME_TYPE
+        }
         defaultOfficeMimeType()?.let { officeMimeType ->
             options += R.string.settings_default_document_type_office to officeMimeType
         }
@@ -127,10 +139,11 @@ object DefaultPlayerHelper {
             return
         }
 
+        // AlertDialog suppresses the item list when a message is also set, so the type list must be the
+        // dialog's only content - the title alone carries the prompt.
         val labels = options.map { context.getString(it.first) }.toTypedArray()
         MaterialAlertDialogBuilder(context)
             .setTitle(R.string.settings_default_document_type_title)
-            .setMessage(R.string.settings_default_document_type_message)
             .setItems(labels) { _, which ->
                 showSetDefaultDialogForType(fragment, options[which].second)
             }

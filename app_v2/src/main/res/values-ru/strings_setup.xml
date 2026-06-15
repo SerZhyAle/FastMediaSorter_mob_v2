@@ -142,14 +142,14 @@
     <!-- S0400 functionality page -->
     <string name="welcome_functionality_title">Что приложение будет делать?</string>
     <string name="welcome_functionality_subtitle">Включите нужное. Позже можно изменить в настройках.</string>
-    <string name="welcome_func_file_manager">Файловый менеджер (все файлы)</string>
+    <string name="welcome_func_file_manager">Разрешить режим «Все файлы»</string>
     <string name="welcome_func_audio">Аудио</string>
     <string name="welcome_func_video">Видео</string>
     <string name="welcome_func_documents">Документы</string>
     <string name="welcome_func_ocr">Распознавание текста (OCR)</string>
     <string name="welcome_func_translation">Перевод</string>
     <!-- Landscape-only toggle descriptions (two-column functionality page) -->
-    <string name="welcome_func_file_manager_desc">Просматривайте, перемещайте и упорядочивайте любые файлы на устройстве.</string>
+    <string name="welcome_func_file_manager_desc">Разрешает режим «Все файлы». Для каждого ресурса его всё равно нужно выбрать отдельно.</string>
     <string name="welcome_func_audio_desc">Воспроизведение музыки и аудио, сортировка треков по папкам.</string>
     <string name="welcome_func_video_desc">Воспроизведение видео и сортировка роликов встроенным плеером.</string>
     <string name="welcome_func_documents_desc">Открытие PDF, текста, электронных книг и офисных файлов.</string>

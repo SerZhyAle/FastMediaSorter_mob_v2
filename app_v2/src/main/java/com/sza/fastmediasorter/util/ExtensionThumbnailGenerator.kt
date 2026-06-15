@@ -30,7 +30,9 @@ object ExtensionThumbnailGenerator {
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
-            textSize = size * 0.30f
+            // Extension label is the primary information of a no-thumbnail tile, so it is
+            // enlarged 1.5x over the prior 0.30 ratio for readability.
+            textSize = size * 0.45f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }

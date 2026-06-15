@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 
@@ -742,6 +743,13 @@ class MediaFileAdapter(
                     cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
                 }
 
+                // Checkbox sits over the thumbnail in thumbnail mode; in no-thumbnail mode the icon
+                // is too small to host the overlay, so move the checkbox flush to its left (S0419).
+                applyCheckboxPlacement(
+                    anchor = thumbnailFrame ?: ivThumbnail,
+                    leftOfIcon = this@MediaFileAdapter.disableThumbnails && !audioOnlyFile
+                )
+
                 // Highlight selected items
                 // Highlight selected items using background color
                 val backgroundColor = when {
@@ -820,6 +828,34 @@ class MediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, isListMode = true)
                 ?.let { lastLoadedKey = it }
+        }
+
+        /**
+         * Position the selection checkbox relative to the file icon ([anchor] is the thumbnail, or
+         * the badge frame in flavors that wrap it). Thumbnail mode overlays the checkbox on the
+         * icon's bottom-left corner; no-thumbnail mode shrinks the icon to ~32dp where the overlay
+         * would hide it, so the checkbox is pinned flush to the icon's left and the icon shifts
+         * right to make room (S0419).
+         */
+        private fun applyCheckboxPlacement(anchor: View, leftOfIcon: Boolean) {
+            val cbLp = binding.cbSelect.layoutParams as? ConstraintLayout.LayoutParams ?: return
+            val anchorLp = anchor.layoutParams as? ConstraintLayout.LayoutParams ?: return
+            val unset = ConstraintLayout.LayoutParams.UNSET
+            if (leftOfIcon) {
+                cbLp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                cbLp.topToTop = anchor.id
+                cbLp.bottomToBottom = anchor.id
+                anchorLp.startToStart = unset
+                anchorLp.startToEnd = binding.cbSelect.id
+            } else {
+                cbLp.startToStart = anchor.id
+                cbLp.topToTop = unset
+                cbLp.bottomToBottom = anchor.id
+                anchorLp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                anchorLp.startToEnd = unset
+            }
+            binding.cbSelect.layoutParams = cbLp
+            anchor.layoutParams = anchorLp
         }
 
     }

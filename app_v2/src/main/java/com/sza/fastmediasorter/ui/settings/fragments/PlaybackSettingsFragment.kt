@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,31 +9,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
-import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
-import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class PlaybackSettingsFragment : Fragment() {
@@ -43,45 +29,7 @@ class PlaybackSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
 
-    @Inject
-    lateinit var capabilityAvailability: CapabilityAvailability
-
-    // S0405: empty on every flavor except noLegal, where the gesture-overlay capability contributes one.
-    @Inject
-    lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
-
     private var isUpdatingFromSettings = false
-
-    // Latest recipient resources for the capture destination pickers. Kept hot by collecting
-    // viewModel.destinations in observeData(); the WhileSubscribed flow would otherwise be cold here.
-    private var destinationTargets: List<MediaResource> = emptyList()
-
-    // S0367: RECORD_AUDIO consent for the relocated microphone-recording master toggle.
-    // Must be created at field-init time (Fragment requirement for registerForActivityResult).
-    private val recordAudioPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
-        } else {
-            binding.rowMicRecordingEnabled.setCheckedSilently(false)
-            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
-        }
-    }
-
-    // S0405: returns from the system "draw over other apps" screen; enable the overlay only if granted.
-    private val overlayPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        val controller = screenGestureControllers.firstOrNull() ?: return@registerForActivityResult
-        if (controller.isOverlayPermissionGranted(requireContext())) {
-            controller.setEnabled(true)
-            viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
-        } else {
-            binding.rowGestureOverlayEnabled.setCheckedSilently(false)
-        }
-    }
 
     companion object {
         private const val PREFS_NAME = "playback_sections_state"
@@ -89,9 +37,6 @@ class PlaybackSettingsFragment : Fragment() {
         private const val KEY_FILE_OPS_EXPANDED = "section_file_ops_expanded"
         private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
-        private const val KEY_BEHAVIOUR_EXPANDED = "section_behaviour_expanded"
-        private const val KEY_OTHER_FEATURES_EXPANDED = "section_other_features_expanded"
-        private const val KEY_SYSTEM_APPS_EXPANDED = "section_system_apps_expanded"
     }
 
     private data class ExpandableSection(
@@ -111,7 +56,6 @@ class PlaybackSettingsFragment : Fragment() {
         try {
             setupViews()
             setupExpandableSections()
-            scrollToHighlightedSettingIfRequested()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
             Toast.makeText(context, getString(R.string.error_init_settings), Toast.LENGTH_LONG).show()
@@ -124,56 +68,7 @@ class PlaybackSettingsFragment : Fragment() {
         _binding = null
     }
 
-    private fun applyFlavorRestrictions() {
-        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
-            com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
-        binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
-        binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
-        if (!hasOcrAndTranslation) {
-            binding.rowCameraOcrTranslationEnabled.setCheckedSilently(false)
-            binding.rowCameraOcrOnly.setCheckedSilently(false)
-            val current = viewModel.settings.value
-            if (current.cameraOcrTranslationEnabled || current.cameraOcrOnly) {
-                viewModel.updateSettings(current.copy(
-                    cameraOcrTranslationEnabled = false,
-                    cameraOcrOnly = false
-                ))
-            }
-        }
-    }
-
     private fun setupViews() {
-        applyFlavorRestrictions()
-
-        // S0367: camera-photos + microphone-recording capture settings, relocated from Media → Audio.
-        setupCaptureSection()
-
-        // S0405: screen-gesture overlay group (noLegal-only capability).
-        setupSystemAppsSection()
-
-        binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraOcrTranslationEnabled = isChecked))
-        }
-
-        binding.rowCameraOcrOnly.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraOcrOnly = isChecked))
-        }
-
-        // Prevent Sleep — moved from General > Network & Cache to Playback > Behaviour.
-        binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(preventSleep = isChecked))
-        }
-
-        binding.rowControlsKeybindings.setOnClickListener {
-            com.sza.fastmediasorter.ui.settings.SettingsActivity.openKeybindingRemap(requireContext())
-        }
-
         // Sort mode dropdown
         val sortModes = arrayOf(
             "Name (A-Z)", "Name (Z-A)",
@@ -303,76 +198,6 @@ class PlaybackSettingsFragment : Fragment() {
             ).show()
         }
 
-        // Hide primary-player row for flavors that don't support it; resume toggle is always visible
-        binding.layoutDefaultPlayerToggles.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
-
-        if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
-            binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked)
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = isChecked))
-            }
-
-            binding.rowAcceptSharedFiles.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked)
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(acceptSharedFiles = isChecked))
-            }
-        }
-
-        // S0003: Link auto-download - master toggle, open-in-player toggle, destination-resource picker.
-        binding.rowLinkAutodownloadEnabled.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(linkAutoDownloadEnabled = isChecked))
-        }
-        binding.rowLinkAutodownloadOpenInPlayer.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
-        }
-        // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
-        // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
-        binding.rowLinkAutodownloadResource.setOnClickListener {
-            showDestinationPicker(
-                currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(linkAutoDownloadResourceId = resource?.id))
-            }
-        }
-        binding.rowResumeOnNextLaunch.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(resumeOnNextLaunch = isChecked))
-        }
-
-        binding.rowShowBlackScreenButton.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
-        }
-
-        binding.rowDefaultRememberFileList.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
-        }
-
-        // Calculator + Embedded game (moved here from the General tab "Other functionality" group).
-        binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableCalculator = isChecked))
-        }
-
-        binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateEmbeddedGameEnabled(isChecked)
-        }
-
         binding.btnResetPlaybackSection.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_playback_section_title)
@@ -418,291 +243,10 @@ class PlaybackSettingsFragment : Fragment() {
         // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
 
-    /**
-     * S0367/S0375: wires the camera-photos, video-recording, and microphone-recording capture rows
-     * plus their destination selectors. Inverted-flag semantics for the camera/video master
-     * toggles are preserved from the original implementation.
-     */
-    private fun setupCaptureSection() {
-
-        // ── Camera Photos ──
-        binding.rowCameraToResourceEnabled.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            // Reuse the existing negative persistence flags instead of duplicating camera settings keys.
-            viewModel.updateSettings(current.copy(disableCameraCapture = !isChecked))
-            binding.layoutCameraToResourceOptions.isVisible = isChecked
-        }
-
-        binding.rowCameraAskFilename.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = !isChecked))
-        }
-
-        binding.rowCameraOpenForEditing.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
-        }
-
-        binding.btnSelectCameraPhotosDest.setOnClickListener {
-            showDestinationPicker(
-                currentResourceId = viewModel.settings.value.cameraPhotosDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(cameraPhotosDestinationResourceId = resource?.id?.toString()))
-            }
-        }
-
-        // ── Video recording (S0371) ──
-        // Master toggle persists inverted (disableVideoCapture), mirroring the camera-photos pattern.
-        binding.rowVideoCaptureEnabled.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(disableVideoCapture = !isChecked))
-            binding.layoutVideoCaptureOptions.isVisible = isChecked
-        }
-
-        binding.rowVideoCaptureOpenInPlayer.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(videoCaptureOpenInPlayer = isChecked))
-        }
-
-        binding.btnSelectVideoRecordingDest.setOnClickListener {
-            showDestinationPicker(
-                currentResourceId = viewModel.settings.value.videoRecordingDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(videoRecordingDestinationResourceId = resource?.id?.toString()))
-            }
-        }
-
-        // ── Microphone recording ──
-        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
-            binding.rowMicRecordingEnabled.isVisible = false
-            binding.rowMicRecordingAskFilename.isVisible = false
-            binding.layoutMicRecordingDestSelector.isVisible = false
-        } else {
-            binding.rowMicRecordingEnabled.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                if (isChecked) {
-                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        return@setOnCheckedChangeListener
-                    }
-                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = true))
-                } else {
-                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = false))
-                }
-                binding.rowMicRecordingAskFilename.isVisible = isChecked
-            }
-
-            binding.rowMicRecordingAskFilename.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
-            }
-
-            binding.btnSelectMicRecordingDest.setOnClickListener {
-                showDestinationPicker(
-                    currentResourceId = viewModel.settings.value.micRecordingDestinationResourceId?.toLongOrNull()
-                ) { resource ->
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(micRecordingDestinationResourceId = resource?.id?.toString()))
-                }
-            }
-        }
-    }
-
-    /**
-     * S0405: wires the screen-gesture overlay rows. The whole group is hidden on flavors without the
-     * capability (empty controller set). Enabling the overlay routes the user to grant draw-over-apps.
-     */
-    private fun setupSystemAppsSection() {
-        val controller = screenGestureControllers.firstOrNull()
-        if (controller == null) {
-            binding.groupSystemApps.isVisible = false
-            return
-        }
-
-        binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            if (isChecked) {
-                if (!controller.isOverlayPermissionGranted(requireContext())) {
-                    showGesturePermissionDialog(controller)
-                    return@setOnCheckedChangeListener
-                }
-                controller.setEnabled(true)
-                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
-            } else {
-                controller.setEnabled(false)
-                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
-            }
-        }
-
-        binding.rowScreenshotGestureDown.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureDownEnabled = isChecked))
-        }
-
-        binding.rowScreenshotDestination.setOnClickListener {
-            showDestinationPicker(
-                currentResourceId = viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
-            }
-        }
-    }
-
-    /**
-     * S0405: instructional gate before sending the user to the permission screen. Sideloaded (noLegal)
-     * builds cannot flip the accessibility toggle directly - Android's "restricted settings" gate
-     * blocks it until the user clears it from App info - so the exact tap sequence is spelled out here,
-     * with shortcuts to both the accessibility screen and App info. Any exit without the grant reverts
-     * the row (handled in onDismiss so back-press / outside-tap are covered too).
-     */
-    private fun showGesturePermissionDialog(controller: ScreenGestureOverlayController) {
-        val builder = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.screenshot_gesture_permission_dialog_title)
-            .setMessage(controller.permissionRationaleResId())
-            .setPositiveButton(R.string.screenshot_gesture_open_settings) { _, _ ->
-                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(requireContext()))
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .setOnDismissListener {
-                if (!controller.isOverlayPermissionGranted(requireContext())) {
-                    binding.rowGestureOverlayEnabled.setCheckedSilently(false)
-                }
-            }
-        if (controller.isFallbackCaptureAvailable()) {
-            // Fallback route, offered only when a second path exists: grant draw-over-apps and
-            // capture via MediaProjection (asks on each shot) when accessibility cannot be enabled.
-            builder.setNeutralButton(R.string.screenshot_gesture_use_old_method) { _, _ ->
-                overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(requireContext()))
-            }
-        }
-        builder.show()
-    }
-
-    /**
-     * S0367: single-choice picker over recipient resources usable as a capture target. Restricted to
-     * resources that are also destinations (a real folder); predefined/virtual resources such as
-     * "all files" are excluded. Includes an explicit "(clear)" entry that resolves the setting back
-     * to its documented fallback.
-     */
-    private fun showDestinationPicker(
-        currentResourceId: Long?,
-        onPicked: (MediaResource?) -> Unit
-    ) {
-        val targets = destinationTargets
-        if (targets.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.no_resources_available, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val clearLabel = getString(R.string.clear_selection)
-        val labels = (listOf(clearLabel) + targets.map { it.name }).toTypedArray()
-        val checkedIndex = currentResourceId
-            ?.let { id -> targets.indexOfFirst { it.id == id } }
-            ?.takeIf { it >= 0 }
-            ?.let { it + 1 } // offset by the leading clear entry
-            ?: 0
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.setting_select_destination)
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
-                onPicked(if (which == 0) null else targets[which - 1])
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /** Resolves a destination resource label into [target], falling back to [fallbackRes] when unset/missing. */
-    private fun refreshDestinationLabel(resourceId: String?, target: android.widget.TextView, fallbackRes: Int) {
-        val id = resourceId?.toLongOrNull()
-        if (id == null) {
-            target.setText(fallbackRes)
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resource = viewModel.resourceRepository.getResourceById(id)
-            target.text = resource?.name ?: getString(fallbackRes)
-        }
-    }
-
     private fun observeData() {
-        // Only recipient resources (a real destination folder) are valid capture targets.
-        collectOnLifecycle(viewModel.destinations) { destinationTargets = it }
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
-                    
-                    val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
-                        com.sza.fastmediasorter.core.util.DeviceCapabilities.isOcrSupported(requireContext())
-                    if (hasOcrAndTranslation) {
-                        if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {
-                            binding.rowCameraOcrTranslationEnabled.setCheckedSilently(settings.cameraOcrTranslationEnabled)
-                        }
-                        if (binding.rowCameraOcrOnly.isChecked != settings.cameraOcrOnly) {
-                            binding.rowCameraOcrOnly.setCheckedSilently(settings.cameraOcrOnly)
-                        }
-                        binding.layoutCameraOcrOnly.isVisible = settings.cameraOcrTranslationEnabled
-                    }
 
-                    // S0367: Camera Photos rows (inverted master/ask-filename flags) + destination label
-                    if (binding.rowCameraToResourceEnabled.isChecked != !settings.disableCameraCapture) {
-                        binding.rowCameraToResourceEnabled.setCheckedSilently(!settings.disableCameraCapture)
-                    }
-                    if (binding.rowCameraAskFilename.isChecked != !settings.skipCameraFilenameDialog) {
-                        binding.rowCameraAskFilename.setCheckedSilently(!settings.skipCameraFilenameDialog)
-                    }
-                    if (binding.rowCameraOpenForEditing.isChecked != settings.cameraCaptureOpenForEditing) {
-                        binding.rowCameraOpenForEditing.setCheckedSilently(settings.cameraCaptureOpenForEditing)
-                    }
-                    binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
-                    refreshDestinationLabel(
-                        settings.cameraPhotosDestinationResourceId,
-                        binding.tvCameraPhotosDest,
-                        R.string.setting_camera_photos_destination_default_camera
-                    )
-
-                    // S0371: Video recording rows (master toggle inverted, child gated by enable)
-                    if (binding.rowVideoCaptureEnabled.isChecked != !settings.disableVideoCapture) {
-                        binding.rowVideoCaptureEnabled.setCheckedSilently(!settings.disableVideoCapture)
-                    }
-                    if (binding.rowVideoCaptureOpenInPlayer.isChecked != settings.videoCaptureOpenInPlayer) {
-                        binding.rowVideoCaptureOpenInPlayer.setCheckedSilently(settings.videoCaptureOpenInPlayer)
-                    }
-                    binding.layoutVideoCaptureOptions.isVisible = !settings.disableVideoCapture
-                    refreshDestinationLabel(
-                        settings.videoRecordingDestinationResourceId,
-                        binding.tvVideoRecordingDest,
-                        R.string.setting_video_recording_destination_default_movies
-                    )
-
-                    // S0367: Microphone recording rows + destination label (feature-gated)
-                    if (BuildConfig.SUPPORT_MIC_RECORDING) {
-                        if (binding.rowMicRecordingEnabled.isChecked != settings.micRecordingEnabled) {
-                            binding.rowMicRecordingEnabled.setCheckedSilently(settings.micRecordingEnabled)
-                        }
-                        if (binding.rowMicRecordingAskFilename.isChecked != settings.micRecordingAskFilename) {
-                            binding.rowMicRecordingAskFilename.setCheckedSilently(settings.micRecordingAskFilename)
-                        }
-                        binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
-                        refreshDestinationLabel(
-                            settings.micRecordingDestinationResourceId,
-                            binding.tvMicRecordingDest,
-                            R.string.setting_mic_recording_destination_default_downloads
-                        )
-                    }
-
-                    // Prevent Sleep (relocated from General)
-                    if (binding.rowPreventSleep.isChecked != settings.preventSleep) {
-                        binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
-                    }
                     // Sort mode
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
 
@@ -753,86 +297,7 @@ class PlaybackSettingsFragment : Fragment() {
                         binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
                     }
 
-                    // Default Player toggles (visible only when SUPPORTS_DEFAULT_PLAYER)
-                    if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
-                        if (binding.rowPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
-                            binding.rowPrimaryMediaPlayer.setCheckedSilently(settings.isPrimaryMediaPlayer)
-                        }
-                        if (binding.rowAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
-                            binding.rowAcceptSharedFiles.setCheckedSilently(settings.acceptSharedFiles)
-                        }
-                    }
-
-                    if (binding.rowResumeOnNextLaunch.isChecked != settings.resumeOnNextLaunch) {
-                        binding.rowResumeOnNextLaunch.setCheckedSilently(settings.resumeOnNextLaunch)
-                    }
-
-                    // S0003: Link auto-download
-                    if (binding.rowLinkAutodownloadEnabled.isChecked != settings.linkAutoDownloadEnabled) {
-                        binding.rowLinkAutodownloadEnabled.setCheckedSilently(settings.linkAutoDownloadEnabled)
-                    }
-                    if (binding.rowLinkAutodownloadOpenInPlayer.isChecked != settings.linkAutoDownloadOpenInPlayer) {
-                        binding.rowLinkAutodownloadOpenInPlayer.setCheckedSilently(settings.linkAutoDownloadOpenInPlayer)
-                    }
-                    // Disable child controls when master toggle is off
-                    binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
-                    binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
-                    binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
-                    refreshDestinationLabel(
-                        resourceId = settings.linkAutoDownloadResourceId?.toString(),
-                        target = binding.tvLinkAutodownloadResourceValue,
-                        fallbackRes = R.string.link_autodownload_resource_not_set,
-                    )
-                    if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
-                        binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
-                    }
-                    if (binding.rowDefaultRememberFileList.isChecked != settings.defaultRememberFileList) {
-                        binding.rowDefaultRememberFileList.setCheckedSilently(settings.defaultRememberFileList)
-                    }
-                    if (binding.rowEnableCalculator.isChecked != settings.enableCalculator) {
-                        binding.rowEnableCalculator.setCheckedSilently(settings.enableCalculator)
-                    }
-                    if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
-                        binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
-                    }
-
-                    // S0405: screen-gesture overlay rows (only present when the capability is available)
-                    if (screenGestureControllers.isNotEmpty()) {
-                        if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
-                            binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
-                        }
-                        if (binding.rowScreenshotGestureDown.isChecked != settings.screenshotGestureDownEnabled) {
-                            binding.rowScreenshotGestureDown.setCheckedSilently(settings.screenshotGestureDownEnabled)
-                        }
-                        refreshDestinationLabel(
-                            settings.screenshotDestinationResourceId,
-                            binding.tvScreenshotDestinationValue,
-                            R.string.setting_screenshot_destination_default
-                        )
-                    }
-
                     isUpdatingFromSettings = false
-        }
-    }
-
-    /**
-     * Handles the "embedded game" deep-link from GameLaunchIntents: expand the "Other features"
-     * group (collapsed by default) and bring the embedded-game row on screen.
-     */
-    private fun scrollToHighlightedSettingIfRequested() {
-        val highlight = requireActivity().intent?.getStringExtra(
-            com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_HIGHLIGHT_SETTING
-        )
-        if (highlight != com.sza.fastmediasorter.ui.settings.SettingsActivity.HIGHLIGHT_EMBEDDED_GAME) return
-        binding.headerOtherFeatures.setExpanded(true, notify = true)
-        binding.containerOtherFeatures.isVisible = true
-        saveSectionState(KEY_OTHER_FEATURES_EXPANDED, true)
-        binding.rowEmbeddedGame.post {
-            binding.rowEmbeddedGame.requestFocus()
-            binding.rowEmbeddedGame.requestRectangleOnScreen(
-                Rect(0, 0, binding.rowEmbeddedGame.width, binding.rowEmbeddedGame.height),
-                false
-            )
         }
     }
 
@@ -843,9 +308,6 @@ class PlaybackSettingsFragment : Fragment() {
             ExpandableSection(binding.headerFileOperations, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
             ExpandableSection(binding.headerPlayerUI, binding.containerPlayerUI, KEY_PLAYER_UI_EXPANDED, false),
             ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
-            ExpandableSection(binding.headerBehaviour, binding.containerBehaviour, KEY_BEHAVIOUR_EXPANDED, false),
-            ExpandableSection(binding.headerOtherFeatures, binding.containerOtherFeatures, KEY_OTHER_FEATURES_EXPANDED, false),
-            ExpandableSection(binding.headerSystemApps, binding.containerSystemApps, KEY_SYSTEM_APPS_EXPANDED, false),
         )
 
         sections.forEach { section ->
@@ -870,10 +332,7 @@ class PlaybackSettingsFragment : Fragment() {
                 KEY_SORTING_EXPANDED to prefs.getBoolean(KEY_SORTING_EXPANDED, false),
                 KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
-                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
-                KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false),
-                KEY_OTHER_FEATURES_EXPANDED to prefs.getBoolean(KEY_OTHER_FEATURES_EXPANDED, false),
-                KEY_SYSTEM_APPS_EXPANDED to prefs.getBoolean(KEY_SYSTEM_APPS_EXPANDED, false)
+                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false)
             )
         }
     }

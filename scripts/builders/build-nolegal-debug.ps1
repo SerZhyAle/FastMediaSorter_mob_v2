@@ -4,7 +4,11 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 param(
-    [switch]$AutoVersion
+    # noLegal debug is a sideload DISTRIBUTION artifact (installed via `ivn`), so it must
+    # carry the real build timestamp by default. Frozen versions belong to compile-only fast
+    # checks (fk/fc/fr/fu) that produce no APK. Pass -AutoVersion:$false to opt into the
+    # frozen default when config-cache reuse matters more than a fresh version.
+    [switch]$AutoVersion = $true
 )
 
 Write-Host "Building NoLegal Debug APK.." -ForegroundColor Cyan
@@ -14,7 +18,7 @@ if ($AutoVersion) {
     Write-Host "Mode: auto-versioned sideload artifact build" -ForegroundColor Yellow
 }
 else {
-    Write-Host "Mode: sideload debug build without tracked version-file edits" -ForegroundColor Yellow
+    Write-Host "Mode: frozen-version sideload build (-AutoVersion:`$false, config-cache reuse)" -ForegroundColor Yellow
 }
 
 # Resolve paths relative to script location

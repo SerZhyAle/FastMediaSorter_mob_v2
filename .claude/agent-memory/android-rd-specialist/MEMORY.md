@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Dirty tree is normal WIP - don't alarm](feedback_dirty_tree_is_normal_wip.md) - repo runs multiple worktrees (mob_v2→DEBUG-vNNN, release→main); uncommitted files = intact WIP, report calmly, never imply revert/clobber/loss
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.view.View
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.model.MediaFile
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,6 +20,13 @@ class NoLegalBrowseApkTileBadgeBinder @Inject constructor(
         renderBadge(badgeContainer, VrApkClassification.NOT_VR)
 
         if (mediaFile.isDirectory || !mediaFile.name.isApkFile()) {
+            return
+        }
+
+        // VR classification requires reading the APK manifest; for non-local paths that means
+        // downloading the whole file, which can block for minutes on slow network mounts.
+        // Badge is only meaningful for locally-accessible APKs where the read is instant.
+        if (!PathUtils.isLocalPath(mediaFile.path)) {
             return
         }
 

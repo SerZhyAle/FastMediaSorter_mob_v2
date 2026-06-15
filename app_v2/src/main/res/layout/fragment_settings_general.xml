@@ -125,6 +125,18 @@
 
                     </LinearLayout>
 
+                    <!-- S0160: Resource ops overflow toggle (moved from File browser - it is a UI setting, not a browser one). -->
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -149,7 +161,7 @@
                             android:id="@+id/rowAllFiles"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:str_title="@string/all_files"
+                            app:str_title="@string/setting_all_files_allow_title"
                             app:str_subtitle="@string/setting_all_files_desc"
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_all_files_title"
@@ -223,18 +235,6 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/file_ops_in_overflow_menu"
                         app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
-
-                    <!-- S0160: Resource ops overflow toggle -->
-                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowResourceOpsInOverflowMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/resource_ops_in_overflow_menu"
-                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
-
-                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -569,15 +569,18 @@
 
                     </LinearLayout>
 
-                    <!-- X.11: Thumbnail Preload Toggle -->
-                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:orientation="vertical">
+                    <!-- X.11: Thumbnail Preload Toggle (SMB-reset button shares the row, pinned to the right of the toggle) -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableThumbnailPreload"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             app:str_title="@string/thumbnail_preload_title"
                             app:str_subtitle="@string/thumbnail_preload_summary" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/reset_smb_connections" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" />
 
                     </LinearLayout>
 
@@ -606,9 +609,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
-
-                        <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnResetSmbConnections" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

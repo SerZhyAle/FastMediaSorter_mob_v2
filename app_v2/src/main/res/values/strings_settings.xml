@@ -38,7 +38,6 @@
     <string name="settings_credentials_import_success">Import done: %1$d credentials, %2$d resources.</string>
     <string name="settings_credentials_import_success_with_settings">Import done: %1$d credentials, %2$d resources, settings updated.</string>
     <string name="settings_credentials_picker_failed">Couldn\'t open the file picker. Try again.</string>
-    <string name="settings_default_document_type_message">Android stores defaults per document type. Choose which type to configure now.</string>
     <string name="settings_default_document_type_office">Office documents</string>
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Document type</string>
@@ -112,18 +111,18 @@
     <string name="settings_set_default_video_player">Set as default video player</string>
     <string name="settings_subcategory_camera_capture">Camera capture</string>
     <string name="settings_subcategory_camera_ocr">Camera OCR &amp; Translation</string>
-    <string name="settings_subcategory_incoming_links">Incoming links</string>
+    <string name="settings_subcategory_incoming_links">Incoming link handling</string>
     <string name="settings_system_info_button">About system</string>
     <string name="settings_system_info_title">System information</string>
     <string name="settings_tab_backup">Backup</string>
     <string name="settings_tab_general">General</string>
     <string name="settings_tab_media">Media</string>
     <string name="settings_tab_network">Network</string>
-    <string name="settings_tab_operations">Operations</string>
-    <string name="settings_tab_playback">Playback</string>
+    <string name="settings_tab_operations">Management</string>
+    <string name="settings_tab_playback">Player</string>
     <string name="settings_unknown_error">Something didn\'t quite work out. Try again.</string>
     <string name="setting_accept_shared_files_desc">Allow receiving files shared from other apps</string>
-    <string name="setting_all_files_desc">Show all file types, not just media</string>
+    <string name="setting_all_files_desc">Permits the All Files mode. You still turn it on per resource.</string>
     <string name="setting_allow_delete_desc">Allow deleting files from within the player</string>
     <string name="setting_allow_rename_desc">Allow renaming files from within the player</string>
     <string name="setting_allow_separate_window">Allow new windows</string>
@@ -163,7 +162,7 @@
     <string name="setting_overwrite_on_move_desc">Replace existing file if name matches when moving</string>
     <string name="setting_photos_during_audio_desc">Random images during playback (select a list of audio - watch images)</string>
     <string name="setting_play_to_end_desc">Play media to end instead of using slideshow interval</string>
-    <string name="setting_prevent_sleep_desc">Keep screen on while viewing media</string>
+    <string name="setting_prevent_sleep_desc">Keep screen on while using the app</string>
     <string name="setting_primary_media_player_desc">Show FastMediaSorter in "Open with" and handle media buttons</string>
     <string name="setting_resume_on_next_launch">Resume playback on next launch</string>
     <string name="setting_resume_on_next_launch_desc">On app start, automatically reopen the last played file from where you left off</string>
@@ -181,7 +180,7 @@
     <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename for captured photo and video</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
     <string name="setting_slideshow_background_music_desc">A list of audio during viewing (select images - listen to audio)</string>
-    <string name="setting_small_controls_desc">Use compact control layout to save screen space</string>
+    <string name="setting_small_controls_desc">Shrink the bottom command buttons to save space</string>
     <string name="setting_support_audio_desc">Playback of MP3, FLAC, AAC, OGG, and other audio formats</string>
     <string name="setting_support_epub_desc">Reads EPUB books with bookmarks and table of contents</string>
     <string name="setting_support_gifs_desc">Plays animated GIFs in the file browser and player</string>
@@ -229,4 +228,12 @@
     <string name="setting_video_recording_destination_title">Video recordings destination</string>
     <string name="setting_video_recording_destination_default_movies">Default: if current resource is unavailable, device Movies folder</string>
     <string name="setting_select_destination">Select resource..</string>
+    <string name="setting_subgroup_default_player_title">Default app</string>
+    <string name="settings_default_player_btn_images">Default image viewer</string>
+    <string name="settings_default_player_btn_audio">Default audio player</string>
+    <string name="settings_default_player_btn_video">Default video player</string>
+    <string name="settings_default_player_btn_docs">Default document viewer</string>
+    <string name="settings_default_document_type_text">Text (TXT, LOG)</string>
+    <string name="settings_default_document_type_epub">EPUB</string>
+    <string name="setting_all_files_allow_title">Allow All Files mode</string>
 </resources>

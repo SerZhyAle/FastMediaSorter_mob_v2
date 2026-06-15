@@ -313,7 +313,7 @@
     <string name="reset_settings_success">Налаштування успішно скинуто на значення за замовчуванням</string>
     <string name="setup_content_first_toast">Спочатку налаштуйте контент..</string>
     <string name="prevent_sleep">Заборонити сон пристрою</string>
-    <string name="small_controls">Компактні елементи</string>
+    <string name="small_controls">Компактні кнопки внизу</string>
     <string name="compact_elements">Компактні елементи (глобально)</string>
     <string name="enable_favorites">Увімкнути обране</string>
     <string name="favorite">Обране</string>
@@ -1559,7 +1559,7 @@
     <string name="page_welcome_tvDescription_lineSpacingMultiplier">1.3</string>
     <string name="reset_general_section">Скинути розділ Загальні</string>
     <string name="reset_media_section">Скинути розділ Медіа</string>
-    <string name="reset_playback_section">Скинути розділ Відтворення</string>
+    <string name="reset_playback_section">Скинути налаштування Плеєра</string>
     <string name="reset_general_section_title">Скидання розділу Загальні</string>
     <string name="reset_general_section_message">Скинути лише налаштування розділу Загальні до значень за замовчуванням?</string>
     <string name="reset_general_section_success">Розділ Загальні скинуто</string>
@@ -1567,9 +1567,9 @@
     <string name="reset_media_section_title">Скидання розділу Медіа</string>
     <string name="reset_media_section_message">Скинути лише налаштування розділу Медіа до значень за замовчуванням?</string>
     <string name="reset_media_section_success">Розділ Медіа скинуто</string>
-    <string name="reset_playback_section_title">Скидання розділу Відтворення</string>
-    <string name="reset_playback_section_message">Скинути лише налаштування розділу Відтворення до значень за замовчуванням?</string>
-    <string name="reset_playback_section_success">Розділ Відтворення скинуто</string>
+    <string name="reset_playback_section_title">Скидання налаштувань Плеєра</string>
+    <string name="reset_playback_section_message">Скинути тільки налаштування сторінки «Плеєр» до значень за замовчуванням?</string>
+    <string name="reset_playback_section_success">Налаштування Плеєра скинуто</string>
 
     <!-- Remember file list -->
     <string name="default_remember_file_list">Запамʼятовувати списки файлів (за замовчуванням для нових ресурсів)</string>
@@ -2435,8 +2435,8 @@
     <string name="screen_capture_saved_to">Збережено в %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Знімок екрана</string>
     <string name="screen_capture_service_notification_text">Захоплюю поточний екран..</string>
-    <string name="setting_group_system_apps_title">Системні застосунки</string>
-    <string name="setting_subgroup_screen_gestures_title">Жести екрана</string>
+    <string name="setting_group_system_apps_title">Взаємодія з операційною системою</string>
+    <string name="setting_subgroup_screen_gestures_title">Жести з лівого краю екрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестів</string>
@@ -2452,16 +2452,16 @@
     <string name="default_player_choose_in_settings">У системних налаштуваннях оберіть FastMediaSorter додатком за замовчуванням для цього типу.</string>
     <string name="s0413_audio_track_skipped">Пропущено файл «%1$s» - не вдалося відтворити.</string>
     <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
-    <string name="settings_remote_sources_title">Віддалені джерела</string>
-    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_sources_title">Віддалені ресурси (SMB/(S)FTP/Хмара)</string>
+    <string name="settings_remote_source_smb_title">Локальна мережа (Ethernet) SMB</string>
     <string name="settings_remote_source_smb_subtitle">Спільні теки в домашній мережі або на NAS</string>
     <string name="settings_remote_source_smb_help_title">Джерела SMB</string>
     <string name="settings_remote_source_smb_help_message">Доступ до спільних тек у локальній мережі — наприклад, домашній NAS, комп\'ютер із Windows та увімкненим спільним доступом, роутер із USB-накопичувачем або інший пристрій із підтримкою SMB.</string>
-    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_title">Комп\'ютер в інтернеті (S)FTP</string>
     <string name="settings_remote_source_ftp_subtitle">Теки на сервері через FTP та SFTP</string>
     <string name="settings_remote_source_ftp_help_title">Джерела (S)FTP</string>
     <string name="settings_remote_source_ftp_help_message">Доступ до тек на сервері через FTP або SFTP — наприклад, домашній сервер, NAS, вебхостинг або роутер із підтримкою (S)FTP.</string>
-    <string name="settings_remote_source_cloud_title">Хмара</string>
+    <string name="settings_remote_source_cloud_title">У хмарних ресурсах</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Хмарні джерела</string>
     <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах — Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої теки безпосередньо в застосунку.</string>
@@ -2484,4 +2484,8 @@
     <string name="resource_share_export_failed">Не вдалося експортувати ресурси.</string>
     <string name="resource_share_import_failed">Не вдалося імпортувати ресурси.</string>
     <string name="resource_menu_export">Експорт</string>
+    <string name="reset_operations_section">Скинути налаштування управління</string>
+    <string name="reset_operations_section_title">Скидання налаштувань управління</string>
+    <string name="reset_operations_section_message">Скинути тільки налаштування сторінки «Управління» до значень за замовчуванням?</string>
+    <string name="reset_operations_section_success">Налаштування управління скинуто</string>
 </resources>

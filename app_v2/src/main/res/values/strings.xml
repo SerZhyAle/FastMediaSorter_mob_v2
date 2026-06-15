@@ -286,7 +286,7 @@
     <string name="reset_settings_success">Settings reset to defaults successfully</string>
     <string name="setup_content_first_toast">Setup the content first..</string>
     <string name="prevent_sleep">Prevent sleep</string>
-    <string name="small_controls">Compact controls</string>
+    <string name="small_controls">Compact bottom buttons</string>
     <string name="compact_elements">Compact elements</string>
     <string name="enable_favorites">Enable Favorites</string>
     <string name="favorite">Favorite</string>
@@ -1790,7 +1790,7 @@ Close the player and try again.</string>
     <string name="add_resource">Add resource</string>
     <string name="reset_general_section">Reset General section</string>
     <string name="reset_media_section">Reset Media section</string>
-    <string name="reset_playback_section">Reset Playback section</string>
+    <string name="reset_playback_section">Reset Player settings</string>
     <string name="reset_general_section_title">Reset General section</string>
     <string name="reset_general_section_message">Reset only General settings to default values?</string>
     <string name="reset_general_section_success">General section reset completed</string>
@@ -1798,9 +1798,9 @@ Close the player and try again.</string>
     <string name="reset_media_section_title">Reset Media section</string>
     <string name="reset_media_section_message">Reset only Media settings to default values?</string>
     <string name="reset_media_section_success">Media section reset completed</string>
-    <string name="reset_playback_section_title">Reset Playback section</string>
-    <string name="reset_playback_section_message">Reset only Playback settings to default values?</string>
-    <string name="reset_playback_section_success">Playback section reset completed</string>
+    <string name="reset_playback_section_title">Reset Player settings</string>
+    <string name="reset_playback_section_message">Reset only Player settings to default values?</string>
+    <string name="reset_playback_section_success">Player settings reset completed</string>
     <string name="local_folder_icon">Local folder icon</string>
     <string name="network_folder_icon">Network folder icon</string>
 
@@ -2520,8 +2520,8 @@ Close the player and try again.</string>
     <string name="screen_capture_saved_to">Saved to %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Screen capture</string>
     <string name="screen_capture_service_notification_text">Capturing the current screen..</string>
-    <string name="setting_group_system_apps_title">System apps</string>
-    <string name="setting_subgroup_screen_gestures_title">Screen gestures</string>
+    <string name="setting_group_system_apps_title">Operating system interaction</string>
+    <string name="setting_subgroup_screen_gestures_title">Left-edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
@@ -2537,16 +2537,16 @@ Close the player and try again.</string>
     <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
     <string name="s0413_audio_track_skipped">Skipped &quot;%1$s&quot; - this file cannot be played.</string>
     <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
-    <string name="settings_remote_sources_title">Remote sources</string>
-    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_sources_title">Remote resources (SMB/(S)FTP/Cloud)</string>
+    <string name="settings_remote_source_smb_title">Local network (Ethernet) SMB</string>
     <string name="settings_remote_source_smb_subtitle">Shared folders on your home network or NAS</string>
     <string name="settings_remote_source_smb_help_title">SMB sources</string>
     <string name="settings_remote_source_smb_help_message">Open shared folders over your local network - for example a home NAS, a Windows PC with file sharing turned on, a router with a USB drive, or any other device that exposes SMB shares.</string>
-    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_title">Computer on the internet (S)FTP</string>
     <string name="settings_remote_source_ftp_subtitle">Server folders over FTP and SFTP</string>
     <string name="settings_remote_source_ftp_help_title">(S)FTP sources</string>
     <string name="settings_remote_source_ftp_help_message">Open folders on a server over FTP or SFTP - for example a home server, a NAS, web hosting, or a router that supports (S)FTP.</string>
-    <string name="settings_remote_source_cloud_title">Cloud</string>
+    <string name="settings_remote_source_cloud_title">In cloud resources</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Cloud sources</string>
     <string name="settings_remote_source_cloud_help_message">Open files in cloud storage - Google Drive, OneDrive, and Dropbox. Connect an account to browse your cloud folders right inside the app.</string>
@@ -2569,4 +2569,8 @@ Close the player and try again.</string>
     <string name="resource_share_export_failed">Could not export resources.</string>
     <string name="resource_share_import_failed">Could not import resources.</string>
     <string name="resource_menu_export">Export</string>
+    <string name="reset_operations_section">Reset Management settings</string>
+    <string name="reset_operations_section_title">Reset Management settings</string>
+    <string name="reset_operations_section_message">Reset only Management tab settings to default values?</string>
+    <string name="reset_operations_section_success">Management settings reset completed</string>
 </resources>

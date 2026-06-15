@@ -331,6 +331,582 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+
+        <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage when playback header help copy is ready. -->
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerBehaviour"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_category_behaviour" />
+
+                <LinearLayout android:id="@+id/containerBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- S0435: Prevent-sleep + primary-media-player/accept-shared-files moved to the Operating-system-interaction group. -->
+
+                    <!-- Show detailed errors (moved here from the Player UI group) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDetailedErrors"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/show_detailed_errors"
+                        app:str_subtitle="@string/setting_detailed_errors_desc" />
+
+                    <!-- Toggle: Resume on next launch (moved up to follow primary player + shared files row, no divider) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowResumeOnNextLaunch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_resume_on_next_launch"
+                        app:str_subtitle="@string/setting_resume_on_next_launch_desc" />
+
+                    <!-- S0435: Incoming-links sub-section moved to the Operating-system-interaction group. -->
+
+                    <!-- Default for new resources: remember last viewed file -->
+                    <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowDefaultRememberFileList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/default_remember_file_list"
+                            app:str_subtitle="@string/setting_default_remember_file_list_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/remember_file_list_help_title"
+                            app:str_helpMessage="@string/remember_file_list_help_message" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Other features (S0318) - camera capture + black screen, moved from Behaviour -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerOtherFeatures"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_category_other_features" />
+
+                <LinearLayout android:id="@+id/containerOtherFeatures" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- Camera OCR Translation rows (S0320) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCameraOcrTranslationEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_camera_ocr_translation_title"
+                        app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
+
+                    <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraOcrOnly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_title="@string/setting_camera_ocr_only_title"
+                            app:str_subtitle="@string/setting_camera_ocr_only_desc" />
+                    </LinearLayout>
+
+                    <!-- S0367: Camera Photos block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCameraToResourceEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/setting_camera_to_resource_enabled_title"
+                        app:str_subtitle="@string/setting_camera_to_resource_enabled_desc" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutCameraToResourceOptions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_nested_margin_start">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraAskFilename"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/setting_camera_ask_filename_title"
+                            app:str_subtitle="@string/setting_camera_ask_filename_desc" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraOpenForEditing"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/setting_camera_open_for_editing_title"
+                            app:str_subtitle="@string/setting_camera_open_for_editing_desc" />
+
+                        <!-- S0367: Camera photos destination selector. Empty = device camera folder (DCIM/Camera). -->
+                        <LinearLayout
+                            android:id="@+id/layoutCameraPhotosDestSelector"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:layout_marginBottom="@dimen/margin_small">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_camera_photos_destination_title"
+                                android:textColor="@color/text_color_primary"
+                                android:textSize="@dimen/toggler_title_text_size"
+                                android:layout_marginBottom="@dimen/margin_small" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvCameraPhotosDest"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/setting_camera_photos_destination_default_camera"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <Button
+                                    android:id="@+id/btnSelectCameraPhotosDest"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- S0371: Video recording block. Sibling of camera photos; master toggle stored inverted. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowVideoCaptureEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/setting_video_capture_enable_title"
+                        app:str_subtitle="@string/setting_video_capture_enable_desc" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutVideoCaptureOptions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_nested_margin_start">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowVideoCaptureOpenInPlayer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/setting_video_capture_open_in_player_title"
+                            app:str_subtitle="@string/setting_video_capture_open_in_player_desc" />
+
+                        <!-- S0375: Video recordings destination selector. Used when the current
+                             resource is not a usable save target; empty/stale falls back to Movies. -->
+                        <LinearLayout
+                            android:id="@+id/layoutVideoRecordingDestSelector"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:layout_marginBottom="@dimen/margin_small">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_video_recording_destination_title"
+                                android:textColor="@color/text_color_primary"
+                                android:textSize="@dimen/toggler_title_text_size"
+                                android:layout_marginBottom="@dimen/margin_small" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvVideoRecordingDest"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/setting_video_recording_destination_default_movies"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <Button
+                                    android:id="@+id/btnSelectVideoRecordingDest"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- S0367: Microphone recording block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowMicRecordingEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:str_title="@string/settings_mic_recording_enable_title"
+                        app:str_subtitle="@string/settings_mic_recording_enable_desc" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowMicRecordingAskFilename"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        app:str_title="@string/settings_mic_recording_ask_filename_title"
+                        app:str_subtitle="@string/settings_mic_recording_ask_filename_desc" />
+
+                    <!-- S0367: Microphone recordings destination selector. Empty = public Downloads. -->
+                    <LinearLayout
+                        android:id="@+id/layoutMicRecordingDestSelector"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_nested_margin_start"
+                        android:layout_marginBottom="@dimen/margin_small">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_mic_recording_destination_title"
+                            android:textColor="@color/text_color_primary"
+                            android:textSize="@dimen/toggler_title_text_size"
+                            android:layout_marginBottom="@dimen/margin_small" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvMicRecordingDest"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="@dimen/margin_small"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/setting_mic_recording_destination_default_downloads"
+                                android:textColor="@color/text_color_secondary"
+                                android:textSize="@dimen/toggler_title_text_size" />
+
+                            <Button
+                                android:id="@+id/btnSelectMicRecordingDest"
+                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_select_destination"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- S0050: Show Black Screen button toggle (moved from Behaviour, S0318) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowShowBlackScreenButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/settings_black_screen_button_title"
+                        app:str_subtitle="@string/settings_black_screen_button_desc" />
+
+                    <!-- Calculator + Embedded game (moved here from the General tab "Other functionality" group) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableCalculator"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/calculator_title"
+                        app:str_subtitle="@string/setting_calculator_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_calculator_title"
+                        app:str_helpMessage="@string/tooltip_calculator_message" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEmbeddedGame"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/game_settings_toggle_title"
+                        app:str_subtitle="@string/game_settings_toggle_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/game_settings_help_title"
+                        app:str_helpMessage="@string/game_settings_help_message" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: System apps (S0405) - noLegal-only screen-gesture overlay; hidden when capability absent. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupSystemApps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSystemApps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/setting_group_system_apps_title" />
+
+                <LinearLayout android:id="@+id/containerSystemApps" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- S0435: Prevent Sleep (moved from Behaviour; kept at the very top of this group). -->
+                    <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowPreventSleep"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/prevent_sleep"
+                            app:str_subtitle="@string/setting_prevent_sleep_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_prevent_sleep_title"
+                            app:str_helpMessage="@string/tooltip_prevent_sleep_message" />
+
+                    </LinearLayout>
+
+                    <!-- S0435: Follow OS auto-rotate (moved from Player UI; no subgroup header). Visibility gated by accelerometer presence. -->
+                    <LinearLayout android:id="@+id/layoutFollowSystemRotation" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowFollowSystemRotation"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_title="@string/setting_follow_system_rotation_title"
+                            app:str_subtitle="@string/setting_follow_system_rotation_summary" />
+
+                    </LinearLayout>
+
+                    <!-- S0435: Default-player subgroup. Whole block gated by supportsDefaultPlayer; each button by media type. -->
+                    <LinearLayout android:id="@+id/layoutDefaultPlayerSubgroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/setting_subgroup_default_player_title" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
+
+                        <!-- Hint copy set in code from welcome_default_player_hint (HTML) to stay in sync with the welcome page. Muted colour so it reads as instructions, not a link. -->
+                        <TextView android:id="@+id/tvDefaultPlayerSettingsHint" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerImages" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_default_player_btn_images" android:textAllCaps="false" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerAudio" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_default_player_btn_audio" android:textAllCaps="false" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerVideo" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_default_player_btn_video" android:textAllCaps="false" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerDocs" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_default_player_btn_docs" android:textAllCaps="false" />
+
+                        <!-- S0435: system media handler + accept shared files (moved from Behaviour into this group). -->
+                        <LinearLayout android:id="@+id/layoutDefaultPlayerToggles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowPrimaryMediaPlayer"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="@dimen/margin_small"
+                                app:str_title="@string/settings_primary_media_player"
+                                app:str_subtitle="@string/setting_primary_media_player_desc" />
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowAcceptSharedFiles"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="@dimen/margin_small"
+                                app:str_title="@string/settings_accept_shared_files"
+                                app:str_subtitle="@string/setting_accept_shared_files_desc" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- S0435: Incoming-links subgroup (moved from Behaviour). -->
+                    <LinearLayout android:id="@+id/layoutIncomingLinksSubgroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_subcategory_incoming_links" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowLinkAutodownloadEnabled"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_title="@string/link_autodownload_master_label"
+                            app:str_subtitle="@string/link_autodownload_master_summary" />
+
+                        <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_label" android:textSize="@dimen/toggler_title_text_size" />
+                                <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+
+                            </LinearLayout>
+                            <TextView android:id="@+id/tv_link_autodownload_resource_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowLinkAutodownloadOpenInPlayer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_title="@string/link_autodownload_open_in_player_label"
+                            app:str_subtitle="@string/link_autodownload_open_in_player_summary" />
+
+                    </LinearLayout>
+
+                    <!-- S0435: Screen-gestures extracted into its own collapsible group below (after this OS-interaction card). -->
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Screen gestures (S0435) - extracted from the OS-interaction card into its own collapsible group; noLegal-only, hidden when the gesture capability is absent. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/groupScreenGestures"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerScreenGestures"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/setting_subgroup_screen_gestures_title" />
+
+                <LinearLayout android:id="@+id/containerScreenGestures" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowGestureOverlayEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_gesture_overlay_title"
+                        app:str_subtitle="@string/setting_gesture_overlay_summary"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/setting_gesture_overlay_help_title"
+                        app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowScreenshotGestureDown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_screenshot_gesture_down_title"
+                        app:str_subtitle="@string/setting_screenshot_gesture_down_summary" />
+
+                    <!-- Screenshot destination (tap opens the destination picker) -->
+                    <LinearLayout android:id="@+id/rowScreenshotDestination" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_destination_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+
+                        </LinearLayout>
+                        <TextView android:id="@+id/tvScreenshotDestinationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_destination_default" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Controls & Keybindings entry -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout
+                android:id="@+id/rowControlsKeybindings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_controls_keybindings_title"
+                        android:textSize="@dimen/toggler_title_text_size" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_controls_keybindings_desc"
+                        android:textColor="@color/text_color_secondary"
+                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:importantForAccessibility="no" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetOperationsSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_operations_section" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" />
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
 

@@ -314,7 +314,7 @@
     <string name="reset_settings_success">Настройки успешно сброшены на значения по умолчанию</string>
     <string name="setup_content_first_toast">Сначала настройте контент..</string>
     <string name="prevent_sleep">Запретить сон устройства</string>
-    <string name="small_controls">Компактные элементы</string>
+    <string name="small_controls">Компактные кнопки внизу</string>
     <string name="compact_elements">Компактные элементы (глобально)</string>
     <string name="enable_favorites">Включить избранное</string>
     <string name="favorite">Избранное</string>
@@ -1563,7 +1563,7 @@
     <string name="page_welcome_tvDescription_lineSpacingMultiplier">1.3</string>
     <string name="reset_general_section">Сбросить раздел Общие</string>
     <string name="reset_media_section">Сбросить раздел Медиа</string>
-    <string name="reset_playback_section">Сбросить раздел Воспроизведение</string>
+    <string name="reset_playback_section">Сбросить настройки Плеера</string>
     <string name="reset_general_section_title">Сброс раздела Общие</string>
     <string name="reset_general_section_message">Сбросить только настройки раздела Общие к значениям по умолчанию?</string>
     <string name="reset_general_section_success">Раздел Общие сброшен</string>
@@ -1571,9 +1571,9 @@
     <string name="reset_media_section_title">Сброс раздела Медиа</string>
     <string name="reset_media_section_message">Сбросить только настройки раздела Медиа к значениям по умолчанию?</string>
     <string name="reset_media_section_success">Раздел Медиа сброшен</string>
-    <string name="reset_playback_section_title">Сброс раздела Воспроизведение</string>
-    <string name="reset_playback_section_message">Сбросить только настройки раздела Воспроизведение к значениям по умолчанию?</string>
-    <string name="reset_playback_section_success">Раздел Воспроизведение сброшен</string>
+    <string name="reset_playback_section_title">Сброс настроек Плеера</string>
+    <string name="reset_playback_section_message">Сбросить только настройки страницы «Плеер» к значениям по умолчанию?</string>
+    <string name="reset_playback_section_success">Настройки Плеера сброшены</string>
 
     <!-- Remember file list -->
     <string name="default_remember_file_list">Запоминать списки файлов (по умолчанию для новых ресурсов)</string>
@@ -2472,8 +2472,8 @@
     <string name="screen_capture_saved_to">Сохранено в %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Снимок экрана</string>
     <string name="screen_capture_service_notification_text">Захватываю текущий экран..</string>
-    <string name="setting_group_system_apps_title">Системные приложения</string>
-    <string name="setting_subgroup_screen_gestures_title">Жесты экрана</string>
+    <string name="setting_group_system_apps_title">Взаимодействие с операционной системой</string>
+    <string name="setting_subgroup_screen_gestures_title">Жесты с левого края экрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестов</string>
@@ -2489,16 +2489,16 @@
     <string name="default_player_choose_in_settings">В системных настройках выберите FastMediaSorter приложением по умолчанию для этого типа.</string>
     <string name="s0413_audio_track_skipped">Пропущен файл «%1$s» - его не удалось воспроизвести.</string>
     <string name="s0413_audio_queue_unplayable">Не удалось воспроизвести ни один файл.</string>
-    <string name="settings_remote_sources_title">Удалённые источники</string>
-    <string name="settings_remote_source_smb_title">SMB</string>
+    <string name="settings_remote_sources_title">Удалённые ресурсы (SMB/(S)FTP/Облако)</string>
+    <string name="settings_remote_source_smb_title">Локальная сеть (Ethernet) SMB</string>
     <string name="settings_remote_source_smb_subtitle">Общие папки в домашней сети или на NAS</string>
     <string name="settings_remote_source_smb_help_title">Источники SMB</string>
     <string name="settings_remote_source_smb_help_message">Доступ к общим папкам по локальной сети — например, домашний NAS, компьютер с Windows и включённым общим доступом, роутер с USB-накопителем или другое устройство с поддержкой SMB.</string>
-    <string name="settings_remote_source_ftp_title">(S)FTP</string>
+    <string name="settings_remote_source_ftp_title">Компьютер в интернете (S)FTP</string>
     <string name="settings_remote_source_ftp_subtitle">Папки на сервере по FTP и SFTP</string>
     <string name="settings_remote_source_ftp_help_title">Источники (S)FTP</string>
     <string name="settings_remote_source_ftp_help_message">Доступ к папкам на сервере по FTP или SFTP — например, домашний сервер, NAS, веб-хостинг или роутер с поддержкой (S)FTP.</string>
-    <string name="settings_remote_source_cloud_title">Облако</string>
+    <string name="settings_remote_source_cloud_title">В облачных ресурсах</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Облачные источники</string>
     <string name="settings_remote_source_cloud_help_message">Доступ к файлам в облачных хранилищах — Google Drive, OneDrive и Dropbox. Подключите аккаунт, чтобы открывать свои папки прямо в приложении.</string>
@@ -2521,4 +2521,8 @@
     <string name="resource_share_export_failed">Не удалось экспортировать ресурсы.</string>
     <string name="resource_share_import_failed">Не удалось импортировать ресурсы.</string>
     <string name="resource_menu_export">Экспорт</string>
+    <string name="reset_operations_section">Сбросить настройки управления</string>
+    <string name="reset_operations_section_title">Сброс настроек управления</string>
+    <string name="reset_operations_section_message">Сбросить только настройки страницы «Управление» к значениям по умолчанию?</string>
+    <string name="reset_operations_section_success">Настройки управления сброшены</string>
 </resources>
