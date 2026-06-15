@@ -227,7 +227,6 @@ class AudioPlaybackService : MediaSessionService() {
                     && consecutiveSkipCount < p.mediaItemCount
                 ) {
                     // Per-file parsing/decoding error in a playlist: skip the bad track and continue.
-                    Timber.d("S0413: skippable audio source error - advancing to next track")
                     consecutiveSkipCount++
                     Timber.w(error, "AudioPlaybackService: skippable source error - advancing to next track")
                     showSkipMessage(currentItemDisplayName(p))

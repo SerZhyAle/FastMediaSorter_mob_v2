@@ -30,6 +30,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 - **Edge-gesture screen capture** `[Standard]`: Enable a thin left-edge strip and swipe diagonally to screenshot any screen — including other apps — saving straight to a chosen resource or the device screenshots folder (each capture confirms a quick system consent).
+- **Assignable gesture actions** `[Standard]`: Give each screenshot gesture direction — down, right, up — its own action after capture: silent save, open in player, open for editing, OCR translation, share, or off.
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 10 favorite target folders inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.

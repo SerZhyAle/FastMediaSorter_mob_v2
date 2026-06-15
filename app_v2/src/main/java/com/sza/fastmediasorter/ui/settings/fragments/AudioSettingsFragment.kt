@@ -196,7 +196,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 val selectedKey = emptyStateModeKeys.getOrElse(position) { MODE_NONE }
                 val current = viewModel.settings.value
                 if (selectedKey == MODE_VISUALIZATION) {
-                    timber.log.Timber.d("S0407: audio viz settings gate")
                     // Video background ships via on-demand delivery (Set C); offer the download when the
                     // set is not installed, and keep the prior mode selected if the user refuses.
                     deliveryEnableInterceptor.requireInstalled(

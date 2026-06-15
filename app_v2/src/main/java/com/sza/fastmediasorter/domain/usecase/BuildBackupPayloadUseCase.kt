@@ -26,7 +26,6 @@ class BuildBackupPayloadUseCase @Inject constructor(
     private val authSessionRepository: AuthSessionRepository
 ) {
     suspend operator fun invoke(): BackupPayload {
-        Timber.d("S0406: build unified backup payload (settings/resources/favorites/creds/sessions)")
         val settings = settingsRepository.getSettings().first()
         val resources = resourceRepository.getAllResourcesSync()
         val resourceLookup = resources.associateBy { it.id }

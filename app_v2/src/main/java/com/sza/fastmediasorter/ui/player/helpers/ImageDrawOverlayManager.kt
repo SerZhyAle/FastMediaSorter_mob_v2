@@ -336,7 +336,6 @@ class ImageDrawOverlayManager(
                     ?.isEnabled = hasActions
                 // S0362: hide "Send to Google Keep" when Keep is not installed (unified fallback).
                 val keepAvailable = keepChecker.isKeepAvailable()
-                Timber.d("S0362: draw overflow opened, keepAvailable=$keepAvailable")
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_keep)
                     ?.isVisible = keepAvailable
                 // S0360: "Delete file" only when a source file is open.

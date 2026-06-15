@@ -2441,8 +2441,6 @@
     <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_help_message">Біля лівого краю екрана розташована тонка невидима смуга. Щоб зняти поточний екран, проведіть від смуги по діагоналі вниз і вправо (приблизно 45°). Знімок зберігається у вибраний ресурс — типово в папку скриншотів пристрою. Потрібен дозвіл «Поверх інших застосунків». Смуга займає лівий край від 10 до 75 відсотків висоти; верхній кут залишено вільним, щоб не спрацьовувати випадково.</string>
-    <string name="setting_screenshot_gesture_down_title">Знімок жестом вниз</string>
-    <string name="setting_screenshot_gesture_down_summary">Проведіть від смуги праворуч-вниз, щоб зняти поточний екран</string>
     <string name="setting_screenshot_destination_title">Завантажувати знімки до..</string>
     <string name="setting_screenshot_destination_default">Папка знімків пристрою (або Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Дозвольте показ поверх інших застосунків, щоб відображати смугу жестів</string>
@@ -2489,4 +2487,16 @@
     <string name="reset_operations_section_message">Скинути тільки налаштування сторінки «Управління» до значень за замовчуванням?</string>
     <string name="reset_operations_section_success">Налаштування управління скинуто</string>
     <string name="ocr_engines_damaged">Дані OCR пошкоджені. Перевстановіть їх у розділі «Додаткові модулі».</string>
+    <string name="setting_screenshot_accessibility_shortcut_hint">Жести-знімки використовують службу спеціальних можливостей. Якщо Android її вимкнув, увімкніть її знову тут.</string>
+    <string name="setting_screenshot_accessibility_shortcut_button">Відкрити спеціальні можливості</string>
+    <string name="setting_screenshot_gesture_action_down_title">Дія жесту вниз</string>
+    <string name="setting_screenshot_gesture_action_right_title">Дія жесту праворуч</string>
+    <string name="setting_screenshot_gesture_action_up_title">Дія жесту вгору</string>
+    <string name="setting_screenshot_gesture_action_dialog_title">Дія жесту</string>
+    <string name="screenshot_gesture_action_silent">Тихий знімок</string>
+    <string name="screenshot_gesture_action_open_player">Відкрити в плеєрі</string>
+    <string name="screenshot_gesture_action_open_draw">Відкрити для редагування</string>
+    <string name="screenshot_gesture_action_ocr_translate">Надіслати на OCR-переклад</string>
+    <string name="screenshot_gesture_action_share">Поділитися</string>
+    <string name="screenshot_gesture_action_none">Не використовувати</string>
 </resources>

@@ -164,7 +164,9 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
-    val screenshotGestureDownEnabled: Boolean = true,
+    val screenshotGestureActionDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
+    val screenshotGestureActionRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureActionUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotDestinationResourceId: String? = null,
 
     // Player UI settings

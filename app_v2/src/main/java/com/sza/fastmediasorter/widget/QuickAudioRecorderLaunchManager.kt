@@ -43,7 +43,6 @@ class QuickAudioRecorderLaunchManager(
     }
 
     fun onPermissionResult(granted: Boolean) {
-        Timber.d("S0349: RECORD_AUDIO permission result granted=$granted")
         if (granted) {
             QuickAudioRecorderService.start(activity)
         } else if (ActivityCompat.shouldShowRequestPermissionRationale(

@@ -113,7 +113,6 @@ class CameraOcrFlowManager(
     }
 
     private fun launchCaptureInternal() {
-        Timber.d("S0359: in-app camera capture launched for OCR")
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null
 
@@ -206,7 +205,6 @@ class CameraOcrFlowManager(
         // satisfied — this Activity only launches in translation-capable flavors (Rule 15: no
         // BuildConfig flavor guard in src/main).
         val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
-        Timber.d("S0354: crop language cluster rendered, translationAvailable=$translationAvailable")
         callback.renderCropLanguages(
             sourceCode = settings.translationSourceLanguage,
             targetCode = settings.translationTargetLanguage,
@@ -217,7 +215,6 @@ class CameraOcrFlowManager(
     /** Persists the chosen OCR source language to global settings and re-renders the cluster. */
     fun setCropSourceLanguage(code: String) {
         scope.launch {
-            Timber.d("S0354: crop OCR language changed to $code")
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(current.copy(translationSourceLanguage = code))
             emitCropLanguages()
@@ -227,7 +224,6 @@ class CameraOcrFlowManager(
     /** Persists the chosen translation target language to global settings and re-renders the cluster. */
     fun setCropTargetLanguage(code: String) {
         scope.launch {
-            Timber.d("S0354: crop target language changed to $code")
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(current.copy(translationTargetLanguage = code))
             emitCropLanguages()

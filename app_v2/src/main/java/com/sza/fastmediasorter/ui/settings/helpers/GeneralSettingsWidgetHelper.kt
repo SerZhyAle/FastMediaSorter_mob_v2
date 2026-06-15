@@ -31,7 +31,6 @@ class GeneralSettingsWidgetHelper(
     }
 
     private fun onAddWidgetClicked() {
-        Timber.d("S0348: settings add-widget picker opened")
         val context = fragment.requireContext()
         if (!pinner.isSupported()) {
             Toast.makeText(context, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
@@ -54,7 +53,6 @@ class GeneralSettingsWidgetHelper(
             .setTitle(R.string.widget_picker_dialog_title)
             .setItems(labels) { _, which ->
                 val entry = entries[which]
-                Timber.d("S0348: widget pin requested from settings picker: ${entry.providerClass.simpleName}")
                 val requested = pinner.requestPin(entry.component(context), null)
                 if (!requested) {
                     Toast.makeText(context, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()

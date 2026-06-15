@@ -663,7 +663,6 @@ class BrowseDialogHelper(
         dialogBinding.btnApply.setOnClickListener {
             val newNames = adapter.getFileNames()
             callbacks.getLifecycleOwner().lifecycleScope.launch {
-                Timber.d("S0417: batch rename via FileOperationUseCase")
                 var renamedCount = 0
                 val errors = mutableListOf<String>()
                 // (currentPathAfterRename, originalDisplayName) pairs for undo.

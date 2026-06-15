@@ -493,7 +493,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
-            Timber.d("S0035: Browse local-network permission result")
             com.sza.fastmediasorter.core.util.PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
         }
     }

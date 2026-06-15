@@ -373,7 +373,6 @@ class BackupRestoreViewModel @Inject constructor(
 
     fun exportAllResources(target: Uri) {
         viewModelScope.launch {
-            Timber.d("S0422: settings export all resources")
             _exportResState.value = ResourceShareExportUiState.Loading
             val ids = resourceRepository.getAllResourcesSync()
                 .filter { !VirtualPathUtils.isVirtualPath(it.path) }
@@ -391,7 +390,6 @@ class BackupRestoreViewModel @Inject constructor(
 
     fun previewResourceImport(uri: Uri) {
         viewModelScope.launch {
-            Timber.d("S0422: settings import preview")
             _importResState.value = ResourceShareImportUiState.LoadingPreview
             _importResState.value = when (val preview = szaResourcesImporter.preview(uri)) {
                 is SzaResourcesImporter.PreviewResult.Valid ->

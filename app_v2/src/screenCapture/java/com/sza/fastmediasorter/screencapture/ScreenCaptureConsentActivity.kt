@@ -10,12 +10,14 @@ import com.sza.fastmediasorter.R
 
 class ScreenCaptureConsentActivity : AppCompatActivity() {
 
+    private var gestureDirection: String? = null
+
     private val consentLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val data = result.data
         if (result.resultCode == Activity.RESULT_OK && data != null) {
-            ScreenCaptureService.start(this, result.resultCode, data)
+            ScreenCaptureService.start(this, result.resultCode, data, gestureDirection)
         } else {
             Toast.makeText(this, R.string.msg_operation_cancelled, Toast.LENGTH_SHORT).show()
         }
@@ -24,6 +26,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        gestureDirection = intent?.getStringExtra(EXTRA_GESTURE_DIRECTION)
         if (savedInstanceState != null) return
         val projectionManager = getSystemService(MediaProjectionManager::class.java)
         if (projectionManager == null) {
@@ -32,5 +35,9 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
             return
         }
         consentLauncher.launch(projectionManager.createScreenCaptureIntent())
+    }
+
+    companion object {
+        const val EXTRA_GESTURE_DIRECTION = "gesture_direction"
     }
 }

@@ -141,7 +141,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      */
     private fun maybeSkipTypeSelection() {
         if (!remoteSourceGate.anyRemoteEnabled()) {
-            Timber.d("S0391: only Local source available - skipping the type picker")
             showLocalFolderOptions()
         }
     }
@@ -478,7 +477,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
-            Timber.d("S0035: AddResource local-network permission result")
             com.sza.fastmediasorter.core.util.PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
         }
     }

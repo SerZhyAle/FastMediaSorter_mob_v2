@@ -324,7 +324,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             null
         }
         return if (documentCallback != null && callback != null) {
-            Timber.d("S0393: standalone WebView selection ActionMode augmented (ported from legacy host)")
             super.startActionMode(
                 DocumentSelectionActionModeAugmentingCallback(callback, documentCallback), type
             )

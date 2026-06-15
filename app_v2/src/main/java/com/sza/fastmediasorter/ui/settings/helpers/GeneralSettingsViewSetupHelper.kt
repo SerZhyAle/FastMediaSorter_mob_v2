@@ -230,7 +230,6 @@ class GeneralSettingsViewSetupHelper(
         affectedTypes: List<ResourceType>,
         transform: (com.sza.fastmediasorter.domain.model.AppSettings) -> com.sza.fastmediasorter.domain.model.AppSettings,
     ) {
-        Timber.d("S0391: settings remote-source toggle, enabled=$enabled types=$affectedTypes")
         val current = viewModel.settings.value
         if (enabled || !groupHasResources(affectedTypes)) {
             viewModel.updateSettings(transform(current))

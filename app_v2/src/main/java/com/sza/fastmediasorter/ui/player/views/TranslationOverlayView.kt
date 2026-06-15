@@ -25,16 +25,17 @@ import kotlin.math.abs
  * 
  * Language-agnostic design:
  * - Works equally well for any translation direction (ru→en, en→ru, uk→en, etc.)
- * - Conservative font sizing prevents oversized blocks on short text
+ * - Font is sized to the original text so the block matches and covers the source
  * - Intelligent text wrapping with expansion limits
- * 
- * Text rendering strategy:
- * 1. Calculate font size: 50% of box height (45% for small boxes < 40sp)
+ *
+ * Text rendering strategy (S0451):
+ * 1. Auto-size font so a single line fills ~90% of the original OCR box height
+ *    (metric-correct, no fixed sp ceiling) so it matches the source text size
  * 2. Wrap text to multiple lines within bounding box width
- * 3. If still doesn't fit vertically, reduce font size (min 9sp)
- * 4. If still doesn't fit horizontally, expand box up to 150% width
- * 5. If still doesn't fit vertically, expand box up to 200% height
- * 6. Center text vertically within final box
+ * 3. If multiline still doesn't fit vertically, reduce font size (min 8sp)
+ * 4. Background covers at least the original box; expand width/height only when the
+ *    translation is larger, capped at 270%
+ * 5. Center text vertically within final box
  * 
  * Features:
  * - Tap on a block to bring it to front (raise z-order)
@@ -64,9 +65,13 @@ class TranslationOverlayView @JvmOverloads constructor(
 
     private val translatedBlocks = mutableListOf<TranslatedBlock>()
     
-    // Text size range in SP (adaptive to match different document types)
-    private val minTextSizeSp = 8f  // Raised minimum to prevent too small text
-    private val maxTextSizeSp = 14f  // Moderate maximum for readability
+    // Minimum SP floor for translated text (prevents unreadably small text).
+    private val minTextSizeSp = 8f
+    // S0451: auto-size targets this fraction of the original OCR box height so the
+    // translation matches and covers the source text, leaving slight headroom for
+    // longer translations before they wrap. There is no fixed SP ceiling
+    // (perBlockMaxFontSizeSp is the only safety cap), so large source text is matched.
+    private val singleLineHeightFill = 0.9f
     
     // Per-block custom font size range (user adjustable via gestures)
     private val perBlockMinFontSizeSp = 6f
@@ -140,7 +145,12 @@ class TranslationOverlayView @JvmOverloads constructor(
                 for (i in translatedBlocks.indices.reversed()) {
                     if (i < scaledRects.size && scaledRects[i].contains(e1.x, e1.y)) {
                         val block = translatedBlocks[i]
-                        val currentSize = block.customFontSize ?: (maxTextSizeSp * fontSizeMultiplier)
+                        // S0451: seed manual resize from the current auto size (sp) when the
+                        // block has no override yet, so the first swipe nudges from what is shown.
+                        val currentSize = block.customFontSize ?: run {
+                            val scaledBoxHeight = block.boundingBox.height() * scaleY
+                            autoTextSizePx(scaledBoxHeight) / resources.displayMetrics.density
+                        }
                         
                         val newSize = if (deltaX > 0) {
                             // Swipe right - increase
@@ -189,6 +199,23 @@ class TranslationOverlayView @JvmOverloads constructor(
             sp,
             context.resources.displayMetrics
         )
+    }
+
+    /**
+     * S0451: auto font size (px) that makes a single line fill [singleLineHeightFill]
+     * of the original OCR box height, so the translation matches and covers the source
+     * text. Metric-correct: divides by the font line-height-per-em so the rendered line
+     * (ascent+descent), not the raw em, fills the target. Applies the global multiplier
+     * and clamps to [minTextSizeSp]..[perBlockMaxFontSizeSp]; no fixed mid-range ceiling.
+     */
+    private fun autoTextSizePx(usableBoxHeight: Float): Float {
+        val saved = textPaint.textSize
+        textPaint.textSize = 100f
+        val fm = textPaint.fontMetrics
+        val lineHeightPerEm = ((fm.descent - fm.ascent) / 100f).coerceAtLeast(0.1f)
+        textPaint.textSize = saved
+        val target = (usableBoxHeight.coerceAtLeast(1f) * singleLineHeightFill) / lineHeightPerEm
+        return (target * fontSizeMultiplier).coerceIn(spToPx(minTextSizeSp), spToPx(perBlockMaxFontSizeSp))
     }
     
     /**
@@ -381,7 +408,7 @@ class TranslationOverlayView @JvmOverloads constructor(
      */
     fun setTranslatedBlocks(blocks: List<TranslatedBlock>) {
         translatedBlocks.clear()
-        
+
         // Sample colors for each block
         for (block in blocks) {
             val bgColor = sampleBackgroundColor(block.boundingBox)
@@ -442,8 +469,7 @@ class TranslationOverlayView @JvmOverloads constructor(
         super.onDraw(canvas)
         
         val minTextSizePx = spToPx(minTextSizeSp)
-        val maxTextSizePx = spToPx(maxTextSizeSp)
-        
+
         // Clear and rebuild scaled rects for hit testing
         scaledRects.clear()
         
@@ -474,33 +500,14 @@ class TranslationOverlayView @JvmOverloads constructor(
             val padding = spToPx(2f + (scaledHeight / 100f).coerceIn(0f, 2f))
             val availableWidth = (scaledWidth - padding * 2).toInt().coerceAtLeast(1)
             
-            // Use custom font size if set by user gesture, otherwise calculate automatically
+            // Use custom font size if set by user gesture, otherwise auto-size to the
+            // original box height (S0451) so the translation matches and covers the source.
             var textSize = if (block.customFontSize != null) {
                 spToPx(block.customFontSize!!)
             } else {
-                // Calculate optimal text size with adaptive approach:
-                // Strategy: Analyze text density (chars per pixel) to determine appropriate size
-                // - Dense text (many chars in small box) → smaller ratio
-                // - Sparse text (few chars in large box) → larger ratio
-                val textLength = block.translatedText.length
-                val boxArea = scaledWidth * scaledHeight
-                val charDensity = textLength / boxArea  // chars per square pixel
-                
-                // Adaptive ratio based on box height and character density
-                val baseRatio = when {
-                    // Very large box (> 80sp) with low density → use moderate ratio
-                    scaledHeight > spToPx(80f) && charDensity < 0.01f -> 0.38f
-                    // Large box (50-80sp) → conservative ratio
-                    scaledHeight > spToPx(50f) -> 0.35f
-                    // Medium box (30-50sp) → standard ratio
-                    scaledHeight > spToPx(30f) -> 0.40f
-                    // Small box (< 30sp) → larger ratio to keep readable
-                    else -> 0.45f
-                }
-                
-                (scaledHeight * baseRatio * fontSizeMultiplier).coerceIn(minTextSizePx * fontSizeMultiplier, maxTextSizePx * fontSizeMultiplier)
+                autoTextSizePx(scaledHeight - padding * 2)
             }
-            
+
             textPaint.textSize = textSize
             
             // Create StaticLayout for multiline text wrapping within box width
@@ -522,27 +529,16 @@ class TranslationOverlayView @JvmOverloads constructor(
             val textActualWidth = (0 until staticLayout.lineCount)
                 .maxOfOrNull { staticLayout.getLineWidth(it) } ?: 0f
             
-            // Limit horizontal expansion to 270% of original box width (improved readability)
+            // S0451: cover at least the original box width (never shrink below the source
+            // text); expand right only when the translation is wider, capped at 270%.
             val maxAllowedWidth = scaledWidth * 2.7f
-            val actualRight = if (textActualWidth + padding * 2 > scaledWidth) {
-                // Text doesn't fit - expand right, but with limit
-                val expandedWidth = textActualWidth + padding * 2
-                scaledLeft + expandedWidth.coerceAtMost(maxAllowedWidth)
-            } else {
-                // Text fits or is shorter - use actual text width (shrink to fit)
-                scaledLeft + textActualWidth + padding * 2
-            }
-            
-            // Height: use box width, unless multiline text is taller
+            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceIn(scaledWidth, maxAllowedWidth)
+
+            // S0451: cover at least the original box height; expand down only when the
+            // translation is taller (multiline), capped at 270%.
             val textHeightWithPadding = staticLayout.height + padding * 2
-            // Limit vertical expansion to 270% of original box height (match width expansion)
             val maxAllowedHeight = scaledHeight * 2.7f
-            val actualBottom = if (textHeightWithPadding > scaledHeight) {
-                scaledTop + textHeightWithPadding.coerceAtMost(maxAllowedHeight)
-            } else {
-                // Text fits or is shorter - use actual text height (shrink to fit)
-                scaledTop + textHeightWithPadding
-            }
+            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, maxAllowedHeight)
             
             // Calculate actual final box height (for proper vertical centering)
             val finalBoxHeight = actualBottom - scaledTop

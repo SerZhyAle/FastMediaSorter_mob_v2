@@ -208,7 +208,6 @@ class AudioEmptyStateController(
      * Works on API 16+. Falls back to no background (static note) when no clip is available or on any error.
      */
     private fun showVideo() {
-        Timber.d("S0407: audio viz showVideo entry")
         val file = deliveredSource.getRandomBackgroundFile()
         if (file == null) {
             videoActive = false

@@ -85,10 +85,8 @@ class ImportSettingsUseCase @Inject constructor(
             val importText = inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
             val trimmedText = importText.trimStart('﻿', ' ', '\n', '\r', '\t', ' ')
             if (trimmedText.startsWith("{")) {
-                Timber.d("S0406: import settings from unified JSON backup")
                 return importFromJson(trimmedText)
             }
-            Timber.d("S0406: import settings from legacy XML backup")
 
             // Legacy XML path (back-compat) - parse from the text already read.
             java.io.ByteArrayInputStream(importText.toByteArray(Charsets.UTF_8)).use { stream ->
@@ -571,7 +569,6 @@ class ImportSettingsUseCase @Inject constructor(
                 f.name.endsWith(".$extension", ignoreCase = true)
         }?.maxByOrNull { it.lastModified() } ?: return null
 
-        Timber.d("S0406: auto-search direct Downloads fallback selected ${match.name}")
         return try {
             FileInputStream(match)
         } catch (e: Exception) {

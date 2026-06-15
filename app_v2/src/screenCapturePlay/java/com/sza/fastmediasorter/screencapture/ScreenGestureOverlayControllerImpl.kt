@@ -49,7 +49,6 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         )
 
     override fun setEnabled(enabled: Boolean) {
-        Timber.d("S0418: Play capture controller setEnabled=%b (MediaProjection path, no a11y)", enabled)
         if (enabled && Settings.canDrawOverlays(appContext)) {
             OverlayHostService.start(appContext)
         } else {

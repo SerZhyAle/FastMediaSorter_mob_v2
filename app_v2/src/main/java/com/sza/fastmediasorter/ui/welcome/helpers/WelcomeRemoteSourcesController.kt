@@ -76,7 +76,6 @@ class WelcomeRemoteSourcesController @Inject constructor(
     // fields. Runs on the application scope so the write survives the page being torn down right after
     // a tap - the settings change must not be lost on navigation.
     private fun persist(transform: (AppSettings) -> AppSettings) {
-        Timber.d("S0391: welcome remote-source toggle write")
         appScope.launch {
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(transform(current))

@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Environment
+import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -28,7 +30,8 @@ class SaveScreenshotUseCase @Inject constructor(
     sealed interface SaveResult {
         data class Success(
             val fileName: String,
-            val destinationLabel: String
+            val destinationLabel: String,
+            val savedUri: Uri?
         ) : SaveResult
 
         data class Failure(val error: Throwable) : SaveResult
@@ -87,7 +90,19 @@ class SaveScreenshotUseCase @Inject constructor(
         )
         return when (val result = fileOperationUseCase.execute(operation)) {
             is FileOperationResult.Success ->
-                SaveResult.Success(fileName = fileName, destinationLabel = resource.name)
+                SaveResult.Success(
+                    fileName = fileName,
+                    destinationLabel = resource.name,
+                    // Null when the destination path lies outside FileProvider scope (e.g. a network
+                    // resource); post-capture actions then degrade to the silent save already done.
+                    savedUri = runCatching {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            File(resource.path, fileName)
+                        )
+                    }.getOrNull()
+                )
             is FileOperationResult.Failure ->
                 SaveResult.Failure(IOException(result.error))
             is FileOperationResult.PartialSuccess ->
@@ -125,10 +140,11 @@ class SaveScreenshotUseCase @Inject constructor(
 
         return sink.commit()
             .fold(
-                onSuccess = {
+                onSuccess = { committedUriString ->
                     SaveResult.Success(
                         fileName = fileName,
-                        destinationLabel = publicFolderLabel(target.relativePath)
+                        destinationLabel = publicFolderLabel(target.relativePath),
+                        savedUri = Uri.parse(committedUriString)
                     )
                 },
                 onFailure = { SaveResult.Failure(it) }

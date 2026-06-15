@@ -85,7 +85,6 @@ class BrowseCameraCaptureManager(
     // region Public API
 
     fun launch(resource: MediaResource) {
-        Timber.d("S0359: in-app camera capture to resource")
         Timber.i(
             "S0022-CAM: launch ENTRY resource={id=%d, name=%s, type=%s, path=%s, allFiles=%b} device={mfr=%s, model=%s, sdk=%d}",
             resource.id,

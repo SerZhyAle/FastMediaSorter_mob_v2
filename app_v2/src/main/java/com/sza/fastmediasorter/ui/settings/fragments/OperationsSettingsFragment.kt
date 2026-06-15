@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -44,6 +45,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -91,6 +93,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
 
     private val defaultPlayerSettingsManager = DefaultPlayerSettingsManager()
+
+    private val gestureActionPickerManager by lazy {
+        ScreenshotGestureActionPickerManager(capabilityAvailability)
+    }
 
     // Latest destination resources for the capture/link destination pickers.
     private var destinationTargets: List<MediaResource> = emptyList()
@@ -629,9 +635,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
                                     binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
                                 }
-                                if (binding.rowScreenshotGestureDown.isChecked != settings.screenshotGestureDownEnabled) {
-                                    binding.rowScreenshotGestureDown.setCheckedSilently(settings.screenshotGestureDownEnabled)
-                                }
+                                binding.tvScreenshotGestureActionDownValue.text =
+                                    gestureActionPickerManager.labelFor(requireContext(), settings.screenshotGestureActionDown)
+                                binding.tvScreenshotGestureActionRightValue.text =
+                                    gestureActionPickerManager.labelFor(requireContext(), settings.screenshotGestureActionRight)
+                                binding.tvScreenshotGestureActionUpValue.text =
+                                    gestureActionPickerManager.labelFor(requireContext(), settings.screenshotGestureActionUp)
                                 refreshDestinationLabel(
                                     settings.screenshotDestinationResourceId,
                                     binding.tvScreenshotDestinationValue,
@@ -985,16 +994,47 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
             }
         }
-        binding.rowScreenshotGestureDown.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureDownEnabled = isChecked))
-        }
         binding.rowScreenshotDestination.setOnClickListener {
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
             ) { resource ->
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
+            }
+        }
+        binding.rowScreenshotGestureActionDown.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                requireContext(),
+                viewModel.settings.value.screenshotGestureActionDown
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionDown = picked))
+            }
+        }
+        binding.rowScreenshotGestureActionRight.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                requireContext(),
+                viewModel.settings.value.screenshotGestureActionRight
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionRight = picked))
+            }
+        }
+        binding.rowScreenshotGestureActionUp.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                requireContext(),
+                viewModel.settings.value.screenshotGestureActionUp
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionUp = picked))
+            }
+        }
+        binding.btnOpenAccessibilitySettings.setOnClickListener {
+            Timber.d("S0449: accessibility shortcut tapped in screen-gestures group")
+            try {
+                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(requireContext()))
+            } catch (e: ActivityNotFoundException) {
+                // Accessibility settings screen unreachable on this ROM: fall back to the
+                // educational dialog, which routes to alternative entry points (S0449 ADR-1).
+                Timber.w(e, "Accessibility settings intent unresolved; showing fallback dialog")
+                showGesturePermissionDialog(controller)
             }
         }
     }

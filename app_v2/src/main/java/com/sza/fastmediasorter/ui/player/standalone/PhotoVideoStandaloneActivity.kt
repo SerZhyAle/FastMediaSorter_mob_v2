@@ -359,6 +359,9 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
+    /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
+    private var autoActionConsumed = false
+
     /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
     private var folderPagingEnabled = false
 
@@ -452,7 +455,6 @@ class PhotoVideoStandaloneActivity :
         // independent of the file, so it is gated on the device sensor only - not on
         // editableImageFile, which would hide it for non-local content-URI images.
         binding.btnEditRotate.isVisible = hasAccelerometer
-        Timber.d("S0393: standalone rotation toggle decoupled from editable accel=$hasAccelerometer")
         binding.btnOverflowMenu.isVisible = true
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
@@ -464,7 +466,6 @@ class PhotoVideoStandaloneActivity :
             // matching the in-app player where they are gated on isImage, not on write access.
             val editable = viewModel.editableImageFile.value != null
             val hasBitmap = binding.photoView.drawable != null
-            Timber.d("S0393: standalone image-action gate editable=$editable hasBitmap=$hasBitmap")
             // S0410: crop-to-file / compress produce a NEW file, so they apply to any static image -
             // a non-local source is materialized to a cache file on tap (ensureEditableImage). Gate
             // them on the static-image type (mirrors the in-app isStaticBitmap); edit-in-place and
@@ -599,6 +600,21 @@ class PhotoVideoStandaloneActivity :
         ).show()
     }
 
+    /** Runs the one-shot [EXTRA_AUTO_ACTION] requested at launch (draw / translate), once, for images only. */
+    private fun maybeRunAutoAction(type: MediaType) {
+        if (autoActionConsumed || type != MediaType.IMAGE) return
+        when (intent?.getStringExtra(EXTRA_AUTO_ACTION)) {
+            AUTO_ACTION_DRAW -> {
+                autoActionConsumed = true
+                ensureDrawHelper().enterDrawMode()
+            }
+            AUTO_ACTION_TRANSLATE -> {
+                autoActionConsumed = true
+                translateCurrentImage()
+            }
+        }
+    }
+
     private fun parseIncomingIntent() {
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
@@ -660,6 +676,7 @@ class PhotoVideoStandaloneActivity :
                     if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
                 viewManager.show(file, type, onVideoReady)
                 lastShownPath = file.path
+                maybeRunAutoAction(type)
             }
             folderPagingEnabled = state.supportsFolderPaging
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
@@ -725,7 +742,6 @@ class PhotoVideoStandaloneActivity :
     // S0393 U2: per-file playback-control dialog (speed / track / subtitles / hue / brightness),
     // ported from legacy StandalonePlayerActivity.showPlaybackControlDialog.
     private fun showPlaybackControlDialog() {
-        Timber.d("S0393: standalone playback-control dialog (ported from legacy host)")
         if (isFinishing || isDestroyed) return
         val type = viewModel.state.value.mediaType
         if (type != MediaType.VIDEO && type != MediaType.AUDIO) return
@@ -738,7 +754,6 @@ class PhotoVideoStandaloneActivity :
     // S0393 U1: wire Picture-in-Picture once a video PlayerView is ready (mirrors legacy host).
     private fun setupPictureInPicture(pv: PlayerView) {
         if (pipManager != null) return
-        Timber.d("S0393: standalone Picture-in-Picture wired (ported from legacy host)")
         val manager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
             activity = this,
             playerView = pv,
@@ -924,4 +939,11 @@ class PhotoVideoStandaloneActivity :
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
     override fun requestFinishAfterDelete() = finish()
+
+    companion object {
+        /** Names a one-shot action to run after the image is shown (set by the screenshot gesture dispatcher). */
+        const val EXTRA_AUTO_ACTION = "auto_action"
+        const val AUTO_ACTION_DRAW = "draw"
+        const val AUTO_ACTION_TRANSLATE = "translate"
+    }
 }

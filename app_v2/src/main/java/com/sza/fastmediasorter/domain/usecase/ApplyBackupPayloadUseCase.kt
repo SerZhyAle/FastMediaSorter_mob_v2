@@ -41,7 +41,6 @@ class ApplyBackupPayloadUseCase @Inject constructor(
     )
 
     suspend operator fun invoke(payload: BackupPayload): RestoreSummary {
-        Timber.d("S0406: apply unified backup payload v%d to app state", payload.version)
         check(payload.version <= BackupPayload.CURRENT_VERSION) {
             "Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app."
         }

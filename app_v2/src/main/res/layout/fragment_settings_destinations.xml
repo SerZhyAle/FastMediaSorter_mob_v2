@@ -827,13 +827,32 @@
                         app:str_helpTitle="@string/setting_gesture_overlay_help_title"
                         app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowScreenshotGestureDown"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/setting_screenshot_gesture_down_title"
-                        app:str_subtitle="@string/setting_screenshot_gesture_down_summary" />
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_down_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/tvScreenshotGestureActionDownValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_right_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/tvScreenshotGestureActionRightValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_up_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/tvScreenshotGestureActionUpValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                    </LinearLayout>
 
                     <!-- Screenshot destination (tap opens the destination picker) -->
                     <LinearLayout android:id="@+id/rowScreenshotDestination" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
@@ -847,6 +866,24 @@
                         <TextView android:id="@+id/tvScreenshotDestinationValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_destination_default" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
 
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvAccessibilityShortcutHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:text="@string/setting_screenshot_accessibility_shortcut_hint"
+                        android:textSize="@dimen/toggler_desc_text_size"
+                        android:textColor="@color/text_color_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenAccessibilitySettings"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/setting_screenshot_accessibility_shortcut_button" />
 
                 </LinearLayout>
             </LinearLayout>

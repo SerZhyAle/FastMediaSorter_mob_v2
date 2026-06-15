@@ -17758,3 +17758,99 @@ Format: | datetime | file | target | description |
 | 2026-06-15 21:37:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt` | `S0035` | Add onLocalNetworkPermissionResult: route to settings on permanent deny [branch: DEBUG-v014] |
 | 2026-06-15 21:37:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0035` | Handle ACCESS_LOCAL_NETWORK request result (permanent-deny settings route) [branch: DEBUG-v014] |
 | 2026-06-15 21:37:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0035` | Handle ACCESS_LOCAL_NETWORK request result (permanent-deny settings route) [branch: DEBUG-v014] |
+| 2026-06-15 21:54:19 | `PLAN/S0035_android17-local-network-permission.md` | `spec-arc` | Archive S0035 (android17-local-network-permission) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:54:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-arc` | Remove Timber.d(S0035:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:54:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `spec-arc` | Remove Timber.d(S0035:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:56:07 | `PLAN/S0348_home-widget-icon-refresh.md` | `spec-arc` | Archive S0348 (home-widget-icon-refresh) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:56:07 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/GameLaunchWidgetProvider.kt` | `spec-arc` | Remove Timber.d(S0348:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:56:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsWidgetHelper.kt` | `spec-arc` | Remove Timber.d(S0348:) debug tags (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:36 | `PLAN/S0349_widget-quick-audio-recorder.md` | `spec-arc` | Archive S0349 (widget-quick-audio-recorder) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:57:36 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderService.kt` | `spec-arc` | Remove Timber.d(S0349:) debug tags (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:36 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderLaunchManager.kt` | `spec-arc` | Remove Timber.d(S0349:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:36 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderActivity.kt` | `spec-arc` | Remove Timber.d(S0349:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:37 | `PLAN/S0354_camera-ocr-crop-language-buttons.md` | `spec-arc` | Archive S0354 (camera-ocr-crop-language-buttons) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:57:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-arc` | Remove Timber.d(S0354:) debug tags (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:37 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-arc` | Archive S0359 (camera-permission-inapp-capture) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:57:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-arc` | Remove Timber.d(S0359:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `spec-arc` | Remove Timber.d(S0359:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:38 | `PLAN/S0362_keep-share-editor-regression.md` | `spec-arc` | Archive S0362 (keep-share-editor-regression) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:57:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-arc` | Remove Timber.d(S0362:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:57:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanelBinder.kt` | `spec-arc` | Remove Timber.d(S0362:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `PLAN/S0391_remote-source-runtime-toggles.md` | `spec-arc` | Archive S0391 (remote-source-runtime-toggles) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/core/coordinator/RemoteSourceDisableCoordinator.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 21:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainResourceTabsManager.kt` | `spec-arc` | Remove Timber.d(S0391:) debug tag (spec archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `PLAN/S0406_unified-settings-backup.md` | `spec-arc` | Archive S0406 (unified-settings-backup) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BuildBackupPayloadUseCase.kt` | `spec-arc` | Remove S0406 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `spec-arc` | Remove S0406 debug tags (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `spec-arc` | Remove S0406 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt` | `spec-arc` | Remove S0406 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyBackupPayloadUseCase.kt` | `spec-arc` | Remove S0406 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:01:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreFromGoogleDriveUseCase.kt` | `spec-arc` | Remove S0406 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:11:36 | `PLAN/S0393_player-host-seam-foundation.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 5/0/1; tag coverage 6/7; no crash/regression [branch: DEBUG-v014] |
+| 2026-06-15 22:16:04 | `PLAN/S0393_player-host-seam-foundation.md` | `spec-arc` | Archive S0393 (player-host-seam-foundation) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-arc` | Remove S0393 debug tags (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/DocumentStandaloneActivity.kt` | `spec-arc` | Remove S0393 debug tag (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `spec-arc` | Remove S0393 debug tag + unused Timber import (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneKeyboardManager.kt` | `spec-arc` | Remove S0393 debug tag + init block + unused Timber import (archived) [branch: DEBUG-v014] |
+| 2026-06-15 22:25:01 | `PLAN/S0411_pip-player-task-isolation.md` | `spec-test-device` | Device run on emulator-5554 -> task-affinity routing PASS; S0411 fallback probe not exercised (non-local URI required) [branch: DEBUG-v014] |
+| 2026-06-15 22:27:19 | `PLAN/S0411_pip-player-task-isolation.md` | `spec-check` | Audit S0411 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v014] |
+| 2026-06-15 22:27:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `spec-check` | Remove S0411 device-test Timber tag on Verified flip [branch: DEBUG-v014] |
+| 2026-06-15 22:29:13 | `PLAN/S0411_pip-player-task-isolation.md` | `spec-all` | Pipeline Verified: S0411 (device-tested task-affinity routing) [branch: DEBUG-v014] |
+| 2026-06-15 22:38:37 | `PLAN/S0411_pip-player-task-isolation.md` | `spec-arc` | Archive S0411 (PiP standalone-player task isolation, Verified) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:39:52 | `PLAN/S0412_standalone-viewer-fullscreen.md` | `spec-arc` | Archive S0412 (standalone-viewer-fullscreen) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:40:36 | `PLAN/S0413_bugfix-audio-graceful-skip.md` | `spec-arc` | Archive S0413 (bugfix-audio-graceful-skip) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:40:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `spec-arc` | Remove S0413 debug verification tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:45:34 | `PLAN/S0407_audio-player-extra-visualizations.md` | `spec-arc` | Archive S0407 (audio-player-extra-visualizations) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:45:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `spec-arc` | Remove S0407 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:45:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioEmptyStateController.kt` | `spec-arc` | Remove S0407 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:45:35 | `PLAN/S0417_bugfix-batch-rename-cloud-network.md` | `spec-arc` | Archive S0417 (bugfix-batch-rename-cloud-network) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:45:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/undo/BrowseUndoManager.kt` | `spec-arc` | Remove S0417 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:45:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `spec-arc` | Remove S0417 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:45:35 | `PLAN/S0418_standard-edge-gesture-screenshot.md` | `spec-arc` | Archive S0418 (standard-edge-gesture-screenshot) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:45:36 | `app_v2/src/screenCapturePlay/java/com/sza/fastmediasorter/screencapture/ScreenGestureOverlayControllerImpl.kt` | `spec-arc` | Remove S0418 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:51:20 | `PLAN/S0422_resource-import-file-format.md` | `spec-check` | Audit S0422 -> implementation complete (Phases 01-05); held at BlockNeedUserTest, no status flip; PASS/WARN/FAIL 24/2/0; outstanding: funclog ADD + INDEX Phase 06 row [branch: DEBUG-v014] |
+| 2026-06-15 22:53:20 | `PLAN/S0422_resource-import-file-format.md` | `spec-arc` | Archive S0422 (resource-import-file-format) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 22:53:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `spec-arc` | Remove 2 S0422 BlockNeedUserTest debug tags on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:53:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceimport/ResourceImportActivity.kt` | `spec-arc` | Remove S0422 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 22:53:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `spec-arc` | Remove S0422 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-15 23:01:06 | `PLAN/S0414_bugfix-open-in-fms-raw-download-uri.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 4/0/0 [branch: DEBUG-v014] |
+| 2026-06-15 23:02:28 | `PLAN/S0414_bugfix-open-in-fms-raw-download-uri.md` | `spec-check` | Audit S0414 -> Verified; PASS/WARN/FAIL 5/0/0 [branch: DEBUG-v014] |
+| 2026-06-15 23:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveLocalPathFromUriUseCase.kt` | `spec-check` | Remove S0414 debug verification tag + orphaned Timber import on Verified [branch: DEBUG-v014] |
+| 2026-06-15 23:43:47 | `PLAN/S0414_bugfix-open-in-fms-raw-download-uri.md` | `spec-arc` | Archive S0414 (bugfix-open-in-fms-raw-download-uri) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-15 23:50:52 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut.md` | `spec` | Add strategic spec S0449 for noLegal screen-gesture accessibility shortcut [branch: DEBUG-v014] |
+| 2026-06-15 23:55:12 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut/INDEX.md` | `spec-tech` | Create tactical plan for S0449 [branch: DEBUG-v014] |
+| 2026-06-15 23:55:12 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut/PHASE_01__strings.md` | `spec-tech` | Phase 01: strings [branch: DEBUG-v014] |
+| 2026-06-15 23:55:12 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut/PHASE_02__settings-group-ui.md` | `spec-tech` | Phase 02: settings-group-ui [branch: DEBUG-v014] |
+| 2026-06-15 23:55:12 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-15 23:55:12 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-15 23:56:33 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0449 P01.1: add accessibility-shortcut hint+button strings (EN) [branch: DEBUG-v014] |
+| 2026-06-15 23:56:59 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0449 P01.1: add accessibility-shortcut hint+button strings (RU) [branch: DEBUG-v014] |
+| 2026-06-15 23:56:59 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0449 P01.1: add accessibility-shortcut hint+button strings (UK) [branch: DEBUG-v014] |
+| 2026-06-16 00:00:08 | `app_v2/src/translationMlKit/java/com/sza/fastmediasorter/ui/player/helpers/TranslationBackend.kt` | `S0423` | Verified on device (standard + noLegal debug, emulator API 37): in-player image translation renders RU block overlays end to end, Extensions shows Translation Module Installed (no download row), loader logs bundled-in-base path. Removed S0423 BlockNeedUserTest debug tag. [branch: DEBUG-v014] |
+| 2026-06-16 00:00:10 | `PLAN/S0425_screenshot-gesture-actions.md` | `spec-all` | Strategic finalized + approved: S0425 screenshot gesture actions [branch: DEBUG-v014] |
+| 2026-06-16 00:01:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0449 P02.3: wire accessibility-shortcut button to permissionSettingsIntent with dialog fallback [branch: DEBUG-v014] |
+| 2026-06-16 00:02:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0449 P02.3: wire accessibility-shortcut button to permissionSettingsIntent with dialog fallback [branch: DEBUG-v014] |
+| 2026-06-16 00:03:44 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev` | S0449 P02.1: add accessibility-shortcut hint+button to screen-gestures group (portrait) [branch: DEBUG-v014] |
+| 2026-06-16 00:03:59 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | S0449 P02.2: add accessibility-shortcut hint+button to screen-gestures group (landscape) [branch: DEBUG-v014] |
+| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (EN) [branch: DEBUG-v014] |
+| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (RU) [branch: DEBUG-v014] |
+| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (UK) [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/INDEX.md` | `spec-tech` | Create tactical plan for S0425 [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_01__foundations-enums-settings.md` | `spec-tech` | Phase: PHASE_01__foundations-enums-settings [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_02__locatable-save-result.md` | `spec-tech` | Phase: PHASE_02__locatable-save-result [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_03__direction-detection.md` | `spec-tech` | Phase: PHASE_03__direction-detection [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_04__action-dispatcher.md` | `spec-tech` | Phase: PHASE_04__action-dispatcher [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_05__wire-capture-pipelines.md` | `spec-tech` | Phase: PHASE_05__wire-capture-pipelines [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_06__settings-ui.md` | `spec-tech` | Phase: PHASE_06__settings-ui [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase: PHASE_07__docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/research/01__capture-dispatch-and-routes.md` | `spec-tech` | Research artifact 01 [branch: DEBUG-v014] |
+| 2026-06-16 00:09:33 | `PLAN/S0449_nolegal-screen-gesture-accessibility-shortcut.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 00:09:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0449 final: inserted BlockNeedUserTest debug probe at accessibility-shortcut click [branch: DEBUG-v014] |
+| 2026-06-16 00:10:00 | `PLAN/S0423_ondemand-translation-store-vs-empty-dfm.md` | `spec-arc` | Archive S0423 (ondemand-translation-store-vs-empty-dfm), Verified -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:18:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/TranslationOverlayView.kt` | `S0451` | Auto-size translated block text to ~90% of the original OCR box height (metric-correct, removed 14sp ceiling) so it matches the source font; block now covers at least the original box, expands only when longer. Manual swipe/multiplier overrides preserved. [branch: DEBUG-v014] |
+| 2026-06-16 00:20:55 | `PLAN/S0451_translation-overlay-size-to-original.md` | `spec-arc` | Archive S0451 (translation-overlay-size-to-original), BlockNeedUserTest -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:20:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/TranslationOverlayView.kt` | `spec-arc` | Remove S0451 BlockNeedUserTest debug tag on archive (sizing fix code retained) [branch: DEBUG-v014] |

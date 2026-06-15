@@ -2478,8 +2478,6 @@
     <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_help_message">У левого края экрана расположена тонкая невидимая полоса. Чтобы снять текущий экран, проведите от полосы по диагонали вниз и вправо (примерно 45°). Снимок сохраняется в выбранный ресурс — по умолчанию в папку скриншотов устройства. Нужно разрешение «Поверх других приложений». Полоса занимает левый край от 10 до 75 процентов высоты; верхний угол оставлен свободным, чтобы не срабатывать случайно.</string>
-    <string name="setting_screenshot_gesture_down_title">Скриншот жестом вниз</string>
-    <string name="setting_screenshot_gesture_down_summary">Проведите от полосы вправо-вниз, чтобы снять текущий экран</string>
     <string name="setting_screenshot_destination_title">Загружать скриншоты в..</string>
     <string name="setting_screenshot_destination_default">Папка скриншотов устройства (или Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Разрешите показ поверх других приложений, чтобы отображать полосу жестов</string>
@@ -2526,4 +2524,16 @@
     <string name="reset_operations_section_message">Сбросить только настройки страницы «Управление» к значениям по умолчанию?</string>
     <string name="reset_operations_section_success">Настройки управления сброшены</string>
     <string name="ocr_engines_damaged">Данные OCR повреждены. Переустановите их в разделе «Загружаемые расширения».</string>
+    <string name="setting_screenshot_accessibility_shortcut_hint">Жесты-скриншоты используют службу спец-возможностей. Если Android её отключил, включите её снова здесь.</string>
+    <string name="setting_screenshot_accessibility_shortcut_button">Открыть спец-возможности</string>
+    <string name="setting_screenshot_gesture_action_down_title">Действие жеста вниз</string>
+    <string name="setting_screenshot_gesture_action_right_title">Действие жеста вправо</string>
+    <string name="setting_screenshot_gesture_action_up_title">Действие жеста вверх</string>
+    <string name="setting_screenshot_gesture_action_dialog_title">Действие жеста</string>
+    <string name="screenshot_gesture_action_silent">Тихий скриншот</string>
+    <string name="screenshot_gesture_action_open_player">Открыть в плеере</string>
+    <string name="screenshot_gesture_action_open_draw">Открыть для редактирования</string>
+    <string name="screenshot_gesture_action_ocr_translate">Отправить на OCR-перевод</string>
+    <string name="screenshot_gesture_action_share">Поделиться</string>
+    <string name="screenshot_gesture_action_none">Не использовать</string>
 </resources>
