@@ -555,11 +555,9 @@ android {
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
             kotlin.directories.add("src/vrStub/java")
-            // S0418: shared screencapture machinery + Play-only (MediaProjection) controller binding.
-            // The accessibility capture path stays noLegal-exclusive (not mounted here).
-            kotlin.directories.add("src/screenCapture/java")
-            res.directories.add("src/screenCapture/res")
-            kotlin.directories.add("src/screenCapturePlay/java")
+            // S0423 release scope: the S0418 screencapture (overlay + MediaProjection FGS) stays
+            // noLegal-only for now - the SPECIAL_USE/SYSTEM_ALERT_WINDOW declarations are a Play
+            // review risk, so they are not mounted into the store flavor.
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -600,10 +598,8 @@ android {
             kotlin.directories.add("src/cloudEnabled/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
-            // S0418: shared screencapture machinery + Play-only (MediaProjection) controller binding.
-            kotlin.directories.add("src/screenCapture/java")
-            res.directories.add("src/screenCapture/res")
-            kotlin.directories.add("src/screenCapturePlay/java")
+            // S0423 release scope: S0418 screencapture stays noLegal-only for now (Play review risk
+            // from SPECIAL_USE/SYSTEM_ALERT_WINDOW); not mounted into the photos store flavor.
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")

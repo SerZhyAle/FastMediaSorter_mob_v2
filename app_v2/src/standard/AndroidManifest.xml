@@ -3,43 +3,9 @@
     Standard flavor manifest overlay.
     S0423: ML Kit Translate is bundled in the standard base, so its AAR-merged MlKitInitProvider +
     MlKitComponentDiscoveryService run normally (no on-demand DFM, nothing to strip).
+
+    S0418 screencapture (edge-gesture overlay + MediaProjection FGS) is NOT declared here: the
+    SPECIAL_USE / SYSTEM_ALERT_WINDOW declarations are a Google Play review risk, so the feature
+    stays noLegal-only for now (the src/screenCapture* source sets are not mounted into this flavor).
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!--
-      S0418: edge-gesture screenshot capture (Play phase). Capture goes through MediaProjection
-      with per-shot consent + the overlay strip host. The silent AccessibilityService path stays
-      noLegal-exclusive and is deliberately NOT declared here (Google Play policy risk).
-    -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-
-    <application>
-
-        <!-- S0418: screencapture machinery (shared src/screenCapture; no a11y service on Play). -->
-        <activity
-            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureConsentActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:taskAffinity=""
-            android:theme="@style/Theme.FastMediaSorter.Transparent" />
-
-        <service
-            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
-        </service>
-
-        <service
-            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
-
-    </application>
-
-</manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />
