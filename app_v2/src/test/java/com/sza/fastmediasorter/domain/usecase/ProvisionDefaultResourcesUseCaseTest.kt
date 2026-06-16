@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
+import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -37,7 +38,7 @@ class ProvisionDefaultResourcesUseCaseTest {
         // Stub string resources
         every { context.getString(any()) } returns "Stub"
 
-        useCase = ProvisionDefaultResourcesUseCase(context, resourceRepository, settingsRepository, resolveResourceIconUseCase)
+        useCase = ProvisionDefaultResourcesUseCase(context, resourceRepository, settingsRepository, resolveResourceIconUseCase, testMediaCapabilities())
     }
 
     // ── Skip when all predefined paths already present ───────

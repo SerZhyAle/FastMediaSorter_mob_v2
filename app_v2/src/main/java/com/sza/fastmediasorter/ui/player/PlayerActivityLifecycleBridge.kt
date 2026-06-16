@@ -76,7 +76,7 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
         }
         // S0162: re-apply orientation on resume (re-reads OS auto-rotate state - ADR-1).
         val rs = activity.viewModel.state.value
-        activity.screenRotationManager.apply(activity, rs.programFollowSystemRotation, rs.playerRotationSensorEnabled, activity.hasAccelerometer)
+        activity.screenRotationManager.apply(activity, rs.effectiveFollowSystemRotation, rs.playerRotationSensorEnabled, activity.hasAccelerometer)
         activity.audioEmptyStateController?.onResume()
         activity.nowPlayingManager?.onStart(
             activity.viewModel.state.value.currentFile?.type,

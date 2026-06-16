@@ -8,6 +8,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- S0448: lite is local-files-only (no SMB/SFTP/FTP), so the local-network
+         permission is dropped from the merged manifest entirely. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_LOCAL_NETWORK"
+        tools:node="remove" />
+
     <application>
 
         <!-- Remove MediaButtonRestartReceiver from lite -->

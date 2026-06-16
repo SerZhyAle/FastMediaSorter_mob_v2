@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 @Singleton
 class OfflineOcrEngineProvider @Inject constructor(
-    private val defaultEngine: OfflineOcrEngine,
+    val defaultEngine: OfflineOcrEngine,
     private val contributors: Set<@JvmSuppressWildcards OcrEngineContributor>
 ) {
 

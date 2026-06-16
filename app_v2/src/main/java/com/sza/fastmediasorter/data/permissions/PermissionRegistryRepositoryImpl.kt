@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.permissions
 
 import android.Manifest
 import android.os.Build
+import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 @Singleton
 class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistryRepository {
@@ -80,6 +82,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.NETWORK, optional = true,
             minSdk = 37,
+            flavorGates = setOf("SUPPORT_LOCAL_NETWORK"),
         ),
         // CAMERA
         PermissionEntry(
@@ -176,12 +179,21 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             }
     }
 
+    /** Every BuildConfig field name referenced by an entry's flavor gates. Lets a test assert each resolves. */
+    @get:VisibleForTesting
+    val declaredFlavorGateFields: Set<String>
+        get() = allEntries.flatMapTo(mutableSetOf()) { it.flavorGates }
+
     private fun evaluateFlavorGates(gates: Set<String>): Boolean {
         if (gates.isEmpty()) return true
         return gates.all { fieldName ->
             try {
-                val field = BuildConfig::class.java.getField(fieldName)
-                field.getBoolean(null)
+                BuildConfig::class.java.getField(fieldName).getBoolean(null)
+            } catch (e: NoSuchFieldException) {
+                // A misspelled or removed gate field is a developer error, not a runtime state - surface it
+                // loudly while keeping the safe (disabled) default so release never crashes on it.
+                Timber.e("Permission flavor-gate references unknown BuildConfig field: %s", fieldName)
+                false
             } catch (e: Exception) {
                 false
             }

@@ -78,13 +78,14 @@ internal class PlayerObserverManager(
                         val isAudio = state.currentFile?.type == MediaType.AUDIO
                         activity.pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
 
-                        // S0162: re-apply orientation whenever programFollowSystemRotation changes
+                        // S0162 / S0439: re-apply orientation when the effective player follow-OS flag changes
                         activity.screenRotationManager.apply(
                             activity,
-                            settings.programFollowSystemRotation,
+                            settings.programFollowSystemRotation || settings.playerFollowSystemRotation,
                             settings.playerRotationSensorEnabled,
                             activity.hasAccelerometer
                         )
+                        Timber.d("S0439: player effective follow-OS = ${settings.programFollowSystemRotation || settings.playerFollowSystemRotation}")
                         activity.commandPanelController.updateRotationToggleIcon(settings.playerRotationSensorEnabled)
 
                         settings.enableFavorites || state.resource?.id == -100L

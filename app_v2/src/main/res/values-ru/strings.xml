@@ -2538,4 +2538,10 @@
     <string name="screenshot_gesture_action_none">Не использовать</string>
     <string name="settings_keep_screen_on_player_title">Не выключать экран при работе плеера</string>
     <string name="settings_keep_screen_on_player_summary">Действует только в плеере и отдельных плеерах, и только когда общая настройка удержания экрана выключена.</string>
+    <string name="settings_send_commands_group">Команды отправить файл в..</string>
+    <string name="settings_send_command_unavailable">Не установлено</string>
+    <string name="share_target_title_system_share">Другие приложения</string>
+    <string name="share_target_title_open_in">Открыть в..</string>
+    <string name="share_target_title_email">Эл. почта</string>
+    <string name="share_target_title_app">Отправить в приложение</string>
 </resources>

@@ -4,7 +4,7 @@
 
 This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
 
-**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
+**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
 
@@ -90,3 +90,4 @@ This document is the canonical inventory of all user-facing features implemented
 - **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format — to a local file or Google Drive — and restore everything after a reinstall.
 - **Set as default app from settings** `[Standard / VR]`: Make FastMediaSorter the default handler for images, audio, video, and documents right from the playback settings page, without opening the welcome screen; only the buttons for functions enabled in your build are shown.
 - **Player-only keep screen on** `[Standard / VR]`: A dependent setting that keeps the screen awake only while the player and standalone players are active. It appears under the global keep-screen-on option and only when that global option is off.
+- **Follow OS auto-rotate, program-wide or player-only** `[Standard / VR]`: A program-wide toggle makes every screen follow the system auto-rotate setting; when it is off, a separate player-only toggle in the player settings lets just the player keep following the OS. Both are hidden on devices without an orientation sensor.

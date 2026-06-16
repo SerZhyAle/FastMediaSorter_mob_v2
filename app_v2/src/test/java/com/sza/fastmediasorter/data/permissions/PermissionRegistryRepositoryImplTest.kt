@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.data.permissions
 
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.PermissionGroup
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,5 +54,17 @@ class PermissionRegistryRepositoryImplTest {
         val groups = repo.getGroups().map { it.group }
         val declarationOrder = PermissionGroup.entries.filter { it in groups.toSet() }
         assertTrue(groups == declarationOrder)
+    }
+
+    @Test
+    fun `every declared flavor-gate names an existing boolean BuildConfig field`() {
+        // Guards against a typo'd / removed flavorGates string silently dropping a permission:
+        // such a name resolves on no variant, so this standardDebug run fails fast on it.
+        val byName = BuildConfig::class.java.fields.associateBy { it.name }
+        repo.declaredFlavorGateFields.forEach { fieldName ->
+            val field = byName[fieldName]
+            assertNotNull("Permission flavor-gate references unknown BuildConfig field: $fieldName", field)
+            assertEquals("Flavor-gate field $fieldName must be boolean type", java.lang.Boolean.TYPE, field!!.type)
+        }
     }
 }

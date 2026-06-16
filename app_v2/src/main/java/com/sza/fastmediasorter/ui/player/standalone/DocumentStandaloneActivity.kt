@@ -471,7 +471,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     // S0393 wave-C: delegate to the shared host-agnostic Google Lens share.
     private fun shareToGoogleLens(file: File) =
-        com.sza.fastmediasorter.ui.player.helpers.GoogleLensShare.shareImageFile(this, file)
+        com.sza.fastmediasorter.core.share.GoogleLensShare.shareImageFile(this, file)
 
     private fun setupEpubButtons() {
         // Navigation/font buttons live in player_epub_controls_overlay_content (id-less include) →

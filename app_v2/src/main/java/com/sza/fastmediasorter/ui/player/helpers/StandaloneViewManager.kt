@@ -259,13 +259,11 @@ class StandaloneViewManager(
     fun onResume() {
         exoPlayer?.playWhenReady = true
         audioServiceController?.player?.playWhenReady = true
-        acquireWakeLock()
     }
 
     fun onPause() {
         exoPlayer?.playWhenReady = false
         audioServiceController?.player?.playWhenReady = false
-        releaseWakeLock()
         lifecycleScope.launch { saveCurrentPosition() }
         stopPositionAutoSave()
     }
@@ -287,7 +285,6 @@ class StandaloneViewManager(
                 }
             }
         }
-        releaseWakeLock()
         audioFocusManager?.releaseFocus()
         audioFocusManager = null
         // Media3 1.2.1: ExoPlayer.release() can block the main thread indefinitely when a
@@ -371,7 +368,6 @@ class StandaloneViewManager(
         lastSavedPosition = -1L
         player.setMediaItem(MediaItem.fromUri(mediaFile.path.toUri()))
         player.playWhenReady = true
-        acquireWakeLock()
         onVideoReady?.invoke(playerView)
         // Fetch saved position before prepare() so seekTo() runs before the playback thread
         // starts, preventing DefaultVideoFrameProcessor.flush() from firing on an uninitialised
@@ -434,7 +430,6 @@ class StandaloneViewManager(
         controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
             playerView.player = player
             playerView.showController()
-            acquireWakeLock()
         }
     }
 
@@ -684,19 +679,6 @@ class StandaloneViewManager(
                 }
             }
         }
-    }
-
-    private fun acquireWakeLock() {
-        val playerView = safeViews.playerView
-        if (playerView.isVisible) {
-            playerView.keepScreenOn = true
-            Timber.d("StandaloneViewManager: screen wake lock acquired")
-        }
-    }
-
-    private fun releaseWakeLock() {
-        safeViews.playerView.keepScreenOn = false
-        Timber.d("StandaloneViewManager: screen wake lock released")
     }
 
     private fun createPlayerErrorListener(): Player.Listener = object : Player.Listener {

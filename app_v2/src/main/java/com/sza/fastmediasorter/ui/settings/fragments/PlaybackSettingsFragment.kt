@@ -17,10 +17,16 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
+import android.widget.LinearLayout
+import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
+import com.sza.fastmediasorter.core.share.ShareTargetRegistry
+import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -29,7 +35,19 @@ class PlaybackSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
 
+    @Inject lateinit var shareTargetRegistry: ShareTargetRegistry
+    @Inject lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
+    @Inject lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
+
+    // S0452: dynamic "Send file to.." rows keyed by ShareTarget.id, refreshed in observeData.
+    private val sendCommandRows = mutableMapOf<String, SettingsToggleRow>()
+
     private var isUpdatingFromSettings = false
+
+    // S0439: player rotation toggle is hidden on devices without an orientation sensor.
+    private val hasAccelerometer: Boolean by lazy {
+        requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+    }
 
     companion object {
         private const val PREFS_NAME = "playback_sections_state"
@@ -37,6 +55,7 @@ class PlaybackSettingsFragment : Fragment() {
         private const val KEY_FILE_OPS_EXPANDED = "section_file_ops_expanded"
         private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
+        private const val KEY_SEND_COMMANDS_EXPANDED = "section_send_commands_expanded"
     }
 
     private data class ExpandableSection(
@@ -55,6 +74,7 @@ class PlaybackSettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         try {
             setupViews()
+            setupSendCommandsGroup()
             setupExpandableSections()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
@@ -142,15 +162,14 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
         }
 
-        // S0162: Screen rotation control - hide entire row on non-sensor devices
-        val hasAccelerometer = requireContext().packageManager
-            .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
-        binding.layoutFollowSystemRotation.isVisible = hasAccelerometer
+        // S0439: player-scope Follow OS auto-rotate - listener persists the player flag.
+        // Visibility is reactive (accelerometer present AND the program-wide toggle off) - set in the settings observer.
         if (hasAccelerometer) {
-            binding.rowFollowSystemRotation.setOnCheckedChangeListener { isChecked ->
+            binding.rowFollowSystemRotationPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
+                viewModel.updateSettings(current.copy(playerFollowSystemRotation = isChecked))
+                Timber.d("S0439: player follow-OS toggled -> $isChecked")
             }
         }
 
@@ -243,6 +262,52 @@ class PlaybackSettingsFragment : Fragment() {
         // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
 
+    /**
+     * S0452: build one toggle per registered ShareTarget into the "Send file to.." group.
+     * An unavailable target (e.g. its app is not installed) is disabled and marked with a
+     * non-color "Not installed" subtitle. With an empty registry this renders nothing.
+     */
+    private fun setupSendCommandsGroup() {
+        val container = binding.containerSendCommands
+        container.removeAllViews()
+        sendCommandRows.clear()
+        val targets = shareTargetRegistry.all()
+        // Hide the whole group while no target is registered, so users never see an empty section.
+        binding.cardSendCommands.isVisible = targets.isNotEmpty()
+        val current = viewModel.settings.value
+        targets.forEach { target ->
+            val row = SettingsToggleRow(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+                setTitle(target.titleRes)
+                val available = shareTargetAvailabilityResolver.isAvailable(target)
+                isEnabled = available
+                setSubtitle(if (available) null else getString(R.string.settings_send_command_unavailable))
+                setCheckedSilently(isShareTargetEnabledUseCase(target.id, current))
+                setOnCheckedChangeListener { isChecked ->
+                    if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                    val s = viewModel.settings.value
+                    val enabled = s.enabledShareTargets.toMutableSet()
+                    val disabled = s.disabledShareTargets.toMutableSet()
+                    if (isChecked) {
+                        enabled.add(target.id)
+                        disabled.remove(target.id)
+                    } else {
+                        disabled.add(target.id)
+                        enabled.remove(target.id)
+                    }
+                    viewModel.updateSettings(
+                        s.copy(enabledShareTargets = enabled, disabledShareTargets = disabled)
+                    )
+                }
+            }
+            container.addView(row)
+            sendCommandRows[target.id] = row
+        }
+    }
+
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
@@ -272,9 +337,11 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
                         binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
                     }
-                    // S0162
-                    if (binding.rowFollowSystemRotation.isChecked != settings.programFollowSystemRotation) {
-                        binding.rowFollowSystemRotation.setCheckedSilently(settings.programFollowSystemRotation)
+                    // S0439: player toggle visible only when accelerometer present AND the program-wide toggle is off.
+                    binding.layoutFollowSystemRotationPlayer.isVisible =
+                        hasAccelerometer && !settings.programFollowSystemRotation
+                    if (binding.rowFollowSystemRotationPlayer.isChecked != settings.playerFollowSystemRotation) {
+                        binding.rowFollowSystemRotationPlayer.setCheckedSilently(settings.playerFollowSystemRotation)
                     }
                     if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
@@ -297,6 +364,12 @@ class PlaybackSettingsFragment : Fragment() {
                         binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
                     }
 
+                    // S0452: refresh dynamic send-command rows from effective enabled state.
+                    sendCommandRows.forEach { (id, row) ->
+                        val enabled = isShareTargetEnabledUseCase(id, settings)
+                        if (row.isChecked != enabled) row.setCheckedSilently(enabled)
+                    }
+
                     isUpdatingFromSettings = false
         }
     }
@@ -308,6 +381,7 @@ class PlaybackSettingsFragment : Fragment() {
             ExpandableSection(binding.headerFileOperations, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
             ExpandableSection(binding.headerPlayerUI, binding.containerPlayerUI, KEY_PLAYER_UI_EXPANDED, false),
             ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
+            ExpandableSection(binding.headerSendCommands, binding.containerSendCommands, KEY_SEND_COMMANDS_EXPANDED, false),
         )
 
         sections.forEach { section ->
@@ -332,7 +406,8 @@ class PlaybackSettingsFragment : Fragment() {
                 KEY_SORTING_EXPANDED to prefs.getBoolean(KEY_SORTING_EXPANDED, false),
                 KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
-                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false)
+                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
+                KEY_SEND_COMMANDS_EXPANDED to prefs.getBoolean(KEY_SEND_COMMANDS_EXPANDED, false)
             )
         }
     }

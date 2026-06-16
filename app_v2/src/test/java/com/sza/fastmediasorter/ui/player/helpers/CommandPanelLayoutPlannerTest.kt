@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -31,7 +32,7 @@ class CommandPanelLayoutPlannerTest {
 
     @Before
     fun setUp() {
-        planner = CommandPanelLayoutPlanner()
+        planner = CommandPanelLayoutPlanner(testMediaCapabilities())
     }
 
     // ------------------------------------------------------------------

@@ -121,13 +121,16 @@ class PlayerViewModel @Inject constructor(
         val isCasting: Boolean = false,
         val castDeviceName: String? = null,
         val showBlackScreenButton: Boolean = false,
-        // S0162: screen rotation control
+        // S0162 / S0439: screen rotation control
         val programFollowSystemRotation: Boolean = true,
+        val playerFollowSystemRotation: Boolean = false,
         val playerRotationSensorEnabled: Boolean = true,
-        val showRotationToggle: Boolean = false,  // true when programFollowSystemRotation=false && hasAccelerometer
+        val showRotationToggle: Boolean = false,  // true when the player is not following the OS && hasAccelerometer
         val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
         val shuffleIndices: List<Int> = emptyList()
     ) {
+        // S0439: the player follows the OS when either the program or the player flag is on.
+        val effectiveFollowSystemRotation: Boolean get() = programFollowSystemRotation || playerFollowSystemRotation
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1
         val hasPrevious: Boolean get() = files.size > 1
@@ -638,8 +641,9 @@ class PlayerViewModel @Inject constructor(
                 updateState {
                     it.copy(
                         programFollowSystemRotation = s.programFollowSystemRotation,
+                        playerFollowSystemRotation = s.playerFollowSystemRotation,
                         playerRotationSensorEnabled = s.playerRotationSensorEnabled,
-                        showRotationToggle = !s.programFollowSystemRotation && hasAccelerometer
+                        showRotationToggle = !(s.programFollowSystemRotation || s.playerFollowSystemRotation) && hasAccelerometer
                     )
                 }
             }
@@ -648,12 +652,12 @@ class PlayerViewModel @Inject constructor(
 
     /**
      * S0162: Toggle the player-level rotation sensor.
-     * Guard: only fires when programFollowSystemRotation=false (showRotationToggle must be visible).
+     * Guard: only fires when the player is not following the OS (showRotationToggle must be visible).
      * Persists the new state and emits RotationSensorToggled so the Activity applies it immediately.
      */
     fun toggleRotationSensor() {
         val current = state.value
-        if (current.programFollowSystemRotation) return   // guard: button must not be visible in this case
+        if (current.effectiveFollowSystemRotation) return   // guard: button hidden when the player follows the OS
         val newEnabled = !current.playerRotationSensorEnabled
         updateState { it.copy(playerRotationSensorEnabled = newEnabled) }
         viewModelScope.launch {

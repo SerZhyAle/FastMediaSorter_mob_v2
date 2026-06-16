@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -26,7 +27,7 @@ class ApplyEnableAllSettingsUseCaseTest {
         epub: Boolean = true,
         cloud: Boolean = true,
         defaultPlayer: Boolean = true,
-    ) = MediaCapabilities(
+    ) = testMediaCapabilities(
         supportsVideo = video,
         supportsAudio = audio,
         supportsImages = images,

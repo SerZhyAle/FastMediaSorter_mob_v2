@@ -17993,3 +17993,183 @@ Format: | datetime | file | target | description |
 | 2026-06-16 02:58:06 | `app_v2/src/legacy/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
 | 2026-06-16 03:05:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
 | 2026-06-16 03:09:23 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/RemoteSourceAvailabilityGate.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 09:33:02 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/SelfManagedScreenOrientation.kt` | `spec-dev S0439 P02` | Add SelfManagedScreenOrientation marker interface [branch: DEBUG-v014] |
+| 2026-06-16 09:33:02 | `app_v2/src/main/java/com/sza/fastmediasorter/core/orientation/AppOrientationManager.kt` | `spec-dev S0439 P02` | Add AppOrientationManager: program-wide orientation policy via ActivityLifecycleCallbacks [branch: DEBUG-v014] |
+| 2026-06-16 09:33:03 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `spec-dev S0439 P02` | Register AppOrientationManager in onCreate [branch: DEBUG-v014] |
+| 2026-06-16 09:33:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev S0439 P02` | Mark PlayerActivity SelfManagedScreenOrientation [branch: DEBUG-v014] |
+| 2026-06-16 09:33:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev S0439 P02` | Mark PhotoVideoStandaloneActivity SelfManagedScreenOrientation [branch: DEBUG-v014] |
+| 2026-06-16 09:33:03 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev S0439 P02` | Append empty preset rows (AppSettings<->CSV invariant) [branch: DEBUG-v014] |
+| 2026-06-16 09:38:42 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/RemoteSourceAvailabilityGate.kt` | `spec-dev` | S0448 P02.1: add isNetworkGroupSupported() [branch: DEBUG-v014] |
+| 2026-06-16 09:39:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `spec-dev` | S0448 P02.3: flavor-gate access_local_network on SUPPORT_LOCAL_NETWORK [branch: DEBUG-v014] |
+| 2026-06-16 09:39:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `spec-dev S0439 P03` | Player follows OS on program\|\|player (effectiveFollowSystemRotation); apply() call sites + in-player sensor toggle visibility keyed on effective [branch: DEBUG-v014] |
+| 2026-06-16 09:39:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `spec-dev S0439 P03` | Player follows OS on program\|\|player (effectiveFollowSystemRotation); apply() call sites + in-player sensor toggle visibility keyed on effective [branch: DEBUG-v014] |
+| 2026-06-16 09:39:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivityLifecycleBridge.kt` | `spec-dev S0439 P03` | Player follows OS on program\|\|player (effectiveFollowSystemRotation); apply() call sites + in-player sensor toggle visibility keyed on effective [branch: DEBUG-v014] |
+| 2026-06-16 09:40:27 | `app_v2/src/lite/AndroidManifest.xml` | `spec-dev` | S0448 P02.4: remove ACCESS_LOCAL_NETWORK from lite merged manifest [branch: DEBUG-v014] |
+| 2026-06-16 09:41:41 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/RemoteSourceAvailabilityGate.kt` | `spec-dev` | S0448 P02.1: add isNetworkGroupSupported() [branch: DEBUG-v014] |
+| 2026-06-16 09:42:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `spec-dev` | S0448 P02.2: hide SMB/FTP welcome rows in lite [branch: DEBUG-v014] |
+| 2026-06-16 09:43:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `spec-dev` | S0448 P02.3: flavor-gate access_local_network [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/res/values/strings_settings.xml` | `spec-dev S0439 P04` | Reword program rotation title/summary; add player rotation title/summary (EN) [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev S0439 P04` | Reword program + add player rotation strings (RU) [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev S0439 P04` | Reword program + add player rotation strings (UK) [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev S0439 P04` | Repurpose playback toggle to player rotation (portrait) [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev S0439 P04` | Repurpose playback toggle to player rotation (landscape) [branch: DEBUG-v014] |
+| 2026-06-16 09:47:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0439 P04` | Bind player rotation toggle + visibility coupling (visible when program off) [branch: DEBUG-v014] |
+| 2026-06-16 09:51:57 | `docs/FEATURES.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
+| 2026-06-16 09:51:57 | `docs/FEATURES_RU.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
+| 2026-06-16 09:51:57 | `docs/FEATURES_UK.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
+| 2026-06-16 09:54:09 | `docs/FEATURES.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
+| 2026-06-16 09:54:10 | `docs/FEATURES_RU.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
+| 2026-06-16 09:54:10 | `docs/FEATURES_UK.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
+| 2026-06-16 09:55:20 | `PLAN/S0439_screen-rotation-follow-os.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 09:55:20 | `app_v2/src/main/java/com/sza/fastmediasorter/core/orientation/AppOrientationManager.kt` | `spec-dev S0439` | S0439 debug tag (device test probe) [branch: DEBUG-v014] |
+| 2026-06-16 09:55:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0439` | S0439 debug tag (device test probe) [branch: DEBUG-v014] |
+| 2026-06-16 09:55:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `spec-dev S0439` | S0439 debug tag (device test probe) [branch: DEBUG-v014] |
+| 2026-06-16 09:55:54 | `PLAN/S0448_photos-flavor-exposes-network-sources.md` | `spec-dev` | All 3 phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 09:55:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `spec-dev` | Insert S0448 BlockNeedUserTest debug tag at welcome network-rows bind [branch: DEBUG-v014] |
+| 2026-06-16 11:01:24 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec` | Scaffold strategic spec skeleton S0456 [branch: DEBUG-v014] |
+| 2026-06-16 11:05:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `fix` | S0438 follow-up: drop redundant View.keepScreenOn wake-lock; rely on BaseActivity effective-rule window flag so dependent=OFF lets screen sleep in standalone players [branch: DEBUG-v014] |
+| 2026-06-16 11:05:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `fix` | S0438 follow-up: slideshow keep-awake restore honours preventSleep \|\| keepScreenOnPlayer [branch: DEBUG-v014] |
+| 2026-06-16 11:09:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0452 Phase 02: enabled/disabled share-target sets + IsShareTargetEnabledUseCase [branch: DEBUG-v014] |
+| 2026-06-16 11:09:34 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0452 Phase 02: enabled/disabled share-target sets + IsShareTargetEnabledUseCase [branch: DEBUG-v014] |
+| 2026-06-16 11:09:34 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/IsShareTargetEnabledUseCase.kt` | `spec-dev` | S0452 Phase 02: enabled/disabled share-target sets + IsShareTargetEnabledUseCase [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:16:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0452 Phase 03: Send-file-to settings group (dynamic toggles from ShareTargetRegistry) [branch: DEBUG-v014] |
+| 2026-06-16 11:22:54 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev` | S0452 Phase 03: hide Send-file-to group card while registry is empty (cardSendCommands) [branch: DEBUG-v014] |
+| 2026-06-16 11:22:54 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev` | S0452 Phase 03: hide Send-file-to group card while registry is empty (cardSendCommands) [branch: DEBUG-v014] |
+| 2026-06-16 11:22:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0452 Phase 03: hide Send-file-to group card while registry is empty (cardSendCommands) [branch: DEBUG-v014] |
+| 2026-06-16 11:26:18 | `PLAN/S0452_share-commands-infrastructure.md` | `spec-dev` | S0452 Implemented (infra-only): phases 01-03+05 done, Phase 04 gating delegated to target tickets [branch: DEBUG-v014] |
+| 2026-06-16 11:27:03 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec` | Fill strategic spec S0456 (flavorGates reflection hardening); owner-gate PASS [branch: DEBUG-v014] |
+| 2026-06-16 11:27:21 | `PLAN/S0452_share-commands-infrastructure.md` | `spec-check` | Audit S0452 -> Verified; PASS/WARN/FAIL 11/0/0 (infra-only, Phase 04 delegated) [branch: DEBUG-v014] |
+| 2026-06-16 11:31:08 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety/INDEX.md` | `spec-tech` | Create tactical plan for S0456 (2 phases) [branch: DEBUG-v014] |
+| 2026-06-16 11:31:08 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety/research/01__gate-field-coverage-across-flavors.md` | `spec-tech` | Research 01: single-variant test suffices (uniform gate fields) [branch: DEBUG-v014] |
+| 2026-06-16 11:31:08 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety/PHASE_01__harden-flavorgate-resolution.md` | `spec-tech` | Phase 01: harden flavor-gate resolution [branch: DEBUG-v014] |
+| 2026-06-16 11:31:08 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog cleanup [branch: DEBUG-v014] |
+| 2026-06-16 11:31:08 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:34:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `spec-dev` | S0456 P01.1: expose declaredFlavorGateFields + narrow flavor-gate reflection catch [branch: DEBUG-v014] |
+| 2026-06-16 11:35:26 | `app_v2/src/test/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImplTest.kt` | `spec-dev` | S0456 P01.2: test asserts every flavor-gate resolves to a boolean BuildConfig field [branch: DEBUG-v014] |
+| 2026-06-16 11:41:00 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec-draft` | Park: app_v2 unit-test source set broken compile (blocks S0456) [branch: DEBUG-v014] |
+| 2026-06-16 11:50:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `S0458` | S0458: gate standalone image-player Google Lens overflow item on enableGoogleLens setting [branch: DEBUG-v014] |
+| 2026-06-16 11:51:35 | `PLAN/S0459_unified-send-to-menu.md` | `spec` | Scaffold strategic spec skeleton S0459 [branch: DEBUG-v014] |
+| 2026-06-16 11:53:12 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec` | Fill strategic spec S0457 (restore app_v2 unit-test compile); owner-gate PASS [branch: DEBUG-v014] |
+| 2026-06-16 11:56:23 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile/INDEX.md` | `spec-tech` | Create tactical plan for S0457 (2 phases) [branch: DEBUG-v014] |
+| 2026-06-16 11:56:23 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile/PHASE_01__restore-test-compile.md` | `spec-tech` | Phase 01: restore test-source-set compile [branch: DEBUG-v014] |
+| 2026-06-16 11:56:23 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog cleanup [branch: DEBUG-v014] |
+| 2026-06-16 11:56:23 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option.md` | `spec-tech` | S0443 strategic body filled + Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option/INDEX.md` | `spec-tech` | S0443 tactical plan: INDEX [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option/PHASE_01__register-keep-target.md` | `spec-tech` | S0443 tactical plan: PHASE_01__register-keep-target [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option/PHASE_02__gate-player-command-panel.md` | `spec-tech` | S0443 tactical plan: PHASE_02__gate-player-command-panel [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option/PHASE_03__gate-editor-draw-standalone-surfaces.md` | `spec-tech` | S0443 tactical plan: PHASE_03__gate-editor-draw-standalone-surfaces [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0443_keep-send-option/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | S0443 tactical plan: PHASE_04__docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0444_player-send-email.md` | `spec-tech` | S0444 strategic body filled + Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:58:27 | `PLAN/S0444_player-send-email/INDEX.md` | `spec-tech` | S0444 tactical plan: INDEX [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0444_player-send-email/PHASE_01__trilingual-strings.md` | `spec-tech` | S0444 tactical plan: PHASE_01__trilingual-strings [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0444_player-send-email/PHASE_02__email-send-action-and-registration.md` | `spec-tech` | S0444 tactical plan: PHASE_02__email-send-action-and-registration [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0444_player-send-email/PHASE_03__player-menu-command-and-gating.md` | `spec-tech` | S0444 tactical plan: PHASE_03__player-menu-command-and-gating [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0444_player-send-email/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | S0444 tactical plan: PHASE_04__docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting.md` | `spec-tech` | S0445 strategic body filled + Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/INDEX.md` | `spec-tech` | S0445 tactical plan: INDEX [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/PHASE_01__register-system-share-target.md` | `spec-tech` | S0445 tactical plan: PHASE_01__register-system-share-target [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/PHASE_02__gate-player-command-panel.md` | `spec-tech` | S0445 tactical plan: PHASE_02__gate-player-command-panel [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/PHASE_03__gate-browse-surfaces.md` | `spec-tech` | S0445 tactical plan: PHASE_03__gate-browse-surfaces [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/PHASE_04__gate-standalone-players.md` | `spec-tech` | S0445 tactical plan: PHASE_04__gate-standalone-players [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0445_profile-share-to-setting/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | S0445 tactical plan: PHASE_05__docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings.md` | `spec-tech` | S0446 strategic body filled + Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/INDEX.md` | `spec-tech` | S0446 tactical plan: INDEX [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_01__trilingual-strings.md` | `spec-tech` | S0446 tactical plan: PHASE_01__trilingual-strings [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_02__register-targets-and-queries.md` | `spec-tech` | S0446 tactical plan: PHASE_02__register-targets-and-queries [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_03__messenger-send-implementation.md` | `spec-tech` | S0446 tactical plan: PHASE_03__messenger-send-implementation [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_04__player-command-gating.md` | `spec-tech` | S0446 tactical plan: PHASE_04__player-command-gating [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_05__browse-overflow-gating.md` | `spec-tech` | S0446 tactical plan: PHASE_05__browse-overflow-gating [branch: DEBUG-v014] |
+| 2026-06-16 11:58:28 | `PLAN/S0446_messenger-share-settings/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | S0446 tactical plan: PHASE_06__docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 12:01:43 | `app_v2/src/test/java/com/sza/fastmediasorter/testutil/TestMediaCapabilities.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:02:50 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ApplyEnableAllSettingsUseCaseTest.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:03:58 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCaseTest.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:05:04 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ResolveOpenInFmsTargetUseCaseTest.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:06:10 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ScanLocalFoldersUseCaseTest.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:07:18 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlannerTest.kt` | `spec-dev` | S0457 P01: route test MediaCapabilities through testMediaCapabilities factory [branch: DEBUG-v014] |
+| 2026-06-16 12:12:52 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec-dev` | All phases done; status -> Implemented (test source set compiles, targeted classes green) [branch: DEBUG-v014] |
+| 2026-06-16 12:14:35 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec-check` | Audit S0457 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v014] |
+| 2026-06-16 12:16:58 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | S0459 reframed as epic (menu+settings+impl); absorbs S0443/44/45/46/S0458; icons + generalize existing Share-to [branch: DEBUG-v014] |
+| 2026-06-16 12:16:58 | `PLAN/S0443_*.md` | `spec-arc` | Archive S0443 - superseded by S0459 (absorbed into unified send-to epic) [branch: DEBUG-v014] |
+| 2026-06-16 12:16:58 | `PLAN/S0444_*.md` | `spec-arc` | Archive S0444 - superseded by S0459 (absorbed into unified send-to epic) [branch: DEBUG-v014] |
+| 2026-06-16 12:16:58 | `PLAN/S0445_*.md` | `spec-arc` | Archive S0445 - superseded by S0459 (absorbed into unified send-to epic) [branch: DEBUG-v014] |
+| 2026-06-16 12:16:58 | `PLAN/S0446_*.md` | `spec-arc` | Archive S0446 - superseded by S0459 (absorbed into unified send-to epic) [branch: DEBUG-v014] |
+| 2026-06-16 12:16:59 | `PLAN/S0458_*.md` | `spec-arc` | Archive S0458 - superseded by S0459 (absorbed into unified send-to epic) [branch: DEBUG-v014] |
+| 2026-06-16 12:17:55 | `PLAN/S0455_*.md` | `spec-arc` | Archive S0455 - duplicate of active S0457 (same broken unit-test source set / mediaCapabilities) [branch: DEBUG-v014] |
+| 2026-06-16 12:19:51 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec-dev` | All phases done; status -> Implemented (unblocked by S0457; acceptance test green) [branch: DEBUG-v014] |
+| 2026-06-16 12:21:22 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec-check` | Audit S0456 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v014] |
+| 2026-06-16 12:21:58 | `PLAN/S0456_permission-flavorgates-reflection-zero-safety.md` | `spec-arc` | Archive S0456 (Verified) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 12:21:58 | `PLAN/S0457_bugfix-unit-test-source-set-broken-compile.md` | `spec-arc` | Archive S0457 (Verified) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 12:43:09 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | Refinement: folded audit findings + 4 owner decisions; +ADR-3..6, +type/multifile/icon/scope constraints; tier 3->2 [branch: DEBUG-v014] |
+| 2026-06-16 12:47:32 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | Fold 3 owner decisions (defaults/single-receiver/order) into ADR-7..9 + 3.3; trim resolved 6 items [branch: DEBUG-v014] |
+| 2026-06-16 12:58:33 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | Add re-home cross-link to S0362/S0431 in 10; capture lost Keep-text send semantics; confirm S0452/S0431 not deprecated [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | Resolve all 5 6 research items (artifacts under research/); promote Draft -> Approved [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu/research/01__surface-audit.md` | `research` | S0459 exhaustive outbound-share surface audit [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu/research/02__type-applicability-model.md` | `research` | S0459 ShareTarget type-applicability model [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu/research/03__bottomsheet-tv-focus.md` | `research` | S0459 bottom-sheet TV/D-pad focus [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu/research/04__messenger-recipient-feasibility.md` | `research` | S0459 messenger recipient feasibility [branch: DEBUG-v014] |
+| 2026-06-16 13:11:03 | `PLAN/S0459_unified-send-to-menu/research/05__email-send-action.md` | `research` | S0459 email send action [branch: DEBUG-v014] |
+| 2026-06-16 13:18:14 | `PLAN/S0459_unified-send-to-menu/research/01__surface-audit.md` | `research-verify` | Correct surface audit: add standalone share cluster + FileInfoLaunchManager open-with + audio shareable; extend OUT firewall (resource/backup/diagnostic exports) [branch: DEBUG-v014] |
+| 2026-06-16 13:18:14 | `PLAN/S0459_unified-send-to-menu/research/03__bottomsheet-tv-focus.md` | `research-verify` | Point bottom-sheet focus pattern at existing project sheets [branch: DEBUG-v014] |
+| 2026-06-16 13:18:14 | `PLAN/S0459_unified-send-to-menu/research/04__messenger-recipient-feasibility.md` | `research-verify` | Record known package ids + WhatsApp Business [branch: DEBUG-v014] |
+| 2026-06-16 13:18:14 | `PLAN/S0459_unified-send-to-menu.md` | `spec-update` | Correct 6 surface-audit resolution after independent verification [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/INDEX.md` | `spec-tech` | Create tactical plan for S0459 (8 phases) [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_01__foundation-model.md` | `spec-tech` | Phase 01: foundation-model [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_02__new-receiver-handlers.md` | `spec-tech` | Phase 02: new-receiver-handlers [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_03__registry-population.md` | `spec-tech` | Phase 03: registry-population [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_04__unified-menu-ui.md` | `spec-tech` | Phase 04: unified-menu-ui [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_05__consolidate-player.md` | `spec-tech` | Phase 05: consolidate-player [branch: DEBUG-v014] |
+| 2026-06-16 13:55:04 | `PLAN/S0459_unified-send-to-menu/PHASE_06__consolidate-standalone.md` | `spec-tech` | Phase 06: consolidate-standalone [branch: DEBUG-v014] |
+| 2026-06-16 13:55:05 | `PLAN/S0459_unified-send-to-menu/PHASE_07__consolidate-browse.md` | `spec-tech` | Phase 07: consolidate-browse [branch: DEBUG-v014] |
+| 2026-06-16 13:55:05 | `PLAN/S0459_unified-send-to-menu/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 13:55:05 | `PLAN/S0459_unified-send-to-menu.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 14:16:54 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTarget.kt` | `spec-dev` | S0459 Phase 01.1: add applicableTypes + appliesTo to ShareTarget [branch: DEBUG-v014] |
+| 2026-06-16 14:19:04 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareableContent.kt` | `spec-dev` | S0459 Phase 01.2: add ShareableContent payload [branch: DEBUG-v014] |
+| 2026-06-16 14:20:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTargetHandler.kt` | `spec-dev` | S0459 Phase 01.3: add ShareTargetHandler contract [branch: DEBUG-v014] |
+| 2026-06-16 14:23:21 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTargetIconResolver.kt` | `spec-dev` | S0459 Phase 01.4: add ShareTargetIconResolver (hybrid icon policy) [branch: DEBUG-v014] |
+| 2026-06-16 14:24:37 | `app_v2/src/test/java/com/sza/fastmediasorter/core/share/ShareTargetApplicabilityTest.kt` | `spec-dev` | S0459 Phase 01.4: applicability unit test (appliesTo) [branch: DEBUG-v014] |
+| 2026-06-16 14:35:37 | `PLAN/S0460_ocr-show-error-toast-on-background-thread-crash.md` | `spec-tech` | S0460 primitive fix: 3.3 added, status Draft to BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 14:35:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-tech` | S0460: wrap showError Toast in runOnUiThread to fix FATAL crash on background OCR thread [branch: DEBUG-v014] |
+| 2026-06-16 14:43:11 | `PLAN/S0460_ocr-show-error-toast-on-background-thread-crash.md` | `spec-check` | Audit S0460 -> Verified; PASS 4 / WARN 0 / FAIL 0 [branch: DEBUG-v014] |
+| 2026-06-16 14:43:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-check` | S0460: removed BlockNeedUserTest debug tag (Verified transition) [branch: DEBUG-v014] |
+| 2026-06-16 15:07:45 | `PLAN/S0462_bugfix-tesseractmanager-no-network-timeout.md` | `spec-draft` | Scaffold strategic spec skeleton S0462 [branch: DEBUG-v014] |
+| 2026-06-16 15:10:23 | `PLAN/S0461_ocr-paddle-payload-missing-no-graceful-fallback.md` | `spec-tech` | S0461 primitive: §3.3 added, Draft→Approved→BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 15:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OfflineOcrEngineProvider.kt` | `spec-tech` | S0461: expose defaultEngine as public val for Tesseract fallback path [branch: DEBUG-v014] |
+| 2026-06-16 15:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/RecognitionBackend.kt` | `spec-tech` | S0461: Tesseract fallback on partial OCR payload missing in all three recognize flows [branch: DEBUG-v014] |
+| 2026-06-16 15:30:22 | `PLAN/S0462_bugfix-tesseractmanager-no-network-timeout.md` | `spec-dev` | S0462 all phases done; status -> Implemented [branch: DEBUG-v014] |
+| 2026-06-16 15:30:22 | `app_v2/src/ocrEnabled/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt` | `spec-dev` | Replace URL.openStream() with HttpURLConnection + 15s connect/read timeout in checkAndDownloadData() [branch: DEBUG-v014] |
+| 2026-06-16 15:32:39 | `PLAN/S0462_bugfix-tesseractmanager-no-network-timeout.md` | `spec-check` | Audit S0462 -> Verified; PASS 10 / WARN 0 / FAIL 0 [branch: DEBUG-v014] |
+| 2026-06-16 15:49:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/SystemShareInvoker.kt` | `spec-dev` | S0459 Phase 02.1: invokeFiles email-extras overload (EXTRA_EMAIL/EXTRA_SUBJECT) [branch: DEBUG-v014] |
+| 2026-06-16 15:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/WhatsAppShareTargetHandler.kt` | `spec-dev` | S0459 Phase 02.3: WhatsApp send handler [branch: DEBUG-v014] |
+| 2026-06-16 15:54:50 | `PLAN/S0461_ocr-paddle-payload-missing-no-graceful-fallback.md` | `spec-test-device` | Device smoke test on emulator-5554 (x86_64, Android 17) -> PASS 3/SKIP 1; S0461 Tesseract path requires arm64+noLegal [branch: DEBUG-v014] |
+| 2026-06-16 15:54:54 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/EmailShareTargetHandler.kt` | `spec-dev` | S0459 Phase 02.2: Email send handler (ACTION_SEND rfc822) [branch: DEBUG-v014] |
+| 2026-06-16 15:54:54 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/InstagramShareTargetHandler.kt` | `spec-dev` | S0459 Phase 02.3: Instagram send handler (image/video) [branch: DEBUG-v014] |
+| 2026-06-16 15:56:55 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev` | S0459 Phase 02.4: queries visibility for Telegram/WhatsApp/Instagram receivers + mailto [branch: DEBUG-v014] |
+| 2026-06-16 16:09:56 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0459 Phase 03.1: add receiver title strings (system_share/open_in/email/whatsapp/instagram) [branch: DEBUG-v014] |
+| 2026-06-16 16:10:10 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0459 Phase 03.1: RU receiver title strings [branch: DEBUG-v014] |
+| 2026-06-16 16:10:10 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0459 Phase 03.1: UK receiver title strings [branch: DEBUG-v014] |
+| 2026-06-16 16:30:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/PrintShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: 6 wrapper handlers + SharePrintHost + ShareableContent.mediaFile [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareableContent.kt` | `spec-dev` | S0459 Phase 03.2: add mediaFile field (ADR-11) [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/SharePrintHost.kt` | `spec-dev` | S0459 Phase 03.2: new host-print capability interface (ADR-10) [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/SystemShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: System Share wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/OpenInShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: Open-in wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/TelegramShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: Telegram wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/KeepTextShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: Keep-text wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/KeepDrawingShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: Keep-drawing wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:31:33 | `PLAN/S0459_unified-send-to-menu.md` | `spec-dev` | S0459 Phase 03.2: ADR-10 (SharePrintHost) + ADR-11 (mediaFile/menu-side prep) [branch: DEBUG-v014] |
+| 2026-06-16 16:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/LensShareTargetHandler.kt` | `spec-dev` | S0459 Phase 03.2: Lens wrapper handler [branch: DEBUG-v014] |
+| 2026-06-16 16:36:25 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/GoogleLensShare.kt` | `spec-dev` | S0459 Phase 03.2: relocate GoogleLensShare ui->core + shareImageUri [branch: DEBUG-v014] |
+| 2026-06-16 16:36:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev` | S0459 Phase 03.2: update GoogleLensShare FQN to core.share [branch: DEBUG-v014] |
+| 2026-06-16 16:36:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/DocumentStandaloneActivity.kt` | `spec-dev` | S0459 Phase 03.2: update GoogleLensShare FQN to core.share [branch: DEBUG-v014] |
+| 2026-06-16 16:36:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensShare.kt` | `spec-dev` | S0459 Phase 03.2: removed (relocated to core/share/GoogleLensShare.kt) [branch: DEBUG-v014] |
+| 2026-06-16 16:40:46 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/di/ShareTargetModule.kt` | `spec-dev` | S0459 Phase 03.3: register 10 ShareTargets (@IntoSet, defaults ADR-7, applicableTypes) [branch: DEBUG-v014] |
+| 2026-06-16 16:41:55 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/di/ShareTargetHandlerModule.kt` | `spec-dev` | S0459 Phase 03.4: bind 10 handlers @IntoMap by id [branch: DEBUG-v014] |
+| 2026-06-16 16:50:52 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0459 Phase 03: compliance - drop messenger brand strings, add neutral share_target_title_app fallback (dynamic app-label in Phase 04) [branch: DEBUG-v014] |
+| 2026-06-16 16:51:06 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0459 Phase 03: RU neutral app-label fallback [branch: DEBUG-v014] |
+| 2026-06-16 16:51:06 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0459 Phase 03: UK neutral app-label fallback [branch: DEBUG-v014] |
+| 2026-06-16 16:51:06 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/di/ShareTargetModule.kt` | `spec-dev` | S0459 Phase 03: messenger titleRes -> neutral fallback (verifyNoPlatformNames compliance) [branch: DEBUG-v014] |

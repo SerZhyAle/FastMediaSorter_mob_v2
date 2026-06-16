@@ -2501,4 +2501,10 @@
     <string name="screenshot_gesture_action_none">Не використовувати</string>
     <string name="settings_keep_screen_on_player_title">Не вимикати екран під час роботи плеєра</string>
     <string name="settings_keep_screen_on_player_summary">Діє лише в плеєрі та окремих плеєрах, і лише коли загальне налаштування утримання екрана вимкнено.</string>
+    <string name="settings_send_commands_group">Команди надіслати файл у..</string>
+    <string name="settings_send_command_unavailable">Не встановлено</string>
+    <string name="share_target_title_system_share">Інші застосунки</string>
+    <string name="share_target_title_open_in">Відкрити в..</string>
+    <string name="share_target_title_email">Ел. пошта</string>
+    <string name="share_target_title_app">Надіслати в застосунок</string>
 </resources>

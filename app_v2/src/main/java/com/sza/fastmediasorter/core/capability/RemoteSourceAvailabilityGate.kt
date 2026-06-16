@@ -71,6 +71,9 @@ class RemoteSourceAvailabilityGate(
     /** Whether the cloud group exists at all on this flavor (compile tier only, ignores toggles). */
     fun isCloudGroupSupported(): Boolean = mediaCapabilities.supportsCloud
 
+    /** Whether the network group (SMB/SFTP/FTP) exists at all on this flavor (compile tier only, ignores toggles). */
+    fun isNetworkGroupSupported(): Boolean = mediaCapabilities.supportsLocalNetworkSources
+
     private fun compileSupported(id: RemoteSourceId): Boolean = when {
         id in RemoteSourceId.CLOUD -> mediaCapabilities.supportsCloud
         id in RemoteSourceId.NETWORK -> mediaCapabilities.supportsLocalNetworkSources

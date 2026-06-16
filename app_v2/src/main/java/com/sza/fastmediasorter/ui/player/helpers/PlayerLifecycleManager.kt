@@ -512,7 +512,7 @@ class PlayerLifecycleManager(
 
     /**
      * Set screen keep-awake state for slideshow.
-     * @param enabled true to force screen on, false to restore global preventSleep setting
+     * @param enabled true to force screen on, false to restore the effective player keep-awake rule
      */
     fun setSlideshowKeepAwake(enabled: Boolean) {
         if (activity.isFinishing || activity.isDestroyed) return
@@ -523,8 +523,10 @@ class PlayerLifecycleManager(
             ).show()
         } else {
             activity.lifecycleScope.launch {
+                // S0438: a player host keeps the screen on when either the global or the dependent
+                // player setting is on - restore to that effective rule, not preventSleep alone.
                 val settings = activity.settingsRepository.getSettings().first()
-                if (settings.preventSleep) {
+                if (settings.preventSleep || settings.keepScreenOnPlayer) {
                     activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 } else {
                     activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

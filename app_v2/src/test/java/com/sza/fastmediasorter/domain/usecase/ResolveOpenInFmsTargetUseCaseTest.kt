@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -34,7 +35,8 @@ class ResolveOpenInFmsTargetUseCaseTest {
         resolveIcon,
         addResource,
         resourceRepository,
-        settingsRepository
+        settingsRepository,
+        testMediaCapabilities()
     )
 
     private val uri = mockk<Uri>()

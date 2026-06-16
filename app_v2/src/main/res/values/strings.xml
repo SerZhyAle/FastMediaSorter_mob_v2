@@ -2586,4 +2586,10 @@ Close the player and try again.</string>
     <string name="screenshot_gesture_action_none">Do not use</string>
     <string name="settings_keep_screen_on_player_title">Keep screen on while player is active</string>
     <string name="settings_keep_screen_on_player_summary">Applies only to the player and standalone players, and only when the global keep-screen-on setting is off.</string>
+    <string name="settings_send_commands_group">Send file to..</string>
+    <string name="settings_send_command_unavailable">Not installed</string>
+    <string name="share_target_title_system_share">Other apps</string>
+    <string name="share_target_title_open_in">Open in..</string>
+    <string name="share_target_title_email">Email</string>
+    <string name="share_target_title_app">Send to app</string>
 </resources>

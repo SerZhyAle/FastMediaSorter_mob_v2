@@ -211,8 +211,9 @@ class PhotoVideoStandaloneActivity :
             context = this,
             settingsRepository = settingsRepository,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
-                override fun showError(message: String) =
+                override fun showError(message: String) = runOnUiThread {
                     Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+                }
                 override fun showModelDownloadPrompt(languageName: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
                     if (isFinishing || isDestroyed) { onCancel(); return }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PhotoVideoStandaloneActivity)
@@ -361,6 +362,13 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
+    /**
+     * S0458: cached enableGoogleLens setting; gates the overflow Google Lens item so the standalone
+     * image host matches the in-app player, where the command is hidden until the user opts in.
+     */
+    @Volatile
+    private var googleLensSettingEnabled = false
+
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
 
@@ -481,7 +489,9 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_edit_compress).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_draw_overlay).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_edit_image).isVisible = editable
-            popup.menu.findItem(R.id.menu_google_lens).isVisible = editable
+            // Gate Google Lens on both a writable local image and the user setting, mirroring
+            // the in-app player where the command stays hidden until enableGoogleLens is turned on.
+            popup.menu.findItem(R.id.menu_google_lens).isVisible = editable && googleLensSettingEnabled
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
                 hasBitmap && capabilityAvailability.isTranslationAvailable()
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
@@ -533,7 +543,7 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
                     R.id.menu_google_lens -> {
                         viewModel.editableImageFile.value?.let {
-                            com.sza.fastmediasorter.ui.player.helpers.GoogleLensShare
+                            com.sza.fastmediasorter.core.share.GoogleLensShare
                                 .shareImageFile(this, java.io.File(it.path))
                         }
                         true
@@ -698,6 +708,10 @@ class PhotoVideoStandaloneActivity :
         }
         collectOnLifecycle(viewModel.messageFlow) { message ->
             Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+        }
+        // S0458: keep the Google Lens overflow gate in sync with the live setting.
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            googleLensSettingEnabled = settings.enableGoogleLens
         }
         // S0390: gate Group A image actions on the editable-image state × the type-specific capability.
         collectOnLifecycle(viewModel.editableImageFile) { editFile ->

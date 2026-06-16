@@ -152,8 +152,10 @@
     <string name="setting_enable_pip_desc">Show PiP button in player and auto-enter PiP on home press (Android 12+)</string>
     <string name="setting_enable_translation_desc">Enable text translation support via OCR</string>
     <string name="setting_file_ops_in_overflow_menu_desc">Collapse Copy/Move/Rename/Delete into a per-row ⋮ menu</string>
-    <string name="setting_follow_system_rotation_summary">When on, the app follows the system auto-rotate setting. When off, rotation is controlled manually from the player.</string>
-    <string name="setting_follow_system_rotation_title">Rotate screen with OS auto-rotate</string>
+    <string name="setting_follow_system_rotation_summary">When on, every screen in the app follows the system auto-rotate setting. When off, screens stay fixed.</string>
+    <string name="setting_follow_system_rotation_title">Rotate program screen with OS auto-rotate</string>
+    <string name="setting_follow_system_rotation_player_title">Rotate player screen with OS auto-rotate</string>
+    <string name="setting_follow_system_rotation_player_summary">Lets the player follow the OS auto-rotate even when the app-wide setting is off.</string>
     <string name="setting_go_to_next_after_copy_desc">Automatically advance to next file after copying</string>
     <string name="setting_hide_grid_action_buttons_desc">Hide quick action buttons overlaid on thumbnails</string>
     <string name="setting_hide_system_ui_desc">Hide status bar and navigation in fullscreen mode</string>
