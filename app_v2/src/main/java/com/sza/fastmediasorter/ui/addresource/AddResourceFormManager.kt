@@ -5,8 +5,8 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
@@ -25,7 +25,8 @@ internal class AddResourceFormManager(
     private val activity: AddResourceActivity,
     private val binding: ActivityAddResourceBinding,
     private val viewModel: AddResourceViewModel,
-    private val remoteSourceGate: RemoteSourceAvailabilityGate
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    private val mediaCapabilities: MediaCapabilities
 ) {
 
     private val addResourceUiPrefs by lazy {
@@ -66,20 +67,20 @@ internal class AddResourceFormManager(
         binding.cardSftpFolder.isVisible =
             remoteSourceGate.isEnabled(RemoteSourceId.SFTP) || remoteSourceGate.isEnabled(RemoteSourceId.FTP)
         binding.cardCloudStorage.isVisible = remoteSourceGate.anyCloudEnabled()
-        val showEpub = BuildConfig.ENABLE_EPUB
+        val showEpub = mediaCapabilities.supportsEpub
         val showOfficeDocuments = supportsOfficeDocuments()
         binding.cbSmbSupportEpub.isVisible = showEpub
         binding.cbSftpSupportEpub.isVisible = showEpub
         binding.cbSmbSupportOffice.isVisible = showOfficeDocuments
         binding.cbSftpSupportOffice.isVisible = showOfficeDocuments
-        binding.cbSmbSupportVideo.isVisible = BuildConfig.SUPPORT_VIDEO
-        binding.cbSftpSupportVideo.isVisible = BuildConfig.SUPPORT_VIDEO
-        binding.cbSmbSupportAudio.isVisible = BuildConfig.SUPPORT_AUDIO
-        binding.cbSftpSupportAudio.isVisible = BuildConfig.SUPPORT_AUDIO
-        binding.cbSmbSupportPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
-        binding.cbSftpSupportPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
-        binding.cbSmbSupportText.isVisible = BuildConfig.SUPPORT_DOCUMENTS
-        binding.cbSftpSupportText.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+        binding.cbSmbSupportVideo.isVisible = mediaCapabilities.supportsVideo
+        binding.cbSftpSupportVideo.isVisible = mediaCapabilities.supportsVideo
+        binding.cbSmbSupportAudio.isVisible = mediaCapabilities.supportsAudio
+        binding.cbSftpSupportAudio.isVisible = mediaCapabilities.supportsAudio
+        binding.cbSmbSupportPdf.isVisible = mediaCapabilities.supportsDocuments
+        binding.cbSftpSupportPdf.isVisible = mediaCapabilities.supportsDocuments
+        binding.cbSmbSupportText.isVisible = mediaCapabilities.supportsDocuments
+        binding.cbSftpSupportText.isVisible = mediaCapabilities.supportsDocuments
     }
 
     fun setupCheckboxInteractions() {
@@ -201,22 +202,22 @@ internal class AddResourceFormManager(
 
     private fun applyMediaTypeCheckboxes(supportedTypes: Set<MediaType>, smb: Boolean) {
         if (smb) {
-            binding.cbSmbSupportImage.apply { isChecked = MediaType.IMAGE in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_IMAGES && (MediaType.IMAGE in supportedTypes) }
-            binding.cbSmbSupportVideo.apply { isChecked = MediaType.VIDEO in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_VIDEO && (MediaType.VIDEO in supportedTypes) }
-            binding.cbSmbSupportAudio.apply { isChecked = MediaType.AUDIO in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_AUDIO && (MediaType.AUDIO in supportedTypes) }
-            binding.cbSmbSupportGif.apply   { isChecked = MediaType.GIF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_IMAGES && (MediaType.GIF  in supportedTypes) }
-            binding.cbSmbSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.TEXT in supportedTypes) }
-            binding.cbSmbSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.PDF  in supportedTypes) }
-            binding.cbSmbSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = BuildConfig.ENABLE_EPUB && (MediaType.EPUB in supportedTypes) }
+            binding.cbSmbSupportImage.apply { isChecked = MediaType.IMAGE in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsImages && (MediaType.IMAGE in supportedTypes) }
+            binding.cbSmbSupportVideo.apply { isChecked = MediaType.VIDEO in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsVideo && (MediaType.VIDEO in supportedTypes) }
+            binding.cbSmbSupportAudio.apply { isChecked = MediaType.AUDIO in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsAudio && (MediaType.AUDIO in supportedTypes) }
+            binding.cbSmbSupportGif.apply   { isChecked = MediaType.GIF  in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsImages && (MediaType.GIF  in supportedTypes) }
+            binding.cbSmbSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsDocuments && (MediaType.TEXT in supportedTypes) }
+            binding.cbSmbSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsDocuments && (MediaType.PDF  in supportedTypes) }
+            binding.cbSmbSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsEpub && (MediaType.EPUB in supportedTypes) }
             binding.cbSmbSupportOffice.apply { isChecked = MediaType.OFFICE_DOCUMENT in supportedTypes; isEnabled = true; isVisible = supportsOfficeDocuments() && (MediaType.OFFICE_DOCUMENT in supportedTypes) }
         } else {
-            binding.cbSftpSupportImage.apply { isChecked = MediaType.IMAGE in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_IMAGES && (MediaType.IMAGE in supportedTypes) }
-            binding.cbSftpSupportVideo.apply { isChecked = MediaType.VIDEO in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_VIDEO && (MediaType.VIDEO in supportedTypes) }
-            binding.cbSftpSupportAudio.apply { isChecked = MediaType.AUDIO in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_AUDIO && (MediaType.AUDIO in supportedTypes) }
-            binding.cbSftpSupportGif.apply   { isChecked = MediaType.GIF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_IMAGES && (MediaType.GIF  in supportedTypes) }
-            binding.cbSftpSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.TEXT in supportedTypes) }
-            binding.cbSftpSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = BuildConfig.SUPPORT_DOCUMENTS && (MediaType.PDF  in supportedTypes) }
-            binding.cbSftpSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = BuildConfig.ENABLE_EPUB && (MediaType.EPUB in supportedTypes) }
+            binding.cbSftpSupportImage.apply { isChecked = MediaType.IMAGE in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsImages && (MediaType.IMAGE in supportedTypes) }
+            binding.cbSftpSupportVideo.apply { isChecked = MediaType.VIDEO in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsVideo && (MediaType.VIDEO in supportedTypes) }
+            binding.cbSftpSupportAudio.apply { isChecked = MediaType.AUDIO in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsAudio && (MediaType.AUDIO in supportedTypes) }
+            binding.cbSftpSupportGif.apply   { isChecked = MediaType.GIF  in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsImages && (MediaType.GIF  in supportedTypes) }
+            binding.cbSftpSupportText.apply  { isChecked = MediaType.TEXT in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsDocuments && (MediaType.TEXT in supportedTypes) }
+            binding.cbSftpSupportPdf.apply   { isChecked = MediaType.PDF  in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsDocuments && (MediaType.PDF  in supportedTypes) }
+            binding.cbSftpSupportEpub.apply  { isChecked = MediaType.EPUB in supportedTypes; isEnabled = true; isVisible = mediaCapabilities.supportsEpub && (MediaType.EPUB in supportedTypes) }
             binding.cbSftpSupportOffice.apply { isChecked = MediaType.OFFICE_DOCUMENT in supportedTypes; isEnabled = true; isVisible = supportsOfficeDocuments() && (MediaType.OFFICE_DOCUMENT in supportedTypes) }
         }
     }
@@ -459,5 +460,5 @@ internal class AddResourceFormManager(
     }
 
     private fun supportsOfficeDocuments(): Boolean =
-        BuildConfig.SUPPORT_DOCUMENTS && MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.isNotEmpty()
+        mediaCapabilities.supportsDocuments && MediaTypeUtils.OFFICE_DOCUMENT_EXTENSIONS.isNotEmpty()
 }

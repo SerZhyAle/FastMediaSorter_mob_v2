@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -156,6 +157,10 @@ class AudioStandaloneActivity :
             recoverableDeleteLauncher = recoverableDeleteLauncher
         )
     }
+
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
 
     override fun getViewBinding(): ActivityStandaloneAudioBinding =
         ActivityStandaloneAudioBinding.inflate(layoutInflater)

@@ -38,7 +38,7 @@ class ScreenRotationManager {
      * Apply orientation based on the two-level hierarchy.
      * Call from:
      *  - PlayerActivity.onCreate / onResume
-     *  - Settings observer (when followSystemRotation changes)
+     *  - Settings observer (when the program/player follow-OS flags change)
      *  - Player toggle callback (when playerRotationSensorEnabled changes)
      */
     fun apply(

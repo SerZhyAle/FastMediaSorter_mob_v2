@@ -381,7 +381,8 @@ class SettingsViewModel @Inject constructor(
                 embeddedGameEnabled = defaults.embeddedGameEnabled,
                 // SystemApps group (moved from Player tab)
                 preventSleep = defaults.preventSleep,
-                followSystemRotation = defaults.followSystemRotation,
+                programFollowSystemRotation = defaults.programFollowSystemRotation,
+                playerFollowSystemRotation = defaults.playerFollowSystemRotation,
                 isPrimaryMediaPlayer = defaults.isPrimaryMediaPlayer,
                 acceptSharedFiles = defaults.acceptSharedFiles,
                 linkAutoDownloadEnabled = defaults.linkAutoDownloadEnabled,

@@ -137,6 +137,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
 
+    // S0439: program-wide screen-rotation policy applier; registered as ActivityLifecycleCallbacks in onCreate.
+    @Inject
+    lateinit var appOrientationManager: com.sza.fastmediasorter.core.orientation.AppOrientationManager
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -196,6 +200,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 firstFrameSignal.signal()
             }
         })
+
+        // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
+        registerActivityLifecycleCallbacks(appOrientationManager)
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
         // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 

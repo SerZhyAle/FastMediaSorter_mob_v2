@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
@@ -17,9 +17,10 @@ class GeneralSettingsBackupHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val backupViewModel: BackupRestoreViewModel,
+    private val mediaCapabilities: MediaCapabilities,
 ) {
     fun setupWearCompanionButton() {
-        if (!BuildConfig.SUPPORT_WEAR_COMPANION) {
+        if (!mediaCapabilities.supportsWearCompanion) {
             binding.containerWearCompanion?.visibility = View.GONE
             return
         }

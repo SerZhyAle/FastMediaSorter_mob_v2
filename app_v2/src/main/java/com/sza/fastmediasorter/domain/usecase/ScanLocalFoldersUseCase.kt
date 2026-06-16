@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_AUDIO
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_DOCS
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_IMAGES
@@ -28,7 +28,8 @@ class ScanLocalFoldersUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val repository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
-    private val mediaStoreRepository: MediaStoreRepository
+    private val mediaStoreRepository: MediaStoreRepository,
+    private val mediaCapabilities: MediaCapabilities
 ) {
 
     companion object {
@@ -69,7 +70,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
             }
 
             // Virtual aggregate: All Music
-            if (BuildConfig.SUPPORT_AUDIO && VIRTUAL_PATH_ALL_AUDIO !in existingPaths && settings.supportAudio) {
+            if (mediaCapabilities.supportsAudio && VIRTUAL_PATH_ALL_AUDIO !in existingPaths && settings.supportAudio) {
                 resources.add(
                     MediaResource(
                         id = 0,
@@ -115,7 +116,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
             }
 
             // Virtual aggregate: All Images
-            if (BuildConfig.SUPPORT_IMAGES && VIRTUAL_PATH_ALL_IMAGES !in existingPaths) {
+            if (mediaCapabilities.supportsImages && VIRTUAL_PATH_ALL_IMAGES !in existingPaths) {
                 val imageTypes = buildSet {
                     if (settings.supportImages) add(MediaType.IMAGE)
                     if (settings.supportGifs) add(MediaType.GIF)
@@ -144,7 +145,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
             }
 
             // Virtual aggregate: Camera Photos
-            if (BuildConfig.SUPPORT_IMAGES && VIRTUAL_PATH_CAMERA_PHOTOS !in existingPaths) {
+            if (mediaCapabilities.supportsImages && VIRTUAL_PATH_CAMERA_PHOTOS !in existingPaths) {
                 val cameraTypes = buildSet {
                     if (settings.supportImages) add(MediaType.IMAGE)
                     if (settings.supportGifs) add(MediaType.GIF)
@@ -175,7 +176,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
             }
 
             // Virtual aggregate: All Documents
-            if (BuildConfig.SUPPORT_DOCUMENTS) {
+            if (mediaCapabilities.supportsDocuments) {
                 val docTypes = buildSet {
                     if (settings.supportText) add(MediaType.TEXT)
                     if (settings.supportPdf) add(MediaType.PDF)

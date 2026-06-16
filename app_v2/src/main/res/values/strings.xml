@@ -2584,4 +2584,6 @@ Close the player and try again.</string>
     <string name="screenshot_gesture_action_ocr_translate">Send to OCR translation</string>
     <string name="screenshot_gesture_action_share">Share</string>
     <string name="screenshot_gesture_action_none">Do not use</string>
+    <string name="settings_keep_screen_on_player_title">Keep screen on while player is active</string>
+    <string name="settings_keep_screen_on_player_summary">Applies only to the player and standalone players, and only when the global keep-screen-on setting is off.</string>
 </resources>

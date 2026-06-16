@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
@@ -30,7 +31,7 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
     override fun getViewBinding(): ActivityCalculatorBinding =
         ActivityCalculatorBinding.inflate(layoutInflater)
 
-    override fun shouldKeepScreenAwake(): Boolean = false
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)

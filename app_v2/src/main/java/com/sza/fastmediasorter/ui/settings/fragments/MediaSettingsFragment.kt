@@ -9,8 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
 import android.widget.Toast
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
@@ -29,6 +29,8 @@ class MediaSettingsFragment : Fragment() {
      * visible with disabled toggle + advisory until XR runtime is detected).
      */
     @Inject lateinit var vrMediaSection: VrMediaSectionContract
+
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
@@ -91,14 +93,14 @@ class MediaSettingsFragment : Fragment() {
 
         val transaction = childFragmentManager.beginTransaction()
 
-        if (BuildConfig.SUPPORT_IMAGES) {
+        if (mediaCapabilities.supportsImages) {
             transaction.replace(binding.containerImages.id, ImagesSettingsFragment(), "media_images")
         } else {
             binding.headerImages.isVisible = false
             binding.containerImages.isVisible = false
         }
 
-        if (BuildConfig.SUPPORT_VIDEO) {
+        if (mediaCapabilities.supportsVideo) {
             transaction.replace(binding.containerVideo.id, VideoSettingsFragment(), "media_video")
         } else {
             binding.headerVideo.isVisible = false
@@ -118,14 +120,14 @@ class MediaSettingsFragment : Fragment() {
             binding.containerVr.isVisible = false
         }
 
-        if (BuildConfig.SUPPORT_AUDIO) {
+        if (mediaCapabilities.supportsAudio) {
             transaction.replace(binding.containerAudio.id, AudioSettingsFragment(), "media_audio")
         } else {
             binding.headerAudio.isVisible = false
             binding.containerAudio.isVisible = false
         }
 
-        if (BuildConfig.SUPPORT_DOCUMENTS) {
+        if (mediaCapabilities.supportsDocuments) {
             transaction.replace(binding.containerDocuments.id, DocumentsSettingsFragment(), "media_documents")
         } else {
             binding.headerDocuments.isVisible = false

@@ -120,6 +120,7 @@ object BackupMapper {
             defaultUser = settings.defaultUser,
             defaultPassword = settings.defaultPassword,
             preventSleep = settings.preventSleep,
+            keepScreenOnPlayer = settings.keepScreenOnPlayer,
             showSmallControls = settings.showSmallControls,
             embeddedGameEnabled = settings.embeddedGameEnabled,
             networkParallelism = settings.networkParallelism,
@@ -283,6 +284,7 @@ object BackupMapper {
             isResourceGridMode = backup.isResourceGridMode,
             language = backup.language.gsonSafe(current.language),
             preventSleep = backup.preventSleep,
+            keepScreenOnPlayer = backup.keepScreenOnPlayer,
             showSmallControls = backup.showSmallControls,
             embeddedGameEnabled = backup.embeddedGameEnabled,
             // S0406: restore global default network login from backup (was kept-from-current before).

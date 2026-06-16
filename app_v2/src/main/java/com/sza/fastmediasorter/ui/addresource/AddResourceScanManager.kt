@@ -8,7 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -20,7 +20,8 @@ internal class AddResourceScanManager(
     private val activity: AddResourceActivity,
     private val binding: ActivityAddResourceBinding,
     private val viewModel: AddResourceViewModel,
-    private val folderPickerLauncher: ActivityResultLauncher<Uri?>
+    private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
+    private val mediaCapabilities: MediaCapabilities
 ) {
 
     fun loadSshKeyFromFile(uri: Uri) {
@@ -97,12 +98,12 @@ internal class AddResourceScanManager(
             applyVirtualButtonStates(viewModel.getExistingVirtualPaths())
         }
 
-        if (!BuildConfig.SUPPORT_AUDIO) dialogView.findViewById<android.view.View>(R.id.btnVirtualAllMusic)?.isVisible = false
-        if (!BuildConfig.SUPPORT_IMAGES) {
+        if (!mediaCapabilities.supportsAudio) dialogView.findViewById<android.view.View>(R.id.btnVirtualAllMusic)?.isVisible = false
+        if (!mediaCapabilities.supportsImages) {
             dialogView.findViewById<android.view.View>(R.id.btnVirtualCameraPhotos)?.isVisible = false
             dialogView.findViewById<android.view.View>(R.id.btnVirtualAllImages)?.isVisible = false
         }
-        if (!BuildConfig.SUPPORT_DOCUMENTS) dialogView.findViewById<android.view.View>(R.id.btnVirtualAllDocs)?.isVisible = false
+        if (!mediaCapabilities.supportsDocuments) dialogView.findViewById<android.view.View>(R.id.btnVirtualAllDocs)?.isVisible = false
 
         val quickFolders = mapOf(
             R.id.btnRoot to "/storage/emulated/0",

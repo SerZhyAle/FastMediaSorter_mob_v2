@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.net.Uri
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -46,7 +46,8 @@ class ResolveOpenInFmsTargetUseCase @Inject constructor(
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val addResourceUseCase: AddResourceUseCase,
     private val resourceRepository: ResourceRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val mediaCapabilities: MediaCapabilities
 ) {
     suspend operator fun invoke(uri: Uri, mediaType: MediaType): OpenInFmsTarget =
         withContext(Dispatchers.IO) {
@@ -123,13 +124,13 @@ class ResolveOpenInFmsTargetUseCase @Inject constructor(
      */
     private fun aggregatePathForFamily(mediaType: MediaType): String? = when (mediaType) {
         MediaType.IMAGE, MediaType.GIF ->
-            if (BuildConfig.SUPPORT_IMAGES) LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES else null
+            if (mediaCapabilities.supportsImages) LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES else null
         MediaType.VIDEO ->
-            if (BuildConfig.SUPPORT_VIDEO) LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO else null
+            if (mediaCapabilities.supportsVideo) LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO else null
         MediaType.AUDIO ->
-            if (BuildConfig.SUPPORT_AUDIO) LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO else null
+            if (mediaCapabilities.supportsAudio) LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO else null
         MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT ->
-            if (BuildConfig.SUPPORT_DOCUMENTS) LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS else null
+            if (mediaCapabilities.supportsDocuments) LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS else null
         else -> null
     }
 }

@@ -29,6 +29,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -92,7 +94,7 @@ import javax.inject.Inject
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class PhotoVideoStandaloneActivity :
-    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost {
+    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -377,6 +379,10 @@ class PhotoVideoStandaloneActivity :
             recoverableDeleteLauncher = recoverableDeleteLauncher
         )
     }
+
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
 
     override fun getViewBinding(): ActivityStandalonePhotoVideoBinding =
         ActivityStandalonePhotoVideoBinding.inflate(layoutInflater)

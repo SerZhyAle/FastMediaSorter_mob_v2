@@ -109,7 +109,6 @@ class DeliveredNativeLibraryLoader @Inject constructor(
      * simply re-issues the same cleanup.
      */
     private fun invalidateCorruptSet(set: DeliverableSet) {
-        Timber.d("S0432: corrupt payload detected for set %s - self-invalidating install marker", set)
         recoveryScope.launch { capabilityRepository.uninstall(set) }
     }
 

@@ -289,7 +289,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                     onSetDefaultForTypeClick = { mimeType ->
                         // Enable aliases synchronously first - the system must see the alias
                         // as enabled before it will consider the app eligible for ROLE_MUSIC.
-                        DefaultPlayerManager.applyPrimaryPlayerState(this, true)
+                        DefaultPlayerManager.applyPrimaryPlayerState(this, true, mediaCapabilities)
                         viewModel.enablePrimaryMediaPlayer() // persist to DataStore
                         DefaultPlayerHelper.openChooserOrFallbackFromActivity(this, mimeType)
                     }
@@ -297,7 +297,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             )
         }
 
-        pagerAdapter = WelcomePagerAdapter(pagesList)
+        pagerAdapter = WelcomePagerAdapter(pagesList, mediaCapabilities)
         binding.viewPager.adapter = pagerAdapter
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {

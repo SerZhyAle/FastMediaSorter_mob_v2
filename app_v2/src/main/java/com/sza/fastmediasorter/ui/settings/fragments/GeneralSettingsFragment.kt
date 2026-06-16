@@ -65,6 +65,7 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
     @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
     @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -148,7 +149,7 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase)
     }
     private val backupHelper by lazy {
-        GeneralSettingsBackupHelper(binding, this, backupViewModel)
+        GeneralSettingsBackupHelper(binding, this, backupViewModel, mediaCapabilities)
     }
     private val googleAccountHelper by lazy {
         com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(this, googleAccountViewModel, cctChecker)

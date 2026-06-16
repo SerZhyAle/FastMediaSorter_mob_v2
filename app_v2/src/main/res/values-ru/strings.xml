@@ -2536,4 +2536,6 @@
     <string name="screenshot_gesture_action_ocr_translate">Отправить на OCR-перевод</string>
     <string name="screenshot_gesture_action_share">Поделиться</string>
     <string name="screenshot_gesture_action_none">Не использовать</string>
+    <string name="settings_keep_screen_on_player_title">Не выключать экран при работе плеера</string>
+    <string name="settings_keep_screen_on_player_summary">Действует только в плеере и отдельных плеерах, и только когда общая настройка удержания экрана выключена.</string>
 </resources>

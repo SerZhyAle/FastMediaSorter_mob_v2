@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 
@@ -20,7 +20,7 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
  *   – Back (left anchor)
  *   – Previous, Next (right anchor - always visible)
  */
-class CommandPanelLayoutPlanner {
+class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities) {
 
     /**
      * Every command that participates in adaptive portrait layout planning.
@@ -239,7 +239,7 @@ class CommandPanelLayoutPlanner {
             if (canWrite && state.allowRename) add(PlayerCommand.RENAME)
             if ((isImage && canWrite) || (isVideo && !isAudio) || isPdf) add(PlayerCommand.EDIT)
             if (state.lastOperation != null && canWrite) add(PlayerCommand.UNDO)
-            if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
+            if (mediaCapabilities.supportsCast && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
             // S0162: Rotation toggle - only when global delegation is OFF and device has accelerometer

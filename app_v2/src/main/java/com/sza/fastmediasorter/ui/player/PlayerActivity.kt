@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -88,7 +89,11 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation {
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
+
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -343,6 +348,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
     @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
+    // S0436: flavor-resolved capability layer; passed down to the player-manager cascade in place of BuildConfig.SUPPORT_* reads.
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
     @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal

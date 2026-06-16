@@ -296,7 +296,6 @@ class StandaloneViewManager(
         // detach the output surface first so the GL pipeline terminates while EGL is still valid,
         // then stop before release. Otherwise the next activity never gets a window -> input ANR.
         exoPlayer?.let { player ->
-            Timber.d("S0447: standalone player teardown - drain video effects/surface before ExoPlayer.release()")
             player.setVideoEffects(emptyList())
             player.clearVideoSurface()
             player.stop()

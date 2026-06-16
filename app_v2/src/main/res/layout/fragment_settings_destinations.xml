@@ -700,6 +700,16 @@
 
                     </LinearLayout>
 
+                    <!-- S0438: dependent player-scoped keep-screen-on. Shown only when global Prevent Sleep is off. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowKeepScreenOnPlayer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:visibility="gone"
+                        app:str_title="@string/settings_keep_screen_on_player_title"
+                        app:str_subtitle="@string/settings_keep_screen_on_player_summary" />
+
                     <!-- S0435: Follow OS auto-rotate (moved from Player UI; no subgroup header). Visibility gated by accelerometer presence. -->
                     <LinearLayout android:id="@+id/layoutFollowSystemRotation" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 

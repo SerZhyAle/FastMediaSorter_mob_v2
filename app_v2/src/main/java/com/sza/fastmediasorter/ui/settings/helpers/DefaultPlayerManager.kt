@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.player.MediaButtonRestartReceiver
 import timber.log.Timber
 
@@ -41,11 +41,11 @@ object DefaultPlayerManager {
      * Aliases for unsupported media types are intentionally left in their manifest-default
      * (disabled) state - they are never activated at runtime.
      */
-    private fun viewAliasesForFlavor(): List<String> = buildList {
-        if (BuildConfig.SUPPORT_AUDIO)     add(".StandaloneAudioPlayer")
-        if (BuildConfig.SUPPORT_VIDEO)     add(".StandaloneVideoPlayer")
-        if (BuildConfig.SUPPORT_IMAGES)    add(".StandaloneImagePlayer")
-        if (BuildConfig.SUPPORT_DOCUMENTS) add(".StandaloneDocsPlayer")
+    private fun viewAliasesForFlavor(caps: MediaCapabilities): List<String> = buildList {
+        if (caps.supportsAudio)     add(".StandaloneAudioPlayer")
+        if (caps.supportsVideo)     add(".StandaloneVideoPlayer")
+        if (caps.supportsImages)    add(".StandaloneImagePlayer")
+        if (caps.supportsDocuments) add(".StandaloneDocsPlayer")
         // S0380: plain text gets its own lightweight standalone activity; included unconditionally
         // (matches the unconditional text share receiver), and the typeless dispatcher trampoline that
         // forwards generic / typeless VIEW intents to whichever specialized activity actually fits.
@@ -57,10 +57,10 @@ object DefaultPlayerManager {
      * Phase 7: Returns only the ACTION_SEND alias suffixes that are valid for this flavor.
      * StandaloneTextSender is included unconditionally - plain text is tiny and universally useful.
      */
-    private fun sendAliasesForFlavor(): List<String> = buildList {
-        if (BuildConfig.SUPPORT_AUDIO)  add(".StandaloneAudioSender")
-        if (BuildConfig.SUPPORT_VIDEO)  add(".StandaloneVideoSender")
-        if (BuildConfig.SUPPORT_IMAGES) add(".StandaloneImageSender")
+    private fun sendAliasesForFlavor(caps: MediaCapabilities): List<String> = buildList {
+        if (caps.supportsAudio)  add(".StandaloneAudioSender")
+        if (caps.supportsVideo)  add(".StandaloneVideoSender")
+        if (caps.supportsImages) add(".StandaloneImageSender")
         add(".StandaloneTextSender")
     }
 
@@ -68,7 +68,7 @@ object DefaultPlayerManager {
      * Phase 5: Enable or disable ACTION_VIEW aliases and MediaButtonRestartReceiver.
      * Only aliases for types supported by this flavor are affected.
      */
-    fun applyPrimaryPlayerState(context: Context, enabled: Boolean) {
+    fun applyPrimaryPlayerState(context: Context, enabled: Boolean, caps: MediaCapabilities) {
         val state = if (enabled) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
@@ -77,7 +77,7 @@ object DefaultPlayerManager {
         val pm = context.packageManager
         val pkg = context.packageName
 
-        viewAliasesForFlavor().forEach { alias ->
+        viewAliasesForFlavor(caps).forEach { alias ->
             setComponentState(pm, ComponentName(pkg, "$NAMESPACE$alias"), state)
         }
 
@@ -87,14 +87,14 @@ object DefaultPlayerManager {
             state
         )
 
-        Timber.d("DefaultPlayerManager: primary player ${if (enabled) "ENABLED" else "DISABLED"} (aliases: ${viewAliasesForFlavor()})")
+        Timber.d("DefaultPlayerManager: primary player ${if (enabled) "ENABLED" else "DISABLED"} (aliases: ${viewAliasesForFlavor(caps)})")
     }
 
     /**
      * Phase 6: Enable or disable ACTION_SEND aliases.
      * Only aliases for types supported by this flavor are affected.
      */
-    fun applyShareReceiverState(context: Context, enabled: Boolean) {
+    fun applyShareReceiverState(context: Context, enabled: Boolean, caps: MediaCapabilities) {
         val state = if (enabled) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
@@ -103,11 +103,11 @@ object DefaultPlayerManager {
         val pm = context.packageManager
         val pkg = context.packageName
 
-        sendAliasesForFlavor().forEach { alias ->
+        sendAliasesForFlavor(caps).forEach { alias ->
             setComponentState(pm, ComponentName(pkg, "$NAMESPACE$alias"), state)
         }
 
-        Timber.d("DefaultPlayerManager: share receiver ${if (enabled) "ENABLED" else "DISABLED"} (aliases: ${sendAliasesForFlavor()})")
+        Timber.d("DefaultPlayerManager: share receiver ${if (enabled) "ENABLED" else "DISABLED"} (aliases: ${sendAliasesForFlavor(caps)})")
     }
 
     private fun setComponentState(

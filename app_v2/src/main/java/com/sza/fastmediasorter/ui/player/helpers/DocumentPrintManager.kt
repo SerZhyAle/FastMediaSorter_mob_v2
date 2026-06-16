@@ -15,8 +15,8 @@ import android.webkit.WebView
 import androidx.lifecycle.lifecycleScope
 import androidx.print.PrintHelper
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -45,18 +45,19 @@ private const val MAX_PRINT_FILE_SIZE_BYTES = 30L * 1024 * 1024 // 30 MB
  * own LRU eviction, and deleting a cached network file would invalidate the player's cache.
  */
 class DocumentPrintManager(
-    private val activity: PlayerActivity
+    private val activity: PlayerActivity,
+    private val mediaCapabilities: MediaCapabilities
 ) {
 
     private val printFallbackManager = PlayerPrintFallbackManager(activity)
 
     /**
      * Entry point: print the currently open file.
-     * Silently returns if BuildConfig.SUPPORT_DOCUMENTS is false and the file is not an image.
+     * Silently returns if the injected capability layer reports documents unsupported and the file is not an image.
      */
     fun printCurrentFile(mediaFile: MediaFile) {
-        if (!BuildConfig.SUPPORT_DOCUMENTS && mediaFile.type != MediaType.IMAGE) {
-            Timber.w("DocumentPrintManager: SUPPORT_DOCUMENTS=false, skipping print for ${mediaFile.type}")
+        if (!mediaCapabilities.supportsDocuments && mediaFile.type != MediaType.IMAGE) {
+            Timber.w("DocumentPrintManager: documents unsupported, skipping print for ${mediaFile.type}")
             return
         }
 

@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.core.init
 
 import android.content.Context
+import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 
 /**
@@ -22,7 +24,10 @@ object DefaultPlayerStateBootstrapper {
 
     suspend fun apply(context: Context, settingsRepository: SettingsRepository) {
         val settings = settingsRepository.getSettings().first()
-        DefaultPlayerManager.applyShareReceiverState(context, settings.acceptSharedFiles)
-        DefaultPlayerManager.applyPrimaryPlayerState(context, settings.isPrimaryMediaPlayer)
+        val caps = EntryPointAccessors.fromApplication(
+            context.applicationContext, MediaCapabilitiesEntryPoint::class.java
+        ).mediaCapabilities()
+        DefaultPlayerManager.applyShareReceiverState(context, settings.acceptSharedFiles, caps)
+        DefaultPlayerManager.applyPrimaryPlayerState(context, settings.isPrimaryMediaPlayer, caps)
     }
 }

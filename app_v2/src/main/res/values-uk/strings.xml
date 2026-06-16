@@ -2499,4 +2499,6 @@
     <string name="screenshot_gesture_action_ocr_translate">Надіслати на OCR-переклад</string>
     <string name="screenshot_gesture_action_share">Поділитися</string>
     <string name="screenshot_gesture_action_none">Не використовувати</string>
+    <string name="settings_keep_screen_on_player_title">Не вимикати екран під час роботи плеєра</string>
+    <string name="settings_keep_screen_on_player_summary">Діє лише в плеєрі та окремих плеєрах, і лише коли загальне налаштування утримання екрана вимкнено.</string>
 </resources>

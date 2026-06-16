@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.content.Context
 import android.net.Uri
 import android.util.Xml
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
@@ -44,6 +44,7 @@ class SzaResourcesImporter @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
     private val getDestinationsUseCase: GetDestinationsUseCase,
+    private val mediaCapabilities: MediaCapabilities,
 ) {
 
     sealed interface ImportResult {
@@ -171,13 +172,13 @@ class SzaResourcesImporter @Inject constructor(
     /**
      * True when the current flavor supports this media family. Drops types a flavor cannot use
      * (e.g. AUDIO in the photos flavor) so an imported resource is usable, not dead (S0422).
-     * Uses capability flags (`SUPPORT_*`), not `IS_<flavor>` guards.
+     * Uses the injected capability layer, not `IS_<flavor>` guards.
      */
     private fun isMediaTypeSupportedByFlavor(type: MediaType): Boolean = when (type) {
-        MediaType.AUDIO -> BuildConfig.SUPPORT_AUDIO
-        MediaType.VIDEO -> BuildConfig.SUPPORT_VIDEO
-        MediaType.IMAGE, MediaType.GIF -> BuildConfig.SUPPORT_IMAGES
-        MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
+        MediaType.AUDIO -> mediaCapabilities.supportsAudio
+        MediaType.VIDEO -> mediaCapabilities.supportsVideo
+        MediaType.IMAGE, MediaType.GIF -> mediaCapabilities.supportsImages
+        MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> mediaCapabilities.supportsDocuments
         else -> true
     }
 

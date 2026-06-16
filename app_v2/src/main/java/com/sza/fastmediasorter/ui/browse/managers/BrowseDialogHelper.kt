@@ -15,8 +15,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.databinding.DialogRenameMultipleBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -46,7 +46,8 @@ import timber.log.Timber
 @android.annotation.SuppressLint("SetTextI18n")
 class BrowseDialogHelper(
     private val activity: AppCompatActivity,
-    private val callbacks: DialogCallbacks
+    private val callbacks: DialogCallbacks,
+    private val mediaCapabilities: MediaCapabilities
 ) {
     companion object {
         // Keep dialog order explicit so enum declaration order stays free for persistence concerns.
@@ -123,52 +124,52 @@ class BrowseDialogHelper(
 
         // Configure each checkbox: hide if not allowed by resource OR not supported by flavor
         dialogBinding.cbFilterImage.apply {
-            val vis = if (MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.IMAGE in allowed && mediaCapabilities.supportsImages) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.IMAGE) == true)
+            isChecked = MediaType.IMAGE in allowed && mediaCapabilities.supportsImages && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.IMAGE) == true)
         }
         dialogBinding.cbFilterVideo.apply {
-            val vis = if (MediaType.VIDEO in allowed && BuildConfig.SUPPORT_VIDEO) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.VIDEO in allowed && mediaCapabilities.supportsVideo) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.VIDEO in allowed && BuildConfig.SUPPORT_VIDEO && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.VIDEO) == true)
+            isChecked = MediaType.VIDEO in allowed && mediaCapabilities.supportsVideo && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.VIDEO) == true)
         }
         dialogBinding.cbFilterAudio.apply {
-            val vis = if (MediaType.AUDIO in allowed && BuildConfig.SUPPORT_AUDIO) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.AUDIO in allowed && mediaCapabilities.supportsAudio) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.AUDIO in allowed && BuildConfig.SUPPORT_AUDIO && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.AUDIO) == true)
+            isChecked = MediaType.AUDIO in allowed && mediaCapabilities.supportsAudio && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.AUDIO) == true)
         }
         dialogBinding.cbFilterGif.apply {
-            val vis = if (MediaType.GIF in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.GIF in allowed && mediaCapabilities.supportsImages) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.GIF in allowed && BuildConfig.SUPPORT_IMAGES && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.GIF) == true)
+            isChecked = MediaType.GIF in allowed && mediaCapabilities.supportsImages && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.GIF) == true)
         }
         dialogBinding.cbFilterText.apply {
-            val vis = if (MediaType.TEXT in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.TEXT in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.TEXT in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.TEXT) == true)
+            isChecked = MediaType.TEXT in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.TEXT) == true)
         }
         dialogBinding.cbFilterPdf.apply {
-            val vis = if (MediaType.PDF in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.PDF in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.PDF in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.PDF) == true)
+            isChecked = MediaType.PDF in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.PDF) == true)
         }
         dialogBinding.cbFilterEpub.apply {
-            val vis = if (MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.EPUB in allowed && mediaCapabilities.supportsEpub) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
+            isChecked = MediaType.EPUB in allowed && mediaCapabilities.supportsEpub && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
         }
         dialogBinding.cbFilterOffice.apply {
-            val vis = if (MediaType.OFFICE_DOCUMENT in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.OFFICE_DOCUMENT in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
             (parent as android.view.View).visibility = vis
             visibility = vis
-            isChecked = MediaType.OFFICE_DOCUMENT in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.OFFICE_DOCUMENT) == true)
+            isChecked = MediaType.OFFICE_DOCUMENT in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.OFFICE_DOCUMENT) == true)
         }
 
         // Date pickers

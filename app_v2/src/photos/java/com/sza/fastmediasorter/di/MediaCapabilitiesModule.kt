@@ -26,6 +26,11 @@ object MediaCapabilitiesModule {
         supportsDocuments = BuildConfig.SUPPORT_DOCUMENTS,
         supportsEpub = BuildConfig.ENABLE_EPUB,
         supportsCloud = BuildConfig.SUPPORT_CLOUD,
+        supportsLocalNetworkSources = BuildConfig.SUPPORT_LOCAL_NETWORK,
         supportsDefaultPlayer = BuildConfig.SUPPORTS_DEFAULT_PLAYER,
+        supportsCast = BuildConfig.SUPPORT_CAST,
+        supportsMicRecording = BuildConfig.SUPPORT_MIC_RECORDING,
+        supportsVrPlayer = BuildConfig.SUPPORT_VR_PLAYER,
+        supportsWearCompanion = BuildConfig.SUPPORT_WEAR_COMPANION,
     )
 }

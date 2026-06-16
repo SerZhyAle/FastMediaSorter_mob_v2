@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -177,6 +178,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             super.startActionMode(callback, type)
         }
     }
+
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
@@ -516,7 +521,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
     private fun debugLogLaunchConditions(incomingIntent: Intent?) =
         com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(
-            this, incomingIntent, mediaCapabilities.supportsCloud,
+            this, incomingIntent, mediaCapabilities,
         )
 
     // ── Window / Insets Setup ─────────────────────────────────────────────
@@ -747,7 +752,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     private fun setupVideoControls(pv: androidx.media3.ui.PlayerView) {
-        if (!BuildConfig.SUPPORT_VIDEO) return
+        if (!mediaCapabilities.supportsVideo) return
 
         setupPlaybackControls(pv)
 

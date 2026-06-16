@@ -16,6 +16,7 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.CastMediaControlIntent
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cast.LocalCastProxyServer
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -26,7 +27,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import java.io.File
 
@@ -46,6 +46,7 @@ class CastMediaManager(
     private val context: Context,
     private val lifecycleScope: CoroutineScope,
     private val networkFileManager: NetworkFileManager,
+    private val mediaCapabilities: MediaCapabilities,
     private val onCastStateChanged: (isCasting: Boolean, deviceName: String?) -> Unit
 ) {
 
@@ -117,7 +118,7 @@ class CastMediaManager(
      * Call once after CastContext is available (i.e. after FastMediaSorterApp.onCreate).
      */
     fun init() {
-        if (!BuildConfig.SUPPORT_CAST) {
+        if (!mediaCapabilities.supportsCast) {
             Timber.i("CastMediaManager: cast not supported on this platform - init skipped")
             return
         }
@@ -184,7 +185,7 @@ class CastMediaManager(
             return
         }
         // Lazy recovery: permission just granted but init() was deferred - re-initialize now
-        if (castContext == null && BuildConfig.SUPPORT_CAST) {
+        if (castContext == null && mediaCapabilities.supportsCast) {
             init()
         }
         if (castContext == null) {

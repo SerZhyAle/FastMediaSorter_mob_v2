@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
@@ -51,7 +52,7 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
     override fun getViewBinding(): ActivityResourceLaunchWidgetConfigBinding =
         ActivityResourceLaunchWidgetConfigBinding.inflate(layoutInflater)
 
-    override fun shouldKeepScreenAwake(): Boolean = false
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     /** S0289 Phase 09: multimodal surface marker - widget config activity. */
     @Suppress("unused")

@@ -174,6 +174,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             destinations = destinations,
             existing = null,
             prefilledSourceId = sourceId,
+            mediaCapabilities = mediaCapabilities,
             onSave = { op -> scheduledViewModel.upsert(op) }
         ).show()
     }
@@ -353,6 +354,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(preventSleep = isChecked))
         }
+        binding.rowKeepScreenOnPlayer.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(keepScreenOnPlayer = isChecked))
+        }
         binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -394,20 +400,20 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.rowFollowSystemRotation.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(followSystemRotation = isChecked))
+                viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
             }
         }
-        binding.layoutDefaultPlayerToggles.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
-        if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
+        binding.layoutDefaultPlayerToggles.isVisible = mediaCapabilities.supportsDefaultPlayer
+        if (mediaCapabilities.supportsDefaultPlayer) {
             binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked)
+                DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked, mediaCapabilities)
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = isChecked))
             }
             binding.rowAcceptSharedFiles.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked)
+                DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked, mediaCapabilities)
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(acceptSharedFiles = isChecked))
             }
@@ -526,6 +532,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             if (binding.rowPreventSleep.isChecked != settings.preventSleep) {
                                 binding.rowPreventSleep.setCheckedSilently(settings.preventSleep)
                             }
+                            if (binding.rowKeepScreenOnPlayer.isChecked != settings.keepScreenOnPlayer) {
+                                binding.rowKeepScreenOnPlayer.setCheckedSilently(settings.keepScreenOnPlayer)
+                            }
+                            // S0438: dependent row visible only when global Prevent Sleep is off.
+                            binding.rowKeepScreenOnPlayer.visibility =
+                                if (!settings.preventSleep) View.VISIBLE else View.GONE
                             if (binding.rowDetailedErrors.isChecked != settings.showDetailedErrors) {
                                 binding.rowDetailedErrors.setCheckedSilently(settings.showDetailedErrors)
                             }
@@ -578,7 +590,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 R.string.setting_video_recording_destination_default_movies
                             )
                             // Microphone recording rows (feature-gated).
-                            if (BuildConfig.SUPPORT_MIC_RECORDING) {
+                            if (mediaCapabilities.supportsMicRecording) {
                                 if (binding.rowMicRecordingEnabled.isChecked != settings.micRecordingEnabled) {
                                     binding.rowMicRecordingEnabled.setCheckedSilently(settings.micRecordingEnabled)
                                 }
@@ -603,10 +615,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
 
                             // SystemApps group (moved from Player tab).
-                            if (binding.rowFollowSystemRotation.isChecked != settings.followSystemRotation) {
-                                binding.rowFollowSystemRotation.setCheckedSilently(settings.followSystemRotation)
+                            if (binding.rowFollowSystemRotation.isChecked != settings.programFollowSystemRotation) {
+                                binding.rowFollowSystemRotation.setCheckedSilently(settings.programFollowSystemRotation)
                             }
-                            if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
+                            if (mediaCapabilities.supportsDefaultPlayer) {
                                 if (binding.rowPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
                                     binding.rowPrimaryMediaPlayer.setCheckedSilently(settings.isPrimaryMediaPlayer)
                                 }
@@ -804,6 +816,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             resources = allResources,
             destinations = destinations,
             existing = existing,
+            mediaCapabilities = mediaCapabilities,
             onSave = { op -> scheduledViewModel.upsert(op) }
         ).show()
     }
@@ -933,7 +946,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
 
         // ── Microphone recording ──
-        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
+        if (!mediaCapabilities.supportsMicRecording) {
             binding.rowMicRecordingEnabled.isVisible = false
             binding.rowMicRecordingAskFilename.isVisible = false
             binding.layoutMicRecordingDestSelector.isVisible = false

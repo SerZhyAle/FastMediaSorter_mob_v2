@@ -78,10 +78,10 @@ internal class PlayerObserverManager(
                         val isAudio = state.currentFile?.type == MediaType.AUDIO
                         activity.pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
 
-                        // S0162: re-apply orientation whenever followSystemRotation changes
+                        // S0162: re-apply orientation whenever programFollowSystemRotation changes
                         activity.screenRotationManager.apply(
                             activity,
-                            settings.followSystemRotation,
+                            settings.programFollowSystemRotation,
                             settings.playerRotationSensorEnabled,
                             activity.hasAccelerometer
                         )

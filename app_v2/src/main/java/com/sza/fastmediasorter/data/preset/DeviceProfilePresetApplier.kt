@@ -36,6 +36,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "isResourceGridMode" -> settings.copy(isResourceGridMode = raw.toBool())
             "resourceOpsInOverflowMenu" -> settings.copy(resourceOpsInOverflowMenu = raw.toBool())
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
+            "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
@@ -133,7 +134,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "stereoAmbiguityBestGuess" -> settings.copy(stereoAmbiguityBestGuess = raw.toBool())
             "resumeOnNextLaunch" -> settings.copy(resumeOnNextLaunch = raw.toBool())
             "showBlackScreenButton" -> settings.copy(showBlackScreenButton = raw.toBool())
-            "followSystemRotation" -> settings.copy(followSystemRotation = raw.toBool())
+            "programFollowSystemRotation" -> settings.copy(programFollowSystemRotation = raw.toBool())
             "playerRotationSensorEnabled" -> settings.copy(playerRotationSensorEnabled = raw.toBool())
 
             // ── Ints ──────────────────────────────────────────────────────

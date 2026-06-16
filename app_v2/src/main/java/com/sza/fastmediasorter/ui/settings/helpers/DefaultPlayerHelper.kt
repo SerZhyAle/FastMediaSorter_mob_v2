@@ -16,9 +16,17 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -50,6 +58,13 @@ object DefaultPlayerHelper {
     // PackageManager reports this synthetic package for the system ResolverActivity, i.e. "no concrete
     // default is set yet" - which is exactly the state in which the OS will show the Always sheet.
     private const val ANDROID_RESOLVER_PACKAGE = "android"
+
+    // This is an object (no DI reach), so the flavor capability surface is resolved via the Hilt entry
+    // point instead of reading BuildConfig.SUPPORT_* directly (CLAUDE.md Rule 14).
+    private fun capabilities(context: Context): MediaCapabilities =
+        EntryPointAccessors.fromApplication(
+            context.applicationContext, MediaCapabilitiesEntryPoint::class.java
+        ).mediaCapabilities()
 
     /**
      * Best-effort check: is this app the current default handler for media open intents?
@@ -102,7 +117,7 @@ object DefaultPlayerHelper {
     fun showSetDefaultDialogForType(fragment: Fragment, mimeType: String) {
         if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
         val context = fragment.requireContext()
-        DefaultPlayerManager.applyPrimaryPlayerState(context, true)
+        DefaultPlayerManager.applyPrimaryPlayerState(context, true, capabilities(context))
         MaterialAlertDialogBuilder(context)
             .setTitle(R.string.settings_default_player_dialog_title)
             .setMessage(R.string.settings_default_player_dialog_message)
@@ -121,7 +136,7 @@ object DefaultPlayerHelper {
     fun showSetDefaultDocumentDialog(fragment: Fragment, includeEpub: Boolean = true) {
         if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
         val context = fragment.requireContext()
-        DefaultPlayerManager.applyPrimaryPlayerState(context, true)
+        DefaultPlayerManager.applyPrimaryPlayerState(context, true, capabilities(context))
 
         val options = mutableListOf(
             R.string.settings_default_document_type_pdf to PDF_MIME_TYPE,
@@ -161,17 +176,22 @@ object DefaultPlayerHelper {
      * The Welcome screen already provides on-page instructions, so the dialog is redundant.
      */
     fun openChooserOrFallbackFromActivity(activity: Activity, mimeType: String) {
-        DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
-        val openWith = resolveOpenWithIntent(activity, mimeType)
-        if (openWith != null) {
-            try {
-                activity.startActivity(openWith)
-                return
-            } catch (e: Exception) {
-                Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
+        DefaultPlayerManager.applyPrimaryPlayerState(activity, true, capabilities(activity))
+        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
+        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        (activity as LifecycleOwner).lifecycleScope.launch {
+            val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(activity, mimeType) }
+            if (activity.isFinishing || activity.isDestroyed) return@launch
+            if (openWith != null) {
+                try {
+                    activity.startActivity(openWith)
+                    return@launch
+                } catch (e: Exception) {
+                    Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
+                }
             }
+            guideToDefaultAppsSettings(activity)
         }
-        guideToDefaultAppsSettings(activity)
     }
 
     /**
@@ -185,23 +205,28 @@ object DefaultPlayerHelper {
         launcher: ActivityResultLauncher<Intent>,
         mimeType: String,
     ) {
-        DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
-        val openWith = resolveOpenWithIntent(activity, mimeType)
-        if (openWith != null) {
-            try {
-                launcher.launch(openWith)
-                return
-            } catch (e: Exception) {
-                Timber.w(e, "DefaultPlayerHelper: launch failed for %s", mimeType)
+        DefaultPlayerManager.applyPrimaryPlayerState(activity, true, capabilities(activity))
+        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
+        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        (activity as LifecycleOwner).lifecycleScope.launch {
+            val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(activity, mimeType) }
+            if (activity.isFinishing || activity.isDestroyed) return@launch
+            if (openWith != null) {
+                try {
+                    launcher.launch(openWith)
+                    return@launch
+                } catch (e: Exception) {
+                    Timber.w(e, "DefaultPlayerHelper: launch failed for %s", mimeType)
+                }
             }
-        }
-        Toast.makeText(activity, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
-        try {
-            launcher.launch(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
-        } catch (e: Exception) {
-            launcher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", activity.packageName, null)
-            })
+            Toast.makeText(activity, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
+            try {
+                launcher.launch(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+            } catch (e: Exception) {
+                launcher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", activity.packageName, null)
+                })
+            }
         }
     }
 
@@ -209,17 +234,22 @@ object DefaultPlayerHelper {
 
     private fun openChooserOrFallback(fragment: Fragment, mimeType: String) {
         val context = fragment.requireContext()
-        val openWith = resolveOpenWithIntent(context, mimeType)
-        if (openWith != null) {
-            try {
-                fragment.startActivity(openWith)
-                return
-            } catch (e: Exception) {
-                Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
+        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
+        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        fragment.lifecycleScope.launch {
+            val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(context, mimeType) }
+            if (!fragment.isAdded) return@launch
+            if (openWith != null) {
+                try {
+                    fragment.startActivity(openWith)
+                    return@launch
+                } catch (e: Exception) {
+                    Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
+                }
             }
+            Toast.makeText(context, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
+            openDefaultAppsSettings(fragment)
         }
-        Toast.makeText(context, R.string.default_player_choose_in_settings, Toast.LENGTH_LONG).show()
-        openDefaultAppsSettings(fragment)
     }
 
     /**

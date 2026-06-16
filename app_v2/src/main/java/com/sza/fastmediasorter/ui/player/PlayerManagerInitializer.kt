@@ -276,7 +276,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.imageTranslationManager = PlayerImageTranslationManager(activity = activity)
         activity.shareManager = PlayerShareManager(activity = activity)
-        activity.printManager = DocumentPrintManager(activity = activity)
+        activity.printManager = DocumentPrintManager(activity = activity, mediaCapabilities = activity.mediaCapabilities)
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
             fileOperationUseCase = activity.fileOperationUseCase
@@ -412,6 +412,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity = activity,
                 viewModel = activity.viewModel
             ),
+            mediaCapabilities = activity.mediaCapabilities,
             bigButtonsMode = bigButtonsMode,
             allowVrLaunch = { activity.playerVrLaunchManager?.isOverflowEntryVisible() == true },
         )
@@ -694,6 +695,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             context = activity,
             lifecycleScope = activity.lifecycleScope,
             networkFileManager = activity.networkFileManager,
+            mediaCapabilities = activity.mediaCapabilities,
             onCastStateChanged = { isCasting, deviceName ->
                 activity.viewModel.updateCastState(isCasting, deviceName)
                 if (isCasting) {

@@ -9,8 +9,8 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -42,6 +42,7 @@ class CommandPanelController(
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: CommandPanelCallback,
+    private val mediaCapabilities: MediaCapabilities,
     private val bigButtonsMode: Boolean = false,
     private val allowVrLaunch: () -> Boolean = { false },
 ) {
@@ -106,7 +107,7 @@ class CommandPanelController(
     private val bigButtonsModeManager = PlayerBigButtonsModeManager(binding.root.context)
 
     // Adaptive portrait layout
-    private val planner = CommandPanelLayoutPlanner()
+    private val planner = CommandPanelLayoutPlanner(mediaCapabilities)
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
@@ -254,6 +255,7 @@ class CommandPanelController(
             binding = binding,
             safeViews = safeViews,
             planner = planner,
+            mediaCapabilities = mediaCapabilities,
             bigButtonsModeManager = bigButtonsModeManager,
             settingsRepository = settingsRepository,
             coroutineScope = coroutineScope,

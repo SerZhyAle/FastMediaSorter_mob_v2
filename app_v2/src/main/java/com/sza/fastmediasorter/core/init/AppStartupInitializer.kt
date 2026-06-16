@@ -230,7 +230,8 @@ class AppStartupInitializer @Inject constructor(
                 Timber.i("%-30s = %s", "micRecordingAskFilename", micRecordingAskFilename)
 
                 // S0162: Screen rotation control
-                Timber.i("%-30s = %s", "followSystemRotation", followSystemRotation)
+                Timber.i("%-30s = %s", "programFollowSystemRotation", programFollowSystemRotation)
+                Timber.i("%-30s = %s", "playerFollowSystemRotation", playerFollowSystemRotation)
                 Timber.i("%-30s = %s", "playerRotationSensorEnabled", playerRotationSensorEnabled)
 
                 // Misc

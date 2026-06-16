@@ -17854,3 +17854,142 @@ Format: | datetime | file | target | description |
 | 2026-06-16 00:18:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/TranslationOverlayView.kt` | `S0451` | Auto-size translated block text to ~90% of the original OCR box height (metric-correct, removed 14sp ceiling) so it matches the source font; block now covers at least the original box, expands only when longer. Manual swipe/multiplier overrides preserved. [branch: DEBUG-v014] |
 | 2026-06-16 00:20:55 | `PLAN/S0451_translation-overlay-size-to-original.md` | `spec-arc` | Archive S0451 (translation-overlay-size-to-original), BlockNeedUserTest -> temp/done/ [branch: DEBUG-v014] |
 | 2026-06-16 00:20:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/TranslationOverlayView.kt` | `spec-arc` | Remove S0451 BlockNeedUserTest debug tag on archive (sizing fix code retained) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `PLAN/S0425_screenshot-gesture-actions.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/ScreenshotGestureDirection.kt` | `spec-dev` | New: screenshot gesture direction enum [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/ScreenshotGestureAction.kt` | `spec-dev` | New: screenshot gesture action enum [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | Replace dead down-enabled flag with three per-direction action fields [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/ScreenshotSettingsStore.kt` | `spec-dev` | Persist three gesture-action keys, drop dead bool key [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | Map three gesture-action fields [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-dev` | Reset three gesture-action fields [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev` | Preset rows for three gesture-action fields [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SaveScreenshotUseCase.kt` | `spec-dev` | Return savedUri for post-capture actions [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/screenCapture/java/com/sza/fastmediasorter/screencapture/ScreenGestureOverlayManager.kt` | `spec-dev` | Detect three gesture directions; carry direction in callback [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/screencapture/ScreenshotAccessibilityService.kt` | `spec-dev` | Gate + dispatch post-capture action (a11y path) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/screenCapture/java/com/sza/fastmediasorter/screencapture/OverlayHostService.kt` | `spec-dev` | Hilt entry point; gate + thread direction to consent [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/screenCapture/java/com/sza/fastmediasorter/screencapture/ScreenCaptureConsentActivity.kt` | `spec-dev` | Forward gesture direction extra [branch: DEBUG-v014] |
+| 2026-06-16 00:30:42 | `app_v2/src/screenCapture/java/com/sza/fastmediasorter/screencapture/ScreenCaptureService.kt` | `spec-dev` | Dispatch post-capture action (MediaProjection path) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/java/com/sza/fastmediasorter/core/screencapture/ScreenshotGestureActionDispatcher.kt` | `spec-dev` | New: resolve direction->action and launch route [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev` | Honour EXTRA_AUTO_ACTION for draw/translate on launch [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/ScreenshotGestureActionPickerManager.kt` | `spec-dev` | New: action picker dialog + labels (OCR gated) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | Wire three gesture-action picker rows [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev` | Three gesture-action picker rows (portrait) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | Three gesture-action picker rows (landscape) [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | Gesture-action row + label strings [branch: DEBUG-v014] |
+| 2026-06-16 00:30:43 | `docs/FEATURES.md` | `spec-dev` | Assignable gesture actions feature sentence [branch: DEBUG-v014] |
+| 2026-06-16 00:38:54 | `PLAN/S0432_bugfix-delivered-payload-integrity-recovery.md` | `spec-arc` | Archive S0432 (delivered-payload-integrity-recovery) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:38:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliveredNativeLibraryLoader.kt` | `spec-arc` | Remove S0432 debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-16 00:38:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/RecognitionBackend.kt` | `spec-arc` | Remove S0432 debug tags on archive [branch: DEBUG-v014] |
+| 2026-06-16 00:39:35 | `PLAN/S0434_standard-unit-test-compilation-broken.md` | `spec-arc` | Archive S0434 (standard-unit-test-compilation-broken) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:40:33 | `PLAN/S0433_screenshot-gesture-down-toggle-dead.md` | `spec-arc` | Archive S0433 (screenshot-gesture-down-toggle-dead) -> temp/done/; superseded by S0425 ADR-4 (dead toggle already removed from code) [branch: DEBUG-v014] |
+| 2026-06-16 00:48:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `app_v2` | S0437: move default-player sample-file MediaStore query off the main thread (lifecycleScope + Dispatchers.IO) in all three open-chooser entry points [branch: DEBUG-v014] |
+| 2026-06-16 00:50:06 | `PLAN/S0441_landscape_thumbnail_preload_missing.md` | `spec-arc` | Archive S0441 (landscape thumbnail-preload toggles missing) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:50:10 | `PLAN/S0442_settings-pages-rename-regroup.md` | `spec-arc` | Archive S0442 (settings-pages rename/regroup) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:52:47 | `PLAN/S0447_bugfix-exoplayer-release-main-anr.md` | `spec-arc` | Archive S0447 (bugfix-exoplayer-release-main-anr) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:52:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `spec-arc` | Remove S0447 BlockNeedUserTest debug tag on archive [branch: DEBUG-v014] |
+| 2026-06-16 00:53:53 | `PLAN/S0439_screen-rotation-follow-os.md` | `spec-update` | Refinement (claude-opus-4-8, focus: all): distributed inbox capture into sections 1-11 [branch: DEBUG-v014] |
+| 2026-06-16 00:56:46 | `app_v2/src/screenCapturePlay/` | `S0450` | Delete orphaned screenCapturePlay source set (uncompilable, mounted nowhere; Play path backed out by S0423, S0418 archived) - dead-weight hygiene Rule 20 [branch: DEBUG-v014] |
+| 2026-06-16 00:56:46 | `dev/CATALOG/scripts/scan.ps1` | `S0450` | Remove screenCapturePlay source root from catalog scan after deletion [branch: DEBUG-v014] |
+| 2026-06-16 00:58:57 | `PLAN/S0437_default-player-mediastore-main-thread.md` | `spec-arc` | Archive S0437 (default-player-mediastore-main-thread) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 00:58:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `spec-arc` | Remove 3 S0437 BlockNeedUserTest debug tags on archive [branch: DEBUG-v014] |
+| 2026-06-16 01:01:01 | `PLAN/S0452_share-commands-infrastructure.md` | `spec-update` | Create foundation spec S0452 (share-commands infrastructure) extracted from common parts of S0443/S0444/S0445/S0446 [branch: DEBUG-v014] |
+| 2026-06-16 01:01:01 | `PLAN/S0443_*.md` | `spec-update` | Link S0443 -> S0452 foundation dependency (S10 + Related tickets) [branch: DEBUG-v014] |
+| 2026-06-16 01:01:01 | `PLAN/S0444_*.md` | `spec-update` | Link S0444 -> S0452 foundation dependency (S10 + Related tickets) [branch: DEBUG-v014] |
+| 2026-06-16 01:01:01 | `PLAN/S0445_*.md` | `spec-update` | Link S0445 -> S0452 foundation dependency (S10 + Related tickets) [branch: DEBUG-v014] |
+| 2026-06-16 01:01:01 | `PLAN/S0446_*.md` | `spec-update` | Link S0446 -> S0452 foundation dependency (S10 + Related tickets) [branch: DEBUG-v014] |
+| 2026-06-16 01:01:11 | `PLAN/S0450_screencaptureplay-source-set-orphaned.md` | `spec-arc` | Archive S0450 (screencaptureplay-source-set-orphaned) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 01:02:21 | `PLAN/S0438_keep-screen-on-player.md` | `spec` | Develop strategic spec S0438 (dependent keep-screen-on for player); add research artifact 01 [branch: DEBUG-v014] |
+| 2026-06-16 01:04:14 | `PLAN/S0439_screen-rotation-follow-os.md` | `spec` | Approve strategic spec S0439; resolved rotation migration/defaults via research artifact 01 [branch: DEBUG-v014] |
+| 2026-06-16 01:08:12 | `PLAN/S0438_keep-screen-on-player/INDEX.md` | `spec-tech` | Create tactical plan for S0438 (4 phases) [branch: DEBUG-v014] |
+| 2026-06-16 01:08:12 | `PLAN/S0438_keep-screen-on-player/PHASE_01__settings-model-persistence.md` | `spec-tech` | Phase 01: settings-model-persistence [branch: DEBUG-v014] |
+| 2026-06-16 01:08:12 | `PLAN/S0438_keep-screen-on-player/PHASE_02__effective-keep-awake.md` | `spec-tech` | Phase 02: effective-keep-awake [branch: DEBUG-v014] |
+| 2026-06-16 01:08:12 | `PLAN/S0438_keep-screen-on-player/PHASE_03__settings-ui-dependent-row.md` | `spec-tech` | Phase 03: settings-ui-dependent-row [branch: DEBUG-v014] |
+| 2026-06-16 01:08:13 | `PLAN/S0438_keep-screen-on-player/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 01:08:13 | `PLAN/S0438_keep-screen-on-player.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 01:09:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0438 Phase 01.1: add keepScreenOnPlayer setting field [branch: DEBUG-v014] |
+| 2026-06-16 01:11:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0438 Phase 01.2: persist keepScreenOnPlayer in DataStore [branch: DEBUG-v014] |
+| 2026-06-16 01:13:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `spec-dev` | S0438 Phase 01.3: apply keepScreenOnPlayer preset case [branch: DEBUG-v014] |
+| 2026-06-16 01:14:32 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev` | S0438 Phase 01.3: add keepScreenOnPlayer preset row [branch: DEBUG-v014] |
+| 2026-06-16 01:15:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-dev` | S0438 Phase 01.4: carry keepScreenOnPlayer through backup/restore/import [branch: DEBUG-v014] |
+| 2026-06-16 01:16:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-dev` | S0438 Phase 01.4: carry keepScreenOnPlayer through backup/restore/import [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/INDEX.md` | `spec-tech` | Create tactical plan for S0439 [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/PHASE_01__settings-model-migration.md` | `spec-tech` | Phase 01: settings-model-migration [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/PHASE_02__program-orientation-applier.md` | `spec-tech` | Phase 02: program-orientation-applier [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/PHASE_03__player-precedence.md` | `spec-tech` | Phase 03: player-precedence [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/PHASE_04__settings-ui-toggles.md` | `spec-tech` | Phase 04: settings-ui-toggles [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 01:16:58 | `PLAN/S0439_screen-rotation-follow-os.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 01:17:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt` | `spec-dev` | S0438 Phase 01.4: carry keepScreenOnPlayer through backup/restore/import [branch: DEBUG-v014] |
+| 2026-06-16 01:20:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev S0439 P01.1` | Rename followSystemRotation to programFollowSystemRotation, add playerFollowSystemRotation [branch: DEBUG-v014] |
+| 2026-06-16 01:23:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/MediaCapabilities.kt` | `S0436` | Migrate all src/main BuildConfig.SUPPORT_* reads to injected MediaCapabilities; expand surface (cast/mic/vrPlayer/wearCompanion); add MediaCapabilitiesEntryPoint for non-DI contexts [branch: DEBUG-v014] |
+| 2026-06-16 01:25:05 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-dev` | S0438 Phase 02.1: settings-driven keep-screen-on in BaseActivity [branch: DEBUG-v014] |
+| 2026-06-16 01:26:51 | `PLAN/S0453_per-spec-branch-workflow.md` | `spec` | Scaffold strategic spec skeleton S0453 [branch: DEBUG-v014] |
+| 2026-06-16 01:27:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev` | S0438 Phase 02.2: player host applies effective keep-screen-on rule [branch: DEBUG-v014] |
+| 2026-06-16 01:28:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `spec-dev` | S0438 Phase 02.2: player host applies effective keep-screen-on rule [branch: DEBUG-v014] |
+| 2026-06-16 01:29:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/AudioStandaloneActivity.kt` | `spec-dev` | S0438 Phase 02.2: player host applies effective keep-screen-on rule [branch: DEBUG-v014] |
+| 2026-06-16 01:30:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev` | S0438 Phase 02.2: player host applies effective keep-screen-on rule [branch: DEBUG-v014] |
+| 2026-06-16 01:31:53 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetConfigActivity.kt` | `spec-dev` | S0438 Phase 02.3: migrate keep-screen-on hook to keepScreenAwakeFor [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivityLifecycleBridge.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ScreenRotationManager.kt` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:32 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-dev S0439 P01` | Rename followSystemRotation->programFollowSystemRotation, add playerFollowSystemRotation (default off); key reused for upgrade-safe migration [branch: DEBUG-v014] |
+| 2026-06-16 01:32:52 | `PLAN/S0448_photos-flavor-exposes-network-sources.md` | `spec` | Promote S0448 to full strategic spec (flavor network gating, lite OFF); owner-gate PASS [branch: DEBUG-v014] |
+| 2026-06-16 01:32:58 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CameraQuickCaptureConfigActivity.kt` | `spec-dev` | S0438 Phase 02.3: migrate keep-screen-on hook to keepScreenAwakeFor [branch: DEBUG-v014] |
+| 2026-06-16 01:33:59 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomPhotoFrameConfigActivity.kt` | `spec-dev` | S0438 Phase 02.3: migrate keep-screen-on hook to keepScreenAwakeFor [branch: DEBUG-v014] |
+| 2026-06-16 01:35:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/CalculatorActivity.kt` | `spec-dev` | S0438 Phase 02.3: migrate keep-screen-on hook to keepScreenAwakeFor [branch: DEBUG-v014] |
+| 2026-06-16 01:36:15 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-dev` | S0438 Phase 02.3: migrate keep-screen-on hook to keepScreenAwakeFor [branch: DEBUG-v014] |
+| 2026-06-16 01:36:53 | `PLAN/S0452_share-commands-infrastructure.md` | `spec-all` | F1: strategic spec approved (S0452) [branch: DEBUG-v014] |
+| 2026-06-16 01:37:31 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-dev` | S0438 Phase 02 build-fix: rename injected field to keepScreenSettingsRepository [branch: DEBUG-v014] |
+| 2026-06-16 01:39:22 | `PLAN/S0454_spec-catalog-journal-compaction.md` | `spec` | Scaffold strategic spec skeleton S0454 [branch: DEBUG-v014] |
+| 2026-06-16 01:40:44 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0438 Phase 03.1: add dependent keep-screen-on player strings [branch: DEBUG-v014] |
+| 2026-06-16 01:40:59 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0438 Phase 03.1: add dependent keep-screen-on player strings [branch: DEBUG-v014] |
+| 2026-06-16 01:41:14 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0438 Phase 03.1: add dependent keep-screen-on player strings [branch: DEBUG-v014] |
+| 2026-06-16 01:42:05 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev` | S0438 Phase 03.2: add dependent keep-screen-on row [branch: DEBUG-v014] |
+| 2026-06-16 01:42:19 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | S0438 Phase 03.2: add dependent keep-screen-on row [branch: DEBUG-v014] |
+| 2026-06-16 01:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0438 Phase 03.3: bind dependent keep-screen-on row + visibility gate [branch: DEBUG-v014] |
+| 2026-06-16 01:51:03 | `docs/FEATURES.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
+| 2026-06-16 01:51:04 | `docs/FEATURES_RU.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
+| 2026-06-16 01:51:04 | `docs/FEATURES_UK.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
+| 2026-06-16 01:52:28 | `PLAN/S0438_keep-screen-on-player.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-16 01:52:28 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-dev` | S0438: settings-driven keep-screen-on + debug tag [branch: DEBUG-v014] |
+| 2026-06-16 01:52:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0438: dependent row binding + debug tag [branch: DEBUG-v014] |
+| 2026-06-16 01:58:27 | `PLAN/S0438_keep-screen-on-player.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 6/0/0, log errors 0 [branch: DEBUG-v014] |
+| 2026-06-16 02:00:42 | `PLAN/S0438_keep-screen-on-player.md` | `spec-check` | Audit S0438 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v014] |
+| 2026-06-16 02:00:42 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-check` | S0438: remove debug verification tag on Verified [branch: DEBUG-v014] |
+| 2026-06-16 02:00:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-check` | S0438: remove debug verification tag on Verified [branch: DEBUG-v014] |
+| 2026-06-16 02:03:22 | `PLAN/S0438_keep-screen-on-player.md` | `spec-arc` | Archive S0438 (keep-screen-on-player) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/INDEX.md` | `spec-tech` | Create tactical plan for S0452 (5 phases) [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/PHASE_01__share-target-registry.md` | `spec-tech` | Phase 01: share-target-registry [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/PHASE_02__settings-flag-storage.md` | `spec-tech` | Phase 02: settings-flag-storage [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/PHASE_03__settings-group-ui.md` | `spec-tech` | Phase 03: settings-group-ui [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/PHASE_04__gating-existing-surfaces.md` | `spec-tech` | Phase 04: gating-existing-surfaces [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-16 02:06:55 | `PLAN/S0452_share-commands-infrastructure.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/INDEX.md` | `spec-tech` | Create tactical plan for S0448 (3 phases) [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/research/01__lite-existing-network-records.md` | `spec-tech` | Research 01: lite existing network records (non-destructive hide) [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/research/02__local-network-permission-gating.md` | `spec-tech` | Research 02: local-network permission gating (manifest + registry) [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/PHASE_01__network-availability-foundation.md` | `spec-tech` | Phase 01: network availability foundation [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/PHASE_02__welcome-permission-gating.md` | `spec-tech` | Phase 02: welcome + permission gating [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog cleanup [branch: DEBUG-v014] |
+| 2026-06-16 02:12:52 | `PLAN/S0448_photos-flavor-exposes-network-sources.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-16 02:16:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTarget.kt` | `spec-dev` | S0452 Phase 01: share-target registry/resolver/module/test [branch: DEBUG-v014] |
+| 2026-06-16 02:16:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTargetAvailabilityResolver.kt` | `spec-dev` | S0452 Phase 01: share-target registry/resolver/module/test [branch: DEBUG-v014] |
+| 2026-06-16 02:16:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTargetRegistry.kt` | `spec-dev` | S0452 Phase 01: share-target registry/resolver/module/test [branch: DEBUG-v014] |
+| 2026-06-16 02:16:45 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/di/ShareTargetModule.kt` | `spec-dev` | S0452 Phase 01: share-target registry/resolver/module/test [branch: DEBUG-v014] |
+| 2026-06-16 02:16:45 | `app_v2/src/test/java/com/sza/fastmediasorter/core/share/ShareTargetRegistryTest.kt` | `spec-dev` | S0452 Phase 01: share-target registry/resolver/module/test [branch: DEBUG-v014] |
+| 2026-06-16 02:27:59 | `app_v2/build.gradle.kts` | `spec-dev` | S0448 P01.1: add SUPPORT_LOCAL_NETWORK flag per flavor (false in lite) [branch: DEBUG-v014] |
+| 2026-06-16 02:29:13 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/MediaCapabilities.kt` | `spec-dev` | S0448 P01.2: add supportsLocalNetworkSources capability field [branch: DEBUG-v014] |
+| 2026-06-16 02:35:36 | `app_v2/src/standard/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 02:51:53 | `app_v2/src/lite/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 02:54:27 | `app_v2/src/photos/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 02:58:06 | `app_v2/src/legacy/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 03:05:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/di/MediaCapabilitiesModule.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |
+| 2026-06-16 03:09:23 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/RemoteSourceAvailabilityGate.kt` | `spec-dev` | S0448 P01: wire SUPPORT_LOCAL_NETWORK / gate NETWORK ids [branch: DEBUG-v014] |

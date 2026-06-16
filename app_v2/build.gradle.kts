@@ -300,6 +300,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -373,6 +374,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -401,6 +403,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "false") // S0448: local-files-only, no SMB/SFTP/FTP
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")    // No PDF/EPUB/Text
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "false")    // No animations for speed
             buildConfigField("boolean", "ENABLE_EPUB", "false")
@@ -427,6 +430,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true") // Network photo shares (SMB/SFTP/FTP)
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")   // No documents
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")    // Keep animations for UI
             buildConfigField("boolean", "ENABLE_EPUB", "false")         // No EPUB
@@ -456,6 +460,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -515,6 +520,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")

@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.ComponentActivity
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import timber.log.Timber
 
 /** Debug-only `BuildConfig.DEBUG` launch-conditions dump for [com.sza.fastmediasorter.ui.player.StandalonePlayerActivity]. */
@@ -22,7 +23,7 @@ internal object StandaloneLaunchDebugLogger {
         ".StandaloneImageSender",
     )
 
-    fun log(activity: ComponentActivity, incomingIntent: Intent?, supportsCloud: Boolean) {
+    fun log(activity: ComponentActivity, incomingIntent: Intent?, caps: MediaCapabilities) {
         if (!BuildConfig.DEBUG) return
         if (incomingIntent == null) {
             Timber.d("StandalonePlayer[debug]: launch intent is null")
@@ -95,13 +96,13 @@ internal object StandaloneLaunchDebugLogger {
             BuildConfig.DEBUG,
             BuildConfig.BUILD_TYPE,
             BuildConfig.FLAVOR,
-            BuildConfig.SUPPORTS_DEFAULT_PLAYER,
-            BuildConfig.SUPPORT_VIDEO,
-            BuildConfig.SUPPORT_AUDIO,
-            BuildConfig.SUPPORT_IMAGES,
-            BuildConfig.SUPPORT_DOCUMENTS,
-            // S0391: compile-tier cloud flag now comes from MediaCapabilities (Rule 14 migration).
-            supportsCloud,
+            caps.supportsDefaultPlayer,
+            caps.supportsVideo,
+            caps.supportsAudio,
+            caps.supportsImages,
+            caps.supportsDocuments,
+            // S0436: capability flags now come from MediaCapabilities (Rule 14 migration).
+            caps.supportsCloud,
         )
         Timber.i("StandalonePlayer[debug]: default-player components: %s", aliasStates)
     }

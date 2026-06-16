@@ -78,7 +78,6 @@ class RecognitionBackend(
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             val errorRes = if (e is DeliveredPayloadCorruptException) {
-                Timber.d("S0432: OCR payload corrupt - showing reinstall message")
                 R.string.ocr_engines_damaged
             } else {
                 R.string.ocr_error
@@ -114,7 +113,6 @@ class RecognitionBackend(
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             val errorRes = if (e is DeliveredPayloadCorruptException) {
-                Timber.d("S0432: OCR payload corrupt - showing reinstall message")
                 R.string.ocr_engines_damaged
             } else {
                 R.string.ocr_error

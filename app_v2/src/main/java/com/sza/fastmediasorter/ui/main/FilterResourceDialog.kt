@@ -11,7 +11,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.google.android.material.chip.Chip
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.databinding.DialogFilterResourceBinding
@@ -29,6 +29,8 @@ import javax.inject.Inject
 class FilterResourceDialog : DialogFragment() {
 
     @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
+
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     private var _binding: DialogFilterResourceBinding? = null
     private val binding get() = _binding!!
@@ -155,14 +157,14 @@ class FilterResourceDialog : DialogFragment() {
         // Filter media types based on product flavor
         val allowedMediaTypes = MediaType.values().filter { type ->
             when (type) {
-                MediaType.VIDEO -> BuildConfig.SUPPORT_VIDEO
-                MediaType.AUDIO -> BuildConfig.SUPPORT_AUDIO
-                MediaType.IMAGE -> BuildConfig.SUPPORT_IMAGES
-                MediaType.GIF -> BuildConfig.SUPPORT_IMAGES
-                MediaType.TEXT -> BuildConfig.SUPPORT_DOCUMENTS
-                MediaType.PDF -> BuildConfig.SUPPORT_DOCUMENTS
-                MediaType.EPUB -> BuildConfig.ENABLE_EPUB
-                MediaType.OFFICE_DOCUMENT -> BuildConfig.SUPPORT_DOCUMENTS
+                MediaType.VIDEO -> mediaCapabilities.supportsVideo
+                MediaType.AUDIO -> mediaCapabilities.supportsAudio
+                MediaType.IMAGE -> mediaCapabilities.supportsImages
+                MediaType.GIF -> mediaCapabilities.supportsImages
+                MediaType.TEXT -> mediaCapabilities.supportsDocuments
+                MediaType.PDF -> mediaCapabilities.supportsDocuments
+                MediaType.EPUB -> mediaCapabilities.supportsEpub
+                MediaType.OFFICE_DOCUMENT -> mediaCapabilities.supportsDocuments
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> false
             }
         }

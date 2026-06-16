@@ -122,9 +122,9 @@ class PlayerViewModel @Inject constructor(
         val castDeviceName: String? = null,
         val showBlackScreenButton: Boolean = false,
         // S0162: screen rotation control
-        val followSystemRotation: Boolean = true,
+        val programFollowSystemRotation: Boolean = true,
         val playerRotationSensorEnabled: Boolean = true,
-        val showRotationToggle: Boolean = false,  // true when followSystemRotation=false && hasAccelerometer
+        val showRotationToggle: Boolean = false,  // true when programFollowSystemRotation=false && hasAccelerometer
         val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
         val shuffleIndices: List<Int> = emptyList()
     ) {
@@ -637,9 +637,9 @@ class PlayerViewModel @Inject constructor(
             settingsRepository.getSettings().collect { s ->
                 updateState {
                     it.copy(
-                        followSystemRotation = s.followSystemRotation,
+                        programFollowSystemRotation = s.programFollowSystemRotation,
                         playerRotationSensorEnabled = s.playerRotationSensorEnabled,
-                        showRotationToggle = !s.followSystemRotation && hasAccelerometer
+                        showRotationToggle = !s.programFollowSystemRotation && hasAccelerometer
                     )
                 }
             }
@@ -648,12 +648,12 @@ class PlayerViewModel @Inject constructor(
 
     /**
      * S0162: Toggle the player-level rotation sensor.
-     * Guard: only fires when followSystemRotation=false (showRotationToggle must be visible).
+     * Guard: only fires when programFollowSystemRotation=false (showRotationToggle must be visible).
      * Persists the new state and emits RotationSensorToggled so the Activity applies it immediately.
      */
     fun toggleRotationSensor() {
         val current = state.value
-        if (current.followSystemRotation) return   // guard: button must not be visible in this case
+        if (current.programFollowSystemRotation) return   // guard: button must not be visible in this case
         val newEnabled = !current.playerRotationSensorEnabled
         updateState { it.copy(playerRotationSensorEnabled = newEnabled) }
         viewModelScope.launch {

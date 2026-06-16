@@ -150,7 +150,7 @@ class PlaybackSettingsFragment : Fragment() {
             binding.rowFollowSystemRotation.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(followSystemRotation = isChecked))
+                viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
             }
         }
 
@@ -273,8 +273,8 @@ class PlaybackSettingsFragment : Fragment() {
                         binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
                     }
                     // S0162
-                    if (binding.rowFollowSystemRotation.isChecked != settings.followSystemRotation) {
-                        binding.rowFollowSystemRotation.setCheckedSilently(settings.followSystemRotation)
+                    if (binding.rowFollowSystemRotation.isChecked != settings.programFollowSystemRotation) {
+                        binding.rowFollowSystemRotation.setCheckedSilently(settings.programFollowSystemRotation)
                     }
                     if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)

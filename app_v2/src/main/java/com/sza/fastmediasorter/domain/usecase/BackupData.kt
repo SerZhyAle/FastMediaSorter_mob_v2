@@ -44,6 +44,7 @@ data class BackupSettings(
     val defaultUser: String = "",
     val defaultPassword: String = "",
     val preventSleep: Boolean = true,
+    val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
     val networkParallelism: Int = 4,

@@ -6,12 +6,9 @@
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
 - [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick ad-hoc device chores; prefer over raw adb; ~0 tokens
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
-- [S0398 keystone welcome-skeleton (BlockNeedUserTest)](project_s0398_inprogress.md) - build-green; DEBUG-v013 auto-commit + temp_stash_s0397 gotchas; ColorThemePrefs.getMode()
-- [Welcome redesign: S0399/S0400/S0401/S0402 Implemented+BlockNeedUserTest 2026-06-11](project_s0395_welcome_redesign_research.md) - central-skeleton+onBind-callback arch; pager order hero/profile/networks/functionality/permissions/default-player; deferrals
 - [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit
 - [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
-- [S0386 delivery: ALL code done, at BlockNeedUserTest](project_s0386_delivery_pause.md) - 9 phases done & 4 flavors build-green (commit 8ed28604); only owner device-test + release unpack-verify remain; loader keystone = classloader native-path injection
 - [photos/lite OCR build break - RESOLVED 2026-06-10](project_photos_flavor_ocr_break.md) - Tesseract moved to src/ocrEnabled bucket, NoOp default in src/ocrDisabled for photos/lite; new Tesseract code must go in ocrEnabled, never src/main
 - [Players are a family of activities - mirror per-host glue](feedback_player_family_glue_mirroring.md) - shared engine/use-case/capability changes propagate; per-host delegate/layout changes must be mirrored (compiler won't catch); host-seam refactor = S0392
 

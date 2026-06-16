@@ -17,7 +17,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
@@ -148,6 +147,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
@@ -377,6 +377,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
+            mediaCapabilities = mediaCapabilities,
         )
 
         initializer.initialize()
@@ -410,7 +411,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun observeData() {
-        if (BuildConfig.SUPPORT_MIC_RECORDING) {
+        if (mediaCapabilities.supportsMicRecording) {
             collectOnLifecycle(settingsRepository.getSettings()) { settings ->
                 val showMic = settings.micRecordingEnabled
                 binding.btnMicRecord?.isVisible = showMic

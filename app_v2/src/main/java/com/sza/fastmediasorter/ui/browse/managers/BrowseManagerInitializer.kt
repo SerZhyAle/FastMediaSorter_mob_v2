@@ -15,6 +15,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
@@ -102,6 +103,7 @@ class BrowseManagerInitializer(
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
+    private val mediaCapabilities: MediaCapabilities,
 ) {
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -166,7 +168,7 @@ class BrowseManagerInitializer(
             override fun getFileOperationUseCase(): FileOperationUseCase = fileOperationUseCase
             override fun getResourceName(): String? = viewModel.state.value.resource?.name
             override fun getLifecycleOwner(): androidx.lifecycle.LifecycleOwner = activity
-        })
+        }, mediaCapabilities)
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
@@ -669,7 +671,7 @@ class BrowseManagerInitializer(
                     { id -> eventHandler.openBrowseInNewWindow(id) }
                 } else null,
                 isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null,
+                onBlackScreenClicked = if (mediaCapabilities.supportsAudio) { { blackScreenManager.show() } } else null,
                 // S0374: surface top-bar commands that overflowed off the bar, routed to their actions.
                 isOverflowed = { id -> commandOverflowManager.isOverflowed(id) },
                 callbacks = buttonCallbacks,

@@ -23,6 +23,9 @@ data class AppSettings(
     // General settings
     val language: String = "en",
     val preventSleep: Boolean = true,
+    // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
+    // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
+    val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
@@ -94,6 +97,11 @@ data class AppSettings(
     val translationTargetLanguage: String = "ru", // Target language code (en, ru, uk, etc.)
     val translationLensStyle: Boolean = true, // Google Lens style - draw translated text blocks over original positions (for images and PDFs)
     val enableGoogleLens: Boolean = false, // Enable sending to Google Lens app
+    // S0452: share-command visibility overrides. Empty = every target follows its registry default
+    // rule. A target id in enabledShareTargets is explicitly ON; in disabledShareTargets explicitly
+    // OFF. Two sets are needed to persist turning OFF a default-ON target (and vice versa).
+    val enabledShareTargets: Set<String> = emptySet(),
+    val disabledShareTargets: Set<String> = emptySet(),
     val enableOcr: Boolean = false, // S0386: default OFF - OCR engines delivered on demand
     val cameraOcrTranslationEnabled: Boolean = false, // Opt-in quick Photo-OCR-Translation flow
     val cameraOcrOnly: Boolean = false, // Under camera-ocr-translation: only perform OCR, no translation
@@ -265,11 +273,13 @@ data class AppSettings(
     // S0028: Multi-window mode — allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
 
-    // S0162: Screen rotation control
-    // true = delegate to OS auto-rotate; false = own control via playerRotationSensorEnabled
-    val followSystemRotation: Boolean = true,
+    // S0162 / S0439: Screen rotation control
+    // Program-scope follow-OS flag (umbrella). true = delegate to OS auto-rotate across the whole app.
+    val programFollowSystemRotation: Boolean = true,
+    // S0439: Player-scope follow-OS flag. Consulted only when programFollowSystemRotation is false.
+    val playerFollowSystemRotation: Boolean = false,
     // Per-session sensor state (persisted; restored on next player launch).
-    // Active only when followSystemRotation = false.
+    // Active only when the player is not following the OS.
     // true = screen follows physical rotation; false = screen locked to current orientation
     val playerRotationSensorEnabled: Boolean = true
 ) {

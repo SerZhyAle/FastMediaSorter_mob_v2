@@ -4,8 +4,8 @@ import android.app.Activity
 import android.net.Uri
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -28,6 +28,7 @@ internal class CommandPanelAvailabilityUpdater(
     private val binding: ActivityPlayerUnifiedBinding,
     private val safeViews: PlayerBindingSafeViews,
     private val planner: CommandPanelLayoutPlanner,
+    private val mediaCapabilities: MediaCapabilities,
     private val bigButtonsModeManager: com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
@@ -272,7 +273,7 @@ internal class CommandPanelAvailabilityUpdater(
         safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
         safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
         safeViews.btnCastCmd.isVisible =
-            BuildConfig.SUPPORT_CAST &&
+            mediaCapabilities.supportsCast &&
             (getCastMediaManager()?.isCastAvailable == true) &&
             (isImage || isVideo) &&
             isWifiConnected(binding.root.context)

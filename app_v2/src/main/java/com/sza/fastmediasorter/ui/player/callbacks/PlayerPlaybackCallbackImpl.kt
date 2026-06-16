@@ -32,7 +32,8 @@ class PlayerPlaybackCallbackImpl(
     private val imageLoadingManagerProvider: () -> ImageLoadingManager,
     private val slideshowController: SlideshowController,
     private val sleepTimerManagerProvider: () -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = { null },
-    private val audioEmptyStateControllerProvider: () -> AudioEmptyStateController? = { null }
+    private val audioEmptyStateControllerProvider: () -> AudioEmptyStateController? = { null },
+    private val mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 ) : VideoPlayerManager.PlayerCallback {
 
     override fun onPlaybackReady() {
@@ -174,7 +175,7 @@ class PlayerPlaybackCallbackImpl(
         // S0264: VR install CTA must not appear on VR-capable builds (vr / noLegal).
         // Those builds already include VR functionality - prompting the user to install
         // "the VR edition" while they are running the VR edition is meaningless noise.
-        if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER) return
+        if (mediaCapabilities.supportsVrPlayer) return
 
         // Show VR CTA for actual flat 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU

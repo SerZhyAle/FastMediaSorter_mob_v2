@@ -23,7 +23,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 imageLoadingManagerProvider = { activity.imageLoadingManager },
                 slideshowController = activity.slideshowController,
                 sleepTimerManagerProvider = { activity.sleepTimerManager },
-                audioEmptyStateControllerProvider = { activity.audioEmptyStateController }
+                audioEmptyStateControllerProvider = { activity.audioEmptyStateController },
+                mediaCapabilities = activity.mediaCapabilities
             ),
             credentialsRepository = activity.credentialsRepository,
             smbClient = activity.smbClient,
