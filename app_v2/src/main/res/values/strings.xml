@@ -2680,4 +2680,10 @@ Close the player and try again.</string>
     <string name="statistics_report_tech_device">Device</string>
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">unknown</string>
+    <string name="error_dialog_report_to_author">Email crash report to author</string>
+    <string name="crash_report_email_subject">FastMediaSorter crash report</string>
+    <string name="crash_report_email_body_intro">Please describe what you were doing when the problem occurred. Technical details and the app log are attached below.</string>
+    <string name="crash_prompt_title">Send crash report?</string>
+    <string name="crash_prompt_message">The app closed unexpectedly last time. Send a crash report with the app log to the author?</string>
+    <string name="crash_prompt_send">Send report</string>
 </resources>

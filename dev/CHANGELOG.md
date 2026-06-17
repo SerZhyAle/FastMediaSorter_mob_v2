@@ -18539,3 +18539,108 @@ Format: | datetime | file | target | description |
 | 2026-06-17 16:39:18 | `PLAN/S0483_crash-report-email-button/PHASE_03__dialog-report-button.md` | `spec-tech` | Phase 03: dialog-report-button [branch: DEBUG-v014] |
 | 2026-06-17 16:39:18 | `PLAN/S0483_crash-report-email-button/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v014] |
 | 2026-06-17 16:39:18 | `PLAN/S0483_crash-report-email-button.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-17 16:40:14 | `PLAN/S0484_prerelease-emulator-sweep/INDEX.md` | `spec-tech` | Create tactical plan for S0484 [branch: DEBUG-v014] |
+| 2026-06-17 16:40:14 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_01__environment-prepare.md` | `spec-tech` | Phase 01: environment-prepare [branch: DEBUG-v014] |
+| 2026-06-17 16:40:14 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_02__resources-settings.md` | `spec-tech` | Phase 02: resources-settings [branch: DEBUG-v014] |
+| 2026-06-17 16:40:14 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_03__perf-measure.md` | `spec-tech` | Phase 03: perf-measure [branch: DEBUG-v014] |
+| 2026-06-17 16:40:15 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_04__verdict-aggregator.md` | `spec-tech` | Phase 04: verdict-aggregator [branch: DEBUG-v014] |
+| 2026-06-17 16:40:15 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_05__skill-orchestrator.md` | `spec-tech` | Phase 05: skill-orchestrator [branch: DEBUG-v014] |
+| 2026-06-17 16:40:15 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-17 16:40:16 | `PLAN/S0484_prerelease-emulator-sweep.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-17 16:42:42 | `app_v2/src/main/res/values/strings.xml` | `string/crash_report_email` | S0483 P01: add crash-report dialog strings (EN) [branch: DEBUG-v014] |
+| 2026-06-17 16:42:56 | `app_v2/src/main/res/values-ru/strings.xml` | `string/crash_report_email` | S0483 P01: add crash-report dialog strings (RU) [branch: DEBUG-v014] |
+| 2026-06-17 16:42:56 | `app_v2/src/main/res/values-uk/strings.xml` | `string/crash_report_email` | S0483 P01: add crash-report dialog strings (UK) [branch: DEBUG-v014] |
+| 2026-06-17 16:44:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt` | `SupportIntentFactory` | S0483 P02: add buildCrashReportEmail (ACTION_SEND + attachment) and crash-report recipient [branch: DEBUG-v014] |
+| 2026-06-17 16:46:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LogExportHelper.kt` | `LogExportHelper` | S0483 P02: add buildLogsZipUri; refactor exportLogs onto shared zip builder [branch: DEBUG-v014] |
+| 2026-06-17 16:51:28 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactoryTest.kt` | `SupportIntentFactoryTest` | S0483 P02: unit tests for buildCrashReportEmail (attachment + no-attachment) [branch: DEBUG-v014] |
+| 2026-06-17 16:53:47 | `app_v2/src/main/res/layout/dialog_error_detail.xml` | `dialog_error_detail` | S0483 P03: add btnReport crash-report button (portrait) [branch: DEBUG-v014] |
+| 2026-06-17 16:54:01 | `app_v2/src/main/res/layout-land/dialog_error_detail.xml` | `dialog_error_detail-land` | S0483 P03: add btnReport crash-report button (landscape) [branch: DEBUG-v014] |
+| 2026-06-17 16:55:56 | `PLAN/S0484_prerelease-emulator-sweep/research/01__perf-metrics-thresholds.md` | `research` | S0484 research artifact: perf-metrics-thresholds [branch: DEBUG-v014] |
+| 2026-06-17 16:55:56 | `PLAN/S0484_prerelease-emulator-sweep/research/02__resource-import-reachability.md` | `research` | S0484 research artifact: resource-import-reachability [branch: DEBUG-v014] |
+| 2026-06-17 16:55:57 | `PLAN/S0484_prerelease-emulator-sweep/research/03__settings-apply.md` | `research` | S0484 research artifact: settings-apply [branch: DEBUG-v014] |
+| 2026-06-17 16:55:57 | `PLAN/S0484_prerelease-emulator-sweep/research/04__standalone-player-intent.md` | `research` | S0484 research artifact: standalone-player-intent [branch: DEBUG-v014] |
+| 2026-06-17 16:55:57 | `PLAN/S0484_prerelease-emulator-sweep/research/05__log-verdict-markers.md` | `research` | S0484 research artifact: log-verdict-markers [branch: DEBUG-v014] |
+| 2026-06-17 16:55:57 | `PLAN/S0484_prerelease-emulator-sweep/research/06__catalog-mutation-rules.md` | `research` | S0484 research artifact: catalog-mutation-rules [branch: DEBUG-v014] |
+| 2026-06-17 16:57:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScrollableTextDialog.kt` | `ScrollableTextDialog` | S0483 P03: gate + wire crash-report button (email error text + log ZIP) [branch: DEBUG-v014] |
+| 2026-06-17 16:57:36 | `PLAN/S0485_bugfix-native-lib-loader-error-loglevel.md` | `spec-draft` | Park S0485: native lib loader logs expected condition at Timber.e (from S0484 research) [branch: DEBUG-v014] |
+| 2026-06-17 16:57:36 | `PLAN/S0486_bugfix-debugactivity-reset-incomplete.md` | `spec-draft` | Park S0486: DebugActivity reset leaves stale theme/language (from S0484 research) [branch: DEBUG-v014] |
+| 2026-06-17 16:57:36 | `PLAN/S0487_search-log-exceptions-machine-output.md` | `spec-draft` | Park S0487: search-log.ps1 -Exceptions lacks machine output (from S0484 research) [branch: DEBUG-v014] |
+| 2026-06-17 16:58:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `BrowseErrorDisplayManager` | S0483 P03: forward exception to dialog as reportableThrowable (crash-report gate) [branch: DEBUG-v014] |
+| 2026-06-17 17:02:59 | `docs/FEATURES.md` | `features` | S0483 P04: document crash-report email button (EN) [branch: DEBUG-v014] |
+| 2026-06-17 17:02:59 | `docs/FEATURES_RU.md` | `features` | S0483 P04: document crash-report email button (RU) [branch: DEBUG-v014] |
+| 2026-06-17 17:02:59 | `docs/FEATURES_UK.md` | `features` | S0483 P04: document crash-report email button (UK) [branch: DEBUG-v014] |
+| 2026-06-17 17:03:46 | `PLAN/S0483_crash-report-email-button.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-17 17:04:03 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec` | Add strategic spec S0488 for always-first All-files resource ordering [branch: DEBUG-v014] |
+| 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first/INDEX.md` | `spec-tech` | Create tactical plan for S0488 [branch: DEBUG-v014] |
+| 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first/PHASE_01__ordering-pin.md` | `spec-tech` | Phase 01: ordering-pin [branch: DEBUG-v014] |
+| 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first/PHASE_02__drag-robustness.md` | `spec-tech` | Phase 02: drag-robustness [branch: DEBUG-v014] |
+| 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-17 17:14:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `MediaResource.isAllFilesPredefined` | Add isAllFilesPredefined identity for predefined All-files resource (S0488 Phase 01.1) [branch: DEBUG-v014] |
+| 2026-06-17 17:16:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManager.kt` | `ResourceFilterManager.hoistAllFilesFirst` | Pin All-files resource first after sort, after tab/filters (S0488 Phase 01.2) [branch: DEBUG-v014] |
+| 2026-06-17 17:19:22 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManagerTest.kt` | `ResourceFilterManagerTest` | Unit-test All-files pin + filter exceptions (S0488 Phase 01.3) [branch: DEBUG-v014] |
+| 2026-06-17 17:20:30 | `PLAN/S0490_post-crash-report-prompt.md` | `spec` | Add strategic spec S0490 (post-crash report prompt, continues S0483) [branch: DEBUG-v014] |
+| 2026-06-17 17:21:41 | `scripts/devtest/prerelease-prepare.ps1` | `spec-dev` | S0484 Phase 01.1: prerelease-prepare scaffold + device gate [branch: DEBUG-v014] |
+| 2026-06-17 17:22:58 | `scripts/devtest/prerelease-prepare.ps1` | `spec-dev` | S0484 Phase 01.2: clean uninstall + install standard debug [branch: DEBUG-v014] |
+| 2026-06-17 17:23:50 | `scripts/devtest/prerelease-prepare.ps1` | `spec-dev` | S0484 Phase 01.3: seed test media when absent [branch: DEBUG-v014] |
+| 2026-06-17 17:24:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `ResourceAdapter drag gates` | Make pinned All-files row non-draggable in list + grid (S0488 Phase 02.2) [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/INDEX.md` | `spec-tech` | Create tactical plan for S0490 [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/PHASE_01__strings.md` | `spec-tech` | Phase 01: strings [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/PHASE_02__crash-file-accessor.md` | `spec-tech` | Phase 02: crash-file-accessor [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/PHASE_03__prompt-manager.md` | `spec-tech` | Phase 03: prompt-manager [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/PHASE_04__mainactivity-wiring.md` | `spec-tech` | Phase 04: mainactivity-wiring [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-17 17:24:43 | `PLAN/S0490_post-crash-report-prompt.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-17 17:25:32 | `app_v2/src/main/res/values/strings.xml` | `string/crash_prompt` | S0490 P01: post-crash prompt strings (EN) [branch: DEBUG-v014] |
+| 2026-06-17 17:25:45 | `app_v2/src/main/res/values-ru/strings.xml` | `string/crash_prompt` | S0490 P01: post-crash prompt strings (RU) [branch: DEBUG-v014] |
+| 2026-06-17 17:25:45 | `app_v2/src/main/res/values-uk/strings.xml` | `string/crash_prompt` | S0490 P01: post-crash prompt strings (UK) [branch: DEBUG-v014] |
+| 2026-06-17 17:26:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceItemTouchCallback.kt` | `ResourceItemTouchCallback drop-clamp` | Block dragging pinned All-files row + drops above index 0 (S0488 Phase 02.3) [branch: DEBUG-v014] |
+| 2026-06-17 17:27:46 | `PLAN/S0489_features-allfeatures-split.md` | `spec` | Add strategic spec S0489 - split FEATURES (showcase) and ALL_FEATURES (JSONL inventory, replaces FUNCTIONALITY.log); blocker for S0440 [branch: DEBUG-v014] |
+| 2026-06-17 17:27:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `LoggingHelper` | S0490 P02: add getLatestCrashFile() [branch: DEBUG-v014] |
+| 2026-06-17 17:30:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/CrashReportPromptManager.kt` | `CrashReportPromptManager` | S0490 P03: post-crash report prompt manager (reuses S0483 send path) [branch: DEBUG-v014] |
+| 2026-06-17 17:32:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0490 P04: offer post-crash report on fresh launch [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/INDEX.md` | `spec-tech` | Create tactical plan for S0489 [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_01__allfeatures-schema-tooling.md` | `spec-tech` | Phase 01: allfeatures-schema-tooling [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_02__migrate-functionality-log.md` | `spec-tech` | Phase 02: migrate-functionality-log [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_03__inventory-population.md` | `spec-tech` | Phase 03: inventory-population [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_04__features-revision.md` | `spec-tech` | Phase 04: features-revision [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_05__rules-skills-split.md` | `spec-tech` | Phase 05: rules-skills-split [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_06__drift-gate.md` | `spec-tech` | Phase 06: drift-gate [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup [branch: DEBUG-v014] |
+| 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
+| 2026-06-17 17:35:25 | `scripts/devtest/prerelease.config.psd1` | `spec-dev` | S0484 Phase 01.5: run-config skeleton (Resources/Settings/Thresholds) [branch: DEBUG-v014] |
+| 2026-06-17 17:35:37 | `docs/FEATURES.md` | `features` | S0490 P05: document post-crash report prompt (EN) [branch: DEBUG-v014] |
+| 2026-06-17 17:35:37 | `docs/FEATURES_RU.md` | `features` | S0490 P05: document post-crash report prompt (RU) [branch: DEBUG-v014] |
+| 2026-06-17 17:35:37 | `docs/FEATURES_UK.md` | `features` | S0490 P05: document post-crash report prompt (UK) [branch: DEBUG-v014] |
+| 2026-06-17 17:36:01 | `PLAN/S0490_post-crash-report-prompt.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-17 17:37:58 | `docs/ALL_FEATURES.schema.json` | `all-features` | Add ALL_FEATURES JSONL record schema (draft-07) [branch: DEBUG-v014] |
+| 2026-06-17 17:38:52 | `.gitignore` | `all-features` | Gitignore ALL_FEATURES_noLegal.jsonl; seed empty ALL_FEATURES data files [branch: DEBUG-v014] |
+| 2026-06-17 17:41:56 | `scripts/all_features/add.ps1` | `all-features` | Add ALL_FEATURES upsert writer (schema-validated) [branch: DEBUG-v014] |
+| 2026-06-17 17:42:52 | `scripts/all_features/validate.ps1` | `all-features` | Add ALL_FEATURES validator (schema + uniqueness + EN-only, -Gate) [branch: DEBUG-v014] |
+| 2026-06-17 17:43:06 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-17 17:43:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManager.kt` | `spec-dev` | Insert S0488 BlockNeedUserTest debug tag in hoistAllFilesFirst [branch: DEBUG-v014] |
+| 2026-06-17 17:43:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceItemTouchCallback.kt` | `spec-dev` | Insert S0488 BlockNeedUserTest debug tag in canDropOver [branch: DEBUG-v014] |
+| 2026-06-17 17:47:08 | `scripts/all_features/migrate_from_log.ps1` | `all-features` | Add one-shot FUNCTIONALITY.log -> ALL_FEATURES migration converter [branch: DEBUG-v014] |
+| 2026-06-17 17:47:08 | `docs/ALL_FEATURES.jsonl` | `all-features` | Populate ALL_FEATURES baseline (172 records) from FUNCTIONALITY.log [branch: DEBUG-v014] |
+| 2026-06-17 17:47:59 | `dev/FUNCTIONALITY.log` | `all-features` | Retire FUNCTIONALITY.log header; point to ALL_FEATURES.jsonl [branch: DEBUG-v014] |
+| 2026-06-17 17:49:03 | `scripts/add_to_functionality_log.ps1` | `all-features` | Retire add_to_functionality_log.ps1; redirect to ALL_FEATURES add.ps1 [branch: DEBUG-v014] |
+| 2026-06-17 17:54:22 | `scripts/devtest/prerelease-prepare.ps1` | `spec-dev` | S0484 Phase 01.4: launch verify from logs (full prepare validated on emulator-5554) [branch: DEBUG-v014] |
+| 2026-06-17 17:54:50 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/INCONCLUSIVE 1/1/2; app stable, All-files provisioned, pin blocked by onboarding loop [branch: DEBUG-v014] |
+| 2026-06-17 18:06:29 | `PLAN/S0484_prerelease-emulator-sweep/research/02__resource-import-reachability.md` | `spec-update` | S0484 §6.2: confirm intent-push import via ResourceImportActivity [branch: DEBUG-v014] |
+| 2026-06-17 18:06:29 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_02__resources-settings.md` | `spec-update` | S0484 Phase 02 re-scope: adb-scriptable (reachability/import-trigger/theme-lang); UI parts to Phase 05 [branch: DEBUG-v014] |
+| 2026-06-17 18:06:29 | `PLAN/S0484_prerelease-emulator-sweep/PHASE_05__skill-orchestrator.md` | `spec-update` | S0484 Phase 05.2: configure = configure.ps1 + mobile-mcp confirm/DataStore/listing [branch: DEBUG-v014] |
+| 2026-06-17 18:07:37 | `scripts/devtest/prerelease.config.psd1` | `spec-dev` | S0484 Phase 02.1: populate Resources/Settings (reachability class + apply channel) [branch: DEBUG-v014] |
+| 2026-06-17 18:09:16 | `scripts/devtest/prerelease-configure.ps1` | `spec-dev` | S0484 Phase 02.2: configure.ps1 scaffold + endpoint reachability pre-check [branch: DEBUG-v014] |
+| 2026-06-17 18:11:01 | `scripts/devtest/prerelease-configure.ps1` | `spec-dev` | S0484 Phase 02.3: intent-push import trigger via ResourceImportActivity [branch: DEBUG-v014] |
+| 2026-06-17 18:14:43 | `scripts/devtest/prerelease-configure.ps1` | `spec-dev` | S0484 Phase 02.4: adb settings (cmd locale) + FQCN fix for import component [branch: DEBUG-v014] |
+| 2026-06-17 18:19:37 | `docs/ALL_FEATURES.jsonl` | `all-features` | Populate ALL_FEATURES inventory via parallel source scan (326 public records, 20 areas) [branch: DEBUG-v014] |
+| 2026-06-17 18:23:44 | `scripts/devtest/prerelease.config.psd1` | `spec-dev` | S0484 Phase 03.1: Thresholds block (per-checkpoint PASS limits) [branch: DEBUG-v014] |
+| 2026-06-17 18:24:57 | `scripts/devtest/prerelease-measure.ps1` | `spec-dev` | S0484 Phase 03.2: per-checkpoint perf capture [branch: DEBUG-v014] |
+| 2026-06-17 18:25:47 | `scripts/devtest/prerelease-measure.ps1` | `spec-dev` | S0484 Phase 03.3: threshold compare + verdict emit [branch: DEBUG-v014] |
+| 2026-06-17 18:27:34 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.1: log signal via search-log.ps1 [branch: DEBUG-v014] |
+| 2026-06-17 18:28:17 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.2: fold perf + screenshot signals [branch: DEBUG-v014] |
+| 2026-06-17 18:29:31 | `docs/FEATURES.md` | `all-features` | Revise FEATURES to curated showcase; demote 3 minor entries; point to ALL_FEATURES inventory [branch: DEBUG-v014] |
+| 2026-06-17 18:29:32 | `docs/FEATURES_RU.md` | `all-features` | Revise FEATURES_RU to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
+| 2026-06-17 18:29:33 | `docs/FEATURES_UK.md` | `all-features` | Revise FEATURES_UK to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
+| 2026-06-17 18:30:10 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.3: emit verdict JSON + stable exit code; fix Get-Count parsing [branch: DEBUG-v014] |
+| 2026-06-17 18:31:35 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.1: skill header/usage/device-gate [branch: DEBUG-v014] |

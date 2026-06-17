@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.main.ResourceTab
@@ -65,8 +66,23 @@ class ResourceFilterManager {
         }
         
         filtered = applySorting(filtered, sortMode)
-        
-        return filtered
+
+        return hoistAllFilesFirst(filtered)
+    }
+
+    /**
+     * Hoist the predefined All-files resource to index 0, keeping the relative order of the rest.
+     * Runs after the tab and all filters, so a resource excluded by the active tab/filter is simply
+     * absent here and stays hidden. Presentation-only - never persists displayOrder.
+     */
+    private fun hoistAllFilesFirst(resources: List<MediaResource>): List<MediaResource> {
+        val index = resources.indexOfFirst { it.isAllFilesPredefined }
+        if (index <= 0) return resources
+        Timber.d("S0488: hoisting All-files resource from index $index to top")
+        val reordered = resources.toMutableList()
+        val pinned = reordered.removeAt(index)
+        reordered.add(0, pinned)
+        return reordered
     }
     
     /**

@@ -23,6 +23,7 @@ object SupportIntentFactory {
     private const val DOCS_BASE_RU = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html"
     private const val DOCS_BASE_UK = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html"
     private const val SUPPORT_MAILTO = "mailto:sza@ukr.net"
+    private const val CRASH_REPORT_EMAIL = "serzhyale@gmail.com"
     private const val PLAY_MARKET_URI_PREFIX = "market://details?id="
     private const val PLAY_WEB_URI_PREFIX = "https://play.google.com/store/apps/details?id="
 
@@ -87,6 +88,30 @@ object SupportIntentFactory {
     /** Default subject prefix used when callers do not pass an explicit one. */
     fun defaultBugSubject(): String =
         "FastMediaSorter ${BuildConfig.VERSION_NAME} bug report"
+
+    /**
+     * Build a crash-report email to the author with an optional log attachment.
+     *
+     * Uses ACTION_SEND, not ACTION_SENDTO: only ACTION_SEND carries [Intent.EXTRA_STREAM], so a
+     * mailto:-based intent would silently drop the attachment. The recipient travels in
+     * [Intent.EXTRA_EMAIL] instead of the mailto URI.
+     */
+    fun buildCrashReportEmail(
+        subject: String,
+        body: String,
+        attachmentUri: Uri?,
+    ): Intent = Intent(Intent.ACTION_SEND).apply {
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(CRASH_REPORT_EMAIL))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, body)
+        if (attachmentUri != null) {
+            type = "application/zip"
+            putExtra(Intent.EXTRA_STREAM, attachmentUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } else {
+            type = "text/plain"
+        }
+    }
 
     /**
      * Build an `ACTION_VIEW` intent for an arbitrary documentation [url]. Used by

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fastmediasorter/docs/ALL_FEATURES.schema.json",
+  "$comment": "One record per JSONL line in docs/ALL_FEATURES.jsonl. Developer-facing feature inventory, EN-only, single source of truth about implemented functionality. Replaces dev/FUNCTIONALITY.log; chronology comes from git history + release diffs. Public showcase lives in docs/FEATURES*.md.",
+  "title": "ALL_FEATURES record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "area", "name", "description", "flavors"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "$comment": "Stable identifier, kebab '<area>.<feature>'.",
+      "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*\\.[a-z0-9]+(?:[-_][a-z0-9]+)*$"
+    },
+    "area": {
+      "type": "string",
+      "$comment": "Functional area / module, e.g. 'Video Player', 'OCR & Translation'.",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "$comment": "Short EN title of the capability.",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "$comment": "EN description of what the capability does.",
+      "minLength": 1
+    },
+    "flavors": {
+      "type": "array",
+      "$comment": "Build variants where the capability is available.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["standard", "lite", "photos", "legacy", "vr", "noLegal"]
+      }
+    },
+    "spec": {
+      "$comment": "Provenance: source spec ticket id, or null when not spec-tracked.",
+      "anyOf": [
+        { "type": "string", "pattern": "^S\\d{4}$" },
+        { "type": "null" }
+      ]
+    },
+    "status": {
+      "type": "string",
+      "$comment": "Lifecycle state of the record. Defaults to 'active'.",
+      "enum": ["active", "removed"],
+      "default": "active"
+    }
+  }
+}

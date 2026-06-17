@@ -2596,4 +2596,10 @@
     <string name="statistics_report_tech_device">Пристрій</string>
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">невідомо</string>
+    <string name="error_dialog_report_to_author">Надіслати звіт про збій автору</string>
+    <string name="crash_report_email_subject">Звіт про збій FastMediaSorter</string>
+    <string name="crash_report_email_body_intro">Опишіть, що ви робили, коли виникла проблема. Технічні дані та журнал додатку додано нижче.</string>
+    <string name="crash_prompt_title">Надіслати звіт про збій?</string>
+    <string name="crash_prompt_message">Минулого разу додаток несподівано закрився. Надіслати автору звіт про збій із журналом додатку?</string>
+    <string name="crash_prompt_send">Надіслати звіт</string>
 </resources>

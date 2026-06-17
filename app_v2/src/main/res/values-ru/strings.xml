@@ -2633,4 +2633,10 @@
     <string name="statistics_report_tech_device">Устройство</string>
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">неизвестно</string>
+    <string name="error_dialog_report_to_author">Отправить отчёт о сбое автору</string>
+    <string name="crash_report_email_subject">Отчёт о сбое FastMediaSorter</string>
+    <string name="crash_report_email_body_intro">Опишите, что вы делали, когда возникла проблема. Технические данные и журнал приложения приложены ниже.</string>
+    <string name="crash_prompt_title">Отправить отчёт о сбое?</string>
+    <string name="crash_prompt_message">В прошлый раз приложение неожиданно закрылось. Отправить автору отчёт о сбое с журналом приложения?</string>
+    <string name="crash_prompt_send">Отправить отчёт</string>
 </resources>

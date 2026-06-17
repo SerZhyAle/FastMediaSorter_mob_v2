@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -21,8 +22,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.TooltipCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,6 +74,9 @@ object ScrollableTextDialog {
      * @param showSave  Show the Save-to-file icon (ignored when an inline action is set).
      * @param onSaveClick Optional override for the default Save-to-file action.
      * @param extraAction Optional extra icon action.
+     * @param reportableThrowable When non-null, shows a crash-report action that emails the error
+     *        text plus the app log ZIP to the author; pass the originating exception only for real
+     *        failures, not informational "unavailable" messages.
      */
     fun show(
         context: Context,
@@ -86,6 +93,7 @@ object ScrollableTextDialog {
         showSave: Boolean = true,
         onSaveClick: (() -> Unit)? = null,
         extraAction: ExtraAction? = null,
+        reportableThrowable: Throwable? = null,
         cancelable: Boolean = true,
     ): AlertDialog? {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
@@ -105,6 +113,7 @@ object ScrollableTextDialog {
         val btnExtra = dialogView.findViewById<MaterialButton>(R.id.btnExtra)
         val btnCopy = dialogView.findViewById<MaterialButton>(R.id.btnCopy)
         val btnClose = dialogView.findViewById<MaterialButton>(R.id.btnClose)
+        val btnReport = dialogView.findViewById<MaterialButton>(R.id.btnReport)
 
         tvMessage.text = message
         if (monospace) tvMessage.typeface = Typeface.MONOSPACE
@@ -210,6 +219,43 @@ object ScrollableTextDialog {
             }
         } else {
             btnExtra.visibility = View.GONE
+        }
+
+        // Crash report (S0483): only when the caller supplies the originating exception (a real
+        // failure, not an informational message). Keeps the dialog open like the other icon actions.
+        if (reportableThrowable != null) {
+            btnReport.visibility = View.VISIBLE
+            val reportLabel = context.getString(R.string.error_dialog_report_to_author)
+            btnReport.contentDescription = reportLabel
+            TooltipCompat.setTooltipText(btnReport, reportLabel)
+            btnReport.setOnClickListener {
+                Timber.d("S0483: crash-report button tapped; building email + log ZIP")
+                val body = buildString {
+                    appendLine(context.getString(R.string.crash_report_email_body_intro))
+                    appendLine()
+                    appendLine("App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+                    appendLine("${reportableThrowable.javaClass.name}: ${reportableThrowable.message}")
+                    appendLine()
+                    append(fullText)
+                }
+                val subject = context.getString(R.string.crash_report_email_subject)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val zipUri = LogExportHelper.buildLogsZipUri(context)
+                    withContext(Dispatchers.Main) {
+                        val emailIntent = SupportIntentFactory.buildCrashReportEmail(subject, body, zipUri)
+                        val chooser = Intent.createChooser(emailIntent, subject)
+                        if (context !is Activity) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        try {
+                            context.startActivity(chooser)
+                        } catch (e: ActivityNotFoundException) {
+                            Timber.w(e, "ScrollableTextDialog: no email app to send crash report")
+                            Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        } else {
+            btnReport.visibility = View.GONE
         }
 
         return try {

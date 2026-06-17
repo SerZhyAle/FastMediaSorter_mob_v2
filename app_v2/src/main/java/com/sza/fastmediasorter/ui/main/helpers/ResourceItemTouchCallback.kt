@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.ui.main.helpers
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import com.sza.fastmediasorter.ui.main.MainViewModel
+import timber.log.Timber
 
 /**
  * ItemTouchHelper.Callback for drag-to-reorder in the main resource list.
@@ -28,6 +30,10 @@ class ResourceItemTouchCallback(
         recyclerView: RecyclerView,
         viewHolder: RecyclerView.ViewHolder
     ): Int {
+        // S0488: the pinned All-files row stays first - it cannot be dragged.
+        if (adapter.getDragOrderedList().getOrNull(viewHolder.bindingAdapterPosition)?.isAllFilesPredefined == true) {
+            return makeMovementFlags(0, 0)
+        }
         val dragFlags = if (recyclerView.layoutManager is GridLayoutManager) {
             // Grid: allow all four directions
             ItemTouchHelper.UP or ItemTouchHelper.DOWN or
@@ -46,6 +52,21 @@ class ResourceItemTouchCallback(
     ): Boolean {
         adapter.moveItem(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
         return true
+    }
+
+    override fun canDropOver(
+        recyclerView: RecyclerView,
+        current: RecyclerView.ViewHolder,
+        target: RecyclerView.ViewHolder
+    ): Boolean {
+        // S0488: never let another row drop above the pinned All-files row at index 0.
+        if (target.bindingAdapterPosition == 0 &&
+            adapter.getDragOrderedList().firstOrNull()?.isAllFilesPredefined == true
+        ) {
+            Timber.d("S0488: blocked drop above pinned All-files row")
+            return false
+        }
+        return super.canDropOver(recyclerView, current, target)
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {

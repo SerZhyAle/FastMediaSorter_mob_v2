@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -183,6 +184,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
             return
+        }
+
+        // S0490: on a fresh launch after a previous-session crash, offer to email the report.
+        if (savedInstanceState == null) {
+            CrashReportPromptManager(this).maybeShowPrompt()
         }
 
         // If AudioPlaybackService is already running when MainActivity is freshly created (Android 8.x OEM ROMs can clear the activity back stack while keeping the foreground service alive), restore the user to the player that is currently playing. FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the stack without creating a duplicate instance; creates a new one if not present.

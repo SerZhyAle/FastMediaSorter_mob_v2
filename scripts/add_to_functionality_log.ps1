@@ -47,6 +47,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# RETIRED 2026-06-17 (S0489): the chronological functionality log is no longer
+# written. Record capabilities in the developer inventory via
+# scripts/all_features/add.ps1 instead. Fail fast without appending.
+Write-Error "add_to_functionality_log.ps1 is retired (S0489). Use scripts/all_features/add.ps1 to record a capability in docs/ALL_FEATURES.jsonl."
+exit 1
+
 # Validate Id (empty allowed; if present must be Sxxxx)
 $idSlot = "------"
 if (-not [string]::IsNullOrWhiteSpace($Id)) {

@@ -2,7 +2,7 @@
 
 *Last updated: 2026-06-09*
 
-This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
+This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
 **Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
@@ -16,7 +16,6 @@ This document is the canonical inventory of all user-facing features implemented
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
 - **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
-- **Intelligent caching & sync** `[Standard / VR]`: Persists index databases to bypass slow network fetches on subsequent visits, with a built-in connection test and PIN-code protection for folders.
 
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
@@ -85,13 +84,13 @@ This document is the canonical inventory of all user-facing features implemented
 - **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Voice recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.
 
 ## 16. Settings & Navigation
+- **Email crash report to author** `[Standard / VR]`: When a real error - not a routine "unavailable" message - is shown in the error dialog, a button emails the error details to the author with the app log attached, so a problem can be reported in one step.
+- **Crash report after a restart** `[Standard / VR]`: If the app closes unexpectedly, the next launch offers to email the crash report - with the app log attached - to the author, so even a hard crash can be reported.
 - **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
 - **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
 - **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format — to a local file or Google Drive — and restore everything after a reinstall.
 - **Set as default app from settings** `[Standard / VR]`: Make FastMediaSorter the default handler for images, audio, video, and documents right from the playback settings page, without opening the welcome screen; only the buttons for functions enabled in your build are shown.
-- **Player-only keep screen on** `[Standard / VR]`: A dependent setting that keeps the screen awake only while the player and standalone players are active. It appears under the global keep-screen-on option and only when that global option is off.
-- **Follow OS auto-rotate, program-wide or player-only** `[Standard / VR]`: A program-wide toggle makes every screen follow the system auto-rotate setting; when it is off, a separate player-only toggle in the player settings lets just the player keep following the OS. Both are hidden on devices without an orientation sensor.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity — files sorted, space freed, time in the player and more — stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.
