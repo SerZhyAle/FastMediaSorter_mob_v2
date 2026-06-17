@@ -51,10 +51,46 @@ class ImageClipboardWriter @Inject constructor(
         }
     }
 
+    /**
+     * Copies an already-encoded image [source] file onto the clipboard verbatim - no decode/re-encode,
+     * so the pasted picture matches the saved capture exactly (S0469). The bytes are placed in a
+     * dedicated app-cache file exposed via FileProvider; the receiver derives the MIME (e.g.
+     * image/jpeg) from the file extension and must accept image content to paste the picture itself.
+     * Returns false (and logs) on any failure; never throws.
+     */
+    suspend fun copyImageFile(source: File): Boolean = withContext(Dispatchers.IO) {
+        try {
+            if (!source.exists() || source.length() == 0L) {
+                Timber.w("ImageClipboardWriter: source image missing/empty for clipboard copy")
+                return@withContext false
+            }
+            val dir = File(context.cacheDir, CLIPBOARD_DIR).apply { mkdirs() }
+            val ext = source.extension.lowercase().ifBlank { "jpg" }
+            val file = File(dir, "$CAPTURE_CLIP_BASENAME.$ext")
+            source.inputStream().use { input ->
+                FileOutputStream(file).use { output -> input.copyTo(output) }
+            }
+
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            if (clipboard == null) {
+                Timber.w("ImageClipboardWriter: ClipboardManager unavailable")
+                return@withContext false
+            }
+            clipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, CAPTURE_CLIP_LABEL, uri))
+            true
+        } catch (e: Exception) {
+            Timber.w(e, "ImageClipboardWriter: failed to copy image file to clipboard")
+            false
+        }
+    }
+
     private companion object {
         private const val CLIPBOARD_DIR = "clipboard"
         private const val CLIPBOARD_FILE = "screenshot_clip.png"
+        private const val CAPTURE_CLIP_BASENAME = "capture_clip"
         private const val CLIP_LABEL = "Screenshot"
+        private const val CAPTURE_CLIP_LABEL = "Image"
         private const val PNG_QUALITY = 100
     }
 }

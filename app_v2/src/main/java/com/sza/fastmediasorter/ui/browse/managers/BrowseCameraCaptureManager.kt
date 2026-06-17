@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -410,6 +411,14 @@ class BrowseCameraCaptureManager(
             when (result) {
                 is SaveResult.Success -> {
                     showSnackbar(activity.getString(R.string.camera_capture_saved, name))
+                    // S0469: unobtrusive confirmation that the photo also reached the clipboard.
+                    if (result.copiedToClipboard) {
+                        Toast.makeText(
+                            activity,
+                            R.string.camera_capture_copied_to_clipboard,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                     when {
                         isVideo -> onVideoCaptured(name)
                         openForEditing ->

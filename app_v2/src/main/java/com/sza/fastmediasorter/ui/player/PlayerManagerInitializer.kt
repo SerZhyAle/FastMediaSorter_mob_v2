@@ -279,7 +279,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.printManager = DocumentPrintManager(activity = activity, mediaCapabilities = activity.mediaCapabilities)
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
-            fileOperationUseCase = activity.fileOperationUseCase
+            fileOperationUseCase = activity.fileOperationUseCase,
+            imageClipboardWriter = activity.imageClipboardWriter
         )
         activity.imageCropManager = com.sza.fastmediasorter.ui.player.helpers.ImageCropManager(
             context = activity,

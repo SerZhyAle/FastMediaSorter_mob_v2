@@ -195,6 +195,8 @@ class StatisticsViewModel @Inject constructor(
         )
 
         StatsCategory.EDITING -> listOfNotNull(
+            countRow(category, "edit_image_edits", R.drawable.ic_image, R.string.statistics_metric_image_edits,
+                snapshot, StatsKey.IMAGE_EDITS),
             countRow(category, "edit_drawings", R.drawable.ic_edit_20, R.string.statistics_metric_drawings,
                 snapshot, StatsKey.DRAWINGS),
             countRow(category, "edit_notes", R.drawable.ic_edit_20, R.string.statistics_metric_notes,

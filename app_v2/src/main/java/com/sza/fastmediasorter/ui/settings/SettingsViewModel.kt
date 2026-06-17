@@ -325,7 +325,8 @@ class SettingsViewModel @Inject constructor(
                 ocrDefaultFontFamily = defaults.ocrDefaultFontFamily,
                 showVideoThumbnails = defaults.showVideoThumbnails,
                 videoSnapshotResourceId = defaults.videoSnapshotResourceId,
-                videoSnapshotFormat = defaults.videoSnapshotFormat
+                videoSnapshotFormat = defaults.videoSnapshotFormat,
+                videoFrameCopyToClipboard = defaults.videoFrameCopyToClipboard
             )
         )
     }
@@ -389,6 +390,7 @@ class SettingsViewModel @Inject constructor(
                 disableCameraCapture = defaults.disableCameraCapture,
                 skipCameraFilenameDialog = defaults.skipCameraFilenameDialog,
                 cameraCaptureOpenForEditing = defaults.cameraCaptureOpenForEditing,
+                cameraCaptureCopyToClipboard = defaults.cameraCaptureCopyToClipboard,
                 disableVideoCapture = defaults.disableVideoCapture,
                 videoCaptureOpenInPlayer = defaults.videoCaptureOpenInPlayer,
                 micRecordingEnabled = defaults.micRecordingEnabled,

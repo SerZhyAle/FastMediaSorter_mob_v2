@@ -538,6 +538,43 @@
 
                     </FrameLayout>
 
+                    <!-- Favorites + resource-share export/import (S0491): operate on app data, kept in this card. -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <!-- Favorites export/import. Equal-weight 0dp buttons mirror the rows above. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_export_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/backup_import_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
+                    <!-- Resource-share export/import (.sza). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 

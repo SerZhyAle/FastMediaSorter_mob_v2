@@ -1847,8 +1847,6 @@
     <!-- Widget strings -->
 
     <!-- Favorites backup/import -->
-    <string name="backup_export_favorites">Экспорт избранного</string>
-    <string name="backup_import_favorites">Импорт избранного</string>
 
     <!-- Network delete dialog -->
     <string name="and_n_more_files_network">..и ещё %d файлов</string>
@@ -2516,7 +2514,6 @@
     <string name="resource_share_credentials_warning">Этот файл будет содержать пароли доступа в открытом виде. Передавайте его только тем, кому доверяете.</string>
     <string name="resource_share_import_preview_message">Будет добавлено новых ресурсов: %1$d, перезаписано существующих: %2$d.</string>
     <string name="resource_share_import_action">Импортировать</string>
-    <string name="resource_share_export_success">Экспортировано ресурсов: %1$d; пропущено: %2$d.</string>
     <string name="resource_share_import_success">Создано: %1$d, обновлено: %2$d, пропущено: %3$d.</string>
     <string name="resource_share_invalid_file">Это не подходящий файл ресурсов.</string>
     <string name="resource_share_export_failed">Не удалось экспортировать ресурсы.</string>
@@ -2639,4 +2636,14 @@
     <string name="crash_prompt_title">Отправить отчёт о сбое?</string>
     <string name="crash_prompt_message">В прошлый раз приложение неожиданно закрылось. Отправить автору отчёт о сбое с журналом приложения?</string>
     <string name="crash_prompt_send">Отправить отчёт</string>
+    <string name="statistics_metric_image_edits">Правки изображений</string>
+    <string name="setting_camera_copy_to_clipboard_title">Сохранять фотографии в буфер обмена</string>
+    <string name="setting_camera_copy_to_clipboard_summary">Дополнительно копировать каждый снятый кадр в буфер, готовый для вставки</string>
+    <string name="camera_capture_copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="setting_video_frame_copy_to_clipboard_title">Сохранять кадры видео в буфер обмена</string>
+    <string name="setting_video_frame_copy_to_clipboard_summary">Дополнительно копировать каждый извлечённый кадр в буфер, готовый для вставки</string>
+    <string name="video_frame_copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="backup_export_favorites">Экспорт избранного</string>
+    <string name="backup_import_favorites">Импорт избранного</string>
+    <string name="resource_share_export_success">Экспортировано ресурсов: %1$d; пропущено: %2$d.</string>
 </resources>

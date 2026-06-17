@@ -102,6 +102,8 @@ class DeviceProfilePresetApplier @Inject constructor(
             "disableCameraCapture" -> settings.copy(disableCameraCapture = raw.toBool())
             "skipCameraFilenameDialog" -> settings.copy(skipCameraFilenameDialog = raw.toBool())
             "cameraCaptureOpenForEditing" -> settings.copy(cameraCaptureOpenForEditing = raw.toBool())
+            "cameraCaptureCopyToClipboard" -> settings.copy(cameraCaptureCopyToClipboard = raw.toBool())
+            "videoFrameCopyToClipboard" -> settings.copy(videoFrameCopyToClipboard = raw.toBool())
             "disableVideoCapture" -> settings.copy(disableVideoCapture = raw.toBool())
             "videoCaptureOpenInPlayer" -> settings.copy(videoCaptureOpenInPlayer = raw.toBool())
             "micRecordingEnabled" -> settings.copy(micRecordingEnabled = raw.toBool())

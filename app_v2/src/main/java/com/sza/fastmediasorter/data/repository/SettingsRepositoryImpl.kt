@@ -168,6 +168,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
         private val KEY_VIDEO_SNAPSHOT_RESOURCE_ID = longPreferencesKey("video_snapshot_resource_id")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
+        private val KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD = booleanPreferencesKey("video_frame_copy_to_clipboard")
 
         // Link auto-download (S0003): master toggle, optional destination resource id, auto-open toggle
         // Link auto-download keys moved to data.repository.settings.LinkSettingsStore (responsibility extraction).
@@ -397,6 +398,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
+                    cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
@@ -428,6 +430,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Video frame snapshot format (default JPG)
                     videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
                         ?.takeIf { it == "PNG" || it == "JPG" } ?: "JPG",
+
+                    // S0470: copy extracted frame to clipboard (default off)
+                    videoFrameCopyToClipboard = preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] ?: false,
 
                     // Link auto-download (S0003) - owned by LinkSettingsStore.
                     linkAutoDownloadEnabled = link.linkAutoDownloadEnabled,
@@ -632,6 +637,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
+            preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] = settings.videoFrameCopyToClipboard
 
             // Link auto-download (S0003) - owned by LinkSettingsStore.
             LinkSettingsStore.write(preferences, settings)

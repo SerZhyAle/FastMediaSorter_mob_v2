@@ -80,8 +80,14 @@ $allErrors      = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique')
 $expectedErrors = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique', '-Pattern', $expectedFallbacks)
 $netErrors      = [Math]::Max(0, $allErrors - $expectedErrors)
 
-$excOut     = Invoke-SearchLog -ExtraArgs @('-Exceptions')
-$crashBlocks = -not ("$excOut" -match 'No exception/crash blocks found')
+# Strict fatal markers only, matched on raw lines. A full *:V capture carries benign
+# `Exception:` / `Caused by:` lines from unrelated system processes (e.g. FeatureFlagsImplExport
+# AconfigStorageReadException, SparseMappingTable "RuntimeException: Stack trace"); search-log
+# -Exceptions flags those as crash blocks. Grep the file directly for true crashes / ANRs /
+# native tombstones (raw match works regardless of log format; the count is not loaded into the
+# agent context).
+$crashCount  = @(Select-String -Path $LogFile -Pattern 'FATAL EXCEPTION|ANR in |beginning of crash dump|beginning of crash' -ErrorAction SilentlyContinue).Count
+$crashBlocks = ($crashCount -gt 0)
 
 $priorCrash = (Get-Count -ExtraArgs @('-AppOnly', '-Pattern', 'PREVIOUS SESSION ENDED WITH A CRASH')) -gt 0
 

@@ -69,7 +69,7 @@ For each step in plan order:
 10. **Run mechanical post-change closure** for every modified file.
   - `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
   - Choose `Kotlin` for executable `.kt`/`.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, `Mixed` only when one step genuinely spans code plus strings.
-  - Spec status transitions and functionality-log decisions stay outside this command.
+  - Spec status transitions and feature-inventory (`docs/ALL_FEATURES.jsonl`) decisions stay outside this command.
 
 After all planned steps in the current phase complete:
 
@@ -91,7 +91,7 @@ After all phases done:
 - **No on-device gate** → flip strategic `Status:` to `Implemented`, add `**Implemented date:** <YYYY-MM-DD>`. No debug tags. The per-phase builds already validated compilation.
 - **On-device verification is part of acceptance** → the `Timber.d("Sxxxx:")` tags were already inserted before the final phase's `Project compiles` build (see "Final-phase debug-tag insertion") and validated by that single build. Here just flip journal status to `BlockNeedUserTest` and run a dev log line for each file that gained a tag. Do not insert tags or rebuild at this point.
 - FEATURES / feature-doc updates and the rest of finalization run **after** the build - never rebuild after the doc step.
-- **Finalization (batched).** Use `close-and-log.ps1` for the journal flip + dev log batch + functionality log + catalog scan/render in one pwsh process:
+- **Finalization (batched).** Use `close-and-log.ps1` for the journal flip + dev log batch + feature-inventory record + catalog scan/render in one pwsh process:
 
   ```powershell
   pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
@@ -104,18 +104,20 @@ After all phases done:
           # ...one entry per modified source file
         ) `
       -FuncOp <ADD|CHANGE|""> -FuncDesc "<english summary or omit>" `
+      -FeatArea "<inventory area, e.g. Video Player>" -FeatFlavors "standard,vr" `
       -CatalogModule app_v2
   ```
 
   `-StatusNote` is **mandatory** when `-Status BlockNeedUserTest`; omit or leave empty for `Implemented`.
 
-  Functionality log block (encoded in `-FuncOp` / `-FuncDesc`):
-  - **`ADD`** - spec introduces a new user-visible capability (no prior equivalent). Hints: §2 Goals describe a new feature; §8 mentions a new entry in `docs/FEATURES.md`; touched files are new classes / new screens / new menu entries.
-  - **`CHANGE`** - spec modifies an existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change; §8 says "Без изменений" but UI strings or visible state shifted.
+  Feature-inventory block (records the delivered capability in `docs/ALL_FEATURES.jsonl`, the EN-only developer inventory that replaced `dev/FUNCTIONALITY.log`). `docs/FEATURES*` is the curated public showcase and is touched ONLY by `/skill-release` from the inventory diff - never write a per-spec entry into FEATURES here:
+  - **`ADD`** - spec introduces a new user-visible capability (no prior equivalent). Hints: §2 Goals describe a new feature; touched files are new classes / new screens / new menu entries. Pass `-FeatArea`/`-FeatFlavors` so the record lands in the right area with correct flavor availability.
+  - **`CHANGE`** - spec modifies an existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change.
   - Pass `-SkipFuncLog` (or omit `-FuncOp`) when the spec is purely internal (refactor, performance, build/CI plumbing). Document the skip in chat output.
-  - Description: concise user-visible summary, reusing the spec title or first sentence of §2 Goals.
+  - Description: concise user-visible summary, reusing the spec title or first sentence of §2 Goals. EN-only.
+  - For a richer record, run `scripts/all_features/add.ps1` directly with `-Id <area>.<feature> -Area -Name -Description -Flavors [-Spec Sxxxx]` instead of the `-FuncOp` shortcut.
 
-  Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `add_to_functionality_log.ps1` + `catalog_sync.ps1` only when a separate catalog repair is still needed) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
+  Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `scripts/all_features/add.ps1` + `catalog_sync.ps1` only when a separate catalog repair is still needed) remains valid when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process.
 
 - **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` - in that case apply the **Device-test gate** below.
 

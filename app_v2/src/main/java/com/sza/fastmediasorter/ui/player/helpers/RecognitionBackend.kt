@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryIncompatibleException
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
@@ -90,6 +91,9 @@ class RecognitionBackend(
                 callback.showError(context.getString(R.string.ocr_engines_damaged))
                 return null
             }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
@@ -132,6 +136,9 @@ class RecognitionBackend(
                 callback.showError(context.getString(R.string.ocr_engines_damaged))
                 return null
             }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - block recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
@@ -200,6 +207,9 @@ class RecognitionBackend(
                 Timber.e(e, "Failed to load OCR engines native libraries")
                 return null
             }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - selection recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             return null

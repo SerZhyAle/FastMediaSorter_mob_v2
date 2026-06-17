@@ -4,6 +4,9 @@ import android.content.Context
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +32,9 @@ class NetworkImageEditUseCase @Inject constructor(
     private val adjustImageUseCase: AdjustImageUseCase,
     private val smbFileOperationHandler: SmbFileOperationHandler,
     private val sftpFileOperationHandler: SftpFileOperationHandler,
-    private val ftpFileOperationHandler: FtpFileOperationHandler
+    private val ftpFileOperationHandler: FtpFileOperationHandler,
+    // S0482: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     sealed class EditOperation {
@@ -85,20 +90,22 @@ class NetworkImageEditUseCase @Inject constructor(
             Timber.d("NetworkImageEdit: Downloaded to ${tempFile.absolutePath}")
             progressCallback?.invoke(EditProgress.Downloaded(tempFile.absolutePath))
             
-            // Step 2: Apply transformation
+            // Step 2: Apply transformation.
+            // S0482: suppress the leaf use-case's metric here - the edit only counts once the
+            // upload lands below, otherwise a failed upload would over-count a save that never happened.
             progressCallback?.invoke(EditProgress.Editing)
             val editResult = when (operation) {
                 is EditOperation.Rotate -> {
-                    rotateImageUseCase.execute(tempFile.absolutePath, operation.angle)
+                    rotateImageUseCase.execute(tempFile.absolutePath, operation.angle, recordStats = false)
                 }
                 is EditOperation.Flip -> {
-                    flipImageUseCase.execute(tempFile.absolutePath, operation.direction)
+                    flipImageUseCase.execute(tempFile.absolutePath, operation.direction, recordStats = false)
                 }
                 is EditOperation.Filter -> {
-                    applyImageFilterUseCase.execute(tempFile.absolutePath, operation.filterType)
+                    applyImageFilterUseCase.execute(tempFile.absolutePath, operation.filterType, recordStats = false)
                 }
                 is EditOperation.Adjust -> {
-                    adjustImageUseCase.execute(tempFile.absolutePath, operation.adjustments)
+                    adjustImageUseCase.execute(tempFile.absolutePath, operation.adjustments, recordStats = false)
                 }
             }
             
@@ -121,8 +128,10 @@ class NetworkImageEditUseCase @Inject constructor(
             }
             
             Timber.i("NetworkImageEdit: Successfully edited and uploaded $networkPath")
+            // S0482: the remote save landed - count exactly one image edit.
+            statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             progressCallback?.invoke(EditProgress.Completed)
-            
+
             Result.success(Unit)
             
         } catch (e: Exception) {

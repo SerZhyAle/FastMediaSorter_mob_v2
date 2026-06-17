@@ -116,6 +116,7 @@ class BuildStatisticsReportUseCase @Inject constructor(
         )
 
         StatsCategory.EDITING -> listOfNotNull(
+            countLine(R.string.statistics_metric_image_edits, snapshot, StatsKey.IMAGE_EDITS),
             countLine(R.string.statistics_metric_drawings, snapshot, StatsKey.DRAWINGS),
             countLine(R.string.statistics_metric_notes, snapshot, StatsKey.NOTES),
         )

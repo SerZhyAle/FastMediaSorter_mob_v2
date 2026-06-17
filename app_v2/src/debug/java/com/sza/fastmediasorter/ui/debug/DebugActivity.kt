@@ -18,9 +18,12 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugFeatureFlags
 import com.sza.fastmediasorter.core.debug.DebugToolsBootstrap
+import com.sza.fastmediasorter.core.theme.ColorThemePrefs
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 class DebugActivity : AppCompatActivity() {
@@ -174,6 +177,7 @@ class DebugActivity : AppCompatActivity() {
     }
 
     private fun resetPreferences() {
+        Timber.d("S0486: debug reset preferences (DataStore + theme + language)")
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
                 val dataStoreFile = applicationContext.preferencesDataStoreFile("settings")
@@ -184,6 +188,14 @@ class DebugActivity : AppCompatActivity() {
 
             runCatching {
                 getSharedPreferences("${packageName}_preferences", MODE_PRIVATE).edit().clear().apply()
+            }
+
+            runCatching {
+                ColorThemePrefs.reset(applicationContext)
+            }
+
+            runCatching {
+                LocaleHelper.resetLanguage(applicationContext)
             }
 
             withContext(Dispatchers.Main) {

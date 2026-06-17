@@ -241,13 +241,15 @@ class MainViewModel @Inject constructor(
                     activeTab = state.value.activeResourceTab,
                     explicitFilter = state.value.filterByType
                 )
-                val resources = getResourcesUseCase.getFiltered(
-                    filterByType = effectiveFilterByType,
-                    filterByMediaType = state.value.filterByMediaType,
-                    filterByName = state.value.filterByName,
-                    sortMode = state.value.sortMode
+                val resources = filterManager.pinAllFilesFirst(
+                    getResourcesUseCase.getFiltered(
+                        filterByType = effectiveFilterByType,
+                        filterByMediaType = state.value.filterByMediaType,
+                        filterByName = state.value.filterByName,
+                        sortMode = state.value.sortMode
+                    )
                 )
-                
+
                 updateState { it.copy(resources = resources) }
 
                 appShortcutsManager.updateRecentResourceShortcuts()

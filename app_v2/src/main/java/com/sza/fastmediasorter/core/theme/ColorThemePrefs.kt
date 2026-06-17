@@ -61,6 +61,20 @@ object ColorThemePrefs {
         AppCompatDelegate.setDefaultNightMode(toNightMode(normalizeValue(value)))
     }
 
+    /**
+     * Clear the synchronous theme mirror and force the process back to the default (follow-system)
+     * night mode. Used by the debug "reset preferences" tool so a reset returns the app to a true
+     * clean state instead of keeping the previously forced light/dark mode.
+     */
+    fun reset(context: Context) {
+        context.applicationContext
+            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+        AppCompatDelegate.setDefaultNightMode(toNightMode(DEFAULT))
+    }
+
     fun applySavedMode(context: Context) {
         val prefs = context.applicationContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
         val rawValue = prefs.getString(KEY_COLOR_THEME, DEFAULT)

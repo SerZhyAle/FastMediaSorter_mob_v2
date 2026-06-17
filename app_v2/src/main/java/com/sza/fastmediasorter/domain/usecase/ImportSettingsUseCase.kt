@@ -244,6 +244,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
                                         cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
+                                        cameraCaptureCopyToClipboard = data["cameraCaptureCopyToClipboard"]?.toBoolean() ?: false,
                                         enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: true,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,
@@ -262,7 +263,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         videoSnapshotResourceId = data["videoSnapshotResourceId"]?.toLongOrNull(),
                                             videoSnapshotFormat = data["videoSnapshotFormat"]
                                                 ?.takeIf { it == "JPG" }
-                                                ?: "PNG"
+                                                ?: "PNG",
+                                        videoFrameCopyToClipboard = data["videoFrameCopyToClipboard"]?.toBoolean() ?: false
                                     )
                                 }
                                 currentResource = null

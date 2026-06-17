@@ -450,6 +450,14 @@
                             app:str_title="@string/setting_camera_open_for_editing_title"
                             app:str_subtitle="@string/setting_camera_open_for_editing_desc" />
 
+                        <!-- S0469: also place the captured photo on the system clipboard, ready to paste. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraCopyToClipboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/setting_camera_copy_to_clipboard_title"
+                            app:str_subtitle="@string/setting_camera_copy_to_clipboard_summary" />
+
                         <!-- S0367: Camera photos destination selector. Empty = device camera folder (DCIM/Camera). -->
                         <LinearLayout
                             android:id="@+id/layoutCameraPhotosDestSelector"

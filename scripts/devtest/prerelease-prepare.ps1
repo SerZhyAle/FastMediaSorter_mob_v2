@@ -106,6 +106,18 @@ if ($installCode -ne 0) {
 }
 Add-Stage 'install' 'OK' "standard-debug installed ($DebugPackage)"
 
+# ---------- stage 2.5: onboarding bypass ----------
+# Skip the first-run WelcomeActivity deterministically so the sweep lands on MainActivity.
+# UI taps on the onboarding buttons proved flaky; writing the completion pref is reliable.
+# base64 transport avoids the run-as quoting trap for the XML's embedded double-quotes.
+$wcXml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><map><boolean name="welcome_completed" value="true" /></map>'
+$wcB64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($wcXml))
+$wcCmd = "run-as $DebugPackage sh -c 'mkdir -p shared_prefs; echo $wcB64 | base64 -d > shared_prefs/welcome_prefs.xml'"
+$wcArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', $wcCmd)
+if ($DeviceId) { $wcArgs += @('-DeviceId', $DeviceId) }
+& pwsh @wcArgs *> $null
+Add-Stage 'onboarding-bypass' 'OK' 'welcome_completed=true (skip first-run onboarding)'
+
 # ---------- stage 3: seed media (step 01.3) ----------
 # Probe for the seeded media root; only seed when absent so re-runs are idempotent.
 $mediaRoot  = '/sdcard/Download/FastMediaSorter_Test'

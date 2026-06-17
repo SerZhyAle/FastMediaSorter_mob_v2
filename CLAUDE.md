@@ -27,6 +27,7 @@
 - `/arc`: alias for `/spec-arc`.
 - `/spec-test-device`: on-device verification, UI drive, logcat harvest.
 - `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
+- `/spec-prerelease`: end-to-end pre-release emulator sweep (clean install, resources, settings, scenario, perf, verdict) gating `/skill-release`.
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
 - `/catalog`: class/feature queries, run `scripts/catalog_sync.ps1`.
 - `/doc-update`: docs sync.
@@ -119,7 +120,8 @@
 21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
 
 ## 11. Feature & UI Policies
-- **Features**: `docs/FEATURES*.md` (EN/RU/UK). `noLegal` features go to gitignored `docs/FEATURES_noLegal*.md`.
+- **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.
+- **Features (showcase)**: `docs/FEATURES*.md` (EN/RU/UK) is the curated public showcase published to the site, populated ONLY by `/skill-release` from the `ALL_FEATURES` diff since the previous release - never edited per-spec. `noLegal` showcase items go to gitignored `docs/FEATURES_noLegal*.md`.
 - **UI Comm**: `docs/COMMUNICATION_POLICY*.md` (EN/RU/UK). Read before modifying user-visible strings.
 
 ## 12. Validation & Post-Change

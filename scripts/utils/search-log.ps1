@@ -43,6 +43,8 @@
     # ── Crash / exception detection ────────────────────────────────
     .\scripts\utils\search-log.ps1 -Exceptions
     .\scripts\utils\search-log.ps1 -Exceptions -OutFile "temp/crashes.txt"
+    .\scripts\utils\search-log.ps1 -Exceptions -Count            # machine: "Match count: N"
+    .\scripts\utils\search-log.ps1 -Exceptions -Json             # machine: {"count":N,"blocks":[{block,line,trigger,lines,text}]}
 
     # ── Deduplication ──────────────────────────────────────────────
     .\scripts\utils\search-log.ps1 -Pattern "failed" -Unique
@@ -107,6 +109,7 @@ param(
 
     # --- Output ---
     [switch]$NoColor,
+    [switch]$Json,                       # Machine-readable JSON for -Exceptions mode (count + per-block line refs)
     [string]$OutFile = ""                # Save results to file
 )
 
@@ -249,7 +252,7 @@ $rawLines   = [string[]]@()
 
 if ($logFormat -eq "JSON") {
     # ── Format 2: Android Studio .logcat JSON export ─────────────────────────
-    Write-Host ("Loading JSON .logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
+    if (-not $Json) { Write-Host ("Loading JSON .logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
     $json = Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $syntheticLines = [System.Collections.Generic.List[string]]::new()
 
@@ -293,8 +296,8 @@ if ($logFormat -eq "JSON") {
 
 } elseif ($logFormat -eq "TIMBER") {
     # ── Format 3: Timber / app device export ────────────────────────────────
-    Write-Host ("Loading Timber log: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
-    $rawLines = Get-Content -Path $LogFile -Encoding UTF8
+    if (-not $Json) { Write-Host ("Loading Timber log: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
+    $rawLines = @(Get-Content -Path $LogFile -Encoding UTF8)   # @() guards single-line/empty logs (Get-Content returns a scalar otherwise)
 
     for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
         $p = Parse-TimberLine $rawLines[$idx]
@@ -312,8 +315,8 @@ if ($logFormat -eq "JSON") {
 
 } else {
     # ── Format 1: Standard logcat (adb / AS copy-paste) ─────────────────────
-    Write-Host ("Loading logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
-    $rawLines = Get-Content -Path $LogFile -Encoding UTF8
+    if (-not $Json) { Write-Host ("Loading logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
+    $rawLines = @(Get-Content -Path $LogFile -Encoding UTF8)   # @() guards single-line/empty logs (Get-Content returns a scalar otherwise)
 
     for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
         $p = Parse-Line $rawLines[$idx]
@@ -333,8 +336,10 @@ if ($logFormat -eq "JSON") {
 $parsed = $parsedList.ToArray()
 $continuationCount = $rawLines.Count - $parsed.Count
 
-Write-Host ("Loaded {0} raw lines → {1} structured + {2} continuation/separator  [{3}] [FORMAT: {4}]" -f `
-    $rawLines.Count, $parsed.Count, $continuationCount, (Split-Path $LogFile -Leaf), $logFormat) -ForegroundColor DarkGray
+if (-not $Json) {
+    Write-Host ("Loaded {0} raw lines → {1} structured + {2} continuation/separator  [{3}] [FORMAT: {4}]" -f `
+        $rawLines.Count, $parsed.Count, $continuationCount, (Split-Path $LogFile -Leaf), $logFormat) -ForegroundColor DarkGray
+}
 
 # ─── SUMMARY mode ─────────────────────────────────────────────────────────────
 if ($Summary) {
@@ -440,12 +445,11 @@ if ($Spam) {
 }
 
 # ─── EXCEPTIONS mode ──────────────────────────────────────────────────────────
-# Finds FATAL EXCEPTION blocks, Java stack traces, and ANR triggers
+# Finds FATAL EXCEPTION blocks, Java stack traces, and ANR triggers.
+# Output modes: -Json (machine), -Count ("Match count: N"), else human-readable.
 if ($Exceptions) {
-    Write-Out "`n=== EXCEPTION / CRASH BLOCKS ===" "Red"
     $crashPatterns = 'FATAL EXCEPTION|AndroidRuntime|Exception:|Caused by:|Process:.*PID:|ANR in|begin of crash dump|beginning of crash'
     $crashIndices = [System.Collections.Generic.HashSet[int]]::new()
-    $blocks = 0
 
     for ($i = 0; $i -lt $rawLines.Count; $i++) {
         if ($rawLines[$i] -match $crashPatterns) {
@@ -453,31 +457,75 @@ if ($Exceptions) {
         }
     }
 
-    # Expand each hit: capture the surrounding block (up to 60 lines forward for stack trace)
+    # Expand each hit into a de-duplicated block (up to 80 lines forward for the stack trace),
+    # collecting structured refs once so every output mode reports the same blocks/count.
     $printedIdx = [System.Collections.Generic.HashSet[int]]::new()
+    $crashBlocks = [System.Collections.Generic.List[object]]::new()
     foreach ($ci in ($crashIndices | Sort-Object)) {
         if ($printedIdx.Contains($ci)) { continue }
-        $blocks++
-        Write-Out "" "DarkGray"
-        Write-Out ("══ BLOCK #{0} (line {1}) ══" -f $blocks, ($ci + 1)) "Magenta"
+        $null = ($rawLines[$ci] -match $crashPatterns)   # re-match to expose the triggering substring
+        $trigger = $Matches[0]
+        $blockIdx = [System.Collections.Generic.List[int]]::new()
         $end = [Math]::Min($rawLines.Count - 1, $ci + 80)
         for ($j = $ci; $j -le $end; $j++) {
             if ($printedIdx.Contains($j)) { break }
             $null = $printedIdx.Add($j)
             $p = Parse-Line $rawLines[$j]
-            $col = if ($p) { Get-LevelColor $p.Lvl } else { "DarkGray" }
-            # Stop block at next non-crash/stack-trace parsed line that is not E/W
+            # Stop block at next non-crash/stack-trace parsed line that is not E/W (line is still consumed)
             if ($j -gt $ci -and $null -ne $p -and $p.Lvl -notin @("E", "W") -and
                 $rawLines[$j] -notmatch '^\s+at |Caused by:|Exception:') { break }
+            $null = $blockIdx.Add($j)
+        }
+        $crashBlocks.Add([PSCustomObject]@{
+            Block   = $crashBlocks.Count + 1
+            Line    = $ci + 1
+            Trigger = $trigger
+            Text    = $rawLines[$ci].Trim()
+            Lines   = $blockIdx.Count
+            Indices = $blockIdx
+        })
+    }
+
+    # ── JSON output ── single compact object on stdout (banners suppressed); always emits a `blocks` array.
+    if ($Json) {
+        $blocksOut = $crashBlocks | ForEach-Object {
+            [ordered]@{ block = $_.Block; line = $_.Line; trigger = $_.Trigger; lines = $_.Lines; text = $_.Text }
+        }
+        # Outer object hand-assembled so a single block still serializes as an array, not an object.
+        $blocksJson = if ($crashBlocks.Count -gt 0) { @($blocksOut) | ConvertTo-Json -Depth 4 -AsArray -Compress } else { '[]' }
+        $payload = '{"count":' + $crashBlocks.Count + ',"blocks":' + $blocksJson + '}'
+        if ($OutFile -ne "") {
+            $dir = Split-Path $OutFile -Parent
+            if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+            $payload | Out-File -FilePath $OutFile -Encoding UTF8
+        }
+        Write-Output $payload
+        return
+    }
+
+    # ── Count-only output ── reuses the "Match count: N" contract shared with the filter pipeline.
+    if ($Count) {
+        Write-Host ("Match count: {0}" -f $crashBlocks.Count) -ForegroundColor Cyan
+        return
+    }
+
+    # ── Human-readable output ──
+    Write-Out "`n=== EXCEPTION / CRASH BLOCKS ===" "Red"
+    foreach ($b in $crashBlocks) {
+        Write-Out "" "DarkGray"
+        Write-Out ("══ BLOCK #{0} (line {1}) ══" -f $b.Block, $b.Line) "Magenta"
+        foreach ($j in $b.Indices) {
+            $p = Parse-Line $rawLines[$j]
+            $col = if ($p) { Get-LevelColor $p.Lvl } else { "DarkGray" }
             Write-Out ("[{0,5}] {1}" -f ($j + 1), $rawLines[$j]) $col
         }
     }
 
-    if ($blocks -eq 0) {
+    if ($crashBlocks.Count -eq 0) {
         Write-Out "No exception/crash blocks found." "Green"
     }
     else {
-        Write-Out "`n$blocks exception block(s) found." "Red"
+        Write-Out "`n$($crashBlocks.Count) exception block(s) found." "Red"
     }
     Save-OutFile
     return

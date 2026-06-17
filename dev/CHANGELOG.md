@@ -18644,3 +18644,95 @@ Format: | datetime | file | target | description |
 | 2026-06-17 18:29:33 | `docs/FEATURES_UK.md` | `all-features` | Revise FEATURES_UK to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
 | 2026-06-17 18:30:10 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.3: emit verdict JSON + stable exit code; fix Get-Count parsing [branch: DEBUG-v014] |
 | 2026-06-17 18:31:35 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.1: skill header/usage/device-gate [branch: DEBUG-v014] |
+| 2026-06-17 18:32:18 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.2: configure section (script + mobile-mcp) [branch: DEBUG-v014] |
+| 2026-06-17 18:33:12 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.3: scenario section (playback/standalone/re-entry/network + measure) [branch: DEBUG-v014] |
+| 2026-06-17 18:33:49 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.4: verdict + PASS branch (propose release, no auto-run) [branch: DEBUG-v014] |
+| 2026-06-17 18:34:33 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.5: FAIL branch (spec-draft dedup + spec-check routing) [branch: DEBUG-v014] |
+| 2026-06-17 18:36:21 | `.github/prompts/spec-prerelease.prompt.md` | `spec-dev` | S0484 Phase 06.1: prompt mirror [branch: DEBUG-v014] |
+| 2026-06-17 18:37:01 | `CLAUDE.md` | `spec-dev` | S0484 Phase 06.2: register /spec-prerelease in skill routing [branch: DEBUG-v014] |
+| 2026-06-17 18:37:28 | `scripts/all_features/diff.ps1` | `all-features` | Add ALL_FEATURES release-diff tool [branch: DEBUG-v014] |
+| 2026-06-17 18:37:29 | `scripts/spec_catalog/close-and-log.ps1` | `all-features` | Route close-and-log func step to ALL_FEATURES add.ps1 [branch: DEBUG-v014] |
+| 2026-06-17 18:37:29 | `.claude/commands/spec-dev.md` | `all-features` | Rewire spec-dev to ALL_FEATURES inventory model [branch: DEBUG-v014] |
+| 2026-06-17 18:37:30 | `.claude/commands/spec-check.md` | `all-features` | Rewire spec-check to ALL_FEATURES inventory model [branch: DEBUG-v014] |
+| 2026-06-17 18:37:31 | `.claude/commands/quick.md` | `all-features` | Rewire quick to ALL_FEATURES inventory model [branch: DEBUG-v014] |
+| 2026-06-17 18:37:32 | `.claude/commands/doc-update.md` | `all-features` | Rewire doc-update to ALL_FEATURES inventory model [branch: DEBUG-v014] |
+| 2026-06-17 18:37:32 | `.claude/commands/skill-release.md` | `all-features` | Rewire skill-release to ALL_FEATURES inventory model [branch: DEBUG-v014] |
+| 2026-06-17 18:37:33 | `CLAUDE.md` | `all-features` | S0489: ALL_FEATURES inventory + FEATURES showcase policy in section 11 [branch: DEBUG-v014] |
+| 2026-06-17 18:39:43 | `docs/ALL_FEATURES.jsonl` | `all-features` | gate wiring smoke [branch: DEBUG-v014] |
+| 2026-06-17 18:39:45 | `CLAUDE.md` | `smoke` | smoke [branch: DEBUG-v014] |
+| 2026-06-17 18:39:58 | `PLAN/S0484_prerelease-emulator-sweep.md` | `spec-dev` | All 6 phases done (06.3 skipped: target doc absent); status -> Implemented [branch: DEBUG-v014] |
+| 2026-06-17 18:40:24 | `scripts/quality/assert-allfeatures-sync.ps1` | `all-features` | Add ALL_FEATURES drift gate (validate + ratchet) [branch: DEBUG-v014] |
+| 2026-06-17 18:40:25 | `scripts/post-change.ps1` | `all-features` | Wire all-features-gate into post-change [branch: DEBUG-v014] |
+| 2026-06-17 18:40:44 | `scripts/quality/allfeatures-sync-baseline.txt` | `all-features` | Seed ALL_FEATURES drift baseline (326 records) [branch: DEBUG-v014] |
+| 2026-06-17 18:42:00 | `dev/PROJECT_OPERATIONS_INDEX.md` | `all-features` | Route to ALL_FEATURES inventory; note FUNCTIONALITY.log retired [branch: DEBUG-v014] |
+| 2026-06-17 18:42:00 | `PLAN/S0484_prerelease-emulator-sweep.md` | `spec-check` | Audit S0484 -> Partial; PASS/WARN/FAIL 20/2/0; E2E run pending [branch: DEBUG-v014] |
+| 2026-06-17 18:43:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManager.kt` | `ResourceFilterManager.pinAllFilesFirst` | Make All-files pin reusable/public for the DB-sort path (S0488 fix) [branch: DEBUG-v014] |
+| 2026-06-17 18:43:41 | `PLAN/S0489_features-allfeatures-split.md` | `spec-dev` | All 7 phases done; status -> Implemented (FEATURES/ALL_FEATURES split) [branch: DEBUG-v014] |
+| 2026-06-17 18:44:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel.loadResources` | Pin All-files in loadResources DB-sort path so sort change keeps it first (S0488 fix) [branch: DEBUG-v014] |
+| 2026-06-17 18:44:53 | `PLAN/S0489_features-allfeatures-split.md` | `spec-check` | Audit S0489 -> Verified; PASS/WARN/FAIL 14/0/0; no debug tags [branch: DEBUG-v014] |
+| 2026-06-17 18:45:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `setupAllFilesResourceButton` | Fix All-files create-resource button rendering: outlined defStyleAttr (was filled blue blob) [branch: DEBUG-v014] |
+| 2026-06-17 18:49:35 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec-dev` | Fix S0488 gap: pin All-files in loadResources DB-sort path (sort change no longer drops it) [branch: DEBUG-v014] |
+| 2026-06-17 19:53:44 | `.claude/skills/run-fastmediasorter/SKILL.md` | `run-skill` | Add run-fastmediasorter skill (build/launch/screenshot/drive on device) [branch: DEBUG-v014] |
+| 2026-06-17 19:53:44 | `.claude/skills/run-fastmediasorter/smoke.ps1` | `run-skill` | Add smoke driver (launch + screenshot + crash-scan via adb.ps1) [branch: DEBUG-v014] |
+| 2026-06-17 20:02:10 | `app_v2/src/debug/java/com/sza/fastmediasorter/ui/debug/DebugActivity.kt` | `S0486` | Debug reset preferences now also clears theme and language to a true clean state [branch: DEBUG-v014] |
+| 2026-06-17 20:02:10 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt` | `S0486` | Add reset() to clear theme mirror and restore follow-system night mode [branch: DEBUG-v014] |
+| 2026-06-17 20:02:10 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt` | `S0486` | Add resetLanguage() to clear saved language, cache, and LocaleManager override [branch: DEBUG-v014] |
+| 2026-06-17 20:05:52 | `scripts/devtest/prerelease-prepare.ps1` | `spec-dev` | S0484: add onboarding bypass (welcome_completed pref) so sweep reaches MainActivity [branch: DEBUG-v014] |
+| 2026-06-17 20:14:23 | `app_v2/src/main/assets/device_profile_presets.csv` | `S0481` | Remove stale enableGoogleLens preset row (flag lives on PlayerUiState, derived from share-target settings, not AppSettings); device-profile preset matrix gate now passes [branch: DEBUG-v014] |
+| 2026-06-17 20:14:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliveredNativeLibraryLoader.kt` | `S0485` | Treat post-integrity UnsatisfiedLinkError as expected device-capability fallback: log at Timber.w (was Timber.e), throw catchable DeliveredNativeLibraryIncompatibleException so OCR/translation/DTS consumers degrade gracefully instead of letting the Error escape uncaught [branch: DEBUG-v014] |
+| 2026-06-17 20:14:49 | `PLAN/S0481_device-profile-presets-stale-row.md` | `spec-arc` | Archive S0481 (device-profile-presets-stale-row) -> temp/done/ after removing stale enableGoogleLens CSV row [branch: DEBUG-v014] |
+| 2026-06-17 20:21:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase` | `Image edit usage statistics` | S0482: record EditKind.IMAGE_EDIT on save in Rotate/Flip/ApplyFilter/Adjust image use cases; NetworkImageEditUseCase suppresses the leaf metric and counts once after successful upload to avoid double-counting; added IMAGE_EDITS row to statistics dashboard + report and statistics_metric_image_edits string (EN/RU/UK) [branch: DEBUG-v014] |
+| 2026-06-17 20:22:22 | `scripts/utils/search-log.ps1` | `search-log.ps1 -Exceptions` | S0487: add -Json and -Count machine-readable output to -Exceptions mode (count + per-block line refs); guard single-line/empty logs with @(Get-Content) [branch: DEBUG-v014] |
+| 2026-06-17 20:22:29 | `PLAN/S0482_image-edit-stat-instrumentation.md` | `spec-arc` | Archive S0482 (image-edit-stat-instrumentation) -> temp/done/ after implementing IMAGE_EDIT stat instrumentation [branch: DEBUG-v014] |
+| 2026-06-17 20:23:05 | `PLAN/S0491_dead-backup-viewmodel-export-import.md` | `spec` | Scaffold strategic spec skeleton S0491 [branch: DEBUG-v014] |
+| 2026-06-17 20:26:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `cleanup` | S0480: remove orphan BackupRestoreFragment + fragment_settings_backup_restore.xml + dialog_import_favorites_preview.xml + 17 orphan strings (favorites/resource export-import); clean 3 stale comments. ViewModel dead path parked as S0491 [branch: DEBUG-v014] |
+| 2026-06-17 20:27:34 | `PLAN/S0480_dead-backup-restore-fragment.md` | `spec-arc` | Archive S0480 (dead-backup-restore-fragment) -> temp/done/ after dead-code removal [branch: DEBUG-v014] |
+| 2026-06-17 20:30:19 | `PLAN/S0469_save-photos-to-clipboard.md` | `spec-all` | Strategic spec approved: S0469 save photos to clipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:32:47 | `PLAN/S0469_save-photos-to-clipboard/INDEX.md` | `spec-all` | Tactical plan (5 phases): S0469 save photos to clipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-all` | S0469: settings flag cameraCaptureCopyToClipboard (default off) [branch: DEBUG-v014] |
+| 2026-06-17 20:46:45 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/CaptureSettingsStore.kt` | `spec-all` | S0469: persist camera_copy_to_clipboard pref [branch: DEBUG-v014] |
+| 2026-06-17 20:46:45 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-all` | S0469: read cameraCaptureCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-all` | S0469: defaults for cameraCaptureCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-all` | S0469: backup field cameraCaptureCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-all` | S0469: map cameraCaptureCopyToClipboard both ways [branch: DEBUG-v014] |
+| 2026-06-17 20:46:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `spec-all` | S0469: import cameraCaptureCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `spec-all` | S0469: preset key cameraCaptureCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/clipboard/ImageClipboardWriter.kt` | `spec-all` | S0469: add copyImageFile(File) - verbatim file copy to clipboard [branch: DEBUG-v014] |
+| 2026-06-17 20:46:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/capture/CameraCaptureSaver.kt` | `spec-all` | S0469: copy captured photo to clipboard at shared save backend (image-only, flag-gated) [branch: DEBUG-v014] |
+| 2026-06-17 20:46:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `spec-all` | S0469: clipboard-copied confirmation toast [branch: DEBUG-v014] |
+| 2026-06-17 20:47:00 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CameraQuickCaptureLaunchManager.kt` | `spec-all` | S0469: clipboard-copied confirmation toast [branch: DEBUG-v014] |
+| 2026-06-17 20:47:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-all` | S0469: bind+listener for camera copy-to-clipboard toggle [branch: DEBUG-v014] |
+| 2026-06-17 20:47:00 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-all` | S0469: rowCameraCopyToClipboard toggle (portrait) [branch: DEBUG-v014] |
+| 2026-06-17 20:47:00 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-all` | S0469: rowCameraCopyToClipboard toggle (landscape) [branch: DEBUG-v014] |
+| 2026-06-17 20:47:01 | `app_v2/src/main/res/values/strings.xml` | `spec-all` | S0469: EN strings: camera copy-to-clipboard title/summary + confirmation [branch: DEBUG-v014] |
+| 2026-06-17 20:47:01 | `docs/ALL_FEATURES.jsonl` | `spec-all` | S0469: record captured-photo-to-clipboard capability [branch: DEBUG-v014] |
+| 2026-06-17 20:57:08 | `PLAN/S0469_save-photos-to-clipboard.md` | `spec-test-device` | Device run emulator-5554 -> PASS/INCONCLUSIVE/OUT-OF-SCOPE 4/2/1; settings UI verified, runtime capture path blocked by emulator dialog input [branch: DEBUG-v014] |
+| 2026-06-17 20:58:55 | `PLAN/S0469_save-photos-to-clipboard.md` | `spec-check` | Audit S0469 -> BlockNeedUserTest (impl complete); PASS/WARN/FAIL 13/0/0; awaiting real-device confirmation [branch: DEBUG-v014] |
+| 2026-06-17 21:04:13 | `PLAN/S0470_video-frame-clipboard/INDEX.md` | `spec-all` | Tactical plan: S0470 (4 phases) [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-all` | S0470: settings flag videoFrameCopyToClipboard (default off) [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-all` | S0470: DataStore key + read/write for videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-all` | S0470: defaults for videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-all` | S0470: backup field videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-all` | S0470: map videoFrameCopyToClipboard both ways [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `spec-all` | S0470: import videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt` | `spec-all` | S0470: preset key videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/assets/device_profile_presets.csv` | `spec-all` | S0470: preset row videoFrameCopyToClipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-all` | S0470: inject ImageClipboardWriter [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `spec-all` | S0470: pass ImageClipboardWriter to SaveVideoFrameManager [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `spec-all` | S0470: copy saved frame to clipboard + confirmation toast [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `spec-all` | S0470: bind/reflect video-frame clipboard toggle [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `spec-all` | S0470: clipboard toggle row (portrait) [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `spec-all` | S0470: clipboard toggle row (landscape) [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `app_v2/src/main/res/values/strings.xml` | `spec-all` | S0470: strings for video-frame clipboard option (EN/RU/UK) [branch: DEBUG-v014] |
+| 2026-06-17 21:12:46 | `docs/ALL_FEATURES.jsonl` | `spec-all` | S0470: record video-player.video-frame-to-clipboard [branch: DEBUG-v014] |
+| 2026-06-17 21:17:25 | `PLAN/S0470_video-frame-clipboard.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/INCONCLUSIVE/OUT-OF-SCOPE 4/1/1 [branch: DEBUG-v014] |
+| 2026-06-17 21:20:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-all` | S0470: mirror clipboard copy in standalone player frame-save host [branch: DEBUG-v014] |
+| 2026-06-17 21:25:00 | `app_v2/src/main/java/com/sza/fastmediasorter/core/capability/CapabilityAvailability.kt` | `S0476` | Add CAP_OCR_ENGINE_SELECTION + CAP_NEWPIPE capability ids and isOcrEngineSelectionAvailable()/isNewPipeAvailable() to replace BuildConfig.IS_NO_LEGAL_FLAVOR gates in settings [branch: DEBUG-v014] |
+| 2026-06-17 21:25:01 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalCapabilityModule.kt` | `S0476` | New noLegal Hilt module contributing the two noLegal-only capability ids into @CompiledCapabilities [branch: DEBUG-v014] |
+| 2026-06-17 21:25:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `S0476` | Replace 3 BuildConfig.IS_NO_LEGAL_FLAVOR OCR-engine gates with capabilityAvailability.isOcrEngineSelectionAvailable() [branch: DEBUG-v014] |
+| 2026-06-17 21:25:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OpenSourceLicensesFragment.kt` | `S0476` | Hilt-enable fragment; gate NewPipe license card via capabilityAvailability.isNewPipeAvailable() instead of BuildConfig [branch: DEBUG-v014] |
+| 2026-06-17 21:25:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/SearchableLanguagePickerDialog.kt` | `S0476` | Hilt-enable dialog; thread noLegal-OCR label flag from CapabilityAvailability into adapter instead of BuildConfig [branch: DEBUG-v014] |
+| 2026-06-17 21:30:58 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/DefaultPlayerStateBootstrapper.kt` | `S0477` | Gate default-player component bootstrap on supportsDefaultPlayer; prevents IllegalArgumentException/ERROR toast on lite (manifest strips Standalone aliases + MediaButtonRestartReceiver) [branch: DEBUG-v014] |
+| 2026-06-17 21:43:00 | `PLAN/S0469_save-photos-to-clipboard.md` | `spec-test-device` | Device run 2 emulator-5554 -> capture flow not automatable (bottom-sheet item wall); S0469 probe 0 hits, no crash; stays BlockNeedUserTest [branch: DEBUG-v014] |
+| 2026-06-17 21:49:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt` | `S0491` | Resurrect favorites + resource-share file export/import in the General Settings backup card (S0480 removed the only UI consumer) [branch: DEBUG-v014] |
+| 2026-06-17 22:04:15 | `app_v2/build.gradle.kts` | `noLegal` | Bump yt-dlp Chaquopy pin 2026.3.17 -> 2026.6.9 (latest stable on PyPI) for continued YouTube extractor maintenance [branch: DEBUG-v014] |

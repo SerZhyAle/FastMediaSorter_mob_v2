@@ -9,6 +9,9 @@ import android.graphics.Paint
 import timber.log.Timber
 import java.io.File
 import android.content.Context
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.FileOutputStream
@@ -19,7 +22,9 @@ import javax.inject.Inject
  * Uses Android ColorMatrix for efficient transformations
  */
 class AdjustImageUseCase @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    // S0473/S0482: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     data class Adjustments(
@@ -28,7 +33,11 @@ class AdjustImageUseCase @Inject constructor(
         val saturation: Float = 1f    // 0.0 to 2.0 (1.0 = normal, 0.0 = grayscale)
     )
 
-    suspend fun execute(imagePath: String, adjustments: Adjustments): Result<Unit> {
+    /**
+     * @param recordStats S0482: record one IMAGE_EDIT metric on success. Disabled by
+     *   NetworkImageEditUseCase, which counts once after the upload lands to avoid double-counting.
+     */
+    suspend fun execute(imagePath: String, adjustments: Adjustments, recordStats: Boolean = true): Result<Unit> {
         return try {
             // Adjusting image
             
@@ -55,6 +64,7 @@ class AdjustImageUseCase @Inject constructor(
 
             // Image adjustments applied
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
+            if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "Failed to adjust image")

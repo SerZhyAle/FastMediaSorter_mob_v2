@@ -570,6 +570,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             if (binding.rowCameraOpenForEditing.isChecked != settings.cameraCaptureOpenForEditing) {
                                 binding.rowCameraOpenForEditing.setCheckedSilently(settings.cameraCaptureOpenForEditing)
                             }
+                            if (binding.rowCameraCopyToClipboard.isChecked != settings.cameraCaptureCopyToClipboard) {
+                                binding.rowCameraCopyToClipboard.setCheckedSilently(settings.cameraCaptureCopyToClipboard)
+                            }
                             binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
                             refreshDestinationLabel(
                                 settings.cameraPhotosDestinationResourceId,
@@ -923,6 +926,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
+        }
+        binding.rowCameraCopyToClipboard.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(cameraCaptureCopyToClipboard = isChecked))
         }
         binding.btnSelectCameraPhotosDest.setOnClickListener {
             showDestinationPicker(

@@ -278,10 +278,13 @@ class GeneralSettingsViewSetupHelper(
         viewModel.resources.value.any { it.type in types }
 
     private fun setupAllFilesResourceButton() {
+        // defStyleAttr must be the Material outlined-button attr: MaterialButton's built-in
+        // defStyleRes is the FILLED button, which would win over the theme overlay and render a
+        // solid blue button. Passing materialButtonOutlinedStyle gives the real outlined base.
         val button = MaterialButton(
             ContextThemeWrapper(fragment.requireContext(), R.style.Widget_FastMediaSorter_SettingsButton_Outlined),
             null,
-            0
+            com.google.android.material.R.attr.materialButtonOutlinedStyle
         ).apply {
             text = fragment.getString(R.string.settings_all_files_create_resource)
             isAllCaps = false

@@ -4,18 +4,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -49,6 +52,9 @@ class CameraCaptureSaver @Inject constructor(
     private val destinationWriter: LocalDestinationWriter,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
     private val statsSink: StatsSink,
+    // S0469: optional "copy captured photo to system clipboard" modifier, gated on a settings flag.
+    private val settingsRepository: SettingsRepository,
+    private val imageClipboardWriter: ImageClipboardWriter,
 ) {
 
     /**
@@ -73,6 +79,10 @@ class CameraCaptureSaver @Inject constructor(
             target,
             savedPath,
         )
+        // S0469: a captured photo can additionally be placed on the system clipboard. Done before the
+        // temp file is deleted, gated to images only (the same saver also handles video capture), and
+        // additive - it never alters the save routing/result below (strategic goal 4).
+        val copiedToClipboard = maybeCopyToClipboard(tempFile, name)
         var failure: SaveResult.Failure? = null
         val success = try {
             when (target) {
@@ -109,10 +119,23 @@ class CameraCaptureSaver @Inject constructor(
                     CaptureKind.PHOTO
                 }
                 statsSink.record(StatsEvent.Capture(kind))
-                SaveResult.Success(savedPath)
+                SaveResult.Success(savedPath, copiedToClipboard = copiedToClipboard)
             }
             else -> failure ?: SaveResult.Failure.Generic
         }
+    }
+
+    /**
+     * S0469: when the capture is a photo and the clipboard option is on, place the encoded image file
+     * on the system clipboard verbatim. Returns true only when the copy succeeded so callers can show
+     * a confirmation. Video/audio captures are excluded by the [MediaType.IMAGE] gate.
+     */
+    private suspend fun maybeCopyToClipboard(tempFile: File, name: String): Boolean {
+        if (MediaTypeUtils.getMediaType(name) != MediaType.IMAGE) return false
+        val enabled = settingsRepository.getSettings().first().cameraCaptureCopyToClipboard
+        Timber.d("S0469: captured-photo clipboard gate flag=%b name=%s", enabled, name)
+        if (!enabled) return false
+        return imageClipboardWriter.copyImageFile(tempFile)
     }
 
     /** Pre-compute where the file ends up, matching the original Browse path resolution exactly. */
@@ -196,8 +219,11 @@ sealed interface CameraCaptureTarget {
 /** Outcome of a [CameraCaptureSaver.save] call. */
 sealed interface SaveResult {
 
-    /** Saved successfully; [savedPath] is the final local/remote location (for open-for-editing). */
-    data class Success(val savedPath: String) : SaveResult
+    /**
+     * Saved successfully; [savedPath] is the final local/remote location (for open-for-editing).
+     * [copiedToClipboard] is true when the S0469 option additionally placed the photo on the clipboard.
+     */
+    data class Success(val savedPath: String, val copiedToClipboard: Boolean = false) : SaveResult
 
     sealed interface Failure : SaveResult {
         /** I/O error during copy/upload - caller shows the I/O-specific message. */

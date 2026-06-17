@@ -154,6 +154,7 @@ data class AppSettings(
     val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
+    val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
@@ -216,6 +217,9 @@ data class AppSettings(
 
     // Video frame snapshot file format: "PNG" (lossless, default) or "JPG" (85% quality, smaller).
     val videoSnapshotFormat: String = "JPG",
+
+    // S0470: also place each extracted video frame on the system clipboard (default off - no upgrade behaviour change).
+    val videoFrameCopyToClipboard: Boolean = false,
 
     // Link auto-download (S0003): when an incoming Share-sheet payload is a plain http(s) URL
     // and `linkAutoDownloadEnabled` is on, the receiver tries to fetch the referenced file

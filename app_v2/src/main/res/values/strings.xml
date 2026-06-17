@@ -516,8 +516,6 @@ Close the player and try again.</string>
     <string name="cb_repeat_video_desc">Loop current video continuously</string>
     <string name="cb_show_subtitles_desc">Display subtitle tracks when available</string>
     <string name="virtual_camera_photos">Camera Photos</string>
-    <string name="backup_export_favorites">Export Favorites</string>
-    <string name="backup_import_favorites">Import Favorites</string>
     <string name="network_delete_warning">Files will be permanently deleted from the network location</string>
     <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
     <string name="save_audio_metadata_locally_desc">Covers and metadata without re-downloading from the internet</string>
@@ -2561,7 +2559,6 @@ Close the player and try again.</string>
     <string name="resource_share_credentials_warning">This file will contain access passwords in plain text. Share it only with people you trust.</string>
     <string name="resource_share_import_preview_message">%1$d new resource(s) will be added and %2$d existing will be overwritten.</string>
     <string name="resource_share_import_action">Import</string>
-    <string name="resource_share_export_success">Exported %1$d resource(s); skipped %2$d.</string>
     <string name="resource_share_import_success">Created %1$d, updated %2$d, skipped %3$d.</string>
     <string name="resource_share_invalid_file">This file is not a valid resources file.</string>
     <string name="resource_share_export_failed">Could not export resources.</string>
@@ -2686,4 +2683,14 @@ Close the player and try again.</string>
     <string name="crash_prompt_title">Send crash report?</string>
     <string name="crash_prompt_message">The app closed unexpectedly last time. Send a crash report with the app log to the author?</string>
     <string name="crash_prompt_send">Send report</string>
+    <string name="statistics_metric_image_edits">Image edits</string>
+    <string name="setting_camera_copy_to_clipboard_title">Save photos to clipboard</string>
+    <string name="setting_camera_copy_to_clipboard_summary">Also copy each captured photo to the clipboard, ready to paste</string>
+    <string name="camera_capture_copied_to_clipboard">Copied to clipboard</string>
+    <string name="setting_video_frame_copy_to_clipboard_title">Save video frames to clipboard</string>
+    <string name="setting_video_frame_copy_to_clipboard_summary">Also copy each extracted frame to the clipboard, ready to paste</string>
+    <string name="video_frame_copied_to_clipboard">Copied to clipboard</string>
+    <string name="backup_export_favorites">Export Favorites</string>
+    <string name="backup_import_favorites">Import Favorites</string>
+    <string name="resource_share_export_success">Exported %1$d resource(s); skipped %2$d.</string>
 </resources>

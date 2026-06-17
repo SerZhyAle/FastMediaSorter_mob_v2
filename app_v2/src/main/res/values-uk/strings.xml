@@ -1851,8 +1851,6 @@
     <!-- Widget strings -->
 
     <!-- Favorites backup/import -->
-    <string name="backup_export_favorites">Експорт обраного</string>
-    <string name="backup_import_favorites">Імпорт обраного</string>
 
     <!-- Network delete dialog -->
     <string name="and_n_more_files_network">..та ще %d файлів</string>
@@ -2479,7 +2477,6 @@
     <string name="resource_share_credentials_warning">Цей файл міститиме паролі доступу у відкритому вигляді. Передавайте його лише тим, кому довіряєте.</string>
     <string name="resource_share_import_preview_message">Буде додано нових ресурсів: %1$d, перезаписано наявних: %2$d.</string>
     <string name="resource_share_import_action">Імпортувати</string>
-    <string name="resource_share_export_success">Експортовано ресурсів: %1$d; пропущено: %2$d.</string>
     <string name="resource_share_import_success">Створено: %1$d, оновлено: %2$d, пропущено: %3$d.</string>
     <string name="resource_share_invalid_file">Це не придатний файл ресурсів.</string>
     <string name="resource_share_export_failed">Не вдалося експортувати ресурси.</string>
@@ -2602,4 +2599,14 @@
     <string name="crash_prompt_title">Надіслати звіт про збій?</string>
     <string name="crash_prompt_message">Минулого разу додаток несподівано закрився. Надіслати автору звіт про збій із журналом додатку?</string>
     <string name="crash_prompt_send">Надіслати звіт</string>
+    <string name="statistics_metric_image_edits">Правки зображень</string>
+    <string name="setting_camera_copy_to_clipboard_title">Зберігати фотографії в буфер обміну</string>
+    <string name="setting_camera_copy_to_clipboard_summary">Додатково копіювати кожен знятий кадр у буфер, готовий для вставлення</string>
+    <string name="camera_capture_copied_to_clipboard">Скопійовано в буфер обміну</string>
+    <string name="setting_video_frame_copy_to_clipboard_title">Зберігати кадри відео в буфер обміну</string>
+    <string name="setting_video_frame_copy_to_clipboard_summary">Додатково копіювати кожен видобутий кадр у буфер, готовий для вставлення</string>
+    <string name="video_frame_copied_to_clipboard">Скопійовано в буфер обміну</string>
+    <string name="backup_export_favorites">Експорт обраного</string>
+    <string name="backup_import_favorites">Імпорт обраного</string>
+    <string name="resource_share_export_success">Експортовано ресурсів: %1$d; пропущено: %2$d.</string>
 </resources>

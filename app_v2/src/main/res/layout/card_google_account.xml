@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   S0200 Phase 06: Google Account settings card.
-  Mirrors the visual structure of fragment_settings_backup_restore.xml MaterialCardView
-  patterns. Focus traversal: every actionable child carries focusable+clickable+nextFocus.
+  Focus traversal: every actionable child carries focusable+clickable+nextFocus.
 -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"

@@ -1,3 +1,8 @@
+---
+agent: "agent"
+description: "Use when: running the end-to-end pre-release sweep on an emulator (clean install, resources, settings, scenario, perf, verdict) that gates /skill-release, or asked to run /spec-prerelease. Triggers on: spec prerelease, pre-release sweep, spec-prerelease, prerelease emulator."
+---
+
 # /spec-prerelease - End-to-End Pre-Release Emulator Sweep
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**

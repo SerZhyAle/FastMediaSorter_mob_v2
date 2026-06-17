@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 
 /**
  * S0133: Reconciles system component state (ACTION_SEND share-sheet aliases, ACTION_VIEW player aliases)
@@ -23,10 +24,19 @@ import kotlinx.coroutines.flow.first
 object DefaultPlayerStateBootstrapper {
 
     suspend fun apply(context: Context, settingsRepository: SettingsRepository) {
-        val settings = settingsRepository.getSettings().first()
         val caps = EntryPointAccessors.fromApplication(
             context.applicationContext, MediaCapabilitiesEntryPoint::class.java
         ).mediaCapabilities()
+        // S0477: flavors without a default player (e.g. lite) strip every Standalone alias and
+        // MediaButtonRestartReceiver from their merged manifest. Toggling a component the package
+        // does not declare makes setComponentEnabledSetting throw, which surfaced as a red ERROR
+        // toast during onboarding. All other call sites already gate on this capability; the
+        // bootstrapper must too.
+        if (!caps.supportsDefaultPlayer) {
+            Timber.d("S0477: skip default player bootstrap (supportsDefaultPlayer=false)")
+            return
+        }
+        val settings = settingsRepository.getSettings().first()
         DefaultPlayerManager.applyShareReceiverState(context, settings.acceptSharedFiles, caps)
         DefaultPlayerManager.applyPrimaryPlayerState(context, settings.isPrimaryMediaPlayer, caps)
     }

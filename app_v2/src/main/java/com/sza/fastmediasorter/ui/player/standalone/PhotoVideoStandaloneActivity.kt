@@ -121,6 +121,7 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
@@ -312,9 +313,19 @@ class PhotoVideoStandaloneActivity :
                 contentResolver.openOutputStream(uri)?.use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, it) }
                 true
             }.getOrDefault(false)
+            // S0470: when enabled, also place the extracted frame on the system clipboard. This host has
+            // the live bitmap (no encoded temp file), so copy it as a lossless PNG via the shared role.
+            val copiedToClipboard = if (settingsRepository.getSettings().first().videoFrameCopyToClipboard) {
+                Timber.d("S0470: standalone video-frame clipboard gate flag=true")
+                imageClipboardWriter.copyBitmap(bitmap)
+            } else false
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@PhotoVideoStandaloneActivity,
                     if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown, Toast.LENGTH_SHORT).show()
+                if (copiedToClipboard) {
+                    Toast.makeText(this@PhotoVideoStandaloneActivity,
+                        R.string.video_frame_copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

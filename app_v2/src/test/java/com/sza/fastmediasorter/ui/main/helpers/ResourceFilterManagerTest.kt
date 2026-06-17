@@ -100,4 +100,20 @@ class ResourceFilterManagerTest {
         // Remaining order equals the others sorted name-ascending, unaffected by the hoist.
         assertEquals(listOf(alpha.id, beta.id, gamma.id, smb.id), result.drop(1).map { it.id })
     }
+
+    @Test
+    fun `pinAllFilesFirst hoists predefined resource for db-sorted lists`() {
+        // The ViewModel's loadResources() path gets an already filtered+sorted list straight from the DB
+        // (getResourcesUseCase.getFiltered) and must still pin via this public entry point.
+        val dbSorted = listOf(alpha, beta, gamma, smb, allFiles) // All-files placed last by the DB sort
+        val result = manager.pinAllFilesFirst(dbSorted)
+        assertEquals(allFiles.id, result.first().id)
+        assertEquals(listOf(alpha.id, beta.id, gamma.id, smb.id), result.drop(1).map { it.id })
+    }
+
+    @Test
+    fun `pinAllFilesFirst leaves list unchanged when no predefined resource`() {
+        val noAllFiles = listOf(alpha, beta, gamma)
+        assertEquals(listOf(alpha.id, beta.id, gamma.id), manager.pinAllFilesFirst(noAllFiles).map { it.id })
+    }
 }

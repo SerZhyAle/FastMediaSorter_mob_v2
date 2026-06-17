@@ -160,6 +160,12 @@ class VideoSettingsFragment : BaseSettingsFragment() {
                 viewModel.updateSettings(current.copy(videoSnapshotFormat = format))
             }
         }
+
+        // S0470: copy each extracted frame to the system clipboard
+        bindSwitch(binding.rowVideoFrameCopyToClipboard) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(videoFrameCopyToClipboard = isChecked))
+        }
     }
 
     /**
@@ -212,6 +218,9 @@ class VideoSettingsFragment : BaseSettingsFragment() {
                 binding.rgSnapshotFormat.check(
                     if (settings.videoSnapshotFormat == "JPG") R.id.rbSnapshotJpg else R.id.rbSnapshotPng
                 )
+
+                // S0470: clipboard-copy toggle reflects videoFrameCopyToClipboard
+                setSwitchChecked(binding.rowVideoFrameCopyToClipboard, settings.videoFrameCopyToClipboard)
 
                 // S0021: FPS overlay over flat player
                 setSwitchChecked(binding.rowPlayerShowFps, settings.playerShowFps)

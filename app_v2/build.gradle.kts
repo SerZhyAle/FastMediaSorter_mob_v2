@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260617172
-val defaultAppVersionName = "2.60.6171.725"
+val defaultAppVersionCode = 260617220
+val defaultAppVersionName = "2.60.6172.207"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -1009,7 +1009,9 @@ if (isNoLegalBuild) {
                     // at spec time). Brings 2025-H2 + early-2026 YouTube player.js handling
                     // plus extractor_args.youtube.player_client support, used in ytdlp_utils.py
                     // to prefer Android client which typically bypasses PoToken requirements.
-                    install("yt-dlp==2026.3.17")
+                    // 2026-06-17: bumped 2026.3.17 → 2026.6.9 (latest stable on PyPI) for
+                    // continued YouTube extractor maintenance.
+                    install("yt-dlp==2026.6.9")
                 }
             }
         }

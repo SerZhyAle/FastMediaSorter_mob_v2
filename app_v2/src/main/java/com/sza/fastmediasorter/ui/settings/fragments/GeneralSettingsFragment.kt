@@ -120,6 +120,22 @@ class GeneralSettingsFragment : Fragment() {
             permissionsHelper.updatePermissionButtonsState()
         }
 
+    // S0491: favorites + resource-share export/import SAF launchers (registered before STARTED, handled by backupHelper).
+    private val importFavoritesLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { backupViewModel.previewFavoritesImport(it) }
+        }
+
+    private val exportResourcesLauncher: androidx.activity.result.ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.CreateDocument(com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE)) { uri ->
+            uri?.let { backupViewModel.exportAllResources(it) }
+        }
+
+    private val importResourcesLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { backupViewModel.previewResourceImport(it) }
+        }
+
     private val calculateOptimalCacheSizeUseCase by lazy { CalculateOptimalCacheSizeUseCase() }
 
     // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
@@ -149,7 +165,10 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase)
     }
     private val backupHelper by lazy {
-        GeneralSettingsBackupHelper(binding, this, backupViewModel, mediaCapabilities)
+        GeneralSettingsBackupHelper(
+            binding, this, backupViewModel, mediaCapabilities,
+            importFavoritesLauncher, exportResourcesLauncher, importResourcesLauncher,
+        )
     }
     private val googleAccountHelper by lazy {
         com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(this, googleAccountViewModel, cctChecker)
@@ -209,6 +228,8 @@ class GeneralSettingsFragment : Fragment() {
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
         backupHelper.updateBackupAccountInfo()
+        backupHelper.setupExportImportButtons()
+        backupHelper.observeExportImportState()
         collectOnLifecycle(viewModel.deviceStorage) { state ->
             val text = when (state) {
                 is DeviceStorageState.Success -> String.format("%.1f GB", state.availableGb)

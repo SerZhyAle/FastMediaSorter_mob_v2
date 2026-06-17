@@ -90,8 +90,14 @@ class DeliveredNativeLibraryLoader @Inject constructor(
             try {
                 System.load(file.absolutePath)
             } catch (e: UnsatisfiedLinkError) {
-                Timber.e(e, "UnsatisfiedLinkError loading %s", file.absolutePath)
-                throw e
+                // The payload already passed integrity verification (ADR-3), so the bytes are correct -
+                // an UnsatisfiedLinkError here means the device cannot load this byte-correct .so (ABI
+                // mismatch on an emulator / non-arm64 device, or an unsatisfiable dependency). This is an
+                // expected device-capability fallback, not a corrupt delivery: log at WARN (not ERROR),
+                // do not invalidate the set, and rethrow as a catchable Exception so consumers degrade
+                // gracefully instead of letting the Error escape their catch (Exception) blocks uncaught.
+                Timber.w("DeliveredNativeLibraryLoader: native set %s not loadable on this device (%s): %s", set, payloadFile.fileName, e.message)
+                throw DeliveredNativeLibraryIncompatibleException(set, "cannot load ${payloadFile.fileName}: ${e.message}")
             } catch (e: Exception) {
                 throw IOException("Error loading library: ${file.absolutePath}", e)
             }

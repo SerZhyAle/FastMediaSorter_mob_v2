@@ -186,8 +186,13 @@ class CameraQuickCaptureLaunchManager(
         pendingTempFile = null
         withContext(Dispatchers.Main) {
             when (result) {
-                is SaveResult.Success ->
+                is SaveResult.Success -> {
                     toast(activity.getString(R.string.camera_capture_saved, name))
+                    // S0469: unobtrusive confirmation that the photo also reached the clipboard.
+                    if (result.copiedToClipboard) {
+                        toast(activity.getString(R.string.camera_capture_copied_to_clipboard))
+                    }
+                }
                 SaveResult.Failure.Io -> toast(activity.getString(R.string.camera_capture_error_io))
                 SaveResult.Failure.Generic ->
                     toast(activity.getString(R.string.camera_capture_error_save_generic))

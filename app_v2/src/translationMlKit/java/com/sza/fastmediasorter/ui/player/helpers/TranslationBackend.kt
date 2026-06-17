@@ -14,6 +14,7 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryIncompatibleException
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlin.coroutines.resume
@@ -57,6 +58,9 @@ class TranslationBackend(
         }
         try {
             libraryLoader.load(DeliverableSet.TRANSLATION)
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("Translation engine not loadable on this device - native libraries unavailable")
+            return false
         } catch (e: Exception) {
             Timber.e(e, "Failed to load translation native libraries")
             return false

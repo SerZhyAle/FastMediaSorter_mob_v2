@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
@@ -347,7 +346,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupOcrEngineSpinners() {
-        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) {
+        if (!capabilityAvailability.isOcrEngineSelectionAvailable()) {
             binding.layoutOcrEngineType?.isVisible = false
             binding.layoutPaddleOcrModel?.isVisible = false
             return
@@ -410,7 +409,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
 
-        val showNoLegalOcr = enabled && BuildConfig.IS_NO_LEGAL_FLAVOR
+        val showNoLegalOcr = enabled && capabilityAvailability.isOcrEngineSelectionAvailable()
         binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
         binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
     }
@@ -428,7 +427,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
 
                 // OCR Engine settings (S0288)
-                if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+                if (capabilityAvailability.isOcrEngineSelectionAvailable()) {
                     val ocrEnginePosition = when (settings.ocrEngineType) {
                         "TESSERACT" -> 0
                         "PADDLE_OCR" -> 1

@@ -404,6 +404,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal
     @Inject lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
     @Inject
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
