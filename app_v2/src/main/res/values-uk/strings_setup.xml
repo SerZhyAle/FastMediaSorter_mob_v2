@@ -142,14 +142,14 @@
     <!-- S0400 functionality page -->
     <string name="welcome_functionality_title">Що застосунок робитиме?</string>
     <string name="welcome_functionality_subtitle">Увімкніть потрібне. Згодом можна змінити в налаштуваннях.</string>
-    <string name="welcome_func_file_manager">Файловий менеджер (усі файли)</string>
+    <string name="welcome_func_file_manager">Дозволити режим «Усі файли»</string>
     <string name="welcome_func_audio">Аудіо</string>
     <string name="welcome_func_video">Відео</string>
     <string name="welcome_func_documents">Документи</string>
     <string name="welcome_func_ocr">Розпізнавання тексту (OCR)</string>
     <string name="welcome_func_translation">Переклад</string>
     <!-- Landscape-only toggle descriptions (two-column functionality page) -->
-    <string name="welcome_func_file_manager_desc">Переглядайте, переміщуйте та впорядковуйте будь-які файли на пристрої.</string>
+    <string name="welcome_func_file_manager_desc">Дозволяє режим «Усі файли». Для кожного ресурсу його потрібно увімкнути окремо.</string>
     <string name="welcome_func_audio_desc">Відтворення музики й аудіо, сортування треків по папках.</string>
     <string name="welcome_func_video_desc">Відтворення відео та сортування роликів вбудованим програвачем.</string>
     <string name="welcome_func_documents_desc">Відкриття PDF, тексту, електронних книг та офісних файлів.</string>

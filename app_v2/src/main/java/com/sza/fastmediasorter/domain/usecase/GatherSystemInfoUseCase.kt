@@ -21,6 +21,7 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
@@ -190,7 +191,7 @@ class GatherSystemInfoUseCase @Inject constructor(
     private fun inputMethodId(): String =
         sanitize(Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD))
 
-    private fun packageInfo() = context.packageManager.getPackageInfo(context.packageName, 0)
+    private fun packageInfo() = context.packageManager.getPackageInfoCompat(context.packageName)
 
     private fun formatTime(millis: Long): String =
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date(millis))

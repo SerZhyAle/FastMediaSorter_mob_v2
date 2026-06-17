@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +20,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
 import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -85,7 +87,6 @@ class BrowseCameraCaptureManager(
     // region Public API
 
     fun launch(resource: MediaResource) {
-        Timber.d("S0359: in-app camera capture to resource")
         Timber.i(
             "S0022-CAM: launch ENTRY resource={id=%d, name=%s, type=%s, path=%s, allFiles=%b} device={mfr=%s, model=%s, sdk=%d}",
             resource.id,
@@ -194,7 +195,7 @@ class BrowseCameraCaptureManager(
         pendingResource = resource
         pendingIsVideo = true
 
-        val handlers = activity.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+        val handlers = activity.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
         if (handlers.isEmpty()) {
             Timber.w("VideoCapture: launchVideo ABORT - no Activity handles %s on this device", MediaStore.ACTION_VIDEO_CAPTURE)
             showSnackbar(R.string.camera_capture_error_no_camera_app)
@@ -410,6 +411,14 @@ class BrowseCameraCaptureManager(
             when (result) {
                 is SaveResult.Success -> {
                     showSnackbar(activity.getString(R.string.camera_capture_saved, name))
+                    // S0469: unobtrusive confirmation that the photo also reached the clipboard.
+                    if (result.copiedToClipboard) {
+                        Toast.makeText(
+                            activity,
+                            R.string.camera_capture_copied_to_clipboard,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                     when {
                         isVideo -> onVideoCaptured(name)
                         openForEditing ->
@@ -564,7 +573,7 @@ class BrowseCameraCaptureManager(
          * photo path instead). Call before showing the video-capture command in a menu.
          */
         fun hasVideoCaptureHandler(context: Context): Boolean {
-            val handlers = context.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+            val handlers = context.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
             if (handlers.isEmpty()) {
                 Timber.w("CameraCapture: no handlers, video-capture command hidden action=%s", MediaStore.ACTION_VIDEO_CAPTURE)
             }

@@ -1,22 +1,14 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import android.widget.Toast
-import androidx.core.content.FileProvider
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks
-import com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker
 import java.io.File
 
 /** Editor-panel callbacks for [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
 internal class TextEditorActionPanelCallbacks(
-    private val context: Context,
     private val safeViews: PlayerBindingSafeViews,
-    private val keepChecker: GoogleKeepAvailabilityChecker,
     private val getSaveFlow: () -> TextEditorSaveFlow?,
     private val getCurrentLocalFile: () -> File?,
     private val getTextNoteStagingRegistry: () -> LocalStagingRegistry?,
@@ -25,6 +17,9 @@ internal class TextEditorActionPanelCallbacks(
     private val rebaselineDirtyTracker: (String) -> Unit,
     private val isDirty: () -> Boolean,
     private val saveEditedText: () -> Unit,
+    // S0459: opens the unified «Send to..» menu for the supplied text (post-save). The host resolves
+    // the FragmentActivity, settings, and SendToMenuManager - this class stays UI-state-agnostic.
+    private val sendTo: (text: String) -> Unit,
     private val openCalculator: (String) -> Unit,
     private val finishActivity: () -> Unit,
     private val exitEditMode: () -> Unit,
@@ -32,8 +27,7 @@ internal class TextEditorActionPanelCallbacks(
     fun build(): EditorActionCallbacks = EditorActionCallbacks(
         onSave = ::onSave,
         onSaveAndClose = ::onSaveAndClose,
-        onSaveAndSend = ::onSaveAndSend,
-        onSendToKeep = ::onSendToKeep,
+        onSendTo = ::onSendTo,
         onOpenCalculator = ::onOpenCalculator,
         onCancel = ::onCancel,
     )
@@ -86,7 +80,9 @@ internal class TextEditorActionPanelCallbacks(
         }
     }
 
-    private fun onSaveAndSend() {
+    // S0459: unified outbound action. Save (in place / staged-rename) exactly as before, then open the
+    // «Send to..» menu with the saved text; receivers (system Share, Keep-text, Email, ..) self-gate.
+    private fun onSendTo() {
         val flow = getSaveFlow()
         val localFile = getCurrentLocalFile()
         val capturedContent = safeViews.etTextContent.text.toString()
@@ -97,38 +93,14 @@ internal class TextEditorActionPanelCallbacks(
                 currentContent = capturedContent,
                 afterSave = { outcome ->
                     cacheNewlySavedNote(outcome, capturedContent)
-                    val shareFile = File(outcome.finalPath)
-                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFile)
-                    SystemShareInvoker.invoke(
-                        context = context,
-                        payload = SharePayload.Text(content = capturedContent, streamUri = uri, grantReadPermission = true),
-                        chooserTitle = context.getString(R.string.share),
-                    )
+                    rebaselineDirtyTracker(capturedContent)
+                    sendTo(capturedContent)
                 },
             )
         } else {
             saveEditedText()
-            SystemShareInvoker.invoke(
-                context = context,
-                payload = SharePayload.Text(content = capturedContent),
-                chooserTitle = context.getString(R.string.share),
-            )
-        }
-    }
-
-    private fun onSendToKeep() {
-        val currentText = safeViews.etTextContent.text.toString()
-        val keepPackage = keepChecker.resolveTargetPackage() ?: run {
-            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val sent = SystemShareInvoker.invoke(
-            context = context,
-            payload = SharePayload.Text(content = currentText),
-            preferredPackage = keepPackage,
-        )
-        if (!sent) {
-            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
+            rebaselineDirtyTracker(capturedContent)
+            sendTo(capturedContent)
         }
     }
 

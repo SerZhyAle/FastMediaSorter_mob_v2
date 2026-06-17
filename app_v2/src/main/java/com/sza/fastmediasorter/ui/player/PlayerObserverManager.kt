@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Manages all ViewModel state observation for PlayerActivity.
@@ -78,10 +77,10 @@ internal class PlayerObserverManager(
                         val isAudio = state.currentFile?.type == MediaType.AUDIO
                         activity.pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
 
-                        // S0162: re-apply orientation whenever followSystemRotation changes
+                        // S0162 / S0439: re-apply orientation when the effective player follow-OS flag changes
                         activity.screenRotationManager.apply(
                             activity,
-                            settings.followSystemRotation,
+                            settings.programFollowSystemRotation || settings.playerFollowSystemRotation,
                             settings.playerRotationSensorEnabled,
                             activity.hasAccelerometer
                         )
@@ -105,14 +104,14 @@ internal class PlayerObserverManager(
     }
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
-        // S0358: consume the per-resource playback-order override / restore the saved order on the
-        // live state path. This used to live in a PlayerActivity.updateUI() that was orphaned when
-        // the state collector was rewired to call this manager directly, so "Play random" never
-        // flipped the order button to Shuffle. A true return means the mode changed and a fresh
-        // state emission will re-enter updateUI(), so skip the rest of this pass.
-        if (activity.syncPlaybackOrderForCurrentResource(state)) {
-            return
-        }
+        // S0358: apply the saved/override per-resource playback order as a side effect (this also
+        // flips the order button to Shuffle for "Play random"). It must NOT gate the rest of this
+        // pass: the previous early `return` skipped uiStateCoordinator.updateUI() — and thus the
+        // media-display call — on the first loaded-file emission, and the assumed re-entry never
+        // arrived because setPlaybackOrderMode() only mutates playbackOrderMode, which is absent
+        // from the state collector's distinctUntilChangedBy key, so the follow-up emission was
+        // deduped away and the track was never handed to the player (audio played silently).
+        activity.syncPlaybackOrderForCurrentResource(state)
         activity.uiStateCoordinator.updateUI(state)
         val isAudio = state.currentFile?.type == MediaType.AUDIO
         if (!isAudio) {

@@ -53,7 +53,6 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun handleStart() {
-        Timber.d("S0349: service handleStart")
         if (isRecording) return
 
         createChannel()
@@ -98,7 +97,6 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun stopAndSave() {
-        Timber.d("S0349: service stopAndSave")
         val file = outputFile
         var saved = false
         if (recorderStarted) {

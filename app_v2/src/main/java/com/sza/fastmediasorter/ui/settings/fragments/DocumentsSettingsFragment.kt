@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
+import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import dagger.hilt.android.EntryPointAccessors
 
 class DocumentsSettingsFragment : BaseSettingsFragment() {
 
@@ -43,7 +44,12 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
      * EPUB support requires ENABLE_EPUB=true.
      */
     private fun applyFlavorRestrictions() {
-        if (!BuildConfig.ENABLE_EPUB) {
+        // BaseSettingsFragment is not @AndroidEntryPoint; resolve capabilities via Hilt entry point (Rule 14).
+        val caps = EntryPointAccessors.fromApplication(
+            requireContext().applicationContext,
+            MediaCapabilitiesEntryPoint::class.java
+        ).mediaCapabilities()
+        if (!caps.supportsEpub) {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowSupportEpub.isVisible = false
         }

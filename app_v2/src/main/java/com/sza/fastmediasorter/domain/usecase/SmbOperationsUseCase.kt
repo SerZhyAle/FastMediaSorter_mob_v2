@@ -12,6 +12,8 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -25,7 +27,9 @@ class SmbOperationsUseCase @Inject constructor(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
     
     /** Test SMB connection with given credentials */
@@ -55,7 +59,11 @@ class SmbOperationsUseCase @Inject constructor(
             )
             
             when (val result = smbClient.testConnection(connectionInfo, subPath)) {
-                is SmbResult.Success -> Result.success(result.data)
+                is SmbResult.Success -> {
+                    // S0473: a remote source connected successfully.
+                    statsSink.record(StatsEvent.SourceConnected())
+                    Result.success(result.data)
+                }
                 is SmbResult.Error -> {
                     // Augmented Debugging: If subpath failed, list the root to see what IS there
                     if (subPath.isNotEmpty()) {
@@ -318,6 +326,8 @@ class SmbOperationsUseCase @Inject constructor(
             }
             
             if (result.isSuccess) {
+                // S0473: a remote source connected successfully.
+                statsSink.record(StatsEvent.SourceConnected())
                 val authMethod = if (privateKey != null) "private key" else "password"
                 Result.success("SFTP connection successful to $host:$port using $authMethod")
             } else {
@@ -385,6 +395,8 @@ class SmbOperationsUseCase @Inject constructor(
         try {
             val result = ftpClient.testConnection(host, port, username, password)
             if (result.isSuccess) {
+                // S0473: a remote source connected successfully.
+                statsSink.record(StatsEvent.SourceConnected())
                 Result.success("FTP connection successful to $host:$port (passive mode)")
             } else {
                 Result.failure(result.exceptionOrNull() ?: Exception("FTP connection failed"))

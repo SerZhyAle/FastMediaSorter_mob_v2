@@ -35,34 +35,49 @@ object LogExportHelper {
      * Package all log files into a ZIP and share via Intent
      */
     fun exportLogs(context: Context): ExportResult {
-        val zipFile = StrictModeHelper.allowDiskIO {
-            try {
-                val logFiles = LoggingHelper.getLogFiles()
-                if (logFiles.isEmpty()) return@allowDiskIO null
+        val zipFile = buildLogsZip(context) ?: return ExportResult.NoLogs
+        return shareZipFile(context, zipFile)
+    }
 
-                val cacheZip = File(context.cacheDir, ZIP_FILE_NAME)
-                if (cacheZip.exists()) cacheZip.delete()
+    /**
+     * Package all log files into the cache ZIP and return a shareable content:// URI, or null when
+     * there are no logs or packaging failed. Performs disk I/O - call off the main thread.
+     */
+    fun buildLogsZipUri(context: Context): Uri? {
+        val zipFile = buildLogsZip(context) ?: return null
+        return try {
+            FileProvider.getUriForFile(context, "${context.packageName}$AUTHORITY_SUFFIX", zipFile)
+        } catch (e: IllegalArgumentException) {
+            Timber.e(e, "LogExportHelper: failed to resolve FileProvider URI for log ZIP")
+            null
+        }
+    }
 
-                ZipOutputStream(FileOutputStream(cacheZip)).use { zos: ZipOutputStream ->
-                    logFiles.forEach { file: File ->
-                        if (file.exists()) {
-                            val entry = ZipEntry(file.name)
-                            zos.putNextEntry(entry)
-                            FileInputStream(file).use { fis: FileInputStream ->
-                                fis.copyTo(zos)
-                            }
-                            zos.closeEntry()
+    private fun buildLogsZip(context: Context): File? = StrictModeHelper.allowDiskIO {
+        try {
+            val logFiles = LoggingHelper.getLogFiles()
+            if (logFiles.isEmpty()) return@allowDiskIO null
+
+            val cacheZip = File(context.cacheDir, ZIP_FILE_NAME)
+            if (cacheZip.exists()) cacheZip.delete()
+
+            ZipOutputStream(FileOutputStream(cacheZip)).use { zos: ZipOutputStream ->
+                logFiles.forEach { file: File ->
+                    if (file.exists()) {
+                        val entry = ZipEntry(file.name)
+                        zos.putNextEntry(entry)
+                        FileInputStream(file).use { fis: FileInputStream ->
+                            fis.copyTo(zos)
                         }
+                        zos.closeEntry()
                     }
                 }
-                cacheZip
-            } catch (e: Exception) {
-                Timber.e(e, "LogExportHelper: failed to build ZIP")
-                null
             }
-        } ?: return ExportResult.NoLogs
-
-        return shareZipFile(context, zipFile)
+            cacheZip
+        } catch (e: Exception) {
+            Timber.e(e, "LogExportHelper: failed to build ZIP")
+            null
+        }
     }
 
     /**

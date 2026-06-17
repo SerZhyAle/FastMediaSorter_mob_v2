@@ -36,6 +36,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "isResourceGridMode" -> settings.copy(isResourceGridMode = raw.toBool())
             "resourceOpsInOverflowMenu" -> settings.copy(resourceOpsInOverflowMenu = raw.toBool())
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
+            "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
@@ -67,7 +68,6 @@ class DeviceProfilePresetApplier @Inject constructor(
             "pdfScrollMode" -> settings.copy(pdfScrollMode = raw.toBool())
             "enableTranslation" -> settings.copy(enableTranslation = raw.toBool())
             "translationLensStyle" -> settings.copy(translationLensStyle = raw.toBool())
-            "enableGoogleLens" -> settings.copy(enableGoogleLens = raw.toBool())
             "enableOcr" -> settings.copy(enableOcr = raw.toBool())
             "cameraOcrTranslationEnabled" -> settings.copy(cameraOcrTranslationEnabled = raw.toBool())
             "cameraOcrOnly" -> settings.copy(cameraOcrOnly = raw.toBool())
@@ -102,6 +102,8 @@ class DeviceProfilePresetApplier @Inject constructor(
             "disableCameraCapture" -> settings.copy(disableCameraCapture = raw.toBool())
             "skipCameraFilenameDialog" -> settings.copy(skipCameraFilenameDialog = raw.toBool())
             "cameraCaptureOpenForEditing" -> settings.copy(cameraCaptureOpenForEditing = raw.toBool())
+            "cameraCaptureCopyToClipboard" -> settings.copy(cameraCaptureCopyToClipboard = raw.toBool())
+            "videoFrameCopyToClipboard" -> settings.copy(videoFrameCopyToClipboard = raw.toBool())
             "disableVideoCapture" -> settings.copy(disableVideoCapture = raw.toBool())
             "videoCaptureOpenInPlayer" -> settings.copy(videoCaptureOpenInPlayer = raw.toBool())
             "micRecordingEnabled" -> settings.copy(micRecordingEnabled = raw.toBool())
@@ -133,7 +135,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "stereoAmbiguityBestGuess" -> settings.copy(stereoAmbiguityBestGuess = raw.toBool())
             "resumeOnNextLaunch" -> settings.copy(resumeOnNextLaunch = raw.toBool())
             "showBlackScreenButton" -> settings.copy(showBlackScreenButton = raw.toBool())
-            "followSystemRotation" -> settings.copy(followSystemRotation = raw.toBool())
+            "programFollowSystemRotation" -> settings.copy(programFollowSystemRotation = raw.toBool())
             "playerRotationSensorEnabled" -> settings.copy(playerRotationSensorEnabled = raw.toBool())
 
             // ── Ints ──────────────────────────────────────────────────────

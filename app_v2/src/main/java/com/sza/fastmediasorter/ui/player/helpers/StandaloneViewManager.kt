@@ -23,6 +23,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -39,9 +40,14 @@ import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.VideoColorProcessor
 import dagger.Lazy
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -123,6 +129,22 @@ class StandaloneViewManager(
                 override fun showError(message: String) = showToastError(message)
             }
         )
+    }
+
+    // S0473: resolved from the application Hilt graph (the host Activity is @AndroidEntryPoint) so
+    // the document-opened stat can be recorded without threading StatsSink through all three
+    // standalone-Activity construction sites. Same pattern as AddResourceConnectionManager.
+    private val statsSink: StatsSink by lazy {
+        EntryPointAccessors.fromApplication(
+            activity.applicationContext,
+            StandaloneViewManagerEntryPoint::class.java
+        ).statsSink()
+    }
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface StandaloneViewManagerEntryPoint {
+        fun statsSink(): StatsSink
     }
 
     private val translationManager: TranslationManager by lazy {
@@ -259,13 +281,11 @@ class StandaloneViewManager(
     fun onResume() {
         exoPlayer?.playWhenReady = true
         audioServiceController?.player?.playWhenReady = true
-        acquireWakeLock()
     }
 
     fun onPause() {
         exoPlayer?.playWhenReady = false
         audioServiceController?.player?.playWhenReady = false
-        releaseWakeLock()
         lifecycleScope.launch { saveCurrentPosition() }
         stopPositionAutoSave()
     }
@@ -287,10 +307,19 @@ class StandaloneViewManager(
                 }
             }
         }
-        releaseWakeLock()
         audioFocusManager?.releaseFocus()
         audioFocusManager = null
-        exoPlayer?.release()
+        // Media3 1.2.1: ExoPlayer.release() can block the main thread indefinitely when a
+        // setVideoEffects() GL pipeline is active - the DefaultVideoFrameProcessor GL thread join
+        // is not bounded by the release timeout (androidx/media #1139, #2098). Drain the effects and
+        // detach the output surface first so the GL pipeline terminates while EGL is still valid,
+        // then stop before release. Otherwise the next activity never gets a window -> input ANR.
+        exoPlayer?.let { player ->
+            player.setVideoEffects(emptyList())
+            player.clearVideoSurface()
+            player.stop()
+            player.release()
+        }
         exoPlayer = null
         // Standalone mode must never continue audio in background - stop before releasing the service controller.
         audioServiceController?.player?.stop()
@@ -361,7 +390,6 @@ class StandaloneViewManager(
         lastSavedPosition = -1L
         player.setMediaItem(MediaItem.fromUri(mediaFile.path.toUri()))
         player.playWhenReady = true
-        acquireWakeLock()
         onVideoReady?.invoke(playerView)
         // Fetch saved position before prepare() so seekTo() runs before the playback thread
         // starts, preventing DefaultVideoFrameProcessor.flush() from firing on an uninitialised
@@ -424,7 +452,6 @@ class StandaloneViewManager(
         controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.'), mimeType = mimeType) { player ->
             playerView.player = player
             playerView.showController()
-            acquireWakeLock()
         }
     }
 
@@ -566,8 +593,16 @@ class StandaloneViewManager(
             .show()
     }
 
-    /** Share the Office [mediaFile] via a generic ACTION_SEND chooser (S0301 Phase 05). */
+    /**
+     * Share the prepared Office [mediaFile] through the unified «Send to..» menu (S0459 Phase 06,
+     * was a standalone ACTION_SEND chooser in S0301 Phase 05). [prepareFileForRead] keeps network
+     * fetches off the main thread as before; the resulting FileProvider Uri is handed to the menu.
+     */
     private fun shareOfficeDocument(mediaFile: MediaFile) {
+        val host = activity as? androidx.fragment.app.FragmentActivity ?: run {
+            Timber.w("Office share host is not a FragmentActivity - cannot open send-to menu")
+            return
+        }
         lifecycleScope.launch {
             try {
                 val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
@@ -576,20 +611,32 @@ class StandaloneViewManager(
                     "${activity.packageName}.fileprovider",
                     preparedFile
                 )
-                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                    type = "application/octet-stream"
-                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    clipData = android.content.ClipData.newRawUri(null, uri)
-                }
-                activity.startActivity(
-                    android.content.Intent.createChooser(intent, activity.getString(R.string.office_viewer_fallback_share))
+                val settings = settingsRepository.getSettings().first()
+                val content = ShareableContent(
+                    uris = listOf(uri),
+                    mime = "application/octet-stream",
+                    mediaType = MediaType.OFFICE_DOCUMENT,
+                    displayName = mediaFile.name,
+                    mediaFile = mediaFile,
                 )
+                sendToMenuManager().show(host, content, settings)
             } catch (e: Exception) {
                 Timber.e(e, "StandaloneViewManager: failed to share Office document")
                 showToastError(activity.getString(R.string.error_opening_file_simple))
             }
         }
+    }
+
+    /** S0459: app-scoped accessor for [SendToMenuManager] (Singleton) from the manually-built view manager. */
+    private fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager =
+        dagger.hilt.android.EntryPointAccessors
+            .fromApplication(activity.applicationContext, SendToMenuEntryPoint::class.java)
+            .sendToMenuManager()
+
+    @dagger.hilt.EntryPoint
+    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    internal interface SendToMenuEntryPoint {
+        fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager
     }
 
     /**
@@ -676,19 +723,6 @@ class StandaloneViewManager(
         }
     }
 
-    private fun acquireWakeLock() {
-        val playerView = safeViews.playerView
-        if (playerView.isVisible) {
-            playerView.keepScreenOn = true
-            Timber.d("StandaloneViewManager: screen wake lock acquired")
-        }
-    }
-
-    private fun releaseWakeLock() {
-        safeViews.playerView.keepScreenOn = false
-        Timber.d("StandaloneViewManager: screen wake lock released")
-    }
-
     private fun createPlayerErrorListener(): Player.Listener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             val msg = when (error.errorCode) {
@@ -773,7 +807,8 @@ class StandaloneViewManager(
                 override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
             },
             translationManager = translationManager,
-            playbackPositionRepository = playbackPositionRepository
+            playbackPositionRepository = playbackPositionRepository,
+            statsSink = statsSink
         )
     }
 

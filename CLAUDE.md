@@ -23,9 +23,11 @@
 - `/spec-dev`: execute tactical spec step-by-step.
 - `/spec-check`: audit spec against codebase; sets status Verified/Partial/Broken; writes to `## Last Audit`.
 - `/spec-fix`: mechanical fixes after spec-check.
-- `/spec-arc`: archive spec (move files to `temp/done/`, set status `Archived`).
+- `/spec-arc`: archive one or more specs (move files to `temp/done/`, set status `Archived`).
+- `/arc`: alias for `/spec-arc`.
 - `/spec-test-device`: on-device verification, UI drive, logcat harvest.
 - `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
+- `/spec-prerelease`: end-to-end pre-release emulator sweep (clean install, resources, settings, scenario, perf, verdict) gating `/skill-release`.
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
 - `/catalog`: class/feature queries, run `scripts/catalog_sync.ps1`.
 - `/doc-update`: docs sync.
@@ -92,6 +94,7 @@
 - Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB via release worktree), `bf` (build failure structured digest).
 - Checks: `.\a.ps1 fk` (Kotlin compile), `fr` (resources/manifest), `fc` (code + resources), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
 - Tests: `.\a.ps1 fu` (full unit suite) or `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
+- Device (ad-hoc, ~0 tokens): `scripts/devtest/adb.ps1 <verb>` or `.\a.ps1 adb <verb>` for quick chores against a connected emulator/device - `devices`, `props`, `current`, `launch`, `stop`, `clear`, `install`, `shot`, `log -Tail N -Grep <regex>`, `tap/text/key`, `prefs`, `shell -Cmd`. Auto-discovers adb (not on PATH); supports `-DeviceId`/`-Release`/`-Json` with stable exit codes. Shortcuts: `adb-devices/-shot/-log/-current/-launch/-clear`. Prefer over raw `adb` for one-off work; `mobile-mcp` stays for agent-driven UI walks, Maestro for repeatable flows.
 
 ## 10. Strict Rules
 1. No root writes. Use `temp/`.
@@ -114,9 +117,11 @@
 18. Lazy optimization: Use Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources immediately when paused.
 19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
+21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
 
 ## 11. Feature & UI Policies
-- **Features**: `docs/FEATURES*.md` (EN/RU/UK). `noLegal` features go to gitignored `docs/FEATURES_noLegal*.md`.
+- **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.
+- **Features (showcase)**: `docs/FEATURES*.md` (EN/RU/UK) is the curated public showcase published to the site, populated ONLY by `/skill-release` from the `ALL_FEATURES` diff since the previous release - never edited per-spec. `noLegal` showcase items go to gitignored `docs/FEATURES_noLegal*.md`.
 - **UI Comm**: `docs/COMMUNICATION_POLICY*.md` (EN/RU/UK). Read before modifying user-visible strings.
 
 ## 12. Validation & Post-Change

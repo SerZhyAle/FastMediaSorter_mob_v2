@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -44,7 +45,7 @@ class DownloadNetworkFileUseCase @Inject constructor(
             val success = when {
                 remotePath.startsWith("smb://") || remotePath.startsWith("smb:/") -> downloadSmbFile(remotePath, targetFile, progressCallback)
                 remotePath.startsWith("sftp://") || remotePath.startsWith("sftp:/") -> downloadSftpFile(remotePath, targetFile, progressCallback)
-                remotePath.startsWith("ftp://") || remotePath.startsWith("ftp:/") -> downloadFtpFile(remotePath, targetFile)
+                remotePath.startsWith("ftp://") || remotePath.startsWith("ftp:/") -> downloadFtpFile(remotePath, targetFile, progressCallback)
                 else -> {
                     Timber.e("Unsupported protocol: $remotePath")
                     false
@@ -56,6 +57,10 @@ class DownloadNetworkFileUseCase @Inject constructor(
             }
             
             success
+        } catch (e: CancellationException) {
+            // Cooperative cancellation (e.g. user pressed Back on the share-preparation dialog) must
+            // propagate, not be reported as a download failure (S0493).
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error downloading file: $remotePath")
             false
@@ -162,40 +167,45 @@ class DownloadNetworkFileUseCase @Inject constructor(
     
     private suspend fun downloadFtpFile(
         remotePath: String,
-        targetFile: File
+        targetFile: File,
+        progressCallback: ((Int) -> Unit)?
     ): Boolean {
         // Parse FTP URL: ftp://server:port/path/to/file
         val uri = PathUtils.safeParseUri(remotePath)
         val server = uri.host ?: return false
         val port = uri.port.takeIf { it > 0 } ?: 21
         val filePath = uri.path ?: return false
-        
+
         val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
             ?: return false
-        
-        // Connect to FTP
-        val connectResult = ftpClient.connect(
-            host = server,
-            port = port,
-            username = credentials.username,
-            password = credentials.password
-        )
-        
-        if (connectResult.isFailure) {
-            return false
-        }
-        
+
+        val progressCallbackAdapter = if (progressCallback != null) {
+            object : ByteProgressCallback {
+                override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                    if (totalBytes > 0) {
+                        val percentage = ((bytesTransferred * 100) / totalBytes).toInt()
+                        progressCallback(percentage)
+                    }
+                }
+            }
+        } else null
+
+        // Isolated connection per call (S0496): the shared @Singleton FtpClient's connect()
+        // tears down any in-flight transfer, so a concurrent FTP operation would break this one.
         val result = FileOutputStream(targetFile).use { outputStream ->
-            ftpClient.downloadFile(
+            ftpClient.downloadFileWithNewConnection(
+                host = server,
+                port = port,
+                username = credentials.username,
+                password = credentials.password,
                 remotePath = filePath,
                 outputStream = outputStream,
                 fileSize = 0L,
-                progressCallback = null // FTP client doesn't use progress callback
+                progressCallback = progressCallbackAdapter
             )
         }
-        
-        ftpClient.disconnect()
-        
+
+        Timber.d("S0496: FTP download via isolated connection ok=${result.isSuccess} -> $server:$port$filePath")
         return result.isSuccess
     }
 }

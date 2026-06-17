@@ -4,6 +4,9 @@ import android.content.Context
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -36,6 +39,7 @@ class NetworkImageEditUseCaseTest {
     private val smbHandler = mockk<SmbFileOperationHandler>()
     private val sftpHandler = mockk<SftpFileOperationHandler>()
     private val ftpHandler = mockk<FtpFileOperationHandler>()
+    private val statsSink = mockk<StatsSink>(relaxed = true)
     private lateinit var cacheDir: File
     private lateinit var useCase: NetworkImageEditUseCase
 
@@ -43,7 +47,9 @@ class NetworkImageEditUseCaseTest {
     fun setup() {
         cacheDir = tempFolder.newFolder("cache")
         every { context.cacheDir } returns cacheDir
-        useCase = NetworkImageEditUseCase(context, rotate, flip, filter, adjust, smbHandler, sftpHandler, ftpHandler)
+        useCase = NetworkImageEditUseCase(
+            context, rotate, flip, filter, adjust, smbHandler, sftpHandler, ftpHandler, statsSink
+        )
     }
 
     /**
@@ -71,12 +77,14 @@ class NetworkImageEditUseCaseTest {
     @Test
     fun `full rotate flow downloads edits and uploads`() = runTest {
         stubSmbDownloadWritesTemp("photo.jpg")
-        coEvery { rotate.execute(any(), any()) } returns Result.success(Unit)
+        coEvery { rotate.execute(any(), any(), any()) } returns Result.success(Unit)
 
         val result = useCase.execute("smb://host/share/photo.jpg", NetworkImageEditUseCase.EditOperation.Rotate(90f))
 
         assertTrue(result.isSuccess)
-        coVerify { rotate.execute(any(), 90f) }
+        // S0482: the leaf use-case must not self-count for a network edit; the edit is counted once here.
+        coVerify { rotate.execute(any(), 90f, false) }
+        coVerify(exactly = 1) { statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT)) }
         // Temp file cleaned up afterwards.
         assertFalse(File(cacheDir, "network_image_edit/photo.jpg").exists())
     }
@@ -93,7 +101,7 @@ class NetworkImageEditUseCaseTest {
     @Test
     fun `edit failure returns failure`() = runTest {
         stubSmbDownloadWritesTemp("photo.jpg")
-        coEvery { rotate.execute(any(), any()) } returns Result.failure(RuntimeException("decode"))
+        coEvery { rotate.execute(any(), any(), any()) } returns Result.failure(RuntimeException("decode"))
 
         val result = useCase.execute("smb://host/share/photo.jpg", NetworkImageEditUseCase.EditOperation.Rotate(90f))
 
@@ -113,10 +121,12 @@ class NetworkImageEditUseCaseTest {
                 FileOperationResult.Failure("upload failed")
             }
         }
-        coEvery { rotate.execute(any(), any()) } returns Result.success(Unit)
+        coEvery { rotate.execute(any(), any(), any()) } returns Result.success(Unit)
 
         val result = useCase.execute("smb://host/share/photo.jpg", NetworkImageEditUseCase.EditOperation.Rotate(90f))
 
         assertTrue(result.isFailure)
+        // S0482: a failed upload is not a saved edit - it must not be counted.
+        coVerify(exactly = 0) { statsSink.record(any()) }
     }
 }

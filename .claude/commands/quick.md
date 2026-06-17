@@ -75,12 +75,12 @@ pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -T
 
 > **Performance hint.** Правка `.kt` + dev log + каталог одним вызовом: `scripts/post-change.ps1 ... -ChangeType Kotlin` (или `Mixed` если заодно `strings.xml` с `-KeyPrefix`). Для `/quick` обычно избыточно, но при пачке `.kt`-правок удобнее серии вызовов.
 
-**Step 4a - Functionality log (условно).**
-Если правка реально видна пользователю как изменение поведения существующей фичи (UI-строка, цвет акцента, отступ видимого элемента, ориентация виджета) - одна строка в `dev/FUNCTIONALITY.log`:
+**Step 4a - Feature inventory (условно).**
+Если правка реально видна пользователю как изменение поведения существующей фичи (UI-строка, цвет акцента, отступ видимого элемента, ориентация виджета) - обнови или добавь запись в `docs/ALL_FEATURES.jsonl` (EN-only инвентарь, заменил `dev/FUNCTIONALITY.log`):
 ```powershell
-.\scripts\add_to_functionality_log.ps1 -Op CHANGE -Description "<short EN summary of the visible change>"
+.\scripts\all_features\add.ps1 -Id "<area>.<feature>" -Area "<Area>" -Name "<short EN>" -Description "<short EN summary>" -Flavors "standard"
 ```
-`-Id` не указывается (`/quick` не создаёт спеки); слот `[------]`.
+`docs/FEATURES*` (публичная витрина) здесь не трогаем - её наполняет только `/skill-release` из диффа инвентаря.
 
 Skip (тихо), если:
 - Правка чисто косметическая и невидима (опечатка в комментарии, форматирование, переименование приватной переменной).
@@ -118,7 +118,7 @@ Skip (тихо), если:
 | `docs/FEATURES*`     | skip              |
 | Build verification   | skip              |
 | `post-change.ps1`    | **обязательно**   |
-| `dev/FUNCTIONALITY.log` | условно (только если видно пользователю как изменение поведения) |
+| `docs/ALL_FEATURES.jsonl` | условно (только если видно пользователю как изменение поведения) |
 | `/verify` on-device smoke | опционально, только по `--verify-device` |
 | Author style (`..`, `ё`) | **обязательно** |
 

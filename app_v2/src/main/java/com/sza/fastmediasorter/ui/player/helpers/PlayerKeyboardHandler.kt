@@ -88,7 +88,7 @@ class PlayerKeyboardHandler(
         fun canCopyCurrent(): Boolean = false
         fun canMoveCurrent(): Boolean = false
         fun onToggleBlackScreen() {}
-        // S0162: toggle player-level rotation sensor (no-op when followSystemRotation=true - guard in ViewModel)
+        // S0162: toggle player-level rotation sensor (no-op when the player follows the OS - guard in ViewModel)
         fun onToggleRotationSensor() {}
     }
 

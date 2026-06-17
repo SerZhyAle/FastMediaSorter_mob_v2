@@ -30,16 +30,16 @@ interface EditorActionPanel {
  *
  * - [onSave]          Save in place, stay in editor.
  * - [onSaveAndClose]  Save and finish the editor activity.
- * - [onSaveAndSend]   Save then surface a system share chooser for the saved file.
- * - [onSendToKeep]    Surface a text-only share targeted at the Google Keep app (text-note path only).
+ * - [onSendTo]        S0459: save, then open the unified «Send to..» menu for the current text.
+ *                     Replaces the former separate Save & send / Send to Keep actions - Keep is now
+ *                     one of the registry receivers offered inside that menu.
  * - [onOpenCalculator] Open the editor calculator round-trip command.
  * - [onCancel]        Discard changes; for staged new notes the staging file is deleted.
  */
 data class EditorActionCallbacks(
     val onSave: () -> Unit,
     val onSaveAndClose: () -> Unit,
-    val onSaveAndSend: () -> Unit,
-    val onSendToKeep: () -> Unit,
+    val onSendTo: () -> Unit,
     val onOpenCalculator: () -> Unit,
     val onCancel: () -> Unit,
 )

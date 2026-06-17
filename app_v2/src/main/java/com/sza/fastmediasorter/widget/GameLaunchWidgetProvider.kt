@@ -52,7 +52,6 @@ class GameLaunchWidgetProvider : AppWidgetProvider() {
             enabled: Boolean
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_game_launch)
-            Timber.d("S0348: game widget render icon-only enabled=$enabled")
             views.setInt(R.id.widget_game_icon, "setImageAlpha", if (enabled) 255 else 110)
             views.setOnClickPendingIntent(
                 R.id.widget_game_container,

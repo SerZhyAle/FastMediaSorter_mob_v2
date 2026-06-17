@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04: one legend line for the distribution bar - color swatch + type label +
+     percentage and raw value. The text carries the data so the chart is not color-only. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="@dimen/margin_tiny">
+
+    <View
+        android:id="@+id/viewLegendSwatch"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="@dimen/margin_normal"
+        android:background="@drawable/bg_stats_distribution_segment" />
+
+    <TextView
+        android:id="@+id/tvLegendLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_small"
+        tools:text="Images" />
+
+    <TextView
+        android:id="@+id/tvLegendValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_normal"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small"
+        tools:text="61% (1 248)" />
+
+</LinearLayout>

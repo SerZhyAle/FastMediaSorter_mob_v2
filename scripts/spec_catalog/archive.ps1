@@ -109,7 +109,9 @@ for ($i = 0; $i -lt $allRecords.Count; $i++) {
     if ($allRecords[$i].id -eq $Id) { $idx = $i; break }
 }
 
-$old = $allRecords[$idx]
+# When the id is no longer in the active journal (already moved to archive),
+# fall back to the record resolved earlier via Find-Record's archive fallback.
+$old = if ($idx -ge 0) { $allRecords[$idx] } else { $record }
 $archived = [pscustomobject]@{
     id       = [string]$old.id
     name     = [string]$old.name
@@ -130,8 +132,12 @@ foreach ($prop in $old.PSObject.Properties) {
 }
 
 Assert-Record -Record $archived
-$allRecords[$idx] = $archived
-Write-Catalog -Records $allRecords.ToArray()
+# Physically relocate: append to the archive journal, drop from the active one.
+# Add-ArchiveRecord replaces by id (idempotent); active removal is a no-op if
+# the id was already moved out.
+Add-ArchiveRecord -Record $archived
+$remaining = @($allRecords | Where-Object { $_.id -ne $Id })
+Write-Catalog -Records ([object[]]$remaining)
 
 $movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
 Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> temp/done/")

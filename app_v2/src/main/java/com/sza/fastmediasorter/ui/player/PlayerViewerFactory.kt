@@ -23,7 +23,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 imageLoadingManagerProvider = { activity.imageLoadingManager },
                 slideshowController = activity.slideshowController,
                 sleepTimerManagerProvider = { activity.sleepTimerManager },
-                audioEmptyStateControllerProvider = { activity.audioEmptyStateController }
+                audioEmptyStateControllerProvider = { activity.audioEmptyStateController },
+                mediaCapabilities = activity.mediaCapabilities
             ),
             credentialsRepository = activity.credentialsRepository,
             smbClient = activity.smbClient,
@@ -42,6 +43,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             decoderFailureTracker = activity.recentDecoderFailureTracker,
             // S0391: source-availability gate for playback-dispatch gating.
             remoteSourceGate = activity.remoteSourceGate,
+            // S0473: usage-statistics sink for the video-watched completion event.
+            statsSink = activity.statsSink,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }
@@ -91,7 +94,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 }
             },
             translationManager = activity.translationManager,
-            playbackPositionRepository = activity.playbackPositionRepository
+            playbackPositionRepository = activity.playbackPositionRepository,
+            statsSink = activity.statsSink
         )
     }
 

@@ -4,13 +4,14 @@ param(
     [string] $Status,
     [string] $Tag,
     [string] $Type,
+    [switch] $IncludeArchived,
     [ValidateSet('table','json')]
     [string] $Format = 'table'
 )
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
-$records = Read-Catalog
+$records = Read-Catalog -IncludeArchived:$IncludeArchived
 
 if ($Query) {
     $records = $records | Where-Object {

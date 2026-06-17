@@ -6,16 +6,17 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.ui.main.MainActivity
+import dagger.hilt.android.EntryPointAccessors
 
 /**
  * Widget provider for one-tap random music playback.
  * Finds the "All Music" virtual resource and launches PlayerActivity
  * with shuffle enabled and autoplay.
  *
- * Available only on flavors where BuildConfig.SUPPORT_AUDIO == true.
+ * Active only on flavors that support audio (MediaCapabilities.supportsAudio).
  */
 class RandomMusicWidgetProvider : AppWidgetProvider() {
 
@@ -37,7 +38,12 @@ class RandomMusicWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_random_music)
 
-            if (BuildConfig.SUPPORT_AUDIO) {
+            // Widget is framework-instantiated; resolve flavor capabilities via Hilt entry point (Rule 14).
+            val caps = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                MediaCapabilitiesEntryPoint::class.java
+            ).mediaCapabilities()
+            if (caps.supportsAudio) {
                 val intent = Intent(context, MainActivity::class.java).apply {
                     action = MainActivity.ACTION_RANDOM_MUSIC
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

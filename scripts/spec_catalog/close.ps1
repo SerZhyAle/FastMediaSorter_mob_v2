@@ -62,8 +62,16 @@ foreach ($prop in $old.PSObject.Properties) {
 
 Assert-Record -Record $updated
 
-$records[$idx] = $updated
-Write-Catalog -Records $records.ToArray()
+# Closing to Archived relocates the record into the archive journal; closing to
+# Verified keeps it in the active journal.
+if ($Status -eq 'Archived') {
+    Add-ArchiveRecord -Record $updated
+    $remaining = @($records | Where-Object { $_.id -ne $Id })
+    Write-Catalog -Records ([object[]]$remaining)
+} else {
+    $records[$idx] = $updated
+    Write-Catalog -Records $records.ToArray()
+}
 
 # Mirror the terminal status into the spec file header the same way update.ps1 does,
 # so closing a ticket cannot leave the human-readable spec stale.

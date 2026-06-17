@@ -4,6 +4,7 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 
 /**
  * Utility object for Android platform signal detection.
@@ -13,20 +14,14 @@ import android.content.res.Configuration
 object DetectionHelper {
 
     /**
-     * Check for VR/XR features: PackageManager features or UI mode.
-     * Returns true if device reports VR mode or XR features.
+     * Check for VR/XR features.
+     * Delegates to [XrDeviceProbe] so profile detection and the GMS-availability
+     * gate share one canonical XR system-feature list; divergent string copies
+     * here previously missed Android XR (android.software.xr.api.*) and misclassified
+     * headsets as tablets.
      */
     fun hasVrFeatures(context: Context): Boolean {
-        val pm = context.packageManager
-        // Check for XR/VR features
-        if (pm.hasSystemFeature("android.software.vr.mode")) return true
-        if (pm.hasSystemFeature("android.software.vr_mode_high_perf")) return true
-        if (pm.hasSystemFeature("android.xr.feature.openxr")) return true
-
-        // Note: VR_HEADSET mode type not available in standard UiModeManager
-        // Rely on feature flags instead
-
-        return false
+        return XrDeviceProbe.isXrDevice(context)
     }
 
     /**

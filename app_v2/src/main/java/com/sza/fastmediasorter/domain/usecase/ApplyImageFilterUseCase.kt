@@ -9,6 +9,9 @@ import android.graphics.Paint
 import timber.log.Timber
 import java.io.File
 import android.content.Context
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.FileOutputStream
@@ -19,7 +22,9 @@ import javax.inject.Inject
  * Uses Android ColorMatrix for efficient color transformations
  */
 class ApplyImageFilterUseCase @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    // S0473/S0482: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     enum class FilterType {
@@ -28,7 +33,11 @@ class ApplyImageFilterUseCase @Inject constructor(
         NEGATIVE
     }
 
-    suspend fun execute(imagePath: String, filterType: FilterType): Result<Unit> {
+    /**
+     * @param recordStats S0482: record one IMAGE_EDIT metric on success. Disabled by
+     *   NetworkImageEditUseCase, which counts once after the upload lands to avoid double-counting.
+     */
+    suspend fun execute(imagePath: String, filterType: FilterType, recordStats: Boolean = true): Result<Unit> {
         return try {
             // Applying filter
             
@@ -59,6 +68,7 @@ class ApplyImageFilterUseCase @Inject constructor(
 
             // Filter applied successfully
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
+            if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "Failed to apply filter: $filterType")

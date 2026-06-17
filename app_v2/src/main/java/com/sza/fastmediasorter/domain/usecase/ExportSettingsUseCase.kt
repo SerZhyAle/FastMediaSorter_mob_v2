@@ -28,7 +28,6 @@ class ExportSettingsUseCase @Inject constructor(
 
     suspend operator fun invoke(): Result<String> {
         return try {
-            Timber.d("S0406: export unified backup to local JSON file")
             val payload = buildBackupPayloadUseCase()
             val json = GsonBuilder().setPrettyPrinting().create().toJson(payload)
             val exportPath = writeToDownloads(json, EXPORT_FILE_NAME)

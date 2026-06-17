@@ -1,15 +1,17 @@
 # Memory Index
 
+- [screenCapture is noLegal-only](project_screencapture_nolegal_only.md) - gesture screenshot capture (src/screenCapture) mounts only into noLegal; gates via empty injected controller set, not BuildConfig; FEATURES.md [Standard] label is inaccurate
+
+- [Dirty tree is normal WIP - don't alarm](feedback_dirty_tree_is_normal_wip.md) - repo runs multiple worktrees (mob_v2→DEBUG-vNNN, release→main); uncommitted files = intact WIP, report calmly, never imply revert/clobber/loss
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
+- [No concurrent gradle invocations](feedback_no_concurrent_gradle_invocations.md) - post-change Kotlin gates each spin a compile; running 6 + a build → multiple Kotlin daemons → OOM. Run post-change serially, build after
+- [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick ad-hoc device chores; prefer over raw adb; ~0 tokens
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
-- [S0398 keystone welcome-skeleton (BlockNeedUserTest)](project_s0398_inprogress.md) - build-green; DEBUG-v013 auto-commit + temp_stash_s0397 gotchas; ColorThemePrefs.getMode()
-- [Welcome redesign: S0399/S0400/S0401/S0402 Implemented+BlockNeedUserTest 2026-06-11](project_s0395_welcome_redesign_research.md) - central-skeleton+onBind-callback arch; pager order hero/profile/networks/functionality/permissions/default-player; deferrals
 - [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit
 - [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
-- [S0386 delivery: ALL code done, at BlockNeedUserTest](project_s0386_delivery_pause.md) - 9 phases done & 4 flavors build-green (commit 8ed28604); only owner device-test + release unpack-verify remain; loader keystone = classloader native-path injection
 - [photos/lite OCR build break - RESOLVED 2026-06-10](project_photos_flavor_ocr_break.md) - Tesseract moved to src/ocrEnabled bucket, NoOp default in src/ocrDisabled for photos/lite; new Tesseract code must go in ocrEnabled, never src/main
 - [Players are a family of activities - mirror per-host glue](feedback_player_family_glue_mirroring.md) - shared engine/use-case/capability changes propagate; per-host delegate/layout changes must be mirrored (compiler won't catch); host-seam refactor = S0392
 
@@ -17,6 +19,7 @@
 - [Draft style is approval-gate, not drafting friction](feedback_draft_style_gate.md) - spec `..`/ё + lists-over-tables sanitation enforced only at Draft->Approved; drafts may stay rough, no hygiene-only sweeps
 - [Spec **Status:** header auto-syncs from journal](feedback_spec_header_autosync.md) - owner reads in-file header; update.ps1 now rewrites first **Status:** line on every status change (fail-soft, first-match only)
 
+- [Bottom-sheet menu items untappable on emulator](feedback_bottomsheet_menu_untappable_emulator.md) - ResourceOperationsMenu items ignore mobile-mcp/adb taps on AVD; after 1+1 attempts declare runtime INCONCLUSIVE, keep BlockNeedUserTest, prefer real device/Maestro
 - [Frozen app? check TracerPid / lldb-server](feedback_frozen_app_check_tracerpid.md) - UI frozen + no crash + log stops at "blocking GC ProfileSaver" → native LLDB debugger holds VM via ptrace, not a code bug; check /proc/<pid>/status TracerPid
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
@@ -36,12 +39,13 @@
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
 - [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
+- [AVD device-sweep gotchas](feedback_avd_device_sweep_gotchas.md) - headless Pixel_4: touch input wedge (keyevent-probe + cold reboot), ACCESS_LOCAL_NETWORK for SMB/SFTP/FTP, logcat death recovery, mcp coords top-left
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew tag(.424) vs built artifact(.446); DEBUG-not-rebased-after-main-rebuild merge conflict in release-doc files; gitignored PLAN/ makes Step 12a git-diff empty (use local catalog)
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS] so user can track time spent per step
 - [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code lives in src/<flavor>/java/; BuildConfig flavor guards in src/main forbidden (CLAUDE.md Rule 15)
 - [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal flavor's srcFile(vr-manifest) silently drops src/noLegal/AndroidManifest.xml; use addStaticManifestFile in onVariants
-- [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log: developer-facing ADD/CHANGE/DELETE/FIX history of user-visible capability lifecycle; written via scripts/add_to_functionality_log.ps1
+- [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); capabilities now docs/ALL_FEATURES.jsonl via scripts/all_features/add.ps1 (add_to_functionality_log.ps1 errors out)
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
 - [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) - testStandardDebugUnitTest carries ~26 broken pre-existing tests; verify own work via per-class XML reports, use assembleStandardDebug for compile checks
 - [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; new buckets (cloudEnabled/cloudDisabled) must be added to $srcRoots
@@ -65,9 +69,10 @@
 - [VR HUD rendering pitfalls](project_vr_hud_quirks.md) - 4 hidden traps caused "HUD invisible" for hours; multiply_matrices column-major formula required, no per-frame queueHud from native callbacks, use ByteBuffer.allocateDirect not wrap, Android Skia copyPixelsToBuffer is RGBA (no R/B swap)
 - [S0002 decomposition toolkit](project_s0002_decomposition_toolkit.md) - reusable scripts (collapse_*/strip_trace_logs/fix_empty_else) + extraction patterns + Wave 54 backlog (TextViewer/PdfViewer/PlayerActivity/CommandPanelController still over 1000)
 - [adb location + .debug package suffix](reference_adb_and_debug_package.md) - adb not on PATH (user SDK platform-tools); debug builds install as com.sza.fastmediasorter.debug; Quest3 logcat buffer short, prefer app file logs in logs/
-- [Functionality log script leaves non-zero exit](project_func_log_nonzero_exit.md) - add_to_functionality_log.ps1 succeeds but sets non-zero $LASTEXITCODE; run it last/standalone, re-verify journal status
+- [setup_test_media.ps1](reference_setup_test_media.md) - seeds structured test-media tree on all connected devices for manual/device tests; source at c:\Common\test_media (outside repo); maps to PRE_RELEASE_MANUAL_TESTS.md
 - [set-android-string.ps1 editor](reference_strings_tool.md) - canonical byte-preserving set/add/get/remove/rename/list of string resources across EN/RU/UK; prefer over hand-editing strings.xml (grep scripts/utils/ before writing new resource tools)
 - [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/ + scripts/utils/ + skills for an existing helper before authoring a new script; extend it, don't duplicate (I duplicated set-android-string.ps1)
 - [Research over owner-question on design forks](feedback_research_over_owner_question.md) - best-practice/granularity/grouping forks: research the convention and recommend, don't AskUserQuestion an arbitrary call (S0339: user redirected both questions to "research")
 - [String tools cover src/main/res only](feedback_string_tools_main_res_only.md) - check_strings_localized.ps1 + set-android-string.ps1 ignore src/<flavor>/res; hand-edit flavor strings, grep-verify EN/RU/UK parity (build only proves EN)
 - [Cyrillic corrupts through bash→pwsh args](feedback_cyrillic_bash_pwsh_boundary.md) - never pass RU/UK literals as pwsh CLI args from Bash tool (mojibake); author a UTF-8 .ps1 via Write, verify with Grep/Read not console
+- [pwsh authoring byte traps](feedback_pwsh_authoring_byte_traps.md) - Write-tool hex/Unicode escapes can land as control bytes (use char-code scan + [char]0xNN); array-splat re-parses dash-leading values (use hashtable splat)

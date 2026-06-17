@@ -10,6 +10,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
@@ -51,6 +53,7 @@ class GeneralSettingsViewSetupHelper(
     fun setup() {
         setupLanguageSpinner()
         setupSwitches()
+        setupStatisticsRow()
         setupRemoteSources()
         setupTooltips()
         setupIconSizeInput()
@@ -93,6 +96,13 @@ class GeneralSettingsViewSetupHelper(
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
+        }
+        // S0473: opt-in statistics. Routed through a dedicated VM method (not updateSettings) so the
+        // off-toggle also wipes detailed activity; the VM does the work off the UI thread.
+        binding.rowEnableStatistics.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (viewModel.settings.value.enableStatistics == isChecked) return@setOnCheckedChangeListener
+            viewModel.setStatisticsCollectionEnabled(isChecked)
         }
         // S0028: Multi-window toggle. Relocated from VideoSettings to General → Interface (bottom of section).
         binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
@@ -184,6 +194,21 @@ class GeneralSettingsViewSetupHelper(
     }
 
     /**
+     * S0473 Phase 04: the "Statistics" navigation row sitting under the opt-in toggle. The row is
+     * only meaningful while collection is on (strategic ADR-3), so its visibility tracks
+     * [com.sza.fastmediasorter.domain.model.AppSettings.enableStatistics] reactively - turning the
+     * toggle off hides it again without a screen reload. Click opens the dashboard activity.
+     */
+    private fun setupStatisticsRow() {
+        binding.rowOpenStatistics.setOnClickListener {
+            fragment.startActivity(Intent(fragment.requireContext(), StatisticsActivity::class.java))
+        }
+        fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
+            binding.rowOpenStatistics.isVisible = settings.enableStatistics
+        }
+    }
+
+    /**
      * S0391: the three remote-source group toggles. Each mass-writes its member flags; the display
      * state (group ON if any member ON) is kept in sync by [GeneralSettingsObserversHelper]. The
      * cloud row is hidden on flavors without cloud support. Turning a group OFF while it still has
@@ -230,7 +255,6 @@ class GeneralSettingsViewSetupHelper(
         affectedTypes: List<ResourceType>,
         transform: (com.sza.fastmediasorter.domain.model.AppSettings) -> com.sza.fastmediasorter.domain.model.AppSettings,
     ) {
-        Timber.d("S0391: settings remote-source toggle, enabled=$enabled types=$affectedTypes")
         val current = viewModel.settings.value
         if (enabled || !groupHasResources(affectedTypes)) {
             viewModel.updateSettings(transform(current))
@@ -254,10 +278,13 @@ class GeneralSettingsViewSetupHelper(
         viewModel.resources.value.any { it.type in types }
 
     private fun setupAllFilesResourceButton() {
+        // defStyleAttr must be the Material outlined-button attr: MaterialButton's built-in
+        // defStyleRes is the FILLED button, which would win over the theme overlay and render a
+        // solid blue button. Passing materialButtonOutlinedStyle gives the real outlined base.
         val button = MaterialButton(
             ContextThemeWrapper(fragment.requireContext(), R.style.Widget_FastMediaSorter_SettingsButton_Outlined),
             null,
-            0
+            com.google.android.material.R.attr.materialButtonOutlinedStyle
         ).apply {
             text = fragment.getString(R.string.settings_all_files_create_resource)
             isAllCaps = false
@@ -389,12 +416,12 @@ class GeneralSettingsViewSetupHelper(
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
         }
-        binding.rowEnableThumbnailPreload?.setOnCheckedChangeListener { isChecked ->
+        binding.rowEnableThumbnailPreload.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
-            binding.layoutThumbnailPreloadWifiOnly?.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.layoutThumbnailPreloadWifiOnly.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        binding.rowThumbnailPreloadWifiOnly?.setOnCheckedChangeListener { isChecked ->
+        binding.rowThumbnailPreloadWifiOnly.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
         }

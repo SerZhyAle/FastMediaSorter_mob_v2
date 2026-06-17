@@ -1,22 +1,34 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.content.FileProvider
+import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import timber.log.Timber
+import java.io.File
 
 /**
  * Handles binary file actions for BrowseActivity: bottom sheet menu, open-with, share, MIME type.
  *
  * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
+ *
+ * S0459 Phase 07: Share routes through the unified [SendToMenuManager]; "Open in.." routes through
+ * the shared [OpenInShareTargetHandler] - no surface-local ACTION_SEND / ACTION_VIEW chooser.
  */
 class BrowseBinaryFileHandler(
     private val activity: Activity,
+    private val sendToMenuManager: SendToMenuManager,
+    private val openInHandler: OpenInShareTargetHandler,
+    private val getSettings: () -> AppSettings?,
     private val onSelectFile: (String) -> Unit,
     private val onPrepareExtraction: (MediaFile) -> Unit,
     private val onShowCopyDialog: () -> Unit,
@@ -83,37 +95,53 @@ class BrowseBinaryFileHandler(
     }
 
     fun openWithDefaultApp(mediaFile: MediaFile) {
-        try {
-            val uri = Uri.parse(mediaFile.path)
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, getMimeTypeForFile(mediaFile))
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            if (intent.resolveActivity(activity.packageManager) != null) {
-                activity.startActivity(intent)
-            } else {
-                Toast.makeText(activity, R.string.no_app_to_open, Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to open file with default app")
+        val content = buildBinaryContent(mediaFile)
+        if (content == null) {
             Toast.makeText(activity, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!openInHandler.send(activity, content)) {
+            Toast.makeText(activity, R.string.no_app_to_open, Toast.LENGTH_SHORT).show()
         }
     }
 
     fun shareFile(mediaFile: MediaFile) {
-        try {
-            val uri = Uri.parse(mediaFile.path)
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = getMimeTypeForFile(mediaFile)
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.share)))
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to share file")
+        val host = activity as? FragmentActivity ?: run {
+            Timber.w("BrowseBinaryFileHandler: host is not a FragmentActivity, cannot show Send-to menu")
+            return
+        }
+        val settings = getSettings() ?: return
+        val content = buildBinaryContent(mediaFile)
+        if (content == null) {
             Toast.makeText(activity, R.string.error_sharing_file, Toast.LENGTH_SHORT).show()
+            return
+        }
+        sendToMenuManager.show(host, content, settings)
+    }
+
+    // Build a shareable Uri for a binary MediaFile: FileProvider for a local file path, otherwise
+    // the path is already a content/scheme Uri (e.g. SAF) and is parsed as-is.
+    private fun buildBinaryContent(mediaFile: MediaFile): ShareableContent? {
+        return try {
+            val uri = if (mediaFile.path.contains("://")) {
+                Uri.parse(mediaFile.path)
+            } else {
+                FileProvider.getUriForFile(
+                    activity,
+                    "${activity.packageName}.fileprovider",
+                    File(mediaFile.path)
+                )
+            }
+            ShareableContent(
+                uris = listOf(uri),
+                mime = getMimeTypeForFile(mediaFile),
+                mediaType = mediaFile.type,
+                displayName = mediaFile.name,
+                mediaFile = mediaFile,
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to build shareable content for binary file: %s", mediaFile.path)
+            null
         }
     }
 

@@ -222,7 +222,8 @@ class BrowseInlineAudioManager(
 
     private suspend fun resolveLocalPath(file: MediaFile): String? {
         val path = file.path
-        if (!path.startsWith("smb://")) return path
+        // Non-SMB network protocols (sftp://, ftp://, etc.) are not cacheable here; only local and content:// paths pass through.
+        if (!path.startsWith("smb://")) return path.takeUnless { "://" in it && !it.startsWith("content://") }
         val cacheFile = getInlineAudioCacheFile(file)
         if (cacheFile.exists() && cacheFile.length() > 0L) {
             Timber.d("InlinePlayer: cache hit for '${file.name}'")

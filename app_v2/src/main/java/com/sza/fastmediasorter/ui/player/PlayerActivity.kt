@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -88,7 +89,19 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation,
+    com.sza.fastmediasorter.core.share.SharePrintHost {
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
+
+    // S0459 ADR-10: the player is the Print host for the unified «Send to..» menu. DocumentPrintManager
+    // owns the async print pipeline and its own capability/error messaging, so this just dispatches.
+    override fun printMediaFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): Boolean {
+        printManager.printCurrentFile(mediaFile)
+        return true
+    }
+
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -329,10 +342,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
+    // S0459: unified «Send to..» menu manager; accessed by PlayerCommandPanelCallbackImpl.
+    @Inject internal lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+
     @Inject internal lateinit var credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
     @Inject lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    // S0473: usage-statistics sink, forwarded into the manually-constructed player managers
+    // (video/image/pdf) via PlayerViewerFactory and PlayerManagerInitializer.
+    @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
 
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
     @Inject lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -343,6 +362,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
     @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
+    // S0436: flavor-resolved capability layer; passed down to the player-manager cascade in place of BuildConfig.SUPPORT_* reads.
+    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
     @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
@@ -382,6 +404,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal
     @Inject lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
     @Inject
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
@@ -855,8 +878,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
-
-    internal fun shareCurrentFile() = fileOperationsHandler.performShare()
 
     internal fun stopTranslation() = imageTranslationManager.stopTranslation()
 

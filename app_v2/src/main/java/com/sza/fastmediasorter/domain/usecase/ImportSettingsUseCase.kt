@@ -85,10 +85,8 @@ class ImportSettingsUseCase @Inject constructor(
             val importText = inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
             val trimmedText = importText.trimStart('﻿', ' ', '\n', '\r', '\t', ' ')
             if (trimmedText.startsWith("{")) {
-                Timber.d("S0406: import settings from unified JSON backup")
                 return importFromJson(trimmedText)
             }
-            Timber.d("S0406: import settings from legacy XML backup")
 
             // Legacy XML path (back-compat) - parse from the text already read.
             java.io.ByteArrayInputStream(importText.toByteArray(Charsets.UTF_8)).use { stream ->
@@ -212,7 +210,6 @@ class ImportSettingsUseCase @Inject constructor(
                                         translationSourceLanguage = data["translationSourceLanguage"] ?: "auto",
                                         translationTargetLanguage = data["translationTargetLanguage"] ?: "ru",
                                         translationLensStyle = data["translationLensStyle"]?.toBoolean() ?: false,
-                                        enableGoogleLens = data["enableGoogleLens"]?.toBoolean() ?: false,
                                         enableOcr = data["enableOcr"]?.toBoolean() ?: false,
                                         ocrDefaultFontSize = data["ocrDefaultFontSize"] ?: "AUTO",
                                         ocrDefaultFontFamily = data["ocrDefaultFontFamily"] ?: "DEFAULT",
@@ -247,6 +244,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
                                         cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
+                                        cameraCaptureCopyToClipboard = data["cameraCaptureCopyToClipboard"]?.toBoolean() ?: false,
                                         enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: true,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,
@@ -265,7 +263,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         videoSnapshotResourceId = data["videoSnapshotResourceId"]?.toLongOrNull(),
                                             videoSnapshotFormat = data["videoSnapshotFormat"]
                                                 ?.takeIf { it == "JPG" }
-                                                ?: "PNG"
+                                                ?: "PNG",
+                                        videoFrameCopyToClipboard = data["videoFrameCopyToClipboard"]?.toBoolean() ?: false
                                     )
                                 }
                                 currentResource = null
@@ -571,7 +570,6 @@ class ImportSettingsUseCase @Inject constructor(
                 f.name.endsWith(".$extension", ignoreCase = true)
         }?.maxByOrNull { it.lastModified() } ?: return null
 
-        Timber.d("S0406: auto-search direct Downloads fallback selected ${match.name}")
         return try {
             FileInputStream(match)
         } catch (e: Exception) {

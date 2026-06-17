@@ -86,7 +86,6 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             val payload = downloadAndParseBackup()
                 ?: return@withContext Result.failure(Exception("No backup found"))
 
-            Timber.d("S0406: restore unified payload from Google Drive")
             // Shared applier owns version check, settings/resources/favorites/scheduled-ops merge,
             // plus the new secret sections (network credentials, saved site authorizations).
             val summary = applyBackupPayloadUseCase(payload)

@@ -23,7 +23,6 @@ class QuickAudioRecorderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S0349: widget tap -> trampoline (isRecording=${QuickAudioRecorderService.isRecording})")
         launchManager = QuickAudioRecorderLaunchManager(
             activity = this,
             requestPermission = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },

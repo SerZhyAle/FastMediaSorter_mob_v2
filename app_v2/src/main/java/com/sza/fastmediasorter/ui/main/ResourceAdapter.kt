@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
@@ -390,8 +391,9 @@ class ResourceAdapter(
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
-                // Drag handle - visible for real resources when drag is wired up
-                val isDraggable = dragStartListener != null && resource.id != -100L
+                // Drag handle - visible for real resources when drag is wired up.
+                // S0488: the pinned All-files row stays first, so it is non-draggable like Favorites (-100L).
+                val isDraggable = dragStartListener != null && resource.id != -100L && !resource.isAllFilesPredefined
                 ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
                 ivDragHandle.setOnTouchListener { _, event ->
                     if (event.actionMasked == MotionEvent.ACTION_DOWN) {
@@ -803,7 +805,8 @@ class ResourceAdapter(
                     }
 
                     // Drag handle - visible for real resources when drag is wired up
-                    val isDraggable = dragStartListener != null
+                    // S0488: the pinned All-files row stays first, so it is non-draggable.
+                    val isDraggable = dragStartListener != null && !resource.isAllFilesPredefined
                     ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
                     ivDragHandle.setOnTouchListener { _, event ->
                         if (event.actionMasked == MotionEvent.ACTION_DOWN) {

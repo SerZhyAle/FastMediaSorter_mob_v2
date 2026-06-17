@@ -353,7 +353,7 @@ Automated steps above cover Google Play + GitHub Store. A complete plateau relea
 
 3. **Google Drive** - automated inside `a.ps1 r` (`build-aab-release.ps1`): copies standard AAB+APK to the synced Drive folder, writes a password-protected ZIP (`FastMediaSorter_standard_release.zip`, password `1`). Other flavors (`lite`/`photos`/`legacy`) refresh their Drive ZIPs only when their own `a.ps1` build runs. No separate step - ensure the Drive desktop-sync folder is present (script warns and skips if absent).
 
-4. **4pda forum** (Russian) - MANUAL post. Aggregate `Что нового` / `Что исправлено` since the LAST 4pda post, NOT since the last release (4pda posted less often - union all `docs/WHATS_NEW.md` blocks between the previous 4pda version and the new one). Three spoilers: `Что нового..`, `Что исправлено..`, `noLegal`. Attach `FastMediaSorter_standard_release.apk` + `FastMediaSorter_nolegal_debug.apk` (build noLegal via `a.ps1 nd` for a fresh asset). Author style (`..` not `...`, `ё`); noLegal items come from gitignored `docs/FEATURES_noLegal*` / `dev/FUNCTIONALITY.log`, never the public files.
+4. **4pda forum** (Russian) - MANUAL post. Aggregate `Что нового` / `Что исправлено` since the LAST 4pda post, NOT since the last release (4pda posted less often - union all `docs/WHATS_NEW.md` blocks between the previous 4pda version and the new one). Three spoilers: `Что нового..`, `Что исправлено..`, `noLegal`. Attach `FastMediaSorter_standard_release.apk` + `FastMediaSorter_nolegal_debug.apk` (build noLegal via `a.ps1 nd` for a fresh asset). Author style (`..` not `...`, `ё`); noLegal items come from gitignored `docs/FEATURES_noLegal*` / `docs/ALL_FEATURES_noLegal.jsonl`, never the public files.
 
 5. **IzzyOnDroid** (S0215, `standard` APK) - one-time RFP at https://codeberg.org/IzzyOnDroid/repodata/issues (owner-only; needs a Codeberg account). After acceptance IzzyOnDroid auto-pulls the standard APK from each GitHub release - no per-release action beyond channel 2. RFP must declare Anti-Features `NonFreeDep` + `NonFreeNet` and specify APK name pattern `FastMediaSorter-standard-*.apk` (the `vr` asset shares `applicationId com.sza.fastmediasorter` per S0232, so an unfiltered scan can grab the wrong APK). Commit the fastlane changelog `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` so the listing shows current notes.
 
@@ -361,20 +361,29 @@ Automated steps above cover Google Play + GitHub Store. A complete plateau relea
 
 ---
 
-### Step 12b - Functionality log sanity check
+### Step 12b - Feature inventory diff and showcase update
 
-The plateau release does not generate functionality-log entries on its own - they should already exist, one per spec, recorded by `/spec-dev` (ADD/CHANGE) or `/spec-fix` (FIX) during the DEBUG cycle.
-
-Cross-check: for every `Sxxxx` ticket whose status moved into `Verified` (or `Implemented`+`BlockNeedUserTest`) between `$PREV_TAG` and `HEAD`, confirm at least one entry in `dev/FUNCTIONALITY.log` references that id.
+The developer inventory `docs/ALL_FEATURES.jsonl` (EN-only, written per-spec by `/spec-dev` / `/spec-check`) is the source of truth. The release reads what changed since the previous release and promotes the standout items into the public showcase `docs/FEATURES*` (published to the site).
 
 ```powershell
-# List specs reached in this plateau (Verified between $PREV_TAG and HEAD)
-git diff $PREV_TAG..HEAD --name-only -- PLAN/spec-catalog.jsonl
-# then for each Sxxxx referenced in the diff:
-Select-String -Path dev/FUNCTIONALITY.log -Pattern '\[S\d{4}\]'
+# Records added/changed in the inventory since the previous release tag
+pwsh -NoProfile -File scripts/all_features/diff.ps1 -From $PREV_TAG
 ```
 
-Any spec missing → surface a `[FUNC_LOG MISSED] Sxxxx` line in the final report under a new "Manual follow-ups" section. Do NOT silently backfill; the operator decides whether the spec really delivered a user-visible change.
+From the diff:
+
+1. Select the important/standout capabilities a user would notice (skip internal/minor inventory entries - most inventory records never reach the showcase).
+2. Add or update them in `docs/FEATURES.md` + `_RU` + `_UK` in lockstep (EN/RU/UK parity), in the relevant numbered section. Keep author style (`..` not `...`, `ё`). This is the ONLY place `FEATURES*` is edited.
+3. noLegal-only standout items come from the gitignored `docs/ALL_FEATURES_noLegal.jsonl` and go into gitignored `docs/FEATURES_noLegal*`, never the public files.
+
+Sanity: for every `Sxxxx` whose status reached `Verified` (or `Implemented`+`BlockNeedUserTest`) between `$PREV_TAG` and `HEAD`, confirm at least one ALL_FEATURES record carries that id:
+
+```powershell
+git diff $PREV_TAG..HEAD --name-only -- PLAN/spec-catalog.jsonl
+Select-String -Path docs/ALL_FEATURES.jsonl -Pattern '"spec":"S\d{4}"'
+```
+
+Any user-visible spec with no inventory record → surface an `[INVENTORY MISSED] Sxxxx` line in the final report under "Manual follow-ups". Do NOT silently backfill; the operator decides whether the spec really delivered a user-visible change and runs `scripts/all_features/add.ps1`.
 
 ---
 
@@ -396,7 +405,7 @@ Release pipeline complete.
   IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
 
 Manual follow-ups (if any):
-  [FUNC_LOG MISSED] Sxxxx - confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
+  [INVENTORY MISSED] Sxxxx - confirm whether spec delivered user-visible change; add record via scripts/all_features/add.ps1
   [S0214 STORE CHECK] Owner checks GitHub Store search/install after indexing.
   [PLAY FGS] If a new FOREGROUND_SERVICE_* type shipped, declare it in Play Console App content (video for mic/cam/loc), then re-run publish-play-release.ps1.
   [4PDA] Compose forum post (cumulative since last 4pda version); attach standard_release.apk + nolegal_debug.apk.

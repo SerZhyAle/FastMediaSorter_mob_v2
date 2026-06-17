@@ -29,6 +29,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -92,7 +94,7 @@ import javax.inject.Inject
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class PhotoVideoStandaloneActivity :
-    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost {
+    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -119,9 +121,11 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
     // S0393 wave-C: image edit dialog (rotate/flip/filters/adjust) use-cases.
     @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
@@ -209,8 +213,9 @@ class PhotoVideoStandaloneActivity :
             context = this,
             settingsRepository = settingsRepository,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
-                override fun showError(message: String) =
+                override fun showError(message: String) = runOnUiThread {
                     Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
+                }
                 override fun showModelDownloadPrompt(languageName: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
                     if (isFinishing || isDestroyed) { onCancel(); return }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PhotoVideoStandaloneActivity)
@@ -308,9 +313,19 @@ class PhotoVideoStandaloneActivity :
                 contentResolver.openOutputStream(uri)?.use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, it) }
                 true
             }.getOrDefault(false)
+            // S0470: when enabled, also place the extracted frame on the system clipboard. This host has
+            // the live bitmap (no encoded temp file), so copy it as a lossless PNG via the shared role.
+            val copiedToClipboard = if (settingsRepository.getSettings().first().videoFrameCopyToClipboard) {
+                Timber.d("S0470: standalone video-frame clipboard gate flag=true")
+                imageClipboardWriter.copyBitmap(bitmap)
+            } else false
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@PhotoVideoStandaloneActivity,
                     if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown, Toast.LENGTH_SHORT).show()
+                if (copiedToClipboard) {
+                    Toast.makeText(this@PhotoVideoStandaloneActivity,
+                        R.string.video_frame_copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -359,6 +374,9 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
+    /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
+    private var autoActionConsumed = false
+
     /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
     private var folderPagingEnabled = false
 
@@ -371,9 +389,15 @@ class PhotoVideoStandaloneActivity :
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* audio is a separate lane - never handled here */ },
             batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
+            recoverableDeleteLauncher = recoverableDeleteLauncher,
+            sendToMenuManager = sendToMenuManager,
+            getCurrentSettings = { settingsRepository.getSettings().first() }
         )
     }
+
+    // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
+    override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep || settings.keepScreenOnPlayer
 
     override fun getViewBinding(): ActivityStandalonePhotoVideoBinding =
         ActivityStandalonePhotoVideoBinding.inflate(layoutInflater)
@@ -452,7 +476,6 @@ class PhotoVideoStandaloneActivity :
         // independent of the file, so it is gated on the device sensor only - not on
         // editableImageFile, which would hide it for non-local content-URI images.
         binding.btnEditRotate.isVisible = hasAccelerometer
-        Timber.d("S0393: standalone rotation toggle decoupled from editable accel=$hasAccelerometer")
         binding.btnOverflowMenu.isVisible = true
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
@@ -464,7 +487,6 @@ class PhotoVideoStandaloneActivity :
             // matching the in-app player where they are gated on isImage, not on write access.
             val editable = viewModel.editableImageFile.value != null
             val hasBitmap = binding.photoView.drawable != null
-            Timber.d("S0393: standalone image-action gate editable=$editable hasBitmap=$hasBitmap")
             // S0410: crop-to-file / compress produce a NEW file, so they apply to any static image -
             // a non-local source is materialized to a cache file on tap (ensureEditableImage). Gate
             // them on the static-image type (mirrors the in-app isStaticBitmap); edit-in-place and
@@ -474,7 +496,10 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_edit_compress).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_draw_overlay).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_edit_image).isVisible = editable
-            popup.menu.findItem(R.id.menu_google_lens).isVisible = editable
+            // S0459 §11.7: the per-file Google Lens overflow item is dropped - the unified Send-to
+            // menu (btnShareCmd -> SendToMenuManager) already offers the Lens receiver for image/gif.
+            // The item stays in the shared menu (other hosts reference it), so hide it explicitly.
+            popup.menu.findItem(R.id.menu_google_lens).isVisible = false
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
                 hasBitmap && capabilityAvailability.isTranslationAvailable()
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
@@ -524,13 +549,6 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_print -> { printCurrentImage(); true }
                     R.id.menu_save_frame -> { saveCurrentFrame(); true }
                     R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
-                    R.id.menu_google_lens -> {
-                        viewModel.editableImageFile.value?.let {
-                            com.sza.fastmediasorter.ui.player.helpers.GoogleLensShare
-                                .shareImageFile(this, java.io.File(it.path))
-                        }
-                        true
-                    }
                     R.id.menu_black_screen -> { blackScreenManager.show(); true }
                     else -> false
                 }
@@ -599,6 +617,26 @@ class PhotoVideoStandaloneActivity :
         ).show()
     }
 
+    /** Runs the one-shot [EXTRA_AUTO_ACTION] requested at launch (draw / translate), once, for images only. */
+    private fun maybeRunAutoAction(type: MediaType) {
+        if (autoActionConsumed || type != MediaType.IMAGE) return
+        when (intent?.getStringExtra(EXTRA_AUTO_ACTION)) {
+            AUTO_ACTION_DRAW -> {
+                autoActionConsumed = true
+                ensureDrawHelper().enterDrawMode()
+            }
+            AUTO_ACTION_TRANSLATE -> {
+                autoActionConsumed = true
+                translateCurrentImage()
+            }
+            AUTO_ACTION_SEND_TO -> {
+                autoActionConsumed = true
+                Timber.d("S0472: standalone auto-action SEND_TO -> curated send-to menu")
+                fileOperations.shareCurrentFile()
+            }
+        }
+    }
+
     private fun parseIncomingIntent() {
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
@@ -660,6 +698,7 @@ class PhotoVideoStandaloneActivity :
                     if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
                 viewManager.show(file, type, onVideoReady)
                 lastShownPath = file.path
+                maybeRunAutoAction(type)
             }
             folderPagingEnabled = state.supportsFolderPaging
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
@@ -725,7 +764,6 @@ class PhotoVideoStandaloneActivity :
     // S0393 U2: per-file playback-control dialog (speed / track / subtitles / hue / brightness),
     // ported from legacy StandalonePlayerActivity.showPlaybackControlDialog.
     private fun showPlaybackControlDialog() {
-        Timber.d("S0393: standalone playback-control dialog (ported from legacy host)")
         if (isFinishing || isDestroyed) return
         val type = viewModel.state.value.mediaType
         if (type != MediaType.VIDEO && type != MediaType.AUDIO) return
@@ -738,7 +776,6 @@ class PhotoVideoStandaloneActivity :
     // S0393 U1: wire Picture-in-Picture once a video PlayerView is ready (mirrors legacy host).
     private fun setupPictureInPicture(pv: PlayerView) {
         if (pipManager != null) return
-        Timber.d("S0393: standalone Picture-in-Picture wired (ported from legacy host)")
         val manager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
             activity = this,
             playerView = pv,
@@ -924,4 +961,12 @@ class PhotoVideoStandaloneActivity :
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
     override fun requestFinishAfterDelete() = finish()
+
+    companion object {
+        /** Names a one-shot action to run after the image is shown (set by the screenshot gesture dispatcher). */
+        const val EXTRA_AUTO_ACTION = "auto_action"
+        const val AUTO_ACTION_DRAW = "draw"
+        const val AUTO_ACTION_TRANSLATE = "translate"
+        const val AUTO_ACTION_SEND_TO = "send_to"
+    }
 }

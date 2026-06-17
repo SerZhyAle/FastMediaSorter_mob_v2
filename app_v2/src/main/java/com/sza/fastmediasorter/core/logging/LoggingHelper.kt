@@ -71,6 +71,10 @@ object LoggingHelper {
      */
     fun hasPreviousCrash(): Boolean = fileLoggingTree?.hasCrashFiles() ?: false
 
+    /** Newest uncaught-crash log file, or null if none. [getLogFiles] is already sorted newest-first. */
+    fun getLatestCrashFile(): File? =
+        getLogFiles().firstOrNull { it.name.startsWith("fastmediasorter_crash_") && it.name.endsWith(".log") }
+
     private const val TAG_PREFETCH = "PrefetchQueue"
     
     /**

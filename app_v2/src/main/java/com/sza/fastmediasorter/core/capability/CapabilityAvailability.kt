@@ -44,9 +44,21 @@ class CapabilityAvailability @Inject constructor(
 
     fun isExtensionsScreenAvailable(): Boolean = isOcrCompiledIn() || isTranslationAvailable()
 
+    /**
+     * Whether the build ships more than one OCR engine and therefore exposes the engine/model
+     * picker plus the noLegal-OCR language labels. Only the noLegal flavor bundles PaddleOCR
+     * alongside the default Tesseract path, so this is the compile-time axis behind those rows.
+     */
+    fun isOcrEngineSelectionAvailable(): Boolean = CAP_OCR_ENGINE_SELECTION in compiled
+
+    /** Whether the GPL NewPipe extractor is linked in (noLegal only) — gates its license card. */
+    fun isNewPipeAvailable(): Boolean = CAP_NEWPIPE in compiled
+
     companion object {
         const val CAP_OCR = "ocr"
         const val CAP_TRANSLATION = "translation"
         const val CAP_VR = "vr"
+        const val CAP_OCR_ENGINE_SELECTION = "ocr_engine_selection"
+        const val CAP_NEWPIPE = "newpipe"
     }
 }

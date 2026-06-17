@@ -21,7 +21,10 @@ import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -43,6 +46,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // S0230: field-injected so Hilt can supply the singleton without constructor changes.
     @Inject
     lateinit var tvKeyRouter: TvKeyRouter
+
+    // S0438: field-injected to drive the keep-screen-on flag from persisted settings.
+    // Distinct name avoids hiding subclasses' own `settingsRepository` injections.
+    @Inject
+    lateinit var keepScreenSettingsRepository: SettingsRepository
 
     private var _binding: VB? = null
     protected val binding: VB
@@ -105,8 +113,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         _binding = getViewBinding()
         setContentView(binding.root)
         
-        // Apply keep screen awake if needed (will be controlled by settings)
+        // Apply keep screen awake from the cached decision, then keep it in sync with settings.
         applyKeepScreenAwake()
+        collectOnLifecycle(keepScreenSettingsRepository.getSettings()) { settings ->
+            keepScreenAwakeDecision = keepScreenAwakeFor(settings)
+            applyKeepScreenAwake()
+        }
         
         // Defer heavy initialization to allow first frame to render quickly
         val onCreateT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
@@ -172,7 +184,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         Timber.d("onDestroy: ${this::class.simpleName}")
     }
 
-    protected open fun shouldKeepScreenAwake(): Boolean = true
+    // S0438: keep-screen-on decision is settings-driven. Default applies the global preventSleep;
+    // player hosts override to also honour the dependent keepScreenOnPlayer setting.
+    protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean = settings.preventSleep
+
+    // Cached decision so onCreate/onResume can re-apply the flag synchronously between settings emissions.
+    private var keepScreenAwakeDecision: Boolean = true
 
     /**
      * Called when the device configuration changes (e.g., screen rotation).
@@ -264,7 +281,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     private fun applyKeepScreenAwake() {
-        if (shouldKeepScreenAwake()) {
+        if (keepScreenAwakeDecision) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

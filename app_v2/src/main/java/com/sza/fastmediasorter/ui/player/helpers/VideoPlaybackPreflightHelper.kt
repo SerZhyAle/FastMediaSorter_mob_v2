@@ -102,14 +102,14 @@ internal class VideoPlaybackPreflightHelper(
             }
         }
 
-        // WHY S0168 §5.3: VP9/other codec decoders allocate 20-30 MB native at init.
+        // WHY: VP9/other codec decoders allocate 20-30 MB native at init.
         // When native heap is critically low, buffer allocation stalls immediately -> errorCode=1004.
         // Run Glide eviction + GC before ExoPlayer starts to maximise available native memory.
         // S0207 Goal#2: no user-facing toast - playback proceeds; chronic toast noise removed.
         val nativeFreePrePlay = Debug.getNativeHeapFreeSize()
         if (nativeFreePrePlay < NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES) {
             Timber.w(
-                "VideoPlayerManager: native heap low before playback - free=%dMB, running Glide eviction + GC (S0168 §5.3)",
+                "VideoPlayerManager: native heap low before playback - free=%dMB, running Glide eviction + GC",
                 nativeFreePrePlay / 1024 / 1024,
             )
             Glide.get(manager.context).clearMemory()

@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 
@@ -20,7 +20,7 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
  *   – Back (left anchor)
  *   – Previous, Next (right anchor - always visible)
  */
-class CommandPanelLayoutPlanner {
+class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities) {
 
     /**
      * Every command that participates in adaptive portrait layout planning.
@@ -48,12 +48,23 @@ class CommandPanelLayoutPlanner {
             R.string.big_btn_short_delete),
         FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline,
             R.string.big_btn_short_favorite),
+        // S0459: unified «Send to..» menu. Overflow-only (barCapable = false): it has no dedicated
+        // command-bar view (CommandPanelController.barViewForCommand returns null for it), so it must
+        // render as the native nested submenu in the ⋯ overflow (ADR-2). Marking it barCapable routed
+        // it into the bar-slot set where, lacking a view, it silently vanished in BOTH orientations -
+        // portrait (planLayout puts priority-25 on the bar, then barViewForCommand(SEND_TO)?.isVisible
+        // is a no-op on null) and landscape (the overflow filter `!barCapable` drops it). Priority 25
+        // keeps it at the top of the overflow list.
+        // Replaces the player's ad-hoc SHARE/Telegram/Lens/Keep-text commands (consolidated in Phase 05).
+        SEND_TO(25, R.id.menu_send_to, false, R.string.share_to_menu_title, R.drawable.ic_share),
+        // S0459: SHARE / GOOGLE_LENS_IMAGE are no longer emitted on the player panel (the unified
+        // SEND_TO covers Share), but the enum entries stay because CommandPanelController.barViewForCommand
+        // still maps them to the live btnShareCmd / btnGoogleLensImageCmd standalone-host views (the in-app
+        // player's own Lens button). The Browse per-file Lens item was folded into the unified «Send to..»
+        // menu in Phase 08 (§11.7 audit); SEND_TO_TELEGRAM was removed in Phase 07 - both former Browse
+        // consumers now route through the unified menu.
         SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share,
             R.string.big_btn_short_share),
-        // S0303: Send to Telegram - overflow-only (no command-bar button), all media types,
-        // shown only when a Telegram client is installed.
-        SEND_TO_TELEGRAM(35, R.id.menu_send_to_telegram, false, R.string.share_to_telegram,
-            R.drawable.ic_share),
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
             R.string.big_btn_short_fullscreen),
         SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play,
@@ -155,9 +166,6 @@ class CommandPanelLayoutPlanner {
             android.R.drawable.ic_menu_preferences),
         READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud,
             android.R.drawable.ic_lock_silent_mode_off),
-        // S0431: Send read-only text to Google Keep - overflow-only, TEXT type, shown only when Keep is installed.
-        SEND_TEXT_TO_KEEP(545, R.id.menu_send_text_to_keep, false, R.string.text_editor_action_send_keep,
-            R.drawable.ic_text_send_keep),
         PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode,
             R.drawable.ic_view_list),
         PDF_COLOR_MODE(560, R.id.menu_pdf_color_mode, false, R.string.pdf_night_mode,
@@ -210,8 +218,6 @@ class CommandPanelLayoutPlanner {
         showRandom: Boolean = false,
         allowSeparateWindow: Boolean = false,
         allowVrLaunch: Boolean = false,
-        telegramInstalled: Boolean = false,
-        keepInstalled: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -229,8 +235,9 @@ class CommandPanelLayoutPlanner {
             // ── Group 1 : high-priority adaptive buttons ──────────────────────────────
             if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
             if (showFavorite) add(PlayerCommand.FAVORITE)
-            add(PlayerCommand.SHARE)
-            if (telegramInstalled) add(PlayerCommand.SEND_TO_TELEGRAM)
+            // S0459: the unified «Send to..» menu is now the single outbound entry on the player.
+            // SHARE / Telegram / image-Lens / Keep-text are reached through its receiver registry.
+            add(PlayerCommand.SEND_TO)
             if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
 
@@ -239,7 +246,7 @@ class CommandPanelLayoutPlanner {
             if (canWrite && state.allowRename) add(PlayerCommand.RENAME)
             if ((isImage && canWrite) || (isVideo && !isAudio) || isPdf) add(PlayerCommand.EDIT)
             if (state.lastOperation != null && canWrite) add(PlayerCommand.UNDO)
-            if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
+            if (mediaCapabilities.supportsCast && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
             // S0162: Rotation toggle - only when global delegation is OFF and device has accelerometer
@@ -269,7 +276,8 @@ class CommandPanelLayoutPlanner {
             if (isImage && state.enableTranslation) add(PlayerCommand.TRANSLATE_IMAGE)
             if (isImage) add(PlayerCommand.IMAGE_TEXT_SETTINGS)
             if (isImage && state.enableOcr) add(PlayerCommand.OCR_IMAGE)
-            if (isImage && state.enableGoogleLens) add(PlayerCommand.GOOGLE_LENS_IMAGE)
+            // S0459: image Google Lens is now a unified-menu receiver (GOOGLE_LENS_PDF stays - distinct
+            // page-bitmap capability not covered by the image-Uri Lens receiver).
 
             // ── Group 3 (overflow-only) ───────────────────────────────────────────
             if (isAudio || isVideo) add(PlayerCommand.SLEEP_TIMER)
@@ -279,8 +287,6 @@ class CommandPanelLayoutPlanner {
             }
             if (isText) add(PlayerCommand.READER_SETTINGS)
             if (isText || isPdf || isEpub) add(PlayerCommand.READ_ALOUD)
-            // S0431: Send to Keep on the read surface - text only, only when a Keep client is installed.
-            if (isText && keepInstalled) add(PlayerCommand.SEND_TEXT_TO_KEEP)
             if (isPdf) add(PlayerCommand.PDF_SCROLL_MODE)
             if (isPdf) add(PlayerCommand.PDF_COLOR_MODE)
             if (isPdf) add(PlayerCommand.PDF_THUMBNAILS)

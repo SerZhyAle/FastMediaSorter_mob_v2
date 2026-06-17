@@ -20,7 +20,6 @@ object SettingsSearchLayoutCatalog {
         R.layout.fragment_settings_audio,
         R.layout.fragment_settings_documents,
         R.layout.fragment_settings_other,
-        R.layout.fragment_settings_destinations,
-        R.layout.fragment_settings_backup_restore
+        R.layout.fragment_settings_destinations
     )
 }

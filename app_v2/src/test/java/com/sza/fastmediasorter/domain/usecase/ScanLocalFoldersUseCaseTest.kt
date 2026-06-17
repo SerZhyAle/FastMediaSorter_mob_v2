@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,7 +28,8 @@ class ScanLocalFoldersUseCaseTest {
         context = context,
         repository = resourceRepository,
         settingsRepository = settingsRepository,
-        mediaStoreRepository = mediaStoreRepository
+        mediaStoreRepository = mediaStoreRepository,
+        mediaCapabilities = testMediaCapabilities()
     )
 
     @Test

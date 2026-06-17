@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.stats.ViewKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,7 +40,9 @@ class PdfViewerManager(
     private val coroutineScope: CoroutineScope,
     private val callback: PdfViewerCallback,
     private val translationManager: TranslationManager,
-    private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) : BaseDocumentViewerManager(root) {
     private val safeViews = PlayerBindingSafeViews(root)
 
@@ -314,7 +319,8 @@ class PdfViewerManager(
             // PDF cmd buttons: landscape + feature flag; portrait routes via overflow menu.
             val isLandscape = callback.isLandscapeMode()
             safeViews.btnTranslatePdfCmd.isVisible = isLandscape && settings.enableTranslation
-            safeViews.btnGoogleLensPdfCmd.isVisible = isLandscape && settings.enableGoogleLens
+            // Lens is ALWAYS_OFF by default (ShareTargetDefault); visible only when user explicitly opted in.
+            safeViews.btnGoogleLensPdfCmd.isVisible = isLandscape && "lens" in settings.enabledShareTargets
             safeViews.btnOcrPdfCmd.isVisible = isLandscape && settings.enableOcr
             safeViews.btnSearchPdfCmd.isVisible = isLandscape
             safeViews.btnSelectTextPdf?.isVisible = true // OCR (API<35) or native (API35+).
@@ -349,6 +355,9 @@ class PdfViewerManager(
                         currentPdfPageIndex = 0
                         currentPdfFile = file
                         currentPdfPath = mediaFile.path // Store original path for position saving
+                        // S0473: one document opened; pages carries the loaded page count. Emitted
+                        // once on successful open, not per page render.
+                        statsSink.record(StatsEvent.View(ViewKind.DOCUMENT, pages = pdfPageCount.toLong()))
 
                         // Create thread-safe wrapper and cache for scroll mode
                         rendererWrapper = PdfRendererWrapper(pdfRenderer!!)
@@ -379,7 +388,7 @@ class PdfViewerManager(
                                 // Only show in landscape mode; portrait uses overflow menu
                                 val isLandscapePostRender = callback.isLandscapeMode()
                                 safeViews.btnTranslatePdfCmd.isVisible = isLandscapePostRender && settings.enableTranslation
-                                safeViews.btnGoogleLensPdfCmd.isVisible = isLandscapePostRender && settings.enableGoogleLens
+                                safeViews.btnGoogleLensPdfCmd.isVisible = isLandscapePostRender && "lens" in settings.enabledShareTargets
                                 safeViews.btnOcrPdfCmd.isVisible = isLandscapePostRender && settings.enableOcr
                                 safeViews.btnSearchPdfCmd.isVisible = isLandscapePostRender
 
@@ -971,7 +980,7 @@ class PdfViewerManager(
                 // Only HIDE buttons if feature is disabled in settings
                 // CommandPanelController controls showing buttons based on orientation
                 if (!settings.enableTranslation) safeViews.btnTranslatePdfCmd.isVisible = false
-                if (!settings.enableGoogleLens) safeViews.btnGoogleLensPdfCmd.isVisible = false
+                if ("lens" !in settings.enabledShareTargets) safeViews.btnGoogleLensPdfCmd.isVisible = false
                 if (!settings.enableOcr) safeViews.btnOcrPdfCmd.isVisible = false
                 // btnSearchPdfCmd visibility controlled by CommandPanelController
             }

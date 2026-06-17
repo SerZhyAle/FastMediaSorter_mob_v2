@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.support
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import io.mockk.every
 import io.mockk.mockk
@@ -9,6 +10,7 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -122,5 +124,41 @@ class SupportIntentFactoryTest {
         assertEquals(Intent.ACTION_VIEW, intent.action)
         val uri = intent.data?.toString().orEmpty()
         assertTrue("Web fallback must point at play.google.com: $uri", uri.contains("play.google.com"))
+    }
+
+    // ── buildCrashReportEmail ───────────────────────────────────────────────
+
+    @Test
+    fun `buildCrashReportEmail - with attachment carries recipient, subject, body and stream`() {
+        val attachment = Uri.parse("content://com.sza.fastmediasorter.fileprovider/cache/logs.zip")
+        val intent = SupportIntentFactory.buildCrashReportEmail(
+            subject = "Crash",
+            body = "stack",
+            attachmentUri = attachment,
+        )
+        assertEquals(Intent.ACTION_SEND, intent.action)
+        assertEquals("application/zip", intent.type)
+        val recipients = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)
+        assertNotNull(recipients)
+        assertTrue("Recipient must be the crash-report address", recipients!!.contains("serzhyale@gmail.com"))
+        assertEquals("Crash", intent.getStringExtra(Intent.EXTRA_SUBJECT))
+        assertEquals("stack", intent.getStringExtra(Intent.EXTRA_TEXT))
+        assertTrue("Attachment intent must carry a stream", intent.hasExtra(Intent.EXTRA_STREAM))
+        assertTrue(
+            "Attachment intent must grant read permission",
+            (intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0,
+        )
+    }
+
+    @Test
+    fun `buildCrashReportEmail - without attachment is plain text and has no stream`() {
+        val intent = SupportIntentFactory.buildCrashReportEmail(
+            subject = "Crash",
+            body = "stack",
+            attachmentUri = null,
+        )
+        assertEquals(Intent.ACTION_SEND, intent.action)
+        assertEquals("text/plain", intent.type)
+        assertFalse("No attachment must mean no stream", intent.hasExtra(Intent.EXTRA_STREAM))
     }
 }

@@ -8,17 +8,21 @@ param(
     [string] $Status,
     [string] $Name,
     [int]    $MinPriority = -1,
+    [switch] $IncludeArchived,
     [ValidateSet('table','json','tsv')]
     [string] $Format = 'table'
 )
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
-$records = Read-Catalog
-
 if ($Id) {
     if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
-    $records = $records | Where-Object { $_.id -eq $Id }
+    # Single-id lookup always resolves across both journals (archive fallback),
+    # so an archived ticket stays addressable without -IncludeArchived.
+    $rec = Find-Record -Id $Id
+    $records = if ($rec) { @($rec) } else { @() }
+} else {
+    $records = Read-Catalog -IncludeArchived:$IncludeArchived
 }
 if ($Status) { $records = $records | Where-Object { $_.status -eq $Status } }
 if ($Name)   { $records = $records | Where-Object { $_.name -like $Name } }

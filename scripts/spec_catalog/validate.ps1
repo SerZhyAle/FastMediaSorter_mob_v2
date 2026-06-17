@@ -20,9 +20,10 @@ function Add-Result {
     }
 }
 
-# 1. Schema (parse + required fields + enum)
+# 1. Schema (parse + required fields + enum) - validate the FULL catalog
+#    (active + archive) so uniqueness/monotonicity see every id.
 try {
-    $records = Read-Catalog
+    $records = Read-Catalog -IncludeArchived
     foreach ($r in $records) { Assert-Record -Record $r }
     Add-Result 'Schema'         'OK' ('parsed {0} records' -f $records.Count)
 } catch {
@@ -153,6 +154,26 @@ if ($stale.Count -gt 0) {
     Add-Result 'Staleness' 'WARN' ('specs not updated > 30d: {0}' -f ($stale -join ', '))
 } else {
     Add-Result 'Staleness' 'OK' 'no active spec older than 30d'
+}
+
+# 9. Archive split invariant: no Archived row in the active journal, no
+#    non-Archived row in the archive journal.
+try {
+    $activeOnly  = Read-JsonlFile -Path (Get-CatalogPath)
+    $archiveOnly = Read-JsonlFile -Path (Get-ArchivePath)
+    $stray    = @($activeOnly  | Where-Object { $_.status -eq 'Archived' })
+    $misfiled = @($archiveOnly | Where-Object { $_.status -ne 'Archived' })
+    if ($stray.Count -gt 0) {
+        Add-Result 'ArchiveSplit' 'FAIL' ('Archived records in active journal: {0}' -f (($stray | ForEach-Object { $_.id }) -join ', '))
+    }
+    if ($misfiled.Count -gt 0) {
+        Add-Result 'ArchiveSplit' 'FAIL' ('non-Archived records in archive journal: {0}' -f (($misfiled | ForEach-Object { $_.id }) -join ', '))
+    }
+    if ($stray.Count -eq 0 -and $misfiled.Count -eq 0) {
+        Add-Result 'ArchiveSplit' 'OK' ('split clean: {0} active, {1} archived' -f $activeOnly.Count, $archiveOnly.Count)
+    }
+} catch {
+    Add-Result 'ArchiveSplit' 'FAIL' $_.Exception.Message
 }
 
 # Render report

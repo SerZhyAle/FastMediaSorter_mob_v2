@@ -8,6 +8,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import timber.log.Timber
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -15,7 +17,7 @@ import kotlin.math.roundToInt
 class ScreenGestureOverlayManager(
     context: Context,
     private val overlayWindowType: Int,
-    private val onGestureMatched: () -> Unit = {}
+    private val onGestureMatched: (direction: ScreenshotGestureDirection) -> Unit = {}
 ) {
     // Use the provided context (service) directly, not the application context: a
     // TYPE_ACCESSIBILITY_OVERLAY window must be added through the accessibility service's own
@@ -77,20 +79,20 @@ class ScreenGestureOverlayManager(
                 if (gestureTriggered) return true
                 val dx = event.rawX - downX
                 val dy = event.rawY - downY
-                if (dx <= 0f || dy <= 0f) {
+                // Rightward drag from the left-edge strip; dy may be negative (upward gesture).
+                if (dx <= 0f) {
                     return false
                 }
                 if (hypot(dx.toDouble(), dy.toDouble()) < GESTURE_DISTANCE_PX) {
                     return true
                 }
                 val angle = Math.toDegrees(atan2(dy, dx).toDouble())
-                if (angle in MIN_MATCH_ANGLE_DEGREES..MAX_MATCH_ANGLE_DEGREES) {
-                    gestureTriggered = true
-                    onGestureMatched()
-                    view.performClick()
-                    return true
-                }
-                return false
+                val direction = directionForAngle(angle) ?: return false
+                gestureTriggered = true
+                Timber.d("S0425: gesture matched, direction=%s angle=%.1f", direction, angle)
+                onGestureMatched(direction)
+                view.performClick()
+                return true
             }
 
             MotionEvent.ACTION_UP,
@@ -101,6 +103,15 @@ class ScreenGestureOverlayManager(
             }
         }
         return false
+    }
+
+    // Classify the rightward drag angle into one of three non-overlapping windows. Negative angle =
+    // upward drag, ~0 = horizontal, positive = downward. Bounds are device-test tuning candidates.
+    private fun directionForAngle(angle: Double): ScreenshotGestureDirection? = when (angle) {
+        in UP_MIN_ANGLE_DEGREES..UP_MAX_ANGLE_DEGREES -> ScreenshotGestureDirection.UP
+        in RIGHT_MIN_ANGLE_DEGREES..RIGHT_MAX_ANGLE_DEGREES -> ScreenshotGestureDirection.RIGHT
+        in DOWN_MIN_ANGLE_DEGREES..DOWN_MAX_ANGLE_DEGREES -> ScreenshotGestureDirection.DOWN
+        else -> null
     }
 
     private fun computeStripSpec(): StripSpec {
@@ -141,7 +152,12 @@ class ScreenGestureOverlayManager(
         private const val STRIP_START_FRACTION = 0.10f
         private const val STRIP_HEIGHT_FRACTION = 0.65f
         private const val GESTURE_DISTANCE_PX = 120.0
-        private const val MIN_MATCH_ANGLE_DEGREES = 25.0
-        private const val MAX_MATCH_ANGLE_DEGREES = 65.0
+        // Three non-overlapping angle windows (degrees) for the rightward drag from the left strip.
+        private const val UP_MIN_ANGLE_DEGREES = -70.0
+        private const val UP_MAX_ANGLE_DEGREES = -20.0
+        private const val RIGHT_MIN_ANGLE_DEGREES = -20.0
+        private const val RIGHT_MAX_ANGLE_DEGREES = 20.0
+        private const val DOWN_MIN_ANGLE_DEGREES = 20.0
+        private const val DOWN_MAX_ANGLE_DEGREES = 70.0
     }
 }

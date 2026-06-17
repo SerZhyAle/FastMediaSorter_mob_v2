@@ -125,6 +125,78 @@
 
                     </LinearLayout>
 
+                    <!-- S0160: Resource ops overflow toggle (moved from File browser - it is a UI setting, not a browser one). -->
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
+                    <!-- S0473: opt-in local usage statistics (default OFF). Dashboard nav row arrives in Phase 04. -->
+                    <LinearLayout android:id="@+id/layoutEnableStatistics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/settings_statistics_collection_title"
+                            app:str_subtitle="@string/settings_statistics_collection_summary" />
+
+                        <!-- S0473 Phase 04: opens the statistics dashboard. Visibility is bound to the
+                             toggle above in GeneralSettingsViewSetupHelper (GONE while collection is off). -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/rowOpenStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:visibility="gone"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="2dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/settings_help_icon_size"
+                                    android:layout_height="@dimen/settings_help_icon_size"
+                                    android:layout_marginEnd="@dimen/margin_medium"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_history"
+                                    app:tint="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/settings_statistics_open"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_marginStart="@dimen/margin_small"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -149,7 +221,7 @@
                             android:id="@+id/rowAllFiles"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:str_title="@string/all_files"
+                            app:str_title="@string/setting_all_files_allow_title"
                             app:str_subtitle="@string/setting_all_files_desc"
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_all_files_title"
@@ -223,18 +295,6 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/file_ops_in_overflow_menu"
                         app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
-
-                    <!-- S0160: Resource ops overflow toggle -->
-                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowResourceOpsInOverflowMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/resource_ops_in_overflow_menu"
-                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
-
-                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -478,6 +538,43 @@
 
                     </FrameLayout>
 
+                    <!-- Favorites + resource-share export/import (S0491): operate on app data, kept in this card. -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <!-- Favorites export/import. Equal-weight 0dp buttons mirror the rows above. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_export_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/backup_import_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
+                    <!-- Resource-share export/import (.sza). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
@@ -569,15 +666,18 @@
 
                     </LinearLayout>
 
-                    <!-- X.11: Thumbnail Preload Toggle -->
-                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:orientation="vertical">
+                    <!-- X.11: Thumbnail Preload Toggle (SMB-reset button shares the row, pinned to the right of the toggle) -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableThumbnailPreload"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             app:str_title="@string/thumbnail_preload_title"
                             app:str_subtitle="@string/thumbnail_preload_summary" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/reset_smb_connections" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" />
 
                     </LinearLayout>
 
@@ -606,9 +706,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
-
-                        <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnResetSmbConnections" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

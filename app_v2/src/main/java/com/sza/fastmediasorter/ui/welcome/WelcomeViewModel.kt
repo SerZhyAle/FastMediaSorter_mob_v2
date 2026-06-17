@@ -47,6 +47,16 @@ class WelcomeViewModel @Inject constructor(
         private const val KEY_MEDIA_PERMISSIONS_GRANTED = "media_permissions_granted"
     }
 
+    // First-run only: the device profile whose settings preset was already applied early (before the
+    // user reached the capability/permission pages), and whether it carried any overrides. Kept so
+    // Finish does NOT re-apply the settings (that would clobber the user's later toggle deviations) yet
+    // still records the bookkeeping. @Volatile because the early apply and Finish both run on the
+    // application scope (IO) and may observe these from different threads.
+    @Volatile
+    private var firstRunPresetAppliedFor: DeviceProfileType? = null
+    @Volatile
+    private var firstRunPresetHadOverrides: Boolean = false
+
     override fun getInitialState(): WelcomeState = WelcomeState()
 
     init {
@@ -86,6 +96,44 @@ class WelcomeViewModel @Inject constructor(
     fun onProfileSelected(type: DeviceProfileType) {
         updateState { it.copy(selectedProfile = type) }
         Timber.i("Device profile manually selected in Welcome: $type")
+    }
+
+    /**
+     * First-run only: eagerly apply the selected profile's settings preset so the capability/permission
+     * pages that follow the device-profile page render the profile's defaults. Any change the user then
+     * makes there is a deliberate deviation that must survive - which is why [saveDeviceProfile] no
+     * longer re-applies the settings at Finish. Deduped per profile so navigating back and forth (or a
+     * later re-selection) only re-applies when the chosen profile actually changes.
+     *
+     * Re-entry from Settings is intentionally excluded: it keeps the Finish-time skip/confirm semantics
+     * so tuned settings are protected.
+     */
+    fun applyFirstRunPresetForSelectedProfile() {
+        if (isWelcomeCompleted()) return
+        val type = state.value.selectedProfile
+            ?: state.value.recommendedProfile
+            ?: DeviceProfileType.PERSONAL_SMARTPHONE
+        if (firstRunPresetAppliedFor == type) return
+        applicationScope.launch(exceptionHandler) {
+            applyProfilePresetSettings(type)
+        }
+    }
+
+    /** Apply [type]'s settings preset (no profile bookkeeping) and, when the profile implies the All
+     *  Files resource, ensure it exists. Records the dedup markers consumed by [saveDeviceProfile]. */
+    private suspend fun applyProfilePresetSettings(type: DeviceProfileType): Boolean {
+        val hadOverrides = applyProfilePresetUseCase.applySettingsOnly(type)
+            .onSuccess {
+                if (profileImpliesAllFilesUseCase(type)) {
+                    ensureAllFilesPredefinedResourceUseCase()
+                        .onFailure { Timber.e(it, "WelcomeViewModel: failed to ensure All Files resource") }
+                }
+            }
+            .onFailure { Timber.e(it, "WelcomeViewModel: failed to apply device-profile preset settings") }
+            .getOrDefault(false)
+        firstRunPresetAppliedFor = type
+        firstRunPresetHadOverrides = hadOverrides
+        return hadOverrides
     }
 
     /** Profiles selectable in this flavor (VR hidden where unavailable). The dedicated device-profile
@@ -139,8 +187,20 @@ class WelcomeViewModel @Inject constructor(
             Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped, reentry=$reentry)")
 
             when {
-                // First run: always apply the preset - there are no user-tuned settings to protect.
-                !reentry -> applyProfilePreset(finalType)
+                // First run: the settings preset was already applied early (applyFirstRunPresetFor-
+                // SelectedProfile) so the onboarding pages render the profile defaults and the user's
+                // later toggle deviations survive. Re-applying settings here would clobber them, so only
+                // ensure the preset ran (covers the Enable-all path, which skips the pages) and record
+                // the bookkeeping on the now-saved profile.
+                !reentry -> {
+                    if (firstRunPresetAppliedFor != finalType) {
+                        applyProfilePresetSettings(finalType)
+                    }
+                    if (firstRunPresetHadOverrides) {
+                        applyProfilePresetUseCase.markPresetApplied(presetVersion = 1)
+                            .onFailure { Timber.e(it, "WelcomeViewModel: failed to mark device-profile preset applied") }
+                    }
+                }
                 // Re-entry, profile unchanged: skip the preset so the re-run keeps tuned settings.
                 finalType == previousType ->
                     Timber.i("Welcome re-entry with unchanged profile - preset apply skipped")

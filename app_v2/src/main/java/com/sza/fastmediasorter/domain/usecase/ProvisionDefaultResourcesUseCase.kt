@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -32,7 +32,8 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
-    private val resolveResourceIconUseCase: ResolveResourceIconUseCase
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
+    private val mediaCapabilities: MediaCapabilities
 ) {
     /**
      * Returns true if at least one predefined resource was provisioned; false if all already exist.
@@ -62,7 +63,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         displayOrder++
 
         // 2. All Music
-        if (BuildConfig.SUPPORT_AUDIO && settings.supportAudio) {
+        if (mediaCapabilities.supportsAudio && settings.supportAudio) {
             if (LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO !in existingPaths) {
                 createVirtualResource(
                     name = context.getString(R.string.virtual_all_music),
@@ -94,7 +95,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         }
 
         // 4. Camera
-        if (BuildConfig.SUPPORT_IMAGES) {
+        if (mediaCapabilities.supportsImages) {
             val cameraImageTypes = buildSet {
                 if (settings.supportImages) add(MediaType.IMAGE)
                 if (settings.supportGifs) add(MediaType.GIF)
@@ -119,7 +120,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         }
 
         // 5. All Images
-        if (BuildConfig.SUPPORT_IMAGES) {
+        if (mediaCapabilities.supportsImages) {
             val imageTypes = buildSet {
                 if (settings.supportImages) add(MediaType.IMAGE)
                 if (settings.supportGifs) add(MediaType.GIF)
@@ -141,7 +142,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         }
 
         // 6. All Documents
-        if (BuildConfig.SUPPORT_DOCUMENTS) {
+        if (mediaCapabilities.supportsDocuments) {
             val docTypes = buildSet {
                 if (settings.supportText) add(MediaType.TEXT)
                 if (settings.supportPdf) add(MediaType.PDF)

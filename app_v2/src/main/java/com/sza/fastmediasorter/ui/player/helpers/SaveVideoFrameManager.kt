@@ -46,7 +46,8 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
  */
 class SaveVideoFrameManager(
     private val activity: PlayerActivity,
-    private val fileOperationUseCase: FileOperationUseCase
+    private val fileOperationUseCase: FileOperationUseCase,
+    private val imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 ) {
 
     /**
@@ -97,8 +98,19 @@ class SaveVideoFrameManager(
                     activity.getString(R.string.save_frame_saved_to_downloads)
                 }
 
+                // S0470: when enabled, also place the saved frame on the system clipboard.
+                // Copy the encoded tempFile verbatim (no re-encode) so the pasted image matches the
+                // saved frame's format/quality. Runs before delete and never replaces the save above.
+                val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
+                    Timber.d("S0470: video-frame clipboard gate flag=true")
+                    imageClipboardWriter.copyImageFile(tempFile)
+                } else false
+
                 tempFile.delete()
                 showToast(finalMessage)
+                if (copiedToClipboard) {
+                    showToast(activity.getString(R.string.video_frame_copied_to_clipboard))
+                }
 
             } catch (t: Throwable) {
                 if (t is OutOfMemoryError) {

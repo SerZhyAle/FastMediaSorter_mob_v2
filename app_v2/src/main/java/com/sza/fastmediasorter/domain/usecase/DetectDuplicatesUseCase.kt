@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.domain.model.DuplicateScanProgress
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScanPhase
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
@@ -16,7 +18,9 @@ import kotlin.coroutines.coroutineContext
 
 class DetectDuplicatesUseCase @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
-    private val computeFileHashUseCase: ComputeFileHashUseCase
+    private val computeFileHashUseCase: ComputeFileHashUseCase,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
     companion object {
         const val QUICK_HASH_BYTES = 4096L
@@ -124,5 +128,10 @@ class DetectDuplicatesUseCase @Inject constructor(
             )
         )
         Timber.i("DetectDuplicatesUseCase: found ${groups.size} duplicate groups, ${wastedBytes / 1024} KB wasted, ${duration}ms")
+
+        // S0473: one completed scan. Duplicates-removed count and freed bytes are NOT emitted here -
+        // they flow through the subsequent FileOperation.Delete (already instrumented), so counting
+        // them here would double-count.
+        statsSink.record(StatsEvent.DuplicateScanRun)
     }
 }

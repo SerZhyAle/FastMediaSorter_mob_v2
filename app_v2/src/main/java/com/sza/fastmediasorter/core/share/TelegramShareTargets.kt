@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.share
 
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 
 /**
  * S0303 (Phase 01): catalogue of known Telegram client package ids and installed-client lookup.
@@ -30,7 +31,7 @@ object TelegramShareTargets {
         PACKAGE_IDS.firstOrNull { isInstalled(packageManager, it) }
 
     private fun isInstalled(packageManager: PackageManager, packageId: String): Boolean = try {
-        packageManager.getPackageInfo(packageId, 0)
+        packageManager.getPackageInfoCompat(packageId)
         true
     } catch (_: PackageManager.NameNotFoundException) {
         false

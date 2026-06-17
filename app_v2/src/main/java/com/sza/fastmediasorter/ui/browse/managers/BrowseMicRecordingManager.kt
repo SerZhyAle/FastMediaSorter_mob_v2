@@ -13,8 +13,13 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.CaptureKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +42,12 @@ class BrowseMicRecordingManager(
     private val onFileSaved: (fileName: String) -> Unit,
     private val onRecordingStateChanged: (isRecording: Boolean) -> Unit,
     private val onUploadFile: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
+    // S0464: route on-device saves through the MediaStore-aware writer so public-collection
+    // targets (Downloads fallback) do not fail with EACCES on API 29+ scoped storage.
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     private var pendingTempFile: File? = null
@@ -192,21 +203,16 @@ class BrowseMicRecordingManager(
         try {
             success = if (targetResource != null) {
                 when (targetResource.type) {
-                    ResourceType.LOCAL -> withContext(Dispatchers.IO) {
-                        tempFile.copyTo(File(targetResource.path, name), overwrite = true)
-                        true
-                    }
+                    ResourceType.LOCAL ->
+                        writeToDevice(tempFile, File(targetResource.path, name).absolutePath)
                     ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP,
                     ResourceType.CLOUD -> onUploadFile(tempFile, name, targetResource)
                 }
             } else {
                 // Context-less / unusable browsed resource and no configured destination:
                 // CaptureDestinationPolicy resolves the public Downloads folder.
-                withContext(Dispatchers.IO) {
-                    val downloads = CaptureDestinationPolicy.resolveMicDestination(null).also { it.mkdirs() }
-                    tempFile.copyTo(File(downloads, name), overwrite = true)
-                    true
-                }
+                val downloads = CaptureDestinationPolicy.resolveMicDestination(null)
+                writeToDevice(tempFile, File(downloads, name).absolutePath)
             }
         } catch (e: Exception) {
             Timber.e(e, "save FAILED name=$name")
@@ -215,6 +221,8 @@ class BrowseMicRecordingManager(
         }
         withContext(Dispatchers.Main) {
             if (success) {
+                // S0473: one voice note captured.
+                statsSink.record(StatsEvent.Capture(CaptureKind.VOICE))
                 showSnackbar(activity.getString(R.string.mic_recording_saved, name))
                 onFileSaved(name)
             } else {
@@ -222,6 +230,29 @@ class BrowseMicRecordingManager(
             }
         }
     }
+
+    /**
+     * S0464: write the finished recording to an on-device path through the MediaStore-aware
+     * destination writer. A public collection (e.g. the Downloads fallback) is published via
+     * MediaStore on API 29+ - the previous direct `File.copyTo` failed with EACCES under scoped
+     * storage / restrictive OEM policy. Non-public paths still go through a plain file stream.
+     */
+    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val category = destinationClassifier.classify(absolutePath)
+            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
+                Timber.e(e, "mic save: writer.open failed for %s", absolutePath)
+                return@withContext false
+            }
+            try {
+                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
+                sink.commit().isSuccess
+            } catch (e: Exception) {
+                Timber.e(e, "mic save: streaming failed for %s", absolutePath)
+                sink.abort()
+                false
+            }
+        }
 
     /**
      * S0367: pick the resource a finished recording should be saved into, or null to fall back to

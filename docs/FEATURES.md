@@ -2,9 +2,9 @@
 
 *Last updated: 2026-06-09*
 
-This document is the canonical inventory of all user-facing features implemented in the application. It serves as a guide to what the application can do and how each component works.
+This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
-**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
+**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
 
@@ -16,7 +16,6 @@ This document is the canonical inventory of all user-facing features implemented
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
 - **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
-- **Intelligent caching & sync** `[Standard / VR]`: Persists index databases to bypass slow network fetches on subsequent visits, with a built-in connection test and PIN-code protection for folders.
 
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
@@ -30,6 +29,8 @@ This document is the canonical inventory of all user-facing features implemented
 - **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 - **Edge-gesture screen capture** `[Standard]`: Enable a thin left-edge strip and swipe diagonally to screenshot any screen — including other apps — saving straight to a chosen resource or the device screenshots folder (each capture confirms a quick system consent).
+- **Assignable gesture actions** `[Standard]`: Give each screenshot gesture direction — down, right, up — its own action after capture: silent save, open in player, open for editing, OCR translation, share, or off.
+- **Screenshot to clipboard** `[Standard]`: Optionally copy each gesture screenshot to the system clipboard as well, ready to paste into another app.
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 10 favorite target folders inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
@@ -37,10 +38,10 @@ This document is the canonical inventory of all user-facing features implemented
 ## 5. Image & GIF Viewer
 - **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
 - **Animated GIF speed controls** `[Standard / VR]`: Fine-tune GIF playback speed (0.25x to 4x) and export individual frames as static images.
-- **Send to Telegram** `[Standard / VR]`: Instantly share media files to a local Telegram client directly from the browser or player.
+- **Send to..** `[Standard / VR]`: One high-priority command gathers every way to send the current file out — system Share, Email, Telegram and other messengers, Google Keep, Google Lens, Print, Open in another app — into a single list. The list shows only the receivers you enabled in settings that fit the current file type, so the file menu stays short instead of listing a dozen separate items. Works from the browser, the player, and standalone viewers.
 
 ## 6. Drawing & Annotations Editor
-- **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, exporting results directly to Google Keep.
+- **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, then send the result through the unified Send to.. menu (Google Keep, Lens, and the other enabled receivers).
 
 ## 7. Video Player
 - **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
@@ -83,7 +84,13 @@ This document is the canonical inventory of all user-facing features implemented
 - **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Voice recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.
 
 ## 16. Settings & Navigation
+- **Email crash report to author** `[Standard / VR]`: When a real error - not a routine "unavailable" message - is shown in the error dialog, a button emails the error details to the author with the app log attached, so a problem can be reported in one step.
+- **Crash report after a restart** `[Standard / VR]`: If the app closes unexpectedly, the next launch offers to email the crash report - with the app log attached - to the author, so even a hard crash can be reported.
 - **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
 - **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
 - **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format — to a local file or Google Drive — and restore everything after a reinstall.
+- **Set as default app from settings** `[Standard / VR]`: Make FastMediaSorter the default handler for images, audio, video, and documents right from the playback settings page, without opening the welcome screen; only the buttons for functions enabled in your build are shown.
+
+## 17. Usage Statistics
+- **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity — files sorted, space freed, time in the player and more — stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.

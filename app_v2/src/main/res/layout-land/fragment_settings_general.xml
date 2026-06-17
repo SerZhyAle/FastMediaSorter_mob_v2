@@ -111,6 +111,78 @@
 
                     </LinearLayout>
 
+                    <!-- S0160: Resource ops overflow toggle (moved from File browser - it is a UI setting, not a browser one). -->
+                    <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowResourceOpsInOverflowMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/resource_ops_in_overflow_menu"
+                            app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
+                    <!-- S0473: opt-in local usage statistics (default OFF). Landscape parity with portrait (CLAUDE.md Rule 11). Dashboard nav row arrives in Phase 04. -->
+                    <LinearLayout android:id="@+id/layoutEnableStatistics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/settings_statistics_collection_title"
+                            app:str_subtitle="@string/settings_statistics_collection_summary" />
+
+                        <!-- S0473 Phase 04: landscape parity (Rule 11). Opens the statistics dashboard;
+                             visibility bound to the toggle above in GeneralSettingsViewSetupHelper. -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/rowOpenStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:visibility="gone"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="2dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/settings_help_icon_size"
+                                    android:layout_height="@dimen/settings_help_icon_size"
+                                    android:layout_marginEnd="@dimen/margin_medium"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_history"
+                                    app:tint="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/settings_statistics_open"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_marginStart="@dimen/margin_small"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -135,7 +207,7 @@
                             android:id="@+id/rowAllFiles"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:str_title="@string/all_files"
+                            app:str_title="@string/setting_all_files_allow_title"
                             app:str_subtitle="@string/setting_all_files_desc"
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_all_files_title"
@@ -143,34 +215,18 @@
 
                     </LinearLayout>
 
-                    <!-- Row: Show Hidden Files | Resource Ops in Overflow Menu (S0160) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
+                    <!-- Show Hidden Files (resource-ops moved to the Interface group, S0160) -->
+                    <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
-                        <LinearLayout android:id="@+id/layoutShowHiddenFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowShowHiddenFiles"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/show_hidden_files"
-                                app:str_subtitle="@string/setting_show_hidden_files_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_show_hidden_files_title"
-                                app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
-
-                        </LinearLayout>
-
-                        <!-- S0160: Resource ops overflow toggle. Landscape-only placement: shares a row with Show Hidden Files after All Files takes the full-width CTA row. -->
-                        <LinearLayout android:id="@+id/layoutResourceOpsInOverflowMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowResourceOpsInOverflowMenu"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/resource_ops_in_overflow_menu"
-                                app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
-
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowShowHiddenFiles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/show_hidden_files"
+                            app:str_subtitle="@string/setting_show_hidden_files_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_show_hidden_files_title"
+                            app:str_helpMessage="@string/tooltip_show_hidden_files_message" />
 
                     </LinearLayout>
 
@@ -488,6 +544,43 @@
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressRestore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="4dp" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
 
+                    <!-- Favorites + resource-share export/import (S0491): operate on app data, kept in this card. -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <!-- Favorites export/import. Equal-weight 0dp buttons mirror the rows above. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_export_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/backup_import_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportFav" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
+                    <!-- Resource-share export/import (.sza). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+
+                    </LinearLayout>
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressExportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressImportResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="32dp" />
+
+                    </FrameLayout>
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
@@ -582,6 +675,30 @@
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" app:icon="@drawable/ic_refresh" />
 
                         </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Thumbnail Preload Toggle (landscape parity; SMB-reset button lives in the cache container in landscape, so it is not duplicated here) -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableThumbnailPreload"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/thumbnail_preload_title"
+                            app:str_subtitle="@string/thumbnail_preload_summary" />
+
+                    </LinearLayout>
+
+                    <!-- Thumbnail Preload Wi-Fi Only Sub-Toggle -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreloadWifiOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:layout_marginStart="32dp" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowThumbnailPreloadWifiOnly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/thumbnail_preload_wifi_only_title"
+                            app:str_subtitle="@string/thumbnail_preload_wifi_only_summary" />
 
                     </LinearLayout>
 

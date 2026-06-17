@@ -78,14 +78,15 @@ mcp__mobile-mcp__mobile_list_available_devices
 - Multiple + no `--device` -> list them, ask user to pick.
 - One online -> use it.
 
-Sanity-check chosen device:
+Sanity-check chosen device (one call - model, Android release, SDK, density, size):
 
 ```powershell
-adb -s <id> shell getprop ro.build.version.release
-adb -s <id> shell getprop ro.product.model
-adb -s <id> shell wm size
-adb -s <id> shell wm density
+pwsh -NoProfile -File scripts/devtest/adb.ps1 props -DeviceId <id> -Json
 ```
+
+For one-off device chores outside the mobile-mcp scenario loop (force-stop, reset data, ad-hoc
+screenshot, quick log tail) use the same swiss-army instead of raw `adb`: `adb.ps1 stop` /
+`clear` / `shot` / `log -Tail N -Grep <re>` / `shell -Cmd "..."` (`.\a.ps1 adb <verb>`).
 
 Record device profile in scenario file header.
 
@@ -111,7 +112,7 @@ After install (`--no-install` skips this), launch the app:
 - Release builds: `mobile_launch_app packageName=com.sza.fastmediasorter`.
 - Debug builds: `com.sza.fastmediasorter.debug` lands in **LeakCanary** because `:leakcanary-android` registers its own launcher activity. Two options:
   1. (Preferred) Use `--release` so launch is unambiguous.
-  2. Launch explicit activity: `adb -s <id> shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity` and skip `mobile_launch_app`.
+  2. Launch the explicit MainActivity (dodges LeakCanary) and skip `mobile_launch_app`: `pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -DeviceId <id>` (add `-Release` for the release variant).
 
 Confirm runtime build identifier matches just-built - read Settings footer (`tvVersionInfo` element id) or `adb shell dumpsys package <pkg> | grep versionName`. Mismatch -> abort with `installed APK does not match build`.
 

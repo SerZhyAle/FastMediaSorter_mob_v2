@@ -1,8 +1,11 @@
 # Spec Catalog - Journal Schema
 
-**Journal file:** `PLAN/spec-catalog.jsonl` (one JSON object per line, UTF-8 no BOM).
+**Active journal:** `PLAN/spec-catalog.jsonl` - non-`Archived` records only.
+**Archive journal:** `PLAN/spec-catalog-archive.jsonl` - `Archived` records only.
 
-> **Read-only outside the CLI.** Direct edits to this file are forbidden by project policy. Use only `scripts/spec_catalog/{insert,update,select,delete,validate}.ps1`.
+Both are JSONL (one JSON object per line, UTF-8 no BOM) and share the same record schema. See [Archive split](#archive-split) below.
+
+> **Read-only outside the CLI.** Direct edits to either file are forbidden by project policy. Use only `scripts/spec_catalog/{insert,update,select,delete,validate}.ps1`.
 
 ## Record fields
 
@@ -72,6 +75,7 @@ The CLI computes "days since `updated`" for the report (`a.ps1 ss`):
 7. `file` is a relative path under `PLAN/`, starts with `PLAN/S\d{4}_`, contains no `_spec_` segment, no `..` components.
 8. For every non-archived record, the `file` exists on disk.
 9. For every `PLAN/S\d{4}_*` artifact on disk, there is a journal record whose `id` matches the prefix.
+10. Archive split: no `Archived` record sits in the active journal, and no non-`Archived` record sits in the archive journal.
 
 ## Example record
 
@@ -91,6 +95,19 @@ All fields below are optional. Absence in any record - old or new - is valid and
 - `has_tactical` (boolean) - `true` when a `PLAN/Sxxxx_*/INDEX.md` tactical folder exists; written by `/spec-tech` during the Tactical status transition.
 
 ---
+
+## Archive split
+
+`Archived` records (the bulk of the catalog over time) live in a separate `PLAN/spec-catalog-archive.jsonl` so routine reads scan only active tickets. The split is encapsulated in `_lib.ps1`; command behaviour is unchanged for callers.
+
+- `Read-Catalog` (default) reads the active journal only. `Read-Catalog -IncludeArchived` merges both, sorted by id.
+- `Find-Record -Id` resolves against the active journal first, then falls back to the archive - archived ids stay addressable.
+- `select.ps1 -Id <id>` always resolves across both journals; listing commands (`select.ps1`, `search.ps1`) default to active and take `-IncludeArchived` for a full view.
+- `stats.ps1` and `validate.ps1` always include the archive (full-catalog overviews).
+- Archiving (`archive.ps1`, `delete.ps1`, `update.ps1`/`close.ps1`/`bulk-update.ps1` setting status `Archived`) **moves** the record into the archive journal and removes it from the active one. Reviving (`update.ps1` setting a non-`Archived` status on an archived id) moves it back.
+- `Write-Catalog` writes the active journal only; the archive journal is mutated solely by `Add-ArchiveRecord` / `Write-ArchiveCatalog`.
+- Backward compatible: if the archive journal is absent, behaviour is identical to a single-journal catalog.
+- One-time migration: `migrate-archive-split.ps1` relocates pre-existing `Archived` records (idempotent).
 
 ## Why JSONL
 

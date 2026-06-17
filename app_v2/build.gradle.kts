@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260614193
-val defaultAppVersionName = "2.60.6141.930"
+val defaultAppVersionCode = 260617220
+val defaultAppVersionName = "2.60.6172.207"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -300,6 +300,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -373,6 +374,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -401,6 +403,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "false") // S0448: local-files-only, no SMB/SFTP/FTP
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")    // No PDF/EPUB/Text
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "false")    // No animations for speed
             buildConfigField("boolean", "ENABLE_EPUB", "false")
@@ -427,6 +430,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true") // Network photo shares (SMB/SFTP/FTP)
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")   // No documents
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")    // Keep animations for UI
             buildConfigField("boolean", "ENABLE_EPUB", "false")         // No EPUB
@@ -456,6 +460,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -515,6 +520,7 @@ android {
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
@@ -613,6 +619,14 @@ android {
         unitTests {
             isIncludeAndroidResources = true // Required for Robolectric
             isReturnDefaultValues = true
+            // Forward the manifest-export toggle (S0440) to the test JVM; Gradle does not
+            // propagate -D system properties to test workers by default.
+            all {
+                it.systemProperty(
+                    "settings.manifest.generate",
+                    System.getProperty("settings.manifest.generate") ?: "false"
+                )
+            }
         }
     }
 
@@ -995,7 +1009,9 @@ if (isNoLegalBuild) {
                     // at spec time). Brings 2025-H2 + early-2026 YouTube player.js handling
                     // plus extractor_args.youtube.player_client support, used in ytdlp_utils.py
                     // to prefer Android client which typically bypasses PoToken requirements.
-                    install("yt-dlp==2026.3.17")
+                    // 2026-06-17: bumped 2026.3.17 → 2026.6.9 (latest stable on PyPI) for
+                    // continued YouTube extractor maintenance.
+                    install("yt-dlp==2026.6.9")
                 }
             }
         }

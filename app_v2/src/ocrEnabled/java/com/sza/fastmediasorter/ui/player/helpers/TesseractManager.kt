@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.net.HttpURLConnection
 import java.net.URL
 
 /**
@@ -29,6 +30,8 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
         private const val TESS_DATA_DIR = "tessdata"
         // URL for fast models (smaller, faster, slightly less accurate)
         private const val TESS_DATA_URL_BASE = "https://github.com/tesseract-ocr/tessdata_fast/raw/main/"
+        // Match TesseractModelManager connect/read timeout to prevent indefinite hang on slow networks.
+        private const val CONNECT_READ_TIMEOUT_MS = 15_000
     }
 
     /**
@@ -121,8 +124,13 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
         if (file.exists() && file.length() > 0) return true
 
         Timber.d("Downloading Tesseract data for $lang...")
+        var connection: HttpURLConnection? = null
         return try {
-            URL("$TESS_DATA_URL_BASE$lang.traineddata").openStream().use { input ->
+            connection = URL("$TESS_DATA_URL_BASE$lang.traineddata").openConnection() as HttpURLConnection
+            connection.connectTimeout = CONNECT_READ_TIMEOUT_MS
+            connection.readTimeout = CONNECT_READ_TIMEOUT_MS
+            connection.instanceFollowRedirects = true
+            connection.inputStream.use { input ->
                 FileOutputStream(file).use { output ->
                     input.copyTo(output)
                 }
@@ -134,6 +142,8 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
             // Clean up partial file
             if (file.exists()) file.delete()
             false
+        } finally {
+            connection?.disconnect()
         }
     }
 

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.fakes.FakeResourceRepository
@@ -19,13 +21,16 @@ class SyncNetworkResourcesUseCaseTest {
     private val settingsRepository = FakeSettingsRepository()
     private val scannerFactory = mockk<MediaScannerFactory>()
     private val scanner = mockk<MediaScanner>()
+    private val remoteSourceGate = mockk<RemoteSourceAvailabilityGate>()
 
     private lateinit var useCase: SyncNetworkResourcesUseCase
 
     @Before
     fun setup() {
         every { scannerFactory.getScanner(any()) } returns scanner
-        useCase = SyncNetworkResourcesUseCase(resourceRepository, settingsRepository, scannerFactory)
+        // Gate every resource as enabled so sync is not short-circuited by S0391 availability filtering.
+        every { remoteSourceGate.isEnabled(any<MediaResource>()) } returns true
+        useCase = SyncNetworkResourcesUseCase(resourceRepository, settingsRepository, scannerFactory, remoteSourceGate)
     }
 
     @Test

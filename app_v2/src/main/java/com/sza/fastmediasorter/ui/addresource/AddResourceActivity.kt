@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import android.view.KeyEvent
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
@@ -63,6 +64,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     @Inject lateinit var dropboxClient: dagger.Lazy<DropboxClient>
     @Inject lateinit var oneDriveClient: dagger.Lazy<OneDriveRestClient>
     @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     private lateinit var connectionManager: AddResourceConnectionManager
     private lateinit var scanManager: AddResourceScanManager
@@ -141,7 +143,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      */
     private fun maybeSkipTypeSelection() {
         if (!remoteSourceGate.anyRemoteEnabled()) {
-            Timber.d("S0391: only Local source available - skipping the type picker")
             showLocalFolderOptions()
         }
     }
@@ -165,14 +166,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     override fun setupViews() {
-        formManager = AddResourceFormManager(this, binding, viewModel, remoteSourceGate)
+        formManager = AddResourceFormManager(this, binding, viewModel, remoteSourceGate, mediaCapabilities)
         formManager.applyEdgeToEdgeInsets()
         formManager.updateResourceTypeGridColumns()
 
         connectionManager = AddResourceConnectionManager(
             this, binding, viewModel, unifiedAuthManager, dropboxClient, oneDriveClient
         )
-        scanManager = AddResourceScanManager(this, binding, viewModel, folderPickerLauncher)
+        scanManager = AddResourceScanManager(this, binding, viewModel, folderPickerLauncher, mediaCapabilities)
         helper = AddResourceHelper(this, binding)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
@@ -472,6 +473,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             }
             // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed - Credential
             // Manager owns the handshake (no Intent round-trip).
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
+            com.sza.fastmediasorter.core.util.PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
         }
     }
 

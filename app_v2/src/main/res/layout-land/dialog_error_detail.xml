@@ -107,6 +107,15 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
+        <!-- Crash report to author (S0483): shown only for real errors (exception-backed) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReport"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:icon="@drawable/ic_send_email" />
+
         <!-- Copy to clipboard -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCopy"

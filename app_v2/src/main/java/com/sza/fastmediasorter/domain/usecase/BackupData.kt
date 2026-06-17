@@ -44,6 +44,7 @@ data class BackupSettings(
     val defaultUser: String = "",
     val defaultPassword: String = "",
     val preventSleep: Boolean = true,
+    val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
     val networkParallelism: Int = 4,
@@ -99,7 +100,6 @@ data class BackupSettings(
     val translationSourceLanguage: String = "auto",
     val translationTargetLanguage: String = "ru",
     val translationLensStyle: Boolean = true,
-    val enableGoogleLens: Boolean = false,
     val enableOcr: Boolean = true,
     val ocrDefaultFontSize: String = "AUTO",
     val ocrDefaultFontFamily: String = "DEFAULT",
@@ -143,6 +143,7 @@ data class BackupSettings(
     val disableCameraCapture: Boolean = false,
     val skipCameraFilenameDialog: Boolean = false,
     val cameraCaptureOpenForEditing: Boolean = false,
+    val cameraCaptureCopyToClipboard: Boolean = false,
     // Player UI
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
@@ -158,6 +159,8 @@ data class BackupSettings(
     val videoSnapshotResourceId: Long? = null,
     // Video frame snapshot format: "PNG" (default) or "JPG"
     val videoSnapshotFormat: String = "JPG",
+    // S0470: copy extracted video frame to clipboard
+    val videoFrameCopyToClipboard: Boolean = false,
     // Link auto-download (S0003) — nullable for forward-compat with older backups
     val linkAutoDownloadEnabled: Boolean? = null,
     val linkAutoDownloadResourceId: Long? = null,

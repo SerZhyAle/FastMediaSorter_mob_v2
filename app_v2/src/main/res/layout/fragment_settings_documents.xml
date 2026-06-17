@@ -5,9 +5,9 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-        <!-- Text + PDF Row Container -->
+        <!-- Text support + Line numbers (inline right) -->
         <LinearLayout
-            android:id="@+id/containerTextPdf"
+            android:id="@+id/layoutSupportText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
@@ -15,60 +15,55 @@
             android:gravity="top"
             android:orientation="horizontal">
 
-            <!-- Support Text section (main row + nested line-numbers row) -->
-            <LinearLayout
-                android:id="@+id/layoutSupportText"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/resource_field_margin_end"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                app:str_title="@string/support_text_description"
+                app:str_subtitle="@string/setting_support_text_desc" />
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowSupportText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/support_text_description"
-                    app:str_subtitle="@string/setting_support_text_desc" />
-
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowShowTextLineNumbers"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/settings_nested_margin_start"
-                    android:visibility="gone"
-                    app:str_title="@string/show_text_line_numbers"
-                    app:str_subtitle="@string/setting_show_text_line_numbers_desc"
-                    app:str_showHelp="true"
-                    app:str_helpTitle="@string/tooltip_line_numbers_title"
-                    app:str_helpMessage="@string/tooltip_line_numbers_message" />
-            </LinearLayout>
-
-            <!-- Support PDF section (main row + nested thumbnails row) -->
-            <LinearLayout
-                android:id="@+id/layoutSupportPdf"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowShowTextLineNumbers"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:visibility="gone"
+                app:str_title="@string/show_text_line_numbers"
+                app:str_subtitle="@string/setting_show_text_line_numbers_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_line_numbers_title"
+                app:str_helpMessage="@string/tooltip_line_numbers_message" />
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowSupportPdf"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:str_title="@string/support_pdf_description"
-                    app:str_subtitle="@string/setting_support_pdf_desc" />
+        </LinearLayout>
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                    android:id="@+id/rowShowPdfThumbnails"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/settings_nested_margin_start"
-                    android:visibility="gone"
-                    app:str_title="@string/show_pdf_thumbnails"
-                    app:str_subtitle="@string/setting_show_pdf_thumbnails_desc" />
-            </LinearLayout>
+        <!-- PDF support + Thumbnails (inline right) -->
+        <LinearLayout
+            android:id="@+id/layoutSupportPdf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportPdf"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:str_title="@string/support_pdf_description"
+                app:str_subtitle="@string/setting_support_pdf_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowShowPdfThumbnails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:visibility="gone"
+                app:str_title="@string/show_pdf_thumbnails"
+                app:str_subtitle="@string/setting_show_pdf_thumbnails_desc" />
+
         </LinearLayout>
 
         <!-- EPUB Support Row -->

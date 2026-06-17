@@ -10,6 +10,9 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import android.content.Context
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,7 +22,9 @@ import javax.inject.Inject
  * Preserves EXIF metadata
  */
 class FlipImageUseCase @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    // S0473/S0482: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     enum class FlipDirection {
@@ -31,9 +36,11 @@ class FlipImageUseCase @Inject constructor(
      * Flip image in specified direction
      * @param imagePath absolute path to image file
      * @param direction flip direction (HORIZONTAL or VERTICAL)
+     * @param recordStats S0482: record one IMAGE_EDIT metric on success. Disabled by
+     *   NetworkImageEditUseCase, which counts once after the upload lands to avoid double-counting.
      * @return Result with success/failure
      */
-    suspend fun execute(imagePath: String, direction: FlipDirection): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun execute(imagePath: String, direction: FlipDirection, recordStats: Boolean = true): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val file = File(imagePath)
             if (!file.exists() || !file.canWrite()) {
@@ -134,6 +141,7 @@ class FlipImageUseCase @Inject constructor(
 
             Timber.d("Successfully flipped image $direction: $imagePath")
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
+            if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "Failed to flip image: $imagePath")

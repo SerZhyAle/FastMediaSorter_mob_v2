@@ -11,8 +11,8 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.Toast
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -29,6 +29,7 @@ class ScheduledOperationDialog(
     private val destinations: List<MediaResource>,
     private val existing: ScheduledOperation? = null,
     private val prefilledSourceId: Long? = null,
+    private val mediaCapabilities: MediaCapabilities,
     private val onSave: (ScheduledOperation) -> Unit
 ) : Dialog(context) {
 
@@ -203,13 +204,13 @@ class ScheduledOperationDialog(
     }
 
     private fun updateFileTypeCheckboxVisibility() {
-        b.cbFileTypeAudio.visibility = if (BuildConfig.SUPPORT_AUDIO) View.VISIBLE else View.GONE
-        b.cbFileTypeVideo.visibility = if (BuildConfig.SUPPORT_VIDEO) View.VISIBLE else View.GONE
-        b.cbFileTypeDocs.visibility  = if (BuildConfig.SUPPORT_DOCUMENTS) View.VISIBLE else View.GONE
+        b.cbFileTypeAudio.visibility = if (mediaCapabilities.supportsAudio) View.VISIBLE else View.GONE
+        b.cbFileTypeVideo.visibility = if (mediaCapabilities.supportsVideo) View.VISIBLE else View.GONE
+        b.cbFileTypeDocs.visibility  = if (mediaCapabilities.supportsDocuments) View.VISIBLE else View.GONE
         // Hidden options must not remain selected or be persisted on unsupported flavors.
-        if (!BuildConfig.SUPPORT_AUDIO) b.cbFileTypeAudio.isChecked = false
-        if (!BuildConfig.SUPPORT_VIDEO) b.cbFileTypeVideo.isChecked = false
-        if (!BuildConfig.SUPPORT_DOCUMENTS) b.cbFileTypeDocs.isChecked = false
+        if (!mediaCapabilities.supportsAudio) b.cbFileTypeAudio.isChecked = false
+        if (!mediaCapabilities.supportsVideo) b.cbFileTypeVideo.isChecked = false
+        if (!mediaCapabilities.supportsDocuments) b.cbFileTypeDocs.isChecked = false
     }
 
     private fun setupFileTypeInterlock() {
@@ -233,9 +234,9 @@ class ScheduledOperationDialog(
         var mask = 0
         if (b.cbFileTypeAllFiles.isChecked) mask = mask or FileTypeFlags.ALL_FILES
         if (b.cbFileTypeImages.isChecked)   mask = mask or FileTypeFlags.IMAGES
-        if (BuildConfig.SUPPORT_AUDIO && b.cbFileTypeAudio.isChecked)    mask = mask or FileTypeFlags.AUDIO
-        if (BuildConfig.SUPPORT_VIDEO && b.cbFileTypeVideo.isChecked)    mask = mask or FileTypeFlags.VIDEO
-        if (BuildConfig.SUPPORT_DOCUMENTS && b.cbFileTypeDocs.isChecked) mask = mask or FileTypeFlags.DOCUMENTS
+        if (mediaCapabilities.supportsAudio && b.cbFileTypeAudio.isChecked)    mask = mask or FileTypeFlags.AUDIO
+        if (mediaCapabilities.supportsVideo && b.cbFileTypeVideo.isChecked)    mask = mask or FileTypeFlags.VIDEO
+        if (mediaCapabilities.supportsDocuments && b.cbFileTypeDocs.isChecked) mask = mask or FileTypeFlags.DOCUMENTS
         return mask
     }
 
@@ -248,18 +249,18 @@ class ScheduledOperationDialog(
             // interlock will fire via setOnCheckedChangeListener
         } else {
             b.cbFileTypeImages.isChecked = FileTypeFlags.hasImages(normalizedMask)
-            b.cbFileTypeAudio.isChecked  = BuildConfig.SUPPORT_AUDIO && FileTypeFlags.hasAudio(normalizedMask)
-            b.cbFileTypeVideo.isChecked  = BuildConfig.SUPPORT_VIDEO && FileTypeFlags.hasVideo(normalizedMask)
-            b.cbFileTypeDocs.isChecked   = BuildConfig.SUPPORT_DOCUMENTS && FileTypeFlags.hasDocuments(normalizedMask)
+            b.cbFileTypeAudio.isChecked  = mediaCapabilities.supportsAudio && FileTypeFlags.hasAudio(normalizedMask)
+            b.cbFileTypeVideo.isChecked  = mediaCapabilities.supportsVideo && FileTypeFlags.hasVideo(normalizedMask)
+            b.cbFileTypeDocs.isChecked   = mediaCapabilities.supportsDocuments && FileTypeFlags.hasDocuments(normalizedMask)
         }
     }
 
     private fun normalizeMaskForFlavor(mask: Int): Int {
         if (FileTypeFlags.isAllFiles(mask)) return FileTypeFlags.ALL_FILES
         var result = mask and FileTypeFlags.IMAGES
-        if (BuildConfig.SUPPORT_AUDIO) result = result or (mask and FileTypeFlags.AUDIO)
-        if (BuildConfig.SUPPORT_VIDEO) result = result or (mask and FileTypeFlags.VIDEO)
-        if (BuildConfig.SUPPORT_DOCUMENTS) result = result or (mask and FileTypeFlags.DOCUMENTS)
+        if (mediaCapabilities.supportsAudio) result = result or (mask and FileTypeFlags.AUDIO)
+        if (mediaCapabilities.supportsVideo) result = result or (mask and FileTypeFlags.VIDEO)
+        if (mediaCapabilities.supportsDocuments) result = result or (mask and FileTypeFlags.DOCUMENTS)
         return result
     }
 

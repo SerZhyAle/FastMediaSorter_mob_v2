@@ -32,11 +32,9 @@ class GoogleKeepAvailabilityChecker(private val context: Context) {
                 type = "text/plain"
                 setPackage(candidate)
             }
-            context.packageManager.queryIntentActivities(probe, 0).isNotEmpty()
+            context.packageManager.queryIntentActivitiesCompat(probe).isNotEmpty()
         }
         resolvedPackageCache = resolved
         return resolved
     }
-
-    fun isKeepAvailable(): Boolean = resolveTargetPackage() != null
 }

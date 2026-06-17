@@ -10,8 +10,8 @@ import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
@@ -27,7 +27,8 @@ import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
 
 class WelcomePagerAdapter(
-    private val pages: List<WelcomePage>
+    private val pages: List<WelcomePage>,
+    private val mediaCapabilities: MediaCapabilities
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -82,7 +83,10 @@ class WelcomePagerAdapter(
             VIEW_TYPE_NETWORKS ->
                 NetworksViewHolder(PageWelcomeNetworksBinding.inflate(inflater, parent, false))
             VIEW_TYPE_DEFAULT_PLAYER ->
-                DefaultPlayerViewHolder(PageWelcomeDefaultPlayerBinding.inflate(inflater, parent, false))
+                DefaultPlayerViewHolder(
+                    PageWelcomeDefaultPlayerBinding.inflate(inflater, parent, false),
+                    mediaCapabilities
+                )
             VIEW_TYPE_ENHANCED ->
                 EnhancedViewHolder(PageWelcomeEnhancedBinding.inflate(inflater, parent, false))
             else ->
@@ -127,15 +131,16 @@ class WelcomePagerAdapter(
     }
 
     class DefaultPlayerViewHolder(
-        private val binding: PageWelcomeDefaultPlayerBinding
+        private val binding: PageWelcomeDefaultPlayerBinding,
+        private val mediaCapabilities: MediaCapabilities
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
             // Gate button visibility by flavor support and wire click callbacks.
-            binding.btnSetDefaultAudio.isVisible = BuildConfig.SUPPORT_AUDIO
-            binding.btnSetDefaultVideo.isVisible = BuildConfig.SUPPORT_VIDEO
-            binding.btnSetDefaultImages.isVisible = BuildConfig.SUPPORT_IMAGES
-            binding.btnSetDefaultDocs.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+            binding.btnSetDefaultAudio.isVisible = mediaCapabilities.supportsAudio
+            binding.btnSetDefaultVideo.isVisible = mediaCapabilities.supportsVideo
+            binding.btnSetDefaultImages.isVisible = mediaCapabilities.supportsImages
+            binding.btnSetDefaultDocs.isVisible = mediaCapabilities.supportsDocuments
 
             binding.btnSetDefaultAudio.setOnClickListener {
                 page.onSetDefaultForTypeClick?.invoke("audio/*")

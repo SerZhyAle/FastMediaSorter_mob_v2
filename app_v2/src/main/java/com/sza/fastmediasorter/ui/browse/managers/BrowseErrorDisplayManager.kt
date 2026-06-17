@@ -66,14 +66,16 @@ class BrowseErrorDisplayManager(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message,
-                        details = details
+                        details = details,
+                        reportableThrowable = exception
                     )
                 } else {
                     // S0118: keep the richer dialog surface, but do not expose raw stack traces.
                     ScrollableTextDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
-                        message = message
+                        message = message,
+                        reportableThrowable = exception
                     )
                 }
             } else {

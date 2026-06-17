@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04: privacy footnote shown under the list (data stays on device; the user sends
+     the author email themselves). Plain text, theme colors only. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvPrivacyNote"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/margin_large"
+    android:paddingVertical="@dimen/margin_medium"
+    android:text="@string/statistics_privacy_note"
+    android:textColor="?attr/colorOnSurfaceVariant"
+    android:textSize="@dimen/text_size_small" />

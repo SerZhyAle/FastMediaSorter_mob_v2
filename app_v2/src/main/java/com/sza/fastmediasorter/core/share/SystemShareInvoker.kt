@@ -63,10 +63,17 @@ object SystemShareInvoker {
         mime: String = "*/*",
         preferredPackage: String? = null,
         chooserTitle: String? = null,
+        emailAddresses: Array<String>? = null,
+        subject: String? = null,
     ): Boolean {
         if (uris.isEmpty()) return false
 
-        val intent = buildFilesIntent(uris, mime)
+        // Email extras are additive: a non-mail receiver simply ignores EXTRA_EMAIL/EXTRA_SUBJECT,
+        // so the attachment path stays ACTION_SEND (never mailto, which drops the attachment).
+        val intent = buildFilesIntent(uris, mime).apply {
+            emailAddresses?.let { putExtra(Intent.EXTRA_EMAIL, it) }
+            subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+        }
 
         if (preferredPackage != null) {
             val targeted = Intent(intent).setPackage(preferredPackage)

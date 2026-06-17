@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="draw_color_custom_cd">Довільний колір</string>
-    <string name="draw_keep_not_installed">Google Keep не встановлено</string>
-    <string name="draw_overflow_keep">Надіслати до Google Keep</string>
     <string name="draw_overflow_save_inplace">Зберегти</string>
     <string name="draw_overflow_save_new">Зберегти як..</string>
     <string name="draw_overflow_settings">Налаштування</string>

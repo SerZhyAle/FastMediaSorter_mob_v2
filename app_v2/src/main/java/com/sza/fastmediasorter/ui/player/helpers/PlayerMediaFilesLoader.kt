@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import kotlinx.coroutines.CancellationException
@@ -81,7 +82,8 @@ class PlayerMediaFilesLoader(
     private val updateState: ((PlayerViewModel.PlayerState) -> PlayerViewModel.PlayerState) -> Unit,
     private val sendEvent: (PlayerViewModel.PlayerEvent) -> Unit,
     private val setLoading: (Boolean) -> Unit,
-    private val stereoCoordinator: PlayerStereoModeCoordinator
+    private val stereoCoordinator: PlayerStereoModeCoordinator,
+    private val isShareTargetEnabled: IsShareTargetEnabledUseCase,
 ) {
 
     private var loadingJob: Job? = null
@@ -114,7 +116,7 @@ class PlayerMediaFilesLoader(
                     }
 
                     Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, filesLoaded=${stateFlow.value.files.isNotEmpty()}, RESULT showCommandPanel=$showCommandPanel")
-                    Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}, enableGoogleLens=${settings.enableGoogleLens}")
+                    Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}")
 
                     updateState {
                         it.copy(
@@ -127,7 +129,7 @@ class PlayerMediaFilesLoader(
                             enableMoving = settings.enableMoving,
                             enableTranslation = settings.enableTranslation,
                             enableOcr = settings.enableOcr,
-                            enableGoogleLens = settings.enableGoogleLens,
+                            enableGoogleLens = isShareTargetEnabled("lens", settings),
                             slideShowInterval = settings.slideshowInterval * 1000L,
                             slideshowMusicUri = settings.slideshowMusicUri,
                             slideshowMusicResourceId = settings.slideshowMusicResourceId,

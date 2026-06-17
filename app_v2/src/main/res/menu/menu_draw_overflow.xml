@@ -2,7 +2,7 @@
 <!--
     S0191/S0192 - Draw overlay overflow menu.
 
-    Order: Save as.. (picker) → Undo last → Undo all → Settings → Send to Google Keep.
+    Order: Save as.. (picker) → Undo last → Undo all → Settings → Send to.. (S0459 unified menu).
 
     S0191 moved the main save/share/cancel contract onto the direct toolbar action strip.
     The overflow keeps the legacy "Save as.." path plus non-primary editor actions.
@@ -21,8 +21,8 @@
         android:id="@+id/draw_overflow_settings"
         android:title="@string/draw_overflow_settings" />
     <item
-        android:id="@+id/draw_overflow_keep"
-        android:title="@string/draw_overflow_keep" />
+        android:id="@+id/draw_overflow_send_to"
+        android:title="@string/share_to_menu_title" />
     <item
         android:id="@+id/draw_overflow_delete_file"
         android:title="@string/draw_overflow_delete_file" />

@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.SetStatisticsCollectionEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
@@ -69,7 +70,8 @@ class SettingsViewModel @Inject constructor(
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
     private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
-    private val szaResourcesImporter: SzaResourcesImporter
+    private val szaResourcesImporter: SzaResourcesImporter,
+    private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -235,6 +237,22 @@ class SettingsViewModel @Inject constructor(
         GameLaunchWidgetProvider.updateAll(context, enabled)
     }
 
+    /**
+     * S0473: persists the opt-in statistics flag through [SetStatisticsCollectionEnabledUseCase],
+     * which also wipes detailed activity when turned off. Optimistic override keeps the switch
+     * stable until the DataStore write re-emits, matching [updateSettings].
+     */
+    fun setStatisticsCollectionEnabled(enabled: Boolean) {
+        _settingsOverride.value = settings.value.copy(enableStatistics = enabled)
+        viewModelScope.launch {
+            try {
+                setStatisticsCollectionEnabledUseCase(enabled)
+            } catch (e: Exception) {
+                Timber.e(e, "Error updating statistics collection flag")
+            }
+        }
+    }
+
     fun resetGeneralSection() {
         val defaults = AppSettings()
         val current = settings.value
@@ -302,13 +320,13 @@ class SettingsViewModel @Inject constructor(
                 translationSourceLanguage = defaults.translationSourceLanguage,
                 translationTargetLanguage = defaults.translationTargetLanguage,
                 translationLensStyle = defaults.translationLensStyle,
-                enableGoogleLens = defaults.enableGoogleLens,
                 enableOcr = defaults.enableOcr,
                 ocrDefaultFontSize = defaults.ocrDefaultFontSize,
                 ocrDefaultFontFamily = defaults.ocrDefaultFontFamily,
                 showVideoThumbnails = defaults.showVideoThumbnails,
                 videoSnapshotResourceId = defaults.videoSnapshotResourceId,
-                videoSnapshotFormat = defaults.videoSnapshotFormat
+                videoSnapshotFormat = defaults.videoSnapshotFormat,
+                videoFrameCopyToClipboard = defaults.videoFrameCopyToClipboard
             )
         )
     }
@@ -318,7 +336,6 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
-                preventSleep = defaults.preventSleep,
                 defaultSortMode = defaults.defaultSortMode,
                 slideshowInterval = defaults.slideshowInterval,
                 slideshowMusicUri = defaults.slideshowMusicUri,
@@ -327,21 +344,14 @@ class SettingsViewModel @Inject constructor(
                 playToEndInSlideshow = defaults.playToEndInSlideshow,
                 allowRename = defaults.allowRename,
                 allowDelete = defaults.allowDelete,
-                useTrash = defaults.useTrash,
                 fileOpsOverflowMenuHintShown = defaults.fileOpsOverflowMenuHintShown,
                 hideSystemUiInFullscreen = defaults.hideSystemUiInFullscreen,
                 defaultShowCommandPanel = defaults.defaultShowCommandPanel,
-                showDetailedErrors = defaults.showDetailedErrors,
                 showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
-                alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
-                isResourceGridMode = defaults.isResourceGridMode,
-                showBlackScreenButton = defaults.showBlackScreenButton,
-                defaultRememberFileList = defaults.defaultRememberFileList,
-                enableCalculator = defaults.enableCalculator,
-                embeddedGameEnabled = defaults.embeddedGameEnabled
+                alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay
             )
         )
-        // Also reset per-type touch zone hints
+        // Touch zone hints live outside AppSettings; explicit repo calls are required to reset them
         viewModelScope.launch {
             try {
                 settingsRepository.setPlayerFirstRun(true)
@@ -352,18 +362,56 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun resetDestinationsSection() {
+    fun resetOperationsSection() {
         val defaults = AppSettings()
         val current = settings.value
         updateSettings(
             current.copy(
+                // Safety group
+                enableSafeMode = defaults.enableSafeMode,
+                confirmDelete = defaults.confirmDelete,
+                confirmMove = defaults.confirmMove,
+                useTrash = defaults.useTrash,
+                // Copy/Move group
                 enableCopying = defaults.enableCopying,
                 goToNextAfterCopy = defaults.goToNextAfterCopy,
                 overwriteOnCopy = defaults.overwriteOnCopy,
                 enableMoving = defaults.enableMoving,
                 overwriteOnMove = defaults.overwriteOnMove,
                 enableUndo = defaults.enableUndo,
-                maxRecipients = defaults.maxRecipients
+                maxRecipients = defaults.maxRecipients,
+                // Behaviour group (moved from Player tab)
+                showDetailedErrors = defaults.showDetailedErrors,
+                resumeOnNextLaunch = defaults.resumeOnNextLaunch,
+                defaultRememberFileList = defaults.defaultRememberFileList,
+                // OtherFeatures group (moved from Player tab)
+                cameraOcrTranslationEnabled = defaults.cameraOcrTranslationEnabled,
+                cameraOcrOnly = defaults.cameraOcrOnly,
+                disableCameraCapture = defaults.disableCameraCapture,
+                skipCameraFilenameDialog = defaults.skipCameraFilenameDialog,
+                cameraCaptureOpenForEditing = defaults.cameraCaptureOpenForEditing,
+                cameraCaptureCopyToClipboard = defaults.cameraCaptureCopyToClipboard,
+                disableVideoCapture = defaults.disableVideoCapture,
+                videoCaptureOpenInPlayer = defaults.videoCaptureOpenInPlayer,
+                micRecordingEnabled = defaults.micRecordingEnabled,
+                micRecordingAskFilename = defaults.micRecordingAskFilename,
+                showBlackScreenButton = defaults.showBlackScreenButton,
+                enableCalculator = defaults.enableCalculator,
+                embeddedGameEnabled = defaults.embeddedGameEnabled,
+                // SystemApps group (moved from Player tab)
+                preventSleep = defaults.preventSleep,
+                programFollowSystemRotation = defaults.programFollowSystemRotation,
+                playerFollowSystemRotation = defaults.playerFollowSystemRotation,
+                isPrimaryMediaPlayer = defaults.isPrimaryMediaPlayer,
+                acceptSharedFiles = defaults.acceptSharedFiles,
+                linkAutoDownloadEnabled = defaults.linkAutoDownloadEnabled,
+                linkAutoDownloadOpenInPlayer = defaults.linkAutoDownloadOpenInPlayer,
+                linkAutoDownloadResourceId = defaults.linkAutoDownloadResourceId,
+                // ScreenGestures group (moved from Player tab)
+                gestureOverlayEnabled = defaults.gestureOverlayEnabled,
+                screenshotGestureActionDown = defaults.screenshotGestureActionDown,
+                screenshotGestureActionRight = defaults.screenshotGestureActionRight,
+                screenshotGestureActionUp = defaults.screenshotGestureActionUp
             )
         )
     }

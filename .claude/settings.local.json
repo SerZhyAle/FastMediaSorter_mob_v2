@@ -21,9 +21,7 @@
       "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json --enable-review-gate)"
     ]
   },
-  "disabledMcpjsonServers": [
-    "mobile-mcp"
-  ],
+  "disabledMcpjsonServers": [],
   "statusLine": {
     "type": "command",
     "command": "pwsh -NoProfile -File .claude/statusline.ps1",

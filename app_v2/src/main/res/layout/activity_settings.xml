@@ -9,7 +9,7 @@
     <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title row with back button and settings text -->
-        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="28dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="34dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
 
             <!-- Back button -->
             <ImageButton android:id="@+id/backButton" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />

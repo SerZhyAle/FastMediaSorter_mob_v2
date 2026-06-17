@@ -68,12 +68,10 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
                 )
                 when (action) {
                     ACTION_RUN_ALL -> {
-                        Timber.d("S0353: widget Run All tapped")
                         entryPoint.workManagerScheduler().runAllNow()
                         Timber.i("ScheduledTasksWidgetProvider: Run All action handled")
                     }
                     ACTION_TOGGLE_PAUSE -> {
-                        Timber.d("S0353: widget Pause/Resume tapped")
                         val paused = entryPoint.settingsRepository()
                             .getSettings().first().scheduledOperationsPaused
                         if (paused) {
@@ -110,7 +108,6 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            Timber.d("S0353: scheduled-tasks widget rendered")
             val views = RemoteViews(context.packageName, R.layout.widget_scheduled_tasks)
             val entryPoint = EntryPointAccessors.fromApplication(
                 context.applicationContext,

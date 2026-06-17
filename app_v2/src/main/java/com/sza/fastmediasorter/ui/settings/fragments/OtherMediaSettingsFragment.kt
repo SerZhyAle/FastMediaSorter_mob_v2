@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
@@ -113,8 +112,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.rowTranslationLensStyle.isVisible = false
 
-            binding.rowEnableGoogleLens.isVisible = false
-
             // Hide OCR row and summary
             binding.rowEnableOcr.isVisible = false
             binding.tvOcrSummary.isVisible = false
@@ -171,12 +168,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowTranslationLensStyle) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(translationLensStyle = isChecked))
-        }
-
-        // Google Lens
-        bindSwitch(binding.rowEnableGoogleLens) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
         }
 
         // OCR - turning it ON gates on the OCR_ENGINES set being installed (S0386 Phase 06);
@@ -355,7 +346,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupOcrEngineSpinners() {
-        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) {
+        if (!capabilityAvailability.isOcrEngineSelectionAvailable()) {
             binding.layoutOcrEngineType?.isVisible = false
             binding.layoutPaddleOcrModel?.isVisible = false
             return
@@ -418,7 +409,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         binding.layoutOcrFontSize?.isVisible = enabled
         binding.layoutOcrFontFamily?.isVisible = enabled
 
-        val showNoLegalOcr = enabled && BuildConfig.IS_NO_LEGAL_FLAVOR
+        val showNoLegalOcr = enabled && capabilityAvailability.isOcrEngineSelectionAvailable()
         binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
         binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
     }
@@ -432,12 +423,11 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 updateLanguageSelectors(settings)
 
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
-                setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
                 updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
 
                 // OCR Engine settings (S0288)
-                if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+                if (capabilityAvailability.isOcrEngineSelectionAvailable()) {
                     val ocrEnginePosition = when (settings.ocrEngineType) {
                         "TESSERACT" -> 0
                         "PADDLE_OCR" -> 1

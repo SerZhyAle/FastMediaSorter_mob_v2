@@ -41,6 +41,9 @@ class GeneralSettingsObserversHelper(
 
             if (binding.rowEnableFavorites.isChecked != settings.enableFavorites)
                 binding.rowEnableFavorites.setCheckedSilently(settings.enableFavorites)
+            // S0473: opt-in statistics toggle initial/observed state.
+            if (binding.rowEnableStatistics.isChecked != settings.enableStatistics)
+                binding.rowEnableStatistics.setCheckedSilently(settings.enableStatistics)
             // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
             if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
                 binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)
@@ -83,12 +86,12 @@ class GeneralSettingsObserversHelper(
             if (binding.rowEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.rowEnableBackgroundSync.setCheckedSilently(settings.enableBackgroundSync)
 
-            binding.rowEnableThumbnailPreload?.let { row ->
+            binding.rowEnableThumbnailPreload.let { row ->
                 if (row.isChecked != settings.enableThumbnailPreload) row.setCheckedSilently(settings.enableThumbnailPreload)
             }
-            binding.layoutThumbnailPreloadWifiOnly?.visibility =
+            binding.layoutThumbnailPreloadWifiOnly.visibility =
                 if (settings.enableThumbnailPreload) View.VISIBLE else View.GONE
-            binding.rowThumbnailPreloadWifiOnly?.let { row ->
+            binding.rowThumbnailPreloadWifiOnly.let { row ->
                 if (row.isChecked != settings.thumbnailPreloadWifiOnly) row.setCheckedSilently(settings.thumbnailPreloadWifiOnly)
             }
 

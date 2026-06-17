@@ -135,7 +135,6 @@ class BrowseRecyclerViewManager(
                 )
 
                 Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (base=$baseSpanCount, calculated=$calculatedSpanCount)")
-                Timber.d("S0419: grid span=$spanCount noThumbs=$disableThumbnails rowGap=${GRID_ROW_GAP_DP}dp")
                 GridLayoutManager(recyclerView.context, spanCount)
             }
         }

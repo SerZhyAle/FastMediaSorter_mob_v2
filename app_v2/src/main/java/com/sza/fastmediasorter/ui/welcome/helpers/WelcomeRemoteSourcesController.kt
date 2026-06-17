@@ -12,13 +12,13 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * Owns the welcome networks page (S0391): three remote-source group toggles (SMB / (S)FTP / Cloud)
  * over the six per-source [AppSettings] flags. A group reads ON when any of its members is enabled;
- * tapping it mass-writes every member. The cloud row is hidden on flavors without cloud support.
+ * tapping it mass-writes every member. A group row is hidden on flavors lacking that group: the
+ * cloud row without cloud support, the SMB/(S)FTP rows without local-network support (S0448).
  *
  * Hilt-injected into WelcomeActivity and wired into the page via [bind]; mirrors
  * [WelcomeFunctionalityController] so the page stays a thin renderer (Clean+MVVM).
@@ -45,6 +45,10 @@ class WelcomeRemoteSourcesController @Inject constructor(
     }
 
     private fun bindSmbRow(row: SettingsToggleRow, settings: AppSettings) {
+        if (!gate.isNetworkGroupSupported()) {
+            row.visibility = View.GONE
+            return
+        }
         row.visibility = View.VISIBLE
         row.setCheckedSilently(settings.smbEnabled)
         row.setOnCheckedChangeListener { isChecked ->
@@ -53,6 +57,10 @@ class WelcomeRemoteSourcesController @Inject constructor(
     }
 
     private fun bindFtpRow(row: SettingsToggleRow, settings: AppSettings) {
+        if (!gate.isNetworkGroupSupported()) {
+            row.visibility = View.GONE
+            return
+        }
         row.visibility = View.VISIBLE
         row.setCheckedSilently(settings.sftpEnabled || settings.ftpEnabled)
         row.setOnCheckedChangeListener { isChecked ->
@@ -76,7 +84,6 @@ class WelcomeRemoteSourcesController @Inject constructor(
     // fields. Runs on the application scope so the write survives the page being torn down right after
     // a tap - the settings change must not be lost on navigation.
     private fun persist(transform: (AppSettings) -> AppSettings) {
-        Timber.d("S0391: welcome remote-source toggle write")
         appScope.launch {
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(transform(current))

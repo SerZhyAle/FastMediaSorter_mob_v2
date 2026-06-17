@@ -23,6 +23,9 @@ data class AppSettings(
     // General settings
     val language: String = "en",
     val preventSleep: Boolean = true,
+    // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
+    // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
+    val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
@@ -93,7 +96,11 @@ data class AppSettings(
     val translationSourceLanguage: String = "auto", // Source language code (auto = auto-detect, en, ru, uk, etc.)
     val translationTargetLanguage: String = "ru", // Target language code (en, ru, uk, etc.)
     val translationLensStyle: Boolean = true, // Google Lens style - draw translated text blocks over original positions (for images and PDFs)
-    val enableGoogleLens: Boolean = false, // Enable sending to Google Lens app
+    // S0452: share-command visibility overrides. Empty = every target follows its registry default
+    // rule. A target id in enabledShareTargets is explicitly ON; in disabledShareTargets explicitly
+    // OFF. Two sets are needed to persist turning OFF a default-ON target (and vice versa).
+    val enabledShareTargets: Set<String> = emptySet(),
+    val disabledShareTargets: Set<String> = emptySet(),
     val enableOcr: Boolean = false, // S0386: default OFF - OCR engines delivered on demand
     val cameraOcrTranslationEnabled: Boolean = false, // Opt-in quick Photo-OCR-Translation flow
     val cameraOcrOnly: Boolean = false, // Under camera-ocr-translation: only perform OCR, no translation
@@ -147,6 +154,7 @@ data class AppSettings(
     val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
+    val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
@@ -164,8 +172,12 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
-    val screenshotGestureDownEnabled: Boolean = true,
+    val screenshotGestureActionDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
+    val screenshotGestureActionRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureActionUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotDestinationResourceId: String? = null,
+    // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
+    val copyScreenshotToClipboard: Boolean = false,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
@@ -205,6 +217,9 @@ data class AppSettings(
 
     // Video frame snapshot file format: "PNG" (lossless, default) or "JPG" (85% quality, smaller).
     val videoSnapshotFormat: String = "JPG",
+
+    // S0470: also place each extracted video frame on the system clipboard (default off - no upgrade behaviour change).
+    val videoFrameCopyToClipboard: Boolean = false,
 
     // Link auto-download (S0003): when an incoming Share-sheet payload is a plain http(s) URL
     // and `linkAutoDownloadEnabled` is on, the receiver tries to fetch the referenced file
@@ -263,13 +278,20 @@ data class AppSettings(
     // S0028: Multi-window mode — allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
 
-    // S0162: Screen rotation control
-    // true = delegate to OS auto-rotate; false = own control via playerRotationSensorEnabled
-    val followSystemRotation: Boolean = true,
+    // S0162 / S0439: Screen rotation control
+    // Program-scope follow-OS flag (umbrella). true = delegate to OS auto-rotate across the whole app.
+    val programFollowSystemRotation: Boolean = true,
+    // S0439: Player-scope follow-OS flag. Consulted only when programFollowSystemRotation is false.
+    val playerFollowSystemRotation: Boolean = false,
     // Per-session sensor state (persisted; restored on next player launch).
-    // Active only when followSystemRotation = false.
+    // Active only when the player is not following the OS.
     // true = screen follows physical rotation; false = screen locked to current orientation
-    val playerRotationSensorEnabled: Boolean = true
+    val playerRotationSensorEnabled: Boolean = true,
+
+    // S0473: opt-in local usage statistics. Default OFF (privacy). Gates the detailed StatsSink
+    // write path; the always-on baseline launch record is independent of this flag. Never applied
+    // by a device profile (empty CSV row), so a profile cannot silently enable data collection.
+    val enableStatistics: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

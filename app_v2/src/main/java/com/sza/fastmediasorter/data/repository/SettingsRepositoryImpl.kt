@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -42,6 +43,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
+        private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
         private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
         private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
@@ -50,6 +52,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_NETWORK_PARALLELISM = intPreferencesKey("network_parallelism")
         private val KEY_CACHE_SIZE_MB = intPreferencesKey("cache_size_mb")
         private val KEY_IS_CACHE_SIZE_USER_MODIFIED = booleanPreferencesKey("is_cache_size_user_modified")
+        private val KEY_ENABLED_SHARE_TARGETS = stringSetPreferencesKey("enabled_share_targets")
+        private val KEY_DISABLED_SHARE_TARGETS = stringSetPreferencesKey("disabled_share_targets")
 
         private val KEY_ENABLE_BACKGROUND_SYNC = booleanPreferencesKey("enable_background_sync")
         private val KEY_BACKGROUND_SYNC_INTERVAL_HOURS = intPreferencesKey("background_sync_interval_hours")
@@ -164,6 +168,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
         private val KEY_VIDEO_SNAPSHOT_RESOURCE_ID = longPreferencesKey("video_snapshot_resource_id")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
+        private val KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD = booleanPreferencesKey("video_frame_copy_to_clipboard")
 
         // Link auto-download (S0003): master toggle, optional destination resource id, auto-open toggle
         // Link auto-download keys moved to data.repository.settings.LinkSettingsStore (responsibility extraction).
@@ -174,6 +179,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
+
+        // S0473: opt-in local usage statistics (default OFF). Same DataStore key as SettingsManager.ENABLE_STATISTICS.
+        private val KEY_ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
 
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
@@ -195,7 +203,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ALLOW_SEPARATE_WINDOW = booleanPreferencesKey("allow_separate_window")
 
         // S0162: Screen rotation control
+        // S0439: KEY_FOLLOW_SYSTEM_ROTATION now backs the program-scope flag (key reused for upgrade-safe migration).
         private val KEY_FOLLOW_SYSTEM_ROTATION = booleanPreferencesKey("follow_system_rotation")
+        private val KEY_PLAYER_FOLLOW_SYSTEM_ROTATION = booleanPreferencesKey("player_follow_system_rotation")
         private val KEY_PLAYER_ROTATION_SENSOR_ENABLED = booleanPreferencesKey("player_rotation_sensor_enabled")
 
         // Adaptive pre-cache strategy (spec §5)
@@ -219,7 +229,7 @@ class SettingsRepositoryImpl @Inject constructor(
     // to this build (existing user has lastUpdateTime > firstInstallTime → fallback resolves to false).
     private val isFreshInstall: Boolean by lazy {
         runCatching {
-            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            val info = context.packageManager.getPackageInfoCompat(context.packageName)
             val fresh = info.firstInstallTime == info.lastUpdateTime
             fresh
         }.getOrDefault(false)
@@ -271,6 +281,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     language = language,
                     colorTheme = colorTheme,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
+                    keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
                     embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
@@ -279,6 +290,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
                     cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048,
                     isCacheSizeUserModified = preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] ?: false,
+                    enabledShareTargets = preferences[KEY_ENABLED_SHARE_TARGETS] ?: emptySet(),
+                    disabledShareTargets = preferences[KEY_DISABLED_SHARE_TARGETS] ?: emptySet(),
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
                     resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
@@ -336,7 +349,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
-                    enableGoogleLens = textRec.enableGoogleLens,
                     enableOcr = textRec.enableOcr,
                     cameraOcrTranslationEnabled = textRec.cameraOcrTranslationEnabled,
                     cameraOcrOnly = textRec.cameraOcrOnly,
@@ -386,6 +398,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
+                    cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
@@ -394,8 +407,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     micRecordingDestinationResourceId = capture.micRecordingDestinationResourceId,
                     cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
                     gestureOverlayEnabled = screenshot.gestureOverlayEnabled,
-                    screenshotGestureDownEnabled = screenshot.screenshotGestureDownEnabled,
+                    screenshotGestureActionDown = screenshot.screenshotGestureActionDown,
+                    screenshotGestureActionRight = screenshot.screenshotGestureActionRight,
+                    screenshotGestureActionUp = screenshot.screenshotGestureActionUp,
                     screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
+                    copyScreenshotToClipboard = screenshot.copyScreenshotToClipboard,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -414,6 +430,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Video frame snapshot format (default JPG)
                     videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
                         ?.takeIf { it == "PNG" || it == "JPG" } ?: "JPG",
+
+                    // S0470: copy extracted frame to clipboard (default off)
+                    videoFrameCopyToClipboard = preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] ?: false,
 
                     // Link auto-download (S0003) - owned by LinkSettingsStore.
                     linkAutoDownloadEnabled = link.linkAutoDownloadEnabled,
@@ -450,6 +469,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S0050: absent key → false (opt-in feature, disabled by default)
                     showBlackScreenButton = preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] ?: false,
 
+                    // S0473: absent key → false (opt-in statistics, disabled by default)
+                    enableStatistics = preferences[KEY_ENABLE_STATISTICS] ?: false,
+
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
                         .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
@@ -463,8 +485,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW]
                         ?: MultiWindowCapabilityDetector.defaultAllowSeparateWindow(context),
 
-                    // S0162: absent key → default true (no behaviour change on upgrade)
-                    followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,
+                    // S0162/S0439: absent key → default true (program flag inherits the legacy value on upgrade)
+                    programFollowSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,
+                    // S0439: new player flag defaults off on upgrade (preserves prior behaviour)
+                    playerFollowSystemRotation = preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] ?: false,
                     playerRotationSensorEnabled = preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] ?: true
                 )
             }
@@ -506,6 +530,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LANGUAGE] = storedLanguage
             preferences[KEY_COLOR_THEME] = storedColorTheme
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
+            preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
             preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
@@ -514,6 +539,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
             preferences[KEY_CACHE_SIZE_MB] = settings.cacheSizeMb
             preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] = settings.isCacheSizeUserModified
+            preferences[KEY_ENABLED_SHARE_TARGETS] = settings.enabledShareTargets
+            preferences[KEY_DISABLED_SHARE_TARGETS] = settings.disabledShareTargets
             preferences[KEY_ENABLE_BACKGROUND_SYNC] = settings.enableBackgroundSync
             preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] = settings.backgroundSyncIntervalHours
             RemoteSourceSettingsStore.write(preferences, settings)
@@ -610,6 +637,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
+            preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] = settings.videoFrameCopyToClipboard
 
             // Link auto-download (S0003) - owned by LinkSettingsStore.
             LinkSettingsStore.write(preferences, settings)
@@ -630,6 +658,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
             // S0050: Black Screen button (opt-in)
             preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
+            // S0473: local usage statistics (opt-in)
+            preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
@@ -640,8 +670,9 @@ class SettingsRepositoryImpl @Inject constructor(
             // S0028: Multi-window mode
             preferences[KEY_ALLOW_SEPARATE_WINDOW] = settings.allowSeparateWindow
 
-            // S0162: Screen rotation control
-            preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.followSystemRotation
+            // S0162 / S0439: Screen rotation control
+            preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
+            preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
             preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
         }
     }
@@ -672,6 +703,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateScheduledOperationsPaused(paused: Boolean) {
         dataStore.edit { it[KEY_SCHEDULED_OPERATIONS_PAUSED] = paused }
+    }
+
+    override suspend fun setStatisticsEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_ENABLE_STATISTICS] = enabled }
     }
 
     private fun <T> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {

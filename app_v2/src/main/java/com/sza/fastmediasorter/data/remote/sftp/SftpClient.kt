@@ -451,13 +451,23 @@ class SftpClient @Inject constructor(
     ): Result<Unit> {
         val retryDelaysMs = longArrayOf(1_000, 2_000, 4_000)
         var lastException: Exception? = null
+        var lastWasDeadTransport = false
 
         for (attempt in 0..retryDelaysMs.size) {
             if (attempt > 0) {
                 Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
                 disconnectTransport(connectionInfo)
                 if (outputStream is java.io.ByteArrayOutputStream) outputStream.reset()
-                delay(retryDelaysMs[attempt - 1])
+                // S0466: a dead-transport failure (stale pooled session after a long scan, e.g.
+                // "inputstream is closed") is already cured by the disconnectTransport reconnect
+                // above, so the exponential backoff only burns the audio pre-cache startup budget
+                // and pushes the retry past the 5s timeout. Retry immediately on the fresh session;
+                // reserve backoff for genuinely transient server errors.
+                if (!lastWasDeadTransport) {
+                    delay(retryDelaysMs[attempt - 1])
+                } else {
+                    Timber.d("S0466: SFTP download fast-retry (skip backoff) on dead transport for $remotePath")
+                }
             }
 
             val result = withConnection(connectionInfo) { channel ->
@@ -497,6 +507,7 @@ class SftpClient @Inject constructor(
                 (ex is SftpException && (ex.id == ChannelSftp.SSH_FX_FAILURE || ex.id == ChannelSftp.SSH_FX_BAD_MESSAGE)) ||
                 ex is IOException
             if (!retriable) return result
+            lastWasDeadTransport = SftpConnectionPool.isDeadTransport(ex)
             lastException = ex as? Exception ?: Exception(ex?.message)
         }
 

@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryIncompatibleException
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
+import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
@@ -72,8 +74,26 @@ class RecognitionBackend(
             return null
         }
 
+        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
+        } catch (e: DeliveredPayloadCorruptException) {
+            if (e.reason.contains("payload file missing")) {
+                // Tesseract .so was already injected by the loader before the first missing Paddle
+                // file was detected - fall back to Tesseract for this operation. The loader already
+                // enqueued async uninstall of the partial set; re-download prompt fires on the next
+                // enable-time check via DeliveryEnableInterceptor.
+                Timber.d("S0461: recognizeText Tesseract fallback - Paddle payload partially missing")
+                Timber.i("OCR engines payload partially missing; falling back to Tesseract")
+                paddlePayloadMissing = true
+            } else {
+                Timber.e(e, "Failed to load OCR engines native libraries")
+                callback.showError(context.getString(R.string.ocr_engines_damaged))
+                return null
+            }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
@@ -82,7 +102,8 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLangCode)
-        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
+        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
+                        else offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
         Timber.d("TranslationManager.recognizeText: Trying offline OCR engine=${settings.ocrEngineType} for $sourceLangCode")
         val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(settings, bitmap, sourceLangCode, tessLang, ocrEngine)
         if (!ocrResult.isNullOrBlank()) {
@@ -102,8 +123,22 @@ class RecognitionBackend(
             return null
         }
 
+        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
+        } catch (e: DeliveredPayloadCorruptException) {
+            if (e.reason.contains("payload file missing")) {
+                Timber.d("S0461: recognizeAndTranslateBlocks Tesseract fallback - Paddle payload partially missing")
+                Timber.i("OCR engines payload partially missing; falling back to Tesseract for block recognition")
+                paddlePayloadMissing = true
+            } else {
+                Timber.e(e, "Failed to load OCR engines native libraries")
+                callback.showError(context.getString(R.string.ocr_engines_damaged))
+                return null
+            }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - block recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
@@ -112,7 +147,8 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLang)
-        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLang)
+        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
+                        else offlineOcrEngineProvider.engineFor(settings, sourceLang)
         val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(settings, bitmap, sourceLang, tessLang, ocrEngine)
 
         if (!ocrBlocks.isNullOrEmpty()) {
@@ -159,8 +195,21 @@ class RecognitionBackend(
             return null
         }
 
+        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
+        } catch (e: DeliveredPayloadCorruptException) {
+            if (e.reason.contains("payload file missing")) {
+                Timber.d("S0461: recognizeTextBlocksForSelection Tesseract fallback - Paddle payload partially missing")
+                Timber.i("OCR engines payload partially missing; running Tesseract for word selection")
+                paddlePayloadMissing = true
+            } else {
+                Timber.e(e, "Failed to load OCR engines native libraries")
+                return null
+            }
+        } catch (e: DeliveredNativeLibraryIncompatibleException) {
+            Timber.i("OCR engines not loadable on this device - selection recognition unavailable")
+            return null
         } catch (e: Exception) {
             Timber.e(e, "Failed to load OCR engines native libraries")
             return null
@@ -168,7 +217,8 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = "eng"
-        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, "en")
+        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
+                        else offlineOcrEngineProvider.engineFor(settings, "en")
         val ocrBlocks = ocrEngine.recognizeTextBlocks(bitmap, tessLang) ?: return null
 
         val words = mutableListOf<TranslationManager.TranslatedTextBlock>()

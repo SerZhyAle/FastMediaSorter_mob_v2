@@ -279,6 +279,7 @@ dev/CATALOG/wear.md
 docs/FEATURES_noLegal.md
 docs/FEATURES_noLegal_RU.md
 docs/FEATURES_noLegal_UK.md
+docs/ALL_FEATURES_noLegal.jsonl
 
 # Agent continuity layer artifacts (S0268)
 dev/agent-continuity/

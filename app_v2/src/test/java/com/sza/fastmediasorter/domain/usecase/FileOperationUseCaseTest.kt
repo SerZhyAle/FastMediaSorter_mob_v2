@@ -35,7 +35,7 @@ class FileOperationUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = FileOperationUseCase(context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy)
+        useCase = FileOperationUseCase(context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy, mockk(relaxed = true))
     }
 
     private fun netFile(path: String): File = object : File(path) {

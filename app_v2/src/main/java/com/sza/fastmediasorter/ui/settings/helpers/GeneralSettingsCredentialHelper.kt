@@ -139,6 +139,7 @@ class GeneralSettingsCredentialHelper(
                         showPdfThumbnails = settings.optBoolean("showPdfThumbnails", currentSettings.showPdfThumbnails),
                         loadFullSizeImages = settings.optBoolean("loadFullSizeImages", currentSettings.loadFullSizeImages),
                         preventSleep = settings.optBoolean("preventSleep", currentSettings.preventSleep),
+                        keepScreenOnPlayer = settings.optBoolean("keepScreenOnPlayer", currentSettings.keepScreenOnPlayer),
                         showSmallControls = settings.optBoolean("showSmallControls", currentSettings.showSmallControls),
                         defaultGridMode = settings.optBoolean("gridMode", currentSettings.defaultGridMode),
                         defaultIconSize = settings.optInt("iconSize", currentSettings.defaultIconSize),

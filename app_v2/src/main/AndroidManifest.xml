@@ -107,6 +107,26 @@
              the menu item silently disappears / falls back to the generic chooser. -->
         <package android:name="com.google.android.keep" />
         <package android:name="com.google.android.keep.notes" />
+        <!-- S0459: visibility for the unified «Send to..» package-backed receivers on API 30+, so the
+             availability resolver (getPackageInfo) and setPackage targeting resolve installed clients;
+             without these a receiver silently falls back to the generic chooser. -->
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.telegram.messenger.web" />
+        <package android:name="org.thunderdog.challegram" />
+        <package android:name="org.telegram.plus" />
+        <package android:name="org.telegram.messenger.beta" />
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.instagram.android" />
+        <!-- S0459: Google Lens probes these packages (GoogleLensShare); without visibility on API 30+
+             resolveActivity() returns null even when installed and Lens always falls back to chooser. -->
+        <package android:name="com.google.ar.lens" />
+        <package android:name="com.google.android.googlequicksearchbox" />
+        <!-- Email clients resolve via the mailto scheme so the email receiver can bias toward them. -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
     </queries>
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
@@ -160,6 +180,9 @@
 
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+
+        <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
+        <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 

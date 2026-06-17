@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner.PlayerCommand
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
@@ -17,7 +16,7 @@ import javax.inject.Inject
 
 @ActivityScoped
 class BrowseFileOverflowMenuManager @Inject constructor(
-    @ActivityContext private val context: Context
+    @ActivityContext private val context: Context,
 ) {
     private data class MenuItem(val label: String, val action: () -> Unit)
 
@@ -36,10 +35,9 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         onMoveDown: ((MediaFile) -> Unit)? = null,
         onExtractArchive: ((MediaFile) -> Unit)? = null,
         onFavorite: ((MediaFile) -> Unit)? = null,
-        onShare: ((MediaFile) -> Unit)? = null,
-        onSendToTelegram: ((MediaFile) -> Unit)? = null,
+        // S0459 Phase 07: single «Send to..» entry point - replaces the former Share + Telegram items.
+        onSendTo: ((MediaFile) -> Unit)? = null,
         onInfo: ((MediaFile) -> Unit)? = null,
-        onGoogleLens: ((MediaFile) -> Unit)? = null,
         onDrawOverlay: ((MediaFile) -> Unit)? = null,
         onSearchYoutubeMusic: ((MediaFile) -> Unit)? = null,
         onOpenInPlayer: ((MediaFile) -> Unit)? = null,
@@ -85,10 +83,8 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         for (cmd in extendedCommands) {
             val action: () -> Unit = when (cmd) {
                 PlayerCommand.FAVORITE          -> { { onFavorite?.invoke(file) } }
-                PlayerCommand.SHARE             -> { { onShare?.invoke(file) } }
-                PlayerCommand.SEND_TO_TELEGRAM  -> { { onSendToTelegram?.invoke(file) } }
+                PlayerCommand.SEND_TO           -> { { onSendTo?.invoke(file) } }
                 PlayerCommand.INFO              -> { { onInfo?.invoke(file) } }
-                PlayerCommand.GOOGLE_LENS_IMAGE -> { { onGoogleLens?.invoke(file) } }
                 PlayerCommand.DRAW_OVERLAY      -> { { onDrawOverlay?.invoke(file) } }
                 PlayerCommand.SEARCH_YOUTUBE_MUSIC -> { { onSearchYoutubeMusic?.invoke(file) } }
                 else                            -> { { onOpenInPlayer?.invoke(file) } }
@@ -135,7 +131,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
      * ROTATION_TOGGLE, OPEN_IN_SEPARATE_WINDOW, SLIDESHOW.
      * Also excluded: DELETE and RENAME - already in the basic group above.
      *
-     * Non-player actions (FAVORITE, SHARE, INFO, GOOGLE_LENS_IMAGE, DRAW_OVERLAY,
+     * Non-player actions (FAVORITE, SEND_TO, INFO, DRAW_OVERLAY,
      * SEARCH_YOUTUBE_MUSIC) are routed to their own callbacks;
      * all other extended commands route to [onOpenInPlayer] which opens the file
      * in PlayerActivity where the feature is accessible.
@@ -158,11 +154,9 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         return buildList {
             // Universal - available for every file type
             if (!isFolder) add(PlayerCommand.FAVORITE)
-            add(PlayerCommand.SHARE)
-            // S0303: Send to Telegram - all file types, only when a Telegram client is installed.
-            if (TelegramShareTargets.firstInstalledPackage(context.packageManager) != null) {
-                add(PlayerCommand.SEND_TO_TELEGRAM)
-            }
+            // S0459 Phase 07: unified «Send to..» replaces the per-file Share + Telegram items.
+            // Receiver applicability (incl. Telegram-installed gating) is resolved by SendToMenuManager.
+            add(PlayerCommand.SEND_TO)
             add(PlayerCommand.INFO)
 
             // Audio-specific
@@ -196,7 +190,9 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             if (isImage && appSettings.enableTranslation) add(PlayerCommand.TRANSLATE_IMAGE)
             if (isImage) add(PlayerCommand.IMAGE_TEXT_SETTINGS)
             if (isImage && appSettings.enableOcr) add(PlayerCommand.OCR_IMAGE)
-            if (isImage && appSettings.enableGoogleLens) add(PlayerCommand.GOOGLE_LENS_IMAGE)
+            // S0459 Phase 08 (§11.7 audit): no per-file Google Lens item here - Lens is surfaced
+            // through the unified «Send to..» (SEND_TO) entry, which the "lens" receiver registers for
+            // image/gif files. A browse-local ACTION_SEND would duplicate that registered handler.
 
             // Print: PDF, text, image
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)

@@ -213,7 +213,6 @@ class BrowseUndoManager(
      * Requires full file list reload.
      */
     private suspend fun undoRenameOperation(operation: UndoOperation) {
-        Timber.d("S0417: batch rename undo via FileOperationUseCase")
         operation.oldNames?.forEach { (currentPath, originalName) ->
             val restored = callbacks.renameViaFileOperation(currentPath, originalName)
             Timber.d("undoRename: $currentPath -> $originalName (restored=$restored)")

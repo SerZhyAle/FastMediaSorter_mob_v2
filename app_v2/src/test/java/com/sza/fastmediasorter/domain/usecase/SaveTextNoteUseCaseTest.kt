@@ -30,7 +30,7 @@ class SaveTextNoteUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = SaveTextNoteUseCase(fileOperationUseCase, stagingRegistry, resourceRepository)
+        useCase = SaveTextNoteUseCase(fileOperationUseCase, stagingRegistry, resourceRepository, mockk(relaxed = true))
     }
 
     @Test

@@ -177,6 +177,30 @@ object LocaleHelper {
     }
 
     /**
+     * Reset the saved language back to "follow system": clear the persisted preference, drop the
+     * in-memory cache, and clear the Android 13+ per-app LocaleManager override. Used by the debug
+     * "reset preferences" tool so a reset returns the app to a true clean state instead of keeping
+     * the previously chosen language.
+     */
+    fun resetLanguage(context: Context) = StrictModeHelper.allowDiskWrites {
+        cachedLanguageCode = null
+
+        context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+            .edit()
+            .remove(PREF_SELECTED_LANGUAGE)
+            .apply()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                context.getSystemService(LocaleManager::class.java)?.applicationLocales =
+                    LocaleList.getEmptyLocaleList()
+            } catch (e: Exception) {
+                Timber.w(e, "LocaleHelper: Failed to clear LocaleManager override during reset")
+            }
+        }
+    }
+
+    /**
      * Apply locale to the given context
      * Should be called in attachBaseContext() or onCreate()
      */

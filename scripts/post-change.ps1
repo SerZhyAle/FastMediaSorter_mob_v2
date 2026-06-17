@@ -133,6 +133,13 @@ $runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
 $runsFgsGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
+# getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
+$runsPmFlagsGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S0489 ALL_FEATURES inventory drift gate. Fires only when the touched file is the
+# inventory data, its schema, or the noLegal variant - validates the JSONL and blocks
+# a silent record-count drop below the committed baseline. Narrow trigger by path.
+$runsAllFeaturesGate = (($File -replace '\\', '/') -match 'docs/ALL_FEATURES.*\.(jsonl|json)$')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -213,6 +220,24 @@ if ($runsFgsGate) {
 }
 else {
     Skip-Step "fgs-notification-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsPmFlagsGate) {
+    Invoke-Step "deprecated-pm-flags-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "deprecated-pm-flags-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsAllFeaturesGate) {
+    Invoke-Step "all-features-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "all-features-gate" "not applicable - touched file is not an ALL_FEATURES artifact"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

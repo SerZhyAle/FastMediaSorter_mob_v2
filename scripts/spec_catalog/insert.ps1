@@ -30,9 +30,9 @@ if (-not $Id) {
     if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
 }
 
-foreach ($r in $records) {
-    if ($r.id -eq $Id) { throw "Duplicate id '$Id'." }
-}
+# Id uniqueness is global (an archived id must never be reissued); name clash is
+# checked against active records only below (archived names may be reused).
+if (Find-Record -Id $Id) { throw "Duplicate id '$Id'." }
 $activeNameClash = $records | Where-Object { $_.name -eq $Name -and $_.status -ne 'Archived' }
 if ($activeNameClash) {
     throw "Active record with name '$Name' already exists (id $($activeNameClash[0].id))."

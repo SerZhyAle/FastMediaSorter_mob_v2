@@ -9,6 +9,9 @@ if (-not $libDir) { $libDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $repoRoot = (Resolve-Path (Join-Path $libDir '..\..')).Path
 $script:RepoRoot = $repoRoot
 $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
+# Archived records live in a separate journal so the hot read path scans only
+# active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
+$script:ArchivePath = Join-Path $repoRoot 'PLAN\spec-catalog-archive.jsonl'
 
 $script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
 $script:StatusEnum = @(
@@ -29,6 +32,10 @@ function Get-CatalogPath {
     return $script:CatalogPath
 }
 
+function Get-ArchivePath {
+    return $script:ArchivePath
+}
+
 function Get-Now {
     return (Get-Date -Format 'yyyy-MM-dd HH:mm')
 }
@@ -37,14 +44,18 @@ function Get-Today {
     return (Get-Date -Format 'yyyy-MM-dd')
 }
 
-function Read-Catalog {
-    if (-not (Test-Path $script:CatalogPath)) {
+function Read-JsonlFile {
+    # Parse one JSONL journal file into a sorted-by-id object array.
+    # Missing file -> empty array. Parse errors carry the file name + line.
+    param([Parameter(Mandatory)][string] $Path)
+    if (-not (Test-Path $Path)) {
         return ,@()
     }
-    $raw = Get-Content -LiteralPath $script:CatalogPath -Encoding UTF8 -ErrorAction Stop
+    $raw = Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop
     if (-not $raw) { return ,@() }
     $records = New-Object System.Collections.Generic.List[object]
     $lineNo = 0
+    $fileName = Split-Path -Leaf $Path
     foreach ($line in @($raw)) {
         $lineNo++
         $trim = "$line".Trim()
@@ -52,11 +63,24 @@ function Read-Catalog {
         try {
             $records.Add(($trim | ConvertFrom-Json))
         } catch {
-            throw "Catalog parse error at line ${lineNo}: $($_.Exception.Message)"
+            throw "Catalog parse error in ${fileName} at line ${lineNo}: $($_.Exception.Message)"
         }
     }
     $sorted = [object[]]@($records | Sort-Object -Property id)
     return ,$sorted
+}
+
+function Read-Catalog {
+    # Default: active journal only (non-Archived). -IncludeArchived merges the
+    # archive journal so full-catalog reviews still see every record.
+    param([switch] $IncludeArchived)
+    $active = Read-JsonlFile -Path $script:CatalogPath
+    if (-not $IncludeArchived) {
+        return ,([object[]]@($active))
+    }
+    $archived = Read-JsonlFile -Path $script:ArchivePath
+    $merged = [object[]]@(@($active) + @($archived) | Sort-Object -Property id)
+    return ,$merged
 }
 
 function Assert-Record {
@@ -88,11 +112,12 @@ function Assert-Record {
     }
 }
 
-function Write-Catalog {
+function Format-CatalogLines {
+    # Validate + shape records into stable-key-order compact JSONL lines.
+    # Shared by the active (Write-Catalog) and archive (Write-ArchiveCatalog) writers.
     param([Parameter(Mandatory)][object[]] $Records)
     $sorted = @($Records | Sort-Object -Property id)
     foreach ($r in $sorted) { Assert-Record -Record $r }
-    # Build one compact JSON per record. Use JavaScriptSerializer-style output via ConvertTo-Json -Compress.
     $lines = New-Object System.Collections.Generic.List[string]
     foreach ($r in $sorted) {
         # Re-shape to a fixed key order for stable diffs.
@@ -114,20 +139,54 @@ function Write-Catalog {
                 $ordered[$prop.Name] = $prop.Value
             }
         }
-        $json = ($ordered | ConvertTo-Json -Compress -Depth 5)
-        $lines.Add($json)
+        $lines.Add(($ordered | ConvertTo-Json -Compress -Depth 5))
     }
-    $payload = ($lines -join "`n")
+    return $lines
+}
+
+function Write-JsonlFile {
+    # Atomic write of pre-formatted JSONL lines: temp file + Move-Item -Force, UTF-8 no BOM.
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [Parameter(Mandatory)][AllowEmptyCollection()] $Lines
+    )
+    $payload = (@($Lines) -join "`n")
     if ($payload.Length -gt 0) { $payload += "`n" }
-    # Atomic write: temp file + Move-Item -Force.
-    $tmp = "$($script:CatalogPath).tmp"
+    $tmp = "$Path.tmp"
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($tmp, $payload, $utf8NoBom)
-    Move-Item -LiteralPath $tmp -Destination $script:CatalogPath -Force
+    Move-Item -LiteralPath $tmp -Destination $Path -Force
+}
+
+function Write-Catalog {
+    # Writes the ACTIVE journal only. Archive records are never passed here.
+    param([Parameter(Mandatory)][object[]] $Records)
+    $lines = Format-CatalogLines -Records $Records
+    Write-JsonlFile -Path $script:CatalogPath -Lines $lines
+}
+
+function Write-ArchiveCatalog {
+    # Writes the ARCHIVE journal. Empty set allowed (e.g. nothing archived yet).
+    param([AllowEmptyCollection()][object[]] $Records = @())
+    $lines = Format-CatalogLines -Records $Records
+    Write-JsonlFile -Path $script:ArchivePath -Lines $lines
+}
+
+function Add-ArchiveRecord {
+    # Append (or replace-by-id) a single record into the archive journal.
+    # Idempotent: re-archiving the same id replaces its row, never duplicates.
+    param([Parameter(Mandatory)] $Record)
+    # Direct assignment (not @()) - Read-JsonlFile uses the ,$arr anti-unroll
+    # idiom, which @() would re-nest into a single element.
+    $existing = Read-JsonlFile -Path $script:ArchivePath
+    $kept = @($existing | Where-Object { $_.id -ne $Record.id })
+    $kept += $Record
+    Write-ArchiveCatalog -Records ([object[]]$kept)
 }
 
 function New-CatalogId {
-    $records = Read-Catalog
+    # Must scan archive too - an archived id must never be reissued.
+    $records = Read-Catalog -IncludeArchived
     $max = 0
     foreach ($r in $records) {
         if ($r.id -match '^S(\d{4})$') {
@@ -141,9 +200,15 @@ function New-CatalogId {
 }
 
 function Find-Record {
+    # Resolve by id against the active journal, falling back to the archive
+    # journal on a miss so archived tickets stay reachable transparently.
     param([Parameter(Mandatory)][string] $Id)
-    $records = Read-Catalog
-    foreach ($r in $records) { if ($r.id -eq $Id) { return $r } }
+    foreach ($r in (Read-JsonlFile -Path $script:CatalogPath)) {
+        if ($r.id -eq $Id) { return $r }
+    }
+    foreach ($r in (Read-JsonlFile -Path $script:ArchivePath)) {
+        if ($r.id -eq $Id) { return $r }
+    }
     return $null
 }
 

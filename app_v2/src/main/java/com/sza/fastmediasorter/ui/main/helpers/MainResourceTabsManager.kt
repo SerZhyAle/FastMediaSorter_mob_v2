@@ -64,7 +64,6 @@ class MainResourceTabsManager(
             tabLayout.tabMode = TabLayout.MODE_FIXED
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         }
-        Timber.d("S0391: main tab strip rebuilt, visible=${tabLayout.isVisible} tabs=${builtTabs.joinToString()}")
     }
 
     private fun addTab(tab: ResourceTab, textRes: Int, iconRes: Int) {

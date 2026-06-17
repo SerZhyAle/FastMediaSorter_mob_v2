@@ -10,6 +10,10 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
@@ -44,12 +48,20 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     @Inject
     lateinit var saveScreenshotUseCase: Lazy<SaveScreenshotUseCase>
 
+    @Inject
+    lateinit var actionDispatcher: Lazy<ScreenshotGestureActionDispatcher>
+
+    @Inject
+    lateinit var imageClipboardWriter: Lazy<ImageClipboardWriter>
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var overlayManager: ScreenGestureOverlayManager? = null
 
     @Volatile
     private var captureInProgress = false
+
+    private var pendingAction: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT
 
     private val screenshotCallback = object : TakeScreenshotCallback {
         override fun onSuccess(screenshot: ScreenshotResult) {
@@ -110,7 +122,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         val manager = ScreenGestureOverlayManager(
             context = this,
             overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            onGestureMatched = { captureNow() }
+            onGestureMatched = { direction -> captureNow(direction) }
         )
         manager.show()
         overlayManager = manager
@@ -128,11 +140,21 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun captureNow() {
+    private fun captureNow(direction: ScreenshotGestureDirection) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         if (captureInProgress) return
         captureInProgress = true
-        takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
+        serviceScope.launch {
+            val action = actionDispatcher.get().actionFor(direction)
+            Timber.d("S0425: a11y capture direction=%s action=%s", direction, action)
+            if (action == ScreenshotGestureAction.DO_NOT_USE) {
+                // Gesture disabled for this direction: take no screenshot at all.
+                captureInProgress = false
+                return@launch
+            }
+            pendingAction = action
+            takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
+        }
     }
 
     private fun processScreenshotResult(screenshot: ScreenshotResult) {
@@ -169,9 +191,20 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 selectedResourceId = settings.screenshotDestinationResourceId,
                 resources = resources
             )
+
+            // Copy to clipboard from the live bitmap before the save use case recycles it;
+            // independent of the post-capture action and the save destination. Mirrors the
+            // MediaProjection path so the option also works on the API 30+ accessibility flow.
+            Timber.d("S0468: a11y clipboard gate flag=%s", settings.copyScreenshotToClipboard)
+            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
+                toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
-                is SaveScreenshotUseCase.SaveResult.Success ->
+                is SaveScreenshotUseCase.SaveResult.Success -> {
                     toast(getString(R.string.screen_capture_saved_to, result.destinationLabel, result.fileName))
+                    actionDispatcher.get().runPostSave(this, pendingAction, result.savedUri)
+                }
                 is SaveScreenshotUseCase.SaveResult.Failure -> {
                     Timber.e(result.error, "ScreenshotAccessibilityService: screenshot save failed")
                     toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)

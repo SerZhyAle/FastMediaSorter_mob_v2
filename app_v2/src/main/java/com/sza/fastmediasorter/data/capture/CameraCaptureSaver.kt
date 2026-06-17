@@ -4,11 +4,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.CaptureKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -35,6 +45,16 @@ import javax.inject.Singleton
 @Singleton
 class CameraCaptureSaver @Inject constructor(
     @ApplicationContext private val context: Context,
+    // S0465: route on-device writes through the MediaStore-aware writer so public-collection
+    // targets (DCIM/Camera, Movies, Downloads fallback) do not fail with EACCES on API 29+ scoped
+    // storage / restrictive OEM policy - same fix as S0464 applied to the mic path.
+    private val destinationClassifier: LocalDestinationClassifier,
+    private val destinationWriter: LocalDestinationWriter,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
+    // S0469: optional "copy captured photo to system clipboard" modifier, gated on a settings flag.
+    private val settingsRepository: SettingsRepository,
+    private val imageClipboardWriter: ImageClipboardWriter,
 ) {
 
     /**
@@ -59,6 +79,10 @@ class CameraCaptureSaver @Inject constructor(
             target,
             savedPath,
         )
+        // S0469: a captured photo can additionally be placed on the system clipboard. Done before the
+        // temp file is deleted, gated to images only (the same saver also handles video capture), and
+        // additive - it never alters the save routing/result below (strategic goal 4).
+        val copiedToClipboard = maybeCopyToClipboard(tempFile, name)
         var failure: SaveResult.Failure? = null
         val success = try {
             when (target) {
@@ -86,9 +110,32 @@ class CameraCaptureSaver @Inject constructor(
         }
         Timber.i("CameraCaptureSaver: save EXIT success=%b name=%s", success, name)
         return when {
-            success -> SaveResult.Success(savedPath)
+            success -> {
+                // S0473: a media capture completed. This saver is media-agnostic, so classify by the
+                // output file name - a video extension counts as a recorded video, otherwise a photo.
+                val kind = if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
+                    CaptureKind.VIDEO
+                } else {
+                    CaptureKind.PHOTO
+                }
+                statsSink.record(StatsEvent.Capture(kind))
+                SaveResult.Success(savedPath, copiedToClipboard = copiedToClipboard)
+            }
             else -> failure ?: SaveResult.Failure.Generic
         }
+    }
+
+    /**
+     * S0469: when the capture is a photo and the clipboard option is on, place the encoded image file
+     * on the system clipboard verbatim. Returns true only when the copy succeeded so callers can show
+     * a confirmation. Video/audio captures are excluded by the [MediaType.IMAGE] gate.
+     */
+    private suspend fun maybeCopyToClipboard(tempFile: File, name: String): Boolean {
+        if (MediaTypeUtils.getMediaType(name) != MediaType.IMAGE) return false
+        val enabled = settingsRepository.getSettings().first().cameraCaptureCopyToClipboard
+        Timber.d("S0469: captured-photo clipboard gate flag=%b name=%s", enabled, name)
+        if (!enabled) return false
+        return imageClipboardWriter.copyImageFile(tempFile)
     }
 
     /** Pre-compute where the file ends up, matching the original Browse path resolution exactly. */
@@ -107,20 +154,44 @@ class CameraCaptureSaver @Inject constructor(
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
             path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
 
-    private suspend fun saveToDcim(tempFile: File, name: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val cameraDir = cameraDir().also { it.mkdirs() }
-            val dest = File(cameraDir, name)
-            tempFile.copyTo(dest, overwrite = true)
+    private suspend fun saveToDcim(tempFile: File, name: String): Boolean {
+        val dest = File(cameraDir(), name)
+        val saved = writeToDevice(tempFile, dest.absolutePath)
+        if (saved) {
+            // Pre-Q the writer routes DCIM through FileOutputStream, so the gallery still needs the
+            // legacy scan broadcast. On Q+ MediaStore already indexes the image; the broadcast is a
+            // harmless no-op against the same path.
             @Suppress("DEPRECATION")
             context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(dest)))
-            true
         }
+        return saved
+    }
 
     private suspend fun saveLocal(tempFile: File, name: String, rootPath: String): Boolean =
+        writeToDevice(tempFile, File(rootPath, name).absolutePath)
+
+    /**
+     * S0465: write [tempFile] to an on-device path through the MediaStore-aware destination writer.
+     * A public collection (DCIM/Camera, Movies, Downloads fallback) is published via MediaStore on
+     * API 29+ - the previous direct `File.copyTo` failed with EACCES under scoped storage /
+     * restrictive OEM policy. Non-public paths still go through a plain file stream. Mirror of
+     * [com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager.writeToDevice] (S0464).
+     */
+    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
         withContext(Dispatchers.IO) {
-            tempFile.copyTo(File(rootPath, name), overwrite = true)
-            true
+            val category = destinationClassifier.classify(absolutePath)
+            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
+                Timber.e(e, "capture save: writer.open failed for %s", absolutePath)
+                return@withContext false
+            }
+            try {
+                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
+                sink.commit().isSuccess
+            } catch (e: Exception) {
+                Timber.e(e, "capture save: streaming failed for %s", absolutePath)
+                sink.abort()
+                false
+            }
         }
 
     private fun cameraDir(): File =
@@ -148,8 +219,11 @@ sealed interface CameraCaptureTarget {
 /** Outcome of a [CameraCaptureSaver.save] call. */
 sealed interface SaveResult {
 
-    /** Saved successfully; [savedPath] is the final local/remote location (for open-for-editing). */
-    data class Success(val savedPath: String) : SaveResult
+    /**
+     * Saved successfully; [savedPath] is the final local/remote location (for open-for-editing).
+     * [copiedToClipboard] is true when the S0469 option additionally placed the photo on the clipboard.
+     */
+    data class Success(val savedPath: String, val copiedToClipboard: Boolean = false) : SaveResult
 
     sealed interface Failure : SaveResult {
         /** I/O error during copy/upload - caller shows the I/O-specific message. */

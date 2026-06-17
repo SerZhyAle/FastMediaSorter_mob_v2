@@ -48,6 +48,8 @@ Review the current change and update all affected documentation files.
 
 "User-facing" = adds, removes, or materially alters something the end user can see or do.
 
+**Two artifacts, two roles (S0489):** `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every implemented capability (one record per capability, written via `scripts/all_features/add.ps1`); `docs/FEATURES*` is the curated public showcase published to the site. Record every shipped capability in `ALL_FEATURES`. Do NOT add per-feature bullets to `FEATURES*` ad hoc - that showcase is populated only by `/skill-release` from the inventory diff since the previous release. The B1-B3 steps below apply when `/skill-release` (or an explicit owner request) promotes a standout capability into the showcase.
+
 **noLegal exception:** `noLegal`-exclusive features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored). NEVER added to public `docs/FEATURES*.md`; public entries are never copied into `_noLegal`. Routing: `BuildConfig.IS_NO_LEGAL_FLAVOR` the sole gate → use B-noLegal; otherwise B1–B3.
 
 #### B1. `docs/FEATURES.md` (English)

@@ -49,7 +49,10 @@ if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and
 }
 
 Assert-Record -Record $archived
-$records[$idx] = $archived
-Write-Catalog -Records $records.ToArray()
+# Relocate into the archive journal (append) and drop from the active one, so
+# the split invariant holds (no Archived row in the active journal).
+Add-ArchiveRecord -Record $archived
+$remaining = @($records | Where-Object { $_.id -ne $Id })
+Write-Catalog -Records ([object[]]$remaining)
 Write-Output "$Id Archived."
 exit 0

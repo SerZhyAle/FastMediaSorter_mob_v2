@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsClient
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,7 +28,7 @@ class CctAvailabilityChecker @Inject constructor(
     fun resolveCctPackage(): String? {
         val probeIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/"))
         val pm = context.packageManager
-        val browsers = pm.queryIntentActivities(probeIntent, 0)
+        val browsers = pm.queryIntentActivitiesCompat(probeIntent)
             .map { it.activityInfo.packageName }
             .distinct()
         val pkg = CustomTabsClient.getPackageName(context, browsers, /* ignoreDefault = */ true)

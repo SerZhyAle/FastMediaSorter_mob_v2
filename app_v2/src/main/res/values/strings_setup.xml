@@ -142,14 +142,14 @@
     <!-- S0400 functionality page -->
     <string name="welcome_functionality_title">What should the app do?</string>
     <string name="welcome_functionality_subtitle">Turn on what you need. You can change this later in Settings.</string>
-    <string name="welcome_func_file_manager">File manager (all files)</string>
+    <string name="welcome_func_file_manager">Allow All Files mode</string>
     <string name="welcome_func_audio">Audio</string>
     <string name="welcome_func_video">Video</string>
     <string name="welcome_func_documents">Documents</string>
     <string name="welcome_func_ocr">Text recognition (OCR)</string>
     <string name="welcome_func_translation">Translation</string>
     <!-- Landscape-only toggle descriptions (two-column functionality page) -->
-    <string name="welcome_func_file_manager_desc">Browse, move and organize every file on the device.</string>
+    <string name="welcome_func_file_manager_desc">Permits the All Files mode. You still turn it on per resource.</string>
     <string name="welcome_func_audio_desc">Play music and audio, sort tracks into folders.</string>
     <string name="welcome_func_video_desc">Play videos and sort clips with the built-in player.</string>
     <string name="welcome_func_documents_desc">Open PDF, text, e-books and office files.</string>

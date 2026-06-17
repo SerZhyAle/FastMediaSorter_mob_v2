@@ -10,6 +10,9 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import android.content.Context
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,16 +22,20 @@ import javax.inject.Inject
  * Preserves EXIF metadata and adjusts orientation tag
  */
 class RotateImageUseCase @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    // S0473/S0482: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     /**
      * Rotate image by specified angle
      * @param imagePath absolute path to image file
      * @param angle rotation angle in degrees (90, 180, -90)
+     * @param recordStats S0482: record one IMAGE_EDIT metric on success. Disabled by
+     *   NetworkImageEditUseCase, which counts once after the upload lands to avoid double-counting.
      * @return Result with success/failure
      */
-    suspend fun execute(imagePath: String, angle: Float): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun execute(imagePath: String, angle: Float, recordStats: Boolean = true): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val file = File(imagePath)
             if (!file.exists() || !file.canWrite()) {
@@ -120,6 +127,7 @@ class RotateImageUseCase @Inject constructor(
 
             Timber.d("Successfully rotated image by $angle degrees: $imagePath")
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
+            if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "Failed to rotate image: $imagePath")

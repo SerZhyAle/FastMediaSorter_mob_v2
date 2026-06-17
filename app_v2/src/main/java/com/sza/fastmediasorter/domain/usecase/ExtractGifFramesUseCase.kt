@@ -12,6 +12,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.gifdecoder.GifDecoder
 import com.bumptech.glide.gifdecoder.StandardGifDecoder
 import com.bumptech.glide.load.resource.gif.GifBitmapProvider
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.stats.ViewKind
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +30,9 @@ import javax.inject.Inject
  * Supported inputs: GIF, WEBP, APNG.
  */
 class ExtractGifFramesUseCase @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
 
     /**
@@ -77,6 +82,10 @@ class ExtractGifFramesUseCase @Inject constructor(
                     onProgress = onProgress
                 )
                 else -> Result.failure(Exception("Unsupported animated format: .$extension"))
+            }
+            // S0473: one frame-export completed; count carries the number of frames written.
+            result.getOrNull()?.let { frameCount ->
+                statsSink.record(StatsEvent.View(ViewKind.FRAME_EXPORT, count = frameCount.toLong()))
             }
             result
         } catch (e: CancellationException) {

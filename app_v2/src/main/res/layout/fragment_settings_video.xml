@@ -173,6 +173,15 @@
             </RadioGroup>
 
         </LinearLayout>
+
+        <!-- S0470: also place the extracted frame on the system clipboard -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowVideoFrameCopyToClipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            app:str_title="@string/setting_video_frame_copy_to_clipboard_title"
+            app:str_subtitle="@string/setting_video_frame_copy_to_clipboard_summary" />
     </LinearLayout>
 
     <!-- S0021: Show FPS over flat (non-immersive) player -->

@@ -15,17 +15,23 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.DialogSearchableLanguagePickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableLanguageBinding
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SearchableLanguagePickerDialog : DialogFragment() {
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
 
     private var _binding: DialogSearchableLanguagePickerBinding? = null
     private val binding get() = _binding!!
@@ -62,6 +68,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         languageAdapter = LanguageAdapter(
             selectedCode = selectedCode,
             mode = mode,
+            noLegalOcrLabelsEnabled = capabilityAvailability.isOcrEngineSelectionAvailable(),
             onClick = { language ->
                 onLanguageSelected?.invoke(language)
                 dismiss()
@@ -122,6 +129,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     private class LanguageAdapter(
         private val selectedCode: String,
         private val mode: Mode,
+        private val noLegalOcrLabelsEnabled: Boolean,
         private val onClick: (LanguageItem) -> Unit
     ) : RecyclerView.Adapter<LanguageAdapter.LanguageViewHolder>() {
 
@@ -134,7 +142,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                 parent,
                 false
             )
-            return LanguageViewHolder(binding, mode, onClick)
+            return LanguageViewHolder(binding, mode, noLegalOcrLabelsEnabled, onClick)
         }
 
         override fun onBindViewHolder(holder: LanguageViewHolder, position: Int) {
@@ -168,6 +176,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         private class LanguageViewHolder(
             private val binding: ItemSearchableLanguageBinding,
             private val mode: Mode,
+            private val noLegalOcrLabelsEnabled: Boolean,
             private val onClick: (LanguageItem) -> Unit
         ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -205,7 +214,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                         when {
                             capability == LanguageCapability.TRANSLATION -> true
                             mode != Mode.SOURCE -> false
-                            capability == LanguageCapability.NO_LEGAL_OCR -> BuildConfig.IS_NO_LEGAL_FLAVOR
+                            capability == LanguageCapability.NO_LEGAL_OCR -> noLegalOcrLabelsEnabled
                             else -> true
                         }
                     }

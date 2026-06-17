@@ -4,7 +4,7 @@
 #   close.ps1 -Id Sxxxx -Status Verified
 #   add_to_dev_log.ps1 "<spec-file>" "<source>" "<msg>"
 #   add_to_dev_log.ps1 "<file1>" "<source>" "<msg1>"  (× N changed files)
-#   add_to_functionality_log.ps1 -Id Sxxxx -Op FIX -Description "..."
+#   all_features/add.ps1 (record the delivered capability in docs/ALL_FEATURES.jsonl)
 #   dev/CATALOG/scripts/scan.ps1 -Module app_v2
 #   dev/CATALOG/scripts/render.ps1 -Module app_v2
 #
@@ -21,7 +21,8 @@
 #
 # Each DevLogs entry is a JSON object with keys: file, target, desc.
 # Pass -SkipCatalogSync to skip scan+render (use only when no .kt was touched).
-# Pass -SkipFuncLog or omit -FuncOp/-FuncDesc to skip functionality log.
+# Pass -SkipFuncLog or omit -FuncOp/-FuncDesc to skip the feature-inventory record.
+# Richer record: add -FeatArea, -FeatName, -FeatFlavors (csv), or explicit -FeatId.
 # Pass -StatusOnly to update only the journal status without close.ps1 (keeps no closed_at).
 
 [CmdletBinding()]
@@ -37,6 +38,10 @@ param(
     [ValidateSet('ADD', 'CHANGE', 'DELETE', 'FIX', '')]
     [string]$FuncOp = '',
     [string]$FuncDesc = '',
+    [string]$FeatId = '',
+    [string]$FeatArea = 'General',
+    [string]$FeatName = '',
+    [string]$FeatFlavors = 'standard',
     [string]$CatalogModule = 'app_v2',
     [string]$StatusNote = '',
     [switch]$SkipCatalogSync,
@@ -112,12 +117,23 @@ if ($DevLogs.Count -gt 0) {
     }
 }
 
-# 3. Functionality log (optional).
+# 3. Feature inventory record (optional). S0489: records the delivered capability
+# in docs/ALL_FEATURES.jsonl (the developer inventory that replaced FUNCTIONALITY.log).
+# DELETE op marks the record removed; ADD/CHANGE/FIX keep it active.
 if (-not $SkipFuncLog -and $FuncOp -and $FuncDesc) {
-    Step "func-log" {
-        $funcLogScript = Join-Path $root 'scripts/add_to_functionality_log.ps1'
-        & $pwshExe -File $funcLogScript -Id $Id -Op $FuncOp -Description $FuncDesc | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "add_to_functionality_log.ps1 exited $LASTEXITCODE" }
+    Step "all-features" {
+        $addScript = Join-Path $root 'scripts/all_features/add.ps1'
+        $featName = if ($FeatName) { $FeatName } else { $FuncDesc.Substring(0, [Math]::Min(80, $FuncDesc.Length)) }
+        $slugSrc = if ($FeatName) { $FeatName } else { $FuncDesc }
+        $slug = ($slugSrc.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
+        $slugParts = @($slug -split '-' | Where-Object { $_ })
+        if ($slugParts.Count -gt 8) { $slugParts = $slugParts[0..7] }
+        $slug = ($slugParts -join '-'); if (-not $slug) { $slug = 'item' }
+        $recId = if ($FeatId) { $FeatId } else { "$($Id.ToLowerInvariant()).$slug" }
+        $status = if ($FuncOp -eq 'DELETE') { 'removed' } else { 'active' }
+        $addArgs = @{ Id = $recId; Area = $FeatArea; Name = $featName; Description = $FuncDesc; Flavors = $FeatFlavors; Spec = $Id; Status = $status; Quiet = $true }
+        & $addScript @addArgs | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "all_features/add.ps1 exited $LASTEXITCODE" }
     }
 }
 

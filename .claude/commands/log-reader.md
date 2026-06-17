@@ -419,8 +419,11 @@ FastMediaSorter-specific tags to look for:
 .\scripts\utils\search-log.ps1 -LogFile "<f>" -Errors -OutFile "temp/errors_analysis.txt"
 .\scripts\utils\search-log.ps1 -LogFile "<f>" -Summary -OutFile "temp/summary.txt"
 
-# Pull fresh logs from device
+# Pull fresh logs from device (full harvest: logcat + prefs + device info)
 .\scripts\utils\extract-device-logs.ps1
+
+# Quick filtered live tail of the app's recent logcat (writes full dump to temp/)
+.\a.ps1 adb log -Tail 500 -Grep "Exception|S\d{4}:"
 ```
 
 Available log locations:

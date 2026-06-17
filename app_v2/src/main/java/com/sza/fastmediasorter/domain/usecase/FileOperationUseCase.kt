@@ -8,6 +8,12 @@ import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.stats.FileOpAction
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -93,6 +99,8 @@ class FileOperationUseCase @Inject constructor(
     private val ftpFileOperationHandler: FtpFileOperationHandler,
     private val cloudFileOperationHandler: CloudFileOperationHandler,
     private val localOperationStrategy: LocalOperationStrategy,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops entirely when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     private var lastOperation: OperationHistory? = null
@@ -205,7 +213,14 @@ class FileOperationUseCase @Inject constructor(
         progressCallback: ByteProgressCallback? = null
     ): FileOperationResult {
         Timber.d("FileOperation: Starting operation: ${operation.javaClass.simpleName}")
-        
+
+        // S0473: a successful Delete result carries no freed-bytes total, so sum the source sizes
+        // before the delete runs (we are already on the IO dispatcher here). Copy/Move read sizes
+        // post-success from the still-present sources, so they need no pre-capture.
+        val preDeleteBytes: Long = if (operation is FileOperation.Delete) {
+            operation.files.sumOf { runCatching { it.length() }.getOrDefault(0L) }
+        } else 0L
+
         try {
             // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
             fun File.isNetworkPath(protocol: String): Boolean {
@@ -429,8 +444,9 @@ class FileOperationUseCase @Inject constructor(
             }
             
             lastOperation = OperationHistory(operation, result)
+            recordFileOpStats(operation, result, preDeleteBytes)
             return result
-            
+
         } catch (e: BatchDeletePermissionRequiredException) {
             // Handle batch delete permission specially
             StructuredLogger.i("Batch delete permission required")
@@ -456,6 +472,69 @@ class FileOperationUseCase @Inject constructor(
         executeInternal(operation, progressCallback)
     }
     
+    /**
+     * S0473: emit a per-type [StatsEvent.FileOp] for a completed Copy/Move/Delete. Files are
+     * bucketed by [StatsMediaType] so the dashboard can break operations down by media kind; one
+     * event is emitted per bucket. Rename/network-only results without a processed count are not
+     * counted (no FileOpAction maps to Rename). The sink no-ops when collection is disabled.
+     */
+    private fun recordFileOpStats(
+        operation: FileOperation,
+        result: FileOperationResult,
+        preDeleteBytes: Long
+    ) {
+        val processedCount = when (result) {
+            is FileOperationResult.Success -> result.processedCount
+            is FileOperationResult.PartialSuccess -> result.processedCount
+            else -> return
+        }
+        if (processedCount <= 0) return
+
+        val action: FileOpAction
+        val files: List<File>
+        when (operation) {
+            is FileOperation.Copy -> { action = FileOpAction.COPY; files = operation.sources }
+            is FileOperation.Move -> { action = FileOpAction.MOVE; files = operation.sources }
+            is FileOperation.Delete -> { action = FileOpAction.DELETE; files = operation.files }
+            is FileOperation.Rename -> return
+        }
+
+        // Bucket processed files by media type. Bytes: Copy/Move sum live source sizes; Delete uses
+        // the pre-delete total, apportioned across buckets by the captured size of each source.
+        val countByType = mutableMapOf<StatsMediaType, Long>()
+        val bytesByType = mutableMapOf<StatsMediaType, Long>()
+        files.forEach { file ->
+            val type = file.name.toStatsMediaType()
+            countByType[type] = (countByType[type] ?: 0L) + 1L
+            val bytes = runCatching { file.length() }.getOrDefault(0L)
+            bytesByType[type] = (bytesByType[type] ?: 0L) + bytes
+        }
+        // For Delete the sources are already gone, so live length()==0; fall back to the pre-delete
+        // total assigned to the dominant (first) bucket rather than losing the freed-bytes figure.
+        if (action == FileOpAction.DELETE && bytesByType.values.all { it == 0L } && preDeleteBytes > 0L) {
+            countByType.keys.firstOrNull()?.let { bytesByType[it] = preDeleteBytes }
+        }
+
+        countByType.forEach { (type, count) ->
+            statsSink.record(
+                StatsEvent.FileOp(
+                    action = action,
+                    type = type,
+                    count = count,
+                    bytes = bytesByType[type] ?: 0L
+                )
+            )
+        }
+    }
+
+    private fun String.toStatsMediaType(): StatsMediaType = when (MediaTypeUtils.getMediaType(this)) {
+        MediaType.IMAGE, MediaType.GIF -> StatsMediaType.IMAGE
+        MediaType.VIDEO -> StatsMediaType.VIDEO
+        MediaType.AUDIO -> StatsMediaType.AUDIO
+        MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT, MediaType.TEXT -> StatsMediaType.DOCUMENT
+        else -> StatsMediaType.OTHER
+    }
+
     fun getLastOperation(): OperationHistory? = lastOperation
     
     fun clearHistory() {

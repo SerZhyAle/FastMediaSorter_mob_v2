@@ -198,5 +198,14 @@
     <color name="tv_banner_bg">#1A1A2E</color>
     <!-- Camera-OCR crop selection frame (bright red) -->
     <color name="crop_frame_red">#FFFF1744</color>
+
+    <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
+         so the five media-type segments stay visually distinct; legend always shows value text,
+         so color is decorative, never the only differentiator (strategic §3.2). -->
+    <color name="stats_type_image">#FF42A5F5</color>
+    <color name="stats_type_video">#FFAB47BC</color>
+    <color name="stats_type_audio">#FF26A69A</color>
+    <color name="stats_type_document">#FFFFA726</color>
+    <color name="stats_type_other">#FF8D9499</color>
 </resources>
 

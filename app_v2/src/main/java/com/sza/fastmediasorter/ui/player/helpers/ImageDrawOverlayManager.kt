@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -126,10 +127,6 @@ class ImageDrawOverlayManager(
     private var toolbarRoot: View? = null
     private val cleanToolbarColor = 0xCC000000.toInt()
     private val dirtyToolbarColor = 0xCC6B2C00.toInt()
-
-    // S0362: gate the "Send to Google Keep" overflow item on actual Keep availability so the
-    // draw editor matches the text editor (item hidden when Keep is not installed).
-    private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(activity)
 
     // Reference to current file for filename templating (set before enterDrawMode)
     var currentFile: com.sza.fastmediasorter.domain.model.MediaFile? = null
@@ -334,11 +331,6 @@ class ImageDrawOverlayManager(
                     ?.isEnabled = hasActions
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_all)
                     ?.isEnabled = hasActions
-                // S0362: hide "Send to Google Keep" when Keep is not installed (unified fallback).
-                val keepAvailable = keepChecker.isKeepAvailable()
-                Timber.d("S0362: draw overflow opened, keepAvailable=$keepAvailable")
-                menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_keep)
-                    ?.isVisible = keepAvailable
                 // S0360: "Delete file" only when a source file is open.
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_delete_file)
                     ?.isVisible = currentFile != null
@@ -360,8 +352,8 @@ class ImageDrawOverlayManager(
                             DrawSettingsDialog(activity).show()
                             true
                         }
-                        com.sza.fastmediasorter.R.id.draw_overflow_keep -> {
-                            launchKeepExport()
+                        com.sza.fastmediasorter.R.id.draw_overflow_send_to -> {
+                            launchSendTo()
                             true
                         }
                         com.sza.fastmediasorter.R.id.draw_overflow_delete_file -> {
@@ -395,11 +387,11 @@ class ImageDrawOverlayManager(
     }
 
     /**
-     * S0192 Phase 05 - fires the Keep export pipeline. Needs the base bitmap
-     * (the currently displayed photo) which the activity supplies via
-     * [baseBitmapProvider]. Failures show the existing save-failed toast.
+     * S0459: route the composited drawing into the unified «Send to..» menu. Merges base + overlay
+     * via [keepExportHelper], then hands the resulting image Uri to [SendToMenuManager], which gates
+     * and dispatches the receivers (Keep/Lens/messengers/..). Failures show the save-failed toast.
      */
-    private fun launchKeepExport() {
+    private fun launchSendTo() {
         val baseBitmap = baseBitmapProvider() ?: run {
             android.widget.Toast.makeText(
                 activity,
@@ -409,20 +401,42 @@ class ImageDrawOverlayManager(
             return
         }
         val overlay = drawCanvasView?.getBitmap() ?: return
+        val host = activity as? androidx.fragment.app.FragmentActivity ?: return
         val owner = activity as? LifecycleOwner ?: return
         owner.lifecycleScope.launch {
-            val result = keepExportHelper.export(activity, baseBitmap, overlay)
-            result.onFailure { error ->
-                Timber.e(error, "Keep export failed")
-                withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(
-                        activity,
-                        R.string.draw_overlay_save_failed,
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+            val uri = keepExportHelper.prepareMergedImageUri(activity, baseBitmap, overlay)
+                .getOrElse { error ->
+                    Timber.e(error, "Draw send-to: merge failed")
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(
+                            activity,
+                            R.string.draw_overlay_save_failed,
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
                 }
-            }
+            val entryPoint = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                activity.applicationContext, SendToEntryPoint::class.java
+            )
+            val settings = entryPoint.settingsRepository().getSettings().first()
+            val content = com.sza.fastmediasorter.core.share.ShareableContent(
+                uris = listOf(uri),
+                mime = "image/jpeg",
+                mediaType = com.sza.fastmediasorter.domain.model.MediaType.IMAGE,
+                displayName = currentFile?.name ?: "drawing.jpg",
+            )
+            entryPoint.sendToMenuManager().show(host, content, settings)
         }
+    }
+
+    // S0459: app-scoped accessors for the unified send-to menu + settings, reached from this
+    // manually-built (non-Hilt) manager via the application's SingletonComponent.
+    @dagger.hilt.EntryPoint
+    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    internal interface SendToEntryPoint {
+        fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager
+        fun settingsRepository(): com.sza.fastmediasorter.domain.repository.SettingsRepository
     }
 
     private fun iconForTool(tool: DrawTool): Int = when (tool) {

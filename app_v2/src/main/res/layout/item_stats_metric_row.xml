@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04: one metric line - icon + label + primary value, with an optional secondary
+     value (bytes/duration) beneath the primary. Theme colors only (Rule 19). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/settings_item_min_height"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/margin_medium"
+    android:paddingVertical="@dimen/margin_small">
+
+    <ImageView
+        android:id="@+id/ivMetricIcon"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_copy"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+    <TextView
+        android:id="@+id/tvMetricLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_small"
+        tools:text="Copied" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_normal"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvMetricValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            tools:text="820" />
+
+        <TextView
+            android:id="@+id/tvMetricSecondary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/text_size_tiny"
+            android:visibility="gone"
+            tools:text="9.10 GB"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</LinearLayout>

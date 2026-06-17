@@ -5,9 +5,10 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
-import com.sza.fastmediasorter.core.share.TelegramShareTargets
+import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -15,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
+import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,16 +31,29 @@ internal class BrowseShareOperationsHelper(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
     private val fileOperationUseCase: FileOperationUseCase,
+    private val sendToMenuManager: SendToMenuManager,
     private val callbacks: BrowseFileOperationsManager.FileOperationCallbacks,
     private val showFailureError: (Int, FileOperationResult.Failure) -> Unit,
     private val showUnexpectedError: (Int) -> Unit
 ) {
-    fun shareSelectedFiles(
+    /**
+     * S0459 Phase 07: single outbound path for browse selections. Stages a shareable Uri per file
+     * (local FileProvider Uri or a cached download for network resources), builds [ShareableContent]
+     * with all selected Uris and a representative [MediaType], then hands off to [SendToMenuManager].
+     * Multi-file semantics (ADR-4) are resolved inside the manager: batch receivers get the whole
+     * selection, single-only receivers get the first file with a hint.
+     */
+    fun sendFilesToMenu(
         selectedFiles: List<MediaFile>,
-        resource: MediaResource
+        resource: MediaResource,
+        settings: AppSettings,
     ) {
         if (selectedFiles.isEmpty()) {
             Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val host = context as? FragmentActivity ?: run {
+            Timber.w("BrowseShareOperationsHelper: host is not a FragmentActivity, cannot show Send-to menu")
             return
         }
 
@@ -47,7 +62,6 @@ internal class BrowseShareOperationsHelper(
                 Toast.makeText(context, R.string.please_wait, Toast.LENGTH_SHORT).show()
 
                 val uris = mutableListOf<Uri>()
-
                 for (mediaFile in selectedFiles) {
                     val fileToShare = when (resource.type) {
                         ResourceType.LOCAL -> File(mediaFile.path)
@@ -74,105 +88,31 @@ internal class BrowseShareOperationsHelper(
                     return@launch
                 }
 
-                val shareIntent = android.content.Intent().apply {
-                    action = if (uris.size == 1) {
-                        android.content.Intent.ACTION_SEND
-                    } else {
-                        android.content.Intent.ACTION_SEND_MULTIPLE
-                    }
-
-                    if (uris.size == 1) {
-                        putExtra(android.content.Intent.EXTRA_STREAM, uris[0])
-                    } else {
-                        putParcelableArrayListExtra(
-                            android.content.Intent.EXTRA_STREAM,
-                            ArrayList(uris)
-                        )
-                    }
-
-                    type = "*/*"
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                val representative = selectedFiles.first()
+                // Heterogeneous multi-selection cannot share one specific MIME; use the wildcard so
+                // batch receivers accept every Uri. A single file keeps its specific MIME.
+                val mime = if (uris.size == 1) {
+                    ShareableContent.mimeForMediaType(representative.name, representative.type)
+                } else {
+                    "*/*"
                 }
+                val content = ShareableContent(
+                    uris = uris,
+                    mime = mime,
+                    mediaType = representative.type,
+                    displayName = representative.name,
+                )
 
                 withContext(Dispatchers.Main) {
-                    context.startActivity(
-                        android.content.Intent.createChooser(shareIntent, context.getString(R.string.share))
-                    )
+                    sendToMenuManager.show(host, content, settings)
                 }
             } catch (_: CancellationException) {
-                Timber.i("Share operation cancelled by user")
+                Timber.i("Browse send-to operation cancelled by user")
                 return@launch
             } catch (e: Exception) {
-                Timber.e(e, "Failed to share files")
+                Timber.e(e, "Failed to prepare browse selection for send-to menu")
                 withContext(Dispatchers.Main) {
                     showUnexpectedError(R.string.error_share_failed)
-                }
-            }
-        }
-    }
-
-    // S0303: send selected file(s) to an installed Telegram client. Mirrors [shareSelectedFiles]
-    // for URI staging, but targets the resolved Telegram package via [SystemShareInvoker.invokeFiles]
-    // (which falls back to the system chooser if the client is unavailable).
-    fun sendSelectedFilesToTelegram(
-        selectedFiles: List<MediaFile>,
-        resource: MediaResource
-    ) {
-        if (selectedFiles.isEmpty()) {
-            Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        coroutineScope.launch {
-            try {
-                Toast.makeText(context, R.string.please_wait, Toast.LENGTH_SHORT).show()
-
-                val uris = mutableListOf<Uri>()
-                for (mediaFile in selectedFiles) {
-                    val fileToShare = when (resource.type) {
-                        ResourceType.LOCAL -> File(mediaFile.path)
-                        ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
-                            downloadNetworkFileToCacheWithProgress(mediaFile, resource)
-                        }
-                    }
-                    if (fileToShare != null && fileToShare.exists()) {
-                        uris.add(
-                            FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                fileToShare
-                            )
-                        )
-                    }
-                }
-
-                if (uris.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
-                }
-
-                withContext(Dispatchers.Main) {
-                    val telegramPackage = TelegramShareTargets.firstInstalledPackage(context.packageManager)
-                    val launched = SystemShareInvoker.invokeFiles(
-                        context = context,
-                        uris = uris,
-                        mime = "*/*",
-                        preferredPackage = telegramPackage,
-                        chooserTitle = context.getString(R.string.share_to_telegram),
-                    )
-                    if (!launched) {
-                        Toast.makeText(context, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (_: CancellationException) {
-                Timber.i("Send to Telegram cancelled by user")
-                return@launch
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to send files to Telegram")
-                withContext(Dispatchers.Main) {
-                    showUnexpectedError(R.string.share_to_telegram_failed)
                 }
             }
         }

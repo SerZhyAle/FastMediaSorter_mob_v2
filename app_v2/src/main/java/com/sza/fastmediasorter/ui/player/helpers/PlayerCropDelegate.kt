@@ -7,7 +7,6 @@ import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.views.CropOverlayView
-import timber.log.Timber
 
 /**
  * Handles the crop overlay lifecycle. S0393: consumes the binding-agnostic [PlayerActionHost] seam
@@ -25,7 +24,6 @@ class PlayerCropDelegate(
     // ── Public entry points ──────────────────────────────────────────────────
 
     fun enterCropMode(mode: ImageCropManager.CropMode) {
-        Timber.d("S0393: seam crop entry via PlayerActionHost (in-app + standalone image host)")
         val file = host.actionCurrentFile ?: return
         val resource = host.actionCurrentResource
         imageCropManager.enterCropMode(mode, file, resource, imageCropCallback)

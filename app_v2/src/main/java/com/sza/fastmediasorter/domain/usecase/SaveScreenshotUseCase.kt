@@ -2,10 +2,15 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Environment
+import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.stats.CaptureKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -22,13 +27,16 @@ import javax.inject.Inject
 class SaveScreenshotUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val mediaStoreLocalDestinationWriter: MediaStoreLocalDestinationWriter
+    private val mediaStoreLocalDestinationWriter: MediaStoreLocalDestinationWriter,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
 
     sealed interface SaveResult {
         data class Success(
             val fileName: String,
-            val destinationLabel: String
+            val destinationLabel: String,
+            val savedUri: Uri?
         ) : SaveResult
 
         data class Failure(val error: Throwable) : SaveResult
@@ -49,12 +57,15 @@ class SaveScreenshotUseCase @Inject constructor(
 
         try {
             writeTempPng(bitmap, tempFile)
-            when (target) {
+            val result = when (target) {
                 is ScreenshotDestinationPolicy.Target.SelectedResource ->
                     saveToSelectedResource(tempFile, fileName, target.resource)
                 is ScreenshotDestinationPolicy.Target.PublicCollection ->
                     saveToPublicCollection(tempFile, fileName, target)
             }
+            // S0473: one gesture-captured screenshot saved.
+            if (result is SaveResult.Success) statsSink.record(StatsEvent.Capture(CaptureKind.SCREENSHOT))
+            result
         } catch (e: Exception) {
             SaveResult.Failure(e)
         } finally {
@@ -87,7 +98,19 @@ class SaveScreenshotUseCase @Inject constructor(
         )
         return when (val result = fileOperationUseCase.execute(operation)) {
             is FileOperationResult.Success ->
-                SaveResult.Success(fileName = fileName, destinationLabel = resource.name)
+                SaveResult.Success(
+                    fileName = fileName,
+                    destinationLabel = resource.name,
+                    // Null when the destination path lies outside FileProvider scope (e.g. a network
+                    // resource); post-capture actions then degrade to the silent save already done.
+                    savedUri = runCatching {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            File(resource.path, fileName)
+                        )
+                    }.getOrNull()
+                )
             is FileOperationResult.Failure ->
                 SaveResult.Failure(IOException(result.error))
             is FileOperationResult.PartialSuccess ->
@@ -125,10 +148,11 @@ class SaveScreenshotUseCase @Inject constructor(
 
         return sink.commit()
             .fold(
-                onSuccess = {
+                onSuccess = { committedUriString ->
                     SaveResult.Success(
                         fileName = fileName,
-                        destinationLabel = publicFolderLabel(target.relativePath)
+                        destinationLabel = publicFolderLabel(target.relativePath),
+                        savedUri = Uri.parse(committedUriString)
                     )
                 },
                 onFailure = { SaveResult.Failure(it) }

@@ -18,5 +18,10 @@ data class MediaCapabilities(
     val supportsDocuments: Boolean,
     val supportsEpub: Boolean,
     val supportsCloud: Boolean,
+    val supportsLocalNetworkSources: Boolean,
     val supportsDefaultPlayer: Boolean,
+    val supportsCast: Boolean,
+    val supportsMicRecording: Boolean,
+    val supportsVrPlayer: Boolean,
+    val supportsWearCompanion: Boolean,
 )

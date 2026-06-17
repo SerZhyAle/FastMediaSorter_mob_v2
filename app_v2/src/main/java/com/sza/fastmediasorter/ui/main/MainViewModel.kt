@@ -222,7 +222,6 @@ class MainViewModel @Inject constructor(
         // S0391: a disabled remote source's resources are invisible everywhere - filter once here,
         // upstream of every tab/type filter, so they never surface (including under the ALL tab).
         val availableResources = resources.filter { remoteSourceGate.isEnabled(it) }
-        Timber.d("S0391: resource list source-gated, ${resources.size} -> ${availableResources.size}")
         return filterManager.applyFiltersAndSorting(
             resources = availableResources,
             activeTab = state.value.activeResourceTab,
@@ -242,13 +241,15 @@ class MainViewModel @Inject constructor(
                     activeTab = state.value.activeResourceTab,
                     explicitFilter = state.value.filterByType
                 )
-                val resources = getResourcesUseCase.getFiltered(
-                    filterByType = effectiveFilterByType,
-                    filterByMediaType = state.value.filterByMediaType,
-                    filterByName = state.value.filterByName,
-                    sortMode = state.value.sortMode
+                val resources = filterManager.pinAllFilesFirst(
+                    getResourcesUseCase.getFiltered(
+                        filterByType = effectiveFilterByType,
+                        filterByMediaType = state.value.filterByMediaType,
+                        filterByName = state.value.filterByName,
+                        sortMode = state.value.sortMode
+                    )
                 )
-                
+
                 updateState { it.copy(resources = resources) }
 
                 appShortcutsManager.updateRecentResourceShortcuts()
@@ -309,7 +310,6 @@ class MainViewModel @Inject constructor(
      */
     fun exportResourceForShare(resource: MediaResource) {
         viewModelScope.launch {
-            Timber.d("S0422: per-resource export share")
             val safeName = resource.name.replace(Regex("[^A-Za-z0-9._-]"), "_").ifBlank { "resource" }
             val file = java.io.File(context.cacheDir, "$safeName.${ResourceShareFormat.EXTENSION}")
             when (val result = exportResourcesToFileUseCase(listOf(resource.id), android.net.Uri.fromFile(file))) {

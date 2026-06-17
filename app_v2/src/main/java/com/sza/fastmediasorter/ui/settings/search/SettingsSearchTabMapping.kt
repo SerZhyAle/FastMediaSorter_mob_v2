@@ -42,9 +42,6 @@ object SettingsSearchTabMapping {
         ),
         R.layout.fragment_settings_destinations to TabAssignment(
             SettingsSearchDestination.OPERATIONS, "destinations"
-        ),
-        R.layout.fragment_settings_backup_restore to TabAssignment(
-            SettingsSearchDestination.OPERATIONS, "destinations"
         )
     )
 

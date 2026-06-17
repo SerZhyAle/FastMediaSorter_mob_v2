@@ -43,7 +43,6 @@ class ResourceImportActivity : AppCompatActivity() {
 
     private fun previewAndConfirm(uri: Uri) {
         lifecycleScope.launch {
-            Timber.d("S0422: file-association import received")
             when (val preview = importer.preview(uri)) {
                 is SzaResourcesImporter.PreviewResult.Valid -> showConfirmDialog(uri, preview)
                 is SzaResourcesImporter.PreviewResult.Invalid -> showResultAndFinish(

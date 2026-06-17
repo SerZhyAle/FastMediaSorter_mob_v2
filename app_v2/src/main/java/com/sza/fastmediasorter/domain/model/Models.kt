@@ -225,6 +225,14 @@ data class MediaResource(
     }
 }
 
+/**
+ * True for the single predefined "All files" resource. Profile [ResourceProfile.ALL_FILES] is assigned
+ * only by its provisioning use case (which also sets [MediaResource.allFiles]); the combined check stays
+ * robust even if the profile is later reachable from the resource form.
+ */
+val MediaResource.isAllFilesPredefined: Boolean
+    get() = profile == ResourceProfile.ALL_FILES && allFiles
+
 data class FileAttributes(
     val readOnly: Boolean = false,
     val hidden: Boolean = false

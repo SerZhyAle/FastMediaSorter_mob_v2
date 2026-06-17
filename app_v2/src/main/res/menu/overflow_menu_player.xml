@@ -15,17 +15,12 @@
         android:title="@string/favorite"
         app:showAsAction="never" />
 
+    <!-- S0459: unified «Send to..». Standard overflow rebuilds this as a native addSubMenu
+         (CommandPanelController); this flat item is the big-buttons ListPopupWindow fallback → sheet. -->
     <item
-        android:id="@+id/menu_share"
+        android:id="@+id/menu_send_to"
         android:icon="@drawable/ic_share"
-        android:title="@string/share"
-        app:showAsAction="never" />
-
-    <!-- S0303: Send to Telegram - shown only when a Telegram client is installed (overflow-only). -->
-    <item
-        android:id="@+id/menu_send_to_telegram"
-        android:icon="@drawable/ic_share"
-        android:title="@string/share_to_telegram"
+        android:title="@string/share_to_menu_title"
         app:showAsAction="never" />
 
     <item
@@ -167,15 +162,6 @@
         android:icon="@drawable/ic_edit_20"
         android:title="@string/edit"
         app:showAsAction="never" />
-
-    <!-- S0431: Send to Google Keep (read-only TXT) - low priority, overflow-only, shown only when Keep is installed -->
-    <item
-        android:id="@+id/menu_send_text_to_keep"
-        android:icon="@drawable/ic_text_send_keep"
-        android:title="@string/text_editor_action_send_keep"
-        app:showAsAction="never" />
-
-
 
     <!-- Undo (if available) -->
     <item

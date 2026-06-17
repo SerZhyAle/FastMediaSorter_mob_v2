@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.data.repository.SettingsRepositoryImpl
+import com.sza.fastmediasorter.data.repository.StatisticsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
@@ -55,6 +57,12 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         impl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStatisticsRepository(
+        impl: StatisticsRepositoryImpl
+    ): StatisticsRepository
 
     @Binds
     @Singleton

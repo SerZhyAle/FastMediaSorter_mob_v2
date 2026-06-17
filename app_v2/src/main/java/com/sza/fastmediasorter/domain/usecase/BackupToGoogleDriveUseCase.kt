@@ -163,7 +163,6 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             val accountEmail = googleDriveClient.getAccountEmail() ?: "Unknown"
 
             // 1. Build unified payload (shared with the local-file export path).
-            Timber.d("S0406: backup unified payload to Google Drive")
             val payload = buildBackupPayloadUseCase()
             val resourceCount = payload.resources?.size ?: 0
             val favoritesCount = payload.favorites?.size ?: 0

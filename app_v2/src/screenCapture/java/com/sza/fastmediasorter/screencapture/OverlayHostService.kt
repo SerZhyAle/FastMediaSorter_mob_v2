@@ -13,9 +13,26 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import dagger.Lazy
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class OverlayHostService : Service() {
+
+    @Inject
+    lateinit var actionDispatcher: Lazy<ScreenshotGestureActionDispatcher>
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private lateinit var overlayManager: ScreenGestureOverlayManager
     private var overlayVisible = false
@@ -28,19 +45,26 @@ class OverlayHostService : Service() {
         overlayManager = ScreenGestureOverlayManager(
             context = this,
             overlayWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            onGestureMatched = { launchConsentActivity() }
+            onGestureMatched = { direction -> launchConsentActivity(direction) }
         )
     }
 
-    private fun launchConsentActivity() {
-        val intent = Intent(this, ScreenCaptureConsentActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-            )
+    private fun launchConsentActivity(direction: ScreenshotGestureDirection) {
+        serviceScope.launch {
+            if (actionDispatcher.get().actionFor(direction) == ScreenshotGestureAction.DO_NOT_USE) {
+                // Gesture disabled for this direction: skip consent + capture entirely.
+                return@launch
+            }
+            val intent = Intent(this@OverlayHostService, ScreenCaptureConsentActivity::class.java).apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                )
+                putExtra(ScreenCaptureConsentActivity.EXTRA_GESTURE_DIRECTION, direction.name)
+            }
+            startActivity(intent)
         }
-        startActivity(intent)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -73,6 +97,7 @@ class OverlayHostService : Service() {
     override fun onDestroy() {
         hideOverlay()
         stopForegroundCompat()
+        serviceScope.cancel()
         super.onDestroy()
     }
 

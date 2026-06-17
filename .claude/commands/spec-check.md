@@ -107,10 +107,10 @@ Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) when the spec is purely inte
 
 The wrapped sequence still applies the same rules:
 
-- Functionality log: append only on `Verified` flip, only when no `<Sxxxx>` entry exists in `dev/FUNCTIONALITY.log` within the last 24 hours, only for user-visible changes (apply §2 / §8 heuristics).
-- For tactical-only audits or `Partial`/`Broken` verdicts the funclog block is silently skipped.
+- Feature inventory: record into `docs/ALL_FEATURES.jsonl` (via `scripts/all_features/add.ps1`) only on `Verified` flip, only when no record for this capability exists yet, only for user-visible changes (apply §2 heuristics). `docs/FEATURES*` is the curated public showcase, populated only by `/skill-release` from the inventory diff - never edited per-spec here.
+- For tactical-only audits or `Partial`/`Broken` verdicts the inventory block is silently skipped.
 
-Falling back to individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `add_to_functionality_log.ps1` + `scan.ps1` + `render.ps1`) is allowed when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process and the lifecycle invariants must be reproduced manually.
+Falling back to individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `scripts/all_features/add.ps1` + `scan.ps1` + `render.ps1`) is allowed when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process and the lifecycle invariants must be reproduced manually.
 
 **8 - Auto-chain to `/spec-fix`.**
 

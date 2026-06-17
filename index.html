@@ -11,7 +11,7 @@
         content="Android file manager, media sorter Android, photo organizer app, video sorter Android, SMB client Android, NAS browser Android, SFTP client Android, FTP client Android, cloud file manager Android, Google Drive manager Android, Dropbox Android, photo slideshow app, digital photo frame tablet, audio player Android, EPUB reader Android, OCR translation Android, car stereo Android media player, Android head unit app, file organizer Android, batch file operations Android, Android TV box media player, set-top box player Android, smart TV media app, Kodi alternative Android">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#070512">
+    <meta name="theme-color" content="#0a0f0a">
     <title>FastMediaSorter v2 - Android Media Organizer: SMB, Cloud, Local &amp; Player</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -48,6 +48,19 @@
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
 
+    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
@@ -74,11 +87,23 @@
 
 <body>
 
+    <!-- SZA Web Kit sticky header -->
+    <header class="site-header">
+        <a class="brand" href="index.html"><img src="icon.png" alt="">FastMediaSorter v2<span class="dot">.</span></a>
+        <div class="seg" role="group" aria-label="Language">
+            <a href="index-ru.html" data-lang="ru">RU</a>
+            <a href="index.html" class="on" data-lang="en">EN</a>
+            <a href="index-uk.html" data-lang="ua">UA</a>
+        </div>
+        <button class="theme-btn" id="themeBtn" aria-label="Switch to light theme" title="Toggle theme">◐</button>
+        <a class="btn btn-primary btn-sm" href="#get">Download</a>
+    </header>
+
     <!-- GitHub Corner -->
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
-            style="fill:var(--color-standard); color:#070512; position: absolute; top: 0; border: 0; right: 0;"
+            style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
             aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
             <path
@@ -92,11 +117,6 @@
 
     <header>
         <canvas id="headerCanvas"></canvas>
-        <div class="lang-switcher">
-            <a href="index.html" class="lang-btn active">EN</a>
-            <a href="index-ru.html" class="lang-btn">RU</a>
-            <a href="index-uk.html" class="lang-btn">UK</a>
-        </div>
         <h1><img src="icon.png" alt="FastMediaSorter"> FastMediaSorter v2</h1>
         <div class="subtitle">Smart Media Management and Playback for Android &amp; VR</div>
         <div class="version-badge">Release v2.x • Open Source</div>
@@ -104,8 +124,25 @@
 
     <div class="container">
 
+        <!-- Get it (distribution block, above the fold) -->
+        <section class="get" id="get">
+            <p class="whatfor">A free Android app that sorts and plays photos, videos, audio and documents from
+                local storage, SMB/NAS, SFTP/FTP and cloud - for anyone who organizes media on phones, tablets,
+                TV boxes, car head units or VR headsets.</p>
+            <div class="channels">
+                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
+                    target="_blank" rel="noopener">Get it on Google Play</a>
+                <a class="btn btn-ghost" href="#download">GitHub Releases APK</a>
+            </div>
+            <ol class="quickstart">
+                <li>Install the APK for your device (or get it on Google Play).</li>
+                <li>Allow installs from this source if Android asks.</li>
+                <li>Add a folder, network share or cloud account - then open and sort.</li>
+            </ol>
+        </section>
+
         <!-- Usage Scenarios -->
-        <h2 class="section-title">💡 Usage Scenarios</h2>
+        <h2 class="section-title">Usage Scenarios</h2>
         <p class="section-lead">Each block starts with a quick answer and opens into practical detail when you need the
             setup path.</p>
         <div class="cards-grid">
@@ -439,7 +476,7 @@
         </div>
 
         <!-- User Guides -->
-        <h2 class="section-title">🚀 User Guides</h2>
+        <h2 class="section-title">User Guides</h2>
         <div class="cards-grid">
             <article class="card">
                 <div>
@@ -546,7 +583,7 @@
         </div>
 
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
-        <h2 class="section-title">📦 Download APK Builds</h2>
+        <h2 class="section-title" id="download">Download APK Builds</h2>
         <p class="section-lead">Direct downloads from the latest GitHub Release. Pick the edition that matches your
             device — the version updates automatically.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
@@ -596,7 +633,7 @@
         </script>
 
         <!-- Interactive Feature Explorer Dashboard -->
-        <h2 class="section-title">✨ Application Features</h2>
+        <h2 class="section-title">Application Features</h2>
         <div class="explorer-panel">
             <!-- Dashboard Variant Switcher (S0387) -->
             <div class="variant-switcher">
@@ -654,7 +691,7 @@
             <a class="full-features-link" href="docs/FEATURES.md" target="_blank">Open full page in a new tab →</a>
         </details>
 
-        <h2 class="section-title">📚 Technical Documentation</h2>
+        <h2 class="section-title">Technical Documentation</h2>
         <div class="cards-grid">
             <article class="card">
                 <div>
@@ -760,7 +797,7 @@
             </article>
         </div>
 
-        <h2 class="section-title">⚙️ Resources &amp; Legal</h2>
+        <h2 class="section-title">Resources &amp; Legal</h2>
         <div class="cards-grid">
             <article class="card">
                 <div>
@@ -818,26 +855,30 @@
 
     </div>
 
-    <footer>
-        <p><strong>FastMediaSorter v2</strong> — Smart Media Management for Android and VR</p>
-        <p style="margin: 0.5rem 0;">
-            <a href="docs/PRIVACY_POLICY.md">Privacy</a>
-            &bull;
-            <a href="docs/TERMS_OF_SERVICE.md">Terms</a>
-            &bull;
-            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
-        </p>
-        <p style="font-size: 0.85em; opacity: 0.7;">
-            Built with the <a href="https://serzhyale.github.io/universal-agent-kit/">Universal Agent Kit</a>
-            AI-assisted development methodology.
-        </p>
-        <p style="font-size: 0.85em; opacity: 0.7;">
-            <img src="logo-dark.png" alt=""
-                style="height: 16px; vertical-align: middle; margin-right: 5px; opacity: 0.7;">
-            Created by <a href="mailto:sza@ukr.net">sza@ukr.net</a>
-        </p>
-        <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 FastMediaSorter Project. Built
-            with Kotlin, Jetpack, and ❤️</p>
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="section-title">More tools by SZA</h2>
+            <div class="tools-grid">
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>FastMediaSorter LITE</b><span>Windows
+                        media sorter</span></a>
+                <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ebook
+                        converter</span></a>
+                <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows layout fixer</span></a>
+                <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows storage CLI</span></a>
+                <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev
+                        methodology</span></a>
+                <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2024-2026 Serhii Zhyhunenko · FastMediaSorter v2</span>
+                <span>
+                    <a href="docs/PRIVACY_POLICY.md">Privacy</a> ·
+                    <a href="docs/TERMS_OF_SERVICE.md">Terms</a> ·
+                    <a href="https://github.com/SerZhyAle">GitHub</a> ·
+                    <a href="mailto:sza@ukr.net">sza@ukr.net</a>
+                </span>
+            </div>
+        </div>
     </footer>
 
     <!-- Animated Canvas Sinusoids -->
@@ -866,14 +907,15 @@
                         radius: Math.random() * 1.5 + 0.5,
                         vx: (Math.random() - 0.5) * 0.2,
                         vy: (Math.random() - 0.5) * 0.2,
-                        hue: Math.random() * 60 + 200
+                        // Pine + Gold: ~half green (~140), ~half gold (~45)
+                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
                     });
                 }
             }
 
             var time = 0;
             function draw() {
-                ctx.fillStyle = 'rgba(7, 5, 18, 0.15)';
+                ctx.fillStyle = 'rgba(10, 15, 10, 0.15)';
                 ctx.fillRect(0, 0, width, height);
                 time += 0.002;
                 ctx.lineWidth = 1.5;
@@ -887,7 +929,9 @@
                         if (i === 0) ctx.moveTo(i, y);
                         else ctx.lineTo(i, y);
                     }
-                    ctx.strokeStyle = 'hsla(' + (210 + j * 15) + ', 75%, 60%, 0.25)';
+                    // Alternate green and gold waves
+                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
+                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, 55%, 0.25)';
                     ctx.stroke();
                 }
                 particles.forEach(function (p) {
@@ -1686,6 +1730,26 @@
             <div id="drawerLinks"></div>
         </div>
     </div>
+
+    <!-- SZA Web Kit: theme toggle -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (!btn) return;
+            var meta = document.querySelector('meta[name="theme-color"]');
+            function apply(t) {
+                document.documentElement.setAttribute('data-theme', t);
+                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                var dark = t === 'dark';
+                if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
+                btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+            }
+            btn.addEventListener('click', function () {
+                var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+                apply(cur === 'light' ? 'dark' : 'light');
+            });
+        }());
+    </script>
 </body>
 
 </html>

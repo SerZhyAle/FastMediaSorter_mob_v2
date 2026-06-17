@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 object CaptureSettingsStore {
 
     private val KEY_CAMERA_OPEN_FOR_EDITING = booleanPreferencesKey("camera_open_for_editing")
+    private val KEY_CAMERA_COPY_TO_CLIPBOARD = booleanPreferencesKey("camera_copy_to_clipboard")
     private val KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID = stringPreferencesKey("camera_photos_destination_resource_id")
     private val KEY_MIC_RECORDING_ENABLED = booleanPreferencesKey("mic_recording_enabled")
     private val KEY_MIC_RECORDING_ASK_FILENAME = booleanPreferencesKey("mic_recording_ask_filename")
@@ -24,6 +25,7 @@ object CaptureSettingsStore {
     /** Capture fields read from DataStore, ready for [AppSettings]. */
     data class Values(
         val cameraCaptureOpenForEditing: Boolean,
+        val cameraCaptureCopyToClipboard: Boolean,
         val cameraPhotosDestinationResourceId: String?,
         val micRecordingEnabled: Boolean,
         val micRecordingAskFilename: Boolean,
@@ -32,6 +34,7 @@ object CaptureSettingsStore {
 
     fun read(preferences: Preferences): Values = Values(
         cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
+        cameraCaptureCopyToClipboard = preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] ?: false,
         cameraPhotosDestinationResourceId = preferences[KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID],
         micRecordingEnabled = preferences[KEY_MIC_RECORDING_ENABLED] ?: false,
         micRecordingAskFilename = preferences[KEY_MIC_RECORDING_ASK_FILENAME] ?: true,
@@ -40,6 +43,7 @@ object CaptureSettingsStore {
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_CAMERA_OPEN_FOR_EDITING] = settings.cameraCaptureOpenForEditing
+        preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] = settings.cameraCaptureCopyToClipboard
         preferences.setOrRemove(KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID, settings.cameraPhotosDestinationResourceId)
         preferences[KEY_MIC_RECORDING_ENABLED] = settings.micRecordingEnabled
         preferences[KEY_MIC_RECORDING_ASK_FILENAME] = settings.micRecordingAskFilename

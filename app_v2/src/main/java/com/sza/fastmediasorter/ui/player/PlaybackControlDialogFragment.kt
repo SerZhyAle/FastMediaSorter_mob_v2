@@ -11,8 +11,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
+import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
@@ -68,7 +69,11 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 val isStereoContent = currentStereo != StereoMode.AUTO &&
                     currentStereo != StereoMode.MONO &&
                     currentStereo != StereoMode.UNKNOWN
-                if (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent) {
+                val supportsVrPlayer = EntryPointAccessors.fromApplication(
+                    requireContext().applicationContext,
+                    MediaCapabilitiesEntryPoint::class.java
+                ).mediaCapabilities().supportsVrPlayer
+                if (supportsVrPlayer || isStereoContent) {
                     add(ControlSection.STEREO)
                 }
                 add(ControlSection.HUE)

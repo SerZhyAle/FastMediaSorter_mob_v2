@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -19,7 +22,9 @@ import javax.inject.Inject
 class SaveTextNoteUseCase @Inject constructor(
     private val fileOperationUseCase: FileOperationUseCase,
     private val stagingRegistry: LocalStagingRegistry,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
 
     data class SaveOutcome(
@@ -31,6 +36,18 @@ class SaveTextNoteUseCase @Inject constructor(
     )
 
     suspend operator fun invoke(
+        currentLocalFile: File,
+        intendedName: String,
+        content: String
+    ): Result<SaveOutcome> {
+        val result = saveInternal(currentLocalFile, intendedName, content)
+        // S0473: one text note saved. A network save that fell back to local-only still produced a
+        // saved file (Result.success), so it counts.
+        if (result.isSuccess) statsSink.record(StatsEvent.Edit(EditKind.NOTE))
+        return result
+    }
+
+    private suspend fun saveInternal(
         currentLocalFile: File,
         intendedName: String,
         content: String

@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6141.930 (June 2026)
+## What's New in v2.60.6180.134 (June 2026)
 
 **New:**
-Downloadable Extensions, smarter setup flow, remote source toggles, standalone viewer parity, All Files resource, quick camera capture, SFTP key authentication, audio visualizations.
+Send to network and cloud sources, usage statistics dashboard, favorites backup to file, photo and frame to clipboard, crash report prompt, All Files pinned first.
 
 **Fixed:**
-Broken audio track skip, Recent Media false-scan error, too-short microphone recordings, support-recipient mailto fix, draw toolbar safe positioning.
+SFTP audio cut-off after slow folder scan, missing OCR engine pack guidance, settings-search backup mapping.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

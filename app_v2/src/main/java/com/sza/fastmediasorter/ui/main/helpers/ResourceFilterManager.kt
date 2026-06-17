@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.main.ResourceTab
@@ -65,8 +66,25 @@ class ResourceFilterManager {
         }
         
         filtered = applySorting(filtered, sortMode)
-        
-        return filtered
+
+        return pinAllFilesFirst(filtered)
+    }
+
+    /**
+     * Pin the predefined All-files resource to index 0, keeping the relative order of the rest.
+     * Public because two ordering paths feed the main-window list and both must pin: this in-memory
+     * filter+sort, and the DB-level getFiltered() path used by the ViewModel on sort/filter changes.
+     * Expects an already filtered+sorted list - a resource excluded by the active tab/filter is simply
+     * absent here and stays hidden. Presentation-only - never persists displayOrder.
+     */
+    fun pinAllFilesFirst(resources: List<MediaResource>): List<MediaResource> {
+        val index = resources.indexOfFirst { it.isAllFilesPredefined }
+        if (index <= 0) return resources
+        Timber.d("S0488: hoisting All-files resource from index $index to top")
+        val reordered = resources.toMutableList()
+        val pinned = reordered.removeAt(index)
+        reordered.add(0, pinned)
+        return reordered
     }
     
     /**
