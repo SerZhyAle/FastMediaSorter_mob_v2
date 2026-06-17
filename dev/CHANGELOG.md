@@ -18777,3 +18777,4 @@ Format: | datetime | file | target | description |
 | 2026-06-18 01:26:58 | `PLAN/S0484_prerelease-emulator-sweep/INDEX.md` | `spec-check` | Phase 06 row 3/4 -> 4/4 after 06.3 close [branch: DEBUG-v014] |
 | 2026-06-18 01:27:27 | `PLAN/S0493_send-to-remote-files.md` | `spec-arc` | Archive S0493 (send-to-remote-files) -> temp/done/ [branch: DEBUG-v014] |
 | 2026-06-18 01:27:35 | `PLAN/S0495_fix-camera-capture-saver-test-compile.md` | `spec-arc` | Archive S0495 (fix-camera-capture-saver-test-compile) -> temp/done/ [branch: DEBUG-v014] |
+| 2026-06-18 01:35:05 | `a.ps1` | `skill-release` | Release delegation forwards trailing $Rest args to worktree builder (honors documented forward contract; enables pinned -VersionName/-VersionCode, eliminates tag/artifact version skew) [branch: DEBUG-v014] |

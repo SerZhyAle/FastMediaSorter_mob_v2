@@ -213,7 +213,7 @@ if ($releaseCommands -contains $Command) {
                 if ($_.Value -is [bool]) { "-$($_.Key)" } else { "-$($_.Key) $($_.Value)" }
             }) -join ' '
         } else { $scriptArgs -join ' ' }
-        Write-Host "Executing (worktree): $($scriptEntry.Path) $argsDisplay" -ForegroundColor Green
+        Write-Host "Executing (worktree): $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
         Write-Host ""
         # CRITICAL: change CWD to worktree before invoking the build script.
         # Gradle resolves the project directory from CWD (not from gradlew.bat location),
@@ -222,7 +222,7 @@ if ($releaseCommands -contains $Command) {
         # producing artifacts with stale versions and silently mirroring dev outputs.
         Push-Location $worktreePath
         try {
-            & $worktreeScript @scriptArgs
+            & $worktreeScript @scriptArgs @Rest
             $buildExit = $LASTEXITCODE
         }
         finally {
