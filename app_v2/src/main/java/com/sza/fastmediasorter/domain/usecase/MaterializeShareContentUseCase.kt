@@ -91,6 +91,7 @@ class MaterializeShareContentUseCase @Inject constructor(
     // so the share dialog shows a spinner for it.
     private suspend fun downloadTo(sourcePath: String, targetFile: File, onProgress: ((Int) -> Unit)?): File? =
         if (isCloudScheme(sourcePath)) {
+            Timber.d("S0494: materializing cloud share source %s", sourcePath)
             val ok = cloudHandler.get().downloadFromCloudToPublic(
                 cloudPath = sourcePath,
                 destPath = targetFile.parentFile?.absolutePath ?: targetFile.absolutePath,
