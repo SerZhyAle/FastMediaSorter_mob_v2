@@ -4,9 +4,11 @@ import android.content.Context
 import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
+import com.sza.fastmediasorter.data.stats.StatsSessionTracker
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 import io.mockk.mockk
@@ -32,6 +34,8 @@ class AppStartupInitializerTest {
             inputBindingRepository = dagger.Lazy { mockk<InputBindingRepository>(relaxed = true) },
             defaultsMapLoader = dagger.Lazy { mockk<DefaultsMapLoader>(relaxed = true) },
             remoteSourceDisableCoordinator = mockk<RemoteSourceDisableCoordinator>(relaxed = true),
+            statisticsRepository = dagger.Lazy { mockk<StatisticsRepository>(relaxed = true) },
+            statsSessionTracker = dagger.Lazy { mockk<StatsSessionTracker>(relaxed = true) },
         )
 
         assertTrue(initializer.tryStartConnectionThrottleManagerInitialization())

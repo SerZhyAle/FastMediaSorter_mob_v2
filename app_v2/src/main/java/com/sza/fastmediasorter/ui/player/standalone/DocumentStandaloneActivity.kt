@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCall
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -101,7 +102,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    // S0473: usage-statistics sink, forwarded into the standalone PdfViewerManager.
+    @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
 
@@ -164,7 +168,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* no audio in document activity */ },
             batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
+            recoverableDeleteLauncher = recoverableDeleteLauncher,
+            sendToMenuManager = sendToMenuManager,
+            getCurrentSettings = { settingsRepository.getSettings().first() }
         )
     }
 
@@ -195,7 +201,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 override fun onExitFullscreenMode() { binding.topCommandPanel.isVisible = true }
             },
             translationManager = translationManager,
-            playbackPositionRepository = playbackPositionRepository
+            playbackPositionRepository = playbackPositionRepository,
+            statsSink = statsSink
         )
     }
 

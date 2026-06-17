@@ -41,6 +41,9 @@ class GeneralSettingsObserversHelper(
 
             if (binding.rowEnableFavorites.isChecked != settings.enableFavorites)
                 binding.rowEnableFavorites.setCheckedSilently(settings.enableFavorites)
+            // S0473: opt-in statistics toggle initial/observed state.
+            if (binding.rowEnableStatistics.isChecked != settings.enableStatistics)
+                binding.rowEnableStatistics.setCheckedSilently(settings.enableStatistics)
             // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
             if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
                 binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)

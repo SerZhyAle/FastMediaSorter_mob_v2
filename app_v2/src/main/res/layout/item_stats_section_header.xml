@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04: collapsible category header. Whole row is clickable/focusable for D-pad;
+     the chevron rotates between expanded (down) and collapsed (right) in the adapter. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sectionHeaderRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/settings_item_min_height"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/margin_medium"
+    android:paddingVertical="@dimen/margin_normal">
+
+    <TextView
+        android:id="@+id/tvSectionTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_normal"
+        android:textStyle="bold"
+        tools:text="Operations" />
+
+    <ImageView
+        android:id="@+id/ivSectionChevron"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_arrow_drop_down"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

@@ -877,6 +877,14 @@
 
                     </LinearLayout>
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCopyScreenshotToClipboard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_copy_screenshot_to_clipboard_title"
+                        app:str_subtitle="@string/setting_copy_screenshot_to_clipboard_summary" />
+
                     <TextView
                         android:id="@+id/tvAccessibilityShortcutHint"
                         android:layout_width="match_parent"

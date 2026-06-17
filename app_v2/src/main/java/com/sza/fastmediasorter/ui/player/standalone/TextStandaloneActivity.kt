@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import kotlinx.coroutines.flow.first
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -83,6 +84,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
@@ -108,7 +110,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* no audio in text activity */ },
             batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
+            recoverableDeleteLauncher = recoverableDeleteLauncher,
+            sendToMenuManager = sendToMenuManager,
+            getCurrentSettings = { settingsRepository.getSettings().first() }
         )
     }
 
@@ -335,20 +339,16 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
+            // S0459 §11.7: "Send to Keep" is dropped from the overflow - the unified Send-to menu
+            // (btnShareCmd -> SendToMenuManager) already offers the Keep-text receiver for TEXT content.
             listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
                 R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
-            // S0431: text host is the only one that surfaces "Send to Keep", and only when Keep is installed.
-            popup.menu.findItem(R.id.menu_send_to_keep)?.isVisible = textViewerManager.isKeepTargetAvailable()
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
-                    R.id.menu_send_to_keep -> {
-                        Timber.d("S0431: standalone text player read-only -> send to Keep")
-                        textViewerManager.sendCurrentTextToKeep(); true
-                    }
                     else -> false
                 }
             }

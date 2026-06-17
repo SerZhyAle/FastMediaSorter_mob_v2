@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04/05: landscape counterpart of res/layout/activity_statistics.xml (Rule 11).
+     Structure is identical; the summary-card reflow (3 cards across instead of 2) is supplied by
+     @integer/statistics_card_span in values-land, consumed by the GridLayoutManager in the Activity.
+     The Phase 05 bottom action bar ("Send to author" + "Export", no "Reset" - ADR-4) is mirrored here
+     1:1 so both orientations expose the same actions. Kept as a real file so the layout always has a
+     landscape sibling. Theme colors only (Rule 19). -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
+            android:nextFocusDown="@id/rvStatistics"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
+            app:title="@string/statistics_title"
+            app:titleTextColor="?attr/colorOnPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStatistics"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/toolbar"
+            android:nextFocusDown="@id/btnSendToAuthor"
+            android:paddingBottom="@dimen/margin_large" />
+
+        <LinearLayout
+            android:id="@+id/statisticsActionBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            android:elevation="@dimen/toolbar_elevation"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/margin_large"
+            android:paddingTop="@dimen/margin_normal"
+            android:paddingEnd="@dimen/margin_large"
+            android:paddingBottom="@dimen/margin_normal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExport"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_normal"
+                android:nextFocusUp="@id/rvStatistics"
+                android:nextFocusRight="@id/btnSendToAuthor"
+                android:text="@string/statistics_export"
+                app:icon="@drawable/ic_share" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendToAuthor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:nextFocusUp="@id/rvStatistics"
+                android:nextFocusLeft="@id/btnExport"
+                android:text="@string/statistics_send_to_author"
+                app:icon="@drawable/ic_send_email" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

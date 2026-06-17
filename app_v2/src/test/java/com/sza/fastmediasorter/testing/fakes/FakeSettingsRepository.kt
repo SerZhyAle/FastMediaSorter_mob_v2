@@ -72,6 +72,10 @@ class FakeSettingsRepository(
         updateSettings(settingsFlow.value.copy(scheduledOperationsPaused = paused))
     }
 
+    override suspend fun setStatisticsEnabled(enabled: Boolean) {
+        updateSettings(settingsFlow.value.copy(enableStatistics = enabled))
+    }
+
     override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean =
         touchZoneHints[type] ?: false
 

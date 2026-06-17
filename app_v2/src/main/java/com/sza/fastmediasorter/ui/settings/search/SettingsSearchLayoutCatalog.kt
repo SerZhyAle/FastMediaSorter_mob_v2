@@ -20,7 +20,11 @@ object SettingsSearchLayoutCatalog {
         R.layout.fragment_settings_audio,
         R.layout.fragment_settings_documents,
         R.layout.fragment_settings_other,
-        R.layout.fragment_settings_destinations,
-        R.layout.fragment_settings_backup_restore
+        R.layout.fragment_settings_destinations
+        // fragment_settings_backup_restore is intentionally excluded: it backs the orphan
+        // BackupRestoreFragment and is never shown. The live backup/restore/export-import rows
+        // are part of fragment_settings_general, so scanning this layout would only yield
+        // duplicate (btnBackup/btnRestore) and phantom (export/import favorites/resources)
+        // entries that route to a tab where the view ids do not exist.
     )
 }

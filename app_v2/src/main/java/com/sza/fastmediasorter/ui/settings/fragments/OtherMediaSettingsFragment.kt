@@ -113,8 +113,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.rowTranslationLensStyle.isVisible = false
 
-            binding.rowEnableGoogleLens.isVisible = false
-
             // Hide OCR row and summary
             binding.rowEnableOcr.isVisible = false
             binding.tvOcrSummary.isVisible = false
@@ -171,12 +169,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowTranslationLensStyle) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(translationLensStyle = isChecked))
-        }
-
-        // Google Lens
-        bindSwitch(binding.rowEnableGoogleLens) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableGoogleLens = isChecked))
         }
 
         // OCR - turning it ON gates on the OCR_ENGINES set being installed (S0386 Phase 06);
@@ -432,7 +424,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 updateLanguageSelectors(settings)
 
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
-                setSwitchChecked(binding.rowEnableGoogleLens, settings.enableGoogleLens)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
                 updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
 

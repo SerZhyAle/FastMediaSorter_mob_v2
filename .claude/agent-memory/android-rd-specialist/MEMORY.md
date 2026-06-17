@@ -1,5 +1,7 @@
 # Memory Index
 
+- [screenCapture is noLegal-only](project_screencapture_nolegal_only.md) - gesture screenshot capture (src/screenCapture) mounts only into noLegal; gates via empty injected controller set, not BuildConfig; FEATURES.md [Standard] label is inaccurate
+
 - [Dirty tree is normal WIP - don't alarm](feedback_dirty_tree_is_normal_wip.md) - repo runs multiple worktrees (mob_v2→DEBUG-vNNN, release→main); uncommitted files = intact WIP, report calmly, never imply revert/clobber/loss
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition

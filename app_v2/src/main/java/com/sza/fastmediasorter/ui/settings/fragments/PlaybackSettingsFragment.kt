@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Context
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,12 +13,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import android.widget.LinearLayout
+import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
 import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
@@ -27,6 +30,9 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -169,7 +175,6 @@ class PlaybackSettingsFragment : Fragment() {
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(playerFollowSystemRotation = isChecked))
-                Timber.d("S0439: player follow-OS toggled -> $isChecked")
             }
         }
 
@@ -266,8 +271,10 @@ class PlaybackSettingsFragment : Fragment() {
      * S0452: build one toggle per registered ShareTarget into the "Send file to.." group.
      * An unavailable target (e.g. its app is not installed) is disabled and marked with a
      * non-color "Not installed" subtitle. With an empty registry this renders nothing.
+     * S0463: each row also shows a description subtitle and a (?) help button.
      */
     private fun setupSendCommandsGroup() {
+        Timber.d("S0474: send-commands group built with fast titles; labels resolved async")
         val container = binding.containerSendCommands
         container.removeAllViews()
         sendCommandRows.clear()
@@ -281,10 +288,21 @@ class PlaybackSettingsFragment : Fragment() {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                 )
-                setTitle(target.titleRes)
+                // S0474: start with the fast declared title; the installed-app label (ADR-5 parity
+                // with SendToBottomSheet) is resolved off the main thread below and applied after.
+                setTitle(getString(target.titleRes))
                 val available = shareTargetAvailabilityResolver.isAvailable(target)
                 isEnabled = available
-                setSubtitle(if (available) null else getString(R.string.settings_send_command_unavailable))
+                // S0463: show the target's description when available; "Not installed" otherwise.
+                val subtitleText: CharSequence? = if (available) {
+                    target.subtitleRes?.let { getString(it) }
+                } else {
+                    getString(R.string.settings_send_command_unavailable)
+                }
+                setSubtitle(subtitleText)
+                // S0463: wire up the (?) help button when the target declares a help message.
+                val hm = target.helpMessageRes
+                if (hm != null) setHelp(target.titleRes, hm)
                 setCheckedSilently(isShareTargetEnabledUseCase(target.id, current))
                 setOnCheckedChangeListener { isChecked ->
                     if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -306,6 +324,36 @@ class PlaybackSettingsFragment : Fragment() {
             container.addView(row)
             sendCommandRows[target.id] = row
         }
+        // S0474: resolve installed-app labels off the main thread (PackageManager lookups must not
+        // block the Playback tab open); apply resolved labels to existing rows on the main thread.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val labels = withContext(Dispatchers.IO) {
+                targets.associate { it.id to resolveShareTargetLabel(it) }
+            }
+            labels.forEach { (id, label) -> sendCommandRows[id]?.setTitle(label) }
+        }
+    }
+
+    /**
+     * S0463: resolves the display label for a settings toggle row.
+     *
+     * Package-backed targets (non-empty [ShareTarget.packages]) show the installed app's own
+     * label via PackageManager — consistent with SendToBottomSheet (S0459 ADR-5) and avoids
+     * hardcoded brand literals. Falls back to [ShareTarget.titleRes] when no package resolves.
+     * Logical targets always use [ShareTarget.titleRes].
+     */
+    private fun resolveShareTargetLabel(target: ShareTarget): CharSequence {
+        if (target.packages.isEmpty()) return getString(target.titleRes)
+        val pm = requireContext().packageManager
+        for (pkg in target.packages) {
+            val label = try {
+                pm.getApplicationLabel(pm.getApplicationInfoCompat(pkg))
+            } catch (_: PackageManager.NameNotFoundException) {
+                null
+            }
+            if (label != null) return label
+        }
+        return getString(target.titleRes)
     }
 
     private fun observeData() {

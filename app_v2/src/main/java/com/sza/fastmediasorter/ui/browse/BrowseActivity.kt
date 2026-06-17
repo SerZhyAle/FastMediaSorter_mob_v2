@@ -148,6 +148,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+    @Inject lateinit var openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
@@ -160,6 +162,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0231: scoped-storage-aware writer injected for ad-hoc CloudOperationStrategy construction.
     @Inject lateinit var destinationClassifier: com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
     @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+    // S0473: usage-statistics sink, threaded into BrowseMicRecordingManager for voice-note capture.
+    @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -283,7 +287,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     ).isSuccess
                     else -> false
                 }
-            }
+            },
+            destinationClassifier = destinationClassifier,
+            destinationWriter = destinationWriter,
+            statsSink = statsSink,
         )
 
         // S0207 Phase 01: BROWSE_OPENED probe - fired at the end of onCreate so the measurement
@@ -378,6 +385,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             reviewRequestManager = reviewRequestManager,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             mediaCapabilities = mediaCapabilities,
+            sendToMenuManager = sendToMenuManager,
+            openInShareTargetHandler = openInShareTargetHandler,
         )
 
         initializer.initialize()

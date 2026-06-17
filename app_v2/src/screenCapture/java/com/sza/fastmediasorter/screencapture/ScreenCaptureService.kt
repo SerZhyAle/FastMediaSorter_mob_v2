@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -57,6 +58,9 @@ class ScreenCaptureService : Service() {
 
     @Inject
     lateinit var actionDispatcher: Lazy<ScreenshotGestureActionDispatcher>
+
+    @Inject
+    lateinit var imageClipboardWriter: Lazy<ImageClipboardWriter>
 
     private var gestureDirection: String? = null
 
@@ -155,6 +159,12 @@ class ScreenCaptureService : Service() {
                 selectedResourceId = settings.screenshotDestinationResourceId,
                 resources = resources
             )
+
+            // Copy to clipboard from the live bitmap before the save use case recycles it;
+            // independent of the post-capture action and the save destination.
+            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
+                toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
 
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {

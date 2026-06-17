@@ -19,6 +19,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
 import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -193,7 +194,7 @@ class BrowseCameraCaptureManager(
         pendingResource = resource
         pendingIsVideo = true
 
-        val handlers = activity.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+        val handlers = activity.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
         if (handlers.isEmpty()) {
             Timber.w("VideoCapture: launchVideo ABORT - no Activity handles %s on this device", MediaStore.ACTION_VIDEO_CAPTURE)
             showSnackbar(R.string.camera_capture_error_no_camera_app)
@@ -563,7 +564,7 @@ class BrowseCameraCaptureManager(
          * photo path instead). Call before showing the video-capture command in a menu.
          */
         fun hasVideoCaptureHandler(context: Context): Boolean {
-            val handlers = context.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+            val handlers = context.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
             if (handlers.isEmpty()) {
                 Timber.w("CameraCapture: no handlers, video-capture command hidden action=%s", MediaStore.ACTION_VIDEO_CAPTURE)
             }

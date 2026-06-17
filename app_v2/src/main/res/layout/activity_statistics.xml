@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04/05: statistics dashboard host. Toolbar + up-nav over a RecyclerView that renders
+     summary cards, the type-distribution bar, collapsible category sections, the empty state and the
+     privacy note (last list item, so it stays visible above the action bar). Phase 05 adds the bottom
+     action bar: "Send to author" + "Export" (no "Reset" - ADR-4). The RecyclerView takes weight=1 and
+     the bar is pinned below it inside a vertical container that carries the appbar scrolling behavior,
+     so the bar never overlaps the last rows. Summary-card reflow between portrait and landscape is
+     driven by the orientation-qualified @integer/statistics_card_span (see values-land); this layout
+     and its layout-land counterpart are intentionally identical. fitsSystemWindows keeps content
+     inside the system bars + cutout (Rule 17). Theme colors only (Rule 19). -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
+            android:nextFocusDown="@id/rvStatistics"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
+            app:title="@string/statistics_title"
+            app:titleTextColor="?attr/colorOnPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStatistics"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/toolbar"
+            android:nextFocusDown="@id/btnSendToAuthor"
+            android:paddingBottom="@dimen/margin_large" />
+
+        <LinearLayout
+            android:id="@+id/statisticsActionBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            android:elevation="@dimen/toolbar_elevation"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/margin_large"
+            android:paddingTop="@dimen/margin_normal"
+            android:paddingEnd="@dimen/margin_large"
+            android:paddingBottom="@dimen/margin_normal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExport"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_normal"
+                android:nextFocusUp="@id/rvStatistics"
+                android:nextFocusRight="@id/btnSendToAuthor"
+                android:text="@string/statistics_export"
+                app:icon="@drawable/ic_share" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendToAuthor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:nextFocusUp="@id/rvStatistics"
+                android:nextFocusLeft="@id/btnExport"
+                android:text="@string/statistics_send_to_author"
+                app:icon="@drawable/ic_send_email" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

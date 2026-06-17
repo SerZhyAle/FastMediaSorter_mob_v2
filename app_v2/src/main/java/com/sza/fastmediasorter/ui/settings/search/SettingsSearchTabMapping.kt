@@ -42,10 +42,10 @@ object SettingsSearchTabMapping {
         ),
         R.layout.fragment_settings_destinations to TabAssignment(
             SettingsSearchDestination.OPERATIONS, "destinations"
-        ),
-        R.layout.fragment_settings_backup_restore to TabAssignment(
-            SettingsSearchDestination.OPERATIONS, "destinations"
         )
+        // No fragment_settings_backup_restore entry: that layout is excluded from the search
+        // scan (see SettingsSearchLayoutCatalog). The real backup/restore rows live in
+        // fragment_settings_general and are routed to the General tab via that mapping.
     )
 
     fun assignmentFor(layoutResId: Int): TabAssignment? = byLayout[layoutResId]

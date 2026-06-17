@@ -6,6 +6,7 @@ enum class ScreenshotGestureAction {
     OPEN_IN_PLAYER,
     OPEN_IN_DRAW,
     OCR_TRANSLATE,
+    SEND_TO_RECIPIENTS,
     SHARE,
     DO_NOT_USE;
 

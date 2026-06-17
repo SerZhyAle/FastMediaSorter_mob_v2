@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.SetStatisticsCollectionEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
@@ -69,7 +70,8 @@ class SettingsViewModel @Inject constructor(
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
     private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
-    private val szaResourcesImporter: SzaResourcesImporter
+    private val szaResourcesImporter: SzaResourcesImporter,
+    private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -235,6 +237,22 @@ class SettingsViewModel @Inject constructor(
         GameLaunchWidgetProvider.updateAll(context, enabled)
     }
 
+    /**
+     * S0473: persists the opt-in statistics flag through [SetStatisticsCollectionEnabledUseCase],
+     * which also wipes detailed activity when turned off. Optimistic override keeps the switch
+     * stable until the DataStore write re-emits, matching [updateSettings].
+     */
+    fun setStatisticsCollectionEnabled(enabled: Boolean) {
+        _settingsOverride.value = settings.value.copy(enableStatistics = enabled)
+        viewModelScope.launch {
+            try {
+                setStatisticsCollectionEnabledUseCase(enabled)
+            } catch (e: Exception) {
+                Timber.e(e, "Error updating statistics collection flag")
+            }
+        }
+    }
+
     fun resetGeneralSection() {
         val defaults = AppSettings()
         val current = settings.value
@@ -302,7 +320,6 @@ class SettingsViewModel @Inject constructor(
                 translationSourceLanguage = defaults.translationSourceLanguage,
                 translationTargetLanguage = defaults.translationTargetLanguage,
                 translationLensStyle = defaults.translationLensStyle,
-                enableGoogleLens = defaults.enableGoogleLens,
                 enableOcr = defaults.enableOcr,
                 ocrDefaultFontSize = defaults.ocrDefaultFontSize,
                 ocrDefaultFontFamily = defaults.ocrDefaultFontFamily,

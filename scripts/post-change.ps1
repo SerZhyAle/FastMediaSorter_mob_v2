@@ -133,6 +133,9 @@ $runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
 $runsFgsGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
+# getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
+$runsPmFlagsGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -213,6 +216,15 @@ if ($runsFgsGate) {
 }
 else {
     Skip-Step "fgs-notification-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsPmFlagsGate) {
+    Invoke-Step "deprecated-pm-flags-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "deprecated-pm-flags-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

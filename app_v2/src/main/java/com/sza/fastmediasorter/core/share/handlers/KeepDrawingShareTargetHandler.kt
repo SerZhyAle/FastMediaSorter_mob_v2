@@ -19,14 +19,16 @@ class KeepDrawingShareTargetHandler @Inject constructor() : ShareTargetHandler {
         val keepPackage = GoogleKeepAvailabilityChecker(activity).resolveTargetPackage() ?: return false
         return SystemShareInvoker.invokeFiles(
             context = activity,
+            // Honour the surface's declared MIME (PNG/WEBP/BMP images keep their type); fall back to a
+            // generic image type rather than mislabelling every image as JPEG.
+            mime = content.mime.ifBlank { MIME_IMAGE_FALLBACK },
             uris = content.uris,
-            mime = MIME_IMAGE,
             preferredPackage = keepPackage,
         )
     }
 
     companion object {
         const val ID = "keep_drawing"
-        private const val MIME_IMAGE = "image/jpeg"
+        private const val MIME_IMAGE_FALLBACK = "image/*"
     }
 }

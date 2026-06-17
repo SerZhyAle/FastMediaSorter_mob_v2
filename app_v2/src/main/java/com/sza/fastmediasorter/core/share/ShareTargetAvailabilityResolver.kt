@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.share
 
 import android.content.Context
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
@@ -55,7 +56,7 @@ class ShareTargetAvailabilityResolver @Inject constructor(
         val pm = context.packageManager
         return packages.any { pkg ->
             try {
-                pm.getPackageInfo(pkg, 0)
+                pm.getPackageInfoCompat(pkg)
                 true
             } catch (_: PackageManager.NameNotFoundException) {
                 // Expected on devices without this client; absence is not an error.

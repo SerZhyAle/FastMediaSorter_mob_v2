@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
@@ -47,6 +48,7 @@ class WelcomeFunctionalityController @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val downloadRunner: DeliverableDownloadRunner,
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val capabilityAvailability: CapabilityAvailability,
     private val installSource: InstallSourceProvider,
     private val mediaCapabilities: MediaCapabilities,
@@ -93,6 +95,15 @@ class WelcomeFunctionalityController @Inject constructor(
             // allFiles ON implicitly enables every media type via getGloballyEnabledMediaTypes();
             // turning it OFF leaves the individual type flags untouched (spec).
             persist { it.copy(allFiles = isChecked) }
+            if (isChecked) {
+                // S0471: Welcome has no separate "create resource" affordance like Settings, so enabling
+                // the All Files shortcut here also materializes the browsable predefined resource -
+                // mirroring the Enable-all sequence. Idempotent: a no-op when it already exists.
+                appScope.launch {
+                    ensureAllFilesPredefinedResourceUseCase()
+                        .onFailure { Timber.w(it, "WelcomeFunctionalityController: failed to ensure All Files resource") }
+                }
+            }
         }
     }
 

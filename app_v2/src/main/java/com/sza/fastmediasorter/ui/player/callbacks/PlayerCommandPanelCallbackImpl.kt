@@ -1,14 +1,19 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.StereoDetector
+import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import timber.log.Timber
+import java.io.File
 
 /**
  * Implementation of CommandPanelController.CommandPanelCallback extracted from PlayerActivity.
@@ -47,12 +52,31 @@ class PlayerCommandPanelCallbackImpl(
         activity.fileOperationsHandler.deleteCurrentFile()
     }
 
-    override fun onShareClicked() {
-        activity.shareCurrentFile()
+    override fun onSendToClicked() {
+        val content = buildShareableContent() ?: return
+        val settings = activity.currentSettings ?: return
+        activity.sendToMenuManager.show(activity, content, settings)
     }
 
-    override fun onSendToTelegramClicked() {
-        activity.shareManager.sendCurrentFileToTelegram()
+    // S0459 ADR-2: overflow PopupMenu renders «Send to..» as a native nested submenu.
+    override fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int) {
+        val content = buildShareableContent() ?: return
+        val settings = activity.currentSettings ?: return
+        activity.sendToMenuManager.buildOverflowSubMenu(menu, order, content, settings, activity)
+    }
+
+    // Builds the unified-menu payload for the current file; null when no file is open or its local
+    // FileProvider Uri cannot be built (network paths are not shared from the player command path).
+    private fun buildShareableContent(): ShareableContent? {
+        val file = viewModel.state.value.currentFile ?: return null
+        val uri = buildShareUri(file.path) ?: return null
+        return ShareableContent(
+            uris = listOf(uri),
+            mime = mimeTypeForFile(file.name, file.type),
+            mediaType = file.type,
+            displayName = file.name,
+            mediaFile = file,
+        )
     }
 
     override fun onEditClicked() {
@@ -208,12 +232,13 @@ class PlayerCommandPanelCallbackImpl(
         }
     }
 
+    // S0459: GOOGLE_LENS_PDF stays a dedicated command - it renders the current PDF page to a bitmap
+    // and hands that to Lens, which the unified image-Lens receiver (image Uri only) cannot do. The
+    // image/GIF Lens branch was removed; that path is now a unified-menu receiver.
     override fun onGoogleLensClicked() {
         val currentFile = viewModel.state.value.currentFile ?: return
-        when (currentFile.type) {
-            MediaType.PDF -> if (activity._pdfViewerManager != null) activity.pdfViewerManager.shareCurrentPageToGoogleLens()
-            MediaType.IMAGE, MediaType.GIF -> activity.shareCurrentFileToGoogleLens()
-            else -> {}
+        if (currentFile.type == MediaType.PDF && activity._pdfViewerManager != null) {
+            activity.pdfViewerManager.shareCurrentPageToGoogleLens()
         }
     }
 
@@ -228,13 +253,6 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onEditTextClicked() {
         activity.activityBinding.btnEditTextCmd.performClick()
-    }
-
-    // S0431: send the read-only text to Keep. The command is only ever offered for TEXT files
-    // with a Keep client present, so delegating straight to the text viewer is safe.
-    override fun onSendTextToKeepClicked() {
-        Timber.d("S0431: unified player read-only text -> send to Keep")
-        activity.textViewerManager.sendCurrentTextToKeep()
     }
 
     override fun onOcrSettingsClicked() {
@@ -338,5 +356,49 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onRotationToggleClicked() {
         viewModel.toggleRotationSensor()
+    }
+
+    // Builds a content:// URI for a local file via FileProvider; returns null for network paths
+    // where async download would be needed (network sharing remains via the legacy share path).
+    private fun buildShareUri(path: String): Uri? {
+        if (path.contains("://")) return null // network path - not handled here
+        return try {
+            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
+        } catch (e: Exception) {
+            Timber.w("SendTo: FileProvider URI failed for %s: %s", path, e.message)
+            null
+        }
+    }
+
+    // Derives MIME type from file extension and MediaType for ShareableContent.mime.
+    private fun mimeTypeForFile(name: String, type: MediaType): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        return when (type) {
+            MediaType.IMAGE -> when (ext) {
+                "jpg", "jpeg" -> "image/jpeg"
+                "png" -> "image/png"
+                "gif" -> "image/gif"
+                "webp" -> "image/webp"
+                "bmp" -> "image/bmp"
+                else -> "image/*"
+            }
+            MediaType.GIF -> "image/gif"
+            MediaType.VIDEO -> when (ext) {
+                "mp4" -> "video/mp4"
+                "webm" -> "video/webm"
+                "mkv" -> "video/x-matroska"
+                else -> "video/*"
+            }
+            MediaType.AUDIO -> when (ext) {
+                "mp3" -> "audio/mpeg"
+                "wav" -> "audio/wav"
+                "ogg" -> "audio/ogg"
+                "flac" -> "audio/flac"
+                else -> "audio/*"
+            }
+            MediaType.PDF -> "application/pdf"
+            MediaType.TEXT -> "text/plain"
+            else -> "*/*"
+        }
     }
 }

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Base64
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -289,7 +290,7 @@ class GoogleDriveBrowserAuthManager @Inject constructor(
 
     private fun hasAnyBrowser(): Boolean {
         val intent = Intent(Intent.ACTION_VIEW, AUTHORIZATION_URI)
-        return appContext.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
+        return appContext.packageManager.queryIntentActivitiesCompat(intent).isNotEmpty()
     }
 
     private data class TokenExchangeResult(

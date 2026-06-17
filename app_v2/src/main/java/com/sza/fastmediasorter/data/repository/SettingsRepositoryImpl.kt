@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -178,6 +179,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
+        // S0473: opt-in local usage statistics (default OFF). Same DataStore key as SettingsManager.ENABLE_STATISTICS.
+        private val KEY_ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
+
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
         // declarations are gone; orphan DataStore entries left over in existing installs are
@@ -224,7 +228,7 @@ class SettingsRepositoryImpl @Inject constructor(
     // to this build (existing user has lastUpdateTime > firstInstallTime → fallback resolves to false).
     private val isFreshInstall: Boolean by lazy {
         runCatching {
-            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            val info = context.packageManager.getPackageInfoCompat(context.packageName)
             val fresh = info.firstInstallTime == info.lastUpdateTime
             fresh
         }.getOrDefault(false)
@@ -344,7 +348,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
-                    enableGoogleLens = textRec.enableGoogleLens,
                     enableOcr = textRec.enableOcr,
                     cameraOcrTranslationEnabled = textRec.cameraOcrTranslationEnabled,
                     cameraOcrOnly = textRec.cameraOcrOnly,
@@ -406,6 +409,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     screenshotGestureActionRight = screenshot.screenshotGestureActionRight,
                     screenshotGestureActionUp = screenshot.screenshotGestureActionUp,
                     screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
+                    copyScreenshotToClipboard = screenshot.copyScreenshotToClipboard,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -459,6 +463,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
                     // S0050: absent key → false (opt-in feature, disabled by default)
                     showBlackScreenButton = preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] ?: false,
+
+                    // S0473: absent key → false (opt-in statistics, disabled by default)
+                    enableStatistics = preferences[KEY_ENABLE_STATISTICS] ?: false,
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -645,6 +652,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
             // S0050: Black Screen button (opt-in)
             preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
+            // S0473: local usage statistics (opt-in)
+            preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
@@ -688,6 +697,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateScheduledOperationsPaused(paused: Boolean) {
         dataStore.edit { it[KEY_SCHEDULED_OPERATIONS_PAUSED] = paused }
+    }
+
+    override suspend fun setStatisticsEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_ENABLE_STATISTICS] = enabled }
     }
 
     private fun <T> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {

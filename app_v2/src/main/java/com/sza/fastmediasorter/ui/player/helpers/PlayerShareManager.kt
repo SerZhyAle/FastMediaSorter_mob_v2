@@ -5,19 +5,19 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
-import com.sza.fastmediasorter.core.share.TelegramShareTargets
+import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaType
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
 /**
- * Manages file sharing and external player launch actions in the player.
- * Handles opening files in external apps, sharing to Google Lens.
- * Extracted from PlayerActivity to reduce its size.
+ * Manages external-player launch and the in-app Office-document open/share paths for the player.
+ * The image Google Lens floating-button path also lives here; the command-bar/overflow «share» is
+ * the unified «Send to..» menu (S0459). Extracted from PlayerActivity to reduce its size.
  */
 class PlayerShareManager(
     private val activity: PlayerActivity
@@ -142,8 +142,13 @@ class PlayerShareManager(
             .show()
     }
 
-    /** Share the Office [mediaFile] via a generic ACTION_SEND chooser (S0301 Phase 05). */
+    /**
+     * Share the prepared Office [mediaFile] through the unified «Send to..» menu (S0459; was a
+     * standalone ACTION_SEND chooser in S0301 Phase 05). prepareFileForRead keeps network fetches
+     * off the main thread; the resulting FileProvider Uri is handed to the menu.
+     */
     private fun shareOfficeDocument(mediaFile: MediaFile) {
+        val settings = activity.currentSettings ?: return
         activity.lifecycleScope.launch {
             try {
                 val preparedFile = activity.networkFileManager.prepareFileForRead(mediaFile)
@@ -152,13 +157,14 @@ class PlayerShareManager(
                     "${activity.packageName}.fileprovider",
                     preparedFile
                 )
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "application/octet-stream"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    clipData = ClipData.newRawUri(null, uri)
-                }
-                activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.office_viewer_fallback_share)))
+                val content = ShareableContent(
+                    uris = listOf(uri),
+                    mime = "application/octet-stream",
+                    mediaType = MediaType.OFFICE_DOCUMENT,
+                    displayName = mediaFile.name,
+                    mediaFile = mediaFile,
+                )
+                activity.sendToMenuManager.show(activity, content, settings)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to share Office document")
                 Toast.makeText(activity, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
@@ -184,53 +190,6 @@ class PlayerShareManager(
                 Timber.e(e, "Failed to render Office document internally")
                 showOfficeFallbackDialog(mediaFile)
             }
-        }
-    }
-
-    /**
-     * S0303: Send the current media file to an installed Telegram client.
-     * For network files, downloads/caches the file first (same path as Google Lens sharing).
-     * The command surfacing this action is shown only when a Telegram client is installed, but the
-     * invoker still falls back to the system chooser if the client became unavailable meanwhile.
-     */
-    fun sendCurrentFileToTelegram() {
-        val currentFile = activity.viewModel.state.value.currentFile ?: return
-        if (!currentFile.path.contains("://")) {
-            sendFileToTelegram(File(currentFile.path))
-        } else {
-            activity.lifecycleScope.launch {
-                try {
-                    val file = activity.networkFileManager.prepareFileForRead(currentFile)
-                    sendFileToTelegram(file)
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to prepare file for Telegram")
-                    Toast.makeText(activity, R.string.toast_failed_to_prepare_file, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    private fun sendFileToTelegram(file: File) {
-        try {
-            val uri = FileProvider.getUriForFile(
-                activity,
-                "${activity.packageName}.fileprovider",
-                file
-            )
-            val telegramPackage = TelegramShareTargets.firstInstalledPackage(activity.packageManager)
-            val launched = SystemShareInvoker.invokeFiles(
-                context = activity,
-                uris = listOf(uri),
-                mime = "*/*",
-                preferredPackage = telegramPackage,
-                chooserTitle = activity.getString(R.string.share_to_telegram),
-            )
-            if (!launched) {
-                Toast.makeText(activity, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to send file to Telegram")
-            Toast.makeText(activity, R.string.share_to_telegram_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

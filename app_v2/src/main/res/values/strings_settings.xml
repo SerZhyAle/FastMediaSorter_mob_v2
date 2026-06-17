@@ -21,7 +21,7 @@
     <string name="settings_category_files">Files &amp; Data</string>
     <string name="settings_category_images">Images, GIFs and slideshow</string>
     <string name="settings_category_interface">General interface settings</string>
-    <string name="settings_category_other">Translation, OCR and Google Lens</string>
+    <string name="settings_category_other">Translation, digitization (OCR)</string>
     <string name="settings_category_other_features">Camera, microphone and Other features</string>
     <string name="settings_category_other_functionality">Other functionality</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
@@ -146,7 +146,6 @@
     <string name="setting_dynamic_background_desc">Extends the image colors beyond its edges</string>
     <string name="setting_enable_copying_desc">Allow copying files to destination folders</string>
     <string name="setting_enable_favorites_desc">Allow marking files as favorites</string>
-    <string name="setting_enable_google_lens_desc">Allow sending images to Google Lens for analysis</string>
     <string name="setting_enable_moving_desc">Allow moving files to destination folders</string>
     <string name="setting_enable_pip">Enable Picture-in-Picture</string>
     <string name="setting_enable_pip_desc">Show PiP button in player and auto-enter PiP on home press (Android 12+)</string>
@@ -238,4 +237,6 @@
     <string name="settings_default_document_type_text">Text (TXT, LOG)</string>
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Allow All Files mode</string>
+    <string name="settings_statistics_collection_title">Statistics collection</string>
+    <string name="settings_statistics_collection_summary">Collected on your device. Off by default - nothing is sent automatically.</string>
 </resources>

@@ -29,9 +29,33 @@ class ApplyProfilePresetUseCase @Inject constructor(
 ) {
     suspend fun apply(profileType: DeviceProfileType, presetVersion: Int = 1): Result<Unit> {
         Timber.i("ApplyProfilePresetUseCase: Applying preset for $profileType (v$presetVersion)")
+        return try {
+            val hadOverrides = applySettingsOnly(profileType).getOrThrow()
+            if (hadOverrides) {
+                markPresetApplied(presetVersion).getOrThrow()
+                Timber.i("ApplyProfilePresetUseCase: Preset applied successfully for $profileType")
+            }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            // Coroutine cancellation is not a failure: never report it as Result.failure (callers log
+            // those at error level). Propagate so structured concurrency unwinds correctly.
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
+    /**
+     * Folds the profile's CSV overrides into the current settings (plus VR sync) and writes them,
+     * WITHOUT touching the device-profile bookkeeping. Returns whether the profile had any overrides.
+     *
+     * Welcome applies the settings early - before the user reaches the capability/permission pages - so
+     * those pages render the profile's defaults and any change the user then makes there survives to
+     * completion. Re-writing the settings at Finish would clobber that deviation, which is why the
+     * bookkeeping ([markPresetApplied]) is recorded separately.
+     */
+    suspend fun applySettingsOnly(profileType: DeviceProfileType): Result<Boolean> {
         val overrides = presetDataSource.load()[profileType].orEmpty()
-
         return try {
             val current = settingsRepository.getSettings().first()
             val presetUpdated = overrides.entries.fold(current) { acc, (field, raw) ->
@@ -43,17 +67,15 @@ class ApplyProfilePresetUseCase @Inject constructor(
             } else {
                 Timber.i("ApplyProfilePresetUseCase: No settings changes required for $profileType")
             }
-            if (overrides.isNotEmpty()) {
-                profileRepository.updatePresetApplied(presetVersion).getOrThrow()
-                Timber.i("ApplyProfilePresetUseCase: Preset applied successfully for $profileType (${overrides.size} overrides)")
-            }
-            Result.success(Unit)
+            Result.success(overrides.isNotEmpty())
         } catch (e: CancellationException) {
-            // Coroutine cancellation is not a failure: never report it as Result.failure (callers log
-            // those at error level). Propagate so structured concurrency unwinds correctly.
             throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+    /** Records that [presetVersion] was applied to the currently-saved device profile. */
+    suspend fun markPresetApplied(presetVersion: Int): Result<Unit> =
+        profileRepository.updatePresetApplied(presetVersion)
 }

@@ -28,6 +28,9 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
@@ -100,6 +103,8 @@ class VideoPlayerManager(
     internal val decoderFailureTracker: RecentDecoderFailureTracker,
     // S0391: source-availability gate; playback dispatch turns back when the source is user-disabled.
     internal val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    internal val statsSink: StatsSink,
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -439,6 +444,12 @@ class VideoPlayerManager(
                     val completedPath = currentFilePath
                     if (completedPath != null && completedPath != lastCompletedPath) {
                         lastCompletedPath = completedPath
+                        // S0473: one video watched to the end. duration==watched time at STATE_ENDED;
+                        // an unknown duration (C.TIME_UNSET) is reported as 0. Guarded by the same
+                        // once-per-file check as position-completion so it fires once per playthrough.
+                        val watchedMs = exoPlayer?.duration
+                            ?.takeIf { it != androidx.media3.common.C.TIME_UNSET && it > 0 } ?: 0L
+                        statsSink.record(StatsEvent.View(ViewKind.VIDEO, durationMs = watchedMs))
                         managerScope.launch(Dispatchers.IO) {
                             try {
                                 playbackPositionRepository.markPlaybackCompleted(

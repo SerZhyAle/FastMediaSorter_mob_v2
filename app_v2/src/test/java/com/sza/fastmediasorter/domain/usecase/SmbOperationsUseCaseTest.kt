@@ -41,6 +41,7 @@ class SmbOperationsUseCaseTest {
     fun setup() {
         useCase = SmbOperationsUseCase(
             smbClient, sftpClient, ftpClient, credentialsRepository, UnconfinedTestDispatcher(),
+            mockk(relaxed = true),
         )
     }
 

@@ -160,15 +160,6 @@
             app:str_helpTitle="@string/tooltip_translation_blocks_title"
             app:str_helpMessage="@string/tooltip_translation_blocks_message" />
 
-        <!-- Google Lens -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowEnableGoogleLens"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
-            app:str_title="@string/enable_google_lens"
-            app:str_subtitle="@string/setting_enable_google_lens_desc" />
-
         <!-- OCR (Text Recognition) - no subtitle in original layout; tvOcrSummary below shows unsupported reason -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowEnableOcr"

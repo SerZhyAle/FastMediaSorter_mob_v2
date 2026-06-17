@@ -100,7 +100,6 @@ data class BackupSettings(
     val translationSourceLanguage: String = "auto",
     val translationTargetLanguage: String = "ru",
     val translationLensStyle: Boolean = true,
-    val enableGoogleLens: Boolean = false,
     val enableOcr: Boolean = true,
     val ocrDefaultFontSize: String = "AUTO",
     val ocrDefaultFontFamily: String = "DEFAULT",

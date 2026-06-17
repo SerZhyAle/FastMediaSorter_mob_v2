@@ -430,7 +430,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerImageLoadingCallbackImpl(
                 activity = activity,
-                viewModel = activity.viewModel
+                viewModel = activity.viewModel,
+                statsSink = activity.statsSink
             )
         )
 

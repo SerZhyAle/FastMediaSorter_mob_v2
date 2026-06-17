@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MediaSettingsFragment : Fragment() {
@@ -46,11 +47,14 @@ class MediaSettingsFragment : Fragment() {
         private const val KEY_OTHER_EXPANDED = "section_other_expanded"
     }
 
-    private data class ExpandableSection(
+    private data class MediaChildSection(
         val header: CollapsibleSectionHeader,
         val container: View,
         val prefKey: String,
         val defaultExpanded: Boolean,
+        val tag: String,
+        // null factory => section has no child fragment (capability off or VR unavailable): header/container hidden.
+        val factory: (() -> Fragment)?,
     )
 
     override fun onCreateView(
@@ -65,8 +69,7 @@ class MediaSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        attachChildFragments()
-        setupExpandableSections()
+        setupSections()
         setupResetSection()
     }
 
@@ -88,77 +91,58 @@ class MediaSettingsFragment : Fragment() {
         }
     }
 
-    private fun attachChildFragments() {
-        if (childFragmentManager.findFragmentByTag("media_images") != null) return
-
-        val transaction = childFragmentManager.beginTransaction()
-
-        if (mediaCapabilities.supportsImages) {
-            transaction.replace(binding.containerImages.id, ImagesSettingsFragment(), "media_images")
-        } else {
-            binding.headerImages.isVisible = false
-            binding.containerImages.isVisible = false
-        }
-
-        if (mediaCapabilities.supportsVideo) {
-            transaction.replace(binding.containerVideo.id, VideoSettingsFragment(), "media_video")
-        } else {
-            binding.headerVideo.isVisible = false
-            binding.containerVideo.isVisible = false
-        }
-
-        if (vrMediaSection.isAvailable) {
-            val vrFragment = vrMediaSection.createFragment()
-            if (vrFragment != null) {
-                transaction.replace(binding.containerVr.id, vrFragment, "media_vr")
-            } else {
-                binding.headerVr.isVisible = false
-                binding.containerVr.isVisible = false
-            }
-        } else {
-            binding.headerVr.isVisible = false
-            binding.containerVr.isVisible = false
-        }
-
-        if (mediaCapabilities.supportsAudio) {
-            transaction.replace(binding.containerAudio.id, AudioSettingsFragment(), "media_audio")
-        } else {
-            binding.headerAudio.isVisible = false
-            binding.containerAudio.isVisible = false
-        }
-
-        if (mediaCapabilities.supportsDocuments) {
-            transaction.replace(binding.containerDocuments.id, DocumentsSettingsFragment(), "media_documents")
-        } else {
-            binding.headerDocuments.isVisible = false
-            binding.containerDocuments.isVisible = false
-        }
-
-        transaction.replace(binding.containerOther.id, OtherMediaSettingsFragment(), "media_other")
-        transaction.commitNow()
+    /**
+     * Builds the section descriptors. A null `factory` marks a section whose child fragment must
+     * not exist (capability off, or VR runtime unavailable) - its header/container are hidden and
+     * no fragment is ever attached. `createFragment()` is evaluated once here only to decide VR
+     * availability; the actual attach is deferred to [ensureChildAttached] on first expand.
+     */
+    private fun buildSections(): List<MediaChildSection> {
+        val vrFragment = if (vrMediaSection.isAvailable) vrMediaSection.createFragment() else null
+        return listOf(
+            MediaChildSection(binding.headerImages, binding.containerImages, KEY_IMAGES_EXPANDED, false, "media_images",
+                if (mediaCapabilities.supportsImages) ({ ImagesSettingsFragment() }) else null),
+            MediaChildSection(binding.headerVideo, binding.containerVideo, KEY_VIDEO_EXPANDED, false, "media_video",
+                if (mediaCapabilities.supportsVideo) ({ VideoSettingsFragment() }) else null),
+            MediaChildSection(binding.headerVr, binding.containerVr, KEY_VR_EXPANDED, true, "media_vr",
+                if (vrFragment != null) ({ vrFragment }) else null),
+            MediaChildSection(binding.headerAudio, binding.containerAudio, KEY_AUDIO_EXPANDED, false, "media_audio",
+                if (mediaCapabilities.supportsAudio) ({ AudioSettingsFragment() }) else null),
+            MediaChildSection(binding.headerDocuments, binding.containerDocuments, KEY_DOCUMENTS_EXPANDED, false, "media_documents",
+                if (mediaCapabilities.supportsDocuments) ({ DocumentsSettingsFragment() }) else null),
+            MediaChildSection(binding.headerOther, binding.containerOther, KEY_OTHER_EXPANDED, false, "media_other",
+                { OtherMediaSettingsFragment() }),
+        )
     }
 
-    private fun setupExpandableSections() {
-        val savedStates = getSavedSectionStates()
-        val sections = listOf(
-            ExpandableSection(binding.headerImages, binding.containerImages, KEY_IMAGES_EXPANDED, false),
-            ExpandableSection(binding.headerVideo, binding.containerVideo, KEY_VIDEO_EXPANDED, false),
-            ExpandableSection(binding.headerVr, binding.containerVr, KEY_VR_EXPANDED, true),
-            ExpandableSection(binding.headerAudio, binding.containerAudio, KEY_AUDIO_EXPANDED, false),
-            ExpandableSection(binding.headerDocuments, binding.containerDocuments, KEY_DOCUMENTS_EXPANDED, false),
-            ExpandableSection(binding.headerOther, binding.containerOther, KEY_OTHER_EXPANDED, false),
-        )
+    private fun ensureChildAttached(containerId: Int, tag: String, factory: () -> Fragment) {
+        if (childFragmentManager.findFragmentByTag(tag) != null) return
+        childFragmentManager.beginTransaction()
+            .replace(containerId, factory(), tag)
+            .commitNow()
+    }
 
-        sections.forEach { section ->
-            if (!section.header.isVisible) {
+    private fun setupSections() {
+        Timber.d("S0474: media child fragments attached lazily on section expand")
+        val savedStates = getSavedSectionStates()
+        buildSections().forEach { section ->
+            val factory = section.factory
+            if (factory == null) {
+                section.header.isVisible = false
                 section.container.isVisible = false
                 return@forEach
             }
 
             val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
+            if (expanded) {
+                ensureChildAttached(section.container.id, section.tag, factory)
+            }
             section.header.setExpanded(expanded, notify = false)
             section.container.isVisible = expanded
             section.header.setOnExpandedChangeListener { isExpanded ->
+                if (isExpanded) {
+                    ensureChildAttached(section.container.id, section.tag, factory)
+                }
                 section.container.isVisible = isExpanded
                 saveSectionState(section.prefKey, isExpanded)
             }
@@ -166,20 +150,13 @@ class MediaSettingsFragment : Fragment() {
     }
 
     fun ensureSectionExpanded(sectionId: String) {
-        when (sectionId) {
-            "images" -> expandSection(binding.headerImages)
-            "video" -> expandSection(binding.headerVideo)
-            "vr" -> expandSection(binding.headerVr)
-            "audio" -> expandSection(binding.headerAudio)
-            "documents" -> expandSection(binding.headerDocuments)
-            "other" -> expandSection(binding.headerOther)
-        }
-    }
-
-    private fun expandSection(header: CollapsibleSectionHeader) {
-        if (header.isVisible) {
-            header.setExpanded(true)
-        }
+        val section = buildSections().firstOrNull { it.tag == "media_$sectionId" } ?: return
+        val factory = section.factory ?: return
+        if (!section.header.isVisible) return
+        // Search navigation can target a collapsed section whose child was never attached.
+        // commitNow() makes the child's views exist immediately so navigateToTarget finds them.
+        ensureChildAttached(section.container.id, section.tag, factory)
+        section.header.setExpanded(true)
     }
     
     /**

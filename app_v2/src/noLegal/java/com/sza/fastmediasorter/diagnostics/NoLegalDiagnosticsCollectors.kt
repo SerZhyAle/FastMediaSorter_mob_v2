@@ -16,6 +16,7 @@ import android.provider.Settings
 import android.webkit.WebView
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsField
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
@@ -227,10 +228,10 @@ internal class NoLegalDiagnosticsCollectors(
         val pm = context.packageManager
         val pkg = context.packageName
         val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val info = pm.getPackageInfo(pkg, PackageManager.GET_SIGNING_CERTIFICATES)
+            val info = pm.getPackageInfoCompat(pkg, PackageManager.GET_SIGNING_CERTIFICATES)
             info.signingInfo?.apkContentsSigners
         } else {
-            pm.getPackageInfo(pkg, PackageManager.GET_SIGNATURES).signatures
+            pm.getPackageInfoCompat(pkg, PackageManager.GET_SIGNATURES).signatures
         }
         val first = signatures?.firstOrNull() ?: return "unknown"
         val digest = MessageDigest.getInstance("SHA-256").digest(first.toByteArray())
@@ -249,14 +250,14 @@ internal class NoLegalDiagnosticsCollectors(
     }
 
     private fun appVersion(): String {
-        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        val info = context.packageManager.getPackageInfoCompat(context.packageName)
         val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) info.longVersionCode
         else @Suppress("DEPRECATION") info.versionCode.toLong()
         return "${info.versionName} ($code)"
     }
 
     private fun installTime(firstInstall: Boolean): String {
-        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        val info = context.packageManager.getPackageInfoCompat(context.packageName)
         val millis = if (firstInstall) info.firstInstallTime else info.lastUpdateTime
         return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date(millis))
     }
@@ -399,7 +400,7 @@ internal class NoLegalDiagnosticsCollectors(
     // --- Helpers ---------------------------------------------------------------------------------
 
     private fun isPackageInstalled(pkg: String): Boolean = try {
-        context.packageManager.getPackageInfo(pkg, 0)
+        context.packageManager.getPackageInfoCompat(pkg)
         true
     } catch (e: PackageManager.NameNotFoundException) {
         false

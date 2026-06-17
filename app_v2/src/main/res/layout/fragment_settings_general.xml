@@ -137,6 +137,66 @@
 
                     </LinearLayout>
 
+                    <!-- S0473: opt-in local usage statistics (default OFF). Dashboard nav row arrives in Phase 04. -->
+                    <LinearLayout android:id="@+id/layoutEnableStatistics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/settings_statistics_collection_title"
+                            app:str_subtitle="@string/settings_statistics_collection_summary" />
+
+                        <!-- S0473 Phase 04: opens the statistics dashboard. Visibility is bound to the
+                             toggle above in GeneralSettingsViewSetupHelper (GONE while collection is off). -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/rowOpenStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:visibility="gone"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="2dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/settings_help_icon_size"
+                                    android:layout_height="@dimen/settings_help_icon_size"
+                                    android:layout_marginEnd="@dimen/margin_medium"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_history"
+                                    app:tint="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/settings_statistics_open"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_marginStart="@dimen/margin_small"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

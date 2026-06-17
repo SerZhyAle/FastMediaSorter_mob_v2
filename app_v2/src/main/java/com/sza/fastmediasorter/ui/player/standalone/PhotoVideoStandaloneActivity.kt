@@ -124,6 +124,7 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
     // S0393 wave-C: image edit dialog (rotate/flip/filters/adjust) use-cases.
     @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
@@ -362,13 +363,6 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
-    /**
-     * S0458: cached enableGoogleLens setting; gates the overflow Google Lens item so the standalone
-     * image host matches the in-app player, where the command is hidden until the user opts in.
-     */
-    @Volatile
-    private var googleLensSettingEnabled = false
-
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
 
@@ -384,7 +378,9 @@ class PhotoVideoStandaloneActivity :
             onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
             updateAudioMediaItem = { /* audio is a separate lane - never handled here */ },
             batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
+            recoverableDeleteLauncher = recoverableDeleteLauncher,
+            sendToMenuManager = sendToMenuManager,
+            getCurrentSettings = { settingsRepository.getSettings().first() }
         )
     }
 
@@ -489,9 +485,10 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_edit_compress).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_draw_overlay).isVisible = isStaticImage
             popup.menu.findItem(R.id.menu_edit_image).isVisible = editable
-            // Gate Google Lens on both a writable local image and the user setting, mirroring
-            // the in-app player where the command stays hidden until enableGoogleLens is turned on.
-            popup.menu.findItem(R.id.menu_google_lens).isVisible = editable && googleLensSettingEnabled
+            // S0459 §11.7: the per-file Google Lens overflow item is dropped - the unified Send-to
+            // menu (btnShareCmd -> SendToMenuManager) already offers the Lens receiver for image/gif.
+            // The item stays in the shared menu (other hosts reference it), so hide it explicitly.
+            popup.menu.findItem(R.id.menu_google_lens).isVisible = false
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
                 hasBitmap && capabilityAvailability.isTranslationAvailable()
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
@@ -541,13 +538,6 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_print -> { printCurrentImage(); true }
                     R.id.menu_save_frame -> { saveCurrentFrame(); true }
                     R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
-                    R.id.menu_google_lens -> {
-                        viewModel.editableImageFile.value?.let {
-                            com.sza.fastmediasorter.core.share.GoogleLensShare
-                                .shareImageFile(this, java.io.File(it.path))
-                        }
-                        true
-                    }
                     R.id.menu_black_screen -> { blackScreenManager.show(); true }
                     else -> false
                 }
@@ -627,6 +617,11 @@ class PhotoVideoStandaloneActivity :
             AUTO_ACTION_TRANSLATE -> {
                 autoActionConsumed = true
                 translateCurrentImage()
+            }
+            AUTO_ACTION_SEND_TO -> {
+                autoActionConsumed = true
+                Timber.d("S0472: standalone auto-action SEND_TO -> curated send-to menu")
+                fileOperations.shareCurrentFile()
             }
         }
     }
@@ -708,10 +703,6 @@ class PhotoVideoStandaloneActivity :
         }
         collectOnLifecycle(viewModel.messageFlow) { message ->
             Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
-        }
-        // S0458: keep the Google Lens overflow gate in sync with the live setting.
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            googleLensSettingEnabled = settings.enableGoogleLens
         }
         // S0390: gate Group A image actions on the editable-image state × the type-specific capability.
         collectOnLifecycle(viewModel.editableImageFile) { editFile ->
@@ -965,5 +956,6 @@ class PhotoVideoStandaloneActivity :
         const val EXTRA_AUTO_ACTION = "auto_action"
         const val AUTO_ACTION_DRAW = "draw"
         const val AUTO_ACTION_TRANSLATE = "translate"
+        const val AUTO_ACTION_SEND_TO = "send_to"
     }
 }

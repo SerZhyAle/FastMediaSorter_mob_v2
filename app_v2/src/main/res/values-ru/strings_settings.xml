@@ -21,7 +21,7 @@
     <string name="settings_category_files">Файлы и данные</string>
     <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
     <string name="settings_category_interface">Общие настройки интерфейса</string>
-    <string name="settings_category_other">Перевод, OCR и Google Lens</string>
+    <string name="settings_category_other">Перевод, оцифровка (OCR)</string>
     <string name="settings_category_other_features">Камера, микрофон и прочий функционал</string>
     <string name="settings_category_other_functionality">Прочий функционал</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
@@ -146,7 +146,6 @@
     <string name="setting_dynamic_background_desc">Продолжает цвета изображения за его края</string>
     <string name="setting_enable_copying_desc">Разрешить копирование файлов в папки назначения</string>
     <string name="setting_enable_favorites_desc">Разрешить отмечать файлы как избранные</string>
-    <string name="setting_enable_google_lens_desc">Разрешить отправку изображений в Google Lens для анализа</string>
     <string name="setting_enable_moving_desc">Разрешить перемещение файлов в папки назначения</string>
     <string name="setting_enable_pip">Включить картинку в картинке</string>
     <string name="setting_enable_pip_desc">Показывать кнопку PiP в плеере и автоматически входить в режим PiP при нажатии кнопки «Домой» (Android 12+)</string>
@@ -238,4 +237,6 @@
     <string name="settings_default_document_type_text">Текст (TXT, LOG)</string>
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Разрешить режим «Все файлы»</string>
+    <string name="settings_statistics_collection_title">Сбор статистики</string>
+    <string name="settings_statistics_collection_summary">Собирается на вашем устройстве. По умолчанию выключено - ничего не отправляется автоматически.</string>
 </resources>

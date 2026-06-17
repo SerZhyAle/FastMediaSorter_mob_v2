@@ -59,8 +59,10 @@ foreach ($loc in $locales) {
 
     $keys = foreach ($file in $files) {
         [xml]$xml = Get-Content $file.FullName -Encoding UTF8
+        # Skip translatable="false" strings: they are intentionally single-locale (e.g. e-mail
+        # addresses, URLs) and must not be reported as missing in RU/UK.
         $xml.resources.string |
-        Where-Object { $_.name -like $pattern } |
+        Where-Object { $_.name -like $pattern -and $_.translatable -ne "false" } |
         ForEach-Object { $_.name }
     }
     $byLocale[$loc.Tag] = @($keys)

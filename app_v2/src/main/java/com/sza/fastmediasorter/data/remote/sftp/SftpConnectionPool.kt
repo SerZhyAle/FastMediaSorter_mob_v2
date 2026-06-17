@@ -624,11 +624,7 @@ class SftpConnectionPool {
      * SFTP-protocol errors ([com.jcraft.jsch.SftpException]) are not IOExceptions, so they never
      * match here.
      */
-    private fun isDeadTransportException(e: Exception): Boolean {
-        if (e !is IOException) return false
-        val msg = e.message?.lowercase() ?: return false
-        return DEAD_TRANSPORT_MESSAGES.any { msg.contains(it) }
-    }
+    private fun isDeadTransportException(e: Exception): Boolean = isDeadTransport(e)
 
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
@@ -654,5 +650,17 @@ class SftpConnectionPool {
             "channel is not opened",
             "broken pipe"
         )
+
+        /**
+         * True iff [e] is a dead-transport IOException (silent TCP drop / stale pooled session
+         * after a long scan). Shared with callers that run their own retry loops (e.g.
+         * [SftpClient.downloadFile]) so a stale session is recovered by an immediate reconnect
+         * instead of waiting out an exponential backoff (S0466).
+         */
+        internal fun isDeadTransport(e: Throwable?): Boolean {
+            if (e !is IOException) return false
+            val msg = e.message?.lowercase() ?: return false
+            return DEAD_TRANSPORT_MESSAGES.any { msg.contains(it) }
+        }
     }
 }

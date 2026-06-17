@@ -14,16 +14,18 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import android.view.View
+import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
 import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,7 +50,9 @@ class StandaloneFileOperationsHandler(
     private val onRenameComplete: (Uri, String) -> Unit,
     private val updateAudioMediaItem: (Uri) -> Unit,
     private val batchDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
-    private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
+    private val sendToMenuManager: SendToMenuManager,
+    private val getCurrentSettings: suspend () -> AppSettings
 ) {
 
     private val safeViews = PlayerBindingSafeViews(root)
@@ -220,6 +224,11 @@ class StandaloneFileOperationsHandler(
 
     // ── Share ─────────────────────────────────────────────────────────────
 
+    /**
+     * Open the unified «Send to..» menu for the current standalone file (S0459 Phase 06).
+     * The shared btnShareCmd routes through here for every standalone host; receiver applicability
+     * (not host type) decides which receivers appear.
+     */
     fun shareCurrentFile() {
         val file = getCurrentMediaFile() ?: return
         val uri = (file.contentUri ?: file.path).toUri()
@@ -236,12 +245,17 @@ class StandaloneFileOperationsHandler(
             uri
         }
 
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = mimeType
-            putExtra(Intent.EXTRA_STREAM, shareUri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        activity.lifecycleScope.launch {
+            val settings = getCurrentSettings()
+            val content = ShareableContent(
+                uris = listOf(shareUri),
+                mime = mimeType,
+                mediaType = file.type,
+                displayName = file.name,
+                mediaFile = file,
+            )
+            sendToMenuManager.show(activity, content, settings)
         }
-        activity.startActivity(Intent.createChooser(shareIntent, activity.getString(R.string.share_via)))
     }
 
     // ── Open in FMS ──────────────────────────────────────────────────────

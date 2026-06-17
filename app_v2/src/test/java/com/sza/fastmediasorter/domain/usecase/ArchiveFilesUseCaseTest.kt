@@ -31,7 +31,7 @@ class ArchiveFilesUseCaseTest {
     fun setup() {
         every { context.getString(any()) } returns "error"
         every { context.getString(any(), *anyVararg()) } returns "error"
-        useCase = ArchiveFilesUseCase(context)
+        useCase = ArchiveFilesUseCase(context, mockk(relaxed = true))
     }
 
     @Test

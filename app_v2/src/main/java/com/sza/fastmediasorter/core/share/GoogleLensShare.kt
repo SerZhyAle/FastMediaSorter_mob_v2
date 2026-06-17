@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.share
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
@@ -24,7 +25,8 @@ object GoogleLensShare {
         try {
             val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
             shareImageUri(activity, uri)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
+            // FileProvider rejects a file outside its configured paths.
             Timber.e(e, "GoogleLensShare: failed to resolve %s", file.name)
             Toast.makeText(activity, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
         }
@@ -51,7 +53,8 @@ object GoogleLensShare {
             activity.startActivity(
                 Intent.createChooser(intent, activity.getString(R.string.enable_google_lens))
             )
-        } catch (e: Exception) {
+        } catch (e: ActivityNotFoundException) {
+            // No app (not even the chooser) could handle the image send.
             Timber.e(e, "GoogleLensShare: failed to share image to Lens")
             Toast.makeText(activity, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
         }

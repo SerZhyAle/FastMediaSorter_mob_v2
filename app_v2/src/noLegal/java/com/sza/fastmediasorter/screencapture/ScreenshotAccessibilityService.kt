@@ -10,6 +10,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -49,6 +50,9 @@ class ScreenshotAccessibilityService : AccessibilityService() {
 
     @Inject
     lateinit var actionDispatcher: Lazy<ScreenshotGestureActionDispatcher>
+
+    @Inject
+    lateinit var imageClipboardWriter: Lazy<ImageClipboardWriter>
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -187,6 +191,15 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 selectedResourceId = settings.screenshotDestinationResourceId,
                 resources = resources
             )
+
+            // Copy to clipboard from the live bitmap before the save use case recycles it;
+            // independent of the post-capture action and the save destination. Mirrors the
+            // MediaProjection path so the option also works on the API 30+ accessibility flow.
+            Timber.d("S0468: a11y clipboard gate flag=%s", settings.copyScreenshotToClipboard)
+            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
+                toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {
                     toast(getString(R.string.screen_capture_saved_to, result.destinationLabel, result.fileName))

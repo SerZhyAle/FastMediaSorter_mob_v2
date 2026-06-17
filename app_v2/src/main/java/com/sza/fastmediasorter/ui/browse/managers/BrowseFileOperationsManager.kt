@@ -40,6 +40,7 @@ class BrowseFileOperationsManager(
     private val coroutineScope: CoroutineScope,
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
+    private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
     private val callbacks: FileOperationCallbacks,
     private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
 ) {
@@ -47,6 +48,7 @@ class BrowseFileOperationsManager(
         context = context,
         coroutineScope = coroutineScope,
         fileOperationUseCase = fileOperationUseCase,
+        sendToMenuManager = sendToMenuManager,
         callbacks = callbacks,
         showFailureError = ::showFailureError,
         showUnexpectedError = ::showUnexpectedError
@@ -574,16 +576,12 @@ class BrowseFileOperationsManager(
         dialog.show()
     }
     
-    fun shareSelectedFiles(
+    // S0459 Phase 07: single outbound path - stages Uris then routes through the unified «Send to..» menu.
+    fun sendFilesToMenu(
         selectedFiles: List<MediaFile>,
-        resource: MediaResource
-    ) = shareOperationsHelper.shareSelectedFiles(selectedFiles, resource)
-
-    // S0303: send selected file(s) to an installed Telegram client.
-    fun sendSelectedFilesToTelegram(
-        selectedFiles: List<MediaFile>,
-        resource: MediaResource
-    ) = shareOperationsHelper.sendSelectedFilesToTelegram(selectedFiles, resource)
+        resource: MediaResource,
+        settings: AppSettings,
+    ) = shareOperationsHelper.sendFilesToMenu(selectedFiles, resource, settings)
 
     fun cleanup() {
         // Cancel any pending operations if needed

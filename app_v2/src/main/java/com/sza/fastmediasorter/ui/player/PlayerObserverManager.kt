@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Manages all ViewModel state observation for PlayerActivity.
@@ -85,7 +84,6 @@ internal class PlayerObserverManager(
                             settings.playerRotationSensorEnabled,
                             activity.hasAccelerometer
                         )
-                        Timber.d("S0439: player effective follow-OS = ${settings.programFollowSystemRotation || settings.playerFollowSystemRotation}")
                         activity.commandPanelController.updateRotationToggleIcon(settings.playerRotationSensorEnabled)
 
                         settings.enableFavorites || state.resource?.id == -100L

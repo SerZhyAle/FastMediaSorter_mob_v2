@@ -7,4 +7,7 @@
     <integer name="grid_column_count_list">3</integer>
     <integer name="resource_grid_column_count">4</integer>
     <integer name="destinations_column_count">2</integer>
+
+    <!-- S0473: all three summary cards fit on one row in landscape. -->
+    <integer name="statistics_card_span">3</integer>
 </resources>

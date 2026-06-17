@@ -4,4 +4,8 @@
     <item name="browseApkVrBadgeRequestToken" type="id" />
     <item name="browseApkVrBadgeBoundPath" type="id" />
     <item name="flThumbnailFrame" type="id" />
+    <!-- S0459: command id for PlayerCommand.SHARE. The player overflow no longer lists it (unified
+         «Send to..» covers Share), but CommandPanelController still maps the enum to the live
+         btnShareCmd standalone-host view, so the id must exist independent of the player menu XML. -->
+    <item name="menu_share" type="id" />
 </resources>

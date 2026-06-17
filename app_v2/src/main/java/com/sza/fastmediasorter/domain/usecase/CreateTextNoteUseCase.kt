@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,7 +23,9 @@ import javax.inject.Inject
  * [UnsupportedOperationException] stub (Phase 01 placeholders).
  */
 class CreateTextNoteUseCase @Inject constructor(
-    private val fileOperationHandler: UnifiedFileOperationHandler
+    private val fileOperationHandler: UnifiedFileOperationHandler,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
     /** Forbidden characters for filenames (same set as [CreateDirectoryUseCase]). */
     private val forbiddenChars = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
@@ -62,11 +67,16 @@ class CreateTextNoteUseCase @Inject constructor(
         TextNoteTargetPolicy.ensureFallbackDirectoryIfNeeded(resource, resolvedParentPath)
             .onFailure { return@withContext Result.failure(it) }
 
-        fileOperationHandler.executeCreateTextFile(
+        val result = fileOperationHandler.executeCreateTextFile(
             parentPath = resolvedParentPath,
             fileName = finalName,
             resourceId = resource.id,
             content = content
         )
+        if (result.isSuccess) {
+            // S0473: one note created (EditKind.NOTE covers create + edit per the sink contract).
+            statsSink.record(StatsEvent.Edit(EditKind.NOTE))
+        }
+        result
     }
 }

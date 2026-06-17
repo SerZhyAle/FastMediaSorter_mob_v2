@@ -89,8 +89,17 @@ if ($errors.Count -gt 0) {
     exit 1
 }
 
-# Phase 3: single atomic write
-Write-Catalog -Records $allRecords.ToArray()
+# Phase 3: atomic writes, routing newly-Archived records into the archive journal.
+# (Reviving an archived id is out of scope for bulk - use update.ps1 for that.)
+$archivedNow = @($allRecords | Where-Object { $_.status -eq 'Archived' })
+$activeNow   = @($allRecords | Where-Object { $_.status -ne 'Archived' })
+if ($archivedNow.Count -gt 0) {
+    $movingIds = @($archivedNow | ForEach-Object { $_.id })
+    $existingArchive = Read-JsonlFile -Path (Get-ArchivePath)
+    $mergedArchive = @($existingArchive | Where-Object { $movingIds -notcontains $_.id }) + $archivedNow
+    Write-ArchiveCatalog -Records ([object[]]$mergedArchive)
+}
+Write-Catalog -Records ([object[]]$activeNow)
 
 # Phase 4: mirror each new status into its spec file's **Status:** header so the
 # in-file header never drifts from the journal (shared fail-soft helper; only on

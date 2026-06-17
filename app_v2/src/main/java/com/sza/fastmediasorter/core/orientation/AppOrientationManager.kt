@@ -67,7 +67,6 @@ class AppOrientationManager @Inject constructor(
         if (activity is SelfManagedScreenOrientation) return
         // No sensor: leave whatever the manifest declares; the rotation settings UI is hidden too.
         if (!hasAccelerometer) return
-        Timber.d("S0439: applying program policy to ${activity.javaClass.simpleName} (programFollow=$programFollowSystemRotation)")
         val orientation = if (programFollowSystemRotation) {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         } else {

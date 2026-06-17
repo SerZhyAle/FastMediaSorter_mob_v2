@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
@@ -748,7 +749,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Log app version in background and show update Toast if needed
         lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
-                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                val packageInfo = packageManager.getPackageInfoCompat(packageName)
                 val versionName = packageInfo.versionName
                 val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
 

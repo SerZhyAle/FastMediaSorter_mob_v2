@@ -68,7 +68,6 @@ class DeviceProfilePresetApplier @Inject constructor(
             "pdfScrollMode" -> settings.copy(pdfScrollMode = raw.toBool())
             "enableTranslation" -> settings.copy(enableTranslation = raw.toBool())
             "translationLensStyle" -> settings.copy(translationLensStyle = raw.toBool())
-            "enableGoogleLens" -> settings.copy(enableGoogleLens = raw.toBool())
             "enableOcr" -> settings.copy(enableOcr = raw.toBool())
             "cameraOcrTranslationEnabled" -> settings.copy(cameraOcrTranslationEnabled = raw.toBool())
             "cameraOcrOnly" -> settings.copy(cameraOcrOnly = raw.toBool())

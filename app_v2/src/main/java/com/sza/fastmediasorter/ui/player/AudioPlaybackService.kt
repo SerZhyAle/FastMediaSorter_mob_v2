@@ -30,6 +30,9 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.stats.ViewKind
 import dagger.hilt.android.AndroidEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
@@ -62,6 +65,11 @@ class AudioPlaybackService : MediaSessionService() {
 
     @Inject
     lateinit var playbackPositionRepository: PlaybackPositionRepository
+
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled. Covers
+    // background audio playback (this service is the audio path when background playback is ON).
+    @Inject
+    lateinit var statsSink: StatsSink
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
@@ -177,6 +185,10 @@ class AudioPlaybackService : MediaSessionService() {
                         // Don't stopSelf immediately - give Activity time to load next track.
                         // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
                         Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
+                        // S0473: one audio track listened to the end. duration==listened time at
+                        // STATE_ENDED; C.TIME_UNSET (early/unknown duration) is reported as 0.
+                        val listenedMs = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: 0L
+                        statsSink.record(StatsEvent.View(ViewKind.AUDIO, durationMs = listenedMs))
                         // S0172: stop save loop and persist final position before track ends
                         stopPositionSaving()
                         saveCurrentPosition()

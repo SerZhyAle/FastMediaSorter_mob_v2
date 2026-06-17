@@ -116,6 +116,7 @@
 18. Lazy optimization: Use Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources immediately when paused.
 19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
+21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
 
 ## 11. Feature & UI Policies
 - **Features**: `docs/FEATURES*.md` (EN/RU/UK). `noLegal` features go to gitignored `docs/FEATURES_noLegal*.md`.

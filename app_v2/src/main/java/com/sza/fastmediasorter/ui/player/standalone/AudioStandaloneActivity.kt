@@ -54,6 +54,7 @@ import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
@@ -101,6 +102,7 @@ class AudioStandaloneActivity :
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
 
     // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
     private lateinit var keyboardHandler: PlayerKeyboardHandler
@@ -154,7 +156,9 @@ class AudioStandaloneActivity :
             // A SAF rename must keep the background-service playback uninterrupted.
             updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
             batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher
+            recoverableDeleteLauncher = recoverableDeleteLauncher,
+            sendToMenuManager = sendToMenuManager,
+            getCurrentSettings = { settingsRepository.getSettings().first() }
         )
     }
 

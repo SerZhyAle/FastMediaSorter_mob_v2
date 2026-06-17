@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase
@@ -86,6 +87,7 @@ class PlayerViewModel @Inject constructor(
     private val streamingCacheRepository: StreamingCacheRepository,
     // S0189: lookup for newly-created staged text notes (Downloads/FastMediaSorter/notes/)
     private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
+    private val isShareTargetEnabled: IsShareTargetEnabledUseCase,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -316,7 +318,8 @@ class PlayerViewModel @Inject constructor(
         updateState = { update -> updateState(update) },
         sendEvent = { event -> sendEvent(event) },
         setLoading = { loading -> setLoading(loading) },
-        stereoCoordinator = stereoCoordinator
+        stereoCoordinator = stereoCoordinator,
+        isShareTargetEnabled = isShareTargetEnabled,
     )
 
     private fun loadSettings() = mediaFilesLoader.loadSettings()

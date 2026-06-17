@@ -968,7 +968,8 @@ class ImageLoadingManager(
                     // Only HIDE buttons if feature is disabled in settings
                     // CommandPanelController controls showing buttons based on orientation
                     if (!settings.enableTranslation) binding.btnTranslateImageCmd.isVisible = false
-                    if (!settings.enableGoogleLens) binding.btnGoogleLensImageCmd.isVisible = false
+                    // Lens is ALWAYS_OFF by default (ShareTargetDefault); visible only when user explicitly opted in.
+                    if ("lens" !in settings.enabledShareTargets) binding.btnGoogleLensImageCmd.isVisible = false
                     if (!settings.enableOcr) binding.btnOcrImageCmd.isVisible = false
 
                     // Hide deprecated overlay buttons

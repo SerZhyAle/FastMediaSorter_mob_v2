@@ -29,10 +29,30 @@ class ShareTargetRegistryTest {
     }
 
     @Test
-    fun `all returns every registered target sorted by id`() {
-        val registry = ShareTargetRegistry(setOf(target("telegram"), target("email")))
+    fun `all returns targets in canonical display order, not by id`() {
+        // telegram precedes email in DISPLAY_ORDER although it sorts after alphabetically.
+        val registry = ShareTargetRegistry(setOf(target("email"), target("telegram")))
 
-        assertEquals(listOf("email", "telegram"), registry.all().map { it.id })
+        assertEquals(listOf("telegram", "email"), registry.all().map { it.id })
+    }
+
+    @Test
+    fun `all keeps system_share last as the catch-all`() {
+        val registry = ShareTargetRegistry(setOf(target("system_share"), target("telegram")))
+
+        assertEquals(listOf("telegram", "system_share"), registry.all().map { it.id })
+    }
+
+    @Test
+    fun `all places an unranked id just before system_share`() {
+        val registry = ShareTargetRegistry(
+            setOf(target("system_share"), target("unranked_xyz"), target("telegram")),
+        )
+
+        assertEquals(
+            listOf("telegram", "unranked_xyz", "system_share"),
+            registry.all().map { it.id },
+        )
     }
 
     @Test

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0473 Phase 04: one segment of the type-distribution bar. White fill is tinted per media
+     type by the adapter (setBackgroundTintList); the shape just gives rounded ends. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" />
+    <corners android:radius="2dp" />
+</shape>

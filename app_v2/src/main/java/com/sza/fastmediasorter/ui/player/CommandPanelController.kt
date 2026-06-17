@@ -54,8 +54,12 @@ class CommandPanelController(
         fun onNextClicked()
         fun onRenameClicked()
         fun onDeleteClicked()
-        fun onShareClicked()
-        fun onSendToTelegramClicked()
+        fun onSendToClicked() // S0459: unified «Send to..» menu - bar press / big-buttons overflow → bottom sheet
+        /**
+         * S0459 ADR-2: build the «Send to..» receivers as a native nested submenu in the overflow
+         * PopupMenu, at [order] (the command's priority). No-op when there is no current file.
+         */
+        fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int)
         fun onEditClicked()
         fun onUndoClicked()
         fun onFullscreenClicked()
@@ -73,7 +77,6 @@ class CommandPanelController(
         fun onGoogleLensClicked()
         fun onCopyTextClicked()
         fun onEditTextClicked()
-        fun onSendTextToKeepClicked()
         fun onOcrSettingsClicked()
         fun onTranslationSettingsClicked()
         fun onSleepTimerClicked()
@@ -162,10 +165,6 @@ class CommandPanelController(
 
         binding.btnDeleteCmd.setOnClickListener {
             callback.onDeleteClicked()
-        }
-
-        binding.btnShareCmd.setOnClickListener {
-            callback.onShareClicked()
         }
 
         safeViews.btnEditCmd.setOnClickListener {
@@ -563,6 +562,12 @@ class CommandPanelController(
 
         // Build menu dynamically in priority order
         for (cmd in commands) {
+            // S0459 ADR-2: «Send to..» renders as a native nested submenu here (not a flat item that
+            // opens a sheet); the callback fills it from the gated receiver list at this priority.
+            if (cmd.menuItemId == R.id.menu_send_to) {
+                callback.onSendToOverflowSubMenuRequested(popup.menu, cmd.priority)
+                continue
+            }
             val title = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.EDIT && isVideo) {
                 context.getString(R.string.control)
             } else {
@@ -584,6 +589,13 @@ class CommandPanelController(
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.RANDOM) {
                 item.isEnabled = (cachedState?.files?.size ?: 0) > 1
             }
+        }
+
+        // S0459: tint the «Send to..» submenu header icon to match the other (runtime-tinted) items;
+        // the submenu is built by the callback so its header is the only sub-menu entry in this popup.
+        for (i in 0 until popup.menu.size()) {
+            val mi = popup.menu.getItem(i)
+            if (mi.hasSubMenu()) mi.icon?.let { it.setTint(iconColor); mi.icon = it }
         }
 
         popup.setOnMenuItemClickListener { menuItem ->
@@ -647,8 +659,7 @@ class CommandPanelController(
         when (cmd.menuItemId) {
             R.id.menu_delete -> callback.onDeleteClicked()
             R.id.menu_favorite -> callback.onFavoriteClicked()
-            R.id.menu_share -> callback.onShareClicked()
-            R.id.menu_send_to_telegram -> callback.onSendToTelegramClicked()
+            R.id.menu_send_to -> callback.onSendToClicked()
             R.id.menu_info -> callback.onInfoClicked()
             R.id.menu_fullscreen -> callback.onFullscreenClicked()
             R.id.menu_slideshow -> callback.onSlideshowClicked()
@@ -665,7 +676,6 @@ class CommandPanelController(
             R.id.menu_google_lens -> callback.onGoogleLensClicked()
             R.id.menu_copy_text -> callback.onCopyTextClicked()
             R.id.menu_edit_text -> callback.onEditTextClicked()
-            R.id.menu_send_text_to_keep -> callback.onSendTextToKeepClicked()
             R.id.menu_undo -> callback.onUndoClicked()
             R.id.menu_sleep_timer -> callback.onSleepTimerClicked()
             R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()

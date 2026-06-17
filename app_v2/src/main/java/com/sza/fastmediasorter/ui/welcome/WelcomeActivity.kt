@@ -70,6 +70,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     private lateinit var pagesList: MutableList<WelcomePage>
     private var currentPage = 0
     private var defaultPlayerPageIndex = -1
+    private var profilesPageIndex = -1
     // Separate field so the restored page is applied once in setupViewPager() without
     // affecting currentPage until the ViewPager is ready.
     private var restoredPage = 0
@@ -297,6 +298,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             )
         }
 
+        profilesPageIndex = pagesList.indexOfFirst { it.isProfilesPage }
+
         pagerAdapter = WelcomePagerAdapter(pagesList, mediaCapabilities)
         binding.viewPager.adapter = pagerAdapter
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -304,6 +307,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 currentPage = position
                 if (position == defaultPlayerPageIndex) {
                     viewModel.markDefaultPlayerOnboardingShown()
+                }
+                // S0471: once the user advances past the device-profile page, apply the selected
+                // profile's settings preset so the following capability/permission pages render its
+                // defaults; any change the user then makes there survives to completion (deduped in VM).
+                if (profilesPageIndex >= 0 && position > profilesPageIndex) {
+                    viewModel.applyFirstRunPresetForSelectedProfile()
                 }
                 updateUI()
             }

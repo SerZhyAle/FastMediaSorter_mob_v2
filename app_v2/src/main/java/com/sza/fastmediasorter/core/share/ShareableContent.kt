@@ -27,4 +27,42 @@ data class ShareableContent(
     /** Content scoped to the first file - used by single-file receivers on a multi-selection (ADR-4). */
     fun single(): ShareableContent =
         if (uris.size <= 1) this else copy(uris = listOf(uris.first()))
+
+    companion object {
+        /**
+         * Derive a share MIME type from a file name + [MediaType], for surfaces that build
+         * [ShareableContent] from a [MediaFile] (S0459). Mirrors the player's derivation so every
+         * host produces the same `mime` for a given file.
+         */
+        fun mimeForMediaType(name: String, type: MediaType): String {
+            val ext = name.substringAfterLast('.', "").lowercase()
+            return when (type) {
+                MediaType.IMAGE -> when (ext) {
+                    "jpg", "jpeg" -> "image/jpeg"
+                    "png" -> "image/png"
+                    "gif" -> "image/gif"
+                    "webp" -> "image/webp"
+                    "bmp" -> "image/bmp"
+                    else -> "image/*"
+                }
+                MediaType.GIF -> "image/gif"
+                MediaType.VIDEO -> when (ext) {
+                    "mp4" -> "video/mp4"
+                    "webm" -> "video/webm"
+                    "mkv" -> "video/x-matroska"
+                    else -> "video/*"
+                }
+                MediaType.AUDIO -> when (ext) {
+                    "mp3" -> "audio/mpeg"
+                    "wav" -> "audio/wav"
+                    "ogg" -> "audio/ogg"
+                    "flac" -> "audio/flac"
+                    else -> "audio/*"
+                }
+                MediaType.PDF -> "application/pdf"
+                MediaType.TEXT -> "text/plain"
+                else -> "*/*"
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
@@ -29,7 +30,7 @@ class WhatsAppShareTargetHandler @Inject constructor() : ShareTargetHandler {
     }
 
     private fun isInstalled(activity: Activity, pkg: String): Boolean = try {
-        activity.packageManager.getPackageInfo(pkg, 0)
+        activity.packageManager.getPackageInfoCompat(pkg)
         true
     } catch (_: PackageManager.NameNotFoundException) {
         // Expected when this WhatsApp variant is absent; the caller falls back to the chooser.

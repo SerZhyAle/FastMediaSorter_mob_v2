@@ -619,6 +619,14 @@ android {
         unitTests {
             isIncludeAndroidResources = true // Required for Robolectric
             isReturnDefaultValues = true
+            // Forward the manifest-export toggle (S0440) to the test JVM; Gradle does not
+            // propagate -D system properties to test workers by default.
+            all {
+                it.systemProperty(
+                    "settings.manifest.generate",
+                    System.getProperty("settings.manifest.generate") ?: "false"
+                )
+            }
         }
     }
 

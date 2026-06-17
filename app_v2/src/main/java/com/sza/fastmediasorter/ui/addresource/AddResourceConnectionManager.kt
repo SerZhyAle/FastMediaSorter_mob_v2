@@ -18,6 +18,8 @@ import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
@@ -54,17 +56,29 @@ internal class AddResourceConnectionManager(
         ).browserAuthManager()
     }
 
+    // S0473: accessed via the same EntryPoint pattern as the auth managers above so the cloud-
+    // connected stat can be recorded without threading StatsSink through every construction site.
+    private val statsSink: StatsSink by lazy {
+        EntryPointAccessors.fromApplication(
+            activity.applicationContext,
+            AddResourceIdentityEntryPoint::class.java
+        ).statsSink()
+    }
+
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface AddResourceIdentityEntryPoint {
         fun identityRepository(): GoogleIdentityRepository
         fun browserAuthManager(): GoogleDriveBrowserAuthManager
+        fun statsSink(): StatsSink
     }
 
     fun observeAuthEvents() {
         activity.collectOnLifecycle(unifiedAuthManager.authEvents) { event ->
             when (event) {
                 is UnifiedCloudAuthManager.AuthEvent.Success -> {
+                    // S0473: a cloud source connected successfully.
+                    statsSink.record(StatsEvent.SourceConnected())
                     Toast.makeText(
                         activity,
                         activity.getString(R.string.connected_as, event.accountEmail),

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
@@ -26,7 +27,7 @@ class InstagramShareTargetHandler @Inject constructor() : ShareTargetHandler {
         )
 
     private fun isInstalled(activity: Activity): Boolean = try {
-        activity.packageManager.getPackageInfo(PACKAGE, 0)
+        activity.packageManager.getPackageInfoCompat(PACKAGE)
         true
     } catch (_: PackageManager.NameNotFoundException) {
         // Expected when Instagram is absent; the caller falls back to the chooser.

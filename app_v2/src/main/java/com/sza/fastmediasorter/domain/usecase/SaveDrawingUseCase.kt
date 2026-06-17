@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -18,6 +21,8 @@ class SaveDrawingUseCase @Inject constructor(
     private val fileOperationUseCase: FileOperationUseCase,
     private val stagingRegistry: LocalStagingRegistry,
     private val resourceRepository: ResourceRepository,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink,
 ) {
 
     data class SaveOutcome(
@@ -42,27 +47,29 @@ class SaveDrawingUseCase @Inject constructor(
             validateName(normalizedName)
 
             val stagedEntry = stagingRegistry.lookup(currentLocalFile)
-            when {
+            val outcome = when {
                 stagedEntry != null && stagedEntry.location == LocalStagingRegistry.Location.LOCAL_DEFERRED -> {
-                    Result.success(saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes))
+                    saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes)
                 }
 
                 stagedEntry == null -> {
-                    Result.success(savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes))
+                    savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes)
                 }
 
                 else -> {
-                    Result.success(
-                        saveNetworkStagedDrawing(
-                            currentLocalFile = currentLocalFile,
-                            normalizedName = normalizedName,
-                            imageBytes = imageBytes,
-                            stagedEntry = stagedEntry,
-                            keepEditableCopy = keepEditableCopy,
-                        )
+                    saveNetworkStagedDrawing(
+                        currentLocalFile = currentLocalFile,
+                        normalizedName = normalizedName,
+                        imageBytes = imageBytes,
+                        stagedEntry = stagedEntry,
+                        keepEditableCopy = keepEditableCopy,
                     )
                 }
             }
+            // S0473: one drawing saved (a network save that fell back to local-only still produced a
+            // saved artifact, so it counts).
+            statsSink.record(StatsEvent.Edit(EditKind.DRAWING))
+            Result.success(outcome)
         } catch (e: Exception) {
             Timber.e(e, "SaveDrawingUseCase failed")
             Result.failure(e)

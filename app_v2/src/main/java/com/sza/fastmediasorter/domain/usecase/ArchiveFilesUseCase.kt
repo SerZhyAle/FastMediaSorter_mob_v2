@@ -4,6 +4,10 @@ import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.stats.FileOpAction
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +52,9 @@ sealed class ArchiveProgress {
  * ```
  */
 class ArchiveFilesUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
 
     private val bufferSize = 64 * 1024 // 64 KB
@@ -136,6 +142,10 @@ class ArchiveFilesUseCase @Inject constructor(
 
             Timber.i("ArchiveFilesUseCase: done - $archivedCount files → ${outputFile.absolutePath}")
             emit(ArchiveProgress.Success(outputFile.absolutePath, archivedCount))
+            // S0473: archived-file count. Source files are heterogeneous; type is left OTHER per v1.
+            statsSink.record(
+                StatsEvent.FileOp(FileOpAction.ARCHIVE, StatsMediaType.OTHER, archivedCount.toLong(), 0L)
+            )
 
         } catch (e: CancellationException) {
             Timber.w("ArchiveFilesUseCase: cancelled, cleaning up partial archive ${outputFile.absolutePath}")

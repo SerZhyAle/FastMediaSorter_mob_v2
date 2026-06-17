@@ -89,10 +89,18 @@ import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation {
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation,
+    com.sza.fastmediasorter.core.share.SharePrintHost {
     // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
         settings.preventSleep || settings.keepScreenOnPlayer
+
+    // S0459 ADR-10: the player is the Print host for the unified «Send to..» menu. DocumentPrintManager
+    // owns the async print pipeline and its own capability/error messaging, so this just dispatches.
+    override fun printMediaFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): Boolean {
+        printManager.printCurrentFile(mediaFile)
+        return true
+    }
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
@@ -334,10 +342,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
+    // S0459: unified «Send to..» menu manager; accessed by PlayerCommandPanelCallbackImpl.
+    @Inject internal lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+
     @Inject internal lateinit var credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
     @Inject lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    // S0473: usage-statistics sink, forwarded into the manually-constructed player managers
+    // (video/image/pdf) via PlayerViewerFactory and PlayerManagerInitializer.
+    @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
 
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
     @Inject lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -863,8 +877,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
-
-    internal fun shareCurrentFile() = fileOperationsHandler.performShare()
 
     internal fun stopTranslation() = imageTranslationManager.stopTranslation()
 

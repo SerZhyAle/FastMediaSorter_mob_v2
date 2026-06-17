@@ -36,7 +36,8 @@ data class AppSettings(
     val enableSlideshowBackgroundMusic: Boolean = false, // Enable slideshow background music
     val slideshowMusicResourceId: Long? = null, // Resource ID of selected slideshow music
     val useTrash: Boolean = true, // Use .trash folder for recoverable deletion
-    val cropImagesToFullscreen: Boolean = true // Crop images to fill screen when orientations match (fullscreen & slideshow)
+    val cropImagesToFullscreen: Boolean = true, // Crop images to fill screen when orientations match (fullscreen & slideshow)
+    val enableStatistics: Boolean = false // S0473: opt-in local usage statistics; default OFF (privacy)
 )
 
 @Singleton
@@ -74,6 +75,7 @@ class SettingsManager @Inject constructor(
         private val SLIDESHOW_MUSIC_RESOURCE_ID = longPreferencesKey("slideshow_music_resource_id")
         private val USE_TRASH = booleanPreferencesKey("use_trash")
         private val CROP_IMAGES_TO_FULLSCREEN = booleanPreferencesKey("crop_images_to_fullscreen")
+        private val ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
     }
     
     val settings: Flow<AppSettings> = dataStore.data.map { preferences ->
@@ -106,7 +108,8 @@ class SettingsManager @Inject constructor(
             enableSlideshowBackgroundMusic = preferences[ENABLE_SLIDESHOW_BACKGROUND_MUSIC] ?: false,
             slideshowMusicResourceId = preferences[SLIDESHOW_MUSIC_RESOURCE_ID],
             useTrash = preferences[USE_TRASH] ?: false,
-            cropImagesToFullscreen = preferences[CROP_IMAGES_TO_FULLSCREEN] ?: true
+            cropImagesToFullscreen = preferences[CROP_IMAGES_TO_FULLSCREEN] ?: true,
+            enableStatistics = preferences[ENABLE_STATISTICS] ?: false
         )
     }
     
@@ -285,6 +288,12 @@ class SettingsManager @Inject constructor(
     suspend fun setCropImagesToFullscreen(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[CROP_IMAGES_TO_FULLSCREEN] = value
+        }
+    }
+
+    suspend fun setEnableStatistics(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ENABLE_STATISTICS] = value
         }
     }
 }

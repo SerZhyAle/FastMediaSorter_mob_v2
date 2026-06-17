@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -40,7 +39,6 @@ class WelcomeRemoteSourcesController @Inject constructor(
     }
 
     private fun bindRows(binding: PageWelcomeNetworksBinding, settings: AppSettings) {
-        Timber.d("S0448: welcome network rows bind - networkGroupSupported=${gate.isNetworkGroupSupported()}, cloudGroupSupported=${gate.isCloudGroupSupported()}")
         bindSmbRow(binding.rowSourceSmb, settings)
         bindFtpRow(binding.rowSourceFtp, settings)
         bindCloudRow(binding.rowSourceCloud, settings)

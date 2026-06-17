@@ -28,6 +28,23 @@ data class ShareTarget(
      * target is offered only when the current file's [MediaType] is a member (S0459 ADR-3).
      */
     val applicableTypes: Set<MediaType> = emptySet(),
+    /**
+     * Whether this receiver accepts a whole multi-file selection. `false` (default) = single-file
+     * receiver: on a multi-selection it applies to the first file only, and the menu shows the
+     * "applies to first file" hint (S0459 ADR-4). Single source of truth for batch capability,
+     * consumed by both menu presentations (bottom sheet + overflow submenu).
+     */
+    val batchCapable: Boolean = false,
+    /**
+     * Brief description shown as a subtitle under the toggle label in the settings group (S0463).
+     * Null targets render no subtitle when available (only "Not installed" when unavailable).
+     */
+    @get:StringRes val subtitleRes: Int? = null,
+    /**
+     * Body text for the help TooltipDialog shown by the (?) button in the settings group (S0463).
+     * The dialog title is taken from [titleRes]. Null = no help button rendered.
+     */
+    @get:StringRes val helpMessageRes: Int? = null,
 )
 
 /**

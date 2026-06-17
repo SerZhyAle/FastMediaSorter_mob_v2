@@ -13,8 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -39,6 +38,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             fileOperationUseCase = activity.fileOperationUseCase,
             stagingRegistry = activity.textNoteStagingRegistry,
             resourceRepository = activity.resourceRepository,
+            statsSink = activity.statsSink,
         )
     }
 
@@ -353,10 +353,16 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
 
     private fun hasImageShareTargets(): Boolean {
         val intent = Intent(Intent.ACTION_SEND).apply { type = "image/*" }
-        return activity.packageManager.queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+        return activity.packageManager.queryIntentActivitiesCompat(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
             .isNotEmpty()
     }
 
+    /**
+     * S0459: route the merged drawing through the unified «Send to..» menu instead of the system
+     * chooser directly. The overlay→cache-file merge stays; only the destination fan-out is unified
+     * (Keep-drawing, system Share, .. are registry receivers). Single applicable receiver launches
+     * directly; multiple open the bottom sheet.
+     */
     private suspend fun shareDrawingBytes(bytes: ByteArray, fileName: String) {
         val shareFile = runCatching {
             withContext(Dispatchers.IO) {
@@ -372,15 +378,19 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             return
         }
 
-        val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", shareFile)
-        val sent = SystemShareInvoker.invoke(
-            context = activity,
-            payload = SharePayload.Image(uri = uri, mime = mimeForFileName(shareFile.name)),
-            chooserTitle = activity.getString(R.string.share),
-        )
-        if (!sent) {
+        val settings = activity.currentSettings ?: run {
             Toast.makeText(activity, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
+            return
         }
+        val mime = mimeForFileName(shareFile.name)
+        val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", shareFile)
+        val content = com.sza.fastmediasorter.core.share.ShareableContent(
+            uris = listOf(uri),
+            mime = mime,
+            mediaType = MediaType.IMAGE,
+            displayName = shareFile.name,
+        )
+        activity.sendToMenuManager.show(activity, content, settings)
     }
 
     private fun mimeForFileName(fileName: String): String {

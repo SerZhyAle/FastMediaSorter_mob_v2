@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
 import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -132,7 +133,7 @@ class CameraQuickCaptureLaunchManager(
         // S0371: video uses the system ACTION_VIDEO_CAPTURE (handler-probed); photo keeps the in-app
         // CameraCaptureActivity path gated on camera hardware.
         if (isVideoMode) {
-            val handlers = activity.packageManager.queryIntentActivities(Intent(MediaStore.ACTION_VIDEO_CAPTURE), 0)
+            val handlers = activity.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
             if (handlers.isEmpty()) {
                 toastAndFinish(R.string.camera_capture_error_no_camera_app)
                 return

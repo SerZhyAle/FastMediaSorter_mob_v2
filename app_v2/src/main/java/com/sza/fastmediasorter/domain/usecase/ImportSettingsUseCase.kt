@@ -210,7 +210,6 @@ class ImportSettingsUseCase @Inject constructor(
                                         translationSourceLanguage = data["translationSourceLanguage"] ?: "auto",
                                         translationTargetLanguage = data["translationTargetLanguage"] ?: "ru",
                                         translationLensStyle = data["translationLensStyle"]?.toBoolean() ?: false,
-                                        enableGoogleLens = data["enableGoogleLens"]?.toBoolean() ?: false,
                                         enableOcr = data["enableOcr"]?.toBoolean() ?: false,
                                         ocrDefaultFontSize = data["ocrDefaultFontSize"] ?: "AUTO",
                                         ocrDefaultFontFamily = data["ocrDefaultFontFamily"] ?: "DEFAULT",

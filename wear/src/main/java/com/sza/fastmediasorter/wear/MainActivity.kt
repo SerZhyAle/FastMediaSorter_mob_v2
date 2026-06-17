@@ -56,7 +56,13 @@ class MainActivity : ComponentActivity() {
     
     private fun logAppInfo() {
         try {
-            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            // S0467: raw-int getPackageInfo overload deprecated in API 33; branch to the type-safe one.
+            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0L))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0)
+            }
             val versionName = packageInfo.versionName ?: "unknown"
             val versionCode = packageInfo.versionCode
             

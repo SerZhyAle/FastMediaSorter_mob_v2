@@ -6,7 +6,9 @@ param(
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
-$all = Read-Catalog
+# Full-catalog overview: include the archive so the status distribution still
+# reports the Archived bucket (matches pre-split behaviour).
+$all = Read-Catalog -IncludeArchived
 
 # 1. by_status
 $byStatus = @{}

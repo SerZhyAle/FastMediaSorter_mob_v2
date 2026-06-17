@@ -2,6 +2,10 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.stats.FileOpAction
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -11,7 +15,9 @@ import javax.inject.Inject
  * Handles validation and delegates to UnifiedFileOperationHandler.
  */
 class CreateDirectoryUseCase @Inject constructor(
-    private val fileOperationHandler: UnifiedFileOperationHandler
+    private val fileOperationHandler: UnifiedFileOperationHandler,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
     /**
      * Create a new directory.
@@ -55,6 +61,11 @@ class CreateDirectoryUseCase @Inject constructor(
         }
 
         // 4. Execute operation
-        fileOperationHandler.executeCreateDirectory(fullPath)
+        val result = fileOperationHandler.executeCreateDirectory(fullPath)
+        if (result.isSuccess) {
+            // S0473: one folder created.
+            statsSink.record(StatsEvent.FileOp(FileOpAction.CREATE_FOLDER, StatsMediaType.OTHER, 1L, 0L))
+        }
+        result
     }
 }

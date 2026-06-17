@@ -6,6 +6,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.domain.model.AudioMetadata
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -17,7 +20,9 @@ import timber.log.Timber
  */
 class PlayerImageLoadingCallbackImpl(
     private val activity: PlayerActivity,
-    private val viewModel: PlayerViewModel
+    private val viewModel: PlayerViewModel,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) : ImageLoadingManager.ImageLoadingCallback {
 
     override fun isFinishing(): Boolean = activity.isFinishing
@@ -81,6 +86,9 @@ class PlayerImageLoadingCallbackImpl(
     }
 
     override fun onImageContentLoaded() {
+        // S0473: one image viewed. Fires once per fully-loaded static image or GIF (Glide
+        // onResourceReady), never per progress tick.
+        statsSink.record(StatsEvent.View(ViewKind.IMAGE))
         activity.slideshowResourceAvailabilityManager.onImageLoadSucceeded()
     }
 }

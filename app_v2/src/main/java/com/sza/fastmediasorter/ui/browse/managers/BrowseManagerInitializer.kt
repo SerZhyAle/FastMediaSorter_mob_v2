@@ -2,11 +2,9 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.Intent
-import androidx.core.content.FileProvider
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -104,6 +102,8 @@ class BrowseManagerInitializer(
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
     private val mediaCapabilities: MediaCapabilities,
+    private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
+    private val openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler,
 ) {
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -342,6 +342,7 @@ class BrowseManagerInitializer(
             coroutineScope = lifecycleScope,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
+            sendToMenuManager = sendToMenuManager,
             dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : BrowseFileOperationsManager.FileOperationCallbacks {
                 override fun onOperationCompleted() = viewModel.reloadFiles()
@@ -413,6 +414,9 @@ class BrowseManagerInitializer(
 
         binaryFileHandler = BrowseBinaryFileHandler(
             activity = activity,
+            sendToMenuManager = sendToMenuManager,
+            openInHandler = openInShareTargetHandler,
+            getSettings = { latestSettings },
             onSelectFile = { viewModel.selectFile(it) },
             onPrepareExtraction = { viewModel.prepareExtraction(it) },
             onShowCopyDialog = { showCopyDialog() },
@@ -513,7 +517,10 @@ class BrowseManagerInitializer(
             override fun onShareClicked() {
                 val state = viewModel.state.value
                 val resource = state.resource ?: return
-                fileOperationsManager.shareSelectedFiles(state.mediaFiles.filter { it.path in state.selectedFiles }, resource)
+                val settings = latestSettings ?: return
+                fileOperationsManager.sendFilesToMenu(
+                    state.mediaFiles.filter { it.path in state.selectedFiles }, resource, settings
+                )
             }
             override fun onArchiveClicked() {
                 val state = viewModel.state.value
@@ -605,16 +612,11 @@ class BrowseManagerInitializer(
             } else null,
             onExtractArchive = { f -> viewModel.prepareExtraction(f) },
             onFavorite = { f -> viewModel.toggleFavorite(f) },
-            onShare = { f ->
+            onSendTo = { f ->
                 val resource = viewModel.state.value.resource
-                if (resource != null) fileOperationsManager.shareSelectedFiles(listOf(f), resource)
-            },
-            onSendToTelegram = { f ->
-                val resource = viewModel.state.value.resource
-                if (resource != null) fileOperationsManager.sendSelectedFilesToTelegram(listOf(f), resource)
+                if (resource != null) fileOperationsManager.sendFilesToMenu(listOf(f), resource, effectiveSettings)
             },
             onInfo = { f -> showFileInfoDialog(f) },
-            onGoogleLens = { f -> launchGoogleLensForFile(f) },
             onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
             onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
             onOpenInPlayer = { f -> viewModel.openFile(f) },
@@ -891,33 +893,6 @@ class BrowseManagerInitializer(
             activity.startActivity(intent)
         } catch (e: android.content.ActivityNotFoundException) {
             Toast.makeText(activity, R.string.search_in_youtube_music_no_app, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * S0159: Launch Google Lens directly for a local image file from the Browse overflow menu.
-     * Mirrors PlayerShareManager.shareFileToGoogleLens() - uses FileProvider + ACTION_SEND.
-     */
-    private fun launchGoogleLensForFile(file: MediaFile) {
-        try {
-            val localFile = java.io.File(file.path)
-            val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", localFile)
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/*"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                clipData = ClipData.newRawUri(null, uri)
-            }
-            val pm = activity.packageManager
-            intent.setPackage("com.google.ar.lens")
-            if (intent.resolveActivity(pm) != null) { activity.startActivity(intent); return }
-            intent.setPackage("com.google.android.googlequicksearchbox")
-            if (intent.resolveActivity(pm) != null) { activity.startActivity(intent); return }
-            intent.setPackage(null)
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.enable_google_lens)))
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to launch Google Lens from Browse for: ${file.path}")
-            Toast.makeText(activity, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
         }
     }
 

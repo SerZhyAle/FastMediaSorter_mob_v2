@@ -15,6 +15,10 @@ class PrintShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
+    // ADR-10: gate Print at menu-build time so it never appears on a host that cannot print
+    // (otherwise the row would render and silently no-op when send() returns false).
+    override fun isSupportedBy(activity: Activity): Boolean = activity is SharePrintHost
+
     override fun send(activity: Activity, content: ShareableContent): Boolean {
         val host = activity as? SharePrintHost ?: return false
         val mediaFile = content.mediaFile ?: return false

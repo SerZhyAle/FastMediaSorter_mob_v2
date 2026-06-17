@@ -7,7 +7,6 @@ import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
-import com.sza.fastmediasorter.core.share.TelegramShareTargets
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -190,8 +189,6 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
-            telegramInstalled = isTelegramInstalled(),
-            keepInstalled = isKeepInstalled(),
         )
         val editLabel = if (isVideo) R.string.control else R.string.edit
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
@@ -224,8 +221,6 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
-            telegramInstalled = isTelegramInstalled(),
-            keepInstalled = isKeepInstalled(),
         )
         val availablePx = resolveAvailableCenterWidthPx()
         val density = binding.root.resources.displayMetrics.density
@@ -258,7 +253,8 @@ internal class CommandPanelAvailabilityUpdater(
         binding.btnRandomCmd.isVisible = showRandomNavigation
         binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
         binding.btnFavorite.isVisible = getLastKnownFavoriteVisible()
-        binding.btnShareCmd.isVisible = true
+        // S0459: the ad-hoc Share bar button is gone - outbound is the unified «Send to..» (SEND_TO) overflow command.
+        binding.btnShareCmd.isVisible = false
         binding.btnInfoCmd.isVisible = true
         // S0301 Phase 05: the embedded Office viewer is a read-only document surface, so it gets
         // the same fullscreen affordance as PDF/EPUB. Edit stays hidden (see btnEditCmd below).
@@ -297,16 +293,16 @@ internal class CommandPanelAvailabilityUpdater(
         safeViews.btnEpubTextSettingsCmd.isVisible = isEpub
         safeViews.btnOcrEpubCmd.isVisible = isEpub
         safeViews.btnPdfTextSettingsCmd.isVisible = isPdf
+        // S0459: image Google Lens is now a unified-menu receiver, not a panel button - kept hidden here.
+        safeViews.btnGoogleLensImageCmd.isVisible = false
         if (isImage) {
             safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
             safeViews.btnOcrImageCmd.isVisible = state.enableOcr
-            safeViews.btnGoogleLensImageCmd.isVisible = state.enableGoogleLens
             safeViews.btnImageTextSettingsCmd.isVisible = true
         } else {
             safeViews.btnTranslateImageCmd.isVisible = false
             safeViews.btnImageTextSettingsCmd.isVisible = false
             safeViews.btnOcrImageCmd.isVisible = false
-            safeViews.btnGoogleLensImageCmd.isVisible = false
         }
         safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage || isOffice
         val isStaticBitmap = isImage &&
@@ -324,20 +320,8 @@ internal class CommandPanelAvailabilityUpdater(
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
-            telegramInstalled = isTelegramInstalled(),
-            keepInstalled = isKeepInstalled(),
         ).filter { !it.barCapable }
         setLatestOverflowCommands(landscapeOverflowCmds)
         safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
     }
-
-    // S0303: the "Send to Telegram" overflow command is offered only when a Telegram client is present.
-    private fun isTelegramInstalled(): Boolean =
-        TelegramShareTargets.firstInstalledPackage(binding.root.context.packageManager) != null
-
-    // S0431: the "Send to Keep" read-surface overflow command is offered only when a Keep client is present.
-    private val keepChecker by lazy {
-        com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(binding.root.context)
-    }
-    private fun isKeepInstalled(): Boolean = keepChecker.isKeepAvailable()
 }

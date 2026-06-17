@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 /**
  * Owns persistence of the text-recognition / translation feature settings: OCR
  * (engine, fonts, PaddleOCR model), in-image translation (source/target language,
- * lens style, Google Lens), and the camera-OCR modes.
+ * lens style), and the camera-OCR modes.
  *
  * Extracted from SettingsRepositoryImpl so this cohesive feature is a single named
  * responsibility instead of twelve keys inlined among ~150 unrelated ones. Public
@@ -22,7 +22,6 @@ object TextRecognitionSettingsStore {
     private val KEY_TRANSLATION_SOURCE_LANGUAGE = stringPreferencesKey("translation_source_language")
     private val KEY_TRANSLATION_TARGET_LANGUAGE = stringPreferencesKey("translation_target_language")
     private val KEY_TRANSLATION_LENS_STYLE = booleanPreferencesKey("translation_lens_style")
-    private val KEY_ENABLE_GOOGLE_LENS = booleanPreferencesKey("enable_google_lens")
     private val KEY_ENABLE_OCR = booleanPreferencesKey("enable_ocr")
     private val KEY_OCR_DEFAULT_FONT_SIZE = stringPreferencesKey("ocr_default_font_size")
     private val KEY_OCR_DEFAULT_FONT_FAMILY = stringPreferencesKey("ocr_default_font_family")
@@ -37,7 +36,6 @@ object TextRecognitionSettingsStore {
         val translationSourceLanguage: String,
         val translationTargetLanguage: String,
         val translationLensStyle: Boolean,
-        val enableGoogleLens: Boolean,
         val enableOcr: Boolean,
         val cameraOcrTranslationEnabled: Boolean,
         val cameraOcrOnly: Boolean,
@@ -54,7 +52,6 @@ object TextRecognitionSettingsStore {
         translationSourceLanguage = preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] ?: "auto",
         translationTargetLanguage = preferences[KEY_TRANSLATION_TARGET_LANGUAGE] ?: "ru",
         translationLensStyle = preferences[KEY_TRANSLATION_LENS_STYLE] ?: true,
-        enableGoogleLens = preferences[KEY_ENABLE_GOOGLE_LENS] ?: true,
         enableOcr = preferences[KEY_ENABLE_OCR] ?: false,
         cameraOcrTranslationEnabled = preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] ?: false,
         cameraOcrOnly = preferences[KEY_CAMERA_OCR_ONLY] ?: false,
@@ -68,7 +65,6 @@ object TextRecognitionSettingsStore {
         preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation
         preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] = settings.translationSourceLanguage
         preferences[KEY_TRANSLATION_TARGET_LANGUAGE] = settings.translationTargetLanguage
-        preferences[KEY_ENABLE_GOOGLE_LENS] = settings.enableGoogleLens
         preferences[KEY_TRANSLATION_LENS_STYLE] = settings.translationLensStyle
         preferences[KEY_ENABLE_OCR] = settings.enableOcr
         preferences[KEY_CAMERA_OCR_TRANSLATION_ENABLED] = settings.cameraOcrTranslationEnabled

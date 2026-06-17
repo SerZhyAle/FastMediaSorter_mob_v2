@@ -32,7 +32,7 @@ class SaveDrawingUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = SaveDrawingUseCase(fileOperationUseCase, stagingRegistry, resourceRepository)
+        useCase = SaveDrawingUseCase(fileOperationUseCase, stagingRegistry, resourceRepository, mockk(relaxed = true))
     }
 
     private fun seedLocalFile(name: String, content: ByteArray = byteArrayOf(9)): File =

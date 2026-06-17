@@ -1,0 +1,143 @@
+package com.sza.fastmediasorter.ui.share
+
+import android.app.Activity
+import android.view.Menu
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.ShareTarget
+import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
+import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.usecase.BuildSendToReceiverListUseCase
+import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Single dispatch point for the «Send to..» menu (S0459 ADR-2, ADR-8).
+ *
+ * Bar press (and programmatic show): if exactly one applicable receiver is gated-in, invoke it
+ * directly without showing a sheet (ADR-8). Otherwise open [SendToBottomSheet].
+ *
+ * Overflow submenu: [buildOverflowSubMenu] always builds a [Menu.addSubMenu] - even for a single
+ * receiver - because the overflow already has a hierarchical container (ADR-8, ADR-2).
+ *
+ * Receiver gating combines the three content gates from [BuildSendToReceiverListUseCase] with the
+ * host-capability gate ([ShareTargetHandler.isSupportedBy]) - the latter can only be evaluated here
+ * because the use-case is pure domain and has no Activity (ADR-10; Print needs a SharePrintHost).
+ *
+ * Multi-file hint (ADR-4): receivers that operate on a single file (`!ShareTarget.batchCapable`)
+ * receive [ShareableContent.single]; their overflow item appends "· применится к первому файлу"
+ * when the selection has more than one file.
+ */
+@Singleton
+class SendToMenuManager @Inject constructor(
+    private val buildReceiverList: BuildSendToReceiverListUseCase,
+    private val handlers: Map<String, @JvmSuppressWildcards ShareTargetHandler>,
+    private val iconResolver: ShareTargetIconResolver,
+) {
+
+    /**
+     * Resolve the receivers offered on [activity]: the three content gates plus the host-capability
+     * gate. Kept in one place so the bar, bottom-sheet, and overflow presentations stay in sync.
+     */
+    fun receiversFor(
+        activity: Activity,
+        content: ShareableContent,
+        settings: AppSettings,
+    ): List<ShareTarget> =
+        buildReceiverList(content, settings)
+            .filter { handlers[it.id]?.isSupportedBy(activity) != false }
+
+    /**
+     * Show the send-to UI for a bar press or programmatic invocation.
+     *
+     * Single applicable receiver → invoke directly (ADR-8). Multiple receivers → bottom sheet.
+     */
+    fun show(activity: FragmentActivity, content: ShareableContent, settings: AppSettings) {
+        val receivers = receiversFor(activity, content, settings)
+        if (receivers.isEmpty()) {
+            Timber.i("SendToMenuManager: no applicable receivers for %s", content.mediaType)
+            return
+        }
+        if (receivers.size == 1) {
+            dispatch(activity, receivers[0], content)
+            return
+        }
+        Timber.d("S0478: send-to bottom sheet shown with per-receiver icons")
+        SendToBottomSheet.newInstance(content, settings)
+            .show(activity.supportFragmentManager, TAG)
+    }
+
+    /**
+     * Populates [menu] with a «Send to..» sub-menu for the overflow path (ADR-2).
+     *
+     * Always builds a sub-menu regardless of receiver count so the overflow hierarchy is
+     * consistent. [order] places the submenu header at the command's priority position in the
+     * overflow. Single-only receivers include a multi-file hint when the selection > 1 (ADR-4).
+     */
+    fun buildOverflowSubMenu(
+        menu: Menu,
+        order: Int,
+        content: ShareableContent,
+        settings: AppSettings,
+        activity: Activity,
+    ) {
+        val receivers = receiversFor(activity, content, settings)
+        if (receivers.isEmpty()) return
+
+        val subMenu = menu.addSubMenu(Menu.NONE, Menu.NONE, order, R.string.share_to_menu_title)
+        // addSubMenu mirrors the parent item's title into the submenu header, which renders as a
+        // headerless-looking row identical to the receiver items (same colour, no icon). The user
+        // already tapped «Send to..» to open it, so the header is redundant - drop it.
+        subMenu.clearHeader()
+        subMenu.item.setIcon(R.drawable.ic_share)
+        Timber.d("S0478: overflow submenu built with per-receiver icons")
+        receivers.forEachIndexed { index, target ->
+            val isSingleOnly = !target.batchCapable
+            // ADR-5: package-backed receivers show the installed app's label, not a brand literal.
+            val baseLabel = iconResolver.resolveLabel(target) ?: activity.getString(target.titleRes)
+            val label = if (isSingleOnly && content.uris.size > 1) {
+                "$baseLabel · ${activity.getString(R.string.share_to_first_file_hint)}"
+            } else {
+                baseLabel
+            }
+            val item = subMenu.add(Menu.NONE, Menu.NONE, index, label)
+            // S0478: prefer the installed app's launcher icon (most recognisable); fall back to the
+            // receiver's own glyph so logical/uninstalled receivers stay distinguishable.
+            item.setIcon(
+                iconResolver.resolveIcon(target)
+                    ?: target.iconRes?.let { ContextCompat.getDrawable(activity, it) }
+            )
+            item.setOnMenuItemClickListener {
+                dispatch(activity, target, content)
+                true
+            }
+        }
+    }
+
+    /**
+     * Run the chosen receiver's send action, applying ADR-4 first-file scoping for single-only
+     * receivers and surfacing a failure to the user (ADR: a tap must never silently no-op). Shared
+     * by all three presentations (bar-direct, bottom sheet, overflow submenu).
+     */
+    fun dispatch(activity: Activity, target: ShareTarget, content: ShareableContent) {
+        val effectiveContent = if (!target.batchCapable) content.single() else content
+        val launched = try {
+            handlers[target.id]?.send(activity, effectiveContent) ?: false
+        } catch (e: Exception) {
+            Timber.e(e, "SendToMenuManager: receiver %s failed to send", target.id)
+            false
+        }
+        if (!launched) {
+            Toast.makeText(activity, R.string.share_to_send_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    companion object {
+        private const val TAG = "send_to"
+    }
+}

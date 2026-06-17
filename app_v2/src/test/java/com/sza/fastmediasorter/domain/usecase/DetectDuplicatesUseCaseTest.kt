@@ -26,7 +26,7 @@ class DetectDuplicatesUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = DetectDuplicatesUseCase(getMediaFiles, computeHash)
+        useCase = DetectDuplicatesUseCase(getMediaFiles, computeHash, mockk(relaxed = true))
     }
 
     private fun stubFiles(resource: MediaResource, files: List<MediaFile>) {

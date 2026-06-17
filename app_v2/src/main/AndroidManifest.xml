@@ -118,6 +118,10 @@
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
         <package android:name="com.instagram.android" />
+        <!-- S0459: Google Lens probes these packages (GoogleLensShare); without visibility on API 30+
+             resolveActivity() returns null even when installed and Lens always falls back to chooser. -->
+        <package android:name="com.google.ar.lens" />
+        <package android:name="com.google.android.googlequicksearchbox" />
         <!-- Email clients resolve via the mailto scheme so the email receiver can bias toward them. -->
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -176,6 +180,9 @@
 
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+
+        <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
+        <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 

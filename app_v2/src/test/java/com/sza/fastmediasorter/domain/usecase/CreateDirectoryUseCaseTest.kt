@@ -21,7 +21,7 @@ class CreateDirectoryUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = CreateDirectoryUseCase(handler)
+        useCase = CreateDirectoryUseCase(handler, mockk(relaxed = true))
         coEvery { handler.executeCreateDirectory(any()) } answers { Result.success(firstArg()) }
     }
 

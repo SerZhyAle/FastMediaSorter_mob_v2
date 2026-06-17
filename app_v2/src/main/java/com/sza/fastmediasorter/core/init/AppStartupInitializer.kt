@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -51,9 +52,16 @@ class AppStartupInitializer @Inject constructor(
     private val inputBindingRepository: dagger.Lazy<InputBindingRepository>,
     private val defaultsMapLoader: dagger.Lazy<DefaultsMapLoader>,
     private val remoteSourceDisableCoordinator: RemoteSourceDisableCoordinator,
+    private val statisticsRepository: dagger.Lazy<StatisticsRepository>,
+    // S0473: foreground-session tracker. Registered eagerly on the main thread (ProcessLifecycleOwner
+    // requires the main looper) so the first foreground session is captured.
+    private val statsSessionTracker: dagger.Lazy<com.sza.fastmediasorter.data.stats.StatsSessionTracker>,
 ) {
 
     private val connectionThrottleManagerInitialized = AtomicBoolean(false)
+    // S0473: guards the always-on baseline launch record so a re-enqueued deferred worker records
+    // a single launch per process, never one per worker pass.
+    private val launchRecorded = AtomicBoolean(false)
     
     /**
      * Initialize all background tasks.
@@ -65,9 +73,13 @@ class AppStartupInitializer @Inject constructor(
         syncCacheSizeToSharedPreferences()
         // S0391: observe remote-source toggles to cancel in-flight work when a source is switched off.
         remoteSourceDisableCoordinator.start()
+        // S0473: register the foreground-session observer on the main thread. Cheap (one observer
+        // registration); the heavier stats work stays off the gate-disabled path inside the sink.
+        statsSessionTracker.get().initialize()
     }
 
     suspend fun runDeferredStartupTasks() {
+        runDeferredTask("record-launch-baseline") { recordLaunchBaseline() }
         if (BuildConfig.DEBUG) {
             runDeferredTask("permissions-status") { logPermissionsStatus() }
         }
@@ -82,6 +94,18 @@ class AppStartupInitializer @Inject constructor(
             runDeferredTask("apply-chromeos-defaults") { applyDefaultsChromeOsIfEmpty() }
         }
         runDeferredTask("connection-throttle-bootstrap") { ensureConnectionThrottleManagerInitialized() }
+    }
+
+    /**
+     * S0473: always-on baseline launch record. Independent of the opt-in statistics toggle
+     * (strategic §3 refinement 3, §5.2, §11.3) - it only accrues launch count, first-launch and
+     * install version/flavor. Guarded so it runs at most once per process even if the deferred
+     * worker is re-enqueued after process recreation.
+     */
+    private suspend fun recordLaunchBaseline() {
+        if (!launchRecorded.compareAndSet(false, true)) return
+        Timber.d("S0473: recording always-on launch baseline")
+        statisticsRepository.get().recordLaunch(BuildConfig.VERSION_NAME, BuildConfig.FLAVOR)
     }
 
     private suspend fun runDeferredTask(label: String, block: suspend () -> Unit) {
@@ -186,7 +210,6 @@ class AppStartupInitializer @Inject constructor(
                 Timber.i("%-30s = %s", "translationSourceLanguage", translationSourceLanguage)
                 Timber.i("%-30s = %s", "translationTargetLanguage", translationTargetLanguage)
                 Timber.i("%-30s = %s", "translationLensStyle", translationLensStyle)
-                Timber.i("%-30s = %s", "enableGoogleLens", enableGoogleLens)
                 Timber.i("%-30s = %s", "enableOcr", enableOcr)
                 Timber.i("%-30s = %s", "ocrDefaultFontSize", ocrDefaultFontSize)
                 Timber.i("%-30s = %s", "ocrDefaultFontFamily", ocrDefaultFontFamily)

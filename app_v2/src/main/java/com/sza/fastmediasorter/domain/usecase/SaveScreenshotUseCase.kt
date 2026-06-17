@@ -8,6 +8,9 @@ import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.stats.CaptureKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +27,9 @@ import javax.inject.Inject
 class SaveScreenshotUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val mediaStoreLocalDestinationWriter: MediaStoreLocalDestinationWriter
+    private val mediaStoreLocalDestinationWriter: MediaStoreLocalDestinationWriter,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
 
     sealed interface SaveResult {
@@ -52,12 +57,15 @@ class SaveScreenshotUseCase @Inject constructor(
 
         try {
             writeTempPng(bitmap, tempFile)
-            when (target) {
+            val result = when (target) {
                 is ScreenshotDestinationPolicy.Target.SelectedResource ->
                     saveToSelectedResource(tempFile, fileName, target.resource)
                 is ScreenshotDestinationPolicy.Target.PublicCollection ->
                     saveToPublicCollection(tempFile, fileName, target)
             }
+            // S0473: one gesture-captured screenshot saved.
+            if (result is SaveResult.Success) statsSink.record(StatsEvent.Capture(CaptureKind.SCREENSHOT))
+            result
         } catch (e: Exception) {
             SaveResult.Failure(e)
         } finally {

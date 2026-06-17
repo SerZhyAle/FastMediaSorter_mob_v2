@@ -18,6 +18,10 @@
     <integer name="grid_columns_small">3</integer>
     <integer name="grid_rows_medium">3</integer>
 
+    <!-- S0473: statistics summary-card grid span. Cards take 1 cell each; in portrait two fit
+         per row, landscape (values-land) widens to three so all summary cards sit on one row. -->
+    <integer name="statistics_card_span">2</integer>
+
     <!-- SeekBar/ProgressBar ranges -->
     <integer name="seekbar_max_percent">100</integer>
     <integer name="seekbar_max_extended">200</integer>

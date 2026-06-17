@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
@@ -188,7 +189,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return
         if (!requireActivity().intent.getBooleanExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, false)) return
         requireActivity().intent.removeExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED)
-        Timber.d("S0353: settings opened to scheduled section from widget")
         binding.headerScheduled.setExpanded(true, notify = true)
     }
 
@@ -647,6 +647,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
                                     binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
                                 }
+                                if (binding.rowCopyScreenshotToClipboard.isChecked != settings.copyScreenshotToClipboard) {
+                                    binding.rowCopyScreenshotToClipboard.setCheckedSilently(settings.copyScreenshotToClipboard)
+                                }
                                 binding.tvScreenshotGestureActionDownValue.text =
                                     gestureActionPickerManager.labelFor(requireContext(), settings.screenshotGestureActionDown)
                                 binding.tvScreenshotGestureActionRightValue.text =
@@ -707,7 +710,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupExpandableSections() {
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        Timber.d("S0474: operations section-state prefs read wrapped off main thread")
         val sections = mutableListOf(
             ExpandableSection(binding.headerSafety, binding.containerSafety, KEY_SAFETY_EXPANDED, false),
             ExpandableSection(binding.headerCopyMove, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
@@ -724,17 +727,24 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         sections += ExpandableSection(binding.headerSystemApps, binding.containerSystemApps, KEY_SYSTEM_APPS_EXPANDED, false)
         sections += ExpandableSection(binding.headerScreenGestures, binding.containerScreenGestures, KEY_SCREEN_GESTURES_EXPANDED, false)
 
+        val savedStates = StrictModeHelper.allowDiskReads {
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sections.associate { it.prefKey to prefs.getBoolean(it.prefKey, it.defaultExpanded) }
+        }
+
         sections.forEach { section ->
-            val expanded = prefs.getBoolean(section.prefKey, section.defaultExpanded)
+            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
             section.header.setExpanded(expanded, notify = false)
             section.container.isVisible = expanded
             section.header.setOnExpandedChangeListener { isExpanded ->
                 section.container.isVisible = isExpanded
-                requireContext()
-                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(section.prefKey, isExpanded)
-                    .apply()
+                StrictModeHelper.allowDiskWrites {
+                    requireContext()
+                        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(section.prefKey, isExpanded)
+                        .apply()
+                }
             }
         }
     }
@@ -1007,6 +1017,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
             }
         }
+        binding.rowCopyScreenshotToClipboard.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
+        }
         binding.rowScreenshotDestination.setOnClickListener {
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
@@ -1040,7 +1054,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             }
         }
         binding.btnOpenAccessibilitySettings.setOnClickListener {
-            Timber.d("S0449: accessibility shortcut tapped in screen-gestures group")
             try {
                 overlayPermissionLauncher.launch(controller.permissionSettingsIntent(requireContext()))
             } catch (e: ActivityNotFoundException) {

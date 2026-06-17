@@ -35,7 +35,7 @@ class ExtractArchiveUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = ExtractArchiveUseCase(context)
+        useCase = ExtractArchiveUseCase(context, mockk(relaxed = true))
     }
 
     private fun makeZip(name: String, entries: Map<String, String>): File {

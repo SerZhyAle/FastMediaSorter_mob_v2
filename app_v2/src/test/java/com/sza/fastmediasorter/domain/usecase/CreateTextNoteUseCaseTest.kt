@@ -25,7 +25,7 @@ class CreateTextNoteUseCaseTest {
 
     @Before
     fun setup() {
-        useCase = CreateTextNoteUseCase(handler)
+        useCase = CreateTextNoteUseCase(handler, mockk(relaxed = true))
         coEvery { handler.executeCreateTextFile(any(), any(), any(), any()) } answers {
             Result.success("/local/dir/" + secondArg<String>())
         }

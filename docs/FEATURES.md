@@ -31,6 +31,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 - **Edge-gesture screen capture** `[Standard]`: Enable a thin left-edge strip and swipe diagonally to screenshot any screen — including other apps — saving straight to a chosen resource or the device screenshots folder (each capture confirms a quick system consent).
 - **Assignable gesture actions** `[Standard]`: Give each screenshot gesture direction — down, right, up — its own action after capture: silent save, open in player, open for editing, OCR translation, share, or off.
+- **Screenshot to clipboard** `[Standard]`: Optionally copy each gesture screenshot to the system clipboard as well, ready to paste into another app.
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 10 favorite target folders inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
@@ -38,10 +39,10 @@ This document is the canonical inventory of all user-facing features implemented
 ## 5. Image & GIF Viewer
 - **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
 - **Animated GIF speed controls** `[Standard / VR]`: Fine-tune GIF playback speed (0.25x to 4x) and export individual frames as static images.
-- **Send to Telegram** `[Standard / VR]`: Instantly share media files to a local Telegram client directly from the browser or player.
+- **Send to..** `[Standard / VR]`: One high-priority command gathers every way to send the current file out — system Share, Email, Telegram and other messengers, Google Keep, Google Lens, Print, Open in another app — into a single list. The list shows only the receivers you enabled in settings that fit the current file type, so the file menu stays short instead of listing a dozen separate items. Works from the browser, the player, and standalone viewers.
 
 ## 6. Drawing & Annotations Editor
-- **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, exporting results directly to Google Keep.
+- **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, then send the result through the unified Send to.. menu (Google Keep, Lens, and the other enabled receivers).
 
 ## 7. Video Player
 - **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
@@ -91,3 +92,6 @@ This document is the canonical inventory of all user-facing features implemented
 - **Set as default app from settings** `[Standard / VR]`: Make FastMediaSorter the default handler for images, audio, video, and documents right from the playback settings page, without opening the welcome screen; only the buttons for functions enabled in your build are shown.
 - **Player-only keep screen on** `[Standard / VR]`: A dependent setting that keeps the screen awake only while the player and standalone players are active. It appears under the global keep-screen-on option and only when that global option is off.
 - **Follow OS auto-rotate, program-wide or player-only** `[Standard / VR]`: A program-wide toggle makes every screen follow the system auto-rotate setting; when it is off, a separate player-only toggle in the player settings lets just the player keep following the OS. Both are hidden on devices without an orientation sensor.
+
+## 17. Usage Statistics
+- **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity — files sorted, space freed, time in the player and more — stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.

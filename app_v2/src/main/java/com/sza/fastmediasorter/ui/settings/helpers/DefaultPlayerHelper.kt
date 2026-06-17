@@ -6,6 +6,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.util.resolveActivityCompat
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -87,7 +88,7 @@ object DefaultPlayerHelper {
                 setDataAndType(Uri.parse("content://"), mime)
                 addCategory(Intent.CATEGORY_DEFAULT)
             }
-            val resolved = pm.resolveActivity(probe, PackageManager.MATCH_DEFAULT_ONLY)
+            val resolved = pm.resolveActivityCompat(probe, PackageManager.MATCH_DEFAULT_ONLY)
             resolved?.activityInfo?.packageName == packageName
         }
     }
@@ -281,7 +282,7 @@ object DefaultPlayerHelper {
             addCategory(Intent.CATEGORY_DEFAULT)
         }
         val pkg = context.packageManager
-            .resolveActivity(typeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            .resolveActivityCompat(typeIntent, PackageManager.MATCH_DEFAULT_ONLY)
             ?.activityInfo?.packageName ?: return false
         return pkg != ANDROID_RESOLVER_PACKAGE && pkg != context.packageName
     }

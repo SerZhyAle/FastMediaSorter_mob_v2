@@ -134,15 +134,6 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Google Lens -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowEnableGoogleLens"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/settings_margin_standard"
-            app:str_title="@string/enable_google_lens"
-            app:str_subtitle="@string/setting_enable_google_lens_desc" />
-
         <!-- OCR (Text Recognition) - no subtitle in original layout; tvOcrSummary below shows unsupported reason -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowEnableOcr"

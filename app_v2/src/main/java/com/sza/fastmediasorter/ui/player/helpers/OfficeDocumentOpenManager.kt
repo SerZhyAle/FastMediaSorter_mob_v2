@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import timber.log.Timber
 import java.io.File
@@ -70,9 +71,8 @@ object OfficeDocumentOpenManager {
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun queryCandidates(activity: Activity, intent: Intent) =
-        activity.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        activity.packageManager.queryIntentActivitiesCompat(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
     private fun grantReadPermission(activity: Activity, uri: Uri, intents: List<Intent>) {
         intents.forEach { intent ->

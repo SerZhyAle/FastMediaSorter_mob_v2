@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -171,6 +172,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun setupViews() {
+        Timber.d("S0474: settings open - active tab only; search index warmed off main thread")
         if (BuildConfig.DEBUG) setupStartUptimeMs = SystemClock.uptimeMillis()
         fun elapsed() = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() - setupStartUptimeMs else 0L
 
@@ -192,8 +194,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             page.translationX = 0f
             page.alpha = if (position == 0f) 1f else 0f
         }
-        binding.viewPager.offscreenPageLimit = 1
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer + offscreenLimit)")
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer)")
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = getString(adapter.getTabTitleResId(position))
@@ -228,7 +229,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         saveLastTabPosition(initialPosition)
 
         setupGlobalSearch()
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${settingsSearchRegistry.entries.size} search entries)")
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done")
+        // Warm the lazy search index off the main thread so the first overlay open is instant;
+        // the index is no longer built synchronously on the Settings open path.
+        lifecycleScope.launch(Dispatchers.IO) { runCatching { settingsSearchRegistry.entries } }
 
         // S0196 Phase 04 measurement hook: posted AFTER the conditional setCurrentItem posts
         // above, so it fires once the initial tab fragment is laid out - "primary content
@@ -476,8 +480,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             }
         }
 
-        updateSearchResults(settingsSearchRegistry.entries)
-
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.searchOverlay.isVisible) {
@@ -521,6 +523,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun onSearchResultSelected(item: SettingsSearchIndex) {
+        Timber.d("S0475: settings search routes key=${item.key} -> tab=${item.destination} section=${item.sectionId}")
         closeSearchOverlay()
         binding.viewPager.currentItem = item.destination.tabIndex
 

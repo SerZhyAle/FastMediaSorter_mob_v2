@@ -1,6 +1,13 @@
 package com.sza.fastmediasorter.data.capture
 
+import android.os.Environment
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.transfer.local.LocalSink
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -11,18 +18,58 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.OutputStream
 
 /**
- * Routing tests for [CameraCaptureSaver] (S0369): the three save destinations and the temp-file
- * cleanup contract. Robolectric supplies a real [android.content.Context] and a writable external
- * storage root so local and DCIM copies can be asserted on disk.
+ * Routing tests for [CameraCaptureSaver] (S0369 + S0465): the three save destinations and the
+ * temp-file cleanup contract. Robolectric supplies a real [android.content.Context] and a writable
+ * external storage root so local and DCIM copies can be asserted on disk.
+ *
+ * S0465: the saver now writes through [LocalDestinationWriter]. The production writer routes public
+ * collections through MediaStore (no physical file under Robolectric), so the on-disk routing
+ * assertions use a filesystem-backed fake that reconstructs the absolute path for both categories -
+ * exactly the legacy/pre-Q write path - keeping the routing assertions meaningful.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CameraCaptureSaverTest {
 
     private val context = RuntimeEnvironment.getApplication()
-    private val saver = CameraCaptureSaver(context)
+    private val noOpStatsSink = object : StatsSink {
+        override fun record(event: StatsEvent) {}
+        override suspend fun flushNow() {}
+    }
+    private val saver = CameraCaptureSaver(context, LocalDestinationClassifier(), FilesystemWriter(), noOpStatsSink)
+
+    /** Writes both public and non-public categories straight to disk so routing can be asserted. */
+    private class FilesystemWriter : LocalDestinationWriter {
+        override suspend fun open(
+            destination: LocalDestinationCategory,
+            overwrite: Boolean,
+        ): Result<LocalSink> {
+            val file = when (destination) {
+                is LocalDestinationCategory.NonPublic -> File(destination.absolutePath)
+                is LocalDestinationCategory.PublicCollection -> File(
+                    File(Environment.getExternalStorageDirectory(), destination.relativePath.trim('/')),
+                    destination.displayName,
+                )
+            }
+            file.parentFile?.mkdirs()
+            return Result.success(FilesystemSink(file))
+        }
+
+        private class FilesystemSink(private val file: File) : LocalSink {
+            override val outputStream: OutputStream = file.outputStream()
+            override suspend fun commit(): Result<String> {
+                outputStream.close()
+                return Result.success(file.absolutePath)
+            }
+            override suspend fun abort() {
+                outputStream.close()
+                file.delete()
+            }
+        }
+    }
 
     private fun newTempFile(content: String = "jpeg-bytes"): File =
         File.createTempFile("cap_test_", ".jpg").apply { writeText(content) }

@@ -136,7 +136,6 @@ class TextViewerManager(
             editContentFlow.value = s?.toString().orEmpty()
         }
     }
-    private val keepChecker = com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker(context)
     private val calculatorEnabledFlow = MutableStateFlow(false)
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
@@ -153,7 +152,6 @@ class TextViewerManager(
             ),
             // S0189: dirty-state tint applies to the top editor toolbar (action buttons live there now).
             hostView = safeViews.editorToolbar,
-            keepAvailable = keepChecker.isKeepAvailable(),
             calculatorEnabled = calculatorEnabledFlow,
             isDirty = dirtyTracker.isDirty,
             coroutineScope = coroutineScope,
@@ -301,9 +299,7 @@ class TextViewerManager(
         // S0189: editor action panel callbacks - extracted to TextEditorActionPanelCallbacks.
         actionPanelManager.setup(
             TextEditorActionPanelCallbacks(
-                context = context,
                 safeViews = safeViews,
-                keepChecker = keepChecker,
                 getSaveFlow = { saveFlow },
                 getCurrentLocalFile = { currentLocalFile },
                 getTextNoteStagingRegistry = { textNoteStagingRegistry },
@@ -312,6 +308,7 @@ class TextViewerManager(
                 rebaselineDirtyTracker = dirtyTracker::rebaseline,
                 isDirty = { dirtyTracker.isDirty.value },
                 saveEditedText = ::saveEditedText,
+                sendTo = ::openSendToMenuForText,
                 openCalculator = callback::launchEditorCalculator,
                 finishActivity = callback::finishActivity,
                 exitEditMode = ::exitEditMode,
@@ -912,31 +909,6 @@ class TextViewerManager(
         translationOverlayManager.forceTranslate { originalTextForTranslation() }
     }
 
-    /**
-     * S0431: send the current read-only page text to Google Keep. Mirrors the editor's
-     * send-to-Keep path (S0362) for the read-mode surface: clean page text without line
-     * numbers, addressed directly at the resolved Keep package. Toasts when Keep is gone
-     * between the menu build and the click.
-     */
-    fun sendCurrentTextToKeep() {
-        val content = originalTextForTranslation()
-        val keepPackage = keepChecker.resolveTargetPackage() ?: run {
-            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val sent = com.sza.fastmediasorter.core.share.SystemShareInvoker.invoke(
-            context = context,
-            payload = com.sza.fastmediasorter.core.share.SharePayload.Text(content = content),
-            preferredPackage = keepPackage,
-        )
-        if (!sent) {
-            Toast.makeText(context, R.string.text_editor_keep_unavailable, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /** S0431: whether Google Keep can receive text - drives the standalone overflow item visibility. */
-    fun isKeepTargetAvailable(): Boolean = keepChecker.isKeepAvailable()
-
     fun updateCloseButtonVisibility(showCommandPanel: Boolean) {
         // Show close button only in fullscreen mode (when command panel is hidden)
         safeViews.btnCloseTextViewer.isVisible = !showCommandPanel
@@ -989,7 +961,39 @@ class TextViewerManager(
 
     // ===== Private helpers =====
 
+    /**
+     * S0459: open the unified «Send to..» menu for [text] (text/plain). Routed from the editor
+     * toolbar's single outbound action; the menu's receiver registry self-gates (system Share,
+     * Keep-text, Email, ..), so this surface no longer owns per-target wiring.
+     */
+    private fun openSendToMenuForText(text: String) {
+        val activity = context as? androidx.fragment.app.FragmentActivity ?: run {
+            Timber.w("text editor host is not a FragmentActivity - cannot open send-to menu")
+            return
+        }
+        val sendToMenuManager = dagger.hilt.android.EntryPointAccessors
+            .fromApplication(context.applicationContext, SendToMenuEntryPoint::class.java)
+            .sendToMenuManager()
+        val content = com.sza.fastmediasorter.core.share.ShareableContent(
+            uris = emptyList(),
+            mime = "text/plain",
+            mediaType = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
+            text = text,
+        )
+        coroutineScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            sendToMenuManager.show(activity, content, settings)
+        }
+    }
+
     /** Returns the text to translate: original page text without line numbers, or displayed text. */
     private fun originalTextForTranslation(): String =
         originalTextWithoutNumbers.ifBlank { safeViews.tvTextContent.text.toString() }
+
+    /** S0459: app-scoped accessor for [SendToMenuManager] (Singleton) from the manually-built viewer. */
+    @dagger.hilt.EntryPoint
+    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    internal interface SendToMenuEntryPoint {
+        fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager
+    }
 }

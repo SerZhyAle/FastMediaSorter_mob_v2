@@ -29,6 +29,8 @@ if ($PSBoundParameters.ContainsKey('Priority')) {
     }
 }
 
+# Resolve from the active journal first, then the archive journal (so updating
+# or reviving an Archived ticket still works under the split).
 $records = [System.Collections.Generic.List[object]]::new()
 foreach ($r in (Read-Catalog)) { $records.Add($r) }
 
@@ -36,9 +38,18 @@ $idx = -1
 for ($i = 0; $i -lt $records.Count; $i++) {
     if ($records[$i].id -eq $Id) { $idx = $i; break }
 }
-if ($idx -lt 0) { throw "Record '$Id' not found." }
 
-$old = $records[$idx]
+$fromArchive = $false
+$old = $null
+if ($idx -ge 0) {
+    $old = $records[$idx]
+} else {
+    foreach ($r in (Read-JsonlFile -Path (Get-ArchivePath))) {
+        if ($r.id -eq $Id) { $old = $r; $fromArchive = $true; break }
+    }
+}
+if ($null -eq $old) { throw "Record '$Id' not found." }
+
 $oldStatus = $old.status
 
 # Build mutable copy preserving all current fields.
@@ -115,8 +126,26 @@ $updated.updated = Get-Now
 
 Assert-Record -Record $updated
 
-$records[$idx] = $updated
-Write-Catalog -Records $records.ToArray()
+# Route the write to the journal that matches the NEW status, handling all four
+# transitions (active<->active, active->archive, archive->active, archive->archive).
+$newIsArchived = ($updated.status -eq 'Archived')
+if ($newIsArchived) {
+    Add-ArchiveRecord -Record $updated                       # upsert into archive
+    if (-not $fromArchive) {                                 # was active: drop it there
+        $remaining = @($records | Where-Object { $_.id -ne $Id })
+        Write-Catalog -Records ([object[]]$remaining)
+    }
+} else {
+    if ($fromArchive) {                                      # revive: archive -> active
+        $archKeep = @((Read-JsonlFile -Path (Get-ArchivePath)) | Where-Object { $_.id -ne $Id })
+        Write-ArchiveCatalog -Records ([object[]]$archKeep)
+        $records.Add($updated)
+        Write-Catalog -Records $records.ToArray()
+    } else {                                                 # in-place active update
+        $records[$idx] = $updated
+        Write-Catalog -Records $records.ToArray()
+    }
+}
 
 # Mirror the new status into the spec file's human-readable **Status:** header so
 # it never drifts from the journal (the owner reads that header directly). Shared

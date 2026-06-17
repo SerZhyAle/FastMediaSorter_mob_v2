@@ -9,7 +9,9 @@ param(
 Set-StrictMode -Version Latest
 
 $excludedDefault = @('Verified', 'Archived')
-$catalog = Read-Catalog
+# -All surfaces archived too (matches pre-split behaviour); the default view
+# excludes Archived anyway, so the active journal alone suffices there.
+$catalog = Read-Catalog -IncludeArchived:$All
 $records = if ($All) { @($catalog) } else { @($catalog | Where-Object { $excludedDefault -notcontains $_.status }) }
 if ($MinPriority -ge 0) {
     $records = @($records | Where-Object { [int]$_.priority -ge $MinPriority })

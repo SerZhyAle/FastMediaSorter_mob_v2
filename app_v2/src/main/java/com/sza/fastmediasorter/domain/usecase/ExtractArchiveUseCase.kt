@@ -3,6 +3,10 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.domain.stats.FileOpAction
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.SafHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +48,9 @@ enum class ArchiveAccessResult(val failureReason: String?) {
 }
 
 class ExtractArchiveUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
+    private val statsSink: StatsSink
 ) {
     private class ExtractionAbort(val reason: String) : RuntimeException(reason)
     private data class ArchiveFileHandle(val file: File, val temporary: Boolean)
@@ -140,6 +146,10 @@ class ExtractArchiveUseCase @Inject constructor(
             }
 
             emit(ExtractProgress.Success(extractedCount, targetDirPath))
+            // S0473: extracted-file count (plain path). Heterogeneous output, type left OTHER per v1.
+            statsSink.record(
+                StatsEvent.FileOp(FileOpAction.EXTRACT, StatsMediaType.OTHER, extractedCount.toLong(), 0L)
+            )
         } catch (e: ExtractionAbort) {
             emit(ExtractProgress.Failure(e.reason))
         } catch (e: ZipException) {
@@ -251,6 +261,10 @@ class ExtractArchiveUseCase @Inject constructor(
             }
 
             emitProgress(ExtractProgress.Success(extractedCount, targetDirPath))
+            // S0473: extracted-file count (encrypted path). Heterogeneous output, type OTHER per v1.
+            statsSink.record(
+                StatsEvent.FileOp(FileOpAction.EXTRACT, StatsMediaType.OTHER, extractedCount.toLong(), 0L)
+            )
         } finally {
             cleanupArchiveFileHandle(archiveHandle)
         }
