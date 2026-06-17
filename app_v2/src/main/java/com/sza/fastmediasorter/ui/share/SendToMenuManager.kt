@@ -38,6 +38,7 @@ class SendToMenuManager @Inject constructor(
     private val buildReceiverList: BuildSendToReceiverListUseCase,
     private val handlers: Map<String, @JvmSuppressWildcards ShareTargetHandler>,
     private val iconResolver: ShareTargetIconResolver,
+    private val materializationManager: ShareMaterializationManager,
 ) {
 
     /**
@@ -126,8 +127,21 @@ class SendToMenuManager @Inject constructor(
      */
     fun dispatch(activity: Activity, target: ShareTarget, content: ShareableContent) {
         val effectiveContent = if (!target.batchCapable) content.single() else content
+        // S0493: a file-consuming receiver on a remote source needs a local copy first. Download it on
+        // demand (progress + cancel), then run the receiver with the localized content. Receivers that
+        // do not consume the file (e.g. Keep-text) run immediately on any source.
+        if (target.requiresLocalFile && effectiveContent.requiresMaterialization) {
+            materializationManager.materializeThenRun(activity, effectiveContent) { localized ->
+                runReceiver(activity, target, localized)
+            }
+            return
+        }
+        runReceiver(activity, target, effectiveContent)
+    }
+
+    private fun runReceiver(activity: Activity, target: ShareTarget, content: ShareableContent) {
         val launched = try {
-            handlers[target.id]?.send(activity, effectiveContent) ?: false
+            handlers[target.id]?.send(activity, content) ?: false
         } catch (e: Exception) {
             Timber.e(e, "SendToMenuManager: receiver %s failed to send", target.id)
             false

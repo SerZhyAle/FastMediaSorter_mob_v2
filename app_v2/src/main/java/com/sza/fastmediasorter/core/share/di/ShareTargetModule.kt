@@ -106,6 +106,9 @@ abstract class ShareTargetModule {
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = KEEP_PACKAGES,
             applicableTypes = setOf(MediaType.TEXT),
+            // Keep-text shares the loaded text payload (content.text), not the file - never needs a
+            // downloaded local copy, so it stays available for remote text without materialization (S0493).
+            requiresLocalFile = false,
             subtitleRes = R.string.share_target_desc_keep_text,
             helpMessageRes = R.string.share_target_help_keep_text,
         )

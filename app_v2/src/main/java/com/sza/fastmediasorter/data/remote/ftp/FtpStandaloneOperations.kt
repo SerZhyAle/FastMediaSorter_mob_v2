@@ -4,6 +4,11 @@ package com.sza.fastmediasorter.data.remote.ftp
 
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
@@ -14,6 +19,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.SocketTimeoutException
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Stateless FTP operations: every call opens a fresh [FTPClient], performs the operation,
@@ -28,6 +34,7 @@ object FtpStandaloneOperations {
     private const val CONNECT_TIMEOUT = 10_000
     private const val SOCKET_TIMEOUT = 30_000
     private const val KEEPALIVE_TIMEOUT = 15L
+    private const val PROGRESS_POLL_MS = 100L
 
     /** Test connection by connecting + login + listing root. */
     suspend fun testConnection(
@@ -286,15 +293,36 @@ object FtpStandaloneOperations {
         password: String,
         remotePath: String,
         outputStream: OutputStream,
-        @Suppress("UNUSED_PARAMETER") fileSize: Long = 0L,
-        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = executeWithNewConnection(host, port, username, password) { tempClient ->
         try {
-            val success = tempClient.retrieveFile(remotePath, outputStream)
-            if (!success) {
-                Result.failure(IOException("FTP download failed: ${tempClient.replyString}"))
-            } else {
-                Result.success(Unit)
+            // Resolve the remote size up front so the counting stream can report determinate
+            // progress; falls back through SIZE/MLST, directory listing, then the caller hint (S0496).
+            val total = tempClient.mlistFile(remotePath)?.size?.takeIf { it > 0 }
+                ?: tempClient.listFiles(remotePath)?.firstOrNull()?.size?.takeIf { it > 0 }
+                ?: fileSize.takeIf { it > 0 }
+                ?: -1L
+            Timber.d("S0496: FTP standalone download total=$total remote=$remotePath")
+            val counter = AtomicLong(0)
+            val countingOut = FtpProgressOutputStream(outputStream, counter)
+            coroutineScope {
+                val emitter = launch {
+                    while (isActive) {
+                        progressCallback?.onProgress(counter.get(), total, 0L)
+                        if (total in 1..counter.get()) break
+                        delay(PROGRESS_POLL_MS)
+                    }
+                }
+                val success = tempClient.retrieveFile(remotePath, countingOut)
+                emitter.cancelAndJoin()
+                val transferred = counter.get()
+                progressCallback?.onProgress(transferred, if (total > 0) total else transferred, 0L)
+                if (success) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(IOException("FTP download failed: ${tempClient.replyString}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -400,7 +428,7 @@ object FtpStandaloneOperations {
         port: Int,
         username: String,
         password: String,
-        block: (FTPClient) -> Result<T>
+        block: suspend (FTPClient) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
         // S0212: encoding MUST be set before connect - see FtpEncodingSupport.

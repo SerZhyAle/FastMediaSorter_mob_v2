@@ -23,10 +23,29 @@ data class ShareableContent(
      * surface only has Uris (S0459 ADR-11).
      */
     val mediaFile: MediaFile? = null,
+    /**
+     * Original file path of the source, which may carry a remote scheme (smb://, sftp://, ftp://).
+     * Set by a surface that has no local shareable Uri yet (remote file): [uris] is left empty and the
+     * dispatch layer materializes a local cache copy on demand before invoking a file receiver (S0493).
+     * Null once content is local (either built local or already materialized).
+     */
+    val sourcePath: String? = null,
 ) {
     /** Content scoped to the first file - used by single-file receivers on a multi-selection (ADR-4). */
     fun single(): ShareableContent =
         if (uris.size <= 1) this else copy(uris = listOf(uris.first()))
+
+    /**
+     * True when no local Uri exists yet but a remote [sourcePath] is known - the dispatch layer must
+     * download a local copy before a file-consuming receiver can run (S0493).
+     */
+    val requiresMaterialization: Boolean
+        get() = uris.isEmpty() && sourcePath != null &&
+            (sourcePath.contains("://") || sourcePath.startsWith("cloud:/"))
+
+    /** Content localized to a freshly downloaded [localUri]/[localPath], clearing the remote marker (S0493). */
+    fun materializedTo(localUri: Uri, localPath: String): ShareableContent =
+        copy(uris = listOf(localUri), mediaFile = mediaFile?.copy(path = localPath), sourcePath = null)
 
     companion object {
         /**

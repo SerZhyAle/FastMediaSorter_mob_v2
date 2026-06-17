@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.capture
 
 import android.os.Environment
+import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
@@ -8,6 +9,7 @@ import com.sza.fastmediasorter.data.transfer.local.LocalSink
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -39,7 +41,17 @@ class CameraCaptureSaverTest {
         override fun record(event: StatsEvent) {}
         override suspend fun flushNow() {}
     }
-    private val saver = CameraCaptureSaver(context, LocalDestinationClassifier(), FilesystemWriter(), noOpStatsSink)
+    // S0469 added settingsRepository + imageClipboardWriter. The fake repo keeps the default
+    // cameraCaptureCopyToClipboard=false, so the clipboard branch is inert and these routing tests
+    // stay focused on the three save destinations.
+    private val saver = CameraCaptureSaver(
+        context,
+        LocalDestinationClassifier(),
+        FilesystemWriter(),
+        noOpStatsSink,
+        FakeSettingsRepository(),
+        ImageClipboardWriter(context),
+    )
 
     /** Writes both public and non-public categories straight to disk so routing can be asserted. */
     private class FilesystemWriter : LocalDestinationWriter {

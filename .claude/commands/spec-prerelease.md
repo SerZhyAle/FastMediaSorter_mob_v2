@@ -26,8 +26,9 @@ It composes existing tools - `scripts/devtest/prerelease-prepare.ps1`,
 ```
 
 Hard requirement: **mobile-mcp** server reachable (same gate as `/spec-test-device`). The
-standard-debug build must be built where `local.properties` sets `sza.owner.trigger` only if the
-OWNER_TRIGGER import fallback is used; the default import path (intent-push) needs no trigger.
+standard-debug build must be built where `local.properties` sets `sza.owner.trigger`: resource
+import is performed only through the OWNER_TRIGGER Settings-field path (S0492 - there is no
+adb-scriptable import; the former `file://` intent-push always failed on minSdk 26).
 
 ## Process
 
@@ -47,7 +48,7 @@ from the JSON `stages` array. On `--dry-run`, print the planned stages and stop 
 ### 2 - Configure resources + settings
 
 Run the adb-scriptable configuration (reachability pre-check honouring per-resource SKIP,
-intent-push import trigger, language via `cmd locale`):
+language via `cmd locale`; resource import is delegated to the UI scenario below):
 
 ```powershell
 pwsh -NoProfile -File scripts/devtest/prerelease-configure.ps1 [-DeviceId <id>] -Json
@@ -57,9 +58,10 @@ The run config is `scripts/devtest/prerelease.config.psd1` (resource picks + rea
 setting channels). Then drive the UI via mobile-mcp for the parts adb cannot do (resolve every
 target from `mobile_list_elements_on_screen`, never hard-coded coordinates):
 
-- **Import confirm:** the `import-launch` stage opened `ResourceImportActivity`; tap its preview
-  confirm button to complete the import. If the intent-push import did not surface (scoped-storage
-  `file://` read), fall back to the OWNER_TRIGGER Settings-field path.
+- **Import resources:** open Settings, type the `sza.owner.trigger` value into the "Default User"
+  field and commit it; this fires the import-confirm dialog reading the APK-bundled
+  `res/xml/sza_resources.xml`. Tap confirm to complete the import (S0492 - the only working import
+  path; there is no adb intent-push).
 - **DataStore settings:** apply each `Channel='ui'` setting (theme DARK, sort DATE_DESC, grid on,
   trash on / confirm off, accept-shared on) through Settings; relaunch after the theme change.
 - **Listing check:** open each `probe-and-list` resource and confirm its file list loaded via the

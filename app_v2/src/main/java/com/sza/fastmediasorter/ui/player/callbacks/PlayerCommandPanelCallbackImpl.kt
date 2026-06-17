@@ -65,17 +65,22 @@ class PlayerCommandPanelCallbackImpl(
         activity.sendToMenuManager.buildOverflowSubMenu(menu, order, content, settings, activity)
     }
 
-    // Builds the unified-menu payload for the current file; null when no file is open or its local
-    // FileProvider Uri cannot be built (network paths are not shared from the player command path).
+    // Builds the unified-menu payload for the current file. Local file: a FileProvider Uri is ready
+    // now. Remote file (S0493): leave uris empty and carry the source path so the dispatch layer
+    // downloads a local copy on demand. Null only when no file is open, or a local file whose
+    // FileProvider Uri could not be built (kept hidden, as before).
     private fun buildShareableContent(): ShareableContent? {
         val file = viewModel.state.value.currentFile ?: return null
-        val uri = buildShareUri(file.path) ?: return null
+        val localUri = buildShareUri(file.path)
+        val isRemote = localUri == null && (file.path.contains("://") || file.path.startsWith("cloud:/"))
+        if (localUri == null && !isRemote) return null
         return ShareableContent(
-            uris = listOf(uri),
+            uris = listOfNotNull(localUri),
             mime = mimeTypeForFile(file.name, file.type),
             mediaType = file.type,
             displayName = file.name,
             mediaFile = file,
+            sourcePath = if (isRemote) file.path else null,
         )
     }
 
@@ -361,7 +366,7 @@ class PlayerCommandPanelCallbackImpl(
     // Builds a content:// URI for a local file via FileProvider; returns null for network paths
     // where async download would be needed (network sharing remains via the legacy share path).
     private fun buildShareUri(path: String): Uri? {
-        if (path.contains("://")) return null // network path - not handled here
+        if (path.contains("://") || path.startsWith("cloud:/")) return null // remote path - materialized on dispatch
         return try {
             FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
         } catch (e: Exception) {

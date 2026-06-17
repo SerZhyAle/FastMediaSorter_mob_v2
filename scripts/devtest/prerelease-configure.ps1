@@ -5,11 +5,15 @@
 .DESCRIPTION
   Owns the parts of /spec-prerelease configuration that adb can drive without UI:
     1. Endpoint reachability pre-check (probe-and-list vs register-only SKIP).
-    2. Resource import trigger via intent-push to ResourceImportActivity (step 02.3).
-    3. Theme + language settings via SharedPreferences / cmd locale (step 02.4).
+    2. Theme + language settings via SharedPreferences / cmd locale (step 02.4).
 
-  The import confirm-dialog tap, the DataStore-backed setting toggles, and per-resource
-  listing verification are UI-driven and belong to the skill scenario (Phase 05).
+  Resource import is NOT adb-scriptable (S0492): the importer reads the APK-bundled
+  res/xml/sza_resources.xml directly and is triggered only by committing the OWNER_TRIGGER
+  value into the Settings "Default User" field. On minSdk 26 a raw file:// Uri handed to
+  ResourceImportActivity by an external caller is not openable (FileProvider isolation), so the
+  former intent-push import stage always failed and was removed. The import, the DataStore-backed
+  setting toggles, and per-resource listing verification are UI-driven and belong to the skill
+  scenario (Phase 05).
 
   Resource picks, reachability classes and setting channels come from prerelease.config.psd1.
   Endpoints/credentials are resolved by predefined-resource NAME from res/xml/sza_resources.xml.
@@ -38,8 +42,6 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot      = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage  = 'com.sza.fastmediasorter.debug'
-# Code package has no .debug suffix (only applicationId does); component names must use the FQCN.
-$CodePackage   = 'com.sza.fastmediasorter'
 $ConfigPath    = Join-Path $PSScriptRoot 'prerelease.config.psd1'
 $ResourcesXml  = Join-Path $RepoRoot 'app_v2/src/main/res/xml/sza_resources.xml'
 
@@ -160,24 +162,13 @@ foreach ($name in $config.Settings.Keys) {
     }
 }
 
-# ---------- stage 3: import trigger (step 02.3) ----------
-# Push the predefined-resources XML (root <media-resources>) and fire ACTION_VIEW at the
-# exported ResourceImportActivity (mime application/vnd.fms.resources+xml). This opens the
-# import preview + confirm dialog; the confirm tap is delegated to the skill scenario.
-# NOTE: file:// is the only adb-mintable scheme here; on scoped-storage devices the app's
-# read of /sdcard via file:// must be validated in Phase 05 (fallback: OWNER_TRIGGER UI path).
-$devXml = '/sdcard/sza_resources.xml'
-& $adb @adbTarget push "$ResourcesXml" $devXml *> $null
-if ($LASTEXITCODE -ne 0) { Add-Stage 'import-push' 'FAIL' "adb push exit $LASTEXITCODE"; Complete-Run 10 }
-Add-Stage 'import-push' 'OK' "pushed resources XML to $devXml"
-
-$amOut = & $adb @adbTarget shell am start -a android.intent.action.VIEW -d "file://$devXml" `
-    -t 'application/vnd.fms.resources+xml' `
-    -n "$DebugPackage/$CodePackage.ui.resourceimport.ResourceImportActivity" 2>&1
-if ($LASTEXITCODE -ne 0 -or "$amOut" -match 'Error:') {
-    Add-Stage 'import-launch' 'FAIL' ("am start failed: " + ("$amOut" -replace '\s+', ' '))
-    Complete-Run 10
-}
-Add-Stage 'import-launch' 'OK' 'ResourceImportActivity launched (confirm tap delegated to skill)'
+# ---------- stage 3: import delegation (step 02.3) ----------
+# Resource import cannot be driven by adb (S0492): the importer reads the APK-bundled
+# res/xml/sza_resources.xml and is triggered only by the OWNER_TRIGGER Settings-field commit,
+# a UI action. The previous intent-push to ResourceImportActivity always failed because a raw
+# file:// Uri from an external caller is not openable on minSdk 26. The skill scenario performs
+# the import via mobile-mcp (Phase 05); record the delegation so the JSON contract stays explicit.
+$script:result.settings += [ordered]@{ name = 'resource-import'; channel = 'ui'; status = 'delegated-ui' }
+Add-Stage 'import' 'SKIP' 'not adb-scriptable - OWNER_TRIGGER UI path delegated to skill scenario'
 
 Complete-Run 0

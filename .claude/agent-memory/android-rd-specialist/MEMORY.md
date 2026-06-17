@@ -39,6 +39,7 @@
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
 - [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
+- [AVD device-sweep gotchas](feedback_avd_device_sweep_gotchas.md) - headless Pixel_4: touch input wedge (keyevent-probe + cold reboot), ACCESS_LOCAL_NETWORK for SMB/SFTP/FTP, logcat death recovery, mcp coords top-left
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew tag(.424) vs built artifact(.446); DEBUG-not-rebased-after-main-rebuild merge conflict in release-doc files; gitignored PLAN/ makes Step 12a git-diff empty (use local catalog)
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS] so user can track time spent per step

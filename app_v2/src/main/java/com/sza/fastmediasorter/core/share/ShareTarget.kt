@@ -36,6 +36,13 @@ data class ShareTarget(
      */
     val batchCapable: Boolean = false,
     /**
+     * Whether this receiver consumes the file bytes (a real local Uri or a readable [ShareableContent.mediaFile]).
+     * `true` (default) = a remote source must be downloaded to a local cache copy before the receiver runs
+     * (S0493). `false` = the receiver works from non-file payload (e.g. plain `content.text`) and never needs
+     * materialization. Gates the on-demand download in the «Send to..» dispatch layer.
+     */
+    val requiresLocalFile: Boolean = true,
+    /**
      * Brief description shown as a subtitle under the toggle label in the settings group (S0463).
      * Null targets render no subtitle when available (only "Not installed" when unavailable).
      */

@@ -87,8 +87,8 @@ $script:result.selectedDevice = if ($dr) { $dr.selectedDevice } else { $DeviceId
 Add-Stage 'device-gate' 'OK' "device=$($script:result.selectedDevice)"
 
 # ---------- stage 2: clean install (step 01.2) ----------
-# Target a specific device for adb-driven build/install by exporting ANDROID_SERIAL,
-# since the standard-debug builder has no -DeviceId parameter.
+# Pin adb-driven steps to the chosen device via ANDROID_SERIAL (belt-and-braces alongside
+# adb.ps1's own -DeviceId), so a stray second device cannot capture the install.
 if ($DeviceId) { $env:ANDROID_SERIAL = $DeviceId }
 
 # Uninstall the prior build if present; a missing package (adb.ps1 exit 4) is not an error.
@@ -97,14 +97,26 @@ if ($DeviceId) { $unArgs += @('-DeviceId', $DeviceId) }
 & pwsh @unArgs *> $null
 Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 
-# Clean-install the standard-debug build via the dedicated builder (never gradle directly).
-& pwsh -NoProfile -File "$RepoRoot/scripts/builders/build-standard-device.ps1" *> $null
-$installCode = $LASTEXITCODE
-if ($installCode -ne 0) {
-    Add-Stage 'install' 'FAIL' "build-standard-device exit $installCode"
+# Build the standard-debug APK and install it. The interactive dev builder
+# (build-standard-device.ps1) is unfit for an unattended sweep: it stamps build.gradle.kts,
+# uploads to Google Drive, 7-zips, and - fatally - spawns a never-terminating background
+# `adb logcat` whose inherited output handle deadlocks this parent process under `*> $null`
+# redirection. Build leanly via gradle, then install through adb.ps1 (no side effects).
+$gradlew = Join-Path $RepoRoot 'gradlew.bat'
+& $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' --console=plain *> $null
+if ($LASTEXITCODE -ne 0) {
+    Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
     Complete-Run 10
 }
-Add-Stage 'install' 'OK' "standard-debug installed ($DebugPackage)"
+$instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard')
+if ($DeviceId) { $instArgs += @('-DeviceId', $DeviceId) }
+& pwsh @instArgs *> $null
+$installCode = $LASTEXITCODE
+if ($installCode -ne 0) {
+    Add-Stage 'install' 'FAIL' "adb.ps1 install exit $installCode"
+    Complete-Run 10
+}
+Add-Stage 'install' 'OK' "standard-debug built + installed ($DebugPackage)"
 
 # ---------- stage 2.5: onboarding bypass ----------
 # Skip the first-run WelcomeActivity deterministically so the sweep lands on MainActivity.
