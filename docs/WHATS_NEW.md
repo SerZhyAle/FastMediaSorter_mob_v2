@@ -1,6 +1,29 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6141.930** (June 2026)
+**Current release: 2.60.6180.134** (June 2026)
+
+> Changes since version 2.60.6141.930
+
+---
+
+## What's New
+
+- **Send to network and cloud** - share files from SMB, SFTP, FTP, and cloud, fetched on demand.
+- **Usage statistics** - opt-in dashboard of capture, viewing, editing, and operation metrics.
+- **Favorites backup** - export favorites to a file and import them back later.
+- **Photo and frame to clipboard** - optionally copy each captured photo or extracted frame.
+- **Crash report prompt** - after an unexpected stop, offer to send a diagnostic report.
+- **All Files pinned first** - the All Files entry stays at the top of the list.
+
+## What's Fixed
+
+- Audio from SFTP no longer stops after a slow folder scan.
+- Missing OCR engine packs now show guidance instead of silent failure.
+- Settings search now maps backup options correctly.
+
+---
+
+## Previous Release: 2.60.6141.930 (June 2026)
 
 > Changes since version 2.60.6050.126
 
