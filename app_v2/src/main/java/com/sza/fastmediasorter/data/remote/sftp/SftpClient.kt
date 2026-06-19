@@ -466,7 +466,6 @@ class SftpClient @Inject constructor(
                 if (!lastWasDeadTransport) {
                     delay(retryDelaysMs[attempt - 1])
                 } else {
-                    Timber.d("S0466: SFTP download fast-retry (skip backoff) on dead transport for $remotePath")
                 }
             }
 

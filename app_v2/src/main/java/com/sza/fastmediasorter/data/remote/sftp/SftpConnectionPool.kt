@@ -614,7 +614,6 @@ class SftpConnectionPool {
             return "no"
         }
         session.setHostKeyRepository(PinnedHostKeyRepository(canonical))
-        Timber.d("S0046: SFTP pinned host-key verifier installed for host=${info.host}")
         return "yes"
     }
 

@@ -387,7 +387,6 @@ internal class AddResourceFormManager(
         val comment = binding.etSftpComment.text.toString().trim()
         val accessPin = binding.etSftpPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
         val hostKeyFingerprint = binding.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
-        Timber.d("S0046: SFTP add-resource, host-key pin set=${hostKeyFingerprint != null}")
         val commonParams = Triple(supportedTypes, accessPin, sftpProfilePreset)
 
         if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {

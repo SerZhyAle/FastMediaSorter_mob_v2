@@ -50,7 +50,6 @@ class ShareMaterializationManager @Inject constructor(
         // SMB and FTP report byte-level progress through the download stack; SFTP does not, so show an
         // honest indeterminate spinner for SFTP instead of a determinate bar frozen at 0% (S0493, S0496).
         val determinate = content.sourcePath?.let { it.startsWith("smb:") || it.startsWith("ftp:") } == true
-        Timber.d("S0496: Send-to progress determinate=$determinate src=${content.sourcePath}")
         val dialog = MaterialProgressDialog(activity).apply {
             setTitle(activity.getString(R.string.downloading_file))
             setMessage(content.displayName ?: "")
