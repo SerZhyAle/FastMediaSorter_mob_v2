@@ -10,7 +10,7 @@ class InputHelpRegistryTest {
 
     @Test
     fun `every surface has at least the global section`() {
-        for (surface in InputSurface.values()) {
+        for (surface in UiSurface.values()) {
             val sections = InputHelpRegistry.get(surface)
             assertFalse(
                 "Surface $surface has no help sections",
@@ -21,7 +21,7 @@ class InputHelpRegistryTest {
 
     @Test
     fun `main surface exposes file operations`() {
-        val sections = InputHelpRegistry.get(InputSurface.MAIN)
+        val sections = InputHelpRegistry.get(UiSurface.MAIN)
         val combined = sections.flatMap { it.entries }.map { it.keys }
         assertTrue(combined.any { it.contains("F5") })
         assertTrue(combined.any { it.contains("F8") || it.contains("Del") })
@@ -29,7 +29,7 @@ class InputHelpRegistryTest {
 
     @Test
     fun `player surface exposes playback shortcuts`() {
-        val sections = InputHelpRegistry.get(InputSurface.PLAYER)
+        val sections = InputHelpRegistry.get(UiSurface.PLAYER)
         val combined = sections.flatMap { it.entries }.map { it.keys }
         assertTrue("missing play-pause", combined.any { it.contains("Space") })
         assertTrue("missing mute", combined.any { it == "M" })
@@ -38,7 +38,7 @@ class InputHelpRegistryTest {
 
     @Test
     fun `link resolver produces a valid URL for every surface`() {
-        for (surface in InputSurface.values()) {
+        for (surface in UiSurface.values()) {
             val url = InputHelpLinkResolver.urlFor(surface)
             assertNotNull(url)
             assertTrue(url.startsWith("https://"))
@@ -48,8 +48,8 @@ class InputHelpRegistryTest {
     @Test
     fun `VR player reuses player help entries`() {
         assertEquals(
-            InputHelpRegistry.get(InputSurface.PLAYER),
-            InputHelpRegistry.get(InputSurface.VR_PLAYER),
+            InputHelpRegistry.get(UiSurface.PLAYER),
+            InputHelpRegistry.get(UiSurface.VR_PLAYER),
         )
     }
 
@@ -58,7 +58,7 @@ class InputHelpRegistryTest {
         // Regression cover for the F1 dialog launch path that now goes through
         // SupportIntentFactory.openUrl. The factory builds an ACTION_VIEW intent,
         // so the resolver's URL must always be syntactically launchable.
-        for (surface in InputSurface.values()) {
+        for (surface in UiSurface.values()) {
             val url = InputHelpLinkResolver.urlFor(surface)
             assertTrue("non-empty url for $surface", url.isNotBlank())
             // Anchors are added by the resolver; this guard ensures that a URL

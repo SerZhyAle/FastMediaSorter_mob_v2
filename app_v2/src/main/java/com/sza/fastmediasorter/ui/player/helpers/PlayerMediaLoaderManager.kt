@@ -17,6 +17,8 @@ import android.widget.Toast
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
+import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -31,6 +33,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -298,118 +301,101 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Cloud audio (Google Drive / OneDrive / Dropbox) - pre-cache current file, then play via service
-        if (resourceType == ResourceType.CLOUD) {
-            val currentFile = viewModel.state.value.currentFile
-            if (currentFile == null) {
-                Timber.w("playAudioViaService: currentFile is null for cloud path")
-                return
-            }
-            Timber.d("playAudioViaService: CLOUD audio - downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
-            // S0346 Pillar B: arm readiness feedback for the cloud download (same silent-gap risk).
-            scheduleAudioReadinessFeedback()
-            lifecycleScope.launch {
-                // If prefetch is already running for this file, await it instead of re-downloading
-                if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
-                    Timber.d("playAudioViaService: awaiting existing cloud prefetch for $path")
-                    audioPrefetchJob?.join()
-                }
-                val cachedFile = preCacheCloudAudio(path, currentFile)
-                if (cachedFile != null) {
-                    Timber.d("playAudioViaService: CLOUD pre-cache OK - playing via service: ${cachedFile.absolutePath}")
-                    // Track ready - readiness feedback served its purpose.
-                    cancelAudioReadinessFeedback()
-                    // Set original cloud path as the position key (ADR-3, S0173)
-                    AudioPlaybackService.currentOriginalPath = path
-                    val uri = Uri.fromFile(cachedFile)
-                    val title = currentFile.name.substringBeforeLast('.')
-                    // Read saved position and show resume toast
-                    val savedPositionMs = playbackPositionRepository?.let { repo ->
-                        PlaybackPositionRestorer.restoreAndNotify(
-                            path = path,
-                            repository = repo,
-                            context = activity,
-                            resumedFromStringResId = R.string.playback_resumed_from
-                        )
-                    } ?: 0L
-                    controller.playAudioWithMetadata(uri, title, mimeType = midiMimeTypeFor(path)) { player ->
-                        if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
-                        activity.runOnUiThread { bindServicePlayerToView(player) }
-                    }
-                } else {
-                    Timber.w("playAudioViaService: cloud pre-cache failed, falling back to in-app player")
-                    cancelAudioReadinessFeedback()
-                    val resource = viewModel.state.value.resource
-                    playVideoWithResourceType(path, resourceType, currentFile, resource)
-                }
-            }
-            return
-        }
-
-        // Network audio (SMB/SFTP/FTP) - await prefetch or download
-        val currentFile = viewModel.state.value.currentFile
-        val currentFileSize = currentFile?.size ?: 0L
-        // Use credentialsId from current file's resource (same lookup path as VideoPlayerManager)
+        // Network (SMB/SFTP/FTP) and cloud audio: stream directly through the background service so
+        // background-continue applies the same as for local files, without a mandatory full pre-cache.
         val resource = viewModel.state.value.resource
-        val credentialsId = if (resource?.id == -100L && currentFile?.resourceId != null) {
-            // Favorites: credentials live on the original resource, resolved asynchronously below
-            null
-        } else {
-            resource?.credentialsId
-        }
-        // S0346 Pillar B: the next track may still be downloading - arm readiness feedback so a slow
-        // start is communicated instead of looking like an ignored button press.
+        val currentFile = viewModel.state.value.currentFile
+        val isFavorite = resource?.id == -100L && currentFile?.resourceId != null
+        val credentialsId = if (isFavorite) null else resource?.credentialsId
+        // S0346 Pillar B: arm readiness feedback so a slow connect is communicated instead of looking
+        // like an ignored button press.
         scheduleAudioReadinessFeedback()
         lifecycleScope.launch {
-            // For Favorites, resolve credentialsId from the original resource
-            val resolvedCredentialsId = if (resource?.id == -100L && currentFile?.resourceId != null) {
-                viewModel.getCredentialsIdForResource(currentFile.resourceId)
+            val resolvedCredentialsId = if (isFavorite) {
+                viewModel.getCredentialsIdForResource(currentFile!!.resourceId)
             } else {
                 credentialsId
             }
-            // If prefetch is already running for this file, await it instead of re-downloading
-            if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
-                Timber.d("playAudioViaService: awaiting existing prefetch for $path")
-                audioPrefetchJob?.join()
-            }
-            val cachedFile = preCacheNetworkAudio(path, currentFileSize, resolvedCredentialsId)
-            if (cachedFile != null) {
-                val uri = Uri.fromFile(cachedFile)
-                val netTitle = viewModel.state.value.currentFile?.name?.substringBeforeLast('.') ?: cachedFile.nameWithoutExtension
-
-                // Set original network path as position key (ADR-2, S0172)
-                AudioPlaybackService.currentOriginalPath = path
-
-                // Read saved position and show resume toast
-                val savedPositionMs = playbackPositionRepository?.let { repo ->
-                    PlaybackPositionRestorer.restoreAndNotify(
-                        path = path,
-                        repository = repo,
-                        context = activity,
-                        resumedFromStringResId = R.string.playback_resumed_from
-                    )
-                } ?: 0L
-
-                // Track is ready to play - the readiness feedback (if any) has served its purpose.
-                cancelAudioReadinessFeedback()
-                controller.playAudioWithMetadata(uri, netTitle, mimeType = midiMimeTypeFor(path)) { player ->
-                    if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
-                    activity.runOnUiThread { bindServicePlayerToView(player) }
-                }
-            } else {
-                Timber.w("playAudioViaService: pre-cache failed, falling back to in-app player")
-                // The in-app stream path shows its own spinner below; drop the toast feedback.
-                cancelAudioReadinessFeedback()
-                val currentFile = viewModel.state.value.currentFile
-                val resource = viewModel.state.value.resource
-                // Re-post loading indicator: the original 1-second delayed post from playVideo() has
-                // long expired. ExoPlayer will now buffer the SMB stream directly, which can take
-                // several seconds - show spinner so the user sees progress instead of a frozen screen.
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                loadingIndicatorHandler.post(showLoadingIndicatorRunnable)
-                playVideoWithResourceType(path, resourceType, currentFile, resource)
-            }
+            streamNetworkAudioViaService(path, resourceType, resolvedCredentialsId, controller)
         }
+    }
+
+    /**
+     * Stream a network/cloud audio source through the background service (no mandatory pre-cache),
+     * so the persistent-playback service owns the track and background-continue works on exit.
+     * Credentials are resolved here (DB access) and handed to the service via the controller; the
+     * service cannot resolve them on its player thread. Falls back to the in-app player when the
+     * source has no usable credentials.
+     */
+    private suspend fun streamNetworkAudioViaService(
+        path: String,
+        resourceType: ResourceType,
+        credentialsId: String?,
+        controller: AudioServiceController
+    ) {
+        val streamUri: Uri
+        val streamCredentials: StreamCredentials?
+        if (resourceType == ResourceType.CLOUD) {
+            streamUri = PathUtils.safeParseUri(path)
+            streamCredentials = null
+        } else {
+            val creds = credentialsId?.let { credentialsRepository?.getByCredentialId(it) }
+            if (creds == null) {
+                Timber.w("streamNetworkAudioViaService: no credentials for $path - falling back to in-app player")
+                cancelAudioReadinessFeedback()
+                playVideoWithResourceType(path, resourceType, viewModel.state.value.currentFile, viewModel.state.value.resource)
+                return
+            }
+            streamUri = buildNetworkStreamUri(path, creds.server, creds.shareName)
+            streamCredentials = StreamCredentials(creds.username, creds.password, creds.domain, creds.port)
+        }
+
+        // Position key is the original network/cloud path, never the stream URI (ADR-2/ADR-3).
+        AudioPlaybackService.currentOriginalPath = path
+        viewModel.state.value.resource?.let { AudioPlaybackService.currentResourceId = it.id }
+
+        val title = viewModel.state.value.currentFile?.name?.substringBeforeLast('.')
+            ?: path.substringAfterLast('/').substringBeforeLast('.')
+        val savedPositionMs = playbackPositionRepository?.let { repo ->
+            PlaybackPositionRestorer.restoreAndNotify(
+                path = path,
+                repository = repo,
+                context = activity,
+                resumedFromStringResId = R.string.playback_resumed_from
+            )
+        } ?: 0L
+
+        cancelAudioReadinessFeedback()
+        controller.playAudioWithMetadata(
+            streamUri, title, mimeType = midiMimeTypeFor(path), streamCredentials = streamCredentials
+        ) { player ->
+            if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
+            activity.runOnUiThread { bindServicePlayerToView(player) }
+        }
+    }
+
+    /** Build a properly-encoded streaming URI for a network audio path (mirrors the in-app stream helpers). */
+    private fun buildNetworkStreamUri(path: String, server: String, credentialShareName: String?): Uri {
+        if (path.startsWith("smb://")) {
+            val pathInfo = SmbPathUtils.parseSmbPath(path)
+            val share = pathInfo?.connectionInfo?.shareName?.ifEmpty { null } ?: credentialShareName ?: ""
+            val remotePath = pathInfo?.remotePath ?: ""
+            val encodedPath = remotePath.split("/").joinToString("/") { Uri.encode(it, "@") }
+            return Uri.Builder()
+                .scheme("smb")
+                .authority(server)
+                .encodedPath("/$share/$encodedPath")
+                .build()
+        }
+        // sftp:// and ftp:// - the authority already carries host:port
+        val parsed = PathUtils.safeParseUri(path)
+        val encodedPath = parsed.path?.split("/")
+            ?.joinToString("/") { segment -> if (segment.isEmpty()) "" else Uri.encode(segment, "@") } ?: ""
+        return Uri.Builder()
+            .scheme(parsed.scheme)
+            .authority(parsed.authority)
+            .encodedPath(encodedPath)
+            .build()
     }
 
     /** Play local audio file via service.
@@ -460,7 +446,12 @@ class PlayerMediaLoaderManager(
      *   Fallback to server/share string lookup when null.
      */
     private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L, credentialsId: String? = null): File? = withContext(Dispatchers.IO) {
-        val startupPolicy = PrefetchPolicyManager.audioStartupPolicyFor(path, isAudio = true)
+        val authority = networkAuthority(path)
+        val resourceKey = authority?.let { "${path.substringBefore("://")}://${it.first}:${it.second}" }
+        val speedMbps = resourceKey?.let { ConnectionThrottleManager.getLastSpeedMbps(it) }
+        val startupPolicy = PrefetchPolicyManager.audioStartupPolicyFor(
+            path, isAudio = true, speedMbps = speedMbps, fileSizeBytes = fileSize
+        )
 
         // Check cache first
         if (fileSize > 0) {
@@ -474,10 +465,21 @@ class PlayerMediaLoaderManager(
         val destFile = unifiedCache?.getCacheFile(path, fileSize)
             ?: File.createTempFile("bg_audio_", ".tmp", activity.cacheDir)
 
+        // Detect an offline server within the short connect bound so the user is not held waiting the
+        // full (generous) transfer budget for a host that is simply unreachable.
+        if (authority != null && !isServerReachable(authority.first, authority.second, startupPolicy.connectTimeoutMs)) {
+            Timber.w(
+                "preCacheNetworkAudio: server ${authority.first}:${authority.second} unreachable within " +
+                    "${startupPolicy.connectTimeoutMs}ms - falling back to direct streaming"
+            )
+            destFile.delete()
+            return@withContext null
+        }
+
         try {
-            // Timeout guards against SMBJ hanging during connection cleanup after Connection reset.
-            // SFTP audio gets a shorter startup budget so car playback can fall back to direct streaming promptly.
-            withTimeout(startupPolicy.timeoutMs) {
+            // Transfer budget is generous (adaptive from measured speed) once the server has answered;
+            // the connect probe above already bounds the dead-server case.
+            withTimeout(startupPolicy.transferTimeoutMs) {
                 when {
                     path.startsWith("smb://") -> downloadSmbFull(path, destFile, credentialsId)
                     path.startsWith("sftp://") -> downloadSftpFull(path, destFile, credentialsId)
@@ -488,7 +490,7 @@ class PlayerMediaLoaderManager(
         } catch (e: TimeoutCancellationException) {
             Timber.w(
                 "preCacheNetworkAudio: source=${startupPolicy.sourceType.logLabel} reason=${startupPolicy.reason} " +
-                    "timed out after ${startupPolicy.timeoutMs}ms for $path - falling back to direct streaming"
+                    "transfer timed out after ${startupPolicy.transferTimeoutMs}ms for $path - falling back to direct streaming"
             )
             destFile.delete()
             null
@@ -502,6 +504,36 @@ class PlayerMediaLoaderManager(
             null
         }
     }
+
+    /** Parse `scheme://host[:port]/..` network path into (host, port) with protocol default ports. */
+    private fun networkAuthority(path: String): Pair<String, Int>? {
+        val (scheme, defaultPort) = when {
+            path.startsWith("smb://") -> "smb://" to 445
+            path.startsWith("sftp://") -> "sftp://" to 22
+            path.startsWith("ftp://") -> "ftp://" to 21
+            else -> return null
+        }
+        val authority = path.substringAfter(scheme).substringBefore('/')
+        if (authority.isEmpty()) return null
+        val host = authority.substringBefore(':')
+        if (host.isEmpty()) return null
+        val port = authority.substringAfter(':', defaultPort.toString()).toIntOrNull() ?: defaultPort
+        return host to port
+    }
+
+    /** Lightweight TCP reachability probe; any failure means treat the server as offline (safe default). */
+    private suspend fun isServerReachable(host: String, port: Int, timeoutMs: Long): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                java.net.Socket().use { socket ->
+                    socket.connect(java.net.InetSocketAddress(host, port), timeoutMs.toInt())
+                    true
+                }
+            } catch (e: Exception) {
+                Timber.d("preCacheNetworkAudio: reachability probe failed for $host:$port (${e.javaClass.simpleName})")
+                false
+            }
+        }
 
     private suspend fun downloadSmbFull(path: String, destFile: File, credentialsId: String? = null): File? {
         val client = smbClient ?: return null

@@ -21,7 +21,7 @@ Operational traps hit while running `/skill-release` (plateau release pipeline).
 
 **3. PLAN/ is gitignored -> Step 12a git-diff is always empty.**
 - Step 12a tells you to `git diff $PREV_TAG..HEAD -- PLAN/spec-catalog.jsonl`. `.gitignore` has `PLAN/`, so this yields nothing - spec catalog + spec files are local-only.
-- **How to apply:** do the func-log cross-check against the LOCAL working copy instead: parse `PLAN/spec-catalog.jsonl`, filter `updated >= <plateau start date>` and status in Verified/BlockNeedUserTest/Implemented, then grep `dev/FUNCTIONALITY.log` for `[Sxxxx]`. BlockNeedUserTest specs legitimately may lack a func-log entry (entry is added at verification), so most "misses" are not real.
+- **How to apply:** do the capability cross-check against the LOCAL working copy instead: parse `PLAN/spec-catalog.jsonl`, filter `updated >= <plateau start date>` and status in Verified/BlockNeedUserTest/Implemented, then grep `docs/ALL_FEATURES.jsonl` for each `Sxxxx` in the `spec` field (`dev/FUNCTIONALITY.log` retired in S0489; any skill prose still naming it is tracked in S0514). BlockNeedUserTest specs legitimately may lack an inventory record (added at verification), so most "misses" are not real.
 
 **4. Version skew breaks GitHub publish (not just cosmetic) - align docs+tag to the BUILT version.**
 - `publish-github-release.ps1` reads `versionName` from the built `build.gradle.kts` and `extract-release-notes.ps1` matches that string VERBATIM against `**Current release: X**` in WHATS_NEW.md; no section -> HARD throw (publish aborts). So the Step-2 pre-build version (.116) must be reconciled to the build's self-stamped version (.126) or GitHub publish fails.

@@ -27,7 +27,7 @@
             android:id="@+id/tvSelectResourcesSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select resources to scan for duplicates"
+            android:text="@string/duplicate_select_resources_subtitle"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?android:attr/textColorSecondary"
             android:layout_marginTop="8dp"
@@ -107,7 +107,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancelScan"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
@@ -165,7 +165,6 @@
         android:nextFocusUp="@id/rvDuplicates"
         android:visibility="gone"
         app:icon="@drawable/ic_delete"
-        android:text="Delete Selected"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

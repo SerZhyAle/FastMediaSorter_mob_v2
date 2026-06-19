@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0512: transient-state interaction overlay for list/grid items, applied via android:foreground.
+  Only translucent pressed/focused/hovered layers + a transparent default - selection and
+  alternating-row striping stay on android:background (which list-mode bind overwrites at runtime),
+  so this overlay must never paint an opaque fill or it would hide that background and item content.
+  Focus keeps a 2dp stroke (mirrors item_focus_selector); hover/press are subtle fills only.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true" android:drawable="@color/item_overlay_pressed" />
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="@color/focus_indicator" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item android:state_hovered="true" android:drawable="@color/item_overlay_hovered" />
+
+    <item android:drawable="@android:color/transparent" />
+
+</selector>

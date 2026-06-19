@@ -42,7 +42,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevious"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/previous"
@@ -69,7 +69,7 @@
         <!-- Enable-all Button (page 0 only; toggled by the Activity). Secondary/outlined so Next stays primary. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEnableAll"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_small"
@@ -85,12 +85,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/next"
             android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:minHeight="36dp"
             app:backgroundTint="?attr/colorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
@@ -99,12 +99,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/finish"
             android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:minHeight="36dp"
             android:visibility="gone"
             app:backgroundTint="?attr/colorPrimary"

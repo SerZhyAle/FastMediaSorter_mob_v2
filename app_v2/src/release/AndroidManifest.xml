@@ -6,7 +6,7 @@
     Re-enable FOREGROUND_SERVICE_DATA_SYNC when submitting scheduled operations.
 
     NOTE: FOREGROUND_SERVICE_MEDIA_PLAYBACK and AudioPlaybackService foregroundServiceType
-    must remain declared — Media3 (API 34+) unconditionally calls startForeground(mediaPlayback)
+    must remain declared - Media3 (API 34+) unconditionally calls startForeground(mediaPlayback)
     on any playback start. Removing them causes IllegalArgumentException crash on Android 14+.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"

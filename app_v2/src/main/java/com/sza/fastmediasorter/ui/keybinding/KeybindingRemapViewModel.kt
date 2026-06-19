@@ -176,7 +176,9 @@ class KeybindingRemapViewModel @Inject constructor(
         commandId.startsWith("view.") -> CommandGroup.VIEW_ZOOM
         commandId.startsWith("audio.") -> CommandGroup.AUDIO_SUBTITLES
         commandId.startsWith("system.") -> CommandGroup.SYSTEM_UI
+        commandId.startsWith("sorting.op_slot_") -> CommandGroup.OPERATION_SLOTS
         commandId.startsWith("sorting.") -> CommandGroup.SORTING_ACTIONS
+        commandId.startsWith("browser.") -> CommandGroup.BROWSER_ACTIONS
         commandId.startsWith("vr.") -> CommandGroup.VR_ONLY
         else -> CommandGroup.SYSTEM_UI
     }

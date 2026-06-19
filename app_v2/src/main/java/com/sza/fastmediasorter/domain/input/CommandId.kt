@@ -75,6 +75,28 @@ object CommandId {
     const val PASTE = "sorting.paste"
     const val SAVE = "sorting.save"
 
+    // --- OPERATION_SLOTS ---
+    // Group-agnostic positional shortcuts: launch the Nth button of the addressable Copy/Move group.
+    const val OPERATION_SLOT_1 = "sorting.op_slot_1"
+    const val OPERATION_SLOT_2 = "sorting.op_slot_2"
+    const val OPERATION_SLOT_3 = "sorting.op_slot_3"
+    const val OPERATION_SLOT_4 = "sorting.op_slot_4"
+    const val OPERATION_SLOT_5 = "sorting.op_slot_5"
+    const val OPERATION_SLOT_6 = "sorting.op_slot_6"
+    const val OPERATION_SLOT_7 = "sorting.op_slot_7"
+    const val OPERATION_SLOT_8 = "sorting.op_slot_8"
+    const val OPERATION_SLOT_9 = "sorting.op_slot_9"
+    const val OPERATION_SLOT_10 = "sorting.op_slot_10"
+
+    // --- BROWSER_ACTIONS ---
+    const val BROWSER_SELECT = "browser.select"
+    const val BROWSER_BACK = "browser.back"
+    const val BROWSER_MULTI_SELECT = "browser.multi_select"
+    const val BROWSER_CONTEXT_MENU = "browser.context_menu"
+    const val BROWSER_SEARCH = "browser.search"
+    const val BROWSER_TAB_NEXT = "browser.tab_next"
+    const val BROWSER_TAB_PREV = "browser.tab_prev"
+
     // --- VR_ONLY ---
     const val VR_RECENTER = "vr.recenter"
     const val VR_TOGGLE_IMMERSIVE = "vr.toggle_immersive"

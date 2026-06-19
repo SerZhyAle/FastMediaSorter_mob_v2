@@ -72,7 +72,7 @@ Gate features via `BuildConfig.*` fields - never via raw flavor name strings.
 ## Approach
 
 1. Catalog first: read `dev/PROJECT_OPERATIONS_INDEX.md`, then locate any class/file via `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches`/`-Role`/`-Injected`) **before** any Grep/Glob/find. Never use `find`/`Glob` to locate a Kotlin class - the catalogue knows the path.
-2. Check `docs/FEATURES.md` before implementing anything new - avoid duplication.
+2. Check `docs/ALL_FEATURES.jsonl` (dev capability inventory) before implementing anything new - avoid duplication.
 3. Understand current state (AS-IS) before writing code.
 4. Follow the Clean Architecture dependency rule strictly - never import `data` from `ui`.
 5. Implement in small, verifiable steps; build (`/build`) after each non-trivial step.
@@ -80,10 +80,10 @@ Gate features via `BuildConfig.*` fields - never via raw flavor name strings.
 
 ## Post-Change Mandatory Steps
 
-1. After each file change: `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
-2. After any new user-facing feature: update `docs/FEATURES.md`, `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
+1. Per change (prefer the facade `scripts/post-change.ps1 -ChangeType <type>`, which chains dev-log + catalog-sync + gates): `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - one entry per logical change/ticket, not per touched file (batch multi-file changes). Never edit `dev/CHANGELOG.md` directly.
+2. After delivering a shippable capability: record it in `docs/ALL_FEATURES.jsonl` via `scripts/all_features/add.ps1` (EN-only; `-NoLegal` for noLegal-only). Never edit `docs/FEATURES*.md` per-spec - the public showcase is `/skill-release`-owned.
 3. Edit strings via `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving), not by hand: `-Action set` updates one key in one locale; `-Action add -En -Ru -Uk` creates a key across EN/RU/UK in lockstep; `-Action get|remove|rename|list` cover lookup/lifecycle. Hand-edit only for `plurals`, `string-array`, comments, regrouping, bulk rewrites. After any key add/remove: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit 1 = fix before commit).
-4. After **every** `.kt` change: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot scan+render in one PowerShell process); for new classes fill `role` + `status` via `set.ps1`. Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` with the code change.
+4. Once per ticket (not per `.kt` edit): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot scan+render in one PowerShell process); for new classes fill `role` + `status` via `set.ps1`. `dev/CATALOG/<module>.jsonl` + `<module>.md` are local gitignored indexes - regenerate, do not commit.
 5. On any spec status transition: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
 
 ## Output Format

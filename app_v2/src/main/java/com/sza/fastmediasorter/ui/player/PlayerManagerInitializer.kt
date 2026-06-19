@@ -280,7 +280,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
             fileOperationUseCase = activity.fileOperationUseCase,
-            imageClipboardWriter = activity.imageClipboardWriter
+            imageClipboardWriter = activity.imageClipboardWriter,
+            localDestinationClassifier = activity.localDestinationClassifier,
+            localDestinationWriter = activity.localDestinationWriter
         )
         activity.imageCropManager = com.sza.fastmediasorter.ui.player.helpers.ImageCropManager(
             context = activity,
@@ -795,6 +797,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
                     activity.viewModel.previousFile()
                 } else {
+                    Timber.d("S0549: audio track ended naturally -> app nextFile() auto-advance (order=${activity.viewModel.state.value.playbackOrderMode})")
                     activity.viewModel.nextFile()
                 }
                 if (wasAudio) {

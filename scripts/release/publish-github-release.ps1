@@ -5,7 +5,7 @@
     that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it.
 
 .DESCRIPTION
-    Spec: S0214 — github-store-publication; extended to the full spectrum by S0394.
+    Spec: S0214 - github-store-publication; extended to the full spectrum by S0394.
 
     Operator flow (invoke from the release worktree, FastMediaSorter_release,
     checked out to main):
@@ -40,16 +40,29 @@
 .PARAMETER Repo
     GitHub repo name. Default: FastMediaSorter_mob_v2.
 
+.PARAMETER Flavors
+    Subset of the spectrum to publish. Accepts any of:
+      standard, lite, photos, legacy, vr, wear, noLegal
+    plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive,
+    order-independent, de-duplicated. Omitted / empty => the full spectrum
+    (backward-compatible default). Must match the flavors actually built by
+    build-release-spectrum.ps1; missing APKs abort the publish. The
+    /skill-release flow passes 'standard' by default.
+
 .EXAMPLE
     pwsh -File scripts/release/publish-github-release.ps1 -DryRun
+
+.EXAMPLE
+    pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
 #>
 
 [CmdletBinding()]
 param(
-    [switch] $DryRun,
-    [switch] $Force,
-    [string] $Owner = "SerZhyAle",
-    [string] $Repo  = "FastMediaSorter_mob_v2"
+    [switch]   $DryRun,
+    [switch]   $Force,
+    [string]   $Owner = "SerZhyAle",
+    [string]   $Repo  = "FastMediaSorter_mob_v2",
+    [string[]] $Flavors
 )
 
 $ErrorActionPreference = "Stop"
@@ -89,6 +102,32 @@ $spectrum = [ordered]@{
 }
 
 # ----------------------------------------------------------------------
+# Narrow the spectrum to the requested flavors (default: publish all).
+# Must mirror the set built by build-release-spectrum.ps1 - a requested
+# flavor without a built APK aborts in the staging loop below.
+# ----------------------------------------------------------------------
+if ($Flavors -and $Flavors.Count -gt 0) {
+    $picked = @()
+    foreach ($f in $Flavors) {
+        $t = "$f".Trim()
+        if ($t -eq '') { continue }
+        if ($t -in @('all', 'full', 'spectrum')) { $picked = @($spectrum.Keys); break }
+        $key = @($spectrum.Keys) | Where-Object { $_ -ieq $t }
+        if (-not $key) {
+            throw "Unknown flavor '$t'. Valid: $(@($spectrum.Keys) -join ', '), or 'all'."
+        }
+        $picked += $key
+    }
+    $filtered = [ordered]@{}
+    foreach ($k in $spectrum.Keys) {
+        if ($k -in $picked) { $filtered[$k] = $spectrum[$k] }
+    }
+    if ($filtered.Count -eq 0) { throw "No valid flavors selected." }
+    $spectrum = $filtered
+}
+Write-Host "Publishing flavors: $(@($spectrum.Keys) -join ', ')" -ForegroundColor Green
+
+# ----------------------------------------------------------------------
 # Branch guard (publishing is allowed only from main)
 # ----------------------------------------------------------------------
 Push-Location $repoRoot
@@ -102,7 +141,7 @@ if (-not $DryRun -and $currentBranch -ne "main") {
     throw "Refusing to publish from '$currentBranch'. Release publication is allowed only from 'main' (see CLAUDE.md Git Branching Model)."
 }
 if ($DryRun -and $currentBranch -ne "main") {
-    Write-Host "Branch is not 'main' — would abort outside of -DryRun." -ForegroundColor Yellow
+    Write-Host "Branch is not 'main' - would abort outside of -DryRun." -ForegroundColor Yellow
 }
 
 # ----------------------------------------------------------------------
@@ -189,7 +228,7 @@ foreach ($flavor in $spectrum.Keys) {
 Write-Host "Discovery + staging complete: $($stagedAssets.Count) assets staged for v$version." -ForegroundColor Cyan
 
 # ----------------------------------------------------------------------
-# Phase 04 — Assert signing fingerprint matches the pinned value.
+# Phase 04 - Assert signing fingerprint matches the pinned value.
 # Runs after staging and before release-create, dry-run or not.
 # ----------------------------------------------------------------------
 function Resolve-Apksigner {
@@ -281,7 +320,7 @@ if (-not $notesAvailable -and -not $DryRun) {
     throw "WHATS_NEW.md is missing a section for $version (extract-release-notes exit $notesExit). Add the section and rerun."
 }
 if (-not $notesAvailable -and $DryRun) {
-    Write-Host "Dry-run: WHATS_NEW.md has no section for $version yet — would abort outside of -DryRun. Plan output continues with a placeholder body." -ForegroundColor Yellow
+    Write-Host "Dry-run: WHATS_NEW.md has no section for $version yet - would abort outside of -DryRun. Plan output continues with a placeholder body." -ForegroundColor Yellow
     $releaseNotes = "<release notes for $version go here>"
 } else {
     $releaseNotes = $notesOutput -join "`n"
@@ -314,7 +353,7 @@ if ($ghOnPath) {
 }
 
 if ($DryRun) {
-    Write-Host "Dry-run requested — no release create, no asset upload." -ForegroundColor Yellow
+    Write-Host "Dry-run requested - no release create, no asset upload." -ForegroundColor Yellow
     exit 0
 }
 
@@ -338,7 +377,7 @@ if ($ghOnPath) {
 Write-Host "Release $tag created." -ForegroundColor Green
 
 # ----------------------------------------------------------------------
-# Step 03.5 — Asset upload + post-publish verification
+# Step 03.5 - Asset upload + post-publish verification
 # ----------------------------------------------------------------------
 $expectedAssetNames = @($stagedAssets | ForEach-Object { [System.IO.Path]::GetFileName($_) })
 
@@ -374,4 +413,4 @@ if ($missing.Count -gt 0) {
     throw "Release $tag is missing expected assets: $($missing -join ', '). Found: $($actualAssetNames -join ', ')"
 }
 
-Write-Host "OK — release $tag has both expected assets: $($actualAssetNames -join ', ')" -ForegroundColor Green
+Write-Host "OK - release $tag has both expected assets: $($actualAssetNames -join ', ')" -ForegroundColor Green

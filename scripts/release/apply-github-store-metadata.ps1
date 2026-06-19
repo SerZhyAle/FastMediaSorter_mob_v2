@@ -3,7 +3,7 @@
 .SYNOPSIS
     Apply repository metadata (description, topics, homepage) to a GitHub
     repository so that GitHub Store (OpenHub-Store/GitHub-Store) can
-    discover and rank the project. Idempotent — re-running converges to
+    discover and rank the project. Idempotent - re-running converges to
     the values defined in DECISIONS.md.
 
 .DESCRIPTION
@@ -35,7 +35,7 @@
     pwsh -File scripts/release/apply-github-store-metadata.ps1
 
 .NOTES
-    Spec: S0214 — github-store-publication. See
+    Spec: S0214 - github-store-publication. See
     PLAN/S0214_github-store-publication/PHASE_02__repo-metadata.md.
 #>
 
@@ -151,7 +151,7 @@ function Read-Decisions {
 # ----------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------
-Write-Host "apply-github-store-metadata.ps1 — target: $Owner/$Repo" -ForegroundColor Cyan
+Write-Host "apply-github-store-metadata.ps1 - target: $Owner/$Repo" -ForegroundColor Cyan
 
 $decisions = Read-Decisions
 Write-Host "Parsed topics ($($decisions.Topics.Count)):" -ForegroundColor Cyan
@@ -162,7 +162,7 @@ Write-Host "Parsed description ($($decisions.Description.Length) chars):" -Foreg
 Write-Host "  $($decisions.Description)"
 
 if ($DryRun) {
-    Write-Host "Dry-run requested — credentials and API calls skipped." -ForegroundColor Yellow
+    Write-Host "Dry-run requested - credentials and API calls skipped." -ForegroundColor Yellow
     exit 0
 }
 
@@ -261,7 +261,7 @@ $topicsOk = ($null -ne $afterTopics) -and ($afterTopics.Count -eq $decisions.Top
 )
 
 if ($descOk -and $homeOk -and $topicsOk) {
-    Write-Host "OK — metadata applied and verified." -ForegroundColor Green
+    Write-Host "OK - metadata applied and verified." -ForegroundColor Green
     exit 0
 } else {
     Write-Host "MISMATCH after apply:" -ForegroundColor Red

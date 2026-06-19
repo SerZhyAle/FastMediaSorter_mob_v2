@@ -77,12 +77,12 @@ Examples:
    - Otherwise (debug-only assertion, log-level change, dead-code removal) → `/verify` without `--build`.
 3. Read the `/verify` verdict line. PASS, zero errors → append to closeout. FAIL or crash → name the failing step in the closeout; do not auto-rollback - the user decides.
 
-Only place `/skill-fix` touches the device. No dev log, functionality log, or spec/journal field - all stay skipped per Step 5.
+Only place `/skill-fix` touches the device. No dev log, feature inventory, or spec/journal field - all stay skipped per Step 5.
 
 **Step 5 - Skip bureaucracy explicitly.**
 - Do **not** create or update `PLAN/` specs.
-- Do **not** update `docs/FEATURES*`, other docs, `dev/CHANGELOG.md`, or `dev/FUNCTIONALITY.log`.
-- Do **not** run `scripts/post-change.ps1`, `scripts/add_to_dev_log.ps1`, `scripts/add_to_functionality_log.ps1`, or spec-catalog scripts.
+- Do **not** update `docs/FEATURES*`, other docs, `dev/CHANGELOG.md`, or `docs/ALL_FEATURES.jsonl`.
+- Do **not** run `scripts/post-change.ps1`, `scripts/add_to_dev_log.ps1`, `scripts/all_features/add.ps1`, or spec-catalog scripts.
 - Do **not** inspect git history/status/diff unless the user explicitly asks.
 - Do **not** run `/build` or any full compile pipeline.
 

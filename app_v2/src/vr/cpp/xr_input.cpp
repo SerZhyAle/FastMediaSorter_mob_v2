@@ -339,7 +339,7 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
 
         // S0290 (owner feedback round 2 2026-05-22): only mark hand active when we actually
         // have a valid aim pose this frame. Previously state.active was set on aimState.isActive
-        // alone — but isActive can be true while xrLocateSpace fails or returns invalid flags,
+        // alone - but isActive can be true while xrLocateSpace fails or returns invalid flags,
         // in which case the ray downstream used a stale or zero-pose and appeared at random
         // positions. Tracking-lost = no ray rendered.
         if (aimState.isActive) {

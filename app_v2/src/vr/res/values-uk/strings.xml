@@ -15,7 +15,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">Враховувати вбудовані метадані</string>
     <string name="settings_stereo_vr_trust_metadata_summary">Визначати за метаданими spatial-відео та фотосфер</string>
     <string name="settings_stereo_vr_trust_aspect_title">Вгадувати за пропорціями</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">Менш надійно — звичайні широкі фото можуть потрапити в 3D</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Менш надійно - звичайні широкі фото можуть потрапити в 3D</string>
     <string name="settings_stereo_vr_ambiguity_title">Коли формат незрозумілий</string>
     <string name="settings_stereo_vr_ambiguity_summary">Увімк: робити припущення. Вимк: відкривати як 2D</string>
 

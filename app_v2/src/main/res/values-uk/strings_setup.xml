@@ -138,7 +138,7 @@
     <string name="welcome_networks_description">Додавайте медіа з мережевих папок і віддалених сховищ.</string>
     <!-- S0399 device-profile page -->
     <string name="welcome_profiles_title">Як ви будете використовувати пристрій?</string>
-    <string name="welcome_profiles_subtitle">Виберіть профіль — налаштуємо все під нього.</string>
+    <string name="welcome_profiles_subtitle">Виберіть профіль - налаштуємо все під нього.</string>
     <!-- S0400 functionality page -->
     <string name="welcome_functionality_title">Що застосунок робитиме?</string>
     <string name="welcome_functionality_subtitle">Увімкніть потрібне. Згодом можна змінити в налаштуваннях.</string>
@@ -157,7 +157,7 @@
     <string name="welcome_func_translation_desc">Переклад розпізнаного та виділеного тексту офлайн.</string>
     <string name="welcome_func_elements_button">Усі завантажувані (необов’язкові) елементи</string>
     <string name="welcome_func_downloading">Завантаження.. %1$d%%</string>
-    <string name="welcome_func_download_failed">Не вдалося завантажити — натисніть для повтору</string>
+    <string name="welcome_func_download_failed">Не вдалося завантажити - натисніть для повтору</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
     <string name="welcome_permissions_title">Кілька дозволів</string>

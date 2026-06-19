@@ -10,7 +10,7 @@ import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 
 /**
@@ -23,7 +23,7 @@ import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 object DialogKeyboardDelegate {
 
     private val shortcutHandler = KeyboardShortcutHandler(
-        surface = InputSurface.DIALOG,
+        surface = UiSurface.DIALOG,
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { false },
     )
 
@@ -63,7 +63,7 @@ object DialogKeyboardDelegate {
 
     private fun showHelp(dialog: Dialog) {
         val activity = dialog.context as? FragmentActivity ?: return
-        InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.DIALOG)
+        InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.DIALOG)
     }
 
     private fun toggleFocusedControl(dialog: Dialog): Boolean {

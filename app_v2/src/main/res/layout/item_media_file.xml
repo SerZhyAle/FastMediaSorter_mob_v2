@@ -1,6 +1,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/item_focus_selector" android:focusable="true" android:focusableInTouchMode="false" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" android:paddingTop="@dimen/item_divider_height" android:paddingBottom="@dimen/item_divider_height">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/item_focus_selector" android:foreground="@drawable/item_interaction_overlay" android:focusable="true" android:focusableInTouchMode="false" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" android:paddingTop="@dimen/item_divider_height" android:paddingBottom="@dimen/item_divider_height">
 
     <ImageView android:id="@+id/ivThumbnail" android:layout_width="@dimen/item_icon_size_medium" android:layout_height="@dimen/item_icon_size_medium" android:layout_marginStart="@dimen/margin_tiny" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" tools:src="@drawable/ic_image" />
 

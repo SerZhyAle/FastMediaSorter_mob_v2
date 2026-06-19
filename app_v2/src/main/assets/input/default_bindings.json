@@ -711,6 +711,126 @@
       }
     },
     {
+      "command_id": "sorting.op_slot_1",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_1",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:8:0", "key:145:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_2",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_2",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:9:0", "key:146:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_3",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_3",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:10:0", "key:147:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_4",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_4",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:11:0", "key:148:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_5",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_5",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:12:0", "key:149:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_6",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_6",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:13:0", "key:150:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_7",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_7",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:14:0", "key:151:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_8",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_8",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:15:0", "key:152:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_9",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_9",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:16:0", "key:153:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "sorting.op_slot_10",
+      "group": "OPERATION_SLOTS",
+      "label_key": "cmd_sorting_op_slot_10",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:7:0", "key:144:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
       "command_id": "player.black_screen",
       "group": "SYSTEM_UI",
       "label_key": "cmd_black_screen_label",
@@ -876,6 +996,90 @@
         "gamepad": [],
         "mouse": [],
         "vr": ["vr:22"]
+      }
+    },
+    {
+      "command_id": "browser.select",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_select",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:96"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.back",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_back",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:97"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.multi_select",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_multi_select",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:99"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.context_menu",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_context_menu",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:100"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.search",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_search",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:108"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.tab_next",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_tab_next",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:103"],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "browser.tab_prev",
+      "group": "BROWSER_ACTIONS",
+      "label_key": "keybinding_label_browser_tab_prev",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": [],
+        "gamepad": ["gamepad_btn:102"],
+        "mouse": [],
+        "vr": []
       }
     }
   ]

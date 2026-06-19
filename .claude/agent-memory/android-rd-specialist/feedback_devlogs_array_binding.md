@@ -11,4 +11,4 @@ metadata:
 
 **How to apply:** From the PowerShell tool (already pwsh), build the array then call directly:
 `$dl = @('{json1}','{json2}',...); & scripts/spec_catalog/close-and-log.ps1 -Id Sxxxx -Status Verified -DevLogs $dl -FuncOp ADD -FuncDesc "..." -CatalogModule app_v2`
-Single-element -DevLogs survives `pwsh -File`; multi-element does not. Same trap applies to Bash tool (`@(...)` triggers `bash: syntax error near unexpected token '('`) — use the PowerShell tool for any call passing a PS array.
+Single-element -DevLogs survives `pwsh -File`; multi-element does not. Same trap applies to Bash tool (`@(...)` triggers `bash: syntax error near unexpected token '('`) - use the PowerShell tool for any call passing a PS array.

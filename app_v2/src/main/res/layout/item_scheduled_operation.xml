@@ -7,7 +7,8 @@
     android:layout_marginBottom="@dimen/margin_tiny"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
-    android:focusable="true">
+    android:focusable="true"
+    android:foreground="@drawable/focus_button_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -120,7 +121,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRunNow"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="0dp"
@@ -130,7 +131,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEdit"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="0dp"
@@ -140,7 +141,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDelete"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="0dp"

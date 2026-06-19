@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260617220
-val defaultAppVersionName = "2.60.6172.207"
+val defaultAppVersionCode = 260619214
+val defaultAppVersionName = "2.60.6192.144"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -236,7 +236,7 @@ android {
         manifestPlaceholders["dropboxAppKey"] = "dpy64e70kqobr6x"
 
         // === STARTUP DEBUG INFO ===
-        // Owner trigger — read from local.properties (excluded from VCS)
+        // Owner trigger - read from local.properties (excluded from VCS)
         // If local.properties is absent or the key is missing, field is empty → no special behavior
         val localProps = Properties()
         val localPropsFile = rootProject.file("local.properties")
@@ -311,7 +311,7 @@ android {
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
-            // 16 KB compatible — safe for Google Play.
+            // 16 KB compatible - safe for Google Play.
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
@@ -320,12 +320,12 @@ android {
         // S0156 ADR-8: single APK covers both Quest (arm64 + OpenXR) and phones (all ABIs).
         // ndk.abiFilters = all 4 ABIs → APK installs on any device.
         // cmake.abiFilters = arm64-v8a only → diagnostic XR native runtime compiles for Quest
-        //   slice only; non-arm64 slices simply omit libfms_diagnostic_xr.so — VR entry points
+        //   slice only; non-arm64 slices simply omit libfms_diagnostic_xr.so - VR entry points
         //   must graceful-fallback to PlayerActivity when System.loadLibrary("fms_diagnostic_xr")
         //   throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
-            // S0232: no applicationIdSuffix — noLegal shares com.sza.fastmediasorter with
+            // S0232: no applicationIdSuffix - noLegal shares com.sza.fastmediasorter with
             // standard so cloud OAuth/MSAL/Dropbox registrations cover it without per-flavor
             // setup. See policy comment above productFlavors block.
             versionNameSuffix = "-NoLegal"
@@ -334,7 +334,7 @@ android {
             // Flavor-scoped -dontwarn rules keep these warnings out of standard/vr R8.
             proguardFiles("proguard-nolegal.pro")
             // S0174: Chaquopy 17.x Python 3.12 ships wheels only for arm64-v8a and x86_64.
-            // armeabi-v7a and x86 are excluded — 32-bit ARMv7 devices (pre-2017) and x86
+            // armeabi-v7a and x86 are excluded - 32-bit ARMv7 devices (pre-2017) and x86
             // emulators are not supported for the Python runtime. noLegal is a sideload-only
             // flavor targeting modern devices (arm64) and Quest headsets (arm64).
             ndk {
@@ -343,7 +343,7 @@ android {
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
                     cmake {
-                        // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) — same
+                        // S0249 Phase 02: diagnostic XR native runtime (fms_diagnostic_xr) - same
                         // JNI bridge as vr flavor. OpenXR loader AAR ships arm64-v8a only.
                         targets += listOf("fms_diagnostic_xr")
                         // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
@@ -478,7 +478,7 @@ android {
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
         create("vr") {
             dimension = "version"
-            // S0232: no applicationIdSuffix — vr shares com.sza.fastmediasorter with standard
+            // S0232: no applicationIdSuffix - vr shares com.sza.fastmediasorter with standard
             // for cloud OAuth identity. Re-add a .vr suffix here if/when this flavor lands on
             // Meta Horizon Store (the Store binds the listing identity to applicationId);
             // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
@@ -493,7 +493,7 @@ android {
                         // S0249 Phase 02: build the diagnostic XR native runtime (fms_diagnostic_xr).
                         // OpenXR loader ships prebuilt in the Khronos AAR via prefab.
                         targets += listOf("fms_diagnostic_xr")
-                        // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
+                        // OpenXR loader AAR ships only arm64-v8a - restrict CMake config to match,
                         // otherwise AGP tries to build fms_diagnostic_xr for every ABI in the buildType
                         // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
                         // because those OpenXR slices do not exist. ndk.abiFilters above only
@@ -536,8 +536,8 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
 
-        // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role — sideload-only
-        // VR-capable build — is now fulfilled by `noLegal` (full VR feature surface, runtime
+        // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
+        // VR-capable build - is now fulfilled by `noLegal` (full VR feature surface, runtime
         // XR-gated via XrDetectionFacade). The `vr` flavor remains as the Store-published
         // (Meta Horizon Store / Google Play AAB) channel, kept Store-clean (no GPL extractors,
         // no Python runtime). See PLAN/S0250_nolegal-vr-unification.md.
@@ -546,8 +546,8 @@ android {
     // AGP does not inherit flavor source sets automatically, so each flavor explicitly maps
     // to one of the shared streaming/cloud source-sets below.
     //
-    // S0116 §3.2: streamingEnabled — Media3 HLS/DASH + MediaMuxer; streamingDisabled — NoOp pipeline for lite/photos.
-    // S0200: cloudEnabled — Credential Manager Google identity + Drive auth; cloudDisabled — no-op identity for lite.
+    // S0116 §3.2: streamingEnabled - Media3 HLS/DASH + MediaMuxer; streamingDisabled - NoOp pipeline for lite/photos.
+    // S0200: cloudEnabled - Credential Manager Google identity + Drive auth; cloudDisabled - no-op identity for lite.
     // Both shared source-sets are mounted into every flavor that needs them; AGP does not
     // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
@@ -691,7 +691,7 @@ android {
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false
-            // ABI selection is flavor-local (see productFlavors block) — not set here because
+            // ABI selection is flavor-local (see productFlavors block) - not set here because
             // AGP merges buildType+flavor abiFilters as UNION, not intersection, which would
             // leak non-VR ABIs into VR debug AABs.
             if (hasCustomDebugKeystore) {
@@ -718,7 +718,7 @@ android {
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
             ndk {
                 debugSymbolLevel = "FULL"
-                // ABI selection is flavor-local (see productFlavors block) — AGP merges
+                // ABI selection is flavor-local (see productFlavors block) - AGP merges
                 // buildType+flavor ndk.abiFilters as UNION, so a buildType-level list
                 // would leak non-VR ABIs into VR AABs. Each flavor declares its own ABIs.
             }
@@ -940,14 +940,14 @@ androidComponents {
 
 // CRITICAL: Do not change - must match compileOptions.targetCompatibility
 
-// S0174: Chaquopy is applied conditionally — only when a noLegal build is in progress.
+// S0174: Chaquopy is applied conditionally - only when a noLegal build is in progress.
 // Reason: Chaquopy 17.x requires minSdk >= 24 for every variant it processes, and the
-// `legacy` flavor has minSdk=23 (intentional — covers API 23-25 devices). There is no
+// `legacy` flavor has minSdk=23 (intentional - covers API 23-25 devices). There is no
 // Kotlin-DSL variantFilter in Chaquopy (that API is Groovy-only / Chaquopy ≤14), so we
 // must avoid applying the plugin at all unless noLegal is actually being built.
 //
 // Activation sources (first match wins):
-//   1. Explicit -Pchaquopy.enabled=true|false (CLI / helper scripts) — hard override.
+//   1. Explicit -Pchaquopy.enabled=true|false (CLI / helper scripts) - hard override.
 //   2. Auto-detect: any task in gradle.startParameter.taskNames contains "noLegal"
 //      (case-insensitive). Covers Android Studio's debug/run button which schedules
 //      :app_v2:assembleNoLegalDebug / :installNoLegalDebug for the active build variant.
@@ -979,7 +979,7 @@ if (isNoLegalBuild) {
     //   - Python 3.10+ ships wheels only for arm64-v8a and x86_64; standard/lite/photos/legacy
     //     include armeabi-v7a in their abiFilters
     // The only escape: disable every non-noLegal variant via AGP beforeVariants so that
-    // Chaquopy's onVariants() is never invoked for them. This is safe when building noLegal —
+    // Chaquopy's onVariants() is never invoked for them. This is safe when building noLegal -
     // those flavors are not requested and produce no APK in a noLegal invocation.
     androidComponents {
         beforeVariants { variantBuilder ->
@@ -996,12 +996,12 @@ if (isNoLegalBuild) {
             // noLegal abiFilters is restricted to those two ABIs in productFlavors block.
             version = "3.12"
             // Windows: 'python3' is not available; use 'py' launcher with -3.12 flag.
-            // yt-dlp is pure-Python — buildPython version only needs to match the device version
+            // yt-dlp is pure-Python - buildPython version only needs to match the device version
             // for packages that ship native extensions (yt-dlp does not).
             buildPython("py", "-3.12")
         }
         productFlavors {
-            // Only noLegal installs yt-dlp — all other flavors get no Python packages.
+            // Only noLegal installs yt-dlp - all other flavors get no Python packages.
             // Use getByName because Chaquopy registers PythonExtension per-flavor automatically.
             getByName("noLegal") {
                 pip {
@@ -1042,9 +1042,9 @@ dependencies {
     // Security (EncryptedSharedPreferences for cloud credentials)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // S0200 — Credential Manager (Google identity binding) + Chrome Custom Tabs.
+    // S0200 - Credential Manager (Google identity binding) + Chrome Custom Tabs.
     // Credential Manager replaces the deprecated Google Sign-In SDK; googleid supplies GetGoogleIdOption.
-    // androidx.browser is consumed by Phase 03 CCT routing — added here to keep all S0200 deps colocated.
+    // androidx.browser is consumed by Phase 03 CCT routing - added here to keep all S0200 deps colocated.
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
@@ -1065,7 +1065,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
-    // S0385: material-icons-extended is NOT dead — Icons.Filled.Pause / SkipNext / SkipPrevious
+    // S0385: material-icons-extended is NOT dead - Icons.Filled.Pause / SkipNext / SkipPrevious
     // (media-control icons in WearSyncSettingsFragment + widget config) live only in the extended
     // set, not in material-icons-core. Removing it breaks compilation. Kept intentionally.
     implementation("androidx.compose.material:material-icons-extended")
@@ -1075,7 +1075,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     
     // Material Design 3
-    implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.android.material:material:1.14.0")
 
     // Google Play In-App Review (S0135)
     implementation("com.google.android.play:review-ktx:2.0.2")
@@ -1206,7 +1206,7 @@ dependencies {
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")
     
-    // Wearable Data Layer — phone-side bridge to Wear OS companion
+    // Wearable Data Layer - phone-side bridge to Wear OS companion
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
@@ -1230,7 +1230,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-cast-framework:21.4.0")
     implementation("androidx.mediarouter:mediarouter:1.7.0")
 
-    // NanoHTTPD — in-process HTTP proxy to serve local/cached files to Cast receiver
+    // NanoHTTPD - in-process HTTP proxy to serve local/cached files to Cast receiver
     implementation("org.nanohttpd:nanohttpd:2.3.1")
 
     // Logging
@@ -1258,26 +1258,26 @@ dependencies {
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
     
-    // OpenXR loader — vr and noLegal (headset XR rendering).
+    // OpenXR loader - vr and noLegal (headset XR rendering).
     // noLegal ships the same arm64-v8a OpenXR slice; non-Quest devices simply never
     // exercise VrPlayerActivity because the graceful fallback fires first.
     "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
     "noLegalImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
 
-    // SW AV1 decoder (libgav1) — source-only extension, not published on Google Maven.
+    // SW AV1 decoder (libgav1) - source-only extension, not published on Google Maven.
     // TODO: build from source (same pipeline as fms-ffmpeg-dts.aar) before enabling.
     // "standardImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "legacyImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "vrImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
 
-    // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) — source-only extension, not on Maven.
+    // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) - source-only extension, not on Maven.
     // TODO: build from source before enabling.
     // "standardImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
     // "legacyImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
     // "vrImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
 
     // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
-    // DTS/extended codec decoder via custom FFmpeg AAR — built from media3 1.2.1 sources.
+    // DTS/extended codec decoder via custom FFmpeg AAR - built from media3 1.2.1 sources.
     // Build script: scripts/builders/build-ffmpeg-dts.sh
     // Spec: PLAN/spec_ffmpeg-custom-build-dts.md §7, Phase 3
     //

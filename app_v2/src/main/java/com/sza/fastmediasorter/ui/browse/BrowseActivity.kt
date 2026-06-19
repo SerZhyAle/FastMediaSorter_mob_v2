@@ -164,6 +164,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
     // S0473: usage-statistics sink, threaded into BrowseMicRecordingManager for voice-note capture.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
+    @Inject lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
+    @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
+    @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -251,7 +254,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     ).isSuccess
                     else -> false
                 }
-            }
+            },
+            networkStateMonitor = networkStateMonitor,
+            saveFallbackNotifier = saveFallbackNotifier,
         )
         // Restore pending camera-capture context if the process was killed while the system
         // camera was open. Must run after the manager is constructed so launcher is registered.
@@ -264,7 +269,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         micRecordingManager = BrowseMicRecordingManager(
             activity = this,
             settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
             coroutineScope = lifecycleScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
             onRecordingStateChanged = { isRecording ->
@@ -288,9 +292,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     else -> false
                 }
             },
-            destinationClassifier = destinationClassifier,
-            destinationWriter = destinationWriter,
-            statsSink = statsSink,
+            micRecordingSaver = micRecordingSaver,
+            saveFallbackNotifier = saveFallbackNotifier,
         )
 
         // S0207 Phase 01: BROWSE_OPENED probe - fired at the end of onCreate so the measurement
@@ -305,7 +308,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
     // S0289: when list is empty, fall back to btnBack so D-pad has a visible target.
     override fun getInitialFocusView(): android.view.View {
-        Timber.d("S0289: browse initial-focus / wheel target rvMediaFiles")
         val state = viewModel.state.value
         return if (state.mediaFiles.isNotEmpty()) binding.rvMediaFiles else binding.btnBack
     }
@@ -511,7 +513,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // D-pad / left stick focus moves rely on Android's default focus search
         // (item_media_file.xml and item_media_file_grid.xml are focusable).
         // A/B/X/Y/Start/L1/R1 are intercepted here via GamepadInputManager.
-        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
+        val action = gamepadInputManager.handleKeyEvent(event, InputSurface.BROWSER)
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
         if (event.action == KeyEvent.ACTION_DOWN) {
             val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, InputSurface.BROWSER)

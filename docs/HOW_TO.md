@@ -22,13 +22,13 @@ Some features are only available in specific flavors. This guide follows the cur
 
 | Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
 |---------|----------|------|--------|--------|--------------|
-| Network folders (SMB, SFTP, FTP) | ✓ | ✓ | ✓ | ✗ | ✓ |
-| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
+| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Document viewer (PDF, Text) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| EPUB reader | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Translation & OCR | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
+| EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Image editing | ✓ | ✓ | ✓ | ✓ | ✗ |
 
 If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** build that matches your hardware and distribution path.
 
@@ -89,7 +89,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Turn a NAS into a living-room media shelf
 
-**Available in:** Standard, Lite, Photos
+**Available in:** Standard, Photos, Legacy, XR/noLegal
 
 **Quick Path**
 
@@ -276,7 +276,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Hand network files off to specialist apps
 
-**Available in:** Standard, Lite, Photos
+**Available in:** Standard, Photos, Legacy, XR/noLegal
 
 **Quick Path**
 

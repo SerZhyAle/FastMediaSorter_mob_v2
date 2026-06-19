@@ -14,7 +14,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDropboxFolderPickerBinding
 import com.sza.fastmediasorter.databinding.ItemDropboxFolderBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -42,7 +42,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
         override fun navigateUp() { handleBackNavigation() }
         override fun refresh() { viewModel.loadFolders() }
         override fun cancel() { finish() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.CLOUD_PICKER) }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
     })
 
     override fun getViewBinding(): ActivityDropboxFolderPickerBinding {
@@ -51,7 +51,6 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
 
     // S0230 Phase 02 - TV initial focus on the folder list.
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: dropbox-picker initial-focus / ENTER navigates into folder")
         val firstFolderItem = binding.rvFolders.findViewHolderForAdapterPosition(0)?.itemView
         val folderCount = if (::folderAdapter.isInitialized) folderAdapter.itemCount else -1
         return firstFolderItem

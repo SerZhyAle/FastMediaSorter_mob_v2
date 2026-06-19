@@ -48,6 +48,15 @@ sealed interface StatsEvent {
         val count: Long = 1L
     ) : StatsEvent
 
+    /**
+     * Incremental player-open time for video/audio, decoupled from the watched/played count.
+     *
+     * Emitted repeatedly while a player is on screen (including paused/buffering), so "player time"
+     * reflects actual time spent in the player rather than only fully-completed playthroughs. Only
+     * [ViewKind.VIDEO] and [ViewKind.AUDIO] carry time; other kinds are ignored by the sink.
+     */
+    data class PlaybackTime(val kind: ViewKind, val durationMs: Long) : StatsEvent
+
     /** An edit/create action completed. */
     data class Edit(val kind: EditKind) : StatsEvent
 

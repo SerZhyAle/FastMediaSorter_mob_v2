@@ -12,11 +12,11 @@ import timber.log.Timber
  *
  * Loads `libfms_diagnostic_xr.so` (built by `app_v2/src/vr/cpp/CMakeLists.txt`) and forwards
  * every operation to JNI methods declared in `diagnostic_xr_runtime.cpp`. The native side is
- * single-instance — concurrent diagnostic sessions are blocked by [DiagnosticXrNativeResult.AlreadyRunning].
+ * single-instance - concurrent diagnostic sessions are blocked by [DiagnosticXrNativeResult.AlreadyRunning].
  *
  * Library-availability semantics (S0156 ADR-8): the `noLegal` flavor ships only the arm64-v8a
  * slice of this `.so`. On x86_64 emulators or any non-arm64 device the library is intentionally
- * absent — that is *expected device-capability mismatch*, not a program error. Construction
+ * absent - that is *expected device-capability mismatch*, not a program error. Construction
  * logs a single informational line and flips [isNativeAvailable] to `false`; every public method
  * then short-circuits to a clean "loader unavailable" outcome without invoking the JNI entry
  * points (so no `UnsatisfiedLinkError` storm appears in logcat when the gateway later asks

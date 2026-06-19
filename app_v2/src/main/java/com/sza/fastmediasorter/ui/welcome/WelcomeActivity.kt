@@ -40,7 +40,6 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
@@ -568,9 +567,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * - TAB / SHIFT+TAB: cycle focus through page + bar. ESC: Back.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN) {
-            Timber.d("S0289DIAG: dispatch key=${event.keyCode} src=0x${Integer.toHexString(event.source)} fragVisible=${binding.fragmentContainerWelcome.isVisible}")
-        }
         if (event.action == KeyEvent.ACTION_DOWN && !binding.fragmentContainerWelcome.isVisible) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> { handleSliderHorizontal(View.FOCUS_LEFT, forward = false); return true }
@@ -631,12 +627,51 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     /**
+     * The first focusable control inside the current page, or null if the page has none.
+     * ViewPager2's RecyclerView descends to the page when asked for FOCUS_DOWN, so this returns the
+     * top-most actionable control (e.g. the language picker on the first page).
+     */
+    private fun firstPageFocusable(): View? {
+        val page = currentPageView() as? ViewGroup ?: return null
+        val candidates = ArrayList<View>()
+        page.addFocusables(candidates, View.FOCUS_FORWARD)
+        return candidates.firstOrNull { it.isShown && it.isFocusable }
+    }
+
+    /**
+     * Move focus from the pager container onto a real control: the first focusable in the current
+     * page, falling back to the bottom bar. Returns true if focus moved off the container.
+     *
+     * Why: the first D-pad press on a freshly-opened page leaves focus on the ViewPager2 RecyclerView
+     * (the page's parent, not a descendant), so it belongs to neither the page nor the bar scope.
+     * Without this, LEFT/RIGHT would resolve a null scope and fall straight through to flipPage,
+     * making the in-page pickers unreachable on a remote that has no TAB key. S0289.
+     */
+    private fun enterPageFromContainer(): Boolean {
+        firstPageFocusable()?.let { it.requestFocus(); return true }
+        if (binding.btnNext.isVisible || binding.btnFinish.isVisible) { focusBar(); return true }
+        return false
+    }
+
+    /** True when focus sits on neither the current page content nor the bottom bar (e.g. on the
+     *  ViewPager2 RecyclerView container itself, or nowhere yet). */
+    private fun isOnPagerContainer(focused: View?): Boolean {
+        if (focused == null) return true
+        if (isDescendantOf(focused, binding.layoutBottomNav)) return false
+        val page = currentPageView()
+        return !(page is ViewGroup && isDescendantOf(focused, page))
+    }
+
+    /**
      * LEFT / RIGHT: move focus to a neighbour inside the current scope; flip the page only at the
      * scope's horizontal edge. Always consumes so ViewPager2 never performs its own page scroll.
      */
     private fun handleSliderHorizontal(direction: Int, forward: Boolean): Boolean {
         if (binding.fragmentContainerWelcome.isVisible) return false
         val focused = currentFocus
+        // Focus on the pager container (typical after the very first D-pad key): pull it into the page
+        // instead of flipping, so the in-page pickers become reachable without a TAB key.
+        if (isOnPagerContainer(focused) && enterPageFromContainer()) return true
         val scope = horizontalScope(focused)
         if (focused != null && scope != null) {
             val neighbour = FocusFinder.getInstance().findNextFocus(scope, focused, direction)
@@ -669,10 +704,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                     focusBar()
                 }
             }
-            inBar -> if (direction == View.FOCUS_UP && page != null) {
-                page.requestFocus(View.FOCUS_UP)
+            inBar -> if (direction == View.FOCUS_UP) {
+                // From the bar, UP re-enters the page on a real control (last focusable for a natural
+                // "come back to where you were near the bottom" feel), else stays put.
+                val target = (currentPageView() as? ViewGroup)?.let { p ->
+                    val list = ArrayList<View>()
+                    p.addFocusables(list, View.FOCUS_FORWARD)
+                    list.lastOrNull { it.isShown && it.isFocusable }
+                }
+                target?.requestFocus()
             }
-            else -> (page ?: bar).requestFocus(View.FOCUS_DOWN)
+            // Focus on the pager container: pull it onto a real control instead of leaving it stranded.
+            else -> enterPageFromContainer()
         }
         return true
     }
@@ -725,7 +768,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * press is immediately actionable without a random "focus init" key press.
      */
     override fun getInitialFocusView(): View {
-        Timber.d("S0289: welcome initial-focus / edge-aware slider")
         return binding.btnNext
     }
 

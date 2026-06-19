@@ -1,15 +1,12 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.app.Activity
-import android.net.Uri
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
@@ -19,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
-import java.io.File
 
 /** Computes per-state permissions + adaptive button visibility for [CommandPanelController]. Extracted from `CommandPanelController.updateCommandAvailability` to keep the host class under the 1000-LOC budget. */
 internal class CommandPanelAvailabilityUpdater(
@@ -61,27 +56,9 @@ internal class CommandPanelAvailabilityUpdater(
         val currentFile = state.currentFile ?: return
         val resource = state.resource
         val isReadOnly = resource?.isReadOnly == true
-        val isNetworkResource = resource != null &&
-            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)
-
-        var canWrite: Boolean
-        val canRead: Boolean
-        if (isNetworkResource) {
-            canWrite = true; canRead = true
-        } else if (currentFile.path.startsWith("content://")) {
-            canWrite = resource?.isWritable ?: false
-            canRead = try {
-                DocumentFile.fromSingleUri(binding.root.context, Uri.parse(currentFile.path))?.canRead() ?: false
-            } catch (e: Exception) {
-                Timber.e(e, "CommandPanelController: Error checking SAF URI read permission")
-                false
-            }
-        } else {
-            val file = File(currentFile.path)
-            canWrite = resource?.isWritable ?: file.canWrite()
-            canRead = file.canRead()
-        }
-        if (isReadOnly) canWrite = false
+        val permissions = resolvePlayerFilePermissions(binding.root.context, resource, currentFile.path)
+        val canWrite = permissions.canWrite
+        val canRead = permissions.canRead
 
         // Audio files force-show the command panel regardless of state.showCommandPanel.
         val isAudioFile = currentFile.type == MediaType.AUDIO

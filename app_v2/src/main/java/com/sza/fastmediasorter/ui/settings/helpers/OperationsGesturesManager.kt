@@ -137,7 +137,7 @@ class OperationsGesturesManager(
 
     /**
      * Instructional gate before sending the user to the permission screen. Sideloaded (noLegal)
-     * builds cannot flip the accessibility toggle directly — the exact tap sequence is spelled out
+     * builds cannot flip the accessibility toggle directly - the exact tap sequence is spelled out
      * here, with shortcuts to both the accessibility screen and App info. Any exit without the
      * grant reverts the row (handled in onDismiss so back-press / outside-tap are covered too).
      */

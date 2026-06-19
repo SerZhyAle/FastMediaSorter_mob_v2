@@ -67,17 +67,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvPermissionsSubtitle">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGrantAll"
+                style="@style/Widget.FastMediaSorter.Button.Filled"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/perm_btn_grant_all"
                 android:visibility="gone" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenSettings"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/welcome_perm_actions_gap"

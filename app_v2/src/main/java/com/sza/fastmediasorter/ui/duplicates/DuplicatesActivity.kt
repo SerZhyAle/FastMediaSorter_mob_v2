@@ -8,7 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -47,7 +47,6 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
     override fun observeData() {}
 
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: duplicates initial-focus / delete-FAB focus chain")
         val duplicatesList = binding.fragmentContainer.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvDuplicates)
         val firstDuplicateItem = duplicatesList?.findViewHolderForAdapterPosition(0)?.itemView
         val startScanButton = binding.fragmentContainer.findViewById<View>(R.id.btnStartScan)
@@ -64,7 +63,7 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
         when (keyCode) {
             KeyEvent.KEYCODE_ESCAPE -> { finish(); return true }
             KeyEvent.KEYCODE_F1 -> {
-                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.DUPLICATES)
+                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.DUPLICATES)
                 return true
             }
         }

@@ -75,9 +75,10 @@ class DuplicatesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = DuplicateGroupAdapter { file ->
-            viewModel.toggleFileSelection(file.path)
-        }
+        adapter = DuplicateGroupAdapter(
+            onToggleSelection = { file -> viewModel.toggleFileSelection(file.path) },
+            onSelectRange = { paths -> viewModel.selectFileRange(paths) }
+        )
         binding.rvDuplicates.adapter = adapter
     }
 

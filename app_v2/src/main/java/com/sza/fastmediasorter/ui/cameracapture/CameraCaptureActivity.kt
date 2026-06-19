@@ -134,10 +134,15 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>() {
             previewView = binding.previewViewCamera,
             outputFile = file,
             onSaved = {
+                // CameraX delivers this asynchronously; bail out if the user already left the screen.
+                if (isFinishing || isDestroyed) return@capture
                 setResult(RESULT_OK)
                 finish()
             },
             onError = { error ->
+                // Async CameraX callback can arrive after onDestroy released the binding (user closed
+                // the camera while takePicture was still in flight) - touching binding then crashes.
+                if (isFinishing || isDestroyed) return@capture
                 captureInFlight = false
                 binding.btnCapturePhoto.isEnabled = true
                 Timber.e(error, "CameraCaptureActivity: capture failed")

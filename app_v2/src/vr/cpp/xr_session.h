@@ -57,7 +57,7 @@ bool xr_session_is_running();
 bool xr_session_is_initialized();
 
 // Returns the currently-stored Activity jobject global ref (or nullptr if none). The ref is
-// owned for the lifetime of the PROCESS, not per immersive session — see the long comment in
+// owned for the lifetime of the PROCESS, not per immersive session - see the long comment in
 // diagnostic_xr_runtime.cpp::nativeInitSession for why it must outlive shutdown. The returned
 // pointer is opaque to keep the header free of <jni.h> dependencies.
 jobject_opaque g_activity_jobject();

@@ -123,7 +123,6 @@ class MediaSettingsFragment : Fragment() {
     }
 
     private fun setupSections() {
-        Timber.d("S0474: media child fragments attached lazily on section expand")
         val savedStates = getSavedSectionStates()
         buildSections().forEach { section ->
             val factory = section.factory

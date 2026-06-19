@@ -7,7 +7,7 @@ metadata:
 
 When a gradle build fails, the FAILURE / "What went wrong" block sits in the MIDDLE of the output (right after the failing task), not at the end. The end is just gradle's deprecation footer and "BUILD FAILED in Ns".
 
-So piping `./gradlew.bat <task> 2>&1 | tail -30` silently swallows the actual error message — you'll see "BUILD FAILED" but no diagnostic.
+So piping `./gradlew.bat <task> 2>&1 | tail -30` silently swallows the actual error message - you'll see "BUILD FAILED" but no diagnostic.
 
 **Why:** Wasted a turn in S0250 trying to find a noLegal build failure that "tail -30" had cropped out, then had to re-run with `head -100` to capture the configure-time error.
 

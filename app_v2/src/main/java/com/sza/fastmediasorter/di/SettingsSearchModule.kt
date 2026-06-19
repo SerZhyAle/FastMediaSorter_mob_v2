@@ -17,7 +17,7 @@ import javax.inject.Singleton
  *
  * The actual contributions to the `@SupportedMediaSection Set<String>` come from the
  * per-flavor modules in `src/<flavor>/java/.../di/`. `@Multibinds` here makes the set
- * injectable even when no provider contributes (defensive — shouldn't happen at runtime).
+ * injectable even when no provider contributes (defensive - shouldn't happen at runtime).
  */
 @Module
 @InstallIn(SingletonComponent::class)

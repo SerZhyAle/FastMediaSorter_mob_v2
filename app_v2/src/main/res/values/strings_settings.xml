@@ -181,7 +181,7 @@
     <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename for captured photo and video</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
     <string name="setting_slideshow_background_music_desc">A list of audio during viewing (select images - listen to audio)</string>
-    <string name="setting_small_controls_desc">Shrink the bottom command buttons to save space</string>
+    <string name="setting_small_controls_desc">Shrink the bottom control buttons in the player to save space</string>
     <string name="setting_support_audio_desc">Playback of MP3, FLAC, AAC, OGG, and other audio formats</string>
     <string name="setting_support_epub_desc">Reads EPUB books with bookmarks and table of contents</string>
     <string name="setting_support_gifs_desc">Plays animated GIFs in the file browser and player</string>
@@ -200,7 +200,7 @@
     <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON. Immersive VR rendering overrides this setting and shows the full stereo frame.</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
     <string name="pref_prefetch_cache_auto">Auto</string>
-    <string name="pref_prefetch_cache_help_message">Controls how much of a streamed video is buffered ahead of the playhead.\n\n• Less (0.5×) — minimal buffering. The pre-cache progress indicator and the "save cached video" offer are hidden. Saves disk space and bandwidth; on a slow network playback may stutter.\n• Auto — default size chosen by the player based on device and current network.\n• More (2×) — larger buffer for smoother playback over unstable networks. Uses more disk space.</string>
+    <string name="pref_prefetch_cache_help_message">Controls how much of a streamed video is buffered ahead of the playhead.\n\n• Less (0.5×) - minimal buffering. The pre-cache progress indicator and the "save cached video" offer are hidden. Saves disk space and bandwidth; on a slow network playback may stutter.\n• Auto - default size chosen by the player based on device and current network.\n• More (2×) - larger buffer for smoother playback over unstable networks. Uses more disk space.</string>
     <string name="pref_prefetch_cache_help_title">Video pre-cache size</string>
     <string name="pref_prefetch_cache_less">Less (0.5×)</string>
     <string name="pref_prefetch_cache_more">More (2×)</string>

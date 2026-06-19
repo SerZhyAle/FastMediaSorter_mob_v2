@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.google.android.material.button.MaterialButton
@@ -122,6 +123,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
             (resources.displayMetrics.widthPixels * 0.95f).roundToInt(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        // Controls apply immediately, so there is no positive action - no-op confirm keeps
+        // Esc-dismiss and focus traversal without a false Enter-confirm. Initial focus is left to
+        // the section navigation, which checks a section button on open.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {
@@ -431,7 +436,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         // Bind UI to the user's choice, not the resolved effective renderer mode.
         // When AUTO is selected, effectiveStereoMode is already resolved to the detected
-        // value — using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
+        // value - using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
         bindStereoMode(mode)
 
         if (mode != StereoMode.AUTO) {

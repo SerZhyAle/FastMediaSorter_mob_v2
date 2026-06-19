@@ -184,6 +184,18 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
 
+        binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showSmallControls = isChecked))
+        }
+
+        binding.rowShowBlackScreenButton.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
+        }
+
         binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -274,7 +286,6 @@ class PlaybackSettingsFragment : Fragment() {
      * S0463: each row also shows a description subtitle and a (?) help button.
      */
     private fun setupSendCommandsGroup() {
-        Timber.d("S0474: send-commands group built with fast titles; labels resolved async")
         val container = binding.containerSendCommands
         container.removeAllViews()
         sendCommandRows.clear()
@@ -338,7 +349,7 @@ class PlaybackSettingsFragment : Fragment() {
      * S0463: resolves the display label for a settings toggle row.
      *
      * Package-backed targets (non-empty [ShareTarget.packages]) show the installed app's own
-     * label via PackageManager — consistent with SendToBottomSheet (S0459 ADR-5) and avoids
+     * label via PackageManager - consistent with SendToBottomSheet (S0459 ADR-5) and avoids
      * hardcoded brand literals. Falls back to [ShareTarget.titleRes] when no package resolves.
      * Logical targets always use [ShareTarget.titleRes].
      */
@@ -394,8 +405,14 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
                     }
+                    if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
+                        binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
+                    }
                     if (binding.rowDetailedErrors.isChecked != settings.showDetailedErrors) {
                         binding.rowDetailedErrors.setCheckedSilently(settings.showDetailedErrors)
+                    }
+                    if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
+                        binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         if (binding.rowEnablePip.isChecked != settings.enablePictureInPicture) {

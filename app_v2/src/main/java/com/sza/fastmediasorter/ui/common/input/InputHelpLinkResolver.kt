@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.common.input
 
 /**
- * Maps an [InputSurface] to the full documentation URL shown in the F1
+ * Maps an [UiSurface] to the full documentation URL shown in the F1
  * help dialog CTA.
  *
  * Base URL and surface anchors are kept here so a future documentation
@@ -19,19 +19,19 @@ object InputHelpLinkResolver {
      * @return direct URL to the surface-specific section of the docs;
      *   falls back to [BASE] when no dedicated anchor is known yet.
      */
-    fun urlFor(surface: InputSurface): String = when (surface) {
-        InputSurface.MAIN -> "$BASE#main"
-        InputSurface.BROWSE -> "$BASE#browse"
-        InputSurface.PLAYER -> "$BASE#player"
-        InputSurface.VR_PLAYER -> "$BASE#vr"
-        InputSurface.SETTINGS -> "$BASE#settings"
-        InputSurface.ADD_RESOURCE -> "$BASE#add-resource"
-        InputSurface.CLOUD_PICKER -> "$BASE#cloud-picker"
-        InputSurface.DUPLICATES -> "$BASE#duplicates"
-        InputSurface.RESOURCE_EDITOR -> "$BASE#resource-editor"
-        InputSurface.RECEIVE_SHARE -> "$BASE#receive-share"
-        InputSurface.WIDGET_CONFIG -> "$BASE#widget-config"
-        InputSurface.WELCOME -> "$BASE#welcome"
-        InputSurface.DIALOG -> "$BASE#dialogs"
+    fun urlFor(surface: UiSurface): String = when (surface) {
+        UiSurface.MAIN -> "$BASE#main"
+        UiSurface.BROWSE -> "$BASE#browse"
+        UiSurface.PLAYER -> "$BASE#player"
+        UiSurface.VR_PLAYER -> "$BASE#vr"
+        UiSurface.SETTINGS -> "$BASE#settings"
+        UiSurface.ADD_RESOURCE -> "$BASE#add-resource"
+        UiSurface.CLOUD_PICKER -> "$BASE#cloud-picker"
+        UiSurface.DUPLICATES -> "$BASE#duplicates"
+        UiSurface.RESOURCE_EDITOR -> "$BASE#resource-editor"
+        UiSurface.RECEIVE_SHARE -> "$BASE#receive-share"
+        UiSurface.WIDGET_CONFIG -> "$BASE#widget-config"
+        UiSurface.WELCOME -> "$BASE#welcome"
+        UiSurface.DIALOG -> "$BASE#dialogs"
     }
 }

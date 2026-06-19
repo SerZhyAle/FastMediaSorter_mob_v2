@@ -127,10 +127,6 @@ class GeneralSettingsViewSetupHelper(
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
-        binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(showSmallControls = isChecked))
-        }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
                 if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener

@@ -16,7 +16,7 @@ import javax.inject.Inject
  *
  * The matrix lives in `assets/device_profile_presets.csv` (one row per [com.sza.fastmediasorter.domain.model.AppSettings]
  * field, one column per profile). Only non-empty cells are overrides; an empty cell keeps the
- * current value (on a fresh install that equals the code default — the intended "empty = default"
+ * current value (on a fresh install that equals the code default - the intended "empty = default"
  * semantic). VR-capable flavors may still align the global 3D/VR toggle with the selected profile
  * even when the CSV column itself is empty.
  */

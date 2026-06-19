@@ -15,7 +15,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +39,7 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     @Suppress("unused")
-    private val multimodalInputSurface: InputSurface = InputSurface.WIDGET_CONFIG
+    private val multimodalInputSurface: UiSurface = UiSurface.WIDGET_CONFIG
 
     override fun getInitialFocusView(): View? = binding.widgetConfigComposeView
 

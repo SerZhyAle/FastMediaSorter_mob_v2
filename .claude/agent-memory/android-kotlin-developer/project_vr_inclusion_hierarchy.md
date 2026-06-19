@@ -7,12 +7,12 @@ metadata:
 
 VR feature architecture as of 2026-05-19:
 
-- **`standard`** — Google Play, no VR code. Mounts `src/vrStub/` (No-Op XR bindings) so any `@Inject XrDetectionFacade` in `src/main/` resolves cleanly to "VR unavailable".
-- **`vr`** — Store-published (Meta Horizon Store / Google Play AAB), VR-capable. arm64-only. Stays Store-clean: no Python, no yt-dlp, no GPL.
-- **`noLegal`** — Sideload-only (ADB), all-inclusive. Mounts `src/vr/java`, `src/vr/res`, `src/vr/AndroidManifest.xml` plus its own `src/noLegal/` overlay. arm64-v8a + x86_64. Ships Python + yt-dlp + NewPipeExtractor + OpenXR + DTS. VR feature surface is gated at runtime by `XrDetectionFacade` (S0245/S0249) — VR controls show disabled on non-XR devices with the standard "device unsupported" advisory.
-- **`lite` / `photos` / `legacy`** — phone-only, mount `src/vrStub/`.
+- **`standard`** - Google Play, no VR code. Mounts `src/vrStub/` (No-Op XR bindings) so any `@Inject XrDetectionFacade` in `src/main/` resolves cleanly to "VR unavailable".
+- **`vr`** - Store-published (Meta Horizon Store / Google Play AAB), VR-capable. arm64-only. Stays Store-clean: no Python, no yt-dlp, no GPL.
+- **`noLegal`** - Sideload-only (ADB), all-inclusive. Mounts `src/vr/java`, `src/vr/res`, `src/vr/AndroidManifest.xml` plus its own `src/noLegal/` overlay. arm64-v8a + x86_64. Ships Python + yt-dlp + NewPipeExtractor + OpenXR + DTS. VR feature surface is gated at runtime by `XrDetectionFacade` (S0245/S0249) - VR controls show disabled on non-XR devices with the standard "device unsupported" advisory.
+- **`lite` / `photos` / `legacy`** - phone-only, mount `src/vrStub/`.
 
-**Why:** Result of three architectural specs working together — S0240 (epic, declares hierarchy), S0245 (XR contracts + scaffold, BlockNeedUserTest), S0249 (cardVr layout + VrSettingsBlockFragment, Tactical), S0250 (this spec — activates noLegal VR flags + archives separate vrUnlicensed flavor + closes S0245 wiring gap by mounting `src/vrStub/` into the four phone-only flavors).
+**Why:** Result of three architectural specs working together - S0240 (epic, declares hierarchy), S0245 (XR contracts + scaffold, BlockNeedUserTest), S0249 (cardVr layout + VrSettingsBlockFragment, Tactical), S0250 (this spec - activates noLegal VR flags + archives separate vrUnlicensed flavor + closes S0245 wiring gap by mounting `src/vrStub/` into the four phone-only flavors).
 
 **How to apply:**
 - When implementing a new XR-related class, place the real impl under `src/vr/java/.../core/xr/` and the NoOp stub under `src/vrStub/java/.../core/xr/`. Never put XR-specific impl in `src/main/java/` (only the interface).

@@ -303,7 +303,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             onShowHelp = {
                 com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
                     supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
                 )
             },
         ).handler
@@ -320,6 +320,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
         return super.dispatchGenericMotionEvent(event)
     }
+
+    // Standalone document surface routes motion through its own keyboard/pointer handler; the shared
+    // gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
 
     // S0393 U3: WebView floating-selection ActionMode augmentation (Translate / Search-in-Google),
     // ported from legacy host. WebView can't use setCustomSelectionActionModeCallback, so intercept
@@ -389,7 +393,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
-        // Keep content above the nav bar — setDecorFitsSystemWindows(false) makes the window
+        // Keep content above the nav bar - setDecorFitsSystemWindows(false) makes the window
         // draw behind it, so content area needs an explicit bottom inset offset.
         ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())

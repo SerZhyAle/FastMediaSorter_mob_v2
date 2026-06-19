@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(fms_diagnostic_xr LANGUAGES CXX)
 
-# S0249 Phase 02: diagnostic XR runtime — minimal OpenXR bridge that hosts one static
+# S0249 Phase 02: diagnostic XR runtime - minimal OpenXR bridge that hosts one static
 # stereoscopic top-bottom equirectangular image and exits on any input.
 #
 # Build gating: this CMakeLists.txt is referenced by AGP for every flavor (so the

@@ -22,9 +22,7 @@ Standard, Lite, and Photos require Android 8.0 (API 26) or newer. The **Legacy**
 **No** for local files. **Yes** for network drives and cloud storage.
 
 ### Does the app have widgets?
-Yes! FastMediaSorter v2 offers **two types of widgets**:
-1. **Resource Shortcut Widget**: Quickly open any of your added resources (Local, Network, or Cloud) directly from your home screen.
-2. **Continue Reading Widget**: Launches the app and immediately starts slideshow mode - perfect for quick photo viewing sessions.
+Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
 
 ---
 
@@ -141,11 +139,11 @@ Touch Zones are invisible areas on the screen that trigger actions when tapped. 
 
 ```
 ┌─────────┬─────────┬─────────┐
-│ PREV    │ COMMAND │  NEXT   │
+│  BACK   │  COPY   │ RENAME  │
 ├─────────┼─────────┼─────────┤
-│ COPY    │  INFO   │ DELETE  │
+│  PREV   │  MOVE   │  NEXT   │
 ├─────────┼─────────┼─────────┤
-│ MOVE    │  MENU   │  PLAY   │
+│ COMMAND │ DELETE  │  PLAY   │
 └─────────┴─────────┴─────────┘
 ```
 
@@ -254,11 +252,12 @@ If the app detects Cyrillic text, it initializes the Tesseract engine, which is 
 Tap the **track name** displayed during the slideshow to skip to a different random track from your music resource.
 
 ### Does it work with all flavors?
-**No.** Background music is only available in:
+**No.** Background music is available in:
 - **Standard** (full audio support)
 - **Legacy** (local audio only)
+- **Photos** (slideshow background music supported)
 
-The **Lite** and **Photos** flavors do not include audio features.
+The **Lite** flavor does not include audio features.
 
 ---
 

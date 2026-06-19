@@ -15,7 +15,7 @@ Move spec files to `temp/done/` (git-ignored) and mark journal records `Archived
 ```
 
 - Ids may be space- or comma-separated. Each must match `S####`.
-- `--removes-functionality`: every listed id corresponds to a real removal of user-visible behaviour. Emits one `DELETE` line per id in `dev/FUNCTIONALITY.log` (step 4). Without it, archiving is bookkeeping (cancelled / superseded / never implemented) and the functionality log is left untouched. The flag is all-or-nothing for the batch; for a mix of "removes" and "bookkeeping" ids, run two separate invocations.
+- `--removes-functionality`: every listed id corresponds to a real removal of user-visible behaviour. Marks each id's capability record `removed` in `docs/ALL_FEATURES.jsonl` (step 4, via `close-and-log.ps1 -FuncOp DELETE` → `all_features/add.ps1 -Status removed`). Without it, archiving is bookkeeping (cancelled / superseded / never implemented) and the inventory is left untouched. The flag is all-or-nothing for the batch; for a mix of "removes" and "bookkeeping" ids, run two separate invocations.
 
 ## When to use
 
@@ -71,10 +71,10 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -SkipCatalogSync  # archived spec has no fresh .kt code
 ```
 
-- Pass `-FuncOp DELETE` + `-FuncDesc` only when `--removes-functionality` was given; otherwise omit both (or pass `-SkipFuncLog`). Cancelled / superseded / never-implemented specs produce no functionality-log entry.
+- Pass `-FuncOp DELETE` + `-FuncDesc` only when `--removes-functionality` was given; otherwise omit both (or pass `-SkipFuncLog`). Cancelled / superseded / never-implemented specs produce no inventory entry.
 - Pass `-SkipCatalogSync` unless a tag deletion in step 3 changed live `.kt` files (rare). If it did, drop `-SkipCatalogSync` on the relevant id, or run `scripts/catalog_sync.ps1 -Module app_v2` once after the batch.
 
-Individual-call fallback: `add_to_functionality_log.ps1 -Op DELETE ...` (only on flag) + `add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-arc" "..."` + a dev log line per `.kt` that lost a tag.
+Individual-call fallback: `scripts/all_features/add.ps1 -Id "<area>.<feature>" -Area .. -Name .. -Description ".." -Flavors .. -Spec <Sxxxx> -Status removed` (only on flag) + `add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-arc" "..."` + a dev log line per `.kt` that lost a tag.
 
 **5 - Chat output.**
 

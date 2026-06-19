@@ -67,6 +67,10 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
+    // S0547: gate the Downloadable Extensions row - lite/photos ship no downloadable sets, so the
+    // screen would open empty. Same contract the welcome page already uses.
+    @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
     @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
@@ -249,12 +253,18 @@ class GeneralSettingsFragment : Fragment() {
         }
         // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
         // the activity FragmentManager so the full-screen overlay attaches to a real container.
-        binding.btnDownloadableExtensions?.setOnClickListener {
-            requireActivity().supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
-                .addToBackStack(null)
-                .commit()
+        // S0547: hide on flavors with nothing to download (lite/photos) - mirrors the welcome page gate.
+        if (!capabilityAvailability.isExtensionsScreenAvailable()) {
+            Timber.d("S0547: Downloadable Extensions row hidden on settings - no downloadable sets in this build")
+            binding.btnDownloadableExtensions?.visibility = View.GONE
+        } else {
+            binding.btnDownloadableExtensions?.setOnClickListener {
+                requireActivity().supportFragmentManager
+                    .beginTransaction()
+                    .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
     }
 

@@ -78,7 +78,6 @@ class StatsSinkImpl @Inject constructor(
             drained
         }
         if (!toApply.isEmpty) {
-            Timber.d("S0473: flushing ${toApply.counters.size} stat counters to disk")
             withContext(io) { aggregate.apply(toApply) }
         }
     }
@@ -104,6 +103,11 @@ class StatsSinkImpl @Inject constructor(
             ViewKind.AUDIO -> counters(StatsKey.AUDIO_PLAYED to count, StatsKey.AUDIO_LISTEN_MS to durationMs)
             ViewKind.DOCUMENT -> counters(StatsKey.DOCUMENTS_OPENED to count, StatsKey.DOCUMENT_PAGES to pages)
             ViewKind.FRAME_EXPORT -> counters(StatsKey.FRAMES_EXPORTED to count)
+        }
+        is StatsEvent.PlaybackTime -> when (kind) {
+            ViewKind.VIDEO -> counters(StatsKey.VIDEO_WATCH_MS to durationMs)
+            ViewKind.AUDIO -> counters(StatsKey.AUDIO_LISTEN_MS to durationMs)
+            else -> StatsAggregateDelta()
         }
         is StatsEvent.Edit -> counters(
             when (kind) {

@@ -8,7 +8,7 @@ import com.sza.fastmediasorter.R
  * Any new settings fragment layout that contains user-facing rows MUST be appended here;
  * otherwise its rows will be silently invisible to the settings search. The
  * `fragment_settings_media_container` layout is intentionally excluded because it is a
- * tab host with no rows of its own — the actual rows live in the sub-fragment layouts.
+ * tab host with no rows of its own - the actual rows live in the sub-fragment layouts.
  */
 object SettingsSearchLayoutCatalog {
 

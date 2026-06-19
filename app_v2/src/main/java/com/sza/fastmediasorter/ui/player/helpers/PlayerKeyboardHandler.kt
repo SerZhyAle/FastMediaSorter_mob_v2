@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.input.fromKeyEvent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.common.MouseEventHandler
-import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
 
@@ -87,6 +86,8 @@ class PlayerKeyboardHandler(
         fun onUndoOperation() {}
         fun canCopyCurrent(): Boolean = false
         fun canMoveCurrent(): Boolean = false
+        /** Launch the [slotIndex]-th (1..10) button of the addressable Copy/Move group. Returns false when no such button exists. */
+        fun onOperationSlot(slotIndex: Int): Boolean = false
         fun onToggleBlackScreen() {}
         // S0162: toggle player-level rotation sensor (no-op when the player follows the OS - guard in ViewModel)
         fun onToggleRotationSensor() {}
@@ -188,6 +189,20 @@ class PlayerKeyboardHandler(
      * Seek steps preserve pre-migration values: seek_forward_5s → 10 s,
      * seek_forward_30s → 60 s (legacy step preserved for Phase 03).
      */
+    // Digit/numpad slot commands map to a 1..10 position in the addressable Copy/Move group.
+    private val operationSlotCommands: Map<String, Int> = mapOf(
+        CommandId.OPERATION_SLOT_1 to 1,
+        CommandId.OPERATION_SLOT_2 to 2,
+        CommandId.OPERATION_SLOT_3 to 3,
+        CommandId.OPERATION_SLOT_4 to 4,
+        CommandId.OPERATION_SLOT_5 to 5,
+        CommandId.OPERATION_SLOT_6 to 6,
+        CommandId.OPERATION_SLOT_7 to 7,
+        CommandId.OPERATION_SLOT_8 to 8,
+        CommandId.OPERATION_SLOT_9 to 9,
+        CommandId.OPERATION_SLOT_10 to 10,
+    )
+
     internal fun handleCommand(commandId: String): Boolean {
         val currentType = callback.getCurrentMediaType()
         return when (commandId) {
@@ -254,7 +269,7 @@ class PlayerKeyboardHandler(
             CommandId.SAVE -> { callback.onSaveCurrent(); true }
             CommandId.BLACK_SCREEN -> { callback.onToggleBlackScreen(); true }
             CommandId.ROTATION_TOGGLE -> { callback.onToggleRotationSensor(); true }
-            else -> false
+            else -> operationSlotCommands[commandId]?.let { callback.onOperationSlot(it) } ?: false
         }
     }
 

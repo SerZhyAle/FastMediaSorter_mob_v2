@@ -30,14 +30,14 @@ if (-not (Test-Path $localMediaDir)) {
 $assets = @(
     @{
         # High-resolution Moraine Lake source (7742x5327, Nikon D850, CC BY-SA 4.0 by DXR).
-        # Real outdoor scene — used as the FLAT mono reference.
+        # Real outdoor scene - used as the FLAT mono reference.
         Url = "https://upload.wikimedia.org/wikipedia/commons/7/7f/Moraine_Lake%2C_view_from_south_shore_20240823_2.jpg"
         LocalName = "moraine_lake_flat_mono.jpg"
         Type = "Picture"
     },
     @{
         # Big Buck Bunny 1080p trailer from the official Blender peach mirror.
-        # Real flat motion video — used as the FLAT mono video reference.
+        # Real flat motion video - used as the FLAT mono video reference.
         Url = "https://download.blender.org/peach/trailer/trailer_1080p.mov"
         LocalName = "big_buck_bunny_flat_mono.mp4"
         Type = "Movie"
@@ -212,7 +212,7 @@ if ($null -eq $ffmpegCommand) {
     Write-Host "Using ffmpeg at: $($ffmpegCommand.Source)" -ForegroundColor DarkGray
 }
 
-# Resolve adb similarly — pwsh -NoProfile loses the Android SDK PATH.
+# Resolve adb similarly - pwsh -NoProfile loses the Android SDK PATH.
 function Resolve-Adb {
     $cmd = Get-Command adb -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
@@ -256,7 +256,7 @@ if ($labelFontFile) {
 }
 
 # ---------------------------------------------------------------------------
-# ffmpeg helpers — every helper is idempotent (skips when target already exists)
+# ffmpeg helpers - every helper is idempotent (skips when target already exists)
 # ---------------------------------------------------------------------------
 
 function Invoke-Ffmpeg {
@@ -287,7 +287,7 @@ function Invoke-Ffmpeg {
 
 # Build a readable per-eye marker. S0291 owner round 2 feedback (2026-05-22 20:51):
 # h*0.48 was ~5x too large (filled FOV). New size h*0.10 puts marker on ~10% of half-frame.
-# Use explicit WORD labels ("LEFT"/"RIGHT") instead of single letters — disambiguates eye
+# Use explicit WORD labels ("LEFT"/"RIGHT") instead of single letters - disambiguates eye
 # routing (you can tell "LEFT" vs mirrored "TFEL" at a glance) and confirms by reading.
 function Build-LabelFilter {
     # S0291 owner round 4 (2026-05-22 21:51): h*0.10 still too large in headset; reduce to
@@ -407,7 +407,7 @@ function New-LoopedVideo {
         $right = Build-LabelFilter 'R' 'red'
         $stack = if ($Layout -eq 'TB') { 'vstack' } else { 'hstack' }
         # For SBS the hstack doubles the width. Cap each half to 2160px wide so the combined
-        # output stays at ≤4320x2160 — the Quest 3 AVC decoder ceiling for H.264 High profile.
+        # output stays at ≤4320x2160 - the Quest 3 AVC decoder ceiling for H.264 High profile.
         # For TB, vstack doubles the height, which is much less likely to exceed device limits.
         $scaleStep = if ($Layout -eq 'SBS') { '[0:v]scale=min(iw\,2160):-2[scaled];[scaled]' } else { '[0:v]' }
         $filter = '-filter_complex', "${scaleStep}split=2[a][b];[a]${left}[la];[b]${right}[ra];[la][ra]${stack}=inputs=2[out]", '-map', '[out]'
@@ -799,7 +799,7 @@ if (-not $deviceConnected) {
     exit 0
 }
 
-Write-Host "Device detected — pushing harvested samples.." -ForegroundColor Green
+Write-Host "Device detected - pushing harvested samples.." -ForegroundColor Green
 & $adbExe shell "mkdir -p $remotePictureDir $remoteMovieDir"
 
 # Full playlist (in the canonical display order used by Test Immersive rotation)

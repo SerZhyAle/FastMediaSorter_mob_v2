@@ -123,9 +123,9 @@
                 android:textColor="@color/text_color_secondary"
                 android:textSize="@dimen/toggler_desc_text_size" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTranslationPrewarmRetry"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"

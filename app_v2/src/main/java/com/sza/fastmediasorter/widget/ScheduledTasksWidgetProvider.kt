@@ -148,7 +148,7 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
                 }
                 views.setTextViewText(R.id.widget_scheduled_last_status, statusText)
             } else {
-                views.setTextViewText(R.id.widget_scheduled_last_status, "—")
+                views.setTextViewText(R.id.widget_scheduled_last_status, "-")
             }
 
             views.setTextViewText(

@@ -107,7 +107,6 @@ class BrowseLifecycleSetupManager(
             val settings = settingsRepository.getSettings().first()
             cachedSettings = settings
             updateState { it.copy(
-                showSmallControls = settings.showSmallControls,
                 useCompactElements = settings.useCompactElements
             ) }
         }

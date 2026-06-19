@@ -104,7 +104,6 @@ class AppStartupInitializer @Inject constructor(
      */
     private suspend fun recordLaunchBaseline() {
         if (!launchRecorded.compareAndSet(false, true)) return
-        Timber.d("S0473: recording always-on launch baseline")
         statisticsRepository.get().recordLaunch(BuildConfig.VERSION_NAME, BuildConfig.FLAVOR)
     }
 

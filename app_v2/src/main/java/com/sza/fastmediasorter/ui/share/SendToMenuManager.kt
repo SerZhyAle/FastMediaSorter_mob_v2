@@ -68,7 +68,6 @@ class SendToMenuManager @Inject constructor(
             dispatch(activity, receivers[0], content)
             return
         }
-        Timber.d("S0478: send-to bottom sheet shown with per-receiver icons")
         SendToBottomSheet.newInstance(content, settings)
             .show(activity.supportFragmentManager, TAG)
     }
@@ -96,7 +95,6 @@ class SendToMenuManager @Inject constructor(
         // already tapped «Send to..» to open it, so the header is redundant - drop it.
         subMenu.clearHeader()
         subMenu.item.setIcon(R.drawable.ic_share)
-        Timber.d("S0478: overflow submenu built with per-receiver icons")
         receivers.forEachIndexed { index, target ->
             val isSingleOnly = !target.batchCapable
             // ADR-5: package-backed receivers show the installed app's label, not a brand literal.

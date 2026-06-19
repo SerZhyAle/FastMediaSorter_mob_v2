@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/dialog_padding_large">
 
         <!-- Warning Title -->
         <TextView
@@ -18,61 +18,61 @@
             android:layout_height="wrap_content"
             android:text="@string/delete_action_cannot_be_undone_title"
             android:textColor="?attr/colorError"
-            android:textSize="20sp"
+            android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="@dimen/margin_large" />
 
         <!-- Subtitle -->
         <TextView
             android:id="@+id/tvDeleteMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="12dp" />
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginBottom="@dimen/margin_medium" />
 
         <!-- Files List -->
         <TextView
             android:id="@+id/tvFilesList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="4dp" />
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginBottom="@dimen/margin_small" />
 
         <!-- +N more files -->
         <TextView
             android:id="@+id/tvMoreFilesCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textStyle="italic"
             android:visibility="gone"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="@dimen/margin_medium" />
 
         <!-- Resource info wrapper -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="@dimen/margin_large">
 
             <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="8dp"
+                android:layout_width="@dimen/icon_size_button"
+                android:layout_height="@dimen/icon_size_button"
+                android:layout_marginEnd="@dimen/margin_normal"
                 android:layout_gravity="center_vertical"
                 android:src="@drawable/ic_resource_smb"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:id="@+id/tvResourceInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_gravity="center_vertical" />
         </LinearLayout>
 
@@ -82,13 +82,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:background="?attr/colorErrorContainer"
-            android:padding="12dp"
-            android:layout_marginBottom="16dp">
+            android:padding="@dimen/padding_normal"
+            android:layout_marginBottom="@dimen/margin_large">
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginEnd="12dp"
+                android:layout_width="@dimen/icon_size_small"
+                android:layout_height="@dimen/icon_size_small"
+                android:layout_marginEnd="@dimen/margin_medium"
                 android:src="@drawable/ic_cancel"
                 app:tint="?attr/colorError" />
 
@@ -99,7 +99,7 @@
                 android:layout_weight="1"
                 android:text="@string/network_delete_warning"
                 android:textColor="?attr/colorOnErrorContainer"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 
         <!-- Don't show again checkbox -->
@@ -107,7 +107,7 @@
             android:id="@+id/cbDontShowAgain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_size_small" />
 
     </LinearLayout>
 

@@ -203,6 +203,18 @@ class DuplicatesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S0512: additive range selection for within-group drag-select. Unions [paths] into the
+     * current selection in a single state mutation - additive (never deselects) so sweeping back
+     * and forth over the same rows does not flip-flop their checkboxes.
+     */
+    fun selectFileRange(paths: List<String>) {
+        if (paths.isEmpty()) return
+        _state.update { current ->
+            current.copy(selectedFilePaths = current.selectedFilePaths + paths)
+        }
+    }
+
     fun deleteSelectedFiles() {
         val selectedPaths = _state.value.selectedFilePaths
         if (selectedPaths.isEmpty()) return

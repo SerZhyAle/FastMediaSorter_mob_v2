@@ -68,17 +68,17 @@
                 tools:text="Installed" />
 
             <!-- Actions -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDownload"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/ocr_best_model_download"
                 android:textSize="13sp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnUninstall"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/ocr_best_model_delete"

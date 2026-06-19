@@ -53,8 +53,6 @@ class GeneralSettingsObserversHelper(
                 binding.rowHideGridActionButtons.setCheckedSilently(settings.hideGridActionButtons)
             if (binding.rowFileOpsInOverflowMenu.isChecked != settings.fileOpsInOverflowMenu)
                 binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
-            if (binding.rowSmallControls.isChecked != settings.showSmallControls)
-                binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
                 binding.rowCompactElements?.setCheckedSilently(settings.useCompactElements)
             // S0160: resource ops overflow toggle

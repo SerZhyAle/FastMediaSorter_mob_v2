@@ -190,7 +190,7 @@ class StereoVideoProcessorTest {
     // 7. GL effect contract
     // ──────────────────────────────────────────────────────────────────────────
 
-    // S0264: buildGlEffect returns null for every mode — the single-eye crop moved to a
+    // S0264: buildGlEffect returns null for every mode - the single-eye crop moved to a
     // TextureView matrix in PanelStereoCropApplier because Media3 1.2.1 Crop does not render
     // under surface_type=texture_view. These cases pin the no-GL-effect contract per mode.
 

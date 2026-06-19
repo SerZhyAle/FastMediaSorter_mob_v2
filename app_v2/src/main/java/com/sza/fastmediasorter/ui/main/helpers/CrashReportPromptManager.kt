@@ -31,7 +31,6 @@ class CrashReportPromptManager(private val activity: Activity) {
         // Mark handled before showing so a dismiss or a backgrounded prompt never re-offers this crash.
         prefs.edit().putString(KEY_LAST_HANDLED, crashFile.name).apply()
 
-        Timber.d("S0490: previous crash detected, offering report prompt")
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.crash_prompt_title)
             .setMessage(R.string.crash_prompt_message)

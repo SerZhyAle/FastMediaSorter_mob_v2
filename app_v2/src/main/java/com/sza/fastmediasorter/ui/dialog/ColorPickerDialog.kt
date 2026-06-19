@@ -68,9 +68,19 @@ class ColorPickerDialog : DialogFragment() {
         }
 
         binding.btnOk.setOnClickListener {
-            onColorSelected?.invoke(selectedColor)
-            dismiss()
+            confirmSelection()
         }
+    }
+
+    private fun confirmSelection() {
+        onColorSelected?.invoke(selectedColor)
+        dismiss()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = ::confirmSelection)
+        binding.btnOk.requestFocus()
     }
 
     private fun updateColorPreview() {

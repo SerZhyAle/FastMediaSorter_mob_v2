@@ -48,7 +48,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -132,6 +132,8 @@ class BrowseManagerInitializer(
     lateinit var folderPickerHandler: BrowseFolderPickerHandler
     lateinit var observerManager: BrowseObserverManager
     lateinit var listSubmitManager: BrowseListSubmitManager
+    // S0512: mouse band / touch drag multi-select over the media list.
+    lateinit var dragSelectManager: BrowseDragSelectManager
     // S0096: black screen overlay for audio libraries
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
     // S0374: adaptive priority+overflow controller for the top command bar.
@@ -306,7 +308,7 @@ class BrowseManagerInitializer(
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
                 override fun showCreateDrawingDialog() = resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
-                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
+                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles
@@ -450,6 +452,12 @@ class BrowseManagerInitializer(
         )
 
         setupDragToReorder()
+
+        dragSelectManager = BrowseDragSelectManager(
+            recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter,
+            viewModel = viewModel,
+        ).also { it.setup() }
 
         lifecycleHelper = BrowseLifecycleHelper(activity = activity, recyclerView = binding.rvMediaFiles,
             adapter = mediaFileAdapter, listSubmitManager = listSubmitManager)

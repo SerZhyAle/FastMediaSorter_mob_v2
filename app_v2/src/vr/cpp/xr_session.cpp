@@ -274,7 +274,7 @@ void main() {
         // Per-hand last-known stick deflection state: -1 = pushed left, 0 = neutral, +1 = right.
         // A transition 0 -> ±1 is the navigate event; we re-arm when stick returns to neutral.
         // triggerClicked is preserved as the kept-as-default-mapping signal for ray interaction
-        // (HUD click) — only the prev/next navigation is moved to the stick.
+        // (HUD click) - only the prev/next navigation is moved to the stick.
         int g_prevStickState[2] = {0, 0};
         bool g_prevTriggerClicked[2] = {false, false};
         // S0290 Phase 10 Step 10.3: running count of accepted navigations per hand for in-log
@@ -554,12 +554,12 @@ void main() {
                     float u = (float)x / (float)lon;
                     // S0291 owner round 3 fix (2026-05-22 21:26): owner observed "LEFT" text rendered
                     // as "TFEL" (horizontally mirrored) on diagnostic_360_stereo_tb.jpg. Root cause:
-                    // for sphere viewed from inside, the azimuth-vs-texture-U direction was inverted —
+                    // for sphere viewed from inside, the azimuth-vs-texture-U direction was inverted -
                     // as user turned LEFT, texture U DECREASED instead of INCREASED, producing a
                     // mirror image. Same bug was present on bundled landscape pano but masked because
                     // the lake scene has no readable text. Reverse phi direction so texture U=0
                     // appears behind user and increases counter-clockwise (standard equirect viewer
-                    // convention) — front-of-user now at u=0.25 (was 0.75) and turning RIGHT scrolls
+                    // convention) - front-of-user now at u=0.25 (was 0.75) and turning RIGHT scrolls
                     // toward larger u.
                     float phi = (1.0f - u) * 2.0f * kPI;
                     float sinP = std::sin(phi), cosP = std::cos(phi);
@@ -608,7 +608,7 @@ void main() {
                 {
                     float u = (float)x / (float)lon;
                     // Same U-axis mirror fix as sphere (see comment above). For the 180° forward
-                    // hemisphere, phi spans pi..2pi originally — reverse so the texture's natural
+                    // hemisphere, phi spans pi..2pi originally - reverse so the texture's natural
                     // left-to-right reads correctly when viewed from inside the half-shell.
                     float phi = kPI + (1.0f - u) * kPI;
                     float sinP = std::sin(phi), cosP = std::cos(phi);
@@ -1326,7 +1326,7 @@ void main() {
             xr_input_poll(g.localSpace, predictedTime);
 
             // S0290 Phase 10 (owner feedback round 2 2026-05-22): tighten thresholds to combat
-            // over-sensitivity reports — user sees "still jumping" even with edge-detection because
+            // over-sensitivity reports - user sees "still jumping" even with edge-detection because
             // a 0.6 deflect is easy to hit incidentally on Quest 3 sticks. Bumped to 0.85 (firm push
             // required) and re-arm to ±0.40 (clear release required). Race-guard duration upgraded
             // to a navigation-cooldown of 500 ms (kNavigateDebounceDuration) so a quick re-flick
@@ -1451,7 +1451,7 @@ void main() {
         // and the next xrEnumerate* call (re-init) aborts the whole process. Mitigation: keep
         // the XrInstance + EGL context alive for the WHOLE process lifetime, only destroy the
         // per-session pieces (session handle, swapchains, GL objects, hud, input) in shutdown.
-        // This matches the standard OpenXR pattern — instance is process-scoped, session is
+        // This matches the standard OpenXR pattern - instance is process-scoped, session is
         // immersive-scoped. Logged transitions so we can verify the path in the next test.
         LOGD("xr_session_init: g.instance=%p g.eglContext=%p (will reuse if non-null)",
              (void *)g.instance, (void *)g.eglContext);
@@ -1898,7 +1898,7 @@ void main() {
 
         // S0291 owner round 3 (2026-05-22 21:19): do NOT DeleteGlobalRef on g.activity at
         // shutdown. The Activity global ref must persist across the immersive enter/exit
-        // boundary for the lifetime of the process — see the load-bearing rationale in
+        // boundary for the lifetime of the process - see the load-bearing rationale in
         // diagnostic_xr_runtime.cpp::nativeInitSession (CheckJNI "stale reference with
         // serial number" crash on re-entry when the ref was deleted between sessions).
         // g.activity is reused by the JNI bridge on next nativeInitSession via IsSameObject;

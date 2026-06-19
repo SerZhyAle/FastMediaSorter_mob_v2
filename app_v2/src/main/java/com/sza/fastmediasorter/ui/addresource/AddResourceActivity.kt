@@ -16,7 +16,7 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
@@ -43,7 +43,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.ADD_RESOURCE) }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.ADD_RESOURCE) }
         override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
@@ -154,7 +154,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * it becomes visible. S0289.
      */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: add-resource initial-focus / first visible type card")
         val isShown = { v: android.view.View -> v.visibility == android.view.View.VISIBLE }
         if (isShown(binding.btnAddToResources)) return binding.btnAddToResources
         return listOf(

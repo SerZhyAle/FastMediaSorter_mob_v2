@@ -202,7 +202,7 @@ class CameraOcrFlowManager(
         val settings = settingsRepository.getSettings().first()
         // Translation availability inside this screen depends only on the global translation
         // master toggle and the per-capture OCR-only mode. The flavor capability gate is already
-        // satisfied — this Activity only launches in translation-capable flavors (Rule 15: no
+        // satisfied - this Activity only launches in translation-capable flavors (Rule 15: no
         // BuildConfig flavor guard in src/main).
         val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
         callback.renderCropLanguages(

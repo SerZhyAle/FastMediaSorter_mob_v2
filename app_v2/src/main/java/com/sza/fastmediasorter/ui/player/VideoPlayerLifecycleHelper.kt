@@ -19,6 +19,7 @@ internal class VideoPlayerLifecycleHelper(
 
     fun releasePlayer() {
         if (manager.exoPlayer == null && manager.activeResourceKey == null) return
+        manager.flushWatchClock()
         MemoryEnduranceTracker.endScenario()
 
         manager.pendingEffectsRunnable?.let { manager.effectsHandler.removeCallbacks(it) }
@@ -49,6 +50,8 @@ internal class VideoPlayerLifecycleHelper(
     }
 
     fun onPause() {
+        // Player no longer on screen: bank player time so background time is not counted.
+        manager.flushWatchClock()
         wasPlayingBeforePause = manager.exoPlayer?.isPlaying == true ||
             (manager.isUsingMediaPlayer && manager.mediaPlayer?.isPlaying == true)
         manager.pause()
@@ -56,6 +59,8 @@ internal class VideoPlayerLifecycleHelper(
     }
 
     fun onResume() {
+        // Resume player-time accounting if a media player is still loaded after returning to foreground.
+        manager.startWatchClock()
         if (wasPlayingBeforePause && (manager.exoPlayer != null || (manager.isUsingMediaPlayer && manager.mediaPlayer != null))) {
             manager.play()
             manager.startPositionSaving()
@@ -65,6 +70,7 @@ internal class VideoPlayerLifecycleHelper(
     }
 
     fun onDestroy() {
+        manager.flushWatchClock()
         manager.saveCurrentPosition()
         manager.stopPositionSaving()
 

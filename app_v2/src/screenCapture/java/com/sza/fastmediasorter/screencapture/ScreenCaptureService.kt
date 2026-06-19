@@ -62,6 +62,12 @@ class ScreenCaptureService : Service() {
     @Inject
     lateinit var imageClipboardWriter: Lazy<ImageClipboardWriter>
 
+    @Inject
+    lateinit var networkStateMonitor: Lazy<com.sza.fastmediasorter.core.network.NetworkStateMonitor>
+
+    @Inject
+    lateinit var saveFallbackNotifier: Lazy<com.sza.fastmediasorter.core.save.SaveFallbackNotifier>
+
     private var gestureDirection: String? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -157,8 +163,12 @@ class ScreenCaptureService : Service() {
             val resources = resourceRepository.get().getAllResourcesSync()
             val target = ScreenshotDestinationPolicy().resolve(
                 selectedResourceId = settings.screenshotDestinationResourceId,
-                resources = resources
+                resources = resources,
+                isResourceReachable = { networkStateMonitor.get().canReach(it.type) }
             )
+            val selectedResourceName = resources
+                .firstOrNull { it.id.toString() == settings.screenshotDestinationResourceId }
+                ?.name.orEmpty()
 
             // Copy to clipboard from the live bitmap before the save use case recycles it;
             // independent of the post-capture action and the save destination.
@@ -169,6 +179,14 @@ class ScreenCaptureService : Service() {
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {
                     toast(getString(R.string.screen_capture_saved_to, result.destinationLabel, result.fileName))
+                    result.fallbackReason?.let { reason ->
+                        saveFallbackNotifier.get().notify(
+                            reason = reason,
+                            folderLabel = result.destinationLabel,
+                            resourceName = selectedResourceName,
+                            background = true
+                        )
+                    }
                     runPostSaveAction(result.savedUri)
                     finishSuccessfully()
                 }
@@ -195,7 +213,6 @@ class ScreenCaptureService : Service() {
         } else {
             ScreenshotGestureAction.SILENT_SCREENSHOT
         }
-        Timber.d("S0425: mediaprojection capture direction=%s action=%s", direction, action)
         actionDispatcher.get().runPostSave(applicationContext, action, savedUri)
     }
 

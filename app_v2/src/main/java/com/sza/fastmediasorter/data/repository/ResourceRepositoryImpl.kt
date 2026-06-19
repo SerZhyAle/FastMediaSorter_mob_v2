@@ -132,8 +132,12 @@ class ResourceRepositoryImpl @Inject constructor(
                     
                     true
                 }
-                .sortedWith(getComparator(sortMode))
                 .toList()
+                // S0549: RANDOM must not go through a Comparator - a comparator returning random
+                // signs violates the general contract (non-transitive) and TimSort throws
+                // "Comparison method violates its general contract" on larger lists. Use a proper
+                // Fisher-Yates shuffle, consistent with the file-list RANDOM implementations.
+                .let { if (sortMode == SortMode.RANDOM) it.shuffled() else it.sortedWith(getComparator(sortMode)) }
         }
 
         // Standard SQL query for non-search filtering
@@ -237,7 +241,10 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.TITLE_DESC,
             SortMode.DURATION_DESC,
             SortMode.DATE_TAKEN_DESC -> compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.name }
-            SortMode.RANDOM -> Comparator { _, _ -> kotlin.random.Random.nextInt(-1, 2) }
+            // S0549: RANDOM is handled by .shuffled() at the call site, never via this comparator
+            // (a random-sign comparator violates the Comparator contract). Stable no-op keeps the
+            // `when` exhaustive; the call site guarantees this branch is unreachable.
+            SortMode.RANDOM -> Comparator { _, _ -> 0 }
         }
     }
     

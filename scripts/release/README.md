@@ -1,6 +1,6 @@
-# scripts/release — Operator Handbook
+# scripts/release - Operator Handbook
 
-Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store** (OpenHub-Store/GitHub-Store) can index and rank the project. Spec: **S0214 — github-store-publication**.
+Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store** (OpenHub-Store/GitHub-Store) can index and rank the project. Spec: **S0214 - github-store-publication**.
 
 ---
 
@@ -23,8 +23,8 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
    - `$env:GITHUB_TOKEN` exported with `repo` scope (REST fallback for the metadata applier; the publisher requires `gh` for now).
 2. **Branch.** The publisher refuses to run from anything other than `main`. Always invoke from the release worktree (`P:/ANDROID/FastMediaSorter_release`), not from a development worktree.
 3. **Built APKs.** `app_v2/build/outputs/apk/standard/release/*.apk` and `app_v2/build/outputs/apk/vr/release/*.apk` must exist and be no older than the current `versionName` mtime by more than 24h. Use:
-   - `.\a.ps1 r` — build standard release AAB + APK.
-   - `.\a.ps1 vr` — build VR release APK.
+   - `.\a.ps1 r` - build standard release AAB + APK.
+   - `.\a.ps1 vr` - build VR release APK.
 4. **Release notes.** `docs/WHATS_NEW.md` must contain the section for the version being published (either as `**Current release: <version>**` for the latest, or `## Previous Release: <version>` for older tags).
 
 ---
@@ -69,6 +69,7 @@ pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 |------|--------|
 | `-DryRun` | Parse, discover, stage, print the publish plan. No tag, no release, no upload. Branch guard becomes a warning instead of an abort. |
 | `-Force` | Allow republishing when the tag already exists. Default: false (publisher errors out on tag collision). |
+| `-Flavors <list>` | Subset of the spectrum to publish: any of `standard`, `lite`, `photos`, `legacy`, `vr`, `wear`, `noLegal`, or `all`. Omitted = full spectrum. Must match the flavors built by `build-release-spectrum.ps1 -Flavors <list>`; a requested flavor with no built APK aborts. `/skill-release` passes `standard` by default. |
 | `-Owner <name>` | Override repo owner (default: `SerZhyAle`). |
 | `-Repo <name>` | Override repo name (default: `FastMediaSorter_mob_v2`). |
 
@@ -83,27 +84,27 @@ pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 
 ## Order of Operations (publish-github-release.ps1)
 
-1. **Branch guard** — current branch must be `main`. Abort outside `-DryRun` otherwise.
-2. **Version discovery** — read `versionName` from `app_v2/build.gradle.kts`.
-3. **APK discovery** — locate standard + vr APKs via `output-metadata.json` first, then newest `.apk` by `LastWriteTime`. Both must be no older than `build.gradle.kts` mtime − 24h.
-4. **Staging** — copy both APKs to `temp/release/<version>/` with deterministic names: `FastMediaSorter-standard-<version>.apk`, `FastMediaSorter-vr-<version>.apk`. Staging dir is recreated fresh on each run.
-5. **Fingerprint check** (Phase 04) — `apksigner` extract → compare against `expected-signing-fingerprint.txt`. Abort on mismatch.
-6. **Release notes** — invoke `extract-release-notes.ps1 -Version <version>`. Abort if section missing (in `-DryRun`, fall back to placeholder body and continue).
-7. **Release create** — `gh release create v<version> --target main --title "FastMediaSorter <version>" --notes-file <staged-notes>`. Stable only — no `--prerelease`.
-8. **Asset upload** — `gh release upload v<version> <staged-standard-apk> <staged-vr-apk> --clobber`.
-9. **Readback verify** — `gh api repos/<owner>/<repo>/releases/tags/v<version> --jq '.assets[].name'` must contain both deterministic asset names.
+1. **Branch guard** - current branch must be `main`. Abort outside `-DryRun` otherwise.
+2. **Version discovery** - read `versionName` from `app_v2/build.gradle.kts`.
+3. **APK discovery** - locate standard + vr APKs via `output-metadata.json` first, then newest `.apk` by `LastWriteTime`. Both must be no older than `build.gradle.kts` mtime − 24h.
+4. **Staging** - copy both APKs to `temp/release/<version>/` with deterministic names: `FastMediaSorter-standard-<version>.apk`, `FastMediaSorter-vr-<version>.apk`. Staging dir is recreated fresh on each run.
+5. **Fingerprint check** (Phase 04) - `apksigner` extract → compare against `expected-signing-fingerprint.txt`. Abort on mismatch.
+6. **Release notes** - invoke `extract-release-notes.ps1 -Version <version>`. Abort if section missing (in `-DryRun`, fall back to placeholder body and continue).
+7. **Release create** - `gh release create v<version> --target main --title "FastMediaSorter <version>" --notes-file <staged-notes>`. Stable only - no `--prerelease`.
+8. **Asset upload** - `gh release upload v<version> <staged-standard-apk> <staged-vr-apk> --clobber`.
+9. **Readback verify** - `gh api repos/<owner>/<repo>/releases/tags/v<version> --jq '.assets[].name'` must contain both deterministic asset names.
 
 ---
 
 ## Order of Operations (publish-play-release.ps1)
 
-1. **Prerequisite Check** — verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
-2. **Version & Path Discovery** — retrieve current `versionName` from `app_v2/build.gradle.kts`. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
-3. **Edit Transaction** — open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
-4. **Resumable Upload** — upload the 100 MB AAB file using resumable chunk transfers with automatic socket retry guards. Retrieve the uploaded `versionCode`.
-5. **Release Notes Discovery** — check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
-6. **Track Update** — apply the uploaded AAB, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
-7. **API Commit** — commit the edit transaction with `changesNotSentForReview=true` to comply with Google Play's review pipeline requirements, making it immediately live on the track.
+1. **Prerequisite Check** - verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
+2. **Version & Path Discovery** - retrieve current `versionName` from `app_v2/build.gradle.kts`. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
+3. **Edit Transaction** - open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
+4. **Resumable Upload** - upload the 100 MB AAB file using resumable chunk transfers with automatic socket retry guards. Retrieve the uploaded `versionCode`.
+5. **Release Notes Discovery** - check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
+6. **Track Update** - apply the uploaded AAB, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
+7. **API Commit** - commit the edit transaction with `changesNotSentForReview=true` to comply with Google Play's review pipeline requirements, making it immediately live on the track.
 
 ---
 

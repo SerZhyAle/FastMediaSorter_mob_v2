@@ -7,5 +7,7 @@ enum class CommandGroup {
     AUDIO_SUBTITLES,
     SYSTEM_UI,
     SORTING_ACTIONS,
+    OPERATION_SLOTS,
+    BROWSER_ACTIONS,
     VR_ONLY
 }

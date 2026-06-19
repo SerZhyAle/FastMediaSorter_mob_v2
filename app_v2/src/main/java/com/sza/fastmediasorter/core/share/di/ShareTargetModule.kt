@@ -99,7 +99,7 @@ abstract class ShareTargetModule {
         @IntoSet
         fun keepTextTarget(): ShareTarget = ShareTarget(
             id = "keep_text",
-            // S0463: unique title per content-type variant (was: text_editor_action_send_keep — same as keep_drawing)
+            // S0463: unique title per content-type variant (was: text_editor_action_send_keep - same as keep_drawing)
             titleRes = R.string.share_target_title_keep_text,
             iconRes = R.drawable.ic_send_note,
             defaultEnabled = ShareTargetDefault.ON_IF_GOOGLE,
@@ -117,7 +117,7 @@ abstract class ShareTargetModule {
         @IntoSet
         fun keepDrawingTarget(): ShareTarget = ShareTarget(
             id = "keep_drawing",
-            // S0463: unique title per content-type variant (was: text_editor_action_send_keep — same as keep_text)
+            // S0463: unique title per content-type variant (was: text_editor_action_send_keep - same as keep_text)
             titleRes = R.string.share_target_title_keep_drawing,
             iconRes = R.drawable.ic_send_note_brush,
             defaultEnabled = ShareTargetDefault.ON_IF_GOOGLE,

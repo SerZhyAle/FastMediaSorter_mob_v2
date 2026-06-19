@@ -321,6 +321,16 @@
       "titleUk": "Питати назву кожної фотографії"
     },
     {
+      "key": "rowCameraCopyToClipboard",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Save photos to clipboard",
+      "titleRu": "Сохранять фотографии в буфер обмена",
+      "titleUk": "Зберігати фотографії в буфер обміну"
+    },
+    {
       "key": "rowCameraOcrOnly",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -601,16 +611,6 @@
       "titleUk": "Продовжувати відтворення при наступному запуску"
     },
     {
-      "key": "rowShowBlackScreenButton",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show \"Black Screen\" button",
-      "titleRu": "Показывать кнопку «Чёрный экран»",
-      "titleUk": "Показувати кнопку «Чорний екран»"
-    },
-    {
       "key": "rowUseTrash",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -781,6 +781,26 @@
       "titleUk": "Додаткові модулі"
     },
     {
+      "key": "btnExportFavorites",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Export Favorites",
+      "titleRu": "Экспорт избранного",
+      "titleUk": "Експорт обраного"
+    },
+    {
+      "key": "btnExportResources",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Export resources to file",
+      "titleRu": "Экспорт ресурсов в файл",
+      "titleUk": "Експорт ресурсів у файл"
+    },
+    {
       "key": "btnExportSettings",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -799,6 +819,26 @@
       "titleEn": "How-To Guides",
       "titleRu": "Пошаговые инструкции",
       "titleUk": "Покрокові інструкції"
+    },
+    {
+      "key": "btnImportFavorites",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Import Favorites",
+      "titleRu": "Импорт избранного",
+      "titleUk": "Імпорт обраного"
+    },
+    {
+      "key": "btnImportResources",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Import resources from file",
+      "titleRu": "Импорт ресурсов из файла",
+      "titleUk": "Імпорт ресурсів із файлу"
     },
     {
       "key": "btnImportSettings",
@@ -1211,16 +1251,6 @@
       "titleUk": "Показувати підтеки окремо"
     },
     {
-      "key": "rowSmallControls",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Compact bottom buttons",
-      "titleRu": "Компактные кнопки внизу",
-      "titleUk": "Компактні кнопки внизу"
-    },
-    {
       "key": "rowSourceCloud",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1571,6 +1601,16 @@
       "titleUk": "Відтворювати відео/аудіо в слайдшоу до кінця"
     },
     {
+      "key": "rowShowBlackScreenButton",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show \"Black Screen\" button",
+      "titleRu": "Показывать кнопку «Чёрный экран»",
+      "titleUk": "Показувати кнопку «Чорний екран»"
+    },
+    {
       "key": "rowShowCommandPanel",
       "sectionId": "playback",
       "destination": "PLAYBACK",
@@ -1589,6 +1629,16 @@
       "titleEn": "Show touch zones hint on first run",
       "titleRu": "Показывать подсказку сенсорных зон при первом запуске",
       "titleUk": "Показувати підказку сенсорних зон при першому запуску"
+    },
+    {
+      "key": "rowSmallControls",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Compact player buttons",
+      "titleRu": "Компактные кнопки плеера",
+      "titleUk": "Компактні кнопки плеєра"
     },
     {
       "key": "btnClearSnapshotResource",
@@ -1649,6 +1699,16 @@
       "titleEn": "Support video",
       "titleRu": "Поддержка видео",
       "titleUk": "Підтримка відео"
+    },
+    {
+      "key": "rowVideoFrameCopyToClipboard",
+      "sectionId": "video",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_video",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Save video frames to clipboard",
+      "titleRu": "Сохранять кадры видео в буфер обмена",
+      "titleUk": "Зберігати кадри відео в буфер обміну"
     }
   ]
 }

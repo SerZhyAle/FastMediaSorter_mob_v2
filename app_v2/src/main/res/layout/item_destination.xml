@@ -22,6 +22,7 @@
             android:layout_marginEnd="@dimen/margin_small"
             android:clickable="true"
             android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
             tools:background="#FF5722"/>
 
         <LinearLayout

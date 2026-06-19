@@ -27,7 +27,7 @@ build/
 bin/
 gen/
 out/
-# Note: a broad `release/` rule was removed (collateral damage —
+# Note: a broad `release/` rule was removed (collateral damage -
 # it excluded `app_v2/src/release/` source set and `scripts/release/`
 # tooling from the repo, which silently broke release builds on main).
 # Gradle build outputs under `release/` are already covered by `**/build/`
@@ -280,6 +280,7 @@ docs/FEATURES_noLegal.md
 docs/FEATURES_noLegal_RU.md
 docs/FEATURES_noLegal_UK.md
 docs/ALL_FEATURES_noLegal.jsonl
+docs/SETTINGS_REFERENCE_noLegal.md
 
 # Agent continuity layer artifacts (S0268)
 dev/agent-continuity/

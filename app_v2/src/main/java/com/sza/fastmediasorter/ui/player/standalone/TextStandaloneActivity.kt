@@ -267,7 +267,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             onShowHelp = {
                 com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
                     supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
                 )
             },
         ).handler
@@ -285,6 +285,10 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
         return super.dispatchGenericMotionEvent(event)
     }
 
+    // Standalone text surface routes motion through its own keyboard/pointer handler; the shared
+    // gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
+
     // S0393: reapply window insets after rotation (configChanges -> no recreate), ported from legacy.
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -301,7 +305,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
-        // Keep content above the nav bar — setDecorFitsSystemWindows(false) makes the window
+        // Keep content above the nav bar - setDecorFitsSystemWindows(false) makes the window
         // draw behind it, so content area needs an explicit bottom inset offset.
         ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())

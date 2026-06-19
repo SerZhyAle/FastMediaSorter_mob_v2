@@ -312,6 +312,12 @@
     <dimen name="dialog_max_width">300dp</dimen>
     <dimen name="dialog_field_spacing">2dp</dimen>
     <dimen name="dialog_button_spacing">2dp</dimen>
+    <!-- Unified dialog action pair (S0538): touch-friendly height + a deliberate gap so confirm/cancel cannot be confused by a blind finger tap.
+         Compact variants are exactly half - the "Compact elements (global)" toggle reduces UI by 50%; the theme attribute swaps between them. -->
+    <dimen name="dialog_action_button_min_height">56dp</dimen>
+    <dimen name="dialog_action_button_gap">16dp</dimen>
+    <dimen name="dialog_action_button_min_height_compact">28dp</dimen>
+    <dimen name="dialog_action_button_gap_compact">8dp</dimen>
     <dimen name="dialog_color_item_size">32dp</dimen>
     <dimen name="dialog_color_grid_spacing">4dp</dimen>
 

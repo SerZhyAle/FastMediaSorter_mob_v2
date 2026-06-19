@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.keybinding
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +13,7 @@ import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
+import com.sza.fastmediasorter.ui.keybinding.helpers.remappableDevices
 
 sealed class KeybindingListItem {
     data class Header(val group: CommandGroup, val isExpanded: Boolean) : KeybindingListItem()
@@ -75,9 +77,21 @@ class KeybindingListAdapter(
             binding.tvCommandLabel.text = row.labelKey
             binding.tvBindings.text = formatBindings(row.bindings)
 
-            binding.btnRemap.setOnClickListener {
-                val device = row.bindings.keys.firstOrNull() ?: "keyboard"
-                onRemapClick(row.commandId, device, 0)
+            binding.btnRemap.setOnClickListener { anchor ->
+                // Let the user pick which device slot to remap (S0509): the row used to remap only
+                // the first existing device, so a gamepad binding was visible but never editable.
+                val devices = remappableDevices(row.bindings)
+                val popup = PopupMenu(anchor.context, anchor)
+                devices.forEachIndexed { index, device ->
+                    val current = row.bindings[device]?.joinToString(", ") { formatter.format(it) }
+                        ?: anchor.context.getString(R.string.keybinding_device_unset)
+                    popup.menu.add(0, index, index, "${formatter.deviceLabel(device)}: $current")
+                }
+                popup.setOnMenuItemClickListener { item ->
+                    onRemapClick(row.commandId, devices[item.itemId], 0)
+                    true
+                }
+                popup.show()
             }
 
             binding.btnReset.isEnabled = row.hasOverride

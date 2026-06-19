@@ -8,6 +8,12 @@
     -->
     <attr name="customPlayerControlsLayout" format="reference" />
 
+    <!-- Unified dialog action-button sizing (S0538). Default theme binds the large dimens; the
+         ThemeOverlay.FastMediaSorter.CompactDialogButtons overlay (applied in BaseActivity when
+         "Compact elements (global)" is on) rebinds them to the 50% compact dimens. -->
+    <attr name="dialogActionButtonMinHeight" format="dimension|reference" />
+    <attr name="dialogActionButtonGap" format="dimension|reference" />
+
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />

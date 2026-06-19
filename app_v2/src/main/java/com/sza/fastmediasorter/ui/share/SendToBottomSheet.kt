@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.databinding.SheetSendToBinding
 import com.sza.fastmediasorter.databinding.ItemSendToReceiverBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -87,6 +88,13 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
             binding.rvSendToReceivers.findViewHolderForAdapterPosition(0)
                 ?.itemView?.requestFocus()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Pure picker: tapping a receiver row is the action, so no-op confirm gives Esc-dismiss and
+        // focus traversal without a false Enter-confirm.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

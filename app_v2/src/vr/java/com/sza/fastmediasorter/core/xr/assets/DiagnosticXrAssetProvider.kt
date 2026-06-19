@@ -16,7 +16,7 @@ import timber.log.Timber
  * image is rendered on a full sphere so the user can rotate the head and see the scene from any
  * direction.
  *
- * The provider is VR-flavor only — phone-only flavors never inject this class because the
+ * The provider is VR-flavor only - phone-only flavors never inject this class because the
  * `XrEntryGateway` no-op path short-circuits before the runtime is consulted.
  *
  * Asset facts (kept in sync with `THIRD_PARTY_LICENSES.md`):

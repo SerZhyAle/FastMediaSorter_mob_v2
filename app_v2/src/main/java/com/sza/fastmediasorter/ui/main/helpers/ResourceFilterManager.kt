@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.main.ResourceTab
-import timber.log.Timber
 
 /**
  * Manages resource filtering and sorting logic.
@@ -80,7 +79,6 @@ class ResourceFilterManager {
     fun pinAllFilesFirst(resources: List<MediaResource>): List<MediaResource> {
         val index = resources.indexOfFirst { it.isAllFilesPredefined }
         if (index <= 0) return resources
-        Timber.d("S0488: hoisting All-files resource from index $index to top")
         val reordered = resources.toMutableList()
         val pinned = reordered.removeAt(index)
         reordered.add(0, pinned)

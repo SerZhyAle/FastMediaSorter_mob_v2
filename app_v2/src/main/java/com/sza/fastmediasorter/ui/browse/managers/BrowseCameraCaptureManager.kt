@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
@@ -54,7 +55,11 @@ class BrowseCameraCaptureManager(
     // S0371: video capture completion. Distinct from [onFileSaved] so the host can honor the
     // open-in-player setting (never the drawing editor) after a recording is saved.
     private val onVideoCaptured: (fileName: String) -> Unit,
-    private val onUploadFile: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean
+    private val onUploadFile: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
+    // S0522: reachability pre-check + user notification when a capture is redirected to a local
+    // default folder because the configured network destination is unavailable.
+    private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
+    private val saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier,
 ) {
 
     // region Fields & launcher
@@ -396,12 +401,21 @@ class BrowseCameraCaptureManager(
         // S0367: a real browsed folder always saves into itself (unchanged). Only when the capture
         // would otherwise land in DCIM/Camera - i.e. the browsed resource is a virtual/camera target
         // and is not a usable on-device folder - is the configured camera-photos destination honoured.
-        val target = if (isVideo) {
+        val resolvedTarget = if (isVideo) {
             resolveVideoSaveTarget(resource)
         } else {
             resolveCameraSaveTarget(resource)
         }
-        val editorResourceId = target.id
+        // S0522: when the resolved destination is a network resource that cannot be reached right
+        // now, skip the doomed upload and route straight to the local default folder.
+        val unreachableNetwork = resolvedTarget.type.isNetworkResource &&
+            !networkStateMonitor.canReach(resolvedTarget.type)
+        val target: CameraCaptureTarget = if (unreachableNetwork) {
+            if (isVideo) localVideoFallbackTarget() else CameraCaptureTarget.CameraFolder
+        } else {
+            resolvedTarget
+        }
+        val editorResourceId = resolvedTarget.id
         val result = cameraCaptureSaver.save(tempFile, name, target) { temp, fileName, uploadTarget ->
             onUploadFile(temp, fileName, uploadTarget.toMediaResource())
         }
@@ -418,6 +432,16 @@ class BrowseCameraCaptureManager(
                             R.string.camera_capture_copied_to_clipboard,
                             Toast.LENGTH_SHORT,
                         ).show()
+                    }
+                    // S0522: tell the user when the capture was redirected to a local folder because
+                    // the configured network destination was unreachable or the upload failed.
+                    if (unreachableNetwork || result.fallbackReason != null) {
+                        saveFallbackNotifier.notify(
+                            reason = result.fallbackReason ?: SaveFallbackReason.ResourceUnavailable,
+                            folderLabel = if (isVideo) Environment.DIRECTORY_MOVIES else "${Environment.DIRECTORY_DCIM}/Camera",
+                            resourceName = resolvedTarget.name,
+                            background = false,
+                        )
                     }
                     when {
                         isVideo -> onVideoCaptured(name)
@@ -493,6 +517,11 @@ class BrowseCameraCaptureManager(
                 return configured.toCaptureTarget()
             }
         }
+        return localVideoFallbackTarget()
+    }
+
+    /** S0522: public Movies folder target used when a network video destination is unreachable. */
+    private fun localVideoFallbackTarget(): CameraCaptureTarget.Resource {
         val moviesDir = CaptureDestinationPolicy.resolveVideoDestination(null).also { it.mkdirs() }
         return CameraCaptureTarget.Resource(
             id = -1L,

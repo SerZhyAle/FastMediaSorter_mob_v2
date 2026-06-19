@@ -17,7 +17,6 @@ class SetStatisticsCollectionEnabledUseCase @Inject constructor(
     private val statistics: StatisticsRepository,
 ) {
     suspend operator fun invoke(enabled: Boolean) {
-        Timber.d("S0473: stats collection toggle -> $enabled")
         settings.setStatisticsEnabled(enabled)
         if (!enabled) {
             statistics.wipeDetailed()

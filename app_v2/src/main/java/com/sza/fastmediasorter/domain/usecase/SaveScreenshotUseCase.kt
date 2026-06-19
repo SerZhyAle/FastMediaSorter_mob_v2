@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -36,7 +37,10 @@ class SaveScreenshotUseCase @Inject constructor(
         data class Success(
             val fileName: String,
             val destinationLabel: String,
-            val savedUri: Uri?
+            val savedUri: Uri?,
+            // Non-null when the screenshot was redirected to a local folder because the selected
+            // network resource was unreachable; the caller turns this into a user notification.
+            val fallbackReason: SaveFallbackReason? = null
         ) : SaveResult
 
         data class Failure(val error: Throwable) : SaveResult
@@ -152,7 +156,8 @@ class SaveScreenshotUseCase @Inject constructor(
                     SaveResult.Success(
                         fileName = fileName,
                         destinationLabel = publicFolderLabel(target.relativePath),
-                        savedUri = Uri.parse(committedUriString)
+                        savedUri = Uri.parse(committedUriString),
+                        fallbackReason = target.fallbackReason
                     )
                 },
                 onFailure = { SaveResult.Failure(it) }

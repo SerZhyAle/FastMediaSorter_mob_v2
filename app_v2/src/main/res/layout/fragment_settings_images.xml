@@ -122,10 +122,10 @@
 
         <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_music_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <Button android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetDefaultImageViewer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="match_parent"

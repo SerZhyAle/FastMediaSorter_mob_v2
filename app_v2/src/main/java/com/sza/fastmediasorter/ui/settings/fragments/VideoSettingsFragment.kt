@@ -42,7 +42,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupViews() {
-        // Support Videos — help payload now folded into the row's helper icon (str_helpTitle/str_helpMessage)
+        // Support Videos - help payload now folded into the row's helper icon (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportVideos) { isChecked ->
             val current = viewModel.settings.value
             val updated = current
@@ -51,7 +51,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(updated)
         }
 
-        // Show video thumbnails — help payload folded into the row
+        // Show video thumbnails - help payload folded into the row
         bindSwitch(binding.rowShowVideoThumbnails) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
@@ -82,7 +82,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             }
         })
 
-        // Free-standing help icon next to "Video size limit" label — not part of a switch row,
+        // Free-standing help icon next to "Video size limit" label - not part of a switch row,
         // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpVideoSizeLimits.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
@@ -141,7 +141,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(videoSnapshotResourceId = null))
         }
 
-        // Free-standing help icon next to "Video snapshot" section header — not part of a switch row,
+        // Free-standing help icon next to "Video snapshot" section header - not part of a switch row,
         // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpVideoSnapshot.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(

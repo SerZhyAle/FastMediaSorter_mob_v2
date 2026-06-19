@@ -69,6 +69,12 @@ if (Test-Path $dataFile) {
             if ($obj.id -notmatch '^[a-z0-9]+(?:[-_][a-z0-9]+)*\.[a-z0-9]+(?:[-_][a-z0-9]+)*$') {
                 $errors.Add("L${lineNo}: id '$($obj.id)' not kebab '<area>.<feature>'")
             }
+            # S0543: the area-prefix must be an area slug, not a spec id (s####). Active records only;
+            # 'removed' tombstones keep their frozen historical id.
+            $idStatus = if ($obj.PSObject.Properties.Name -contains 'status' -and $obj.status) { "$($obj.status)" } else { "active" }
+            if ($idStatus -ne 'removed' -and ($obj.id.Split('.')[0] -match '^s\d{4}$')) {
+                $errors.Add("L${lineNo}: id '$($obj.id)' uses a spec id as area prefix; use the area slug")
+            }
             if ($seenIds.ContainsKey($obj.id)) {
                 $errors.Add("L${lineNo}: duplicate id '$($obj.id)' (first at L$($seenIds[$obj.id]))")
             } else {

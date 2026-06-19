@@ -494,7 +494,7 @@
                                     android:textColor="@color/text_color_secondary"
                                     android:textSize="@dimen/toggler_title_text_size" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnSelectCameraPhotosDest"
                                     style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                                     android:layout_width="wrap_content"
@@ -564,7 +564,7 @@
                                     android:textColor="@color/text_color_secondary"
                                     android:textSize="@dimen/toggler_title_text_size" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnSelectVideoRecordingDest"
                                     style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                                     android:layout_width="wrap_content"
@@ -628,7 +628,7 @@
                                 android:textColor="@color/text_color_secondary"
                                 android:textSize="@dimen/toggler_title_text_size" />
 
-                            <Button
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSelectMicRecordingDest"
                                 style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                                 android:layout_width="wrap_content"
@@ -637,15 +637,6 @@
                                 android:textAllCaps="false" />
                         </LinearLayout>
                     </LinearLayout>
-
-                    <!-- S0050: Show Black Screen button toggle (moved from Behaviour, S0318) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowShowBlackScreenButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/settings_black_screen_button_title"
-                        app:str_subtitle="@string/settings_black_screen_button_desc" />
 
                     <!-- Calculator + Embedded game (moved here from the General tab "Other functionality" group) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -785,7 +776,7 @@
                             app:str_title="@string/link_autodownload_master_label"
                             app:str_subtitle="@string/link_autodownload_master_summary" />
 
-                        <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                        <LinearLayout android:id="@+id/row_link_autodownload_resource" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
@@ -845,7 +836,7 @@
                         app:str_helpTitle="@string/setting_gesture_overlay_help_title"
                         app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
 
-                    <LinearLayout android:id="@+id/rowScreenshotGestureActionDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionDown" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_down_title" android:textSize="@dimen/toggler_title_text_size" />
@@ -854,7 +845,7 @@
                         <TextView android:id="@+id/tvScreenshotGestureActionDownValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
-                    <LinearLayout android:id="@+id/rowScreenshotGestureActionRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionRight" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_right_title" android:textSize="@dimen/toggler_title_text_size" />
@@ -863,7 +854,7 @@
                         <TextView android:id="@+id/tvScreenshotGestureActionRightValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
-                    <LinearLayout android:id="@+id/rowScreenshotGestureActionUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionUp" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_up_title" android:textSize="@dimen/toggler_title_text_size" />
@@ -873,7 +864,7 @@
                     </LinearLayout>
 
                     <!-- Screenshot destination (tap opens the destination picker) -->
-                    <LinearLayout android:id="@+id/rowScreenshotDestination" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotDestination" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 

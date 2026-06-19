@@ -141,6 +141,30 @@ adjacent code is touched.
 | `settings_help_icon_margin` | - | Gap between text group and help icon |
 | `checkbox_subtitle_margin_start` | - | Help text indent under checkbox |
 
+## Button Taxonomy (MANDATORY)
+
+One named Material3 style per semantic role, defined in `values/themes.xml`. The same role must look identical everywhere - do NOT introduce a plain `<Button>`, a raw `Widget.MaterialComponents.*`/`Widget.Material3.*` reference, or a one-off per-screen style for a role already covered below. Pick by the button's role, not by how it should look.
+
+| Role | Style | When to use |
+|------|-------|-------------|
+| Primary / confirm | `Widget.FastMediaSorter.Button.Filled` | The single main affirmative action of a screen or dialog (Save, OK, Grant, primary CTA). At most one per surface. |
+| Secondary emphasis | `Widget.FastMediaSorter.Button.Tonal` | A secondary action that still needs weight next to the primary (alternative confirm, "Use anyway"). |
+| Secondary | `Widget.FastMediaSorter.Button.Outlined` | Neutral secondary action paired with a Filled primary (Back, Choose, Browse). |
+| Low-emphasis / cancel | `Widget.FastMediaSorter.Button.Text` | Dismiss / cancel / "Not now" / link-like actions; anything that previously used `?android:attr/borderlessButtonStyle`. |
+| Icon-only | `Widget.FastMediaSorter.Button.Icon` | Toolbar / inline icon actions that want a Material ripple and 48dp target. |
+
+Dialog action pair (S0538) - special-purpose, NOT the general role taxonomy: `Widget.FastMediaSorter.Button.Dialog{Confirm,Cancel,Destructive}`. Use these (and only these) for the confirm/cancel pair of any non-system dialog. They are deliberately large (min `dialog_action_button_min_height`, ~56dp) and color-coded (green confirm / red destructive / neutral outlined cancel) so a blind finger tap (e.g. while driving) cannot miss or confuse them. The "at most one Filled per surface" rule does not apply to this pair.
+
+Rules:
+
+- Apply via `style="@style/Widget.FastMediaSorter.Button.<Role>"` on a `com.google.android.material.button.MaterialButton`.
+- Settings surfaces use the `Widget.FastMediaSorter.SettingsButton.*` variants - they inherit the family and only adjust text size/style. Do not fork a new settings button style.
+- Colors come from the theme (`?attr/color*`) and the family's shape appearance - never hardcode hex on a button (Rule 19). Use `?attr/`/`@color/`.
+- Keep `res/layout/` and `res/layout-land/` in sync (Rule 11); preserve ≥48dp touch target and D-pad/TV focus (Rule 16).
+- Compact elements (global): when "Compact elements" is on (`AppSettings.useCompactElements`, default on), unified buttons on a surface that participates in compact mode must shrink with the rest of that surface. Compact scaling is applied per-surface (layout swap such as `custom_player_controls` <-> `custom_player_controls_large`, or a `*SmallControls`/`*CompactElements` manager driven by the setting), not by a single global theme switch - a new compact-aware surface wires its own scaling. EXEMPT: the S0538 dialog action pair keeps its large fixed size even in compact mode (its whole purpose is to stay unmissable).
+- Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
+- A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
+
 ## Performance & Resource Optimization
 
 To maintain fast startup times (cold start), low memory consumption, and efficient CPU usage, the following patterns must be strictly enforced:

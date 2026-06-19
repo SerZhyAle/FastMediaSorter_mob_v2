@@ -53,6 +53,10 @@
     <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
     <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
     <color name="focus_button_stroke">#FF1976D2</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
+    <!-- S0512: translucent transient-state fills for item_interaction_overlay (android:foreground).
+         Must be semi-transparent so they layer over selected/alternating row backgrounds without hiding content. -->
+    <color name="item_overlay_pressed">#22000000</color>
+    <color name="item_overlay_hovered">#11000000</color>
     <!-- Thumbnail backgrounds -->
     <color name="thumbnail_doc_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
     <color name="thumbnail_video_bg">#F48FB1</color>    <!-- Pink 200 -->
@@ -198,6 +202,23 @@
     <color name="tv_banner_bg">#1A1A2E</color>
     <!-- Camera-OCR crop selection frame (bright red) -->
     <color name="crop_frame_red">#FFFF1744</color>
+
+    <!-- ============================================================ -->
+    <!-- CAMERA-OCR TRANSLATE (S0501: intentional dark surface) -->
+    <!-- Viewfinder/result overlay stays dark in both light and dark
+         system themes (no -night override), so controls remain legible
+         over the live preview. Do not convert to ?attr/ theme tokens. -->
+    <!-- ============================================================ -->
+    <color name="camera_ocr_bg">#121214</color>
+    <color name="camera_ocr_scrim">#99121214</color>
+    <color name="camera_ocr_card_bg">#1D1D21</color>
+    <color name="camera_ocr_stroke">#2F2F37</color>
+    <color name="camera_ocr_stroke_save">#2F4F37</color>
+    <color name="camera_ocr_text_primary">#E1E1E6</color>
+    <color name="camera_ocr_text_emphasis">#FFFFFF</color>
+    <color name="camera_ocr_text_secondary">#A1A1AA</color>
+    <color name="camera_ocr_text_original">#C4C4CC</color>
+    <color name="camera_ocr_accent_save">#4CAF50</color>
 
     <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
          so the five media-type segments stay visually distinct; legend always shows value text,

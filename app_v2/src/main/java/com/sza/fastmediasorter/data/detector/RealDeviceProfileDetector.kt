@@ -27,7 +27,7 @@ class RealDeviceProfileDetector @Inject constructor(
         val signals = mutableListOf<String>()
         val uiMode = DetectionHelper.getUiModeType(context)
 
-        // HIGH confidence — explicit device class. UiModeManager is the strongest signal Android
+        // HIGH confidence - explicit device class. UiModeManager is the strongest signal Android
         // exposes; PackageManager features are the backstop for OEMs that don't set the UI mode.
         if (uiMode == Configuration.UI_MODE_TYPE_VR_HEADSET || DetectionHelper.hasVrFeatures(context)) {
             signals.add(if (uiMode == Configuration.UI_MODE_TYPE_VR_HEADSET) "ui_mode_vr_headset" else "has_vr_features")
@@ -43,7 +43,7 @@ class RealDeviceProfileDetector @Inject constructor(
             return result(DeviceProfileType.TV_MEDIA_BOX, DetectionConfidence.HIGH, signals)
         }
 
-        // MEDIUM confidence — desktop / Chromebook / Samsung DeX and large screens map to the
+        // MEDIUM confidence - desktop / Chromebook / Samsung DeX and large screens map to the
         // "Tablet & desktop mode" profile (HOME_TABLET); §5.2 treats desktop as a tablet modifier.
         val smallestWidthDp = DetectionHelper.getSmallestWidthDp(context)
         if (DetectionHelper.isChromebook(context) || DetectionHelper.hasPcFeature(context) ||
@@ -62,7 +62,7 @@ class RealDeviceProfileDetector @Inject constructor(
             return result(DeviceProfileType.PERSONAL_SMARTPHONE, DetectionConfidence.MEDIUM, signals)
         }
 
-        // LOW confidence — no reliable signal; safe handheld fallback.
+        // LOW confidence - no reliable signal; safe handheld fallback.
         signals.add("fallback_unknown")
         Timber.i("Device profile detector: low confidence, falling back to PERSONAL_SMARTPHONE; signals=$signals")
         return result(DeviceProfileType.PERSONAL_SMARTPHONE, DetectionConfidence.LOW, signals)

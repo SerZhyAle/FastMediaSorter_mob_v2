@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121214"
+    android:background="@color/camera_ocr_bg"
     android:keepScreenOn="true"
     tools:context=".ui.cameraocr.CameraOcrTranslateActivity">
 
@@ -26,7 +26,7 @@
             android:layout_marginBottom="12dp"
             android:gravity="center_horizontal"
             android:text="@string/camera_ocr_result_header"
-            android:textColor="#E1E1E6"
+            android:textColor="@color/camera_ocr_text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -44,10 +44,10 @@
                 android:layout_height="0dp"
                 android:layout_weight="1.4"
                 android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="#1D1D21"
+                app:cardBackgroundColor="@color/camera_ocr_card_bg"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:strokeColor="#2F2F37"
+                app:strokeColor="@color/camera_ocr_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -60,7 +60,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/camera_ocr_pane_translation"
-                        android:textColor="#A1A1AA"
+                        android:textColor="@color/camera_ocr_text_secondary"
                         android:textSize="12sp"
                         android:textStyle="bold"
                         android:textAllCaps="true"
@@ -75,7 +75,7 @@
                             android:id="@+id/tvTranslation"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/camera_ocr_text_emphasis"
                             android:textSize="18sp"
                             android:lineSpacingMultiplier="1.2"
                             android:textIsSelectable="true"
@@ -93,10 +93,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1.0"
-                app:cardBackgroundColor="#1D1D21"
+                app:cardBackgroundColor="@color/camera_ocr_card_bg"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:strokeColor="#2F2F37"
+                app:strokeColor="@color/camera_ocr_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -110,7 +110,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/camera_ocr_pane_original"
-                        android:textColor="#A1A1AA"
+                        android:textColor="@color/camera_ocr_text_secondary"
                         android:textSize="12sp"
                         android:textStyle="bold"
                         android:textAllCaps="true"
@@ -125,7 +125,7 @@
                             android:id="@+id/tvOriginalText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="#C4C4CC"
+                            android:textColor="@color/camera_ocr_text_original"
                             android:textSize="15sp"
                             android:lineSpacingMultiplier="1.2"
                             android:textIsSelectable="true"
@@ -158,13 +158,13 @@
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:tooltipText="@string/settings"
-                android:textColor="#A1A1AA"
+                android:textColor="@color/camera_ocr_text_secondary"
                 app:icon="@drawable/ic_settings"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="20dp"
-                app:iconTint="#A1A1AA"
-                app:strokeColor="#2F2F37" />
+                app:iconTint="@color/camera_ocr_text_secondary"
+                app:strokeColor="@color/camera_ocr_stroke" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveTxt"
@@ -177,13 +177,13 @@
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:tooltipText="@string/camera_ocr_btn_save"
-                android:textColor="#4CAF50"
+                android:textColor="@color/camera_ocr_accent_save"
                 app:icon="@drawable/ic_text_save"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="20dp"
-                app:iconTint="#4CAF50"
-                app:strokeColor="#2F4F37" />
+                app:iconTint="@color/camera_ocr_accent_save"
+                app:strokeColor="@color/camera_ocr_stroke_save" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNextPhoto"
@@ -196,13 +196,13 @@
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:tooltipText="@string/camera_ocr_btn_next"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/camera_ocr_text_emphasis"
                 app:backgroundTint="?attr/colorPrimary"
                 app:icon="@drawable/ic_camera_ocr_translate"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="20dp"
-                app:iconTint="#FFFFFF" />
+                app:iconTint="@color/camera_ocr_text_emphasis" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
@@ -215,13 +215,13 @@
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:tooltipText="@string/close"
-                android:textColor="#E1E1E6"
+                android:textColor="@color/camera_ocr_text_primary"
                 app:icon="@drawable/ic_cancel"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="20dp"
-                app:iconTint="#E1E1E6"
-                app:strokeColor="#2F2F37" />
+                app:iconTint="@color/camera_ocr_text_primary"
+                app:strokeColor="@color/camera_ocr_stroke" />
 
         </LinearLayout>
 
@@ -241,7 +241,7 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_camera_ocr_translate"
-            app:tint="#A1A1AA"
+            app:tint="@color/camera_ocr_text_secondary"
             android:layout_marginBottom="16dp"
             android:importantForAccessibility="no" />
 
@@ -249,7 +249,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/ocr_no_text_found"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/camera_ocr_text_emphasis"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -258,7 +258,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/camera_ocr_empty_desc"
-            android:textColor="#A1A1AA"
+            android:textColor="@color/camera_ocr_text_secondary"
             android:textSize="14sp"
             android:gravity="center"
             android:layout_marginBottom="24dp" />
@@ -274,8 +274,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/close"
-                android:textColor="#E1E1E6"
-                app:strokeColor="#2F2F37"
+                android:textColor="@color/camera_ocr_text_primary"
+                app:strokeColor="@color/camera_ocr_stroke"
                 android:layout_marginEnd="12dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -294,7 +294,7 @@
         android:id="@+id/layoutCropState"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#121214"
+        android:background="@color/camera_ocr_bg"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="gone">
@@ -306,7 +306,7 @@
             android:padding="16dp"
             android:gravity="center_horizontal"
             android:text="@string/camera_ocr_crop_hint"
-            android:textColor="#E1E1E6"
+            android:textColor="@color/camera_ocr_text_primary"
             android:textSize="14sp" />
 
         <FrameLayout
@@ -318,7 +318,7 @@
                 android:id="@+id/ivCropPreview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#121214"
+                android:background="@color/camera_ocr_bg"
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter" />
 
@@ -347,10 +347,10 @@
                 android:focusable="true"
                 android:nextFocusRight="@+id/btnCropOcrLang"
                 android:text="@string/camera_ocr_crop_retry"
-                android:textColor="#E1E1E6"
-                app:strokeColor="#2F2F37" />
+                android:textColor="@color/camera_ocr_text_primary"
+                app:strokeColor="@color/camera_ocr_stroke" />
 
-            <!-- S0354: language cluster — OCR lang, direction arrow, translation lang.
+            <!-- S0354: language cluster - OCR lang, direction arrow, translation lang.
                  Arrow + target button are shown only when translation is available. -->
             <LinearLayout
                 android:id="@+id/layoutCropLangCluster"
@@ -377,9 +377,9 @@
                     android:nextFocusRight="@+id/btnCropTargetLang"
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
-                    android:textColor="#E1E1E6"
+                    android:textColor="@color/camera_ocr_text_primary"
                     android:textSize="14sp"
-                    app:strokeColor="#2F2F37"
+                    app:strokeColor="@color/camera_ocr_stroke"
                     tools:text="🌐 AUTO" />
 
                 <ImageView
@@ -390,7 +390,7 @@
                     android:layout_marginEnd="4dp"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_arrow_forward"
-                    android:tint="#A1A1AA" />
+                    android:tint="@color/camera_ocr_text_secondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCropTargetLang"
@@ -409,9 +409,9 @@
                     android:nextFocusRight="@+id/btnCropConfirm"
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
-                    android:textColor="#E1E1E6"
+                    android:textColor="@color/camera_ocr_text_primary"
                     android:textSize="14sp"
-                    app:strokeColor="#2F2F37"
+                    app:strokeColor="@color/camera_ocr_stroke"
                     tools:text="🇷🇺 RU" />
 
             </LinearLayout>
@@ -424,7 +424,7 @@
                 android:focusable="true"
                 android:nextFocusLeft="@+id/btnCropTargetLang"
                 android:text="@string/camera_ocr_crop_confirm"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/camera_ocr_text_emphasis"
                 app:backgroundTint="?attr/colorPrimary" />
 
         </LinearLayout>
@@ -436,7 +436,7 @@
         android:id="@+id/layoutLoading"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#99121214"
+        android:background="@color/camera_ocr_scrim"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center"
@@ -457,7 +457,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/camera_ocr_loading_processing"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/camera_ocr_text_emphasis"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -467,7 +467,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/camera_ocr_loading_saving"
-            android:textColor="#A1A1AA"
+            android:textColor="@color/camera_ocr_text_secondary"
             android:textSize="14sp" />
 
     </LinearLayout>

@@ -286,7 +286,7 @@ class AudioStandaloneActivity :
             onShowHelp = {
                 com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
                     supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
                 )
             },
         ).handler
@@ -303,6 +303,10 @@ class AudioStandaloneActivity :
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
         return super.dispatchGenericMotionEvent(event)
     }
+
+    // Standalone player surface routes motion through its own keyboard/pointer handler; the shared
+    // gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
 
     // S0393: reapply window insets after rotation (configChanges -> no recreate), ported from legacy.
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {

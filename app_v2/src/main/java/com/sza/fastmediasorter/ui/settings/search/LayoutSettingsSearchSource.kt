@@ -18,7 +18,7 @@ import javax.inject.Singleton
  * text input, or spinner).
  *
  * Help-popup text (`str_helpTitle` / `str_helpMessage` / `csh_helpTitle` / `csh_helpMessage`)
- * is intentionally NOT extracted — see strategic spec §6.3.
+ * is intentionally NOT extracted - see strategic spec §6.3.
  */
 @Singleton
 class LayoutSettingsSearchSource @Inject constructor(

@@ -9,11 +9,11 @@ import timber.log.Timber
 import java.util.WeakHashMap
 
 /**
- * S0264 — applies a single-eye crop directly to the `TextureView` that backs `PlayerView`
+ * S0264 - applies a single-eye crop directly to the `TextureView` that backs `PlayerView`
  * when the underlying surface type is `texture_view`.
  *
  * Background. `ExoPlayer.setVideoEffects()` is not visually supported by Media3 1.2.1
- * when `PlayerView` uses `app:surface_type="texture_view"` — the effects pipeline only
+ * when `PlayerView` uses `app:surface_type="texture_view"` - the effects pipeline only
  * outputs to a `SurfaceView`/`SurfaceHolder`. The `Crop` effect attached via
  * `StereoVideoProcessor.buildGlEffect` therefore lands in the player but never reaches
  * the on-screen pixels. See androidx/media issue #779 for the upstream confirmation.
@@ -58,7 +58,7 @@ object PanelStereoCropApplier {
         if (view.width == 0 || view.height == 0) {
             // View is not laid out yet; the listener will fire as soon as it is.
             Timber.d(
-                "PanelStereoCropApplier: deferred — viewport 0x0, layout listener will pick up mode=%s singleEye=%s",
+                "PanelStereoCropApplier: deferred - viewport 0x0, layout listener will pick up mode=%s singleEye=%s",
                 mode,
                 singleEyeEnabled,
             )

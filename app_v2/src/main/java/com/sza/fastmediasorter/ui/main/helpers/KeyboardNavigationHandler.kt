@@ -11,7 +11,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.common.FocusManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 import timber.log.Timber
@@ -56,7 +56,7 @@ class KeyboardNavigationHandler(
     )
 
     private val shortcutHandler = KeyboardShortcutHandler(
-        surface = InputSurface.MAIN,
+        surface = UiSurface.MAIN,
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchSharedAction(action) }
     )
     

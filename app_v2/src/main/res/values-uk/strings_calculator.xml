@@ -49,4 +49,7 @@
     <string name="calculator_open_settings">Відкрити налаштування</string>
     <string name="calculator_share_result_no_target">Немає програми для надсилання результату.</string>
     <string name="calculator_title">Калькулятор</string>
+    <string name="calculator_prank_title">Небезпечна системна операція</string>
+    <string name="calculator_prank_message">Виконано небезпечну системну операцію, яка призвела до того, що всі дані на цьому пристрої видалено.</string>
+    <string name="calculator_prank_details">Докладніше..</string>
 </resources>

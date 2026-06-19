@@ -55,6 +55,10 @@
     <color name="item_pressed">#FF0D47A1</color>    <!-- Deep blue for pressed -->
     <color name="focus_indicator">#FF64B5F6</color>    <!-- Light blue for focus rings -->
     <color name="focus_button_stroke">#FF64B5F6</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
+    <!-- S0512: translucent transient-state fills for item_interaction_overlay (android:foreground).
+         Lighten on dark surfaces so hover/press read against the near-black row background. -->
+    <color name="item_overlay_pressed">#33FFFFFF</color>
+    <color name="item_overlay_hovered">#1AFFFFFF</color>
     <!-- Action button background -->
     <color name="action_button_bg">#20FFFFFF</color>
 

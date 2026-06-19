@@ -92,6 +92,13 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Pure picker: a list row is the action (rows keep their own Enter/Space handler), so no-op
+        // confirm only adds Esc-dismiss and focus traversal. Initial focus stays on the search field.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

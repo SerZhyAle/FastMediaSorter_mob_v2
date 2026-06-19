@@ -74,6 +74,7 @@ open class LocalDestinationClassifier @Inject constructor() {
         Environment.DIRECTORY_MUSIC,
         Environment.DIRECTORY_PODCASTS,
         getAudiobooksDirectoryName(),
+        getRecordingsDirectoryName(),
         Environment.DIRECTORY_RINGTONES,
         Environment.DIRECTORY_NOTIFICATIONS,
         Environment.DIRECTORY_ALARMS -> PublicCollection.Kind.AUDIO
@@ -92,6 +93,17 @@ open class LocalDestinationClassifier @Inject constructor() {
             Environment.DIRECTORY_AUDIOBOOKS
         } else {
             LEGACY_AUDIOBOOKS_DIRECTORY
+        }
+    }
+
+    private fun getRecordingsDirectoryName(): String {
+        // DIRECTORY_RECORDINGS was added in API 31 (after the app's minSdk). Use the canonical folder
+        // name on older devices so plain path classification does not crash during field lookup
+        // (S0523 quick voice capture writes here on API 31+).
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Environment.DIRECTORY_RECORDINGS
+        } else {
+            LEGACY_RECORDINGS_DIRECTORY
         }
     }
 
@@ -116,5 +128,6 @@ open class LocalDestinationClassifier @Inject constructor() {
     private companion object {
         const val DEFAULT_MIME = "application/octet-stream"
         const val LEGACY_AUDIOBOOKS_DIRECTORY = "Audiobooks"
+        const val LEGACY_RECORDINGS_DIRECTORY = "Recordings"
     }
 }

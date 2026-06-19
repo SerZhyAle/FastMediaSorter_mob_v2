@@ -1,6 +1,6 @@
 # FastMediaSorter v2 🚀
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 
 **📖 Other Languages:** [🇷🇺 Русский](README_RU.md) | [🇺🇦 Українська](README_UK.md)
@@ -52,7 +52,7 @@ FastMediaSorter v2 ships **5 main app flavors** for phones and tablets, plus the
 | **Standard** | Full-featured release | Broadest feature set for media, documents, OCR, translation, and cloud access |
 | **Lite** | Lightweight release | Smaller install, core media workflows, fewer optional integrations |
 | **Photos** | Photo-first release | Optimized for browsing, sorting, and organizing images |
-| **Legacy** | Compatibility-focused release | Best on older Android devices (API 23+), local media first |
+| **Legacy** | Compatibility-focused release | Full media plus SMB/FTP/SFTP and cloud (Google Drive, Dropbox, OneDrive); built for Android 6/7 (API 23+) |
 | **VR / noLegal** | XR and sideload surface | OpenXR / VR-capable build path on supported headsets and sideload-only extras |
 
 ### Which Flavor Should I Download?
@@ -60,7 +60,7 @@ FastMediaSorter v2 ships **5 main app flavors** for phones and tablets, plus the
 - **Standard** ⭐ **(Recommended)**: Best default choice for most users
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
-- **Legacy**: Choose this for older Android devices (API 23+)
+- **Legacy**: Choose this for Android 6/7 devices (API 23+) - includes network and cloud
 - **VR / noLegal**: Use only when you need the XR headset or sideload-only surface
 
 For exact feature-by-flavor availability, use the canonical documentation:
@@ -85,7 +85,7 @@ For exact feature-by-flavor availability, use the canonical documentation:
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
 | **Lite** | `FastMediaSorter_lite_release.zip` | Local media focus (Videos, Audio, Images; no cloud/documents) |
 | **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with cloud support) |
-| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6/7 compatibility, API 23-25) |
+| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full media + network (SMB/FTP/SFTP) + cloud; Android 6/7 (API 23+) |
 
 > **Note**: All builds are automatically uploaded to Google Drive after successful compilation.
 >
@@ -133,7 +133,7 @@ Full-size images:
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
-- 📱 **Widget Support:** Quick access to your favorite resources directly from your home screen with two widget types: **Resource Shortcut** (opens any saved resource instantly) and **Continue Reading** (launches slideshow mode immediately).
+- 📱 **Widget Support:** Over a dozen home-screen widgets covering a wide range - resource shortcuts, media players, camera capture, calculators, scheduled tasks, favorites, mini-games, and more. Browse the full selection in your launcher's widget picker.
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
 - 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination resource are set in Video Settings.
@@ -400,10 +400,10 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
 - **UI**: Android View System (XML), Material Design 3
 - **Asynchrony**: Kotlin Coroutines & Flow
 - **DI**: Hilt (Dagger)
-- **Database**: Room (version 6 with cloud provider support)
+- **Database**: Room 2.7.0
 - **Navigation**: AndroidX Navigation Component
 - **Media**: ExoPlayer (Media3 1.2.1)
-- **Image Loading**: Glide 4.15.1 with custom NetworkFileModelLoader
+- **Image Loading**: Glide 4.16.0 with custom NetworkFileModelLoader
 - **Network Protocols**:
   - SMB: SMBJ 0.12.1 with BouncyCastle 1.78.1
   - SFTP: SSHJ 0.37.0 with EdDSA 0.3.0

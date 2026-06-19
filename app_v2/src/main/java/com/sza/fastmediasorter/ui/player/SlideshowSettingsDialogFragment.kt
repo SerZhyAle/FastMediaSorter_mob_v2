@@ -14,6 +14,7 @@ import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSlideshowSettingsBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -182,8 +183,12 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT, 
+            ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        // Settings panel: all controls apply immediately, so there is no positive action - no-op
+        // confirm keeps Esc-dismiss and focus traversal without a false Enter-confirm.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+        binding.btnClose.requestFocus()
     }
 }

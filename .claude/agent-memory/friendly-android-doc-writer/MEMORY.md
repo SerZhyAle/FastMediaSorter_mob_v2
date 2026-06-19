@@ -2,7 +2,7 @@
 
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - public `docs/FEATURES*.md` are for standard/VR builds; noLegal-only copy lives in gitignored `_noLegal` mirrors
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - read the auto-injected current time and use it as `[HH:MM:SS]` prefix; never shell out to `date`
-- [Functionality log](project_functionality_log.md) - `dev/FUNCTIONALITY.log` records ADD/CHANGE/DELETE/FIX of user-visible behaviour; doc polish that shifts behaviour gets a line, pure rewording does not
+- [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); capabilities go to docs/ALL_FEATURES.jsonl via all_features/add.ps1; FEATURES*.md is /skill-release-owned; pure rewording = CHANGELOG only
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash command-substitution silently eats backticked words inside double-quoted CLI arguments; use single quotes or plain prose
 - [Don't ask owner questions the communication policy already answers](feedback_no_owner_questions_when_architecture_already_answers.md) - if `docs/COMMUNICATION_POLICY.md` mandates a wording rule, cite it and pick - don't fabricate a "choice" question
 - [PowerShell efficiency: -NoProfile + batching](feedback_pwsh_efficiency.md) - chain string-audit and dev-log calls into one `pwsh -NoProfile -Command` invocation, not two tool calls

@@ -12,6 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogStreamOffloadOfferBinding
 import com.sza.fastmediasorter.domain.model.OffloadOffer
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import timber.log.Timber
 
@@ -105,6 +106,16 @@ class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
 
         // Predictive-back / system dismiss → treat as decline
         dialog?.setOnCancelListener { viewModel.declineOffload(o) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Enter routes through the Download button's own click so its disabled state (insufficient
+        // space) is honoured without duplicating that guard here. Download is the default focus.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {
+            binding.offloadDownloadButton.performClick()
+        })
+        binding.offloadDownloadButton.requestFocus()
     }
 
     override fun onDestroyView() {

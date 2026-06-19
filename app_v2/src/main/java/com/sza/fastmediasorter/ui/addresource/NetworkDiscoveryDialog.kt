@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.databinding.DialogNetworkDiscoveryBinding
 import com.sza.fastmediasorter.databinding.ItemNetworkHostBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import kotlinx.coroutines.launch
 
 
@@ -54,8 +55,7 @@ class NetworkDiscoveryDialog : DialogFragment() {
         // directly - ViewCompat.setAccessibilityLiveRegion is deprecated (minSdk 26).
         binding.tvStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
 
-        // btnStopScan may be null in landscape layout variant - use safe call
-        binding.btnStopScan?.setOnClickListener {
+        binding.btnStopScan.setOnClickListener {
             if (viewModel.state.value.isScanning) {
                 // Stop the active scan without closing the dialog.
                 viewModel.stopScan()
@@ -89,8 +89,8 @@ class NetworkDiscoveryDialog : DialogFragment() {
                         else -> getString(R.string.msg_scan_complete)
                     }
 
-                    // Stop button label switches based on scanning state - null-safe for landscape
-                    binding.btnStopScan?.text = if (state.isScanning) {
+                    // Stop button label switches based on scanning state.
+                    binding.btnStopScan.text = if (state.isScanning) {
                         getString(R.string.stop)
                     } else {
                         getString(R.string.msg_scan_again)
@@ -111,6 +111,9 @@ class NetworkDiscoveryDialog : DialogFragment() {
         if (viewModel.state.value.foundNetworkHosts.isEmpty() && !viewModel.state.value.isScanning) {
             viewModel.scanNetwork()
         }
+        // The action is picking a discovered host from the list (Stop/Cancel are auxiliary), so
+        // there is no positive confirm - no-op confirm only adds Esc-dismiss and focus traversal.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

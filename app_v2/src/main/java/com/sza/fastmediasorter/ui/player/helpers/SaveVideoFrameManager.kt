@@ -1,18 +1,19 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.content.ContentUris
-import android.content.ContentValues
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -25,7 +26,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 
 private const val SNAPSHOT_DIR = "snapshots"
 private const val PNG_QUALITY = 100
@@ -47,7 +47,9 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
 class SaveVideoFrameManager(
     private val activity: PlayerActivity,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+    private val imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter,
+    private val localDestinationClassifier: LocalDestinationClassifier,
+    private val localDestinationWriter: LocalDestinationWriter
 ) {
 
     /**
@@ -77,12 +79,30 @@ class SaveVideoFrameManager(
 
                 val resourceId = settings.videoSnapshotResourceId
 
+                // S0522: track why a frame was redirected to Downloads so the user can be notified
+                // when the configured network destination was unavailable (not when none was set).
+                var fallbackReason: SaveFallbackReason? = null
+                var configuredResourceName = ""
                 val savedLocation = if (resourceId != null) {
                     // Try to save to configured destination resource
                     val destinations = activity.viewModel.getDestinationsUseCase.invoke().first()
                     val resource = destinations.find { it.id == resourceId }
                     if (resource != null) {
-                        trySaveToResource(tempFile, resource, fileName)
+                        configuredResourceName = resource.name
+                        if (resource.type.isNetworkResource &&
+                            !activity.networkStateMonitor.canReach(resource.type)
+                        ) {
+                            // S0522: transport down - skip the doomed copy and fall back to Downloads.
+                            Timber.w("SaveVideoFrameManager: resource '${resource.name}' unreachable, falling back to Downloads")
+                            fallbackReason = SaveFallbackReason.ResourceUnavailable
+                            null
+                        } else {
+                            val saved = trySaveToResource(tempFile, resource, fileName)
+                            if (saved == null && resource.type.isNetworkResource) {
+                                fallbackReason = SaveFallbackReason.ResourceWriteFailed
+                            }
+                            saved
+                        }
                     } else {
                         // Configured resource no longer exists - fall back to Downloads
                         Timber.w("SaveVideoFrameManager: configured resource id=$resourceId not found, falling back to Downloads")
@@ -93,8 +113,16 @@ class SaveVideoFrameManager(
                 val finalMessage = if (savedLocation != null) {
                     activity.getString(R.string.save_frame_saved_to_resource, savedLocation)
                 } else {
-                    // Fallback: save to MediaStore Downloads
-                    saveToDownloads(tempFile, fileName, useJpeg)
+                    // Fallback: save to Downloads via the shared local destination writer
+                    saveToDownloads(tempFile, fileName)
+                    fallbackReason?.let { reason ->
+                        activity.saveFallbackNotifier.notify(
+                            reason = reason,
+                            folderLabel = Environment.DIRECTORY_DOWNLOADS,
+                            resourceName = configuredResourceName,
+                            background = false,
+                        )
+                    }
                     activity.getString(R.string.save_frame_saved_to_downloads)
                 }
 
@@ -102,7 +130,6 @@ class SaveVideoFrameManager(
                 // Copy the encoded tempFile verbatim (no re-encode) so the pasted image matches the
                 // saved frame's format/quality. Runs before delete and never replaces the save above.
                 val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
-                    Timber.d("S0470: video-frame clipboard gate flag=true")
                     imageClipboardWriter.copyImageFile(tempFile)
                 } else false
 
@@ -220,54 +247,37 @@ class SaveVideoFrameManager(
     }
 
     /**
-     * Saves [tempFile] to the system Downloads folder via MediaStore.
-     * Deletes any existing entry with the same display name before inserting (overwrite semantics).
-     * Works on Android Q+ (API 29+) without WRITE_EXTERNAL_STORAGE permission.
+     * Saves [tempFile] to the system Downloads folder through the shared local destination
+     * writer in overwrite mode, so collision behaviour is identical across API levels and the
+     * MediaStore write path is not duplicated. Throws on failure so the caller's catch reports it.
      */
-    private suspend fun saveToDownloads(tempFile: File, fileName: String, useJpeg: Boolean) = withContext(Dispatchers.IO) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val resolver = activity.contentResolver
-                val mimeType = if (useJpeg) "image/jpeg" else "image/png"
-
-                // Remove any existing MediaStore entry for this filename to implement overwrite
-                val queryUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                val projection = arrayOf(MediaStore.Downloads._ID)
-                val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ?"
-                resolver.query(queryUri, projection, selection, arrayOf(fileName), null)?.use { cursor ->
-                    while (cursor.moveToNext()) {
-                        val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID))
-                        resolver.delete(ContentUris.withAppendedId(queryUri, id), null, null)
-                    }
-                }
-
-                val values = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                    put(MediaStore.Downloads.MIME_TYPE, mimeType)
-                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    put(MediaStore.Downloads.IS_PENDING, 1)
-                }
-                val uri = resolver.insert(queryUri, values)
-                    ?: throw IOException("MediaStore insert returned null")
-                resolver.openOutputStream(uri)?.use { out ->
-                    FileInputStream(tempFile).use { input -> input.copyTo(out) }
-                }
-                values.clear()
-                values.put(MediaStore.Downloads.IS_PENDING, 0)
-                resolver.update(uri, values, null, null)
-            } else {
-                // API 26-28: write directly to Downloads directory
-                @Suppress("DEPRECATION")
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                downloadsDir.mkdirs()
-                // overwrite = true: existing frame with same name is replaced
-                tempFile.copyTo(File(downloadsDir, fileName), overwrite = true)
-            }
-            Timber.i("SaveVideoFrameManager: frame saved to Downloads as $fileName")
-        } catch (e: Exception) {
-            Timber.e(e, "SaveVideoFrameManager: failed to save to Downloads")
+    private suspend fun saveToDownloads(tempFile: File, fileName: String) = withContext(Dispatchers.IO) {
+        val targetPath = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            fileName
+        ).absolutePath
+        val category = localDestinationClassifier.classify(targetPath)
+        val sink = localDestinationWriter.open(category, overwrite = true).getOrElse { e ->
+            Timber.e(e, "SaveVideoFrameManager: failed to open Downloads sink")
             throw e
         }
+        try {
+            FileInputStream(tempFile).use { input -> input.copyTo(sink.outputStream) }
+        } catch (e: Exception) {
+            sink.abort()
+            Timber.e(e, "SaveVideoFrameManager: failed to write frame to Downloads")
+            throw e
+        }
+        val savedPath = sink.commit().getOrElse { e ->
+            Timber.e(e, "SaveVideoFrameManager: failed to commit Downloads sink")
+            throw e
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // Pre-Q the writer lands a plain file the system has not indexed; the manual scan
+            // makes it visible. On Q+ the MediaStore publish already indexes it.
+            MediaStoreNotifier.notifyFile(activity, savedPath, "save-frame")
+        }
+        Timber.i("SaveVideoFrameManager: frame saved to Downloads as $fileName")
     }
 
     /**

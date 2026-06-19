@@ -16,4 +16,4 @@ During active development, validate code with the **fast checkers**, not a full 
 - Unit suite → `.\a.ps1 fu` (`testStandardDebugUnitTest`; note pre-existing broken tests, see [[build-pre-existing-test-failures]]).
 - Only escalate to `.\a.ps1 d` (fast reusable APK) or `dav` (timestamped artifact) when you need packaging/install/device proof.
 - `check-standard-fast.ps1` is the engine behind fk/fr/fc/fu (modes Code/Resources/CodeAndResources/Unit/Assemble); it passes `--configuration-cache` + `-Pchaquopy.enabled=false` so the CC survives repeat runs.
-- This mirrors the CLAUDE.md "Validation Ladder" — prefer fk for compile checks, escalate only when the touched area needs packaging proof. See also [[pwsh-efficiency]].
+- This mirrors the CLAUDE.md "Validation Ladder" - prefer fk for compile checks, escalate only when the touched area needs packaging proof. See also [[pwsh-efficiency]].

@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.usecase.MarkContextualShownUseCase
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -54,6 +55,17 @@ class PermissionRationaleBottomSheet : BottomSheetDialogFragment() {
             callback?.onPermissionRationaleResult(permissionId, false)
             dismiss()
         }
+
+        // Grant is the positive action and default focus; Enter routes through its click so the
+        // permissionId/registry guard above stays the single source of truth.
+        view.findViewById<Button>(R.id.btn_perm_grant).requestFocus()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {
+            view?.findViewById<Button>(R.id.btn_perm_grant)?.performClick()
+        })
     }
 
     companion object {

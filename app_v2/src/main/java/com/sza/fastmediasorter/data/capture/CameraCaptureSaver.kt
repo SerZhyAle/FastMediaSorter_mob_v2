@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -71,7 +72,7 @@ class CameraCaptureSaver @Inject constructor(
         target: CameraCaptureTarget,
         upload: suspend (tempFile: File, name: String, resource: CameraCaptureTarget.Resource) -> Boolean,
     ): SaveResult {
-        val savedPath = resolveSavedPath(target, name)
+        var savedPath = resolveSavedPath(target, name)
         Timber.i(
             "CameraCaptureSaver: save ENTRY tempFile=%s name=%s target=%s savedPath=%s",
             tempFile.absolutePath,
@@ -84,6 +85,9 @@ class CameraCaptureSaver @Inject constructor(
         // additive - it never alters the save routing/result below (strategic goal 4).
         val copiedToClipboard = maybeCopyToClipboard(tempFile, name)
         var failure: SaveResult.Failure? = null
+        // S0522: set when a network upload could not be written and the capture was redirected to a
+        // local public collection so it is never lost.
+        var fallbackReason: SaveFallbackReason? = null
         val success = try {
             when (target) {
                 is CameraCaptureTarget.CameraFolder -> saveToDcim(tempFile, name)
@@ -93,7 +97,19 @@ class CameraCaptureSaver @Inject constructor(
                     } else when (target.type) {
                         ResourceType.LOCAL -> saveLocal(tempFile, name, target.path)
                         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP,
-                        ResourceType.CLOUD -> upload(tempFile, name, target)
+                        ResourceType.CLOUD -> {
+                            if (upload(tempFile, name, target)) {
+                                true
+                            } else {
+                                // S0522: the network/cloud upload failed (unreachable or write error).
+                                // Save to the local default folder for this media type instead of
+                                // dropping the capture; the caller surfaces the redirect to the user.
+                                fallbackReason = SaveFallbackReason.ResourceWriteFailed
+                                val localOk = saveToLocalFallback(tempFile, name)
+                                if (localOk) savedPath = localFallbackPath(name)
+                                localOk
+                            }
+                        }
                     }
                 }
             }
@@ -119,7 +135,7 @@ class CameraCaptureSaver @Inject constructor(
                     CaptureKind.PHOTO
                 }
                 statsSink.record(StatsEvent.Capture(kind))
-                SaveResult.Success(savedPath, copiedToClipboard = copiedToClipboard)
+                SaveResult.Success(savedPath, copiedToClipboard = copiedToClipboard, fallbackReason = fallbackReason)
             }
             else -> failure ?: SaveResult.Failure.Generic
         }
@@ -133,7 +149,6 @@ class CameraCaptureSaver @Inject constructor(
     private suspend fun maybeCopyToClipboard(tempFile: File, name: String): Boolean {
         if (MediaTypeUtils.getMediaType(name) != MediaType.IMAGE) return false
         val enabled = settingsRepository.getSettings().first().cameraCaptureCopyToClipboard
-        Timber.d("S0469: captured-photo clipboard gate flag=%b name=%s", enabled, name)
         if (!enabled) return false
         return imageClipboardWriter.copyImageFile(tempFile)
     }
@@ -196,6 +211,28 @@ class CameraCaptureSaver @Inject constructor(
 
     private fun cameraDir(): File =
         File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera")
+
+    private fun moviesDir(): File =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+
+    /**
+     * S0522: local default folder for a capture whose network destination could not be written.
+     * Video recordings go to the public Movies folder; photos to DCIM/Camera. Routed through the
+     * MediaStore-aware writer so it is scoped-storage safe on API 29+.
+     */
+    private suspend fun saveToLocalFallback(tempFile: File, name: String): Boolean =
+        if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
+            writeToDevice(tempFile, File(moviesDir(), name).absolutePath)
+        } else {
+            saveToDcim(tempFile, name)
+        }
+
+    private fun localFallbackPath(name: String): String =
+        if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
+            File(moviesDir(), name).absolutePath
+        } else {
+            File(cameraDir(), name).absolutePath
+        }
 }
 
 /**
@@ -223,7 +260,13 @@ sealed interface SaveResult {
      * Saved successfully; [savedPath] is the final local/remote location (for open-for-editing).
      * [copiedToClipboard] is true when the S0469 option additionally placed the photo on the clipboard.
      */
-    data class Success(val savedPath: String, val copiedToClipboard: Boolean = false) : SaveResult
+    data class Success(
+        val savedPath: String,
+        val copiedToClipboard: Boolean = false,
+        // S0522: non-null when a network destination could not be written and the capture was
+        // redirected to a local default folder; the caller turns this into a user notification.
+        val fallbackReason: SaveFallbackReason? = null,
+    ) : SaveResult
 
     sealed interface Failure : SaveResult {
         /** I/O error during copy/upload - caller shows the I/O-specific message. */

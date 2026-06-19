@@ -112,19 +112,43 @@ class PrefetchPolicyManager @Inject constructor(
     }
 
     companion object {
+        /** Generous default transfer budget for network audio when connection speed is unknown. */
         const val DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
-        const val SFTP_AUDIO_STARTUP_PRECACHE_TIMEOUT_MS = 5_000L
+        /** Short, fixed connect bound: an unreachable server fails fast instead of holding the user. */
+        const val NETWORK_AUDIO_CONNECT_TIMEOUT_MS = 5_000L
+        /** Upper bound on the adaptive transfer budget so a very slow link cannot wait unboundedly. */
+        const val MAX_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 120_000L
+        /** Safety multiplier over the estimated transfer time (rough, intentionally not over-tuned). */
+        private const val TRANSFER_SAFETY_FACTOR = 3.0
+        /** Bytes/sec per Mbps (1 Mbps = 125000 bytes/sec). */
+        private const val BYTES_PER_SEC_PER_MBPS = 125_000.0
 
-        fun audioStartupPolicyFor(path: String, isAudio: Boolean): AudioStartupPreCachePolicy {
+        /**
+         * Adaptive transfer budget from the last measured connection speed and file size. When the
+         * speed or size is unknown, returns the generous default (the server has already answered the
+         * connect probe, so a live-but-slow link deserves room). Clamped to a sane floor/ceiling.
+         */
+        fun transferTimeoutMsFor(speedMbps: Double?, fileSizeBytes: Long): Long {
+            if (speedMbps == null || speedMbps <= 0.0 || fileSizeBytes <= 0L) {
+                return DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS
+            }
+            val estSeconds = fileSizeBytes / (speedMbps * BYTES_PER_SEC_PER_MBPS)
+            val estMs = (estSeconds * 1000.0 * TRANSFER_SAFETY_FACTOR).toLong()
+            return estMs.coerceIn(DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS, MAX_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS)
+        }
+
+        fun audioStartupPolicyFor(
+            path: String,
+            isAudio: Boolean,
+            speedMbps: Double? = null,
+            fileSizeBytes: Long = 0L
+        ): AudioStartupPreCachePolicy {
             val sourceType = AudioPreCacheSourceType.fromPath(path)
             val useEarlyFallback = isAudio && sourceType == AudioPreCacheSourceType.SFTP
             return AudioStartupPreCachePolicy(
                 sourceType = sourceType,
-                timeoutMs = if (useEarlyFallback) {
-                    SFTP_AUDIO_STARTUP_PRECACHE_TIMEOUT_MS
-                } else {
-                    DEFAULT_NETWORK_AUDIO_PRECACHE_TIMEOUT_MS
-                },
+                connectTimeoutMs = NETWORK_AUDIO_CONNECT_TIMEOUT_MS,
+                transferTimeoutMs = transferTimeoutMsFor(speedMbps, fileSizeBytes),
                 reason = if (useEarlyFallback) {
                     "sftp-audio-early-direct-stream"
                 } else {
@@ -168,7 +192,10 @@ enum class AudioPreCacheSourceType(val logLabel: String) {
 
 data class AudioStartupPreCachePolicy(
     val sourceType: AudioPreCacheSourceType,
-    val timeoutMs: Long,
+    /** Short bound on establishing the connection - detects an unreachable server fast. */
+    val connectTimeoutMs: Long,
+    /** Generous/adaptive bound on the body transfer once the server has answered. */
+    val transferTimeoutMs: Long,
     val reason: String,
     val directStreamFallback: Boolean
 )

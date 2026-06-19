@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Android 15 (API 35) enforces edge-to-edge at system level.
-        Window.setStatusBarColor() / setNavigationBarColor() are deprecated on API 35+ and
-        no longer need to be called - the OS manages system bar transparency automatically.
+        Android 15 (API 35) enforces edge-to-edge at the system level.
+        Window.setStatusBarColor() / setNavigationBarColor() are deprecated and no-ops on
+        API 35+ - the OS manages system bar transparency automatically.
 
-        Material 1.13.0+ rewrote BottomSheetDialog edge-to-edge handling to use
-        WindowInsetsControllerCompat instead of the deprecated setStatusBarColor /
-        setNavigationBarColor APIs. Setting enableEdgeToEdge=true here instructs the
-        Material library to use the correct non-deprecated path.
-
-        AppCompat 1.7.0+ fixed onStart() applying night-mode colours via deprecated APIs.
+        Material 1.14.0 guards the internal BottomSheetDialog setStatusBarColor() call behind
+        an SDK_INT < 35 check (EdgeToEdgeUtils) and applies bottom-sheet edge-to-edge natively
+        on API 35, so no enableEdgeToEdge attribute is needed here (it is deprecated for bottom
+        sheets on API 35+). Only the system-window padding is retained so sheet content stays
+        clear of the navigation bar.
     -->
     <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
         <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>
     </style>
 
     <style name="Theme.App.BottomSheetDialog.EdgeToEdgeCompat" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <!-- Material edge-to-edge path requires both enableEdgeToEdge and a transparent nav bar. -->
-        <item name="enableEdgeToEdge">true</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Keep system-window padding so sheet content clears the navigation bar; edge-to-edge itself is native in Material 1.14.0. -->
         <item name="paddingBottomSystemWindowInsets">true</item>
         <item name="paddingLeftSystemWindowInsets">true</item>
         <item name="paddingRightSystemWindowInsets">true</item>

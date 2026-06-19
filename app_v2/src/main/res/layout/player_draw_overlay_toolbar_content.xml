@@ -50,6 +50,7 @@
 
             <View
                 android:id="@+id/color_black"
+                android:foreground="@drawable/focus_button_background"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="8dp"
@@ -61,6 +62,7 @@
 
             <View
                 android:id="@+id/color_white"
+                android:foreground="@drawable/focus_button_background"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="8dp"
@@ -72,6 +74,7 @@
 
             <View
                 android:id="@+id/color_red"
+                android:foreground="@drawable/focus_button_background"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="8dp"
@@ -83,6 +86,7 @@
 
             <View
                 android:id="@+id/color_custom"
+                android:foreground="@drawable/focus_button_background"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="8dp"

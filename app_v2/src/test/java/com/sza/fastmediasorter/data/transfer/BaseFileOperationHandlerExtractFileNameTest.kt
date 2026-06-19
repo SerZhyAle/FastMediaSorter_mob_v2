@@ -9,7 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * S0266 — Verifies the cloud branch of [BaseFileOperationHandler.extractFileName] returns the
+ * S0266 - Verifies the cloud branch of [BaseFileOperationHandler.extractFileName] returns the
  * caller-supplied fallback (which is the display-name when the caller used [CloudFileHandle]).
  *
  * Robolectric: the content-URI branch calls Uri.decode, which returns null on the plain JVM.

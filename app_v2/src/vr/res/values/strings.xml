@@ -20,7 +20,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">Use embedded metadata</string>
     <string name="settings_stereo_vr_trust_metadata_summary">Detect from spatial-video and photo-sphere metadata</string>
     <string name="settings_stereo_vr_trust_aspect_title">Guess by aspect ratio</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">Less reliable — may tag ordinary wide photos as 3D</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Less reliable - may tag ordinary wide photos as 3D</string>
     <string name="settings_stereo_vr_ambiguity_title">When the format is unclear</string>
     <string name="settings_stereo_vr_ambiguity_summary">On: make a best guess. Off: open as 2D</string>
 

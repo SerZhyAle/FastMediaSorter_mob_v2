@@ -72,7 +72,7 @@ import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import androidx.appcompat.widget.PopupMenu
 import dagger.Lazy
@@ -210,7 +210,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
      * needed for D-pad traversal across the bar. S0289.
      */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: standalone-player initial-focus / top command bar btnBack")
         return binding.btnBack
     }
 
@@ -351,7 +350,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     p.volume = (p.volume + delta * 0.1f).coerceIn(0f, 1f)
                 }
                 override fun onShowHelp() {
-                    InputHelpDialogFragment.show(supportFragmentManager, InputSurface.PLAYER)
+                    InputHelpDialogFragment.show(supportFragmentManager, UiSurface.PLAYER)
                 }
                 override fun onDocumentSearch() {
                     searchControlsManager?.showSearchPanel()
@@ -383,6 +382,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
         return super.dispatchGenericMotionEvent(event)
     }
+
+    // Standalone player surface routes motion through its own keyboard/pointer handler; the shared
+    // gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
 
     override fun observeData() {
         observeViewModelState()
@@ -459,6 +462,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         updateEpubTranslatorVisibility()
     }
 
+    // Single-arg override kept for legacy minSdk 23: on API 24-25 the framework calls only this
+    // signature (two-arg added in API 26), so migrating away would drop PiP handling on those devices.
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)

@@ -54,7 +54,7 @@ abstract class XrModule {
     ): StartVrPlaybackUseCase
 
     /**
-     * S0249 Phase 02: native diagnostic runtime. Single binding, VR-flavor only — phone
+     * S0249 Phase 02: native diagnostic runtime. Single binding, VR-flavor only - phone
      * flavors never see this type (the no-op gateway in `vrStub` short-circuits before
      * the runtime is consulted).
      */

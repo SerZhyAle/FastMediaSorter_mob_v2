@@ -58,4 +58,15 @@ object PlayerLayoutModePrefs {
             activity.theme.applyStyle(R.style.Theme_FastMediaSorter_LargePlayerControls, true)
         }
     }
+
+    /**
+     * Apply the compact dialog-action-button overlay when compact mode is ON, so dialog confirm/cancel
+     * buttons shrink to 50% along with the rest of the UI. Applied app-wide from BaseActivity.onCreate;
+     * uses the synchronous prefs mirror because the dialog styles read the size attr at inflate time.
+     */
+    fun applyCompactDialogButtonsOverlay(activity: Activity) {
+        if (isCompact(activity)) {
+            activity.theme.applyStyle(R.style.ThemeOverlay_FastMediaSorter_CompactDialogButtons, true)
+        }
+    }
 }

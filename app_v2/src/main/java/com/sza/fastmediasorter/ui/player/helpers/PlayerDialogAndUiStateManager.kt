@@ -420,6 +420,10 @@ class PlayerDialogAndUiStateManager(
         destinationButtonsManager.toggleCopyPanel()
     }
 
+    /** Keyboard digit shortcut: launch the [slotIndex]-th button of the addressable Copy/Move group. */
+    fun triggerOperationSlot(slotIndex: Int): Boolean =
+        destinationButtonsManager.triggerSlotInAddressableGroup(slotIndex)
+
     fun setCopyPanelExpanded(expanded: Boolean) {
         Timber.d("PlayerDialogAndUiStateManager: setCopyPanelExpanded(expanded=$expanded)")
         destinationButtonsManager.setCopyPanelExpanded(expanded)

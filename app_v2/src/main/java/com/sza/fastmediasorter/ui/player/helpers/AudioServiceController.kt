@@ -117,6 +117,7 @@ class AudioServiceController(
         title: String,
         artist: String? = null,
         mimeType: String? = null,
+        streamCredentials: StreamCredentials? = null,
         onPlayerReady: (Player) -> Unit
     ) {
         connect { player ->
@@ -126,13 +127,23 @@ class AudioServiceController(
             if (mimeType != null) {
                 mediaItemBuilder.setMimeType(mimeType)
             }
-            val mediaItem = mediaItemBuilder
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(title)
-                        .setArtist(artist)
-                        .build()
+            val metadataBuilder = MediaMetadata.Builder()
+                .setTitle(title)
+                .setArtist(artist)
+            // For network/cloud streaming the service resolves credentials from these extras
+            // (it cannot hit the credentials DB on the player thread). See NetworkAwareMediaSourceFactory.
+            streamCredentials?.let { creds ->
+                metadataBuilder.setExtras(
+                    Bundle().apply {
+                        putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_USER, creds.username)
+                        putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_PASS, creds.password)
+                        creds.domain?.let { putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_DOMAIN, it) }
+                        putInt(NetworkAwareMediaSourceFactory.EXTRA_CRED_PORT, creds.port)
+                    }
                 )
+            }
+            val mediaItem = mediaItemBuilder
+                .setMediaMetadata(metadataBuilder.build())
                 .build()
             player.setMediaItem(mediaItem)
             player.repeatMode = Player.REPEAT_MODE_OFF
@@ -261,9 +272,17 @@ class AudioServiceController(
 
     fun applyPlaybackOrderMode(mode: PlaybackOrderMode) {
         val player = mediaController ?: return
+        // S0549: on a single-item timeline (audio is frequently loaded as one MediaItem -
+        // network/cloud streaming and the playlist fallback), REPEAT_MODE_ALL degenerates into
+        // "repeat that one track" via MEDIA_ITEM_TRANSITION_REASON_REPEAT and STATE_ENDED never
+        // fires, so the app-level auto-advance (PlayerNavigationCoordinator.nextFile, which owns
+        // the SHUFFLE/LOOP_LIST order model) is never invoked. For SHUFFLE/LOOP_LIST on such a
+        // timeline use REPEAT_MODE_OFF so the track ends and the app advances with the same order
+        // model as manual NEXT. REPEAT_ONE intentionally keeps repeating the single track.
+        val singleItem = player.mediaItemCount <= 1
         when (mode) {
             PlaybackOrderMode.LOOP_LIST -> {
-                player.repeatMode = Player.REPEAT_MODE_ALL
+                player.repeatMode = if (singleItem) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ALL
                 player.shuffleModeEnabled = false
             }
             PlaybackOrderMode.PLAY_THROUGH -> {
@@ -271,8 +290,8 @@ class AudioServiceController(
                 player.shuffleModeEnabled = false
             }
             PlaybackOrderMode.SHUFFLE -> {
-                player.repeatMode = Player.REPEAT_MODE_ALL
-                player.shuffleModeEnabled = true
+                player.repeatMode = if (singleItem) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ALL
+                player.shuffleModeEnabled = !singleItem
             }
             PlaybackOrderMode.REPEAT_ONE -> {
                 player.repeatMode = Player.REPEAT_MODE_ONE
@@ -301,3 +320,15 @@ class AudioServiceController(
         const val EXTRA_DATE_MODIFIED = "fms.date_modified"
     }
 }
+
+/**
+ * Credentials the background service needs to stream a network source, resolved by the caller on a
+ * coroutine and carried to the service via [MediaItem] metadata extras (the service cannot resolve
+ * them on the player thread). Host/share/path come from the URI; these are the auth fields only.
+ */
+data class StreamCredentials(
+    val username: String,
+    val password: String,
+    val domain: String?,
+    val port: Int
+)

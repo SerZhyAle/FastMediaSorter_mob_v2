@@ -84,7 +84,7 @@ class ScheduledTasksRemoteViewsFactory(
         views.setTextViewText(R.id.widget_scheduled_item_type, item.typeName)
         val formattedNext = item.nextRunAt
             ?.let { DateFormat.getTimeFormat(context).format(Date(it)) }
-            ?: "—"
+            ?: "-"
         views.setTextViewText(
             R.id.widget_scheduled_item_next,
             context.getString(R.string.widget_scheduled_next_run, formattedNext)

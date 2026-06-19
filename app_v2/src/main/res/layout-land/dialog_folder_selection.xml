@@ -13,13 +13,18 @@
         android:orientation="vertical">
 
         <!-- Special Virtual Folders Section -->
-        <TextView
-            android:layout_width="wrap_content"
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerSpecialFolders"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/special_virtual_folders"
-            android:textStyle="bold"
-            android:textSize="@dimen/resource_card_title_text_size"
-            android:layout_marginBottom="@dimen/margin_small" />
+            app:csh_title="@string/special_virtual_folders"
+            app:csh_expanded="true" />
+
+        <LinearLayout
+            android:id="@+id/containerSpecialFolders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <!-- Row: Recent + All Music -->
         <LinearLayout
@@ -30,7 +35,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualRecent"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -41,7 +46,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualAllMusic"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -61,7 +66,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualAllVideo"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -72,7 +77,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualCameraPhotos"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -92,7 +97,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualAllImages"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -103,7 +108,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVirtualAllDocs"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -111,6 +116,8 @@
                 android:text="@string/virtual_all_docs"
                 android:textSize="@dimen/text_size_small"
                 app:iconSize="@dimen/icon_size_menu" />
+
+        </LinearLayout>
 
         </LinearLayout>
 
@@ -122,18 +129,23 @@
             android:layout_marginVertical="@dimen/margin_small" />
 
         <!-- Quick Select Section -->
-        <TextView
-            android:layout_width="wrap_content"
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerQuickFolders"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/quick_select_common_folders"
-            android:textStyle="bold"
-            android:textSize="@dimen/resource_card_title_text_size"
-            android:layout_marginBottom="@dimen/margin_small" />
+            app:csh_title="@string/quick_select_common_folders"
+            app:csh_expanded="true" />
+
+        <LinearLayout
+            android:id="@+id/containerQuickFolders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <!-- Root Folder -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRoot"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
@@ -151,7 +163,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDCIM"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -163,7 +175,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPictures"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -184,7 +196,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDownload"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -196,7 +208,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDocuments"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -217,7 +229,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnWhatsApp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -229,7 +241,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTelegram"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -244,7 +256,7 @@
         <!-- Row 4: Instagram -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnInstagram"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_medium"
@@ -252,6 +264,8 @@
             android:textSize="@dimen/text_size_small"
             app:icon="@drawable/ic_resource_local"
             app:iconSize="@dimen/icon_size_menu" />
+
+        </LinearLayout>
 
         <!-- Divider -->
         <View
@@ -290,7 +304,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnValidatePath"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/validate_and_select"
@@ -316,7 +330,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBrowseWithSAF"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/browse_with_system_picker"

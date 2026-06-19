@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.helpers.QueueTrackAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -71,6 +72,14 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
         setupSeekBar()
         observeState()
         viewModel.connect()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Transport sheet has no positive action - no-op confirm keeps Esc-dismiss and focus
+        // traversal without a false Enter-confirm. Play/Pause is the natural default focus.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+        btnPlayPause.requestFocus()
     }
 
     override fun onDestroyView() {

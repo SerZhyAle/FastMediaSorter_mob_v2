@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -10,8 +11,10 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -141,7 +144,36 @@ internal class AddResourceScanManager(
             folderPickerLauncher.launch(null)
         }
 
+        setupCollapsibleFolderSections(dialogView)
+
         dialog.show()
+    }
+
+    /**
+     * Wires the two top groups of the folder dialog to collapsible headers and persists each
+     * group's expanded state in the shared section-state prefs so a collapse survives reopening.
+     */
+    private fun setupCollapsibleFolderSections(dialogView: android.view.View) {
+        val prefs = StrictModeHelper.allowDiskReads {
+            activity.getSharedPreferences("settings_section_states", Context.MODE_PRIVATE)
+        }
+        val sections = listOf(
+            Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_picker_special_expanded"),
+            Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_picker_quick_expanded"),
+        )
+        sections.forEach { (headerId, containerId, prefKey) ->
+            val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
+            val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
+            val expanded = StrictModeHelper.allowDiskReads { prefs.getBoolean(prefKey, true) }
+            header.setExpanded(expanded, notify = false)
+            container.isVisible = expanded
+            header.setOnExpandedChangeListener { isExpanded ->
+                container.isVisible = isExpanded
+                StrictModeHelper.allowDiskWrites {
+                    prefs.edit().putBoolean(prefKey, isExpanded).apply()
+                }
+            }
+        }
     }
 
     fun selectFolderByPath(path: String, dialog: Dialog) {

@@ -7,7 +7,7 @@ metadata:
 
 Don't infer routing/dispatch architecture from a `BuildConfig.<NAME>` field name alone. Always grep for actual reads before treating it as a behavioral gate.
 
-**Why:** In S0250 (2026-05-19) I claimed `BuildConfig.PLAYER_ACTIVITY_CLASS` controlled which Activity launches by default, and built an entire argument on top of it. Grep across `src/` showed exactly ONE hit — a KDoc-comment mention in `PlayerActivity.kt:1350`. The field is dead. The actual Activity dispatch is runtime/user-driven. The user caught the error and the spec direction had to be corrected mid-analysis.
+**Why:** In S0250 (2026-05-19) I claimed `BuildConfig.PLAYER_ACTIVITY_CLASS` controlled which Activity launches by default, and built an entire argument on top of it. Grep across `src/` showed exactly ONE hit - a KDoc-comment mention in `PlayerActivity.kt:1350`. The field is dead. The actual Activity dispatch is runtime/user-driven. The user caught the error and the spec direction had to be corrected mid-analysis.
 
 **How to apply:**
 - Before writing code that branches on `BuildConfig.<NAME>` or relies on its existence to "select an implementation", run `Grep "BuildConfig.<NAME>" app_v2/src/` and confirm at least one **real read site** (not just KDoc / comments) exists outside `BuildConfig.java`.

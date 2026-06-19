@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/translation_source_language"
-            android:textColor="#A1A1AA"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
@@ -34,14 +34,14 @@
             android:layout_marginBottom="16dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textColor="#FFFFFF" />
+            android:textColor="?attr/colorOnSurface" />
 
         <!-- Target Language Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/translation_target_language"
-            android:textColor="#A1A1AA"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
@@ -57,7 +57,7 @@
             android:layout_marginBottom="16dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textColor="#FFFFFF" />
+            android:textColor="?attr/colorOnSurface" />
 
         <!-- OCR Only Checkbox -->
         <LinearLayout
@@ -84,7 +84,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/setting_camera_ocr_only_title"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -92,7 +92,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/setting_camera_ocr_only_desc"
-                    android:textColor="#A1A1AA"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="12sp"
                     android:layout_marginTop="2dp" />
 

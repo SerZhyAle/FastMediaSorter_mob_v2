@@ -46,9 +46,11 @@ pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format jso
 
 Resolved -> read strategic spec file, read current `Status:`, **jump to resume stage** per Resume Map. Do NOT re-create / re-validate done work.
 
+**Preflight handoff (from `/spec-next`).** If `$ARGUMENTS` carries a `preflight:` context line, trust it and skip the 0a `select.ps1` resolve **and** 0a-drift for this ticket - `/spec-next`'s preflight already resolved `status`, `tactical_folder`, `last_audit`, `timber_tags_kt`, `depends_on`, and the drift verdict. Key the Resume Map off the handed `status`; only re-read the spec file body (needed for content), not the catalog metadata.
+
 ### 0a-drift - Code-vs-spec drift check (resume modes only)
 
-Before delegating to F1/F2 for a `Draft` / `Approved` / `Tactical` / `Broken` spec:
+Skip this step entirely when a `preflight:` context line is present - `/spec-next` already ran drift-check and handed the verdict. Otherwise, before delegating to F1/F2 for a `Draft` / `Approved` / `Tactical` / `Broken` spec:
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
@@ -285,9 +287,10 @@ The **only** reasons to stop before the final report. Everything else resolved i
 - **Build mandatory on code changes** - skip only for docs-only diffs.
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
 - **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries as the final code edits before the last phase's build (one build validates code + tags), only when this pipeline sets status `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (resume -> `Implemented`, audit -> `Verified`/`Partial`/`Broken`). Reserve `Sxxxx:` prefix for these temporary probes only; never in persistent `Timber.i/w/e` or long-lived `Timber.d`. See CLAUDE.md "Debug Verification Tags".
-- **Functionality log owned by sub-skills** - `/spec-all` does NOT call `add_to_functionality_log.ps1` directly. Entry comes from `/spec-dev` on `Implemented` (ADD/CHANGE), `/spec-check` on the `Verified` flip (fallback ADD/CHANGE when `/spec-dev` bypassed), `/spec-fix` on user-visible fixes (FIX). At start of final report, grep `dev/FUNCTIONALITY.log` for `<Sxxxx>`: if the spec delivered a user-visible change and the log has zero entries for this id, surface `[FUNC_LOG MISSED] add manually` under "Manual / unresolved" - never paper over by writing the line directly.
+- **Feature inventory owned by sub-skills** - `/spec-all` does NOT write `docs/ALL_FEATURES.jsonl` directly. The record comes from `/spec-dev` on `Implemented` (ADD/CHANGE via `close-and-log.ps1 -FuncOp`), `/spec-check` on the `Verified` flip (fallback when `/spec-dev` bypassed), `/spec-fix` on user-visible fixes (FIX). At start of final report, grep `docs/ALL_FEATURES.jsonl` for `<Sxxxx>` in the `spec` field: if the spec delivered a user-visible capability and the inventory has zero records for this id, surface `[ALL_FEATURES MISSED] add via scripts/all_features/add.ps1` under "Manual / unresolved" - never paper over by writing the record blindly.
 - **MANUAL items are not failures** - `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly - always via `.\scripts\add_to_dev_log.ps1`.
+- **Route mechanical closure through the facade.** Per-file post-change goes through `scripts/post-change.ps1 -ChangeType <type>`; ticket closure goes through `close-and-log.ps1`. Even when impl runs inline (Simple path) rather than via a literal `/spec-dev` invocation, do not hand-roll separate `catalog_sync.ps1` + quality-gate + per-file `add_to_dev_log.ps1` calls - the facade already chains them in one process.
 - Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Never create audit / fix files in `PLAN/`. All audit findings live in the spec's `## Last Audit` block.
 - **Progress output:** after each stage completes, print one-line status: `[Stage X done] -> next: Stage Y`. Live progress trace without interaction.

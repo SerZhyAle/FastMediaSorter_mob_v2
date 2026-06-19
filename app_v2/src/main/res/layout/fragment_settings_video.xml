@@ -52,9 +52,9 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetDefaultVideoPlayer"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
@@ -111,9 +111,9 @@
                 android:textSize="@dimen/toggler_desc_text_size"
                 android:textColor="@color/text_color_secondary" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectSnapshotResource"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_small"
@@ -123,9 +123,9 @@
                 android:text="@string/select_snapshot_destination"
                 android:textAllCaps="false" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearSnapshotResource"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/clear_selection"

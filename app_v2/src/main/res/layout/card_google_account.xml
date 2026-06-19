@@ -92,7 +92,7 @@
         <!-- Diagnostics toggle sits on the left; the primary action button sits immediately to its right with a small gap. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDiagnosticsToggle"
-            style="?attr/borderlessButtonStyle"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"

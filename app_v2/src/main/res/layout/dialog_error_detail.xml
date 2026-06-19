@@ -39,6 +39,7 @@
         android:layout_marginTop="@dimen/padding_large"
         android:clickable="true"
         android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:textStyle="bold"
         android:textSize="@dimen/toggler_title_text_size"
         android:text="@string/error_dialog_show_details"

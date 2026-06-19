@@ -8,16 +8,17 @@ Essential reading for end-users to install, configure, and use the application. 
 
 | Document | Description | Last Updated |
 |---|---|---|
-| [What's New](WHATS_NEW.md) | Release notes for v2.60.422.246 - new features and fixes since 2.60.4150.019. | 2026-04-23 |
+| [What's New](WHATS_NEW.md) | Release notes for v2.60.6180.134 - new features and fixes since 2.60.6141.930. | 2026-06-19 |
 | [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-03-09 |
 | [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-02-02 |
 | [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-02-03 |
 | [FAQ](FAQ.md) | Frequently Asked Questions. | 2026-03-04 |
 | [Troubleshooting](TROUBLESHOOTING.md) | Solutions to common problems. | 2026-02-02 |
-| [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | February 2026 |
+| [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | Current |
 | [SMB Setup Guide](SMB_SETUP_GUIDE.md) | Specific guide for setting up network shares. | 2026-02-09 |
 | [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy, XR / noLegal). | Current |
 | [Complete Feature List](FEATURES.md) | Full inventory of all implemented user-facing features. Reference for documentation and changelog. | Current |
+| [Settings Reference](SETTINGS_REFERENCE.md) | Every setting explained - what each option does, grouped by section. Also [RU](SETTINGS_REFERENCE_RU.md), [UK](SETTINGS_REFERENCE_UK.md). | 2026-06-19 |
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:
