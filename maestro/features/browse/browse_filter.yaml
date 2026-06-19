@@ -1,0 +1,46 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Filter the browse listing by name (S0551 Phase 02, matrix 1.2).
+# Precondition: seeded IMG_00x_* images + photo_001.jpg in virtual://all_images. No clearState.
+# Oracle: after applying name filter "IMG", an IMG_* file is visible and a non-IMG file
+#   (photo_001.jpg) is filtered out - proves inclusion AND exclusion. Exact ids/text only.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Все изображения"
+    timeout: 10000
+- tapOn:
+    text: "Все изображения"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+# Open the filter dialog and filter by name.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+- inputText: "IMG"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+
+# Oracle: IMG_* included, non-IMG (photo_001.jpg) excluded.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
+- assertVisible:
+    text: "IMG_001_green.png"
+- assertNotVisible:
+    text: "photo_001.jpg"

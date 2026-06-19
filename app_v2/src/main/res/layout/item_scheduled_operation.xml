@@ -23,7 +23,11 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
+            <!-- S0536: bare MaterialSwitch (inherits materialSwitchStyle). Kept bare, not wrapped in
+                 SettingsToggleRow, because this is a dense single-line card row where the switch is a
+                 leading control beside the op icon + source-to-target labels + error badge; the full-width
+                 toggle row would break the compact RecyclerView item height. -->
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switchEnabled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

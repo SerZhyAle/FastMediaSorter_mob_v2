@@ -2707,4 +2707,6 @@ Close the player and try again.</string>
     <string name="download_by_link_menu_label">Download by link</string>
     <string name="download_by_link_dialog_title">Link to download</string>
     <string name="download_by_link_dialog_hint">Paste or type a link</string>
+    <string name="collapsible_section_state_expanded">Expanded</string>
+    <string name="collapsible_section_state_collapsed">Collapsed</string>
 </resources>

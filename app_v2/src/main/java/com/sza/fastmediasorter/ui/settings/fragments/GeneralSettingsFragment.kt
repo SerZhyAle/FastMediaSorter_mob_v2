@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -38,7 +37,10 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPermissionsHel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.BuildConfig
+import androidx.core.view.isVisible
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsWidgetHelper
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
@@ -144,7 +146,7 @@ class GeneralSettingsFragment : Fragment() {
 
     // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
     // accessed from onViewCreated, so initialization is always safe.
-    private val sectionsHelper by lazy { GeneralSettingsSectionsHelper(binding, this) }
+    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
     private val logHelper by lazy {
         GeneralSettingsLogHelper(
@@ -228,7 +230,7 @@ class GeneralSettingsFragment : Fragment() {
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
-        sectionsHelper.setup()
+        setupCollapsibleSections()
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
         backupHelper.updateBackupAccountInfo()
@@ -319,6 +321,24 @@ class GeneralSettingsFragment : Fragment() {
         }
     }
 
+    // S0535: unified collapsible groups - one orchestrator + consolidated store, default collapsed.
+    // Invisible headers (flavor-gated sections) are skipped so their bodies stay hidden.
+    private fun setupCollapsibleSections() {
+        fun register(header: CollapsibleSectionHeader, container: View, key: String) {
+            if (!header.isVisible) return
+            sectionsManager.register(header, container, key, defaultExpanded = false)
+        }
+        register(binding.headerInterface, binding.containerInterface, "general__interface")
+        register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
+        register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
+        register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")
+        register(binding.headerAppData, binding.containerAppData, "general__app_data")
+        register(binding.headerSystem, binding.containerSystem, "general__system")
+        if (BuildConfig.DEBUG) {
+            register(binding.headerDebugSettings, binding.containerDebugSettings, "general__debug")
+        }
+    }
+
     private fun setupGeneralLayouts() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -334,17 +354,3 @@ class GeneralSettingsFragment : Fragment() {
         updateLayoutParams(binding.layoutSyncControls, isLandscape)
     }
 }
-
-// ==================== Data Classes ====================
-
-data class CollapsibleSection(
-    val header: TextView,
-    val container: LinearLayout,
-    val prefKey: String
-)
-
-data class SectionData(
-    val titleRes: Int,
-    val contentViewIds: List<Int>,
-    val prefKey: String
-)

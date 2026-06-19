@@ -5,7 +5,9 @@ import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import io.mockk.every
@@ -15,6 +17,7 @@ import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -43,20 +46,53 @@ class CollapsibleSectionHeaderTest {
     }
 
     @Test
-    fun `title prefix flips on expand`() {
+    fun `chevron rotation differs between expanded and collapsed`() {
         val header = newHeader()
-        // The glyph lives in its own csh_prefix view; csh_title holds only the title text.
-        val prefixView = header.findViewById<TextView>(R.id.csh_prefix)
+        val chevron = header.findViewById<ImageView>(R.id.csh_chevron)
         val titleView = header.findViewById<TextView>(R.id.csh_title)
 
         header.setTitle("Authorization")
         header.setExpanded(true, notify = false)
-        assertEquals("▼", prefixView.text.toString())
+        val expandedRotation = chevron.rotation
         assertEquals("Authorization", titleView.text.toString())
 
         header.setExpanded(false, notify = false)
-        assertEquals("▶", prefixView.text.toString())
-        assertEquals("Authorization", titleView.text.toString())
+        val collapsedRotation = chevron.rotation
+
+        assertNotEquals(expandedRotation, collapsedRotation)
+    }
+
+    @Test
+    fun `setSummary shows and hides the summary slot`() {
+        val header = newHeader()
+        val summary = header.findViewById<TextView>(R.id.csh_summary)
+
+        assertEquals(View.GONE, summary.visibility)
+
+        header.setSummary("1.2 GB - 3 files")
+        assertEquals(View.VISIBLE, summary.visibility)
+        assertEquals("1.2 GB - 3 files", summary.text.toString())
+
+        header.setSummary(null)
+        assertEquals(View.GONE, summary.visibility)
+    }
+
+    @Test
+    fun `state description reflects expanded and collapsed`() {
+        val header = newHeader()
+        val headerRow = header.findViewById<View>(R.id.csh_headerRow)
+
+        header.setExpanded(true, notify = false)
+        assertEquals(
+            context.getString(R.string.collapsible_section_state_expanded),
+            ViewCompat.getStateDescription(headerRow)?.toString()
+        )
+
+        header.setExpanded(false, notify = false)
+        assertEquals(
+            context.getString(R.string.collapsible_section_state_collapsed),
+            ViewCompat.getStateDescription(headerRow)?.toString()
+        )
     }
 
     @Test

@@ -158,6 +158,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
     internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
+    // S0550: assigned late in PlayerManagerInitializer.initUiCoordinators(); the slideshow callback
+    // can fire during init (initial displayImage -> updateSlideshowState -> stopSlideshow) before
+    // this manager exists. Callers must gate UI sync on this readiness flag.
+    internal val isDialogAndUiStateManagerInitialized: Boolean
+        get() = ::dialogAndUiStateManager.isInitialized
 
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     internal lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler

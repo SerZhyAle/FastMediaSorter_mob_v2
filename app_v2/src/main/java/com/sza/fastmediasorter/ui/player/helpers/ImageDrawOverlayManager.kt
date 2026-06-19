@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.view.View
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import kotlinx.coroutines.Dispatchers
@@ -189,7 +189,7 @@ class ImageDrawOverlayManager(
             hint = activity.getString(R.string.draw_overlay_filename_hint)
             setSingleLine(true)
         }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setView(editText)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val confirmedFilename = editText.text?.toString()?.trim()
@@ -737,7 +737,7 @@ class ImageDrawOverlayManager(
         }
 
         /**
-         * S0192 Phase 03 - Text tool entry point. Opens an AlertDialog with a
+         * S0192 Phase 03 - Text tool entry point. Opens a MaterialAlertDialogBuilder dialog with a
          * single-line EditText (Antigravity §9.3 - multiline deferred). Empty
          * input is silently ignored; non-empty input becomes a TextEntry action
          * at the tap coordinates with current color + opacity-baked alpha + the
@@ -748,7 +748,7 @@ class ImageDrawOverlayManager(
                 setSingleLine(true)
                 hint = activity.getString(R.string.draw_text_input_hint)
             }
-            AlertDialog.Builder(activity)
+            MaterialAlertDialogBuilder(activity)
                 .setView(editText)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok) { _, _ ->

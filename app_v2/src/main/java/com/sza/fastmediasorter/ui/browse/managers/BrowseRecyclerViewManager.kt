@@ -150,9 +150,6 @@ class BrowseRecyclerViewManager(
                 Timber.d(
                     "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode noThumbs=$disableThumbnails"
                 )
-                if (disableThumbnails) {
-                    Timber.d("S0548: no-thumbnail grid plank span=$spanCount (wDp=${"%.0f".format(screenWidthDp)}, compact=$isCompactMode)")
-                }
 
                 Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (base=$baseSpanCount, calculated=$calculatedSpanCount)")
                 GridLayoutManager(recyclerView.context, spanCount)

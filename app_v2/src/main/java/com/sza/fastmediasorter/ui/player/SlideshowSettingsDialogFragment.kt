@@ -80,8 +80,8 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             }
         })
 
-        // Play to End Checkbox
-        binding.cbPlayToEnd.setOnCheckedChangeListener { _, isChecked ->
+        // Play to End toggle
+        binding.cbPlayToEnd.setOnCheckedChangeListener { isChecked ->
             viewModel.setPlayToEndInSlideshow(isChecked)
         }
 

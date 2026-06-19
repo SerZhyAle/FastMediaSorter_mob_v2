@@ -5,7 +5,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/padding_tiny">
 
-        <CheckBox android:id="@+id/cbAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
         <EditText android:id="@+id/etName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:hint="@string/resource_name" android:inputType="text" android:importantForAutofill="no" android:textSize="@dimen/item_title_text_size" android:textStyle="bold" android:background="@null" android:singleLine="true" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toEndOf="@+id/cbAdd" app:layout_constraintTop_toTopOf="parent" tools:text="Downloads" />
 
@@ -32,17 +32,17 @@
 
         <LinearLayout android:id="@+id/layoutCheckboxRow1" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:baselineAligned="false" android:orientation="horizontal" app:layout_constraintStart_toStartOf="@+id/etName" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@+id/tvFileCount">
 
-            <CheckBox android:id="@+id/cbDestination" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/register_as_destination" android:textSize="@dimen/item_detail_text_size" />
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbDestination" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/register_as_destination" android:textSize="@dimen/item_detail_text_size" />
 
-            <CheckBox android:id="@+id/cbReadOnly" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/read_only_mode" android:textSize="@dimen/item_detail_text_size" />
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbReadOnly" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/read_only_mode" android:textSize="@dimen/item_detail_text_size" />
 
         </LinearLayout>
 
         <LinearLayout android:id="@+id/layoutCheckboxRow2" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:baselineAligned="false" android:orientation="horizontal" app:layout_constraintStart_toStartOf="@+id/etName" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@+id/layoutCheckboxRow1">
 
-            <CheckBox android:id="@+id/cbScanSubdirectories" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="true" android:text="@string/scan_subdirectories" android:textSize="@dimen/item_detail_text_size" />
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbScanSubdirectories" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="true" android:text="@string/scan_subdirectories" android:textSize="@dimen/item_detail_text_size" />
 
-            <CheckBox android:id="@+id/cbAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/all_files" android:textSize="@dimen/item_detail_text_size" />
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/all_files" android:textSize="@dimen/item_detail_text_size" />
 
         </LinearLayout>
 

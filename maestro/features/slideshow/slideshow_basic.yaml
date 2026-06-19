@@ -1,0 +1,48 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Start/stop slideshow on an image (S0551 Phase 05).
+# Value: S0550 crashed in the slideshow-state callback during image open, so exercising the
+#   slideshow toggle on a large image is a direct regression of that path.
+# Precondition: seeded images in virtual://all_images. No clearState.
+# Oracle: photoView stays rendered across slideshow start and stop, no crash-report prompt.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Все изображения"
+    timeout: 10000
+- tapOn:
+    text: "Все изображения"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- tapOn:
+    text: "photo_001.jpg"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/photoView"
+    timeout: 15000
+
+# Player controls auto-hide; tap the image surface to reveal the top command panel.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/photoView"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"
+    timeout: 8000
+
+# Start slideshow (the callback path that crashed in S0550) - surface stays rendered, no crash.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/photoView"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

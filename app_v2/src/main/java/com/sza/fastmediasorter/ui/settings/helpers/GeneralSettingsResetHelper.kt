@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -26,7 +27,7 @@ class GeneralSettingsResetHelper(
     }
 
     fun showResetSettingsConfirmation() {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_settings_title)
             .setMessage(R.string.reset_settings_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> resetSettingsToDefaults() }
@@ -35,7 +36,7 @@ class GeneralSettingsResetHelper(
     }
 
     fun showResetGeneralSectionConfirmation() {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_general_section_title)
             .setMessage(R.string.reset_general_section_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> resetGeneralSection() }
@@ -44,7 +45,7 @@ class GeneralSettingsResetHelper(
     }
 
     fun resetSmbConnections() {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_smb_connections_title)
             .setMessage(R.string.reset_smb_connections_message)
             .setPositiveButton(android.R.string.ok) { _, _ ->

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
@@ -234,7 +235,7 @@ internal class AddResourceConnectionManager(
     }
 
     private fun showDropboxSignedInOptions(accountEmail: String? = null) {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.dropbox)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.dropbox_select_folder) { _, _ -> navigateToDropboxFolderPicker(accountEmail) }
@@ -279,7 +280,7 @@ internal class AddResourceConnectionManager(
     }
 
     private fun showOneDriveSignedInOptions(accountEmail: String? = null) {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.onedrive)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.onedrive_select_folder) { _, _ -> navigateToOneDriveFolderPicker(accountEmail) }
@@ -470,7 +471,7 @@ internal class AddResourceConnectionManager(
         }
         val port = binding.etSmbPort.text?.toString()?.toIntOrNull() ?: 445
 
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.smb_manual_share_dialog_title))
             .setView(editText)
             .setPositiveButton(android.R.string.ok, null) // set below to prevent auto-dismiss on invalid input
@@ -522,7 +523,7 @@ internal class AddResourceConnectionManager(
     }
 
     fun showLocalNetworkPermissionRationale() {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.local_network_permission_rationale_title)
             .setMessage(R.string.local_network_permission_rationale_message)
             .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->

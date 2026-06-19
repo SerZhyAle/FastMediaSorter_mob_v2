@@ -354,7 +354,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Reset Management settings button (Step 3.8).
         binding.btnResetOperationsSection.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext())
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.reset_operations_section_title)
                 .setMessage(R.string.reset_operations_section_message)
                 .setPositiveButton(R.string.reset) { _, _ ->

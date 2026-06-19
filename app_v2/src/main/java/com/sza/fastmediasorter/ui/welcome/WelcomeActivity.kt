@@ -15,12 +15,12 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -135,7 +135,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     /** Re-entry from Settings changed the profile: warn before the preset overwrites tuned settings
      *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings. */
     private fun showProfilePresetReapplyWarning(type: DeviceProfileType) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setMessage(R.string.settings_profile_warning)
             .setPositiveButton(R.string.profile_picker_select) { _, _ ->
                 viewModel.confirmProfilePresetReapply(type)

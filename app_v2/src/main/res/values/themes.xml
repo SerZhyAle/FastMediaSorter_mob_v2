@@ -37,6 +37,9 @@
 
         <!-- S0538: builder dialogs inherit the unified confirm/cancel pair via this seam. -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
+
+        <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
+        <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
     </style>
 
     <!-- S0538: applied via theme.applyStyle() in BaseActivity when compact mode is on. -->
@@ -79,6 +82,10 @@
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0</item>
     </style>
+
+    <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
+         via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
+    <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
 
     <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.FastMediaSorter.Button.Outlined">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
@@ -165,6 +172,16 @@
          positive slot per-call (Phase 03). -->
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogConfirm</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+    </style>
+
+    <!-- S0538: destructive variant of the builder seam - red filled positive for delete/remove/clear
+         confirmations. Passed per-dialog via MaterialAlertDialogBuilder(context, R.style…Destructive);
+         self-contained (mirrors the base overlay) so it styles correctly whether the override theme
+         layers on or replaces materialAlertDialogTheme. -->
+    <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog.Destructive" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
     </style>

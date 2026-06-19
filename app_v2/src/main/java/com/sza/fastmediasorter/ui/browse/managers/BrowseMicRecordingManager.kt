@@ -6,9 +6,9 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
 import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -170,7 +170,7 @@ class BrowseMicRecordingManager(
 
     private fun showNameDialog(tempFile: File, defaultName: String, resource: MediaResource) {
         val input = EditText(activity).apply { setText(defaultName); selectAll() }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.mic_recording_filename_title)
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->

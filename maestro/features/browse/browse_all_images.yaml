@@ -1,0 +1,42 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Browse the built-in "All images" virtual resource (S0551 Phase 02).
+# Precondition: seeded media indexed in MediaStore via scripts/utils/setup_test_media.ps1
+#   (photo_001.jpg + the IMG_00x set). virtual://all_images is a built-in LOCAL resource -
+#   no resource registration needed, so the flow does NOT clearState (which would wipe
+#   registered resources and the MediaStore-backed listing context).
+# Oracle (S0551 oracle convention): the browse grid rvMediaFiles populates (marker
+#   BrowseLoadingManager: COMPLETE) and a known seeded file is visible; prior-crash guard
+#   on launch. No optional on the proof assertions; no regex locators.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+
+# Prior-crash guard: the crash-report prompt only appears on a launch following a crash.
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+# Main screen: resource type tabs are up.
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+
+# Open the Local tab (index 0 disambiguates the tab from the per-card "Локальные" type label).
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Все изображения"
+    timeout: 10000
+- tapOn:
+    text: "Все изображения"
+
+# Browse listing loaded: grid populated + a known seeded image present.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+- assertVisible:
+    text: "photo_001.jpg"

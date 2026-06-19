@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
@@ -259,7 +260,7 @@ class MainVoiceCaptureManager(
 
     private fun showRecordingDialog() {
         recordingStartedAtMs = SystemClock.elapsedRealtime()
-        recordingDialog = AlertDialog.Builder(activity)
+        recordingDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.quick_voice_recording_dialog_title)
             .setMessage("00:00")
             .setCancelable(false)

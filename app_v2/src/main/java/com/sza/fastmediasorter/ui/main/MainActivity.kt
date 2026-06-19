@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
@@ -1109,7 +1108,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
         if (isFinishing || isDestroyed) return
-        AlertDialog.Builder(this)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.delete_resource_title)
             .setMessage(getString(R.string.delete_resource_message, resource.name))
             .setPositiveButton(R.string.delete) { _, _ ->

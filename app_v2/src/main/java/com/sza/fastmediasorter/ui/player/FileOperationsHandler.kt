@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -350,7 +350,7 @@ class FileOperationsHandler(
                     Timber.w("FileOperationsHandler.deleteCurrentFile: Activity is finishing/destroyed, skipping confirm dialog")
                     return@launch
                 }
-                AlertDialog.Builder(context)
+                MaterialAlertDialogBuilder(context, com.sza.fastmediasorter.R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                     .setTitle(com.sza.fastmediasorter.R.string.confirm_delete_title)
                     .setMessage(context.getString(com.sza.fastmediasorter.R.string.confirm_delete_message, 1))
                     .setPositiveButton(com.sza.fastmediasorter.R.string.delete) { _, _ -> performDelete() }

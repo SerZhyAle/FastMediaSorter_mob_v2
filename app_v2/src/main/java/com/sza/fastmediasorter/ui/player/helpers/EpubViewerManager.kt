@@ -521,7 +521,7 @@ class EpubViewerManager(
             selectAll()
         }
 
-        android.app.AlertDialog.Builder(context)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(R.string.epub_go_to_chapter_title)
             .setMessage(context.getString(R.string.epub_go_to_chapter_message, chapterCount))
             .setView(editText)

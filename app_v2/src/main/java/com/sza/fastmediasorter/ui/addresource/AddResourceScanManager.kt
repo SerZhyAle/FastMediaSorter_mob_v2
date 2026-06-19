@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
@@ -301,7 +302,7 @@ internal class AddResourceScanManager(
     // ========== Permission Dialog ==========
 
     fun showAllFilesAccessPermissionDialog() {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.all_files_access_required)
             .setMessage(R.string.all_files_access_explanation)
             .setPositiveButton(R.string.grant_permission) { _, _ ->

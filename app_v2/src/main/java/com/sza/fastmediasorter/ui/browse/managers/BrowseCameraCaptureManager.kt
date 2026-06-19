@@ -15,9 +15,9 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
@@ -364,7 +364,7 @@ class BrowseCameraCaptureManager(
         isVideo: Boolean,
     ) {
         val input = EditText(activity).apply { setText(defaultName); selectAll() }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.camera_capture_filename_title)
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->

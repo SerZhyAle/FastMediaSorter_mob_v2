@@ -191,7 +191,7 @@ class ScheduledOperationDialog(
                 addView(pickerMinutes, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             }
 
-            androidx.appcompat.app.AlertDialog.Builder(context)
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.scheduled_ops_col_schedule))
                 .setView(row)
                 .setPositiveButton(android.R.string.ok) { _, _ ->

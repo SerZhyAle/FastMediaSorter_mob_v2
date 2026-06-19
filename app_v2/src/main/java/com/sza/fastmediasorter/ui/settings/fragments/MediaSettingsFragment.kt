@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -75,7 +76,7 @@ class MediaSettingsFragment : Fragment() {
 
     private fun setupResetSection() {
         binding.btnResetMediaSection.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.reset_media_section_title)
                 .setMessage(R.string.reset_media_section_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->

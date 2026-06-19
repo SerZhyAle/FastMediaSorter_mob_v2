@@ -12,10 +12,10 @@ import android.os.Environment
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -341,7 +341,7 @@ class ImageCropManager(
             container.addView(note)
         }
 
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setView(container)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val name = editText.text.toString().trim().ifEmpty { defaultName }

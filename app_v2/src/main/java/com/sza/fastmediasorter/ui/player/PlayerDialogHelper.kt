@@ -253,7 +253,7 @@ class PlayerDialogHelper(
             if (shouldConfirmMove) {
                 // Show confirmation dialog first
                 val resource = viewModel.state.value.resource
-                safeShow(AlertDialog.Builder(activity)
+                safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.confirm_move_title)
                     .setMessage(activity.getString(R.string.confirm_move_message, 1, resource?.name ?: "destination"))
                     .setPositiveButton(R.string.move) { _, _ ->
@@ -465,7 +465,7 @@ class PlayerDialogHelper(
             activity.getString(R.string.cloud_auth_copy_error)
         }
         
-        val builder = AlertDialog.Builder(activity)
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.authentication_required))
             .setMessage(message)
             .setNegativeButton(android.R.string.cancel, null)

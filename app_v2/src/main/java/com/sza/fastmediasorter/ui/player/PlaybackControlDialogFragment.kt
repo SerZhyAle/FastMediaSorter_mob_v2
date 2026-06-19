@@ -411,7 +411,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
             handleStereoModeSelection(mode)
         }
 
-        binding.switchVrOverrideFormatType.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchVrOverrideFormatType.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingStereoControls) return@setOnCheckedChangeListener
             updateStereoFamilyAvailability(resolveStereoFamily(host().stereoMode.value), isChecked)
         }
@@ -422,7 +422,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         isUpdatingStereoControls = true
         binding.radioGroup3D.check(flatRadioIdFor(mode))
         binding.radioGroupSpherical3D.check(sphericalRadioIdFor(mode))
-        binding.switchVrOverrideFormatType.isChecked = false
+        binding.switchVrOverrideFormatType.setCheckedSilently(false)
         updateStereoFamilyAvailability(resolveStereoFamily(mode), allowCrossFamilyOverride = false)
         updateStereoDetectedLabel(mode)
         isUpdatingStereoControls = false

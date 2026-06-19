@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.databinding.ItemDestinationBinding
@@ -141,7 +142,7 @@ class OperationsDestinationsManager(
 
         val resource = destinations[position]
 
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.remove_destination_title)
             .setMessage(fragment.getString(R.string.remove_destination_message, resource.name))
             .setPositiveButton(R.string.remove_action) { _, _ ->

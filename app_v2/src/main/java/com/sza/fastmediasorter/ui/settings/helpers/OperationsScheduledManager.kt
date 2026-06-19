@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -100,7 +101,7 @@ class OperationsScheduledManager(
         }
 
         binding.btnClearAllScheduled.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+            MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.scheduled_ops_confirm_clear)
                 .setPositiveButton(R.string.delete) { _, _ ->
                     fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -179,7 +180,7 @@ class OperationsScheduledManager(
     }
 
     private fun confirmDeleteScheduledOp(op: ScheduledOperation) {
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.scheduled_ops_confirm_delete)
             .setPositiveButton(R.string.delete) { _, _ -> scheduledViewModel.delete(op.id) }
             .setNegativeButton(android.R.string.cancel, null)

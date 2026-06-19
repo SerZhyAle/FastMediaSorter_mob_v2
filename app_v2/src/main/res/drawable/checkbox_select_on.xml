@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- File-selection checkbox, checked: black square with a white check mark (S0419). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="20dp"
-    android:height="20dp"
+    android:width="26dp"
+    android:height="26dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path

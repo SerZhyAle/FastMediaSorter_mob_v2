@@ -98,7 +98,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             return
         }
         if (activity.isFinishing || activity.isDestroyed) return
-        MaterialAlertDialogBuilder(activity)
+        MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.confirm_delete_title)
             .setMessage(activity.getString(R.string.confirm_delete_message, 1))
             .setPositiveButton(R.string.delete) { _, _ ->

@@ -456,7 +456,6 @@
     <dimen name="dialog_slideshow_settings_tvIntervalLabel_textSize">16sp</dimen>
     <dimen name="dialog_slideshow_settings_tvIntervalValue_textSize">16sp</dimen>
     <dimen name="dialog_slideshow_settings_tvMusicLabel_textSize">18sp</dimen>
-    <dimen name="dialog_slideshow_settings_tvPlayToEndHint_textSize">12sp</dimen>
     <dimen name="dialog_slideshow_settings_unknown_minWidth">300dp</dimen>
     <dimen name="fragment_settings_general_btnAutoCalculateCache_minWidth">80dp</dimen>
     <dimen name="fragment_settings_general_tilCacheSizeLimit_layout_constraintWidth_max">200dp</dimen>
@@ -660,7 +659,6 @@
     <dimen name="dialog_slideshow_settings_tvIntervalLabel_layout_marginTop">@dimen/layout_spacing_large</dimen>
     <dimen name="dialog_slideshow_settings_tvMusicLabel_layout_marginTop">@dimen/layout_spacing_medium</dimen>
     <dimen name="dialog_slideshow_settings_tvMusicStatus_layout_marginTop">@dimen/layout_spacing_normal</dimen>
-    <dimen name="dialog_slideshow_settings_tvPlayToEndHint_layout_marginStart">@dimen/layout_spacing_xlarge</dimen>
     <dimen name="dialog_slideshow_settings_tvTitle_textSize">@dimen/layout_text_size_medium</dimen>
     <dimen name="dialog_slideshow_settings_unknown_padding">@dimen/layout_spacing_large</dimen>
     <dimen name="fragment_settings_audio_etAudioSizeMax_layout_marginStart">@dimen/layout_spacing_medium</dimen>

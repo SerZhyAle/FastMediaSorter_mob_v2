@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -8,10 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.ViewCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
@@ -30,8 +33,10 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private val headerRow: LinearLayout
     private val helpIcon: ImageButton
+    private val chevronView: ImageView
     private val prefixView: TextView
     private val titleView: TextView
+    private val summaryView: TextView
     private val trailingSlot: FrameLayout
 
     private var expanded = false
@@ -43,8 +48,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     private var virtual = false
     private var expandedChangeListener: ((Boolean) -> Unit)? = null
     private var defaultHeaderBackground = background
-    private var collapsedPrefixText: CharSequence? = null
-    private var expandedPrefixText: CharSequence? = null
 
     /**
      * `true` when the optional help icon is visible.
@@ -59,16 +62,19 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
         headerRow = findViewById(R.id.csh_headerRow)
         helpIcon = findViewById(R.id.csh_iconHelp)
+        chevronView = findViewById(R.id.csh_chevron)
         prefixView = findViewById(R.id.csh_prefix)
         titleView = findViewById(R.id.csh_title)
+        summaryView = findViewById(R.id.csh_summary)
         trailingSlot = findViewById(R.id.csh_trailingSlot)
         defaultHeaderBackground = headerRow.background
 
         bindClicks()
         applyAttributes(attrs, defStyleAttr)
         renderTitle()
-        syncHelpVisibility()
         applyVirtualState()
+        updateChevron(animate = false)
+        syncHelpVisibility()
     }
 
     /**
@@ -87,6 +93,28 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     }
 
     /**
+     * Sets the optional collapsed-state summary shown under the title, or hides it when null/blank.
+     *
+     * Summary visibility is independent of the expanded state - the caller decides when to populate it.
+     */
+    fun setSummary(text: CharSequence?) {
+        if (text.isNullOrBlank()) {
+            summaryView.text = ""
+            summaryView.visibility = View.GONE
+        } else {
+            summaryView.text = text
+            summaryView.visibility = View.VISIBLE
+        }
+    }
+
+    /**
+     * Resource-backed overload for [setSummary].
+     */
+    fun setSummary(@StringRes resId: Int) {
+        setSummary(context.getText(resId))
+    }
+
+    /**
      * Updates the expanded state.
      *
      * In virtual mode the header is a static label, so expand/collapse is ignored.
@@ -95,6 +123,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         if (virtual || this.expanded == expanded) return
         this.expanded = expanded
         renderTitle()
+        updateChevron(animate = notify)
         if (notify) {
             expandedChangeListener?.invoke(expanded)
         }
@@ -204,8 +233,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             helpTitleText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpTitle)
             helpMessageText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpMessage)
             virtual = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_virtual, false)
-            collapsedPrefixText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_collapsedPrefix)
-            expandedPrefixText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_expandedPrefix)
+            setSummary(typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_summary))
             val showHelp = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_showHelp, false)
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
 
@@ -255,29 +283,43 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     }
 
     private fun renderTitle() {
-        if (virtual) {
-            prefixView.visibility = View.GONE
-            titleView.text = titleText
-        } else {
-            val prefix = if (expanded) expandedPrefixText ?: "▼" else collapsedPrefixText ?: "▶"
-            if (prefix.isNullOrEmpty()) {
-                prefixView.visibility = View.GONE
-            } else {
-                prefixView.visibility = View.VISIBLE
-                prefixView.text = prefix
-            }
-            titleView.text = titleText
-        }
+        titleView.text = titleText
         updateHeaderContentDescription()
     }
 
+    private fun updateChevron(animate: Boolean) {
+        val target = if (expanded) EXPANDED_ROTATION else COLLAPSED_ROTATION
+        if (animate) {
+            chevronView.animate()
+                .rotation(target)
+                .setDuration(ROTATION_ANIMATION_DURATION_MS)
+                .start()
+        } else {
+            chevronView.animate().cancel()
+            chevronView.rotation = target
+        }
+    }
+
     private fun updateHeaderContentDescription() {
-        headerRow.contentDescription = if (virtual) {
-            titleView.text
-        } else if (expanded) {
+        if (virtual) {
+            headerRow.contentDescription = titleView.text
+            return
+        }
+        val baseDescription = if (expanded) {
             collapseContentDescriptionText ?: titleView.text
         } else {
             expandContentDescriptionText ?: titleView.text
+        }
+        val stateText = context.getText(
+            if (expanded) R.string.collapsible_section_state_expanded
+            else R.string.collapsible_section_state_collapsed,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            headerRow.contentDescription = baseDescription
+            ViewCompat.setStateDescription(headerRow, stateText)
+        } else {
+            // setStateDescription is not announced by TalkBack below API 30, so fold the state into contentDescription.
+            headerRow.contentDescription = "$baseDescription, $stateText"
         }
     }
 
@@ -294,6 +336,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private fun applyVirtualState() {
         headerRow.background = if (virtual) null else defaultHeaderBackground
+        chevronView.visibility = if (virtual) View.GONE else View.VISIBLE
         if (virtual) {
             headerRow.setOnClickListener(null)
             headerRow.isClickable = false
@@ -310,5 +353,12 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private fun hasHelpPayload(): Boolean {
         return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
+    }
+
+    companion object {
+        // Chevron base orientation (ic_arrow_drop_down) points down = expanded; rotate to point right = collapsed.
+        private const val EXPANDED_ROTATION = 0f
+        private const val COLLAPSED_ROTATION = -90f
+        private const val ROTATION_ANIMATION_DURATION_MS = 150L
     }
 }

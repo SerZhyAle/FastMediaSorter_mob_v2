@@ -51,8 +51,8 @@ the raw XML below is included for reference and one-off exceptions only.
     android:gravity="center_vertical"
     android:minHeight="@dimen/button_height">
 
-    <!-- 1. Trigger control (leftmost) -->
-    <com.google.android.material.switchmaterial.SwitchMaterial
+    <!-- 1. Trigger control (leftmost) - canonical on/off class is Material3 MaterialSwitch -->
+    <com.google.android.material.materialswitch.MaterialSwitch
         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
     <!-- 2. Text group (fills remaining width) -->
@@ -93,19 +93,29 @@ the raw XML below is included for reference and one-off exceptions only.
 **Rules:**
 - Main label → `@dimen/toggler_title_text_size` (14sp). NEVER hardcode sp values.
 - Subtitle → `@dimen/toggler_desc_text_size` (12sp). Always exactly 2sp below the title.
-- Help icon (`ic_help_outline_24`) → **inline next to the title**, opens the tooltip dialog. Hidden when no help payload is configured for the row.
+- On/off trigger class → Material3 `com.google.android.material.materialswitch.MaterialSwitch` (the single canonical switch class). Never `SwitchMaterial`/`SwitchCompat` for an on/off setting.
+- Help icon (`ic_help_outline_24`) → **inline immediately after the title**; a weighted spacer fills the rest of the title line so the icon stays next to the label and is **never pinned to the right edge**. Opens the tooltip dialog; hidden when no help payload is configured.
+- The row's right edge is the **optional trailing action slot** (rule below), not the help icon - do not move the helper there.
 - Trailing action slot is **optional** and reserved for exceptional rows that genuinely need a second action; the default row has no trailing widget.
 - `layout_weight="1"` on the text group is mandatory so the trailing slot (when present) does not crowd the text.
 
 #### Reusable component
 
 The canonical implementation is `com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow`
-(compound view) backed by `view_settings_toggle_row.xml`. New switch rows in
-settings fragments and forms MUST use this component instead of hand-rolled
-`SwitchMaterial + TextView + ImageButton` triplets. The component encapsulates
+(compound view) backed by `view_settings_toggle_row.xml`. It embeds the canonical
+Material3 `MaterialSwitch`, so wrapping a control in this component is the single
+recommended form for every new on/off toggle - in settings fragments, forms, AND
+dialogs. New switch rows MUST use this component instead of hand-rolled
+`MaterialSwitch + TextView + ImageButton` triplets. The component encapsulates
 title, subtitle, helper visibility, tooltip wiring, and the optional trailing
 action slot. Hand-built rows are technical debt and must be migrated when
 adjacent code is touched.
+
+Any on/off switch that must stay **outside** `SettingsToggleRow` (e.g. a dense
+list-item row where the full toggle row would break the layout) MUST be a
+`com.google.android.material.materialswitch.MaterialSwitch`; it inherits the
+project `materialSwitchStyle` (`themes.xml`) so it matches the switch rendered
+inside the component.
 
 ### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 
@@ -153,7 +163,15 @@ One named Material3 style per semantic role, defined in `values/themes.xml`. The
 | Low-emphasis / cancel | `Widget.FastMediaSorter.Button.Text` | Dismiss / cancel / "Not now" / link-like actions; anything that previously used `?android:attr/borderlessButtonStyle`. |
 | Icon-only | `Widget.FastMediaSorter.Button.Icon` | Toolbar / inline icon actions that want a Material ripple and 48dp target. |
 
-Dialog action pair (S0538) - special-purpose, NOT the general role taxonomy: `Widget.FastMediaSorter.Button.Dialog{Confirm,Cancel,Destructive}`. Use these (and only these) for the confirm/cancel pair of any non-system dialog. They are deliberately large (min `dialog_action_button_min_height`, ~56dp) and color-coded (green confirm / red destructive / neutral outlined cancel) so a blind finger tap (e.g. while driving) cannot miss or confuse them. The "at most one Filled per surface" rule does not apply to this pair.
+Dialog action pair (S0538) - special-purpose, NOT the general role taxonomy. Use these (and only these) for the confirm/cancel pair of any non-system dialog, action-pair bottom sheet, or custom dialog layout. They are deliberately large (min `dialog_action_button_min_height`, ~56dp) with a `dialog_action_button_gap` between the pair, and color-coded so a blind finger tap (e.g. while driving) cannot miss or confuse them. The "at most one Filled per surface" rule does not apply to this pair.
+
+| Slot | Style | Look |
+|------|-------|------|
+| Confirm (OK / Save / Apply) | `Widget.FastMediaSorter.Button.DialogConfirm` | Green filled (`@color/success_color`) |
+| Cancel | `Widget.FastMediaSorter.Button.DialogCancel` | Neutral outlined |
+| Destructive confirm (delete / remove / clear) | `Widget.FastMediaSorter.Button.DialogDestructive` | Red filled (`@color/delete_button`) |
+
+Seam: `MaterialAlertDialogBuilder` dialogs inherit this pair automatically via `materialAlertDialogTheme` on the app theme (positive -> DialogConfirm, negative/neutral -> DialogCancel) - no per-call edit. A destructive builder dialog opts into the red variant with the per-dialog overload `MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)`. Custom inflated layouts apply the named style directly on each `MaterialButton`. OS/system dialogs are exempt (we do not own their chrome).
 
 Rules:
 

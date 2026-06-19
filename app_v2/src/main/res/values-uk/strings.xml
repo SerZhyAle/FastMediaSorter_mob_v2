@@ -2627,4 +2627,6 @@
     <string name="download_by_link_menu_label">Завантажити за посиланням</string>
     <string name="download_by_link_dialog_title">Посилання для завантаження</string>
     <string name="download_by_link_dialog_hint">Вставте або введіть посилання</string>
+    <string name="collapsible_section_state_expanded">Розгорнуто</string>
+    <string name="collapsible_section_state_collapsed">Згорнуто</string>
 </resources>

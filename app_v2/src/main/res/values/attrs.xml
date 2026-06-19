@@ -17,6 +17,7 @@
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />
+        <attr name="csh_summary" format="string|reference" />
         <attr name="csh_expanded" format="boolean" />
         <attr name="csh_showHelp" format="boolean" />
         <attr name="csh_helpTitle" format="string|reference" />

@@ -1,4 +1,4 @@
-﻿# Queries the catalogue by filters. Combine filters freely (all are AND'd).
+# Queries the catalogue by filters. Combine filters freely (all are AND'd).
 #
 # Examples:
 #   # All data-layer classes that touch disk
@@ -17,6 +17,9 @@
 #   # also catches non-Hilt / @Inject-free collaborators)
 #   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
 #
+#   # Search for a term in class name, path, role, injected/constructor dependencies, or functions
+#   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Search "welcome"
+#
 #   # Classes changed since a date
 #   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -TouchedSince 2026-04-01
 #
@@ -32,6 +35,7 @@ param(
     [int]$MaxLoc,
     [string]$ClassMatches,
     [string]$PathMatches,
+    [string]$Search,
     [string]$Injected,
     [string]$DependsOn,
     [ValidateSet('role','description')][string]$Missing,
@@ -61,6 +65,28 @@ if ($MinLoc)        { $result = @($result | Where-Object { $_.loc -ge $MinLoc })
 if ($MaxLoc)        { $result = @($result | Where-Object { $_.loc -le $MaxLoc }) }
 if ($ClassMatches)  { $result = @($result | Where-Object { $_.class -like $ClassMatches }) }
 if ($PathMatches)   { $result = @($result | Where-Object { $_.path -like $PathMatches }) }
+if ($Search) {
+    $term = $Search.ToLower()
+    $result = @($result | Where-Object {
+        $injectedStr = if ($_.injected) { ($_.injected -join " ").ToLower() } else { "" }
+        $depsStr = if ($_.constructorDeps) { ($_.constructorDeps -join " ").ToLower() } else { "" }
+        $funcsStr = ""
+        if ($_.functions) {
+            $funcTexts = $_.functions | ForEach-Object { "$($_.name) $($_.description)" }
+            $funcsStr = ($funcTexts -join " ").ToLower()
+        }
+        $roleStr = if ($_.role) { $_.role.ToLower() } else { "" }
+        $classStr = if ($_.class) { $_.class.ToLower() } else { "" }
+        $pathStr = if ($_.path) { $_.path.ToLower() } else { "" }
+
+        ($classStr    -like "*$term*") -or
+        ($pathStr     -like "*$term*") -or
+        ($roleStr     -like "*$term*") -or
+        ($injectedStr -like "*$term*") -or
+        ($depsStr     -like "*$term*") -or
+        ($funcsStr    -like "*$term*")
+    })
+}
 if ($Injected)      { $result = @($result | Where-Object { $_.injected -contains $Injected }) }
 if ($DependsOn)     { $result = @($result | Where-Object { $_.constructorDeps -contains $DependsOn }) }
 if ($Coroutines)    { $result = @($result | Where-Object { $_.coroutines }) }

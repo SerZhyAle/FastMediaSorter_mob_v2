@@ -131,7 +131,7 @@
                         android:layout_height="wrap_content"
                         android:columnCount="2">
 
-                        <CheckBox
+                        <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbFileTypeAllFiles"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -141,7 +141,7 @@
                             android:paddingBottom="2dp"
                             android:text="@string/scheduled_ops_filter_all_files" />
 
-                        <CheckBox
+                        <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbFileTypeImages"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -151,7 +151,7 @@
                             android:paddingBottom="2dp"
                             android:text="@string/scheduled_ops_filter_images" />
 
-                        <CheckBox
+                        <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbFileTypeAudio"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -161,7 +161,7 @@
                             android:paddingBottom="2dp"
                             android:text="@string/scheduled_ops_filter_audio" />
 
-                        <CheckBox
+                        <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbFileTypeVideo"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -171,7 +171,7 @@
                             android:paddingBottom="2dp"
                             android:text="@string/scheduled_ops_filter_video" />
 
-                        <CheckBox
+                        <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbFileTypeDocs"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -198,27 +198,21 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Overwrite existing files (hidden for DELETE) - grouped with conditions -->
+                    <!-- Overwrite existing files (hidden for DELETE) - grouped with conditions.
+                         Wrapper keeps id containerOverwrite as the op-type visibility target;
+                         the canonical row carries id switchOverwrite for the checked-state seam. -->
                     <LinearLayout
                         android:id="@+id/containerOverwrite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/switchOverwrite"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/margin_small"
-                            android:contentDescription="@string/scheduled_ops_overwrite" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scheduled_ops_overwrite"
-                            android:textAppearance="?attr/textAppearanceBody2" />
+                            app:str_title="@string/scheduled_ops_overwrite" />
 
                     </LinearLayout>
 
@@ -375,27 +369,12 @@
             android:visibility="gone" />
 
         <!-- Silent mode -->
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/switchSilentMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSilentMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:contentDescription="@string/scheduled_ops_silent_mode" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/scheduled_ops_silent_mode"
-                android:textAppearance="?attr/textAppearanceBody2" />
-
-        </LinearLayout>
+            app:str_title="@string/scheduled_ops_silent_mode" />
 
         <!-- Buttons -->
         <LinearLayout
@@ -407,17 +386,17 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
-                style="@style/Widget.FastMediaSorter.Button.Text"
+                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
-                style="@style/Widget.FastMediaSorter.Button.Filled"
+                style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_tiny"
+                android:layout_marginStart="@dimen/dialog_action_button_gap"
                 android:text="@string/scheduled_ops_save" />
 
         </LinearLayout>

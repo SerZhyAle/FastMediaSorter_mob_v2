@@ -251,7 +251,7 @@ class PdfViewerManager(
             selectAll()
         }
 
-        android.app.AlertDialog.Builder(context)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(com.sza.fastmediasorter.R.string.goto_page_title)
             .setMessage(com.sza.fastmediasorter.R.string.goto_page_message)
             .setView(editText)

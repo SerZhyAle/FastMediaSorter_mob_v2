@@ -38,8 +38,9 @@ KEY_FILE = next(
     os.path.join(SECRETS_DIR, 'play-console-key.json'),
 )
 
-# Play language codes == folder names under play/listing/
-LOCALES = ['en-US', 'ru-RU', 'uk-UA']
+# folder name under play/listing/ -> Play Console language (BCP-47) code.
+# Folders keep the fastlane-style names; Play uses 'uk' (not 'uk-UA') for Ukrainian.
+LOCALES = {'en-US': 'en-US', 'ru-RU': 'ru-RU', 'uk-UA': 'uk'}
 
 LIMITS = {'title.txt': 30, 'short_description.txt': 80, 'full_description.txt': 4000}
 
@@ -73,9 +74,12 @@ def load_listing(locale):
     return out, over
 
 
-def upload_images(service, edit_id, locale):
-    """Replace screenshots + single images for a locale if present. Returns count uploaded."""
-    images_dir = os.path.join(LISTING_ROOT, locale, 'images')
+def upload_images(service, edit_id, folder, language):
+    """Replace screenshots + single images for a locale if present. Returns count uploaded.
+
+    `folder` is the play/listing/ subdir name; `language` is the Play BCP-47 code.
+    """
+    images_dir = os.path.join(LISTING_ROOT, folder, 'images')
     uploaded = 0
 
     shots_dir = os.path.join(images_dir, SCREENSHOT_TYPE)
@@ -85,13 +89,13 @@ def upload_images(service, edit_id, locale):
         if shots:
             service.edits().images().deleteall(
                 packageName=PACKAGE_NAME, editId=edit_id,
-                language=locale, imageType=SCREENSHOT_TYPE).execute()
+                language=language, imageType=SCREENSHOT_TYPE).execute()
             for name in shots:
                 path = os.path.join(shots_dir, name)
                 mime = IMAGE_MIME[os.path.splitext(name)[1].lower()]
                 service.edits().images().upload(
                     packageName=PACKAGE_NAME, editId=edit_id,
-                    language=locale, imageType=SCREENSHOT_TYPE,
+                    language=language, imageType=SCREENSHOT_TYPE,
                     media_body=MediaFileUpload(path, mimetype=mime)).execute()
                 uploaded += 1
 
@@ -101,10 +105,10 @@ def upload_images(service, edit_id, locale):
             mime = IMAGE_MIME[os.path.splitext(fname)[1].lower()]
             service.edits().images().deleteall(
                 packageName=PACKAGE_NAME, editId=edit_id,
-                language=locale, imageType=image_type).execute()
+                language=language, imageType=image_type).execute()
             service.edits().images().upload(
                 packageName=PACKAGE_NAME, editId=edit_id,
-                language=locale, imageType=image_type,
+                language=language, imageType=image_type,
                 media_body=MediaFileUpload(path, mimetype=mime)).execute()
             uploaded += 1
 
@@ -125,13 +129,13 @@ def main():
     # Load + validate all locales before touching the API.
     payloads = {}
     over_limit = []
-    for locale in LOCALES:
-        listing, over = load_listing(locale)
+    for folder in LOCALES:
+        listing, over = load_listing(folder)
         if over and any('missing' in o for o in over):
-            print(f"ERROR: {locale}: {'; '.join(over)}")
+            print(f"ERROR: {folder}: {'; '.join(over)}")
             sys.exit(1)
         over_limit.extend(over)
-        payloads[locale] = listing
+        payloads[folder] = listing
     if over_limit:
         print("ERROR: char-limit violations:")
         for o in over_limit:
@@ -148,13 +152,13 @@ def main():
         edit_id = edit['id']
         print(f"Edit transaction created: {edit_id}")
 
-        for locale in LOCALES:
+        for folder, language in LOCALES.items():
             service.edits().listings().update(
                 packageName=PACKAGE_NAME, editId=edit_id,
-                language=locale, body=payloads[locale]).execute()
-            imgs = upload_images(service, edit_id, locale)
-            title = payloads[locale]['title']
-            print(f"  {locale}: listing updated (title='{title}'), images uploaded: {imgs}")
+                language=language, body=payloads[folder]).execute()
+            imgs = upload_images(service, edit_id, folder, language)
+            title = payloads[folder]['title']
+            print(f"  {folder} -> {language}: listing updated (title='{title}'), images uploaded: {imgs}")
 
         if mode == 'validate':
             service.edits().validate(packageName=PACKAGE_NAME, editId=edit_id).execute()

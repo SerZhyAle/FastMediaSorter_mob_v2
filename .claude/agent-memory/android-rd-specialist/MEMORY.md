@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP release if supported countries / age ratings / device reach (minSdk, ABI, uses-feature, flavor) shrink vs prior build
 - [screenCapture is noLegal-only](project_screencapture_nolegal_only.md) - gesture screenshot capture (src/screenCapture) mounts only into noLegal; gates via empty injected controller set, not BuildConfig; FEATURES.md [Standard] label is inaccurate
 
 - [Dirty tree is normal WIP - don't alarm](feedback_dirty_tree_is_normal_wip.md) - repo runs multiple worktrees (mob_v2→DEBUG-vNNN, release→main); uncommitted files = intact WIP, report calmly, never imply revert/clobber/loss

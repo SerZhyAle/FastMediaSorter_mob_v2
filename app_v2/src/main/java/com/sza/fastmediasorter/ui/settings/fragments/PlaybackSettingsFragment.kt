@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
@@ -235,7 +236,7 @@ class PlaybackSettingsFragment : Fragment() {
         }
 
         binding.btnResetPlaybackSection.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.reset_playback_section_title)
                 .setMessage(R.string.reset_playback_section_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->

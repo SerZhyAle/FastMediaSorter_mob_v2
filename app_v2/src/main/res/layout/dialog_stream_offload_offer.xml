@@ -68,10 +68,10 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/offloadDownloadButton"
-        style="@style/Widget.FastMediaSorter.Button.Filled"
+        style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="@dimen/dialog_action_button_gap"
         android:text="@string/offload_action_download" />
 
     <com.google.android.material.button.MaterialButton
@@ -84,7 +84,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/offloadCancelButton"
-        style="@style/Widget.FastMediaSorter.Button.Text"
+        style="@style/Widget.FastMediaSorter.Button.DialogCancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/offload_action_cancel" />

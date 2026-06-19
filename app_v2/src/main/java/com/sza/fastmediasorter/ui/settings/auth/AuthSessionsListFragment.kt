@@ -111,7 +111,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     }
 
     private fun showDeleteConfirmation(host: String, accountId: String, displayName: String) {
-        MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(getString(R.string.s0155_delete_account_confirm, displayName))
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 viewModel.deleteAccount(host, accountId)

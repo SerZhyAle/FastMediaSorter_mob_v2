@@ -2,8 +2,8 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.view.View
 import android.widget.ArrayAdapter
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -68,7 +68,7 @@ class GeneralSettingsColorThemeHelper(
     }
 
     private fun showRestartDialog(previousValue: String, newValue: String) {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_required_title)
             .setMessage(R.string.restart_required_message)
             .setCancelable(false)

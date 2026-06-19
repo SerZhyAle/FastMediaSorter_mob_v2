@@ -141,36 +141,17 @@ class BrowseManagerInitializer(
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
-        dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
-            override fun onFilterApplied(filter: FileFilter?) {
-                viewModel.setFilter(filter)
-                if (filter != null && !filter.isEmpty() && (
-                    !filter.nameContains.isNullOrBlank() || filter.minDate != null || filter.maxDate != null ||
-                    filter.minSizeMb != null || filter.maxSizeMb != null ||
-                    filter.mediaTypes != null && filter.mediaTypes != viewModel.state.value.resource?.supportedMediaTypes))
-                    Toast.makeText(activity, R.string.toast_filter_active, Toast.LENGTH_SHORT).show()
-            }
-            override fun onSortModeSelected(sortMode: SortMode) = viewModel.setSortMode(sortMode)
-            override fun onRandomReshuffle() = viewModel.reshuffleRandom()
-            override fun onRenameConfirmed(oldName: String, newName: String) {}
-            override fun onRenameMultipleConfirmed(files: List<Pair<String, String>>) {}
-            override fun onDirectoryRenameConfirmed(oldPath: String, newName: String) = viewModel.renameDirectory(oldPath, newName)
-            override fun onCopyDestinationSelected(destinationPath: String) {}
-            override fun onMoveDestinationSelected(destinationPath: String) {}
-            override fun onDeleteConfirmed(overridePaths: Set<String>?) = viewModel.deleteSelectedFiles(overridePaths)
-            override fun onCloudSignInRequested(provider: CloudProvider) = when (provider) {
-                CloudProvider.GOOGLE_DRIVE -> cloudAuthManager.launchGoogleSignIn()
-                CloudProvider.DROPBOX -> cloudAuthManager.launchDropboxSignIn()
-                CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
-            }
-            override fun saveUndoOperation(undoOp: UndoOperation) = viewModel.saveUndoOperation(undoOp)
-            override fun updateFile(oldPath: String, newFile: MediaFile) = viewModel.updateFile(oldPath, newFile)
-            override fun setIgnoringFileChanges(ignoring: Boolean) = viewModel.setIgnoringFileChanges(ignoring)
-            override fun createMediaFileFromFile(file: File): MediaFile = viewModel.createMediaFileFromFile(file)
-            override fun getFileOperationUseCase(): FileOperationUseCase = fileOperationUseCase
-            override fun getResourceName(): String? = viewModel.state.value.resource?.name
-            override fun getLifecycleOwner(): androidx.lifecycle.LifecycleOwner = activity
-        }, mediaCapabilities)
+        dialogHelper = BrowseDialogHelper(
+            activity = activity,
+            callbacks = BrowseDialogCallbacksImpl(
+                viewModel = viewModel,
+                context = activity,
+                lifecycleOwner = activity,
+                onLaunchGoogleSignIn = { cloudAuthManager.launchGoogleSignIn() },
+                getCloudAuthManager = { cloudAuthManager }
+            ),
+            mediaCapabilities = mediaCapabilities
+        )
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }

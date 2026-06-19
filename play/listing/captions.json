@@ -1,0 +1,61 @@
+{
+  "_comment": "Ordered store-screenshot slots for S0497. Each slot has a stable id (matches temp/play-shots/<id>.png and play/listing/<locale>/images/phoneScreenshots/<NN>.png ordering) and a localized caption per Play language folder. Captions are short marketing lines (<=2 lines via \\n).",
+  "slots": [
+    {
+      "id": "browse",
+      "captions": {
+        "en-US": "All your media,\none tap away",
+        "ru-RU": "Вся медиатека -\nв пару касаний",
+        "uk-UA": "Уся медіатека -\nза кілька дотиків"
+      }
+    },
+    {
+      "id": "image-viewer",
+      "captions": {
+        "en-US": "View photos\nin full detail",
+        "ru-RU": "Фото -\nво всех деталях",
+        "uk-UA": "Фото -\nу всіх деталях"
+      }
+    },
+    {
+      "id": "video-player",
+      "captions": {
+        "en-US": "Smooth video,\nany format",
+        "ru-RU": "Плавное видео\nлюбого формата",
+        "uk-UA": "Плавне відео\nбудь-якого формату"
+      }
+    },
+    {
+      "id": "slideshow",
+      "captions": {
+        "en-US": "Slideshows,\nyour way",
+        "ru-RU": "Слайд-шоу -\nкак вам удобно",
+        "uk-UA": "Слайд-шоу -\nяк вам зручно"
+      }
+    },
+    {
+      "id": "cloud-connect",
+      "captions": {
+        "en-US": "SMB, FTP & cloud,\nbuilt in",
+        "ru-RU": "SMB, FTP и облако -\nиз коробки",
+        "uk-UA": "SMB, FTP і хмара -\nвбудовано"
+      }
+    },
+    {
+      "id": "reader",
+      "captions": {
+        "en-US": "Read PDF & EPUB\nright here",
+        "ru-RU": "PDF и EPUB -\nпрямо здесь",
+        "uk-UA": "PDF та EPUB -\nпросто тут"
+      }
+    },
+    {
+      "id": "widgets",
+      "captions": {
+        "en-US": "Home-screen\nwidgets",
+        "ru-RU": "Виджеты\nна экране",
+        "uk-UA": "Віджети\nна екрані"
+      }
+    }
+  ]
+}

@@ -2660,4 +2660,6 @@
     <string name="download_by_link_menu_label">Загрузить по ссылке</string>
     <string name="download_by_link_dialog_title">Ссылка для загрузки</string>
     <string name="download_by_link_dialog_hint">Вставьте или введите ссылку</string>
+    <string name="collapsible_section_state_expanded">Развёрнуто</string>
+    <string name="collapsible_section_state_collapsed">Свёрнуто</string>
 </resources>

@@ -1,286 +1,229 @@
-﻿# Maestro Test Suite Runner
-# FastMediaSorter v2
-# Usage: .\maestro\run-tests.ps1 [smoke|critical|all]
+<#
+.SYNOPSIS
+  Maestro capability suite runner (S0551) - off-context, single-line verdict, stable exit codes.
 
+.DESCRIPTION
+  Runs a selected set of Maestro flows against a device, writes each flow's full per-step
+  trace to an off-context log under temp/, and emits only a compact verdict. The agent reads
+  the one-line summary (or, with -Json, a single object) - never the full Maestro output.
+
+  Binary discovery and the infra-vs-assertion exit classification mirror
+  scripts/devtest/maestro-run.ps1 (the S0420 single-flow engine). This runner wraps that
+  contract over a discovered flow set and aggregates per-flow results into one suite verdict.
+
+  Selection (-Suite):
+    all       - every *.yaml under smoke/, critical/, features/ (excludes _shared/ fragments)
+    smoke      | critical | features      - that category, recursively
+    features\browse  (or features/files)  - a single category subpath
+    smoke\app_launch.yaml  | a full path  - a single flow file
+
+  Exit codes (suite-level):
+    0 - all selected flows passed
+    1 - bad arguments / no flow matched the selection
+    2 - Maestro CLI not found
+    3 - one or more flows failed (step / assertion)
+    4 - execution error (no device / runtime error - a flow never completed)
+
+.PARAMETER Suite
+  Selection token (see above). Default 'all'.
+
+.PARAMETER DeviceId
+  Specific adb device id, forwarded to Maestro as the global --device flag. Omit when exactly
+  one device is online.
+
+.PARAMETER Json
+  Emit a single JSON object { pass, total, failed, flows:[{flow,pass,log}] } instead of
+  human-readable lines.
+
+.EXAMPLE
+  pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -Json
+.EXAMPLE
+  pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\files -DeviceId emulator-5554
+#>
+[CmdletBinding()]
 param(
-    [string]$Suite = "all",
-    [switch]$DebugMode,
-    [int]$MaxMinutes = 20
+    [string]$Suite = 'all',
+    [string]$DeviceId,
+    [switch]$Json,
+    # Retained for backward compatibility with existing callers
+    # (scripts/utils/run-maestro-smoke.ps1, scripts/utils/run-stress.ps1) which pass -DebugMode.
+    # When set, the off-context trace of any failing flow is echoed to the console for local triage.
+    [switch]$DebugMode
 )
 
-$MaestroDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ErrorActionPreference = 'Stop'
+
+$MaestroDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $MaestroDir
+$TempDir     = Join-Path $ProjectRoot 'temp'
 
-Write-Host "🚀 FastMediaSorter v2 - Maestro E2E Tests" -ForegroundColor Cyan
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host ""
-
-# Add custom Maestro path if exists
-$customMaestroPath = "c:\GD\tc\Programm\maestro\bin"
-if (Test-Path $customMaestroPath) {
-    $env:PATH += ";$customMaestroPath"
+function Write-Line {
+    param([string]$Text, [string]$Color = 'White')
+    if (-not $Json) { Write-Host $Text -ForegroundColor $Color }
 }
 
-# Ensure Java 17+ is used by maestro.bat (RedHat Java 8 may be on PATH)
-$java21 = "C:\Program Files\Java\jdk-21.0.10"
-if (Test-Path $java21) {
-    $env:JAVA_HOME = $java21
-    $env:PATH = "$java21\bin;$env:PATH"
+function Exit-Suite {
+    param([int]$Code, [bool]$Pass, [int]$Total, [int]$Failed, [array]$Flows, [string]$Reason)
+    if ($Json) {
+        ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; reason = $Reason; flows = $Flows } |
+            ConvertTo-Json -Depth 5 -Compress)
+    } else {
+        $verdict = if ($Pass) { 'PASS' } else { 'FAIL' }
+        $color   = if ($Pass) { 'Green' } else { 'Red' }
+        if ($Reason) { Write-Host "SUITE $verdict ($Code) - $Reason" -ForegroundColor $color }
+        else { Write-Host ("SUITE {0} - {1}/{2} flows passed" -f $verdict, ($Total - $Failed), $Total) -ForegroundColor $color }
+    }
+    exit $Code
 }
 
-# Check if Maestro is installed (try both 'maestro' and 'maestro-cli')
-$maestroCmd = Get-Command maestro -ErrorAction SilentlyContinue
-if (-not $maestroCmd) {
-    $maestroCmd = Get-Command maestro-cli -ErrorAction SilentlyContinue
-}
-
-if (-not $maestroCmd) {
-    Write-Host "❌ Maestro CLI not found!" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Please install Maestro Mobile from: https://maestro.mobile.dev" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "Windows (PowerShell as Administrator):" -ForegroundColor Yellow
-    Write-Host '  Invoke-WebRequest -Uri "https://get.maestro.mobile.dev/install.ps1" -OutFile install.ps1' -ForegroundColor Cyan
-    Write-Host '  .\install.ps1' -ForegroundColor Cyan
-    Write-Host '  Remove-Item install.ps1' -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "macOS/Linux (Homebrew):" -ForegroundColor Yellow
-    Write-Host '  brew tap mobile-dev-inc/tap' -ForegroundColor Cyan
-    Write-Host '  brew install maestro' -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "Note: 'npm install -g maestro-cli' installs WRONG package!" -ForegroundColor Red
-    exit 1
-}
-
-$maestroCmdName = $maestroCmd.Name
-Write-Host "✓ Maestro CLI found ($maestroCmdName)" -ForegroundColor Green
-
-# Check if ADB is available
-$adbCmd = Get-Command adb -ErrorAction SilentlyContinue
-if (-not $adbCmd) {
-    # Try to find ADB in common Android SDK locations
-    $possiblePaths = @(
-        "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",
-        "$env:ANDROID_HOME\platform-tools\adb.exe",
-        "$env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools\adb.exe"
-    )
-    
-    foreach ($path in $possiblePaths) {
-        if (Test-Path $path) {
-            $adbCmd = Get-Command $path
-            break
+# ---------- Maestro binary discovery (mirror scripts/devtest/maestro-run.ps1) ----------
+function Find-Maestro {
+    foreach ($name in 'maestro', 'maestro.bat', 'maestro.cmd', 'maestro.ps1') {
+        $cmd = Get-Command $name -ErrorAction SilentlyContinue
+        if ($cmd) { return $cmd.Source }
+    }
+    $roots = @()
+    if ($env:MAESTRO_HOME) { $roots += $env:MAESTRO_HOME }
+    if ($env:USERPROFILE)  { $roots += (Join-Path $env:USERPROFILE '.maestro') }
+    if ($env:HOME)         { $roots += (Join-Path $env:HOME '.maestro') }
+    foreach ($root in $roots) {
+        foreach ($leaf in 'bin\maestro.bat', 'bin\maestro.cmd', 'bin\maestro') {
+            $candidate = Join-Path $root $leaf
+            if (Test-Path -Path $candidate -PathType Leaf) { return $candidate }
         }
     }
+    return $null
 }
 
-if (-not $adbCmd) {
-    Write-Host "❌ ADB (Android Debug Bridge) not found!" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Please install Android SDK Platform Tools:" -ForegroundColor Yellow
-    Write-Host "  1. Install Android Studio: https://developer.android.com/studio" -ForegroundColor Yellow
-    Write-Host "  2. Or download SDK Platform Tools: https://developer.android.com/tools/releases/platform-tools" -ForegroundColor Yellow
-    Write-Host "  3. Add platform-tools to your PATH" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "Typical location: %LOCALAPPDATA%\Android\Sdk\platform-tools" -ForegroundColor Yellow
-    exit 1
-}
-
-$adbPath = $adbCmd.Source
-Write-Host "✓ ADB found" -ForegroundColor Green
-
-# Check if device is connected
-$devices = & $adbPath devices | Select-String -Pattern "device$"
-if ($devices.Count -eq 0) {
-    Write-Host "❌ No Android device/emulator found!" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Please connect a device or start an emulator:" -ForegroundColor Yellow
-    Write-Host "  - adb devices" -ForegroundColor Yellow
-    exit 1
-}
-
-Write-Host "✓ Android device found" -ForegroundColor Green
-
-# Disable animations (critical for Maestro stability)
-Write-Host "Disabling animations..." -ForegroundColor Yellow
-& $adbPath shell settings put global window_animation_scale 0.0 2>$null
-& $adbPath shell settings put global transition_animation_scale 0.0 2>$null
-& $adbPath shell settings put global animator_duration_scale 0.0 2>$null
-Write-Host "✓ Animations disabled" -ForegroundColor Green
-
-# Check if app is installed
-$appInstalled = & $adbPath shell pm list packages | Select-String "com.sza.fastmediasorter"
-if (-not $appInstalled) {
-    Write-Host "⚠ FastMediaSorter not installed on device" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "Building and installing app..." -ForegroundColor Yellow
-    
-    # Build debug APK
-    & "$ProjectRoot\gradlew.bat" assembleStandardDebug
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ Build failed!" -ForegroundColor Red
-        exit 1
+# ---------- Android SDK discovery (Maestro shells out to adb to detect devices) ----------
+# Maestro needs ANDROID_HOME to locate adb; without it dadb reports "0 devices connected".
+# Discover the SDK without hardcoding a user path: honour an existing env var, else the
+# standard per-user install location, else the parent of adb on PATH.
+function Set-AndroidHome {
+    if ($env:ANDROID_HOME -and (Test-Path -Path $env:ANDROID_HOME -PathType Container)) { return $env:ANDROID_HOME }
+    if ($env:ANDROID_SDK_ROOT -and (Test-Path -Path $env:ANDROID_SDK_ROOT -PathType Container)) {
+        $env:ANDROID_HOME = $env:ANDROID_SDK_ROOT; return $env:ANDROID_HOME
     }
-    
-    # Find APK
-    $apk = Get-ChildItem -Path "$ProjectRoot\app_v2\build\outputs\apk\standard\debug" -Filter "*.apk" | Select-Object -First 1
-    
-    if (-not $apk) {
-        Write-Host "❌ APK not found!" -ForegroundColor Red
-        exit 1
+    $standard = Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+    if (Test-Path -Path $standard -PathType Container) {
+        $env:ANDROID_HOME = $standard; $env:ANDROID_SDK_ROOT = $standard; return $standard
     }
-    
-    # Install APK
-    & $adbPath install -r $apk.FullName
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ Installation failed!" -ForegroundColor Red
-        exit 1
-    }
-    
-    Write-Host "✓ App installed" -ForegroundColor Green
-}
-else {
-    Write-Host "✓ App already installed" -ForegroundColor Green
-}
-
-Write-Host ""
-Write-Host "Running test suite: $Suite" -ForegroundColor Cyan
-Write-Host ""
-
-function Invoke-MaestroWithWatchdog {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string[]]$Arguments,
-        [Parameter(Mandatory = $true)]
-        [int]$TimeoutMinutes
-    )
-
-    $joinedArgs = ($Arguments | ForEach-Object { $_.Trim() }) -join " "
-    Write-Host "Executing: $maestroCmdName $joinedArgs" -ForegroundColor DarkGray
-
-    $process = Start-Process -FilePath $env:ComSpec `
-        -ArgumentList "/c", "$maestroCmdName $joinedArgs" `
-        -NoNewWindow `
-        -PassThru
-
-    $startedAt = Get-Date
-    $deadline = $startedAt.AddMinutes($TimeoutMinutes)
-
-    while (-not $process.HasExited) {
-        Start-Sleep -Seconds 2
-        if ((Get-Date) -gt $deadline) {
-            Write-Host "❌ Timeout: Maestro exceeded $TimeoutMinutes minutes. Killing process..." -ForegroundColor Red
-            try {
-                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-            }
-            catch {
-                Write-Host "⚠ Failed to stop Maestro process cleanly: $($_.Exception.Message)" -ForegroundColor Yellow
-            }
-            return 124
+    $adb = Get-Command adb -ErrorAction SilentlyContinue
+    if ($adb) {
+        $sdk = Split-Path -Parent (Split-Path -Parent $adb.Source)  # platform-tools\adb.exe -> SDK root
+        if ($sdk -and (Test-Path -Path $sdk -PathType Container)) {
+            $env:ANDROID_HOME = $sdk; $env:ANDROID_SDK_ROOT = $sdk; return $sdk
         }
     }
-
-    return $process.ExitCode
+    return $null
 }
 
-# Run tests based on suite parameter
-$testPath = ""
-switch ($Suite.ToLower()) {
-    "smoke" {
-        $testPath = "$MaestroDir\smoke"
-        Write-Host "Running smoke tests..." -ForegroundColor Yellow
+# ---------- flow-set resolution from -Suite ----------
+function Get-FlowSet {
+    param([string]$Selection)
+
+    # A single flow file (relative to repo root or absolute).
+    if ($Selection -match '\.ya?ml$') {
+        $f = if (Test-Path -Path $Selection -PathType Leaf) { $Selection } else { Join-Path $ProjectRoot $Selection }
+        if (Test-Path -Path $f -PathType Leaf) { return @(Get-Item -Path $f) }
+        return @()
     }
-    "critical" {
-        $testPath = "$MaestroDir\critical"
-        Write-Host "Running critical path tests..." -ForegroundColor Yellow
+
+    if ($Selection.ToLower() -eq 'all') {
+        return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter '*.yaml' -File |
+            Where-Object { $_.FullName -match '[\\/](smoke|critical|features)[\\/]' })
     }
-    "all" {
-        Write-Host "Running all tests (smoke + critical)..." -ForegroundColor Yellow
 
-        $allSuites = @(
-            @{ Name = "smoke"; Path = "$MaestroDir\smoke" },
-            @{ Name = "critical"; Path = "$MaestroDir\critical" }
-        )
+    # A category (smoke|critical|features) or a subpath (features\browse).
+    $norm = $Selection -replace '/', '\'
+    $dir  = Join-Path $MaestroDir $norm
+    if (Test-Path -Path $dir -PathType Container) {
+        return @(Get-ChildItem -Path $dir -Recurse -Filter '*.yaml' -File)
+    }
+    return @()
+}
 
-        $startTime = Get-Date
-        $overallExit = 0
+# ---------- run one flow, capture trace off-context ----------
+function Invoke-Flow {
+    param([string]$Maestro, [System.IO.FileInfo]$FlowFile)
 
-        foreach ($suiteItem in $allSuites) {
-            Write-Host "" 
-            Write-Host "--- Running $($suiteItem.Name) ---" -ForegroundColor Cyan
+    $stamp   = (Get-Date).ToString('yyyyMMdd_HHmmss')
+    $logFile = Join-Path $TempDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
 
-            $suiteArgs = @("test")
-            if ($DebugMode) {
-                $suiteArgs += "--flatten-debug-output"
-            }
-            $suiteArgs += $suiteItem.Path
+    $argList = @()
+    if ($DeviceId) { $argList += @('--device', $DeviceId) }
+    $argList += @('test', $FlowFile.FullName)
 
-            $suiteExit = Invoke-MaestroWithWatchdog -Arguments $suiteArgs -TimeoutMinutes $MaxMinutes
-            if ($suiteExit -ne 0) {
-                $overallExit = $suiteExit
-                break
-            }
+    & $Maestro @argList *> $logFile
+    $maestroExit = $LASTEXITCODE
+
+    $status = 'pass'
+    if ($maestroExit -ne 0) {
+        $logText = ''
+        if (Test-Path -Path $logFile -PathType Leaf) {
+            $logText = (Get-Content -Path $logFile -Raw -ErrorAction SilentlyContinue)
         }
-
-        $endTime = Get-Date
-        $duration = $endTime - $startTime
-
-        Write-Host ""
-        Write-Host "==========================================" -ForegroundColor Cyan
-        Write-Host "Test Duration: $($duration.ToString('mm\:ss'))" -ForegroundColor Cyan
-
-        if ($overallExit -eq 0) {
-            Write-Host "✅ All tests passed!" -ForegroundColor Green
+        $infra = 'no devices|no connected device|not enough devices|Missing \d+ device|it is not connected|Unable to launch|Unable to find|connection refused|locked a portion of the file|MAESTRO_CLI|java\.lang|ADB'
+        if ($logText -match $infra -and $logText -notmatch 'Assertion|Element .*not|not visible|did not') {
+            $status = 'execError'
+        } else {
+            $status = 'fail'
         }
-        else {
-            if ($overallExit -eq 124) {
-                Write-Host "❌ Tests aborted by timeout watchdog!" -ForegroundColor Red
-            }
-            else {
-                Write-Host "❌ Some tests failed!" -ForegroundColor Red
-            }
-        }
-
-        exit $overallExit
     }
-    default {
-        Write-Host "❌ Unknown test suite: $Suite" -ForegroundColor Red
-        Write-Host "Valid options: smoke, critical, all" -ForegroundColor Yellow
-        exit 1
+    return [ordered]@{ flow = $FlowFile.Name; status = $status; pass = ($status -eq 'pass'); log = $logFile }
+}
+
+# ---------- main ----------
+if (-not (Test-Path -Path $TempDir -PathType Container)) {
+    New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+}
+
+$maestro = Find-Maestro
+if (-not $maestro) {
+    Exit-Suite -Code 2 -Pass $false -Total 0 -Failed 0 -Flows @() `
+        -Reason 'Maestro CLI not found (checked PATH, MAESTRO_HOME, %USERPROFILE%\.maestro\bin) - see maestro/INSTALLATION_WINDOWS.md'
+}
+Write-Line "OK maestro: $maestro" 'Green'
+
+$sdk = Set-AndroidHome
+Write-Line "OK android-sdk: $(if ($sdk) { $sdk } else { '(not found - Maestro may not detect devices)' })" $(if ($sdk) { 'Green' } else { 'Yellow' })
+
+$flows = Get-FlowSet -Selection $Suite
+if ($flows.Count -eq 0) {
+    Exit-Suite -Code 1 -Pass $false -Total 0 -Failed 0 -Flows @() `
+        -Reason "no flow matched selection '$Suite' (try: all | smoke | critical | features | features\\<category> | <flow>.yaml)"
+}
+
+Write-Line ("RUN suite '{0}': {1} flow(s) on device {2}" -f $Suite, $flows.Count, $(if ($DeviceId) { $DeviceId } else { '(auto)' })) 'Cyan'
+
+$results  = @()
+$anyExec  = $false
+$anyFail  = $false
+foreach ($flow in $flows) {
+    $r = Invoke-Flow -Maestro $maestro -FlowFile $flow
+    $results += $r
+    if ($r.status -eq 'execError') { $anyExec = $true }
+    if ($r.status -eq 'fail')      { $anyFail = $true }
+    $mark = switch ($r.status) { 'pass' { 'PASS' } 'fail' { 'FAIL' } default { 'EXEC-ERR' } }
+    $col  = if ($r.pass) { 'Green' } else { 'Red' }
+    Write-Line ("  {0,-8} {1}  (log: {2})" -f $mark, $r.flow, $r.log) $col
+
+    # -DebugMode: surface the failing flow's trace tail for local triage without breaking the
+    # off-context contract (full trace still lives in the log file; only a tail is echoed).
+    if ($DebugMode -and -not $r.pass -and -not $Json -and (Test-Path -Path $r.log -PathType Leaf)) {
+        Write-Host "    --- $($r.flow) trace tail ---" -ForegroundColor DarkGray
+        Get-Content -Path $r.log -Tail 25 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
     }
 }
 
-Write-Host ""
+$failedCount = @($results | Where-Object { -not $_.pass }).Count
+$flowsOut    = @($results | ForEach-Object { [ordered]@{ flow = $_.flow; pass = $_.pass; log = $_.log } })
 
-# Run Maestro tests
-$startTime = Get-Date
-
-# Construct command arguments
-$cmdArgs = @("test")
-if ($DebugMode) {
-    # Use flatten-debug-output for terminal visibility
-    $cmdArgs += "--flatten-debug-output" 
-    $cmdArgs += $testPath
+# Precedence: execution error (4) outranks assertion failure (3); both outrank pass.
+if ($anyExec) {
+    Exit-Suite -Code 4 -Pass $false -Total $flows.Count -Failed $failedCount -Flows $flowsOut -Reason 'execution error (no device / runtime) in one or more flows'
 }
-else {
-    $cmdArgs += $testPath
+if ($anyFail) {
+    Exit-Suite -Code 3 -Pass $false -Total $flows.Count -Failed $failedCount -Flows $flowsOut -Reason $null
 }
-
-$exitCode = Invoke-MaestroWithWatchdog -Arguments $cmdArgs -TimeoutMinutes $MaxMinutes
-$endTime = Get-Date
-$duration = $endTime - $startTime
-
-Write-Host ""
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "Test Duration: $($duration.ToString('mm\:ss'))" -ForegroundColor Cyan
-
-if ($exitCode -eq 0) {
-    Write-Host "✅ All tests passed!" -ForegroundColor Green
-}
-else {
-    Write-Host "❌ Some tests failed!" -ForegroundColor Red
-}
-
-Write-Host ""
-exit $exitCode
+Exit-Suite -Code 0 -Pass $true -Total $flows.Count -Failed 0 -Flows $flowsOut -Reason $null
