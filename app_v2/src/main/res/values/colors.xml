@@ -228,5 +228,12 @@
     <color name="stats_type_audio">#FF26A69A</color>
     <color name="stats_type_document">#FFFFA726</color>
     <color name="stats_type_other">#FF8D9499</color>
+
+    <!-- Resource media type colors (light theme) -->
+    <color name="color_media_music">#FF00796B</color>     <!-- Teal 700 -->
+    <color name="color_media_video">#FF7B1FA2</color>     <!-- Purple 700 -->
+    <color name="color_media_image">#FF1976D2</color>     <!-- Blue 700 -->
+    <color name="color_media_docs">#FFE65100</color>      <!-- Orange 900 -->
+    <color name="color_media_other">#FF616161</color>     <!-- Grey 700 -->
 </resources>
 

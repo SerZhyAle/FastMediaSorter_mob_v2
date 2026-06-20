@@ -181,4 +181,11 @@
     <!-- System text colors (explicit values for dark theme, API 28+ compatibility) -->
     <color name="text_color_primary">#DEFFFFFF</color>
     <color name="text_color_secondary">#99FFFFFF</color>
+
+    <!-- Resource media type colors (dark theme) -->
+    <color name="color_media_music">#FF80CBC4</color>     <!-- Teal 200 -->
+    <color name="color_media_video">#FFCE93D8</color>     <!-- Purple 200 -->
+    <color name="color_media_image">#FF90CAF9</color>     <!-- Blue 200 -->
+    <color name="color_media_docs">#FFFFCC80</color>      <!-- Orange 200 -->
+    <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
 </resources>

@@ -29,18 +29,24 @@ class CollapsibleSectionsManager(
      *
      * @param key caller-supplied `<screen>__<section>` identifier - the persistence key.
      * @param defaultExpanded state used when [key] has no saved value.
+     * @param onExpandedChanged optional hook invoked with the current expanded state on initial
+     *   restore and on every user toggle, before the body is shown - e.g. to lazily attach a child
+     *   fragment when a section first becomes expanded.
      */
     fun register(
         header: CollapsibleSectionHeader,
         container: View,
         key: String,
         defaultExpanded: Boolean = false,
+        onExpandedChanged: ((Boolean) -> Unit)? = null,
     ) {
         val expanded = store.isExpanded(key, defaultExpanded)
+        onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.
         header.setExpanded(expanded, notify = false)
         container.isVisible = expanded
         header.setOnExpandedChangeListener { isExpanded ->
+            onExpandedChanged?.invoke(isExpanded)
             (container.parent as? ViewGroup)?.let { parent ->
                 TransitionManager.beginDelayedTransition(parent, buildBodyTransition())
             }

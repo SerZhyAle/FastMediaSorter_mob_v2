@@ -710,16 +710,17 @@ class MediaFileAdapter(
                 if (useCompactElements) {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p2 = (2 * root.resources.displayMetrics.density).toInt()
                     val p6 = (6 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
-                    val p3 = (3 * root.resources.displayMetrics.density).toInt()
-                    root.setPaddingRelative(p6, p3, p8, p3)
+                    root.setPaddingRelative(p6, p2, p8, p2)
                 } else {
                     tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
                     tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    val p2 = (2 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
                     val p12 = (12 * root.resources.displayMetrics.density).toInt()
-                    root.setPaddingRelative(p8, p8, p12, p8)
+                    root.setPaddingRelative(p8, p2, p12, p2)
                 }
 
                 // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp

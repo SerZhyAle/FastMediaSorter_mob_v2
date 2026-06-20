@@ -20,7 +20,7 @@ internal class BrowseSortDialogManager(
 ) {
     companion object {
         // Keep dialog order explicit so enum declaration order stays free for persistence concerns.
-        private val dialogSortOrder = listOf(
+        internal val DIALOG_SORT_ORDER = listOf(
             SortMode.RANDOM,
             SortMode.NAME_ASC,
             SortMode.NAME_DESC,
@@ -59,7 +59,7 @@ internal class BrowseSortDialogManager(
             }
 
             override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val mode = dialogSortOrder[position]
+                val mode = DIALOG_SORT_ORDER[position]
                 val button = holder.itemView as MaterialButton
                 button.text = getSortModeName(mode)
                 button.setIconResource(BrowseSortMenuManager.getSortModeIconRes(mode) ?: 0)
@@ -96,7 +96,7 @@ internal class BrowseSortDialogManager(
                 }
             }
 
-            override fun getItemCount(): Int = dialogSortOrder.size
+            override fun getItemCount(): Int = DIALOG_SORT_ORDER.size
         }
 
         dialog.show()

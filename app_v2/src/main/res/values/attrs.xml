@@ -23,8 +23,7 @@
         <attr name="csh_helpTitle" format="string|reference" />
         <attr name="csh_helpMessage" format="string|reference" />
         <attr name="csh_virtual" format="boolean" />
-        <attr name="csh_collapsedPrefix" format="string|reference" />
-        <attr name="csh_expandedPrefix" format="string|reference" />
+        <attr name="csh_chevronTint" format="color|reference" />
         <attr name="csh_titleTextColor" format="color|reference" />
         <attr name="csh_prefixTextColor" format="color|reference" />
         <attr name="csh_titleTextSize" format="dimension" />

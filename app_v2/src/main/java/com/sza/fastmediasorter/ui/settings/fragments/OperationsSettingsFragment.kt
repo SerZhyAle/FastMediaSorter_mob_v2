@@ -31,7 +31,8 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
-import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -62,7 +63,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         ScreenshotGestureActionPickerManager(capabilityAvailability)
     }
 
-    private val sectionsManager by lazy { OperationsSectionsManager(binding, this) }
+    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
@@ -115,10 +116,31 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
-        sectionsManager.setup()
+        setupCollapsibleSections()
         scheduledManager.setup()
         observeData()
         scheduledManager.checkAndExpandFromIntent()
+    }
+
+    // S0535: unified collapsible groups - one orchestrator + consolidated store, default collapsed.
+    // The Scheduled group is hidden when the flavor disables scheduled operations.
+    private fun setupCollapsibleSections() {
+        fun register(header: CollapsibleSectionHeader, container: View, key: String) {
+            sectionsManager.register(header, container, key, defaultExpanded = false)
+        }
+        register(binding.headerSafety, binding.containerSafety, "operations__safety")
+        register(binding.headerCopyMove, binding.containerFileOperations, "operations__file_ops")
+        register(binding.headerDestinations, binding.containerDestinations, "operations__destinations")
+        if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS) {
+            register(binding.headerScheduled, binding.containerScheduled, "operations__scheduled")
+        } else {
+            binding.headerScheduled.isVisible = false
+            binding.containerScheduled.isVisible = false
+        }
+        register(binding.headerBehaviour, binding.containerBehaviour, "operations__behaviour")
+        register(binding.headerOtherFeatures, binding.containerOtherFeatures, "operations__other_features")
+        register(binding.headerSystemApps, binding.containerSystemApps, "operations__system_apps")
+        register(binding.headerScreenGestures, binding.containerScreenGestures, "operations__screen_gestures")
     }
 
     override fun onResume() {

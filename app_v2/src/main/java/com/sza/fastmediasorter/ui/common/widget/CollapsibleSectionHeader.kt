@@ -240,6 +240,9 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_titleTextColor)?.let {
                 titleView.setTextColor(it)
             }
+            typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_chevronTint)?.let {
+                chevronView.imageTintList = it
+            }
             typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_prefixTextColor)?.let {
                 prefixView.setTextColor(it)
             }

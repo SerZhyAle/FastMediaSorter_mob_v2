@@ -72,6 +72,7 @@ Dependency version policy:
 - Device profile presets / first-run onboarding: `dev/DEVICE_PROFILE_PRESET_MATRIX.md` (matrix data: `app_v2/src/main/assets/device_profile_presets.csv`; consistency guard: `scripts/check_device_profile_presets.ps1`)
 - Feature specs, roadmaps, proposals: `PLAN/` folder
 - Feature inventory (source of truth, every shipped capability, EN-only): `docs/ALL_FEATURES.jsonl` - write via `scripts/all_features/add.ps1`, validate via `scripts/all_features/validate.ps1` (S0489). Replaced the retired `dev/FUNCTIONALITY.log`; chronology lives in git history + release diffs (`scripts/all_features/diff.ps1`). `docs/FEATURES*` is the curated public showcase, populated only by `/skill-release`.
+- Standard production release readiness gate: `docs/RELEASE_READINESS_STANDARD.md` (single verdict via `scripts/release/standard-release-gate.ps1`; operator slice `store_assets/PLAY_CONSOLE_CHECKLIST.md`; waivers `store_assets/release_waivers/`).
 - Documentation map: `docs/DOCS_MAP.md`
 - **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` - query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
 

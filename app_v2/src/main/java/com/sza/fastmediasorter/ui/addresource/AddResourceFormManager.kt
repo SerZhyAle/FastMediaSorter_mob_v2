@@ -14,7 +14,7 @@ import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.utils.NetworkUtils
@@ -29,9 +29,8 @@ internal class AddResourceFormManager(
     private val mediaCapabilities: MediaCapabilities
 ) {
 
-    private val addResourceUiPrefs by lazy {
-        activity.getSharedPreferences("add_resource_ui_state", android.content.Context.MODE_PRIVATE)
-    }
+    // S0535: section state goes through the unified orchestrator + consolidated store (StrictMode-wrapped).
+    private val sectionsManager by lazy { CollapsibleSectionsManager(activity) }
 
     var smbProfilePreset: ResourceProfile = ResourceProfile.NONE
         private set
@@ -150,34 +149,14 @@ internal class AddResourceFormManager(
     // ========== Collapsible Sections ==========
 
     fun setupCollapsibleSections() {
-        bindCollapsibleHeader(binding.headerSmbConditions, binding.contentSmbConditions, sectionKey("smb", "conditions"))
-        bindCollapsibleHeader(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, sectionKey("smb", "media_types"))
-        bindCollapsibleHeader(binding.headerSmbAdditional, binding.contentSmbAdditional, sectionKey("smb", "additional"))
-        bindCollapsibleHeader(binding.headerSftpServerVerification, binding.contentSftpServerVerification, sectionKey("sftp", "server_verification"))
-        bindCollapsibleHeader(binding.headerSftpConditions, binding.contentSftpConditions, sectionKey("sftp", "conditions"))
-        bindCollapsibleHeader(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, sectionKey("sftp", "media_types"))
-        bindCollapsibleHeader(binding.headerSftpAdditional, binding.contentSftpAdditional, sectionKey("sftp", "additional"))
-    }
-
-    private fun sectionKey(resourceType: String, sectionId: String): String {
-        val orientation = if (activity.resources.configuration.orientation ==
-            Configuration.ORIENTATION_LANDSCAPE) "land" else "port"
-        return "add_${resourceType}_${orientation}_$sectionId"
-    }
-
-    private fun bindCollapsibleHeader(
-        header: CollapsibleSectionHeader,
-        content: android.view.View,
-        key: String,
-        defaultExpanded: Boolean = false,
-    ) {
-        val isExpanded = addResourceUiPrefs.getBoolean(key, defaultExpanded)
-        header.setExpanded(isExpanded, notify = false)
-        content.visibility = if (isExpanded) android.view.View.VISIBLE else android.view.View.GONE
-        header.setOnExpandedChangeListener { expanded ->
-            content.visibility = if (expanded) android.view.View.VISIBLE else android.view.View.GONE
-            addResourceUiPrefs.edit().putBoolean(key, expanded).apply()
-        }
+        // Keys keep the type discriminator; orientation is dropped (the consolidated store is orientation-agnostic).
+        sectionsManager.register(binding.headerSmbConditions, binding.contentSmbConditions, "add_resource__smb__conditions")
+        sectionsManager.register(binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, "add_resource__smb__media_types")
+        sectionsManager.register(binding.headerSmbAdditional, binding.contentSmbAdditional, "add_resource__smb__additional")
+        sectionsManager.register(binding.headerSftpServerVerification, binding.contentSftpServerVerification, "add_resource__sftp__server_verification")
+        sectionsManager.register(binding.headerSftpConditions, binding.contentSftpConditions, "add_resource__sftp__conditions")
+        sectionsManager.register(binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, "add_resource__sftp__media_types")
+        sectionsManager.register(binding.headerSftpAdditional, binding.contentSftpAdditional, "add_resource__sftp__additional")
     }
 
     // ========== Media Type Init (called from showSmbFolderOptions / showSftpFolderOptions) ==========

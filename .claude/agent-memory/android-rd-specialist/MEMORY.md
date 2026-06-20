@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Play setStatusBarColor warning = unfixable false-positive](project_play_setstatusbarcolor_false_positive.md) - Play's deprecated-API report is static; Material BottomSheet setStatusBarColor flag is a runtime no-op, not clearable; edge-to-edge warning #1 is separate and already handled
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP release if supported countries / age ratings / device reach (minSdk, ABI, uses-feature, flavor) shrink vs prior build
 - [screenCapture is noLegal-only](project_screencapture_nolegal_only.md) - gesture screenshot capture (src/screenCapture) mounts only into noLegal; gates via empty injected controller set, not BuildConfig; FEATURES.md [Standard] label is inaccurate
 

@@ -790,7 +790,8 @@ class TextViewerManager(
         // 2. Syntax highlighting for code files
         if (syntaxHighlightingEnabled && SyntaxHighlighter.isSupported(ext)) {
             val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
-            val highlighted = SyntaxHighlighter.highlight(displayText, ext)
+            val palette = com.sza.fastmediasorter.utils.SyntaxPalette.forBackground(currentReaderTheme.bgColor)
+            val highlighted = SyntaxHighlighter.highlight(displayText, ext, palette)
             if (highlighted != null) {
                 safeViews.tvTextContent.text = highlighted
                 applyThemeToViews()

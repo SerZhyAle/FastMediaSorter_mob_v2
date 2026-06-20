@@ -20,7 +20,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.TestFixtures
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -34,15 +34,16 @@ class DefaultCredentialsInputTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        context.getSharedPreferences(GeneralSettingsSectionsHelper.PREFS_NAME, Context.MODE_PRIVATE)
+        // S0535: section state moved to the consolidated store; expand AppData via its unified key.
+        context.getSharedPreferences(CollapsibleSectionStore.NAMESPACE, Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(GeneralSettingsSectionsHelper.KEY_APP_DATA_EXPANDED, true)
+            .putBoolean("general__app_data", true)
             .commit()
     }
 
     @After
     fun tearDown() {
-        context.getSharedPreferences(GeneralSettingsSectionsHelper.PREFS_NAME, Context.MODE_PRIVATE)
+        context.getSharedPreferences(CollapsibleSectionStore.NAMESPACE, Context.MODE_PRIVATE)
             .edit()
             .clear()
             .commit()
