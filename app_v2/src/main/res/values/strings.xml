@@ -2710,7 +2710,6 @@ Close the player and try again.</string>
     <string name="camera_control_flash">Flash</string>
     <string name="camera_control_switch_lens">Switch camera</string>
     <string name="camera_control_zoom">Zoom</string>
-    <string name="camera_control_more">More controls</string>
     <string name="camera_capture_microphone">Microphone</string>
     <string name="camera_capture_record_start">Record</string>
     <string name="camera_capture_record_stop">Stop</string>
@@ -2718,4 +2717,7 @@ Close the player and try again.</string>
     <string name="camera_mode_photo">Photo</string>
     <string name="camera_mode_video">Video</string>
     <string name="quick_camera_menu_label">Camera</string>
+    <string name="camera_control_pause">Pause</string>
+    <string name="camera_control_resume">Resume</string>
+    <string name="camera_gallery_preview">View last capture</string>
 </resources>

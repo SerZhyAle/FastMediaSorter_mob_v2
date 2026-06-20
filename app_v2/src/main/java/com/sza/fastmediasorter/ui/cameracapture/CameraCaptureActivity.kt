@@ -4,37 +4,54 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.net.Uri
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
+import androidx.core.content.FileProvider
+import androidx.core.view.children
+import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureFlowManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import java.util.Locale
+import javax.inject.Inject
+import kotlin.math.abs
 
 /**
- * Thin host for the unified in-app camera. View binding, launcher registration and event
- * delegation only - capture decisions live in [CameraCaptureFlowManager], camera I/O in
- * [CameraCaptureSessionManager] (CLAUDE.md Rule 3). The capture mode is fixed by the caller via
- * [CameraCaptureContract], except for the "Camera" entry (S0563) which passes
- * [CameraCaptureContract.EXTRA_ALLOW_MODE_SWITCH] to expose the in-screen PHOTO|VIDEO switch.
+ * Thin host for the unified in-app camera. View binding, launcher registration and event delegation
+ * only - capture decisions live in [CameraCaptureFlowManager], camera I/O in
+ * [CameraCaptureSessionManager], gesture math in [CameraCaptureGestureManager] (CLAUDE.md Rule 3).
+ *
+ * S0566 re-aligns the UI to a One UI camera (text mode tabs, always-visible zoom pills, a dynamic
+ * shutter, viewfinder gestures, a recording timer + pause/resume) and adds a stay-open multi-capture
+ * mode for the general "Camera" entry: when [CameraCaptureFlowManager.multiCapture] is set the host
+ * saves each capture itself and stays open, refreshing the gallery thumbnail; fixed callers keep the
+ * one-shot-then-finish contract.
  */
 @AndroidEntryPoint
 class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
-    CameraCaptureFlowManager.Host {
+    CameraCaptureFlowManager.Host,
+    CameraCaptureGestureManager.Callbacks {
 
     companion object {
         // Backward-compatible entry points; extras are owned by CameraCaptureContract.
@@ -53,9 +70,20 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             CameraCaptureContract.createIntent(context, outputUri, outputPath, mode)
     }
 
+    // S0566: host-side persistence for the stay-open multi-capture session. Reuses the shared
+    // use-case (S0568) so the main entry, the widget and this host save captures identically.
+    @Inject
+    lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
+
     private lateinit var sessionManager: CameraCaptureSessionManager
     private lateinit var flowManager: CameraCaptureFlowManager
+    private lateinit var gestureManager: CameraCaptureGestureManager
+    private lateinit var recordingTimer: CameraRecordingTimer
+
     private var captureInFlight = false
+    private var recordingPaused = false
+    private var recordingFile: File? = null
+    private var lastSavedPath: String? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -75,6 +103,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     override fun setupViews() {
         sessionManager = CameraCaptureSessionManager(this)
         flowManager = CameraCaptureFlowManager(intent, this, sessionManager)
+        recordingTimer = CameraRecordingTimer { formatted -> binding.txtRecordingTimer.text = formatted }
         Timber.d("S0545: capture host entry mode=${flowManager.mode}")
         binding.cameraTopBar.applySystemBarInsetPadding(applyBottom = false)
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)
@@ -95,7 +124,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         setupCameraControls()
         sessionManager.videoMode = flowManager.isVideoMode
         applyCaptureModeUi()
-        setupModeSwitch()
+        setupModeSelector()
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             showError(R.string.camera_capture_error_no_camera_app)
@@ -113,6 +142,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     override fun getInitialFocusView() = binding.btnCapturePhoto
 
     override fun onDestroy() {
+        recordingTimer.stop()
         if (::sessionManager.isInitialized) {
             sessionManager.unbind()
         }
@@ -157,16 +187,41 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         binding.btnCameraLensSwitch.visibility =
             if (capabilities.canSwitchLens) View.VISIBLE else View.GONE
 
-        if (!capabilities.supportsZoom) {
-            binding.btnCameraMore.visibility = View.GONE
-            binding.cameraZoomBar.visibility = View.GONE
+        // S0566/ADR-5: zoom presets are always visible (no "More" toggle) whenever the lens can zoom.
+        if (capabilities.supportsZoom) {
+            binding.cameraZoomPresetGroup.visibility = View.VISIBLE
+            configureZoomControls(capabilities)
+        } else {
+            binding.cameraZoomPresetGroup.visibility = View.GONE
             binding.cameraZoomPresetGroup.removeAllViews()
-            return
         }
-        // Zoom is a secondary control: kept behind the "more" toggle so the primary row stays compact
-        // (strategic §3.4 overflow policy).
-        binding.btnCameraMore.visibility = View.VISIBLE
-        configureZoomControls(capabilities)
+    }
+
+    // endregion
+
+    // region CameraCaptureGestureManager.Callbacks
+
+    override fun onTapToFocus(x: Float, y: Float) {
+        if (flowManager.onTapToFocus(x, y)) binding.focusRingOverlay.showAt(x, y)
+    }
+
+    override fun onDoubleTapZoom() {
+        flowManager.onDoubleTapZoom()
+        syncZoomSelection()
+    }
+
+    override fun onPinchZoom(scaleFactor: Float) {
+        flowManager.onPinchZoom(scaleFactor)
+        syncZoomSelection()
+    }
+
+    override fun onSwipeLensSwitch() {
+        flowManager.onLensSwitch()
+    }
+
+    override fun onSwipeModeSwitch(toNext: Boolean) {
+        if (!flowManager.allowModeSwitch || sessionManager.isRecording()) return
+        selectMode(if (flowManager.isVideoMode) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO)
     }
 
     // endregion
@@ -179,73 +234,64 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             )
         }
         binding.btnCameraLensSwitch.setOnClickListener { flowManager.onLensSwitch() }
-        binding.btnCameraMore.setOnClickListener {
-            binding.cameraZoomBar.visibility =
-                if (binding.cameraZoomBar.isVisible) View.GONE else View.VISIBLE
-        }
-        binding.cameraZoomSlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) flowManager.onZoomRatioSelected(value)
-        }
-        binding.previewViewCamera.setOnTouchListener { view, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                view.performClick()
-                if (flowManager.onTapToFocus(event.x, event.y)) {
-                    binding.focusRingOverlay.showAt(event.x, event.y)
-                }
-            }
-            true
-        }
+        binding.btnCameraPauseResume.setOnClickListener { onPauseResumeClicked() }
+        binding.btnGalleryThumbnail.setOnClickListener { openLastCapture() }
         binding.toggleCameraMicrophone.setOnClickListener {
             updateMicrophoneIcon(flowManager.onMicrophoneToggle())
         }
+        gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, this)
+        gestureManager.attach()
     }
 
     /**
      * Reflects the active capture mode in the controls. Idempotent and direction-agnostic so it can
      * run both at startup and on every in-screen mode switch (S0563): video shows the microphone
-     * toggle and the record shutter, photo restores the still-capture shutter. Session mutation
-     * (videoMode / rebind) is owned by the caller, not this method.
+     * toggle, photo hides it. Session mutation (videoMode / rebind) is owned by the caller, not here.
      */
     private fun applyCaptureModeUi() {
         if (flowManager.isVideoMode) {
             binding.toggleCameraMicrophone.visibility = View.VISIBLE
             updateMicrophoneIcon(flowManager.microphoneEnabled)
-            updateShutterRecordingState(recording = false)
         } else {
             binding.toggleCameraMicrophone.visibility = View.GONE
-            binding.btnCapturePhoto.contentDescription = getString(R.string.cmd_camera_capture)
-            binding.btnCapturePhoto.tooltipText = getString(R.string.cmd_camera_capture)
-            binding.btnCapturePhoto.backgroundTintList =
-                ContextCompat.getColorStateList(this, android.R.color.white)
         }
+        applyShutterAppearance(recording = false)
     }
 
     /**
-     * Wires the in-screen PHOTO|VIDEO switch (S0563), shown only for the "Camera" entry. A new
-     * selection flips the flow-manager mode, rebinds the session with the matching CameraX use-case
-     * set, and refreshes the controls.
+     * S0566: One UI text mode selector (PHOTO / VIDEO), shown only for the switchable "Camera" entry.
+     * A tap flips the flow-manager mode, rebinds the session with the matching CameraX use-case set,
+     * and refreshes the controls; a horizontal swipe does the same via [onSwipeModeSwitch].
      */
-    private fun setupModeSwitch() {
+    private fun setupModeSelector() {
         if (!flowManager.allowModeSwitch) {
-            binding.cameraModeSwitchGroup.visibility = View.GONE
+            binding.cameraModeSelector.visibility = View.GONE
             return
         }
-        binding.cameraModeSwitchGroup.visibility = View.VISIBLE
-        binding.cameraModeSwitchGroup.check(
-            if (flowManager.isVideoMode) binding.btnModeVideo.id else binding.btnModePhoto.id,
-        )
-        binding.cameraModeSwitchGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            val target = if (checkedId == binding.btnModeVideo.id) {
-                CameraCaptureMode.VIDEO
-            } else {
-                CameraCaptureMode.PHOTO
-            }
-            if (flowManager.switchMode(target)) {
-                sessionManager.applyMode(videoMode = target == CameraCaptureMode.VIDEO)
-                applyCaptureModeUi()
-            }
+        binding.cameraModeSelector.visibility = View.VISIBLE
+        binding.tabModePhoto.setOnClickListener { selectMode(CameraCaptureMode.PHOTO) }
+        binding.tabModeVideo.setOnClickListener { selectMode(CameraCaptureMode.VIDEO) }
+        renderModeTabs()
+    }
+
+    private fun selectMode(target: CameraCaptureMode) {
+        if (sessionManager.isRecording()) return
+        if (flowManager.switchMode(target)) {
+            sessionManager.applyMode(videoMode = target == CameraCaptureMode.VIDEO)
+            applyCaptureModeUi()
+            renderModeTabs()
         }
+    }
+
+    private fun renderModeTabs() {
+        val videoActive = flowManager.isVideoMode
+        styleTab(binding.tabModePhoto, selected = !videoActive)
+        styleTab(binding.tabModeVideo, selected = videoActive)
+    }
+
+    private fun styleTab(tab: TextView, selected: Boolean) {
+        tab.alpha = if (selected) TAB_SELECTED_ALPHA else TAB_UNSELECTED_ALPHA
+        tab.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
     }
 
     private fun onShutterClicked() {
@@ -268,32 +314,101 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     }
 
     private fun startRecording(withAudio: Boolean) {
-        val file = flowManager.outputFile ?: return
+        val file = flowManager.nextOutputFile() ?: return
+        recordingFile = file
         Timber.d("S0545: video recording start withAudio=$withAudio")
         updateShutterRecordingState(recording = true)
         sessionManager.startRecording(file, withAudio) { hasError ->
             // Finalize callback can land after the user already left the screen.
             if (isFinishing || isDestroyed) return@startRecording
             updateShutterRecordingState(recording = false)
-            flowManager.onRecordingFinalized(hasError)
+            if (flowManager.multiCapture) {
+                if (hasError) {
+                    showError(R.string.camera_capture_error_save_generic)
+                } else {
+                    recordingFile?.let { persistMultiCapture(it, isVideo = true) }
+                }
+                recordingFile = null
+            } else {
+                flowManager.onRecordingFinalized(hasError)
+            }
         }
     }
 
-    private fun updateShutterRecordingState(recording: Boolean) {
-        val labelRes = if (recording) {
-            R.string.camera_capture_record_stop
+    private fun onPauseResumeClicked() {
+        if (!sessionManager.isRecording()) return
+        recordingPaused = !recordingPaused
+        if (recordingPaused) {
+            sessionManager.pauseRecording()
+            recordingTimer.pause()
         } else {
-            R.string.camera_capture_record_start
+            sessionManager.resumeRecording()
+            recordingTimer.resume()
         }
+        updatePauseResumeIcon()
+    }
+
+    private fun updatePauseResumeIcon() {
+        binding.btnCameraPauseResume.setIconResource(
+            if (recordingPaused) R.drawable.ic_play else R.drawable.ic_pause,
+        )
+        val label = if (recordingPaused) R.string.camera_control_resume else R.string.camera_control_pause
+        binding.btnCameraPauseResume.contentDescription = getString(label)
+        binding.btnCameraPauseResume.tooltipText = getString(label)
+    }
+
+    /**
+     * Swaps the shutter foreground per mode and recording state (S0566/ADR-? dynamic shutter): photo
+     * shows a white ring, video-idle a red dot, video-recording a red square. The button stays a white
+     * disc so only the inner glyph and its tint change.
+     */
+    private fun applyShutterAppearance(recording: Boolean) {
+        val iconRes: Int
+        val tintRes: Int
+        val labelRes: Int
+        when {
+            !flowManager.isVideoMode -> {
+                iconRes = R.drawable.ic_shutter_photo
+                tintRes = R.color.camera_capture_shutter_icon
+                labelRes = R.string.cmd_camera_capture
+            }
+            recording -> {
+                iconRes = R.drawable.ic_shutter_video_recording
+                tintRes = R.color.recording_active_tint
+                labelRes = R.string.camera_capture_record_stop
+            }
+            else -> {
+                iconRes = R.drawable.ic_shutter_video_idle
+                tintRes = R.color.recording_active_tint
+                labelRes = R.string.camera_capture_record_start
+            }
+        }
+        binding.btnCapturePhoto.setIconResource(iconRes)
+        binding.btnCapturePhoto.iconTint = ContextCompat.getColorStateList(this, tintRes)
         binding.btnCapturePhoto.contentDescription = getString(labelRes)
         binding.btnCapturePhoto.tooltipText = getString(labelRes)
-        binding.btnCapturePhoto.backgroundTintList = ContextCompat.getColorStateList(
-            this,
-            if (recording) R.color.recording_active_tint else android.R.color.white,
-        )
+    }
+
+    private fun updateShutterRecordingState(recording: Boolean) {
+        applyShutterAppearance(recording)
         // Mode rebuilds the camera pipeline, so block switching while a recording is in flight.
-        binding.btnModePhoto.isEnabled = !recording
-        binding.btnModeVideo.isEnabled = !recording
+        binding.tabModePhoto.isEnabled = !recording
+        binding.tabModeVideo.isEnabled = !recording
+        binding.btnCameraPauseResume.visibility = if (recording) View.VISIBLE else View.GONE
+        if (recording) {
+            recordingPaused = false
+            updatePauseResumeIcon()
+            // The thumbnail and recording controls share the start slot; hide it while recording.
+            binding.btnGalleryThumbnail.visibility = View.GONE
+            recordingTimer.start()
+            binding.cameraRecordingTimer.visibility = View.VISIBLE
+        } else {
+            recordingTimer.stop()
+            binding.cameraRecordingTimer.visibility = View.GONE
+            if (flowManager.multiCapture && lastSavedPath != null) {
+                binding.btnGalleryThumbnail.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun updateMicrophoneIcon(enabled: Boolean) {
@@ -303,14 +418,6 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     }
 
     private fun configureZoomControls(capabilities: CameraRuntimeCapabilities) {
-        binding.cameraZoomSlider.apply {
-            valueFrom = capabilities.minZoomRatio
-            valueTo = capabilities.maxZoomRatio
-            value = capabilities.currentZoomRatio.coerceIn(
-                capabilities.minZoomRatio,
-                capabilities.maxZoomRatio,
-            )
-        }
         val group = binding.cameraZoomPresetGroup
         group.removeAllViews()
         capabilities.zoomPresets.forEach { preset ->
@@ -320,23 +427,41 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                 isClickable = true
                 isFocusable = true
                 contentDescription = getString(R.string.camera_control_zoom)
+                tag = preset
                 setOnClickListener {
                     flowManager.onZoomRatioSelected(preset)
-                    binding.cameraZoomSlider.value = preset.coerceIn(
-                        capabilities.minZoomRatio,
-                        capabilities.maxZoomRatio,
-                    )
+                    syncZoomSelection()
                 }
             }
             group.addView(chip)
         }
+        syncZoomSelection()
+    }
+
+    /** Highlights the preset pill nearest the live zoom ratio; clears all when pinched between steps. */
+    private fun syncZoomSelection() {
+        val group = binding.cameraZoomPresetGroup
+        val live = flowManager.liveZoomRatio
+        var best: Chip? = null
+        var bestDelta = Float.MAX_VALUE
+        group.children.forEach { view ->
+            val chip = view as? Chip ?: return@forEach
+            chip.isChecked = false
+            val preset = chip.tag as? Float ?: return@forEach
+            val delta = abs(preset - live)
+            if (delta < bestDelta) {
+                bestDelta = delta
+                best = chip
+            }
+        }
+        if (bestDelta < ZOOM_PILL_MATCH_EPSILON) best?.isChecked = true
     }
 
     private fun formatZoomRatio(ratio: Float): String =
         if (ratio % 1f == 0f) "${ratio.toInt()}×" else String.format(Locale.US, "%.1f×", ratio)
 
     private fun capturePhoto() {
-        val file = flowManager.outputFile ?: return
+        val file = flowManager.nextOutputFile() ?: return
         if (captureInFlight) return
         captureInFlight = true
         binding.btnCapturePhoto.isEnabled = false
@@ -347,7 +472,14 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             onSaved = {
                 // CameraX delivers this asynchronously; bail out if the user already left the screen.
                 if (isFinishing || isDestroyed) return@capture
-                flowManager.onCaptureSucceeded()
+                if (flowManager.multiCapture) {
+                    // Stay-open session: save this shot, refresh the thumbnail, keep the camera live.
+                    captureInFlight = false
+                    binding.btnCapturePhoto.isEnabled = true
+                    persistMultiCapture(file, isVideo = false)
+                } else {
+                    flowManager.onCaptureSucceeded()
+                }
             },
             onError = { error ->
                 // Async CameraX callback can arrive after onDestroy released the binding (user closed
@@ -359,5 +491,58 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                 showError(R.string.camera_capture_error_save_generic)
             },
         )
+    }
+
+    /**
+     * S0566/ADR-2: persist one capture of a stay-open session to its public folder (photo ->
+     * DCIM/Camera, video -> Movies) through the shared use-case, then surface the result as the
+     * gallery thumbnail. The saver deletes the scratch file; the camera is never finished here.
+     */
+    private fun persistMultiCapture(file: File, isVideo: Boolean) {
+        val name = file.name
+        lifecycleScope.launch {
+            val result = saveCapturedMedia(file, isVideo)
+            if (isFinishing || isDestroyed) return@launch
+            when (result) {
+                is SaveResult.Success -> {
+                    lastSavedPath = result.savedPath
+                    showGalleryThumbnail(result.savedPath)
+                    Toast.makeText(
+                        this@CameraCaptureActivity,
+                        getString(R.string.camera_capture_saved, name),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                else -> showError(R.string.camera_capture_error_save_generic)
+            }
+        }
+    }
+
+    private fun showGalleryThumbnail(path: String) {
+        binding.btnGalleryThumbnail.visibility = View.VISIBLE
+        Glide.with(this).load(File(path)).centerCrop().into(binding.btnGalleryThumbnail)
+    }
+
+    /** Opens the most recent capture in a system viewer; a missing/unviewable file is logged, not fatal. */
+    private fun openLastCapture() {
+        val path = lastSavedPath ?: return
+        val file = File(path)
+        if (!file.exists()) return
+        val uri = runCatching {
+            FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        }.getOrNull() ?: return
+        val mime = if (file.extension.equals("mp4", ignoreCase = true)) "video/*" else "image/*"
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mime)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        runCatching { startActivity(intent) }
+            .onFailure { Timber.w(it, "CameraCaptureActivity: no viewer for last capture") }
+    }
+
+    private companion object {
+        const val TAB_SELECTED_ALPHA = 1f
+        const val TAB_UNSELECTED_ALPHA = 0.5f
+        const val ZOOM_PILL_MATCH_EPSILON = 0.15f
     }
 }

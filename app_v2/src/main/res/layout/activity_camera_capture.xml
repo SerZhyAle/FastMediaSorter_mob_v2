@@ -94,7 +94,6 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
             android:contentDescription="@string/camera_control_flash"
             android:focusable="true"
             android:minWidth="0dp"
@@ -110,96 +109,112 @@
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCameraMore"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:contentDescription="@string/camera_control_more"
-            android:focusable="true"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:tooltipText="@string/camera_control_more"
-            android:visibility="gone"
-            app:backgroundTint="@color/camera_capture_control_bg"
-            app:icon="@drawable/ic_more_vert"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="20dp"
-            app:iconTint="@android:color/white"
-            app:strokeColor="@color/camera_capture_control_stroke"
-            tools:visibility="visible" />
     </LinearLayout>
 
+    <!-- S0566: recording timer overlay, centered in the top-bar row, shown only while recording. -->
     <LinearLayout
-        android:id="@+id/cameraZoomBar"
+        android:id="@+id/cameraRecordingTimer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
+        android:background="@drawable/bg_camera_timer"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/cameraModeSwitchGroup"
+        app:layout_constraintBottom_toBottomOf="@id/cameraTopBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/cameraTopBar"
         tools:visibility="visible">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/cameraZoomPresetGroup"
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/recording_indicator_dot" />
+
+        <TextView
+            android:id="@+id/txtRecordingTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/camera_control_zoom"
-            app:singleLine="true"
-            app:singleSelection="true" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/cameraZoomSlider"
-            android:layout_width="240dp"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/camera_control_zoom"
-            android:stepSize="0"
-            android:value="0"
-            android:valueFrom="0"
-            android:valueTo="1" />
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            tools:text="00:05" />
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/cameraModeSwitchGroup"
+    <!-- S0566: always-visible zoom presets (no "More" toggle); hidden when the lens has no zoom range. -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/cameraZoomPresetGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
+        android:contentDescription="@string/camera_control_zoom"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/cameraModeSelector"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:singleLine="true"
+        app:singleSelection="true"
+        tools:visibility="visible" />
+
+    <!-- S0566: One UI text mode selector replacing the outlined toggle group; shown when switching is allowed. -->
+    <HorizontalScrollView
+        android:id="@+id/cameraModeSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/cameraActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:selectionRequired="true"
-        app:singleSelection="true"
         tools:visibility="visible">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnModePhoto"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <LinearLayout
+            android:id="@+id/cameraModeSelectorTabs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/camera_mode_photo"
-            android:focusable="true"
-            android:text="@string/camera_mode_photo"
-            android:tooltipText="@string/camera_mode_photo"
-            app:strokeColor="@color/camera_capture_control_stroke" />
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnModeVideo"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/camera_mode_video"
-            android:focusable="true"
-            android:text="@string/camera_mode_video"
-            android:tooltipText="@string/camera_mode_video"
-            app:strokeColor="@color/camera_capture_control_stroke" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+            <TextView
+                android:id="@+id/tabModePhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/camera_mode_photo"
+                android:focusable="true"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="@string/camera_mode_photo"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tabModeVideo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/camera_mode_video"
+                android:focusable="true"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="@string/camera_mode_video"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <FrameLayout
         android:id="@+id/cameraActionBar"
@@ -212,6 +227,45 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/btnGalleryThumbnail"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center_vertical|start"
+            android:clickable="true"
+            android:contentDescription="@string/camera_gallery_preview"
+            android:focusable="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FastMediaSorter.Circle"
+            app:strokeColor="@color/camera_capture_control_stroke"
+            app:strokeWidth="1dp"
+            tools:src="@drawable/ic_camera_capture"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraPauseResume"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center_vertical|start"
+            android:contentDescription="@string/camera_control_pause"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/camera_control_pause"
+            android:visibility="gone"
+            app:backgroundTint="@color/camera_capture_control_bg"
+            app:cornerRadius="28dp"
+            app:icon="@drawable/ic_pause"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="@android:color/white"
+            app:strokeColor="@color/camera_capture_control_stroke"
+            tools:visibility="visible" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCapturePhoto"
@@ -226,10 +280,10 @@
             android:tooltipText="@string/cmd_camera_capture"
             app:backgroundTint="@android:color/white"
             app:cornerRadius="36dp"
-            app:icon="@drawable/ic_camera_capture"
+            app:icon="@drawable/ic_shutter_photo"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="28dp"
+            app:iconSize="44dp"
             app:iconTint="@color/camera_capture_shutter_icon" />
 
         <com.google.android.material.button.MaterialButton

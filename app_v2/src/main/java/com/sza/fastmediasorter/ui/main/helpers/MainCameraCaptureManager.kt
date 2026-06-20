@@ -5,20 +5,16 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Environment
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
-import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
-import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
-import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +36,7 @@ import java.util.Locale
 class MainCameraCaptureManager(
     private val activity: FragmentActivity,
     private val coroutineScope: CoroutineScope,
-    private val cameraCaptureSaver: CameraCaptureSaver,
+    private val saveCapturedMedia: SaveCapturedMediaUseCase,
     // Owned by the host Activity (registered before STARTED); the host's result callback delegates here.
     private val launcher: ActivityResultLauncher<Intent>,
 ) {
@@ -126,8 +122,7 @@ class MainCameraCaptureManager(
         }
         val name = captured.name
         coroutineScope.launch {
-            val target: CameraCaptureTarget = if (isVideo) moviesTarget() else CameraCaptureTarget.CameraFolder
-            val saveResult = cameraCaptureSaver.save(captured, name, target) { _, _, _ -> false }
+            val saveResult = saveCapturedMedia(captured, isVideo)
             pendingDir = null
             pendingBaseName = null
             withContext(Dispatchers.Main) {
@@ -138,17 +133,6 @@ class MainCameraCaptureManager(
                 }
             }
         }
-    }
-
-    /** Public Movies folder target (mirrors BrowseCameraCaptureManager.localVideoFallbackTarget). */
-    private fun moviesTarget(): CameraCaptureTarget.Resource {
-        val moviesDir = CaptureDestinationPolicy.resolveVideoDestination(null).also { it.mkdirs() }
-        return CameraCaptureTarget.Resource(
-            id = -1L,
-            name = Environment.DIRECTORY_MOVIES,
-            path = moviesDir.absolutePath,
-            type = ResourceType.LOCAL,
-        )
     }
 
     /** App-private scratch dir; the host writes here and the saver moves the result to a public folder. */

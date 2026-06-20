@@ -32,6 +32,14 @@ object CameraCaptureContract {
     /** True only for the "Camera" entry (S0563): allow in-screen photo/video switching. Default false. */
     const val EXTRA_ALLOW_MODE_SWITCH = "allow_mode_switch"
 
+    /**
+     * S0566: true for the general "Camera" entry / home widget - the host stays open after each capture
+     * for a multi-capture session and saves every file itself. Default false keeps fixed callers
+     * one-shot-then-finish. Independent of [EXTRA_ALLOW_MODE_SWITCH]: a photo-only general entry still
+     * stays open even though no in-screen mode switch is offered.
+     */
+    const val EXTRA_MULTI_CAPTURE = "multi_capture"
+
     /** Scratch dir the host writes into when [EXTRA_ALLOW_MODE_SWITCH] is set (mode picks the extension). */
     const val EXTRA_OUTPUT_DIR = "output_dir"
 
@@ -73,6 +81,8 @@ object CameraCaptureContract {
         initialMode: CameraCaptureMode = CameraCaptureMode.PHOTO,
         allowModeSwitch: Boolean = true,
         microphoneDefault: Boolean = true,
+        // S0566: the general entry stays open and saves each capture itself (default true here).
+        multiCapture: Boolean = true,
     ): Intent =
         Intent(context, CameraCaptureActivity::class.java)
             .putExtra(EXTRA_OUTPUT_DIR, outputDir)
@@ -80,12 +90,16 @@ object CameraCaptureContract {
             .putExtra(EXTRA_CAPTURE_MODE, initialMode.name)
             .putExtra(EXTRA_ALLOW_MODE_SWITCH, allowModeSwitch)
             .putExtra(EXTRA_MICROPHONE_DEFAULT, microphoneDefault)
+            .putExtra(EXTRA_MULTI_CAPTURE, multiCapture)
 
     fun readMode(intent: Intent): CameraCaptureMode =
         CameraCaptureMode.fromName(intent.getStringExtra(EXTRA_CAPTURE_MODE))
 
     fun readAllowModeSwitch(intent: Intent): Boolean =
         intent.getBooleanExtra(EXTRA_ALLOW_MODE_SWITCH, false)
+
+    fun readMultiCapture(intent: Intent): Boolean =
+        intent.getBooleanExtra(EXTRA_MULTI_CAPTURE, false)
 
     fun readOutputDir(intent: Intent): String? = intent.getStringExtra(EXTRA_OUTPUT_DIR)
 

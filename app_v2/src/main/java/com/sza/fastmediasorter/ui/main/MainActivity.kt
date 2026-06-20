@@ -54,7 +54,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -147,7 +147,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
-    lateinit var cameraCaptureSaver: CameraCaptureSaver
+    lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
 
     @Inject
     lateinit var localDestinationClassifier: LocalDestinationClassifier
@@ -690,7 +690,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
         )
         cameraCaptureManager = MainCameraCaptureManager(
-            this, lifecycleScope, cameraCaptureSaver, quickCaptureCameraLauncher,
+            this, lifecycleScope, saveCapturedMedia, quickCaptureCameraLauncher,
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },

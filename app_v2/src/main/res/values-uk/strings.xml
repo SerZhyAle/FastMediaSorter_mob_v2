@@ -2630,7 +2630,6 @@
     <string name="camera_control_flash">Спалах</string>
     <string name="camera_control_switch_lens">Змінити камеру</string>
     <string name="camera_control_zoom">Масштаб</string>
-    <string name="camera_control_more">Ще</string>
     <string name="camera_capture_microphone">Мікрофон</string>
     <string name="camera_capture_record_start">Запис</string>
     <string name="camera_capture_record_stop">Зупинити</string>
@@ -2638,4 +2637,7 @@
     <string name="camera_mode_photo">Фото</string>
     <string name="camera_mode_video">Відео</string>
     <string name="quick_camera_menu_label">Камера</string>
+    <string name="camera_control_pause">Пауза</string>
+    <string name="camera_control_resume">Продовжити</string>
+    <string name="camera_gallery_preview">Перегляд останнього знімка</string>
 </resources>

@@ -208,6 +208,18 @@ class CameraCaptureSessionManager(
         activeRecording = null
     }
 
+    /** S0566: pauses an in-flight recording (CameraX keeps the file open); no-op when not recording. */
+    fun pauseRecording() {
+        runCatching { activeRecording?.pause() }
+            .onFailure { Timber.w(it, "CameraCaptureSessionManager: pause failed") }
+    }
+
+    /** S0566: resumes a paused recording; no-op when not recording. */
+    fun resumeRecording() {
+        runCatching { activeRecording?.resume() }
+            .onFailure { Timber.w(it, "CameraCaptureSessionManager: resume failed") }
+    }
+
     private fun bindToLifecycle(provider: ProcessCameraProvider, previewView: PreviewView) {
         val preview = Preview.Builder().build().also {
             it.surfaceProvider = previewView.surfaceProvider

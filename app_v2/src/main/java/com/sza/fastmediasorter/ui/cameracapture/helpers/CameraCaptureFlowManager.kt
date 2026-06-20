@@ -6,6 +6,9 @@ import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Owns the host-level decisions for [com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity]
@@ -50,6 +53,19 @@ class CameraCaptureFlowManager(
 
     /** True only for the "Camera" entry (S0563): in-screen photo/video switching is allowed. */
     val allowModeSwitch: Boolean = CameraCaptureContract.readAllowModeSwitch(intent)
+
+    /**
+     * S0566: true for the general entry / widget. The host stays open after each capture and saves
+     * every file itself; false keeps the legacy one-shot-then-finish contract for fixed callers.
+     */
+    val multiCapture: Boolean = CameraCaptureContract.readMultiCapture(intent)
+
+    /** S0566: live zoom ratio, kept in sync with preset taps, pinch and double-tap so the UI can reflect it. */
+    var liveZoomRatio: Float = CameraRuntimeCapabilities.DEFAULT_ZOOM
+        private set
+
+    /** S0566: monotonically increasing per-capture suffix so a multi-capture session never overwrites a file. */
+    private var captureSequence = 0
 
     /** Scratch dir + extension-less base name when the host owns the output file (switchable mode). */
     private val outputDir: String? = CameraCaptureContract.readOutputDir(intent)
@@ -110,6 +126,19 @@ class CameraCaptureFlowManager(
         return resolveLegacyOutputFile()
     }
 
+    /**
+     * S0566: target file for the next capture. In a multi-capture session each shot needs a unique
+     * scratch file (the host owns the dir), so a timestamp + sequence suffix is appended; single-shot
+     * callers keep [currentOutputFile] verbatim so their fixed result path is unchanged.
+     */
+    fun nextOutputFile(): File? {
+        val dir = outputDir
+        if (!multiCapture || dir == null) return currentOutputFile()
+        captureSequence++
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        return File(dir, "CAP_${stamp}_$captureSequence${extensionFor(mode)}")
+    }
+
     private fun extensionFor(activeMode: CameraCaptureMode): String =
         if (activeMode == CameraCaptureMode.VIDEO) ".mp4" else ".jpg"
 
@@ -131,6 +160,11 @@ class CameraCaptureFlowManager(
     fun onCapabilitiesChanged(capabilities: CameraRuntimeCapabilities) {
         currentCapabilities = capabilities
         flashEnabled = false
+        // A rebind resets the camera control to its default zoom, so mirror that here.
+        liveZoomRatio = capabilities.currentZoomRatio.coerceIn(
+            capabilities.minZoomRatio,
+            capabilities.maxZoomRatio,
+        )
         host.renderCapabilities(capabilities)
     }
 
@@ -148,7 +182,30 @@ class CameraCaptureFlowManager(
     }
 
     fun onZoomRatioSelected(ratio: Float) {
-        if (currentCapabilities.supportsZoom) session.setZoomRatio(ratio)
+        if (!currentCapabilities.supportsZoom) return
+        val clamped = ratio.coerceIn(currentCapabilities.minZoomRatio, currentCapabilities.maxZoomRatio)
+        liveZoomRatio = clamped
+        session.setZoomRatio(clamped)
+    }
+
+    /** S0566: continuous pinch zoom - scales the live ratio by the detector factor, clamped to the lens range. */
+    fun onPinchZoom(scaleFactor: Float) {
+        if (!currentCapabilities.supportsZoom) return
+        onZoomRatioSelected(liveZoomRatio * scaleFactor)
+    }
+
+    /**
+     * S0566: double-tap zoom toggle. Jumps to the lens maximum (approximated by the largest zoom
+     * preset, else [CameraRuntimeCapabilities.maxZoomRatio]) when near 1x, and back to 1x otherwise.
+     * CameraX exposes no optical/digital boundary, so the largest preset is the closest stand-in.
+     */
+    fun onDoubleTapZoom() {
+        if (!currentCapabilities.supportsZoom) return
+        val caps = currentCapabilities
+        val baseline = ZOOM_BASELINE.coerceIn(caps.minZoomRatio, caps.maxZoomRatio)
+        val zoomedIn = caps.zoomPresets.lastOrNull()?.takeIf { it > baseline } ?: caps.maxZoomRatio
+        val target = if (liveZoomRatio > baseline + ZOOM_TOGGLE_EPSILON) baseline else zoomedIn
+        onZoomRatioSelected(target)
     }
 
     /** Runs tap-to-focus when supported; returns whether the focus ring should be shown. */
@@ -187,5 +244,10 @@ class CameraCaptureFlowManager(
         CameraCaptureContract.readOutputPath(intent)?.let { return File(it) }
         val outputPath = CameraCaptureContract.readOutputUri(intent)?.path ?: return null
         return outputPath.takeIf { it.isNotBlank() }?.let(::File)
+    }
+
+    private companion object {
+        const val ZOOM_BASELINE = 1f
+        const val ZOOM_TOGGLE_EPSILON = 0.1f
     }
 }
