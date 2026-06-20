@@ -222,3 +222,15 @@ Optional background elements like widget receivers (`AppWidgetProvider`) should 
       DONT_KILL_APP
   )
   ```
+
+## Collapsible Section Groups (MANDATORY)
+
+New screens with collapsible/expandable sections MUST use the unified pattern (S0535) - do not build a bespoke header or persistence mechanism.
+
+- **Header:** one widget `CollapsibleSectionHeader` (`ui/common/widget/`) - a clickable row with a graphical chevron indicator that rotates on toggle, an optional collapsed-state summary slot (`setSummary(..)`), and a bold title (the unified typography token - bold on every screen).
+- **Orchestrator:** `CollapsibleSectionsManager.register(header, container, key, defaultExpanded, onExpandedChanged?)` binds a header to its content container, animates the body open/close, announces expanded/collapsed for TalkBack, and persists state. The optional `onExpandedChanged` hook supports lazy first-expand work (e.g. attaching a child fragment on first expand).
+- **Store:** `CollapsibleSectionStore` over one consolidated SharedPreferences namespace (`collapsible_sections_state`). `CollapsibleSectionStateMigration` folds the legacy per-screen namespaces in once on upgrade (copy-only, guarded, idempotent).
+- **Keys:** `<screen>__<section>` (e.g. `general__interface`, `operations__safety`, `media__vr`, `resource_editor__connection`).
+- **Default expansion:** dense config screens (settings, source editors) and list groupings collapsed; short dialogs (folder picker) expanded; player overlay panels collapsed until activated.
+- **Accessibility:** state announced via `ViewCompat.setStateDescription` (API 30+) with a `contentDescription` fallback below; chevron tinted via theme attribute (`?attr/colorOnSurfaceVariant`, override per-context with `csh_chevronTint`); no hardcoded colors.
+- **List consumers** (RecyclerView section headers, e.g. Statistics/Keybinding) build the `CollapsibleSectionHeader` programmatically and bind it via `setTitle`/`setExpanded`/`setOnExpandedChangeListener`.

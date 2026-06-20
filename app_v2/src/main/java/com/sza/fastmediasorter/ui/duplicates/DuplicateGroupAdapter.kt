@@ -107,7 +107,10 @@ class DuplicateGroupAdapter(
         fun bind(group: DuplicateGroup) {
             val sizeText = formatFileSize(group.fileSize)
             val countText = itemView.context.getString(R.string.duplicate_group_count, group.files.size)
-            binding.headerGroup.setTitle("$sizeText - $countText")
+            // S0535: title carries a representative file name; the size/count summary moves to the
+            // unified summary slot so it stays informative when the group is collapsed.
+            binding.headerGroup.setTitle(group.files.firstOrNull()?.name.orEmpty())
+            binding.headerGroup.setSummary("$sizeText - $countText")
             binding.headerGroup.setExpandCollapseContentDescriptions(R.string.cd_expand_group, R.string.cd_collapse_group)
 
             val isExpanded = expandedGroups.contains(group.fullHash)

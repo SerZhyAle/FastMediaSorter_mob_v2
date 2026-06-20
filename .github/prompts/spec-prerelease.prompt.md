@@ -88,7 +88,9 @@ Scenario steps and the perf checkpoint each captures:
 2. **In-app playback** - open and play several file types (video, image, audio, document) from
    the local resource; confirm each renders.
 3. **List scroll** - `dumpsys gfxinfo <pkg> reset`, scroll a populated list, then
-   `prerelease-measure.ps1 -Checkpoint list-scroll -Json`.
+   `prerelease-measure.ps1 -Checkpoint list-scroll -Json`. On an emulator this record is emitted
+   `advisory` (gfxinfo janky% is structurally inflated by software rendering): reported in the
+   verdict breakdown but not release-gating. It gates only on physical devices.
 4. **Standalone-player roundtrip** - close the app, launch the standalone player on a seeded file
    via `am start -a android.intent.action.VIEW -d file://<seeded> -n <pkg>/com.sza.fastmediasorter.ui.player.StandalonePlayerActivity`,
    then tap overflow → `menu_open_in_fms` to return into the in-app player; confirm `PlayerActivity`

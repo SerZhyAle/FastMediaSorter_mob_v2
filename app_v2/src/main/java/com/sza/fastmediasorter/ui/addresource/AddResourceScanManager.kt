@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -12,7 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
-import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
@@ -27,6 +26,9 @@ internal class AddResourceScanManager(
     private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
     private val mediaCapabilities: MediaCapabilities
 ) {
+
+    // S0535: folder-picker sections go through the unified orchestrator + consolidated store.
+    private val sectionsManager by lazy { CollapsibleSectionsManager(activity) }
 
     fun loadSshKeyFromFile(uri: Uri) {
         try {
@@ -151,29 +153,18 @@ internal class AddResourceScanManager(
     }
 
     /**
-     * Wires the two top groups of the folder dialog to collapsible headers and persists each
-     * group's expanded state in the shared section-state prefs so a collapse survives reopening.
+     * Wires the two top groups of the folder dialog to the unified collapsible orchestrator.
+     * Short dialog -> default expanded (research 02 D4); state persists in the consolidated store.
      */
     private fun setupCollapsibleFolderSections(dialogView: android.view.View) {
-        val prefs = StrictModeHelper.allowDiskReads {
-            activity.getSharedPreferences("settings_section_states", Context.MODE_PRIVATE)
-        }
         val sections = listOf(
-            Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_picker_special_expanded"),
-            Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_picker_quick_expanded"),
+            Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_selection__special"),
+            Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_selection__quick"),
         )
-        sections.forEach { (headerId, containerId, prefKey) ->
+        sections.forEach { (headerId, containerId, key) ->
             val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
             val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
-            val expanded = StrictModeHelper.allowDiskReads { prefs.getBoolean(prefKey, true) }
-            header.setExpanded(expanded, notify = false)
-            container.isVisible = expanded
-            header.setOnExpandedChangeListener { isExpanded ->
-                container.isVisible = isExpanded
-                StrictModeHelper.allowDiskWrites {
-                    prefs.edit().putBoolean(prefKey, isExpanded).apply()
-                }
-            }
+            sectionsManager.register(header, container, key, defaultExpanded = true)
         }
     }
 

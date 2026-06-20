@@ -29,9 +29,12 @@
     }
 
     # Per-checkpoint PASS limits (research/01, emulator-aware starter set; refine after baseline).
+    # ListScroll gates on physical devices only: on an emulator its gfxinfo janky% is structurally
+    # inflated by software/host-GPU rendering, so the record is marked advisory (see
+    # prerelease-measure.ps1) and the verdict aggregator reports but does not gate on it.
     Thresholds = @{
         ColdStart      = @{ Metric = 'am-start-total-ms';        Limit = 5000 }
-        ListScroll     = @{ Metric = 'janky-frames-pct';         Limit = 20; MaxFrameMs = 700 }
+        ListScroll     = @{ Metric = 'janky-frames-pct';         Limit = 20 }
         PlayerOpen     = @{ Metric = 'ms-to-first-frame';        Limit = 4000 }
         NetworkListing = @{ Metric = 'ms-to-listing-complete';   Limit = 15000 }
     }
