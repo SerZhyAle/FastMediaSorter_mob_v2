@@ -187,6 +187,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // S0564: restore the pending quick-capture target if the process was killed while the camera
+        // host was foreground. setupViews() (run inside super.onCreate) already constructed the manager,
+        // so this runs before the pending Activity result is dispatched (onStart) - mirrors BrowseActivity.
+        savedInstanceState?.let {
+            if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
+        }
+
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
         binding.root.post {
             memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
@@ -533,6 +540,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         lastPlayedResourceId?.let { outState.putLong(KEY_LAST_PLAYED_RESOURCE_ID, it) }
+        // S0564: persist the pending quick-capture target so a kill while the camera host is
+        // foreground does not abandon the captured file (restored in onCreate, see below).
+        if (::cameraCaptureManager.isInitialized) cameraCaptureManager.saveState(outState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.os.Environment
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -170,11 +171,46 @@ class MainCameraCaptureManager(
         pendingBaseName = null
     }
 
+    /**
+     * S0564: persist the pending quick-capture target before the host Activity may be killed (process
+     * death while the in-app camera host is foreground). Mirrors [BrowseCameraCaptureManager.saveState]
+     * but simpler - the target is a fixed public folder, so no resource id is persisted. Without this
+     * the in-memory fields are lost and [handleResult] abandons the captured file with session_expired.
+     */
+    fun saveState(outState: Bundle) {
+        pendingDir?.absolutePath?.let { outState.putString(KEY_PENDING_DIR, it) }
+        pendingBaseName?.let { outState.putString(KEY_PENDING_BASE, it) }
+    }
+
+    /**
+     * S0564: restore the pending quick-capture target after process death so [handleResult] can
+     * complete the save instead of returning session_expired. The scratch dir is app-private
+     * ([createScratchDir]) and normally survives the kill; if the OS reclaimed it, bail and let the
+     * existing session_expired path handle the missing file.
+     */
+    fun restoreState(savedState: Bundle) {
+        val dirPath = savedState.getString(KEY_PENDING_DIR) ?: return
+        val base = savedState.getString(KEY_PENDING_BASE) ?: return
+        val dir = File(dirPath)
+        if (!dir.exists()) {
+            Timber.w("quick camera: scratch dir gone after process death path=%s", dirPath)
+            return
+        }
+        pendingDir = dir
+        pendingBaseName = base
+        Timber.d("S0564: restored pending quick-capture target dir=$dirPath base=$base")
+    }
+
     private fun showSnackbar(msgRes: Int) {
         Snackbar.make(activity.window.decorView.rootView, msgRes, Snackbar.LENGTH_LONG).show()
     }
 
     private fun showSnackbar(message: String) {
         Snackbar.make(activity.window.decorView.rootView, message, Snackbar.LENGTH_LONG).show()
+    }
+
+    private companion object {
+        const val KEY_PENDING_DIR = "main_cam_pending_dir"
+        const val KEY_PENDING_BASE = "main_cam_pending_base"
     }
 }
