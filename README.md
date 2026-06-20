@@ -14,13 +14,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6180.134 (June 2026)
+## What's New in v2.60.6200.317 (June 2026)
 
 **New:**
-Send to network and cloud sources, usage statistics dashboard, favorites backup to file, photo and frame to clipboard, crash report prompt, All Files pinned first.
+Quick capture menu, download by link, Chromecast video, new drawing canvas with custom brush color and size, drag to reorder resources, file details sheet, video player gestures, text viewer themes, fallback save, controller/keyboard/TV navigation, settings reference with collapsible groups, crash email prompt, mini-game.
 
 **Fixed:**
-SFTP audio cut-off after slow folder scan, missing OCR engine pack guidance, settings-search backup mapping.
+Player time statistic stuck at zero, vanishing PDF thumbnails, player controls behind navigation bar, missing landscape stop-scan button, camera capture crash, Camera OCR light theme, welcome carousel D-pad.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
