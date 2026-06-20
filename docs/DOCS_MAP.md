@@ -1,3 +1,9 @@
+---
+layout: default
+title: "🗺️ Project Documentation Map"
+permalink: /docs/DOCS_MAP.html
+---
+
 # 🗺️ Project Documentation Map
 
 This file serves as a central index for all documentation available in the project, categorized by purpose and target audience. The public entry points are the Markdown docs in this folder; use [FEATURES.md](FEATURES.md) as the canonical flavor and capability inventory.
@@ -8,12 +14,12 @@ Essential reading for end-users to install, configure, and use the application. 
 
 | Document | Description | Last Updated |
 |---|---|---|
-| [What's New](WHATS_NEW.md) | Release notes for v2.60.6180.134 - new features and fixes since 2.60.6141.930. | 2026-06-19 |
-| [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-03-09 |
-| [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-02-02 |
-| [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-02-03 |
-| [FAQ](FAQ.md) | Frequently Asked Questions. | 2026-03-04 |
-| [Troubleshooting](TROUBLESHOOTING.md) | Solutions to common problems. | 2026-02-02 |
+| [What's New](WHATS_NEW.md) | Release notes for v2.60.6200.317 - new features and fixes since 2.60.6180.134. | 2026-06-20 |
+| [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-06-19 |
+| [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-06-19 |
+| [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-06-19 |
+| [FAQ](FAQ.md) | Frequently Asked Questions. | 2026-06-19 |
+| [Troubleshooting](TROUBLESHOOTING.md) | Solutions to common problems. | 2026-06-07 |
 | [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | Current |
 | [SMB Setup Guide](SMB_SETUP_GUIDE.md) | Specific guide for setting up network shares. | 2026-02-09 |
 | [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy, XR / noLegal). | Current |
@@ -24,6 +30,13 @@ Essential reading for end-users to install, configure, and use the application. 
 Most guides are available in Russian and Ukrainian:
 - **Russian**: [What's New](WHATS_NEW_RU.md), [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md), [Features](FEATURES_RU.md)
 - **Ukrainian**: [What's New](WHATS_NEW_UK.md), [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md), [Features](FEATURES_UK.md)
+
+### 🥽 VR / XR (noLegal) Edition
+
+User-facing guides for the VR / XR headset edition. Each guide is available in English, Russian, and Ukrainian:
+- **VR Edition**: [EN](VR_EDITION.md), [RU](VR_EDITION_RU.md), [UK](VR_EDITION_UK.md)
+- **VR Controls**: [EN](VR_CONTROLS.md), [RU](VR_CONTROLS_RU.md), [UK](VR_CONTROLS_UK.md)
+- **VR Sideload**: [EN](VR_SIDELOAD.md), [RU](VR_SIDELOAD_RU.md), [UK](VR_SIDELOAD_UK.md)
 
 ---
 

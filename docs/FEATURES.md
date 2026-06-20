@@ -1,10 +1,15 @@
+---
+layout: default
+title: "FastMediaSorter v2 - Complete Feature List"
+permalink: /docs/FEATURES.html
+---
 # FastMediaSorter v2 - Complete Feature List
 
 *Last updated: 2026-06-20*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
-**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
+**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
 

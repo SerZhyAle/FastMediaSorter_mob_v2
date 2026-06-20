@@ -30,7 +30,7 @@ Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via l
 
 ### Where do deleted files go?
 Deleted files move to a `.trash/` folder in the same location (soft-delete). They're not permanently deleted until you:
-- Tap **"Empty Trash"** in Settings → Quick Sort, OR
+- Tap **"Empty Trash"** in Settings → Operations → File deletion and trash, OR
 - Manually delete the `.trash/` folder
 
 ### Can I undo a delete/move?
@@ -116,7 +116,7 @@ If thumbnails never load at all:
 Quick Sort folders are pre-configured target folders for fast file sorting. You can assign up to 30 folders with numbered buttons.
 
 ### How do I set up Quick Sort?
-**Method 1:** Settings → Quick Sort → "Add to Quick Sort"  
+**Method 1:** Settings → Operations → Quick Sort destinations → "Add to Quick Sort"  
 **Method 2:** Edit any folder → Enable "Mark for Quick Sort"
 
 ### How do I use Quick Sort while viewing files?
@@ -125,7 +125,7 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 3. Tap the **bottom-left corner** (COPY zone) or **bottom-center** (MOVE zone)
 
 ### Quick Sort buttons are not showing
-Make sure you have added at least one destination folder first: Settings → Quick Sort → **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
+Make sure you have added at least one destination folder first: Settings → Operations → Quick Sort destinations → **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
 
 ### I accidentally sent a file to the wrong folder
 Tap **Undo** immediately (bottom-right of the command panel) - available for a few seconds after each operation. If you missed the window, go to the destination folder and move the file back manually.
@@ -230,7 +230,7 @@ We use a **Hybrid OCR System**:
 If the app detects Cyrillic text, it initializes the Tesseract engine, which is more powerful but takes 1-2 seconds longer to start than ML Kit.
 
 ### What is lens-style translation mode?
-**Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in Settings → Documents → Translation → "Lens-style overlay".
+**Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in Settings → Media → Translation, OCR and Google Lens → "Lens-style overlay".
 
 **Standard mode** shows translations in a separate text view below the image.
 
@@ -281,7 +281,7 @@ The Wear OS app currently supports:
 ## EPUB E-Books
 
 ### How do I enable EPUB support?
-Settings → **Documents** section → Enable **"Support EPUB"**
+Settings → Media → **Text, PDF and EPUB viewing** → Enable **"Support EPUB"**
 
 **Note:** Restart the app after enabling for changes to take effect.
 

@@ -2251,7 +2251,7 @@ Close the player and try again.</string>
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Camera capture</string>
-    <string name="tooltip_camera_capture_message">The camera button in the file browser lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
+    <string name="tooltip_camera_capture_message">The camera button in the file browser opens the in-app camera to take a photo or record video without leaving the app, with flash, zoom, lens switch and tap-to-focus. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
     <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
     <string name="tooltip_saved_authorizations_message">The in-app web sign-in screen saves the cookies and logins used when auto-downloading files from sites that require you to be signed in. Open this screen to review those saved authorizations and remove the ones you no longer need.</string>
 
@@ -2700,8 +2700,6 @@ Close the player and try again.</string>
     <string name="quick_voice_recording_dialog_title">Recording..</string>
     <string name="quick_voice_recording_stop">Stop and save</string>
     <string name="quick_voice_menu_label">Voice recording</string>
-    <string name="quick_video_menu_label">Record video</string>
-    <string name="quick_photo_menu_label">Take photo</string>
     <string name="quick_recorder_saved_to">Recording saved to %1$s</string>
     <string name="audio_background_handoff_failed">Couldn\'t keep this track playing in the background</string>
     <string name="download_by_link_menu_label">Download by link</string>
@@ -2709,4 +2707,15 @@ Close the player and try again.</string>
     <string name="download_by_link_dialog_hint">Paste or type a link</string>
     <string name="collapsible_section_state_expanded">Expanded</string>
     <string name="collapsible_section_state_collapsed">Collapsed</string>
+    <string name="camera_control_flash">Flash</string>
+    <string name="camera_control_switch_lens">Switch camera</string>
+    <string name="camera_control_zoom">Zoom</string>
+    <string name="camera_control_more">More controls</string>
+    <string name="camera_capture_microphone">Microphone</string>
+    <string name="camera_capture_record_start">Record</string>
+    <string name="camera_capture_record_stop">Stop</string>
+    <string name="camera_capture_microphone_muted">Recording without sound</string>
+    <string name="camera_mode_photo">Photo</string>
+    <string name="camera_mode_video">Video</string>
+    <string name="quick_camera_menu_label">Camera</string>
 </resources>

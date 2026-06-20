@@ -1054,13 +1054,13 @@
                         app:str_helpTitle="@string/setting_gesture_overlay_help_title"
                         app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
 
-                    <LinearLayout android:id="@+id/rowScreenshotGestureActionDown" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionUp" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_down_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_up_title" android:textSize="@dimen/toggler_title_text_size" />
                             <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
                         </LinearLayout>
-                        <TextView android:id="@+id/tvScreenshotGestureActionDownValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        <TextView android:id="@+id/tvScreenshotGestureActionUpValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
                     <LinearLayout android:id="@+id/rowScreenshotGestureActionRight" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
@@ -1072,13 +1072,13 @@
                         <TextView android:id="@+id/tvScreenshotGestureActionRightValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
-                    <LinearLayout android:id="@+id/rowScreenshotGestureActionUp" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/rowScreenshotGestureActionDown" android:foreground="@drawable/focus_button_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_up_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_screenshot_gesture_action_down_title" android:textSize="@dimen/toggler_title_text_size" />
                             <ImageView android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/margin_tiny" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
                         </LinearLayout>
-                        <TextView android:id="@+id/tvScreenshotGestureActionUpValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        <TextView android:id="@+id/tvScreenshotGestureActionDownValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
                     <!-- Screenshot destination (tap opens the destination picker) -->

@@ -103,7 +103,6 @@ object ScrollableTextDialog {
         val fullText = if (details != null) "$message\n\n$details" else message
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_error_detail, null)
-        Timber.d("S0544: error/detail dialog inflated - landscape action row pinned at top")
         val tvMessage = dialogView.findViewById<TextView>(R.id.tvErrorMessage)
         val tvDetailsToggle = dialogView.findViewById<TextView>(R.id.tvDetailsToggle)
         val scrollDetails = dialogView.findViewById<ScrollView>(R.id.scrollDetails)

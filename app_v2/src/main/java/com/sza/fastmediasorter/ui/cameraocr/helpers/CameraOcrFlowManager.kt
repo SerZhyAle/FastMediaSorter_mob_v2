@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import dagger.hilt.android.EntryPointAccessors
@@ -142,11 +143,13 @@ class CameraOcrFlowManager(
             return
         }
 
-        // In-app capture removes the OEM confirmation step before the crop screen.
+        // In-app capture removes the OEM confirmation step before the crop screen. OCR is strictly
+        // photo: pin the mode so the host never returns a video into the crop/translate flow (S0545).
         val intent = CameraCaptureActivity.createIntent(
             context = storageManager.contextForCaptureIntent(),
             outputUri = uri,
             outputPath = tempFile.absolutePath,
+            mode = CameraCaptureMode.PHOTO,
         )
         callback.launchCamera(intent)
     }

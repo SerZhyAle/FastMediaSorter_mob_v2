@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.common.widget
 import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
-import timber.log.Timber
 
 /**
  * One-time migration of the legacy per-screen collapsible-state namespaces into the consolidated store.
@@ -31,7 +30,6 @@ class CollapsibleSectionStateMigration(private val context: Context) {
                     putBoolean(MIGRATION_DONE_KEY, true)
                 }.apply()
             }
-            Timber.d("S0535: collapsible-state migration applied, folded ${migrated.size} legacy key(s)")
         }
     }
 

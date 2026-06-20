@@ -93,8 +93,14 @@ object SupportIntentFactory {
      * Build a crash-report email to the author with an optional log attachment.
      *
      * Uses ACTION_SEND, not ACTION_SENDTO: only ACTION_SEND carries [Intent.EXTRA_STREAM], so a
-     * mailto:-based intent would silently drop the attachment. The recipient travels in
-     * [Intent.EXTRA_EMAIL] instead of the mailto URI.
+     * plain mailto:-based intent would silently drop the attachment. The recipient travels in
+     * [Intent.EXTRA_EMAIL].
+     *
+     * A bare ACTION_SEND resolves to the generic share sheet (Drive, Bluetooth, messengers..), which
+     * is not what "email the author" means and on some OEM share panels just flickers shut. The
+     * mailto: [Intent.setSelector] restricts resolution to email apps while ACTION_SEND still carries
+     * the attachment. The selector means the result MUST be launched directly: [Intent.createChooser]
+     * strips the selector.
      */
     fun buildCrashReportEmail(
         subject: String,
@@ -111,6 +117,7 @@ object SupportIntentFactory {
         } else {
             type = "text/plain"
         }
+        selector = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
     }
 
     /**

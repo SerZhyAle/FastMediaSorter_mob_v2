@@ -591,8 +591,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount() +
             quickCaptureMenuManager.itemCount(
                 isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-                isQuickVideoEnabled && mediaCapabilities.supportsVideo,
-                isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+                (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
+                    (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
             ) + linkDownloadMenuManager.itemCount(isLinkDownloadEnabled)
 
     private fun getMiniGameMenuItemCount(): Int = miniGameMenuManager.itemCount(isEmbeddedGameEnabled)
@@ -643,8 +643,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
             isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-            isQuickVideoEnabled && mediaCapabilities.supportsVideo,
-            isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+            (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
+                (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
             2,
         )
         linkDownloadMenuManager.populate(popup, isLinkDownloadEnabled, 2 + quickAdded)
@@ -684,8 +684,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },
-            onVideo = { cameraCaptureManager.captureVideo() },
-            onPhoto = { cameraCaptureManager.capturePhoto() },
+            onCamera = {
+                cameraCaptureManager.captureCamera(
+                    photoAvailable = isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+                    videoAvailable = isQuickVideoEnabled && mediaCapabilities.supportsVideo,
+                )
+            },
         )
         linkDownloadManager = MainLinkDownloadManager(this)
         linkDownloadMenuManager = MainLinkDownloadMenuManager(

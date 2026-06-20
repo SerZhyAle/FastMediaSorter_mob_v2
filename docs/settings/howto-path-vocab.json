@@ -1,0 +1,17 @@
+{
+  "_comment": "S0558 - navigation vocabulary for the HOW_TO settings-path drift gate (scripts/quality/assert-howto-settings-paths.ps1). The settings manifest authoritatively knows setting/header labels and their destination tab, but NOT the localized display names of the tabs themselves, the Media sub-sections, or navigable screens that are not settings rows. Those live here. tabs: completeness is enforced against the manifest destination enum. mediaSubsections + allowedScreens: extend-as-needed allow-lists; a HOW_TO recipe referencing a sub-section/screen absent here fails the gate, forcing a conscious addition. Display names must match the real UI (EN/RU/UK).",
+  "tabs": [
+    { "destination": "GENERAL",    "en": "General",     "ru": "Общие",            "uk": "Загальні" },
+    { "destination": "MEDIA",      "en": "Media",       "ru": "Медиа",            "uk": "Медіа" },
+    { "destination": "OPERATIONS", "en": "Operations",  "ru": "Операции",         "uk": "Операції" },
+    { "destination": "PLAYBACK",   "en": "Playback",    "ru": "Воспроизведение",  "uk": "Відтворення" }
+  ],
+  "mediaSubsections": [
+    { "sectionId": "images",    "en": "Images",    "ru": "Изображения", "uk": "Зображення" },
+    { "sectionId": "documents", "en": "Documents", "ru": "Документы",   "uk": "Документи" },
+    { "sectionId": "other",     "en": "Other",     "ru": "Другое",      "uk": "Інше" }
+  ],
+  "allowedScreens": [
+    { "id": "controls-keybindings", "destination": "OPERATIONS", "en": "Controls & Keybindings", "ru": "Управление и клавиши", "uk": "Керування та клавіші" }
+  ]
+}

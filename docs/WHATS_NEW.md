@@ -1,3 +1,9 @@
+---
+layout: default
+title: "What's New in FastMediaSorter v2"
+permalink: /docs/WHATS_NEW.html
+---
+
 # What's New in FastMediaSorter v2
 
 **Current release: 2.60.6200.317** (June 2026)

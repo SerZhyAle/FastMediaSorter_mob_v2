@@ -120,7 +120,7 @@ The screen is divided into 9 areas for quick actions:
 
 **Setup Quick Sort folders:**
 
-1. Go to **Settings** → **Quick Sort** tab
+1. Go to **Settings** → **Operations** → **Quick Sort destinations**
 2. Tap **"Add to Quick Sort"**
 3. Select folders where you want to sort files (e.g., "Best Photos", "Vacation")
 4. **Each folder gets a number** (0-9) and color
@@ -157,13 +157,13 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Auto-Translation
 
-- Enable in **Settings** → **Documents** → **Enable Translation**
+- Enable in **Settings** → **Media** → **Translation, OCR and Google Lens**
 - Tap **Translate** button (A→文) when viewing Images/PDF/Text
 - **Lens-style mode:** Enable "Lens-style overlay" in settings for Google Lens-like in-place translations
 
 ### EPUB E-Books
 
-- Enable in **Settings** → **Documents** → **Support EPUB**
+- Enable in **Settings** → **Media** → **Text, PDF and EPUB viewing**
 - Add folder with .epub files → Files will show "E" badge
 - **Chapter navigation:** Swipe left/right or use prev/next buttons
 - **Table of Contents:** Tap 📋 button for chapter list

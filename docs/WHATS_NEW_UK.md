@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Що нового у FastMediaSorter v2"
+permalink: /docs/WHATS_NEW_UK.html
+---
+
 # Що нового у FastMediaSorter v2
 
 **Поточний реліз: 2.60.6200.317** (червень 2026)

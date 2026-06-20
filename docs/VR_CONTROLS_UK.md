@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Керування в іммерсивному VR"
+permalink: /docs/VR_CONTROLS_UK.html
+---
+
 # Керування в іммерсивному VR
 
 *Оновлено: 2026-04-24*

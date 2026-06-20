@@ -10,6 +10,7 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
@@ -103,6 +104,14 @@ class ReceiveShareActivity : AppCompatActivity() {
     private var cachedFiles: List<File> = emptyList()
     private var isFinishTriggered = false
     private var folderPickerActive = false
+
+    // This Activity runs under the translucent Theme.FastMediaSorter.Transparent. At runtime the
+    // AppCompat DayNight delegate flattens that window theme onto a non-Material base (AppCompat.Empty/
+    // DeviceDefault), dropping the Material3 + custom dialog attrs (e.g. ?attr/dialogActionButtonMinHeight
+    // bound only on Theme.FastMediaSorter.App). Inflating a MaterialButton against the raw Activity then
+    // throws "Failed to resolve attribute". Every dialog spawned here (and the Dialog chain it passes a
+    // context down to) must inflate against this guaranteed-Material3 context instead.
+    private val dialogContext: Context by lazy { ContextThemeWrapper(this, R.style.Theme_FastMediaSorter) }
 
     // S0170 BUG-1: the unknown-host auth offer must fire at most once per Activity instance.
     // Without this guard a host whose extraction keeps returning NoMediaFound (e.g. Facebook)
@@ -311,7 +320,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 message = getString(R.string.auth_offer_dialog_message, displayLabel)
                 positiveLabelRes = R.string.auth_offer_dialog_add
             }
-            MaterialAlertDialogBuilder(this@ReceiveShareActivity)
+            MaterialAlertDialogBuilder(dialogContext)
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(false)
@@ -592,7 +601,7 @@ class ReceiveShareActivity : AppCompatActivity() {
 
     private fun showDestinationDialog() {
         FileOperationDestinationDialog(
-            context = this,
+            context = dialogContext,
             operationType = FileOperationType.COPY,
             sourceFiles = cachedFiles,
             sourceFolderName = getString(R.string.receive_share_source_name),
@@ -705,7 +714,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     private fun showCctUnavailableDialog(onRetry: () -> Unit) {
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(dialogContext)
             .setTitle(R.string.s0200_cct_unavailable_title)
             .setMessage(R.string.s0200_cct_unavailable_message)
             .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->

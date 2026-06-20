@@ -4,7 +4,12 @@ description: Gesture screenshot capture (screenCapture source set) is mounted on
 type: project
 ---
 
-The edge-gesture screenshot capture feature (overlay + MediaProjection FGS) lives in the `src/screenCapture/` source set, which `app_v2/build.gradle.kts` mounts **only into the `noLegal` flavor**. The `ScreenGestureOverlayController` multibinding (`@IntoSet`) that activates it exists only in `src/noLegal/java/.../di/ScreenCaptureModule.kt`. So in standard/lite/photos/legacy/vr the injected `screenGestureControllers` set is empty and the whole gesture-settings group in `OperationsSettingsFragment` (rendered inside `if (screenGestureControllers.isNotEmpty())`) is hidden.
+The edge-gesture screenshot capture feature lives in the `src/screenCapture/` source set, which `app_v2/build.gradle.kts:583` mounts **only into the `noLegal` flavor**. The `ScreenGestureOverlayController` multibinding (`@IntoSet`) that activates it exists only in `src/noLegal/java/.../di/ScreenCaptureModule.kt`. So in standard/lite/photos/legacy/vr the injected `screenGestureControllers` set is empty and the whole gesture-settings group in `OperationsSettingsFragment` (rendered inside `if (screenGestureControllers.isNotEmpty())`) is hidden.
+
+**Two capture mechanisms, both noLegal-only - there is no "plain" screenshotter in standard:**
+- MediaProjection FGS path (`src/screenCapture/`): `ScreenCaptureService` (foregroundServiceType=mediaProjection), `ScreenCaptureConsentActivity` (consent dialog), `OverlayHostService` (SPECIAL_USE FGS hosting the SYSTEM_ALERT_WINDOW edge strip). This is the API 26..29 fallback (S0418).
+- AccessibilityService path ("через инвалида", `src/noLegal/`): `ScreenshotAccessibilityService` (TYPE_ACCESSIBILITY_OVERLAY, no SYSTEM_ALERT_WINDOW, silent screenshots) + `screenshot_accessibility_service_config.xml`. This is the dialog-free API 30+ primary path (S0405).
+- `src/standard/AndroidManifest.xml` and `src/photos/...` carry only a comment explaining why the feature is NOT declared (a bare grep for "MediaProjection" hits that comment, not a real declaration).
 
 **Why:** S0418/S0423 kept it noLegal-only - the SPECIAL_USE / SYSTEM_ALERT_WINDOW manifest declarations are a Play-review risk, so they're not mounted into store flavors.
 

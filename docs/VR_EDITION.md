@@ -1,3 +1,9 @@
+---
+layout: default
+title: "FastMediaSorter VR Edition"
+permalink: /docs/VR_EDITION.html
+---
+
 # FastMediaSorter VR Edition
 
 ## What is the VR Edition?

@@ -10,6 +10,8 @@
       3. annotation coverage/parity (check-settings-annotations.ps1)
       4. reference freshness (re-render to a temp dir and byte-diff the committed
          published SETTINGS_REFERENCE*.md files)
+      5. HOW_TO recipe freshness (S0558 - the "Settings -> .." recipes in the
+         HOW_TO guides resolve against the manifest and stay in EN/RU/UK parity)
     Exit 0 only when all stages pass.
 
     Run with -Gate from post-change.ps1; without -Gate it behaves identically
@@ -69,5 +71,9 @@ try {
     if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
 }
 
-Write-Host "settings-doc-sync: OK - catalog complete, manifest fresh, annotations covered, reference up to date." -ForegroundColor Green
+# Stage 5 - HOW_TO settings-path freshness (S0558) ------------------------------
+& (Join-Path $PSScriptRoot 'assert-howto-settings-paths.ps1') -RepoRoot $RepoRoot
+if ($LASTEXITCODE -ne 0) { Fail 'howto-paths' 'a HOW_TO "Settings -> .." recipe drifted from the manifest - see the lines above' }
+
+Write-Host "settings-doc-sync: OK - catalog complete, manifest fresh, annotations covered, reference up to date, HOW_TO recipes in sync." -ForegroundColor Green
 exit 0

@@ -1,3 +1,9 @@
+---
+layout: default
+title: "FastMediaSorter VR-редакция"
+permalink: /docs/VR_EDITION_RU.html
+---
+
 # FastMediaSorter VR-редакция
 
 ## Что такое VR-редакция?

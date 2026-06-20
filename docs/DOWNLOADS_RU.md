@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Загрузки APK FastMediaSorter"
+permalink: /docs/DOWNLOADS_RU.html
+---
+
 # Загрузки APK FastMediaSorter
 
 Скомпилированные APK публикуются как **ассеты GitHub Release** - в репозиторий они не коммитятся.

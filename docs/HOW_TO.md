@@ -23,12 +23,12 @@ Some features are only available in specific flavors. This guide follows the cur
 | Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
 |---------|----------|------|--------|--------|--------------|
 | Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Image editing | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** build that matches your hardware and distribution path.
 
@@ -117,12 +117,12 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Run a slideshow with background music for a room display
 
-**Available in:** Standard
+**Available in:** Standard, Legacy, Photos, XR / noLegal
 
 **Quick Path**
 
 1. Add one image source and one music source.
-2. In **Settings → Media → Audio playback, covers and visuals**, enable background music for slideshows.
+2. In **Settings → Media → Images**, enable **Play music during slideshow**.
 3. Pick the music resource.
 4. Open a photo folder and press **Play**.
 
@@ -250,7 +250,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Translate signs, scans and screenshots with OCR
 
-**Available in:** Standard, Lite, Photos, Legacy
+**Available in:** Standard, Legacy, XR / noLegal
 
 **Quick Path**
 
@@ -388,7 +388,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Both devices on same Wi-Fi network
 - Username and password for the share
 
-**Available in:** Standard, Lite, Photos, Legacy flavors
+**Available in:** Standard, Photos, Legacy flavors
 
 **Steps:**
 
@@ -426,7 +426,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Default SMB port: 445
 
 **Troubleshooting:**
-→ See [TROUBLESHOOTING.md#smb-connection](TROUBLESHOOTING.md)
+→ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ---
 
@@ -461,7 +461,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - **Custom port:** Change port number if server uses non-default
 
 **Troubleshooting:**
-→ See [TROUBLESHOOTING.md#sftp-timeout](TROUBLESHOOTING.md)
+→ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ---
 
@@ -618,6 +618,7 @@ Then use **command panel buttons** instead.
 5. Choose a stereo mode:
    - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS automatically.
    - **Side-by-Side (SBS)** - manually enable side-by-side stereo rendering regardless of detection.
+   - **Over-Under (OU)** - manually enable over-under stereo rendering regardless of detection.
    - **Mono (Disabled)** - disable stereo (standard viewing).
 6. Tap **Apply** - the player switches to the selected mode instantly.
 7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
@@ -626,7 +627,6 @@ Then use **command panel buttons** instead.
 
 - Auto-detect works reliably for standard SBS files (aspect ratio ≈ 32:9 or wider).
 - If the video looks stretched or doubled, switch to **Side-by-Side (SBS)** manually.
-- Over-Under (OU) format support is planned for a future release.
 
 ---
 
@@ -690,12 +690,12 @@ Then use **command panel buttons** instead.
 **Requirements:**
 
 - At least one folder/resource with audio files (MP3, FLAC, etc.)
-- **Available in:** Standard flavor only
+- **Available in:** Standard, Legacy, Photos, XR / noLegal
 
 **Setup:**
 
-1. **Settings** → **Media** tab → **Audio playback, covers and visuals**
-2. Enable **"Enable Background Music for Slideshows"**
+1. **Settings** → **Media** tab → **Images**
+2. Enable **"Play music during slideshow"**
 3. Tap **"Select Music Source"** button
 4. Choose a resource that contains your music files
 5. Tap **"Save"** or close settings
@@ -819,8 +819,8 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **1. Enable Support:**
 
-1. **Settings** → **Media** tab → **Text, PDF and EPUB viewing**
-2. Enable **"Support Text Files"** and **"Support PDF Files"**
+1. **Settings** → **Media** tab → **Documents**
+2. Enable **"Support text files (.txt, .md, .log, .json, .xml)"** and **"Support PDF documents"**
 3. **Rescan** your folders to find the new files.
 
 **2. Filter by Media Type:**
@@ -861,7 +861,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Requirements:**
 
-- **Settings** → **Media** tab → **Text, PDF and EPUB viewing** → **Support EPUB** must be enabled (on by default)
+- **Settings** → **Media** tab → **Documents** → **Support EPUB e-books** must be enabled (on by default)
 - Supported format: `.epub` (DRM-free)
 
 **Features:**
@@ -968,7 +968,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 **Setup:**
 
-1. **Settings** → **Media** tab → **Translation, OCR and Google Lens**
+1. **Settings** → **Media** tab → **Other**
 2. Enable **"Enable Translation"**
 3. Select **Source Language**:
    - **"Auto" (Recommended):** Automatically selects the best engine (Tesseract for Cyrillic, ML Kit for others).
@@ -1047,13 +1047,13 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 4. After adding the resource, navigate into it with D-pad + OK to browse files.
 5. Open any video, image, or audio file - the player works fully via remote.
 6. To start a slideshow, open an image folder and navigate to the **Slideshow** button in the command bar.
-7. To add background music to the slideshow, go to **Settings → Media → Audio playback, covers and visuals** and select your music resource.
+7. To add background music to the slideshow, go to **Settings → Media → Images**, enable **Play music during slideshow**, and select your music resource.
 
 **Tips:**
 
 - Hold D-pad Up/Down to accelerate scrolling through long file lists.
 - Press **F1** on a Bluetooth keyboard to open a surface-specific shortcut reference on any screen.
-- TV remote color keys can be reassigned in **Settings → Playback → Controls & Keybindings**.
+- TV remote color keys can be reassigned in **Settings → Operations → Controls & Keybindings**.
 
 ---
 

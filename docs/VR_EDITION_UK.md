@@ -1,3 +1,9 @@
+---
+layout: default
+title: "FastMediaSorter VR-редакція"
+permalink: /docs/VR_EDITION_UK.html
+---
+
 # FastMediaSorter VR-редакція
 
 ## Що таке VR-редакція?

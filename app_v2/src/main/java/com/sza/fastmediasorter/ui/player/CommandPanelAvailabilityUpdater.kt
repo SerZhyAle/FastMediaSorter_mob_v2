@@ -281,7 +281,8 @@ internal class CommandPanelAvailabilityUpdater(
             safeViews.btnImageTextSettingsCmd.isVisible = false
             safeViews.btnOcrImageCmd.isVisible = false
         }
-        safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage || isOffice
+        // S0459: Print is now a «Send to..» receiver (settings-gated), not a panel button - kept hidden here.
+        safeViews.btnPrintCmd.isVisible = false
         val isStaticBitmap = isImage &&
             !currentFile.name.lowercase().endsWith(".gif") &&
             !currentFile.name.lowercase().endsWith(".apng")

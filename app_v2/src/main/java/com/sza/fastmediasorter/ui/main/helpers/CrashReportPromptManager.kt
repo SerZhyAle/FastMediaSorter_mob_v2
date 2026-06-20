@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -42,24 +41,30 @@ class CrashReportPromptManager(private val activity: Activity) {
     private fun sendReport(crashFile: File) {
         val subject = activity.getString(R.string.crash_report_email_subject)
         CoroutineScope(Dispatchers.IO).launch {
-            val crashText = try {
-                crashFile.readText()
-            } catch (e: Exception) {
-                Timber.w(e, "CrashReportPromptManager: could not read crash file")
-                ""
-            }
+            val zipUri = LogExportHelper.buildLogsZipUri(activity)
             val body = buildString {
                 append(activity.getString(R.string.crash_report_email_body_intro))
-                if (crashText.isNotBlank()) {
-                    append("\n\n")
-                    append(crashText)
+                // The crash text already travels inside the attached log ZIP; only inline it when
+                // packaging produced no attachment, so the email body stays small.
+                if (zipUri == null) {
+                    val crashText = try {
+                        crashFile.readText()
+                    } catch (e: Exception) {
+                        Timber.w(e, "CrashReportPromptManager: could not read crash file")
+                        ""
+                    }
+                    if (crashText.isNotBlank()) {
+                        append("\n\n")
+                        append(crashText)
+                    }
                 }
             }
-            val zipUri = LogExportHelper.buildLogsZipUri(activity)
             withContext(Dispatchers.Main) {
                 val intent = SupportIntentFactory.buildCrashReportEmail(subject, body, zipUri)
+                // The intent carries a mailto: selector; launch it directly - createChooser would
+                // strip the selector and fall back to the generic share sheet.
                 try {
-                    activity.startActivity(Intent.createChooser(intent, subject))
+                    activity.startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
                     Timber.w(e, "CrashReportPromptManager: no email app to send crash report")
                     Toast.makeText(activity, R.string.export_logs_no_share_target, Toast.LENGTH_SHORT).show()

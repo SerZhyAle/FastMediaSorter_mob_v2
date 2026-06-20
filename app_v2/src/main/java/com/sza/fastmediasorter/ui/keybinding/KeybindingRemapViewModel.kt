@@ -93,7 +93,6 @@ class KeybindingRemapViewModel @Inject constructor(
         if (nowExpanded) current.add(group) else current.remove(group)
         _state.update { it.copy(expandedGroups = current) }
         sectionStore.setExpanded(keyFor(group), nowExpanded)
-        Timber.d("S0535: keybinding group '${group.name}' expansion persisted=$nowExpanded")
     }
 
     fun onRemapRequested(commandId: String, device: String, slot: Int) {

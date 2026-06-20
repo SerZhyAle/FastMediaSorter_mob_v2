@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ContextThemeWrapper
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.sza.fastmediasorter.R
@@ -30,7 +31,13 @@ class LinkAutoDownloadProgressDialog(
 
     fun show() {
         if (dialog != null) return
-        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_link_autodownload_progress, null)
+        // The host (ReceiveShareActivity) runs under the translucent Theme.FastMediaSorter.Transparent,
+        // which DynamicColors rebuilds layer-by-layer at runtime - dropping ?attr/dialogActionButtonMinHeight
+        // that the cancel MaterialButton (Widget.FastMediaSorter.Button.DialogCancel) resolves. Wrap with
+        // Theme.FastMediaSorter.App, the theme that DECLARES that attr directly (the bare Theme.FastMediaSorter
+        // alias is parent-only, so applying it would not reliably re-inject the attr), so inflation resolves it.
+        val themedContext = ContextThemeWrapper(activity, R.style.Theme_FastMediaSorter_App)
+        val view = LayoutInflater.from(themedContext).inflate(R.layout.dialog_link_autodownload_progress, null)
         titleView = view.findViewById(R.id.titleText)
         bytesView = view.findViewById(R.id.bytesText)
         progressBar = view.findViewById(R.id.progressBar)
@@ -40,7 +47,7 @@ class LinkAutoDownloadProgressDialog(
             onCancel()
             dismiss()
         }
-        dialog = AlertDialog.Builder(activity)
+        dialog = AlertDialog.Builder(themedContext)
             .setView(view)
             .setCancelable(true)
             .setOnCancelListener {

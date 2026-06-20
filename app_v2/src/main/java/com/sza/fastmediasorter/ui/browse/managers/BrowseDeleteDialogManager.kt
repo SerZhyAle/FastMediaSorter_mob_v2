@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 internal class BrowseDeleteDialogManager(
@@ -63,7 +62,6 @@ internal class BrowseDeleteDialogManager(
             else -> activity.getString(R.string.confirm_delete_message, fileCount)
         }
 
-        Timber.d("S0538: showing unified destructive delete confirmation (red confirm + outlined cancel), files=$fileCount")
         MaterialAlertDialogBuilder(
             activity,
             R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive

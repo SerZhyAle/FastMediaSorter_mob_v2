@@ -676,6 +676,43 @@ h1 img {
     margin-bottom: 0.55rem;
 }
 
+/* What-it-replaces section */
+.replaces-grid {
+    margin-bottom: 1.5rem;
+}
+
+.repl-list {
+    margin: 0.2rem 0 0 0;
+}
+
+.repl-list strong {
+    color: var(--text-highlight);
+    font-weight: 600;
+}
+
+.repl-ref {
+    color: var(--muted);
+    font-size: 0.85em;
+}
+
+.repl-note {
+    border: 1px solid rgba(227, 179, 65, 0.32);
+    border-radius: 999px;
+    color: var(--gold);
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 0.05rem 0.45rem;
+    white-space: nowrap;
+}
+
+.replaces-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    max-width: 760px;
+    margin: 0 0 4rem 0;
+}
+
 .detail-actions {
     display: flex;
     flex-wrap: wrap;

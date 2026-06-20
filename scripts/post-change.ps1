@@ -156,6 +156,11 @@ $runsSettingsDocGate = (
     $normFile -match 'docs/settings/' -or
     $normFile -match 'docs/SETTINGS_REFERENCE'
 )
+# S0558 HOW_TO settings-path drift gate. Fires when a HOW_TO guide is edited -
+# validates the embedded "Settings -> .." recipes against the manifest. Standalone
+# (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
+# settings-doc composite so a manifest/vocab change re-checks the guides.
+$runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -272,6 +277,15 @@ if ($runsSettingsDocGate) {
 }
 else {
     Skip-Step "settings-doc-sync-gate" "not applicable - touched file is not a settings surface or settings doc"
+}
+
+if ($runsHowToPathGate) {
+    Invoke-Step "howto-settings-paths-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "howto-settings-paths-gate" "not applicable - touched file is not a HOW_TO guide"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

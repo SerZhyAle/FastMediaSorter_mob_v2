@@ -2141,7 +2141,7 @@
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Зйомка камерою</string>
-    <string name="tooltip_camera_capture_message">Кнопка камери у браузері файлів дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
+    <string name="tooltip_camera_capture_message">Кнопка камери у браузері файлів відкриває вбудовану камеру для зйомки фото або запису відео, не виходячи з застосунку, зі спалахом, зумом, перемиканням камери та фокусом по тапу. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
     <string name="tooltip_saved_authorizations_title">Збережені авторизації</string>
     <string name="tooltip_saved_authorizations_message">Екран веб-входу всередині застосунку зберігає cookie та логіни, які використовуються під час автозавантаження файлів із сайтів, що вимагають входу. Відкрийте цей екран, щоб переглянути збережені авторизації та видалити непотрібні.</string>
 
@@ -2620,8 +2620,6 @@
     <string name="quick_voice_recording_dialog_title">Запис..</string>
     <string name="quick_voice_recording_stop">Зупинити і зберегти</string>
     <string name="quick_voice_menu_label">Запис із диктофона</string>
-    <string name="quick_video_menu_label">Запис відео</string>
-    <string name="quick_photo_menu_label">Зробити фото</string>
     <string name="quick_recorder_saved_to">Запис збережено в %1$s</string>
     <string name="audio_background_handoff_failed">Не вдалося продовжити відтворення у фоні</string>
     <string name="download_by_link_menu_label">Завантажити за посиланням</string>
@@ -2629,4 +2627,15 @@
     <string name="download_by_link_dialog_hint">Вставте або введіть посилання</string>
     <string name="collapsible_section_state_expanded">Розгорнуто</string>
     <string name="collapsible_section_state_collapsed">Згорнуто</string>
+    <string name="camera_control_flash">Спалах</string>
+    <string name="camera_control_switch_lens">Змінити камеру</string>
+    <string name="camera_control_zoom">Масштаб</string>
+    <string name="camera_control_more">Ще</string>
+    <string name="camera_capture_microphone">Мікрофон</string>
+    <string name="camera_capture_record_start">Запис</string>
+    <string name="camera_capture_record_stop">Зупинити</string>
+    <string name="camera_capture_microphone_muted">Запис без звуку</string>
+    <string name="camera_mode_photo">Фото</string>
+    <string name="camera_mode_video">Відео</string>
+    <string name="quick_camera_menu_label">Камера</string>
 </resources>

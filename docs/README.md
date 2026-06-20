@@ -1,9 +1,18 @@
+---
+layout: default
+title: "FastMediaSorter v2"
+permalink: /docs/README.html
+---
+
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
 **📖 Other Languages:** [🇷🇺 Русский](README_RU.md) | [🇺🇦 Українська](README_UK.md)
+
+**📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
 ## About the Project
 
@@ -280,7 +289,7 @@ Wear OS docs:
 - [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
 - [Wear OS Setup](WEAR_OS_SETUP.md)
 - [Wear OS Status](WEAR_OS_STATUS.md)
-- [Wear OS section in Features](FEATURES.md#20-wear-os-companion-app)
+- [Wear OS section in Features](FEATURES.md#16-settings--navigation)
 
 ## Build Instructions
 

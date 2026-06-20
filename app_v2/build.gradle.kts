@@ -1181,6 +1181,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.5.3")
     implementation("androidx.camera:camera-lifecycle:1.5.3")
     implementation("androidx.camera:camera-view:1.5.3")
+    // S0545: in-app video recording (unified capture host); replaces external ACTION_VIDEO_CAPTURE.
+    implementation("androidx.camera:camera-video:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
     // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)

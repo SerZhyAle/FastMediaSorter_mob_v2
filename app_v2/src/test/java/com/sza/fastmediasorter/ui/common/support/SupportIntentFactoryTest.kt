@@ -148,6 +148,10 @@ class SupportIntentFactoryTest {
             "Attachment intent must grant read permission",
             (intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0,
         )
+        val selector = intent.selector
+        assertNotNull("Crash email must carry a mailto: selector so only email apps resolve", selector)
+        assertEquals(Intent.ACTION_SENDTO, selector!!.action)
+        assertEquals("mailto", selector.data?.scheme)
     }
 
     @Test
@@ -160,5 +164,10 @@ class SupportIntentFactoryTest {
         assertEquals(Intent.ACTION_SEND, intent.action)
         assertEquals("text/plain", intent.type)
         assertFalse("No attachment must mean no stream", intent.hasExtra(Intent.EXTRA_STREAM))
+        assertEquals(
+            "Crash email must still target email apps via the mailto: selector",
+            Intent.ACTION_SENDTO,
+            intent.selector?.action,
+        )
     }
 }

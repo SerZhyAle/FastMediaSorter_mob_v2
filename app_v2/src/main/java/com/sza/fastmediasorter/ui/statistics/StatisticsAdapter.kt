@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.databinding.ItemStatsPrivacyNoteBinding
 import com.sza.fastmediasorter.databinding.ViewStatsEmptyBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
-import timber.log.Timber
 
 /**
  * Multi-view-type list renderer for the statistics dashboard (S0473 Phase 04).
@@ -95,7 +94,6 @@ class StatisticsAdapter(
         private val onToggleSection: (com.sza.fastmediasorter.domain.stats.StatsCategory) -> Unit,
     ) : RecyclerView.ViewHolder(header) {
         fun bind(item: StatisticsListItem.SectionHeader) {
-            Timber.d("S0535: statistics section header bound via unified widget")
             header.setTitle(item.titleRes)
             header.setExpanded(item.expanded, notify = false)
             // State is owned by the ViewModel list; the toggle rebuilds it and re-binds.

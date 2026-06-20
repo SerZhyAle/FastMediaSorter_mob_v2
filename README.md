@@ -14,6 +14,49 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
+## What FastMediaSorter Replaces 🧩
+
+FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. One app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+
+**Viewing & Playback**
+
+- **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
+- **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
+- **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
+- **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
+- **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.
+- **TV media center** (Kodi, Nova Video Player) - D-pad, keyboard, mouse, gamepad, and TV-remote-friendly browsing and playback.
+- **VR media player** (Pigasus, Skybox VR) - stereo SBS/OU, VR180, 360°, virtual cinema screen. *(VR edition)*
+
+**Capture & Create**
+
+- **Camera** (stock camera) - photo and video straight to a chosen local, network, or cloud folder.
+- **Voice recorder** - voice notes plus a quick-record widget.
+- **Drawing editor** - canvas, brushes, shapes, text, custom brush color and size.
+- **Document / text scanner** (Google Lens, CamScanner) - on-device OCR from the camera with area crop.
+
+**File Management**
+
+- **File manager** (Total Commander, ES File Explorer, Files by Google) - local, network, and cloud files in one place.
+- **FTP/SFTP/SMB client** (AndFTP, Solid Explorer) - network sources with SSH keys and host-key pinning.
+- **Cloud clients** (Google Drive, Dropbox, OneDrive) - cloud drives as media sources.
+- **Duplicate finder** (Duplicate Files Fixer) - 3-phase Size -> Hash -> SHA-256 engine.
+- **Recycle bin** (Dumpster) - soft delete with one-tap restore.
+- **Archive extractor** (ZArchiver) - ZIP extraction, including password-protected. *(basic)*
+- **Download manager** (1DM, ADM) - paste a link and save directly to a chosen folder.
+- **Task scheduler** - scheduled file operations.
+
+**Text & Utilities**
+
+- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
+- **Translator** (Google Translate offline) - fully offline translation.
+- **Calculator** - built-in evaluation of expressions from selected text. *(basic)*
+- **Cast to TV** (Google Home) - Chromecast for both video and audio.
+- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
+- **Settings backup tool** - export and restore app setup, sources, favorites, schedules, passwords, and sign-ins. *(app setup only)*
+
+> *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
+
 ## What's New in v2.60.6200.317 (June 2026)
 
 **New:**
@@ -45,6 +88,7 @@ Features include:
 
 ## Table of Contents
 
+- [What It Replaces](#what-fastmediasorter-replaces-)
 - [Download](#download-)
 - [Product Flavors](#product-flavors-)
 - [Key Features](#key-features)

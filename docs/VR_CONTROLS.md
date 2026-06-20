@@ -1,3 +1,9 @@
+---
+layout: default
+title: "VR Immersive Controls"
+permalink: /docs/VR_CONTROLS.html
+---
+
 # VR Immersive Controls
 
 *Last updated: 2026-04-24*
