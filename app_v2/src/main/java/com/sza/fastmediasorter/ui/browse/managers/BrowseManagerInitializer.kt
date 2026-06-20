@@ -48,7 +48,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -132,6 +132,8 @@ class BrowseManagerInitializer(
     lateinit var folderPickerHandler: BrowseFolderPickerHandler
     lateinit var observerManager: BrowseObserverManager
     lateinit var listSubmitManager: BrowseListSubmitManager
+    // S0512: mouse band / touch drag multi-select over the media list.
+    lateinit var dragSelectManager: BrowseDragSelectManager
     // S0096: black screen overlay for audio libraries
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
     // S0374: adaptive priority+overflow controller for the top command bar.
@@ -139,36 +141,17 @@ class BrowseManagerInitializer(
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
-        dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
-            override fun onFilterApplied(filter: FileFilter?) {
-                viewModel.setFilter(filter)
-                if (filter != null && !filter.isEmpty() && (
-                    !filter.nameContains.isNullOrBlank() || filter.minDate != null || filter.maxDate != null ||
-                    filter.minSizeMb != null || filter.maxSizeMb != null ||
-                    filter.mediaTypes != null && filter.mediaTypes != viewModel.state.value.resource?.supportedMediaTypes))
-                    Toast.makeText(activity, R.string.toast_filter_active, Toast.LENGTH_SHORT).show()
-            }
-            override fun onSortModeSelected(sortMode: SortMode) = viewModel.setSortMode(sortMode)
-            override fun onRandomReshuffle() = viewModel.reshuffleRandom()
-            override fun onRenameConfirmed(oldName: String, newName: String) {}
-            override fun onRenameMultipleConfirmed(files: List<Pair<String, String>>) {}
-            override fun onDirectoryRenameConfirmed(oldPath: String, newName: String) = viewModel.renameDirectory(oldPath, newName)
-            override fun onCopyDestinationSelected(destinationPath: String) {}
-            override fun onMoveDestinationSelected(destinationPath: String) {}
-            override fun onDeleteConfirmed(overridePaths: Set<String>?) = viewModel.deleteSelectedFiles(overridePaths)
-            override fun onCloudSignInRequested(provider: CloudProvider) = when (provider) {
-                CloudProvider.GOOGLE_DRIVE -> cloudAuthManager.launchGoogleSignIn()
-                CloudProvider.DROPBOX -> cloudAuthManager.launchDropboxSignIn()
-                CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
-            }
-            override fun saveUndoOperation(undoOp: UndoOperation) = viewModel.saveUndoOperation(undoOp)
-            override fun updateFile(oldPath: String, newFile: MediaFile) = viewModel.updateFile(oldPath, newFile)
-            override fun setIgnoringFileChanges(ignoring: Boolean) = viewModel.setIgnoringFileChanges(ignoring)
-            override fun createMediaFileFromFile(file: File): MediaFile = viewModel.createMediaFileFromFile(file)
-            override fun getFileOperationUseCase(): FileOperationUseCase = fileOperationUseCase
-            override fun getResourceName(): String? = viewModel.state.value.resource?.name
-            override fun getLifecycleOwner(): androidx.lifecycle.LifecycleOwner = activity
-        }, mediaCapabilities)
+        dialogHelper = BrowseDialogHelper(
+            activity = activity,
+            callbacks = BrowseDialogCallbacksImpl(
+                viewModel = viewModel,
+                context = activity,
+                lifecycleOwner = activity,
+                onLaunchGoogleSignIn = { cloudAuthManager.launchGoogleSignIn() },
+                getCloudAuthManager = { cloudAuthManager }
+            ),
+            mediaCapabilities = mediaCapabilities
+        )
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
@@ -306,7 +289,7 @@ class BrowseManagerInitializer(
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
                 override fun showCreateDrawingDialog() = resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
-                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
+                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.BROWSE)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles
@@ -450,6 +433,12 @@ class BrowseManagerInitializer(
         )
 
         setupDragToReorder()
+
+        dragSelectManager = BrowseDragSelectManager(
+            recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter,
+            viewModel = viewModel,
+        ).also { it.setup() }
 
         lifecycleHelper = BrowseLifecycleHelper(activity = activity, recyclerView = binding.rvMediaFiles,
             adapter = mediaFileAdapter, listSubmitManager = listSubmitManager)

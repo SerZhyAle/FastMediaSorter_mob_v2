@@ -1,20 +1,16 @@
 ---
-name: project-functionality-log
-description: dev/FUNCTIONALITY.log - developer journal of user-visible functionality lifecycle (ADD/CHANGE/DELETE/FIX), separate from dev/CHANGELOG.md and docs/FEATURES.md
+name: capability-inventory-all-features
+description: dev/FUNCTIONALITY.log RETIRED (S0489); capability history is now docs/ALL_FEATURES.jsonl + git/release diffs, read-only
 metadata:
   type: project
 ---
 
-`dev/FUNCTIONALITY.log` is a plain-text developer journal of user-visible functionality lifecycle, introduced 2026-05-14. It sits between the two existing journals:
+The free-text functionality log was retired; capability history now lives in a structured inventory.
 
-- `dev/CHANGELOG.md` - every code/config touch (low-level, written via `scripts/add_to_dev_log.ps1`).
-- `docs/FEATURES.md` (+ `_RU`/`_UK`) - public end-user catalogue of significant features only.
-- `dev/FUNCTIONALITY.log` - internal history of *which* user-visible capability was created/changed/deleted/fixed, when, and under which `Sxxxx` ticket.
+**Why:** S0489 migrated user-visible-capability tracking from the plain-text `dev/FUNCTIONALITY.log` to a schema-validated JSONL inventory (`docs/ALL_FEATURES.jsonl`, EN-only, one JSON object per line, upsert-by-id). The old log is no longer written and `scripts/add_to_functionality_log.ps1` hard-errors. Chronology now comes from git history + release diffs, not from a single time-ordered file.
 
-**Why:** the author wants a grep-friendly developer audit trail of feature lifecycle that survives even when `docs/FEATURES.md` updates are skipped (refactors, polish, internal capabilities, `/quick` tweaks). `CHANGELOG.md` is too noisy for this purpose; `FEATURES.md` is too curated.
-
-**How to apply:**
-- When researching the history of a user-visible capability, grep `dev/FUNCTIONALITY.log` first - it is faster than scrolling `dev/CHANGELOG.md` and more precise than `docs/FEATURES.md`.
-- Line format is fixed: `[YYYY-MM-DD HH:MM] [Sxxxx|------] [OP    ] <english description>`. `OP` is padded to 6 chars. Use this to filter by ticket id or op type when assembling research evidence.
-- Do NOT write to this file - the researcher is read-only. If a spec audit notices a missing entry, flag it in the research report under "Open Questions" rather than calling the CLI yourself.
-- Cross-reference with `dev/CHANGELOG.md` when a single ticket touched both visible behaviour and internal refactors; both journals can be cited side by side in the report.
+**How to apply (researcher is read-only):**
+- When researching whether/when a user-visible capability exists, grep `docs/ALL_FEATURES.jsonl` first - each line is `{id, area, name, description, flavors, spec, status}`; filter by `spec` (`Sxxxx`), `area`, or `status` (`active`/`removed`). noLegal-only capabilities are in gitignored `docs/ALL_FEATURES_noLegal.jsonl`.
+- For *when* a capability landed (the inventory has no timestamps), use `git log` over `docs/ALL_FEATURES.jsonl` / the touched source, or the per-release FEATURES diff.
+- Do NOT write the inventory or call any `*functionality_log*` script - read-only role. If an audit notices a missing/incorrect record, flag it under "Open Questions" / as a `/spec-draft` candidate for the caller, never mutate.
+- Layer roles: `dev/CHANGELOG.md` = low-level code-touch journal; `docs/FEATURES*.md` = curated end-user showcase (edited only by `/skill-release`); `docs/ALL_FEATURES.jsonl` = the developer capability inventory.

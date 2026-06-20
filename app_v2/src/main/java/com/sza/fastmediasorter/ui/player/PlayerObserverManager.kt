@@ -106,8 +106,8 @@ internal class PlayerObserverManager(
     fun updateUI(state: PlayerViewModel.PlayerState) {
         // S0358: apply the saved/override per-resource playback order as a side effect (this also
         // flips the order button to Shuffle for "Play random"). It must NOT gate the rest of this
-        // pass: the previous early `return` skipped uiStateCoordinator.updateUI() — and thus the
-        // media-display call — on the first loaded-file emission, and the assumed re-entry never
+        // pass: the previous early `return` skipped uiStateCoordinator.updateUI() - and thus the
+        // media-display call - on the first loaded-file emission, and the assumed re-entry never
         // arrived because setPlaybackOrderMode() only mutates playbackOrderMode, which is absent
         // from the state collector's distinctUntilChangedBy key, so the follow-up emission was
         // deduped away and the track was never handed to the player (audio played silently).

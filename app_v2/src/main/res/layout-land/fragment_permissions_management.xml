@@ -31,8 +31,9 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_grant_all"
+        style="@style/Widget.FastMediaSorter.Button.Filled"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -43,9 +44,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_open_system_settings"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
+        style="@style/Widget.FastMediaSorter.Button.Text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
@@ -70,8 +71,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_continue_to_app"
+        style="@style/Widget.FastMediaSorter.Button.Filled"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/perm_continue_to_app"

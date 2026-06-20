@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -129,7 +130,7 @@ class PlayerShareManager(
      * decision. Strings stay factual and make no fidelity promises (COMMUNICATION_POLICY §6).
      */
     fun showOfficeFallbackDialog(mediaFile: MediaFile) {
-        androidx.appcompat.app.AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.office_viewer_fallback_title)
             .setMessage(R.string.office_viewer_fallback_message)
             .setPositiveButton(R.string.office_viewer_fallback_open_external) { _, _ ->

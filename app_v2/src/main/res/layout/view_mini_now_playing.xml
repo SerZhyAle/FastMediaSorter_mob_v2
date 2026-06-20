@@ -8,6 +8,7 @@
     android:elevation="4dp"
     android:clickable="true"
     android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
     android:importantForAccessibility="yes">
 
     <!-- Thin top divider -->

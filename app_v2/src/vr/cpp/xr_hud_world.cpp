@@ -71,7 +71,7 @@ void matrix_from_pose(const XrVector3f& t, const XrQuaternionf& q, const XrVecto
     m[15] = 1.0f;
 }
 
-// S0290 (owner round 3 — HUD invisibility fix 2026-05-22 16:35): the previous version of
+// S0290 (owner round 3 - HUD invisibility fix 2026-05-22 16:35): the previous version of
 // this helper computed B*A instead of A*B on column-major data, because it used row-major
 // indexing `temp[i*4+j] = sum a[i*4+k] * b[k*4+j]`. For column-major matrices (which matrix_from_pose
 // emits, and which OpenGL expects via glUniformMatrix4fv transpose=GL_FALSE), the correct

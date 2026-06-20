@@ -15,7 +15,7 @@ import android.content.pm.PackageManager
  * - This probe only reads [PackageManager.hasSystemFeature]; it does NOT touch any Oculus /
  *   Meta SDK class. There is no `BuildConfig` flavor guard and no compile-time dependency on
  *   any flavor-specific code. Strict Rule 15 (no `BuildConfig.IS_*` / `SUPPORT_*` gates in
- *   `src/main/`) is satisfied — system-feature checks are pure runtime.
+ *   `src/main/`) is satisfied - system-feature checks are pure runtime.
  *
  * The feature list mirrors `XrEnvironmentDetectorImpl`: both modern Android XR features and
  * the legacy Oculus-prefixed features that retail Quest 3 firmware still exposes to regular
@@ -40,7 +40,7 @@ object XrDeviceProbe {
         // Generic Android VR mode.
         PackageManager.FEATURE_VR_MODE_HIGH_PERFORMANCE,
         "android.hardware.vr.headtracking",
-        // Meta Quest (Horizon OS) — features exposed to ordinary Android apps on retail Quest 3.
+        // Meta Quest (Horizon OS) - features exposed to ordinary Android apps on retail Quest 3.
         "oculus.hardware.standalone_vr",
         "oculus.software.spatial",
         "oculus.software.xrsp",

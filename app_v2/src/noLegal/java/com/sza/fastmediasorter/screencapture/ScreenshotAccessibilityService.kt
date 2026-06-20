@@ -54,6 +54,12 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     @Inject
     lateinit var imageClipboardWriter: Lazy<ImageClipboardWriter>
 
+    @Inject
+    lateinit var networkStateMonitor: Lazy<com.sza.fastmediasorter.core.network.NetworkStateMonitor>
+
+    @Inject
+    lateinit var saveFallbackNotifier: Lazy<com.sza.fastmediasorter.core.save.SaveFallbackNotifier>
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var overlayManager: ScreenGestureOverlayManager? = null
@@ -146,7 +152,6 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         captureInProgress = true
         serviceScope.launch {
             val action = actionDispatcher.get().actionFor(direction)
-            Timber.d("S0425: a11y capture direction=%s action=%s", direction, action)
             if (action == ScreenshotGestureAction.DO_NOT_USE) {
                 // Gesture disabled for this direction: take no screenshot at all.
                 captureInProgress = false
@@ -189,13 +194,16 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             val resources = resourceRepository.get().getAllResourcesSync()
             val target = ScreenshotDestinationPolicy().resolve(
                 selectedResourceId = settings.screenshotDestinationResourceId,
-                resources = resources
+                resources = resources,
+                isResourceReachable = { networkStateMonitor.get().canReach(it.type) }
             )
+            val selectedResourceName = resources
+                .firstOrNull { it.id.toString() == settings.screenshotDestinationResourceId }
+                ?.name.orEmpty()
 
             // Copy to clipboard from the live bitmap before the save use case recycles it;
             // independent of the post-capture action and the save destination. Mirrors the
             // MediaProjection path so the option also works on the API 30+ accessibility flow.
-            Timber.d("S0468: a11y clipboard gate flag=%s", settings.copyScreenshotToClipboard)
             if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
                 toast(getString(R.string.screen_capture_copied_to_clipboard))
             }
@@ -203,6 +211,14 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {
                     toast(getString(R.string.screen_capture_saved_to, result.destinationLabel, result.fileName))
+                    result.fallbackReason?.let { reason ->
+                        saveFallbackNotifier.get().notify(
+                            reason = reason,
+                            folderLabel = result.destinationLabel,
+                            resourceName = selectedResourceName,
+                            background = true
+                        )
+                    }
                     actionDispatcher.get().runPostSave(this, pendingAction, result.savedUri)
                 }
                 is SaveScreenshotUseCase.SaveResult.Failure -> {

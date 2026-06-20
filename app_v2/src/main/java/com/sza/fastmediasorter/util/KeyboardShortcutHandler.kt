@@ -3,12 +3,12 @@ package com.sza.fastmediasorter.util
 import android.view.KeyEvent
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.domain.input.CommandId
-import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.input.fromKeyEvent
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.input.toResolveSurface
 import timber.log.Timber
 
 /**
@@ -27,7 +27,7 @@ import timber.log.Timber
  * only; other surfaces do not react to them.
  */
 class KeyboardShortcutHandler(
-    private val surface: InputSurface,
+    private val surface: UiSurface,
     private val dispatcher: ActionDispatcher,
     // Optional: when provided, PLAYER/VR_PLAYER surface resolves via the binding system.
     // Pass null (default) for all other surfaces - they retain legacy inline mapping.
@@ -64,7 +64,7 @@ class KeyboardShortcutHandler(
     constructor(
         callbacks: KeyboardShortcutCallbacks,
     ) : this(
-        surface = InputSurface.BROWSE,
+        surface = UiSurface.BROWSE,
         dispatcher = LegacyAdapter(callbacks),
     )
 
@@ -81,9 +81,9 @@ class KeyboardShortcutHandler(
         // Player surfaces: try the binding system first so custom remappings take effect.
         // Falls through to legacy mapToAction when resolver returns null (uncovered keys)
         // or commandIdToAction returns null (surface-irrelevant commands like create_folder).
-        if (keyBindingManager != null && isPlayerSurface()) {
-            val domainSurface = if (surface == InputSurface.VR_PLAYER) DomainSurface.VR else DomainSurface.PLAYER
-            val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), domainSurface)
+        val resolveSurface = surface.toResolveSurface()
+        if (keyBindingManager != null && resolveSurface != null && isPlayerSurface()) {
+            val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), resolveSurface)
             if (commandId != null) {
                 val action = commandIdToAction(commandId)
                 if (action != null) {
@@ -99,7 +99,7 @@ class KeyboardShortcutHandler(
     }
 
     private fun isPlayerSurface() =
-        surface == InputSurface.PLAYER || surface == InputSurface.VR_PLAYER
+        surface == UiSurface.PLAYER || surface == UiSurface.VR_PLAYER
 
     /**
      * Converts a [CommandId] string to the [InputAction] appropriate for the player surface.
@@ -157,19 +157,19 @@ class KeyboardShortcutHandler(
         // (e.g. dialog Enter/Escape, player volume on Up/Down) win over
         // the global defaults.
         val surfaceAction: InputAction? = when (surface) {
-            InputSurface.MAIN -> mapMain(keyCode, ctrl, shift, alt)
-            InputSurface.BROWSE -> mapBrowse(keyCode, ctrl, shift, alt)
-            InputSurface.DUPLICATES -> mapFileList(keyCode, ctrl, shift, alt)
-            InputSurface.PLAYER,
-            InputSurface.VR_PLAYER -> mapPlayer(keyCode, ctrl, shift, alt)
-            InputSurface.SETTINGS -> mapSettings(keyCode, ctrl, shift, alt)
-            InputSurface.DIALOG -> mapDialog(keyCode, ctrl, shift, alt)
-            InputSurface.CLOUD_PICKER -> mapCloudPicker(keyCode, ctrl, shift, alt)
-            InputSurface.ADD_RESOURCE -> mapAddResource(keyCode, ctrl, shift, alt)
-            InputSurface.RESOURCE_EDITOR,
-            InputSurface.RECEIVE_SHARE,
-            InputSurface.WIDGET_CONFIG,
-            InputSurface.WELCOME -> mapNavigation(keyCode, ctrl, shift, alt)
+            UiSurface.MAIN -> mapMain(keyCode, ctrl, shift, alt)
+            UiSurface.BROWSE -> mapBrowse(keyCode, ctrl, shift, alt)
+            UiSurface.DUPLICATES -> mapFileList(keyCode, ctrl, shift, alt)
+            UiSurface.PLAYER,
+            UiSurface.VR_PLAYER -> mapPlayer(keyCode, ctrl, shift, alt)
+            UiSurface.SETTINGS -> mapSettings(keyCode, ctrl, shift, alt)
+            UiSurface.DIALOG -> mapDialog(keyCode, ctrl, shift, alt)
+            UiSurface.CLOUD_PICKER -> mapCloudPicker(keyCode, ctrl, shift, alt)
+            UiSurface.ADD_RESOURCE -> mapAddResource(keyCode, ctrl, shift, alt)
+            UiSurface.RESOURCE_EDITOR,
+            UiSurface.RECEIVE_SHARE,
+            UiSurface.WIDGET_CONFIG,
+            UiSurface.WELCOME -> mapNavigation(keyCode, ctrl, shift, alt)
         }
         if (surfaceAction != null) return surfaceAction
 

@@ -6,7 +6,7 @@
 #
 # Why install-only (no auto-launch):
 #   Symmetric with `ivr` / `ivrd`. The user picks the launch surface on the
-#   device — phone launcher for standard UI, Quest Library (Unknown Sources)
+#   device - phone launcher for standard UI, Quest Library (Unknown Sources)
 #   for the VR entry. Auto-launching via `adb shell am start` would force one
 #   of those surfaces and, on Quest, would skip the vrshell launch_id path
 #   needed for FOCUSED XR sessions (same reason documented in
@@ -32,8 +32,8 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $variant = 'debug'
 $packageName = 'com.sza.fastmediasorter.debug'
 
-Write-Host "noLegal APK installer — DEBUG" -ForegroundColor Cyan
-Write-Host "Launch policy: install only — DO NOT auto-launch (see script header)" -ForegroundColor Magenta
+Write-Host "noLegal APK installer - DEBUG" -ForegroundColor Cyan
+Write-Host "Launch policy: install only - DO NOT auto-launch (see script header)" -ForegroundColor Magenta
 
 # Resolve APK path.
 if (-not $ApkPath) {
@@ -48,7 +48,7 @@ if (-not $ApkPath) {
             }
         }
         catch {
-            Write-Host "Warning: failed to parse output-metadata.json — falling back to latest .apk" -ForegroundColor Yellow
+            Write-Host "Warning: failed to parse output-metadata.json - falling back to latest .apk" -ForegroundColor Yellow
         }
     }
 
@@ -80,7 +80,7 @@ if ($connected.Count -eq 0) {
     exit 1
 }
 if ($connected.Count -gt 1) {
-    Write-Host "Warning: multiple devices connected — ADB will pick the first one or fail." -ForegroundColor Yellow
+    Write-Host "Warning: multiple devices connected - ADB will pick the first one or fail." -ForegroundColor Yellow
     Write-Host "Use ANDROID_SERIAL env var or -s flag in adb to disambiguate." -ForegroundColor Gray
 }
 

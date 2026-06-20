@@ -8,6 +8,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="@dimen/margin_small"
     android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
     app:cardCornerRadius="@dimen/card_corner_radius"
     app:cardElevation="2dp">
 

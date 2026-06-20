@@ -40,7 +40,7 @@
         android:layout_marginTop="@dimen/margin_small"
         android:contentDescription="@string/select_folder"
         android:text="@string/select_folder"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        style="@style/Widget.FastMediaSorter.Button.DialogConfirm" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCancel"
@@ -49,6 +49,6 @@
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/margin_large"
         android:text="@android:string/cancel"
-        style="@style/Widget.Material3.Button.TextButton" />
+        style="@style/Widget.FastMediaSorter.Button.DialogCancel" />
 
 </LinearLayout>

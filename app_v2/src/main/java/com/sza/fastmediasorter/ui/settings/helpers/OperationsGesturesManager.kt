@@ -1,0 +1,164 @@
+package com.sza.fastmediasorter.ui.settings.helpers
+
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
+import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import timber.log.Timber
+
+/**
+ * Owns the screen-gesture overlay subgroup of the Operations tab: the overlay enable toggle and its
+ * permission dialog, the clipboard toggle, the screenshot destination, and the three gesture-action
+ * pickers. The whole card is hidden on flavors without the capability (empty controller set), so this
+ * manager is a no-op there. The overlay-permission launcher stays registered in the fragment and is
+ * injected here.
+ */
+class OperationsGesturesManager(
+    private val binding: FragmentSettingsDestinationsBinding,
+    private val viewModel: SettingsViewModel,
+    private val fragment: Fragment,
+    private val screenGestureControllers: Set<ScreenGestureOverlayController>,
+    private val gestureActionPickerManager: ScreenshotGestureActionPickerManager,
+    private val overlayPermissionLauncher: ActivityResultLauncher<Intent>,
+    private val isUpdatingFromSettings: () -> Boolean,
+    private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
+    private val refreshLabel: (String?, TextView, Int) -> Unit,
+) {
+
+    fun setup() {
+        val controller = screenGestureControllers.firstOrNull()
+        if (controller == null) {
+            binding.groupScreenGestures.isVisible = false
+            return
+        }
+        binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            if (isChecked) {
+                if (!controller.isOverlayPermissionGranted(fragment.requireContext())) {
+                    showGesturePermissionDialog(controller)
+                    return@setOnCheckedChangeListener
+                }
+                controller.setEnabled(true)
+                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+            } else {
+                controller.setEnabled(false)
+                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
+            }
+        }
+        binding.rowCopyScreenshotToClipboard.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
+        }
+        binding.rowScreenshotDestination.setOnClickListener {
+            pickDestination(
+                viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
+            ) { resource ->
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
+            }
+        }
+        binding.rowScreenshotGestureActionDown.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                fragment.requireContext(),
+                viewModel.settings.value.screenshotGestureActionDown
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionDown = picked))
+            }
+        }
+        binding.rowScreenshotGestureActionRight.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                fragment.requireContext(),
+                viewModel.settings.value.screenshotGestureActionRight
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionRight = picked))
+            }
+        }
+        binding.rowScreenshotGestureActionUp.setOnClickListener {
+            gestureActionPickerManager.showPicker(
+                fragment.requireContext(),
+                viewModel.settings.value.screenshotGestureActionUp
+            ) { picked ->
+                viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionUp = picked))
+            }
+        }
+        binding.btnOpenAccessibilitySettings.setOnClickListener {
+            try {
+                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(fragment.requireContext()))
+            } catch (e: ActivityNotFoundException) {
+                // Accessibility settings screen unreachable on this ROM: fall back to the
+                // educational dialog, which routes to alternative entry points (S0449 ADR-1).
+                Timber.w(e, "Accessibility settings intent unresolved; showing fallback dialog")
+                showGesturePermissionDialog(controller)
+            }
+        }
+    }
+
+    /** Applies the latest settings to the gesture rows (overlay toggle, clipboard, action labels, destination). */
+    fun render(settings: AppSettings) {
+        if (screenGestureControllers.isEmpty()) return
+        if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
+            binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
+        }
+        if (binding.rowCopyScreenshotToClipboard.isChecked != settings.copyScreenshotToClipboard) {
+            binding.rowCopyScreenshotToClipboard.setCheckedSilently(settings.copyScreenshotToClipboard)
+        }
+        binding.tvScreenshotGestureActionDownValue.text =
+            gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionDown)
+        binding.tvScreenshotGestureActionRightValue.text =
+            gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionRight)
+        binding.tvScreenshotGestureActionUpValue.text =
+            gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionUp)
+        refreshLabel(
+            settings.screenshotDestinationResourceId,
+            binding.tvScreenshotDestinationValue,
+            R.string.setting_screenshot_destination_default
+        )
+    }
+
+    /** Re-applies the overlay state after returning from the system permission screen. */
+    fun onOverlayPermissionResult() {
+        val controller = screenGestureControllers.firstOrNull() ?: return
+        if (controller.isOverlayPermissionGranted(fragment.requireContext())) {
+            controller.setEnabled(true)
+            viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+        } else {
+            binding.rowGestureOverlayEnabled.setCheckedSilently(false)
+        }
+    }
+
+    /**
+     * Instructional gate before sending the user to the permission screen. Sideloaded (noLegal)
+     * builds cannot flip the accessibility toggle directly - the exact tap sequence is spelled out
+     * here, with shortcuts to both the accessibility screen and App info. Any exit without the
+     * grant reverts the row (handled in onDismiss so back-press / outside-tap are covered too).
+     */
+    private fun showGesturePermissionDialog(controller: ScreenGestureOverlayController) {
+        val builder = MaterialAlertDialogBuilder(fragment.requireContext())
+            .setTitle(R.string.screenshot_gesture_permission_dialog_title)
+            .setMessage(controller.permissionRationaleResId())
+            .setPositiveButton(R.string.screenshot_gesture_open_settings) { _, _ ->
+                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(fragment.requireContext()))
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .setOnDismissListener {
+                if (!controller.isOverlayPermissionGranted(fragment.requireContext())) {
+                    binding.rowGestureOverlayEnabled.setCheckedSilently(false)
+                }
+            }
+        if (controller.isFallbackCaptureAvailable()) {
+            builder.setNeutralButton(R.string.screenshot_gesture_use_old_method) { _, _ ->
+                overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(fragment.requireContext()))
+            }
+        }
+        builder.show()
+    }
+}

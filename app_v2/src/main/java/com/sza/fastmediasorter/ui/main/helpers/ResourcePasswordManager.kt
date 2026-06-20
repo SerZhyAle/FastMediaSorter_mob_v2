@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.Context
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
@@ -98,7 +99,7 @@ class ResourcePasswordManager(
         val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etPassword)
         val tilPassword = dialogView.findViewById<TextInputLayout>(R.id.tilPassword)
         
-        val dialog = AlertDialog.Builder(context)
+        val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(title)
             .setView(dialogView)
             .setPositiveButton(android.R.string.ok, null) // Set to null to override click

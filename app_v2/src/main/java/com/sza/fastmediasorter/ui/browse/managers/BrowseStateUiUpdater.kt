@@ -138,7 +138,7 @@ class BrowseStateUiUpdater(
     }
 
     private fun applySmallControls(state: BrowseState) {
-        if (state.showSmallControls || state.useCompactElements) {
+        if (state.useCompactElements) {
             smallControlsManager.applySmallControlsIfNeeded()
         } else {
             smallControlsManager.restoreCommandButtonHeightsIfNeeded()

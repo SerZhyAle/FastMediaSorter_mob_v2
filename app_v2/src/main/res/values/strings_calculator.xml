@@ -49,4 +49,7 @@
     <string name="calculator_open_settings">Open Settings</string>
     <string name="calculator_share_result_no_target">No app available to send the result.</string>
     <string name="calculator_title">Calculator</string>
+    <string name="calculator_prank_title">Dangerous system operation</string>
+    <string name="calculator_prank_message">A dangerous system operation has completed, which caused all data on this device to be deleted.</string>
+    <string name="calculator_prank_details">More details..</string>
 </resources>

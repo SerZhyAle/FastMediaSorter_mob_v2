@@ -179,9 +179,9 @@ class YtDlpExtractionStrategy @Inject constructor(
                     //   - video_versions[] → progressive mp4 WITH audio, but yt-dlp leaves
                     //     vcodec/acodec empty (it didn't probe codecs for these)
                     //   - DASH segments → split video-only (vcodec=vp09, acodec="none") and
-                    //     audio-only (vcodec="none", acodec=mp4a) — needs muxing (ffmpeg-only)
+                    //     audio-only (vcodec="none", acodec=mp4a) - needs muxing (ffmpeg-only)
                     // The old picker filtered out the combined stream because vcodec was empty
-                    // and selected the highest-resolution video-only DASH variant — file saved
+                    // and selected the highest-resolution video-only DASH variant - file saved
                     // without sound. We now treat empty vcodec/acodec as "unknown but present"
                     // and rank combined progressive above video-only progressive at any quality.
                     val formats = info.callAttr("get", "formats")

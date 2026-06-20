@@ -23,9 +23,10 @@ import javax.inject.Singleton
  * *how* the raw `KEYCODE_BUTTON_*` / `AXIS_*` events translate.
  *
  * Behaviour:
- * - [handleKeyEvent]: PLAYER surface routes through [KeyBindingManager]; BROWSER
- *   uses the legacy literal tree in [mapBrowserButton] (browser remapping is
- *   out of scope for this feature).
+ * - [handleKeyEvent]: both PLAYER and BROWSER surfaces route through
+ *   [KeyBindingManager.resolve]; the surface decides which commandId a button
+ *   shared across surfaces resolves to (e.g. A = play/pause vs browser select),
+ *   so browser bindings are user-remappable too (S0519).
  * - [handleMotionEvent]: iterates [TRACKED_AXES], resolves each through the
  *   manager, preserves rate-limiting and deadzone filtering.
  */
@@ -38,60 +39,48 @@ class GamepadInputManager @Inject constructor(
     @Volatile private var lastAnalogVolumeMs = -(ANALOG_VOLUME_INTERVAL_MS + 1)
     @Volatile private var lastTriggerSeekMs = -(TRIGGER_SEEK_INTERVAL_MS + 1)
 
-    /**
-     * Host surface hint - lets the manager return the right sub-tree for ambiguous buttons
-     * (A = PlayPause in player, A = Select in browser).
-     */
-    enum class Surface { PLAYER, BROWSER }
-
-    fun handleKeyEvent(event: KeyEvent, surface: Surface): GamepadAction? {
+    fun handleKeyEvent(event: KeyEvent, surface: DomainSurface): GamepadAction? {
         if (!event.isFromGamepad()) return null
         // Consume on ACTION_DOWN - matches platform guidance for gamepad buttons.
         if (event.action != KeyEvent.ACTION_DOWN) return null
         return when (surface) {
-            Surface.PLAYER -> {
+            DomainSurface.PLAYER -> {
                 val trigger = InputTrigger.fromGamepadButton(event.keyCode)
                 val commandId = keyBindingManager.resolve(trigger, DomainSurface.PLAYER) ?: return null
-                mapCommandToGamepadAction(commandId, Surface.PLAYER, trigger, axisValue = null)
+                mapCommandToGamepadAction(commandId, DomainSurface.PLAYER, trigger, axisValue = null)
             }
-            Surface.BROWSER -> mapBrowserButton(event)
+            DomainSurface.BROWSER -> {
+                val trigger = InputTrigger.fromGamepadButton(event.keyCode)
+                val commandId = keyBindingManager.resolve(trigger, DomainSurface.BROWSER) ?: return null
+                mapCommandToGamepadAction(commandId, DomainSurface.BROWSER, trigger, axisValue = null)
+            }
+            // Gamepad routing is only defined for player and browser surfaces.
+            else -> null
         }
     }
 
-    fun handleMotionEvent(event: MotionEvent, surface: Surface): GamepadAction? {
+    fun handleMotionEvent(event: MotionEvent, surface: DomainSurface): GamepadAction? {
         if (!event.isFromGamepad()) return null
         if (event.action != MotionEvent.ACTION_MOVE) return null
-        val domainSurface = if (surface == Surface.PLAYER) DomainSurface.PLAYER else DomainSurface.BROWSER
+        // Gamepad routing is only defined for player and browser surfaces.
+        if (surface != DomainSurface.PLAYER && surface != DomainSurface.BROWSER) return null
         for (axis in TRACKED_AXES) {
             val rawValue = event.getAxisValue(axis)
             // Invert AXIS_Y: Android reports stick-up as negative; we want up = positive direction.
             val value = if (axis == MotionEvent.AXIS_Y) -rawValue else rawValue
             val trigger = InputTrigger.fromGamepadAxis(axis, value, DEADZONE) ?: continue
-            val commandId = keyBindingManager.resolve(trigger, domainSurface) ?: continue
+            val commandId = keyBindingManager.resolve(trigger, surface) ?: continue
             val action = mapCommandToGamepadAction(commandId, surface, trigger, axisValue = kotlin.math.abs(rawValue))
             if (action != null) return action
         }
         return null
     }
 
-    // ── Browser: legacy literal tree (browser remapping is out-of-scope for player-keybinding) ─
-
-    private fun mapBrowserButton(event: KeyEvent): GamepadAction? = when (event.keyCode) {
-        KeyEvent.KEYCODE_BUTTON_A -> GamepadAction.BrowserAction.Select
-        KeyEvent.KEYCODE_BUTTON_B -> GamepadAction.BrowserAction.Back
-        KeyEvent.KEYCODE_BUTTON_X -> GamepadAction.BrowserAction.MultiSelect
-        KeyEvent.KEYCODE_BUTTON_Y -> GamepadAction.BrowserAction.ContextMenu
-        KeyEvent.KEYCODE_BUTTON_START -> GamepadAction.BrowserAction.Search
-        KeyEvent.KEYCODE_BUTTON_L1 -> GamepadAction.BrowserAction.SwitchTab(forward = false)
-        KeyEvent.KEYCODE_BUTTON_R1 -> GamepadAction.BrowserAction.SwitchTab(forward = true)
-        else -> null
-    }
-
     // ── Command → GamepadAction mapping with rate-limiting ──────────────────────────────────────
 
     private fun mapCommandToGamepadAction(
         commandId: String,
-        surface: Surface,
+        surface: DomainSurface,
         trigger: InputTrigger,
         axisValue: Float?,
     ): GamepadAction? = when (commandId) {
@@ -100,12 +89,14 @@ class GamepadInputManager @Inject constructor(
         CommandId.EXIT ->
             GamepadAction.PlayerAction.Exit
         CommandId.NEXT_FILE -> when (surface) {
-            Surface.PLAYER -> GamepadAction.PlayerAction.Next
-            Surface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = true)
+            DomainSurface.PLAYER -> GamepadAction.PlayerAction.Next
+            DomainSurface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = true)
+            else -> null
         }
         CommandId.PREVIOUS_FILE -> when (surface) {
-            Surface.PLAYER -> GamepadAction.PlayerAction.Prev
-            Surface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = false)
+            DomainSurface.PLAYER -> GamepadAction.PlayerAction.Prev
+            DomainSurface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = false)
+            else -> null
         }
         CommandId.SEEK_FORWARD_5S, CommandId.SEEK_FORWARD_30S,
         CommandId.SEEK_MACRO_FORWARD, CommandId.SEEK_MICRO_FORWARD -> when {
@@ -124,6 +115,13 @@ class GamepadInputManager @Inject constructor(
         CommandId.TOGGLE_CONTROLS -> GamepadAction.PlayerAction.ToggleHud
         CommandId.SHOW_HELP -> GamepadAction.PlayerAction.ToggleHints
         CommandId.SEARCH -> GamepadAction.BrowserAction.Search
+        CommandId.BROWSER_SELECT -> GamepadAction.BrowserAction.Select
+        CommandId.BROWSER_BACK -> GamepadAction.BrowserAction.Back
+        CommandId.BROWSER_MULTI_SELECT -> GamepadAction.BrowserAction.MultiSelect
+        CommandId.BROWSER_CONTEXT_MENU -> GamepadAction.BrowserAction.ContextMenu
+        CommandId.BROWSER_SEARCH -> GamepadAction.BrowserAction.Search
+        CommandId.BROWSER_TAB_NEXT -> GamepadAction.BrowserAction.SwitchTab(forward = true)
+        CommandId.BROWSER_TAB_PREV -> GamepadAction.BrowserAction.SwitchTab(forward = false)
         else -> null
     }
 

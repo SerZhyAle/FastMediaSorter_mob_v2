@@ -270,15 +270,17 @@ git push --force-with-lease origin $CURRENT_DEBUG
 
 ---
 
-### Step 13a - Functionality log
+### Step 13a - Feature inventory
 
-Each fix-release ships ≥1 user-visible fix. Append one `FIX` line per included spec - for `/skill-fix-release Sxxxx` exactly one line:
+`dev/FUNCTIONALITY.log` was retired (S0489); shipped capabilities now live in `docs/ALL_FEATURES.jsonl`, written via `scripts/all_features/add.ps1`. The inventory tracks capabilities (status `active`/`removed`), not per-event fixes - there is no `FIX` op.
+
+A pure under-the-hood fix needs no inventory write: it is already captured by the Step 13 dev changelog + git history. Only when the fix-release changes a shipped capability's user-visible behaviour or description, upsert that capability's record (keeps it `active`):
 
 ```powershell
-.\scripts\add_to_functionality_log.ps1 -Id $SPEC_ID -Op FIX -Description "$FIX_SUMMARY"
+.\scripts\all_features\add.ps1 -Id "<area>.<feature>" -Area "<Area>" -Name "<Name>" -Description "$FIX_SUMMARY" -Flavors "<flavors>" -Spec $SPEC_ID
 ```
 
-`$FIX_SUMMARY` empty (very short spec without §2 Goals) → fall back to `$SPEC_NAME` verbatim.
+`$FIX_SUMMARY` empty (very short spec without §2 Goals) → fall back to `$SPEC_NAME` verbatim. No matching capability touched → skip this step.
 
 ---
 

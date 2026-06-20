@@ -57,19 +57,19 @@ Build/flag questions → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`. Dependen
 ## Class Catalog & Navigation
 
 - Query catalog first: `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"`.
-- After every `.kt` change: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
+- Once per ticket (not per file edit): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module - the local index only needs to be current at the end of a change set.
 - New classes: fill `role` + `status` via `set.ps1`.
 - `dev/CATALOG/<module>.jsonl` + `<module>.md` are local gitignored indexes - regenerate, do not expect/require a git commit.
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` - never modify.
 
 ## Post-Change Mandatory Steps
 
-After every code/config change:
-1. Dev changelog: `./scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
-2. Feature docs: update `docs/FEATURES.md` + `_RU` + `_UK` for any new user-facing feature.
+After a code/config change (prefer the bundled facade `scripts/post-change.ps1 -File <path> -Target <t> -Description <d> -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed>`, which chains dev-log + catalog-sync + quality gates in one call):
+1. Dev changelog: `./scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - one entry per logical change/ticket, not per touched file; for a multi-file change batch them (e.g. `close-and-log.ps1 -DevLogs`). Never edit `dev/CHANGELOG.md` directly.
+2. Capability inventory: record any delivered shippable capability in `docs/ALL_FEATURES.jsonl` via `scripts/all_features/add.ps1` (EN-only; `-NoLegal` for noLegal-only). Never edit `docs/FEATURES*.md` per-spec - the public showcase is populated only by `/skill-release` from the ALL_FEATURES diff.
 3. String edits: prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving) over hand-editing `strings.xml`. `-Action set` updates one key in one locale (`-ExpectedOldValue` guard, `-CreateIfMissing`); `-Action add` creates a key across EN/RU/UK in lockstep (`-En -Ru -Uk`, parity-enforced); `-Action get|remove|rename|list` cover lookup/lifecycle across all `strings*.xml`. Hand-edit only for `plurals`, `string-array`, comments, regrouping, bulk rewrites.
 4. String locale audit: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` after any `strings.xml` change. Exit 1 = fix before commit.
-5. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` for the affected module.
+5. Catalogue sync: `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` once per ticket for the affected module (local gitignored index; not per file edit).
 6. Spec catalog sync: `update.ps1 -Id Sxxxx -Status <new>` on every status transition.
 
 ## Multi-step Tasks
@@ -83,7 +83,7 @@ Read `dev/AGENT_WORKFLOW.md` before execution - mandatory 5-step process.
 - No writes to project root - use `temp/` for logs/artifacts/backups.
 - Files >500 LOC: timestamped backup in `temp/` before editing.
 - UI ambiguity: surface unclear placement/visibility/fallback before implementing - do not guess.
-- Check `docs/FEATURES.md` before implementing anything new (avoid duplication).
+- Check `docs/ALL_FEATURES.jsonl` (dev capability inventory) before implementing anything new (avoid duplication).
 
 Record examples: recurring architecture violations (e.g. business logic in Fragment X); BuildConfig gate patterns per feature; non-obvious class locations / module boundaries; spec decisions resolving ambiguity; flaky areas / tech-debt hotspots.
 

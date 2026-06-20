@@ -90,7 +90,7 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
 
 `-StatusOnly` calls `update.ps1` (touches `updated`) instead of `close.ps1` so no `closed_at` is set. Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) for runs touching only dev log entries, INDEX counter drift, catalog regeneration, or stale debug-tag deletions - none affect what the user sees. Skip the call entirely on `--dry-run`.
 
-Individual-call fallback (when `close-and-log.ps1` unavailable): one `add_to_dev_log.ps1` per file + `add_to_functionality_log.ps1 -Id <Sxxxx> -Op FIX -Description "..."` + `update.ps1 -Id <Sxxxx>` (no flags) to touch `updated`.
+Individual-call fallback (when `close-and-log.ps1` unavailable): one `add_to_dev_log.ps1` per file + `update.ps1 -Id <Sxxxx>` (no flags) to touch `updated`. Feature inventory: only if the fix changed a shipped capability's user-visible behaviour, upsert it active via `scripts/all_features/add.ps1 -Id "<area>.<feature>" -Area .. -Name .. -Description ".." -Flavors .. -Spec <Sxxxx>` (the inventory has no `FIX` op; a pure bug fix is captured by dev-log + git, so skip it).
 
 **6 - Auto-chain to `/spec-check`.**
 

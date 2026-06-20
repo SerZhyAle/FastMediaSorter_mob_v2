@@ -29,15 +29,59 @@
     app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This
     keeps the GitHub Release APKs aligned with the Google Play AAB produced by
     `a.ps1 r` in the same release window - used by the /skill-release flow.
+
+.PARAMETER Flavors
+    Subset of the spectrum to build. Accepts any of:
+      standard, lite, photos, legacy, vr, wear, noLegal
+    plus the alias 'all' (== 'full' == 'spectrum') for every flavor.
+    Case-insensitive; order-independent; de-duplicated. Omitted / empty =>
+    the full spectrum (backward-compatible default for direct invocation).
+    The /skill-release flow passes 'standard' by default so a plateau release
+    builds only the standard edition unless extra flavors are requested.
 #>
 
 [CmdletBinding()]
 param(
-    [switch] $SkipBuild,
-    [switch] $ReuseVersion
+    [switch]   $SkipBuild,
+    [switch]   $ReuseVersion,
+    [string[]] $Flavors
 )
 
 $ErrorActionPreference = "Stop"
+
+# ----------------------------------------------------------------------
+# Resolve the requested flavor subset against the canonical spectrum.
+# Canonical order doubles as build order: pass 1 (Chaquopy off) covers the
+# app flavors + wear; pass 2 (Chaquopy on) covers noLegal.
+# ----------------------------------------------------------------------
+$allFlavors = @('standard', 'lite', 'photos', 'legacy', 'vr', 'wear', 'noLegal')
+
+if (-not $Flavors -or $Flavors.Count -eq 0) {
+    $selected = $allFlavors
+} else {
+    $picked = @()
+    foreach ($f in $Flavors) {
+        $t = "$f".Trim()
+        if ($t -eq '') { continue }
+        if ($t -in @('all', 'full', 'spectrum')) { $picked = $allFlavors; break }
+        $canon = $allFlavors | Where-Object { $_ -ieq $t }
+        if (-not $canon) {
+            throw "Unknown flavor '$t'. Valid: $($allFlavors -join ', '), or 'all'."
+        }
+        $picked += $canon
+    }
+    # De-dup while preserving canonical order.
+    $selected = $allFlavors | Where-Object { $_ -in $picked }
+}
+if (-not $selected -or $selected.Count -eq 0) {
+    throw "No valid flavors selected."
+}
+Write-Host "Selected flavors: $($selected -join ', ')" -ForegroundColor Green
+
+$pass1Flavors = @($selected | Where-Object { $_ -ne 'wear' -and $_ -ne 'noLegal' })
+$buildWear    = 'wear'    -in $selected
+$buildNoLegal = 'noLegal' -in $selected
+$buildAnyApp  = ($pass1Flavors.Count -gt 0) -or $buildNoLegal
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $gradlew     = Join-Path $projectRoot "gradlew.bat"
@@ -88,8 +132,10 @@ if ($ReuseVersion) {
     # Drop the trailing minute digit to obtain wear's 8-digit yyMMddHH code.
     $wearVersionCode = [int][math]::Floor($appVersionCode / 10)
     Write-Host "Reusing version: $versionName (app code $appVersionCode, wear code $wearVersionCode)" -ForegroundColor Green
-    # app_v2 already carries this version; stamp only wear to match.
-    Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName
+    # app_v2 already carries this version; align wear only when it is in the selection.
+    if ($buildWear) {
+        Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName
+    }
 } else {
     $now = Get-Date
     $yy  = $now.ToString("yy")
@@ -104,8 +150,8 @@ if ($ReuseVersion) {
 
     Write-Host "Spectrum version: $versionName (app code $appVersionCode, wear code $wearVersionCode)" -ForegroundColor Green
 
-    Set-ModuleVersion -Path $appGradle  -Code $appVersionCode  -Name $versionName
-    Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName
+    if ($buildAnyApp) { Set-ModuleVersion -Path $appGradle  -Code $appVersionCode  -Name $versionName }
+    if ($buildWear)   { Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName }
 }
 
 if ($SkipBuild) {
@@ -119,20 +165,28 @@ if ($SkipBuild) {
 # ----------------------------------------------------------------------
 Push-Location $projectRoot
 try {
-    Write-Host "Pass 1: non-noLegal release flavors + wear release (Chaquopy disabled).." -ForegroundColor Cyan
-    & $gradlew `
-        assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
-        :wear:assembleRelease `
-        "-Pchaquopy.enabled=false" `
-        --configuration-cache
-    if ($LASTEXITCODE -ne 0) { throw "Pass 1 (non-noLegal release) failed with exit $LASTEXITCODE" }
+    # Pass 1: selected app flavors (Chaquopy off) + wear, if requested.
+    $pass1Tasks = @()
+    foreach ($f in $pass1Flavors) {
+        # standard -> assembleStandardRelease, vr -> assembleVrRelease, etc.
+        $pass1Tasks += "assemble$((Get-Culture).TextInfo.ToTitleCase($f))Release"
+    }
+    if ($buildWear) { $pass1Tasks += ':wear:assembleRelease' }
 
-    Write-Host "Pass 2: noLegal release (Chaquopy enabled, no configuration cache).." -ForegroundColor Cyan
-    & $gradlew `
-        assembleNoLegalRelease `
-        "-Pchaquopy.enabled=true" `
-        --no-configuration-cache
-    if ($LASTEXITCODE -ne 0) { throw "Pass 2 (noLegal release) failed with exit $LASTEXITCODE" }
+    if ($pass1Tasks.Count -gt 0) {
+        Write-Host "Pass 1: $($pass1Tasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
+        & $gradlew @pass1Tasks "-Pchaquopy.enabled=false" --configuration-cache
+        if ($LASTEXITCODE -ne 0) { throw "Pass 1 (non-noLegal release) failed with exit $LASTEXITCODE" }
+    }
+
+    if ($buildNoLegal) {
+        Write-Host "Pass 2: noLegal release (Chaquopy enabled, no configuration cache).." -ForegroundColor Cyan
+        & $gradlew `
+            assembleNoLegalRelease `
+            "-Pchaquopy.enabled=true" `
+            --no-configuration-cache
+        if ($LASTEXITCODE -ne 0) { throw "Pass 2 (noLegal release) failed with exit $LASTEXITCODE" }
+    }
 }
 finally {
     Pop-Location
@@ -157,6 +211,7 @@ $apkRoots = [ordered]@{
 Write-Host "`nRelease spectrum APKs:" -ForegroundColor Cyan
 $missing = @()
 foreach ($flavor in $apkRoots.Keys) {
+    if ($flavor -notin $selected) { continue }
     $dir = Join-Path $projectRoot $apkRoots[$flavor]
     $apk = Get-ChildItem -Path $dir -Filter *.apk -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -172,4 +227,4 @@ if ($missing.Count -gt 0) {
     throw "Release spectrum incomplete - missing APK for: $($missing -join ', ')"
 }
 
-Write-Host "`nNext: scripts/release/publish-github-release.ps1 - publishes all assets under v$versionName." -ForegroundColor Yellow
+Write-Host "`nNext: scripts/release/publish-github-release.ps1 -Flavors $($selected -join ',') - publishes the selected assets under v$versionName." -ForegroundColor Yellow

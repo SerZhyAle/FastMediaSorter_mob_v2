@@ -12,7 +12,7 @@ class BrowseDialogHelperTest {
 
     @Test
     fun `dialog sort order contains every SortMode exactly once`() {
-        val order = BrowseDialogHelper.DIALOG_SORT_ORDER
+        val order = BrowseSortDialogManager.DIALOG_SORT_ORDER
 
         assertEquals(SortMode.entries.size, order.size)
         assertEquals(SortMode.entries.toSet(), order.toSet())
@@ -20,7 +20,7 @@ class BrowseDialogHelperTest {
 
     @Test
     fun `dialog sort order keeps requested priority positions`() {
-        val order = BrowseDialogHelper.DIALOG_SORT_ORDER
+        val order = BrowseSortDialogManager.DIALOG_SORT_ORDER
 
         assertEquals(SortMode.RANDOM, order.first())
         assertTrue(order.indexOf(SortMode.MANUAL) > order.indexOf(SortMode.SIZE_DESC))
@@ -51,6 +51,6 @@ class BrowseDialogHelperTest {
             SortMode.TITLE_DESC
         )
 
-        assertEquals(expectedOrder, BrowseDialogHelper.DIALOG_SORT_ORDER)
+        assertEquals(expectedOrder, BrowseSortDialogManager.DIALOG_SORT_ORDER)
     }
 }

@@ -24,7 +24,7 @@ annotation class CompiledCapabilities
  * (CLAUDE.md Rule 15). The compile-time axis is the multibound [compiled] set fed by per-capability
  * source-set modules; the device-runtime axis (OCR RAM/API) is folded in via [DeviceCapabilities].
  *
- * VR exposure here is compile-time only — whether the immersive runtime is even present in the build.
+ * VR exposure here is compile-time only - whether the immersive runtime is even present in the build.
  * The per-device "is this a headset right now" check stays in the XR detection facade and is combined
  * by the consumer. The structured OCR-reason variant (for user-facing copy) is deferred to S0400.
  */
@@ -51,7 +51,7 @@ class CapabilityAvailability @Inject constructor(
      */
     fun isOcrEngineSelectionAvailable(): Boolean = CAP_OCR_ENGINE_SELECTION in compiled
 
-    /** Whether the GPL NewPipe extractor is linked in (noLegal only) — gates its license card. */
+    /** Whether the GPL NewPipe extractor is linked in (noLegal only) - gates its license card. */
     fun isNewPipeAvailable(): Boolean = CAP_NEWPIPE in compiled
 
     companion object {

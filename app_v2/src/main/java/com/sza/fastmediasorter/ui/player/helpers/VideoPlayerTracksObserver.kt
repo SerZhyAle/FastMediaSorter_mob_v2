@@ -15,7 +15,6 @@ import timber.log.Timber
  * Extracted from VideoPlayerManager.kt as part of S0274 Wave 01 decomposition.
  *
  * Owns the `Player.Listener.onTracksChanged` body:
- *  - selected-track log probe kept for the S0041 pixelization investigation,
  *  - off-main stereo detection via `StereoDetector.detectForVideo` and the
  *    `PlayerCallback.onStereoDetected` dispatch,
  *  - the one-shot M2TS audio-unsupported toast (`audioUnsupportedShownForPath` guard).
@@ -32,9 +31,6 @@ internal class VideoPlayerTracksObserver(
         val videoFormat = tracks.groups
             .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
             ?.getTrackFormat(0)
-        // WHY: VR_QUALITY_DEBUG - log selected track to diagnose S0041 pixelization regression.
-        // Remove after root cause is confirmed (Phase 2 of S0041 investigation).
-        Timber.d("VR_QUALITY_DEBUG: selected track format=%s", videoFormat)
         if (videoFormat != null) {
             val detectionPath = manager.currentFilePath ?: return
             manager.managerScope.launch {

@@ -4,7 +4,7 @@
     Extract the release-notes block for a given version from docs/WHATS_NEW.md.
 
 .DESCRIPTION
-    Spec S0214 — github-store-publication, Phase 03 Step 03.1.
+    Spec S0214 - github-store-publication, Phase 03 Step 03.1.
 
     Reads docs/WHATS_NEW.md and emits to stdout the section corresponding
     to -Version. Two markers are recognised, per DECISIONS.md
@@ -18,12 +18,12 @@
     The extractor reads from the first non-empty content line AFTER the
     matched marker until (excluding) the next "## Previous Release:"
     heading or EOF. The immediately-following "> Changes since .."
-    blockquote line is skipped — it duplicates info GitHub already
+    blockquote line is skipped - it duplicates info GitHub already
     surfaces via compare-since-previous-tag.
 
     Exit codes:
-      0 — match found, stdout contains the block (non-empty).
-      2 — no matching marker for the supplied version.
+      0 - match found, stdout contains the block (non-empty).
+      2 - no matching marker for the supplied version.
 
 .PARAMETER Version
     Version string in the project's format Y.YM.MDDH.Hmm

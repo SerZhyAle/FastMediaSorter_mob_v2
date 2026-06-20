@@ -6,7 +6,7 @@
 - [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code in src/<flavor>/java/; new BuildConfig flavor guards in src/main are forbidden (Rule 15)
 - [Build gotchas](project_build_gotchas.md) - daemon-stop is a retry, not a failure; dev/CATALOG/*.jsonl+.md are gitignored; chaquopy.enabled gates all non-noLegal variants
 - [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal manifest entries dropped silently; use addStaticManifestFile in onVariants
-- [Functionality log](project_functionality_log.md) - dev/FUNCTIONALITY.log written via scripts/add_to_functionality_log.ps1 for user-visible behaviour changes
+- [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); record capabilities in docs/ALL_FEATURES.jsonl via all_features/add.ps1 (old script errors out)
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash command-substitutes `text` inside double quotes and silently strips the word
 - [Pre-existing test failures policy](feedback_build_pre_existing_test_failures.md) - verify own work via per-class XML reports; use assembleStandardDebug for compile checks
 - [Isolate parallel-ticket compile breakage](feedback_isolate_parallel_ticket_breakage.md) - stash ALL forbidden parallel files in ONE atomic git command; multi-line backslash pathspecs silently drop some and scatter their work

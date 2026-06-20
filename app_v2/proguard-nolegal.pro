@@ -1,5 +1,5 @@
 # ProGuard/R8 rules specific to the noLegal flavor.
-# Wired only via the noLegal productFlavor proguardFiles — never applied to
+# Wired only via the noLegal productFlavor proguardFiles - never applied to
 # standard/lite/photos/legacy/vr, which do not depend on NewPipeExtractor.
 
 # NewPipeExtractor (com.github.TeamNewPipe:NewPipeExtractor) pulls Rhino (Mozilla

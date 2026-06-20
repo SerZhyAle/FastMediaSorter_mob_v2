@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -91,7 +92,7 @@ class BrowseLifecycleHelper(
             hasShownStoragePermissionDialog = true
             wasStoragePermissionMissing = true
             Timber.w("BrowseActivity: MANAGE_EXTERNAL_STORAGE not granted, showing dialog")
-            androidx.appcompat.app.AlertDialog.Builder(activity)
+            MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.all_files_access_required)
                 .setMessage(R.string.all_files_access_explanation)
                 .setPositiveButton(R.string.grant_permission) { _, _ ->

@@ -16,7 +16,7 @@ enum class FocusDirection {
  * the parser stays uniform.
  *
  * Adding a new action: add it here, extend the parser mapping for the
- * relevant [InputSurface] profile, and wire it in the surface adapter.
+ * relevant [UiSurface] profile, and wire it in the surface adapter.
  */
 sealed interface InputAction {
 

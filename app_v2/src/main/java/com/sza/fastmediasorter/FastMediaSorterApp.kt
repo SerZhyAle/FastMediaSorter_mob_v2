@@ -584,7 +584,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append("------------------------------------------\n")
 
         // Reflection-based dump of every AppSettings field. Adding a new field to
-        // the data class auto-extends the dump on next launch — no edits here.
+        // the data class auto-extends the dump on next launch - no edits here.
         // Java reflection avoids the kotlin-reflect runtime (not on classpath).
         try {
             // getDeclaredFields() preserves source order on HotSpot/ART for data classes.

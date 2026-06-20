@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
@@ -18,11 +19,26 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.save.SaveFallbackNotifier
+import com.sza.fastmediasorter.data.capture.MicRecordingSaver
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToFtpStrategy
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToSftpStrategy
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * S0349 - microphone foreground service backing the Quick Audio Recorder widget.
@@ -35,7 +51,19 @@ import java.util.Locale
  * mono, 44.1 kHz, 128 kbps, `.m4a`). Files land in the app's external `Music/` directory
  * (no storage permission required; works down to API 23 - see S0349 §4.3).
  */
+@AndroidEntryPoint
 class QuickAudioRecorderService : Service() {
+
+    // S0526: route the finished recording through the shared mic-save backend (selected destination,
+    // network upload with local fallback) instead of leaving it in the app's private Music dir.
+    @Inject lateinit var micRecordingSaver: MicRecordingSaver
+    @Inject lateinit var saveFallbackNotifier: SaveFallbackNotifier
+    @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
+    @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
+    @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
+    @Inject lateinit var cloudOperationStrategy: CloudOperationStrategy
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var mediaRecorder: MediaRecorder? = null
     private var recorderStarted = false
@@ -98,11 +126,11 @@ class QuickAudioRecorderService : Service() {
 
     private fun stopAndSave() {
         val file = outputFile
-        var saved = false
+        var captured = false
         if (recorderStarted) {
             try {
                 mediaRecorder?.stop()
-                saved = file != null && file.exists() && file.length() > 0
+                captured = file != null && file.exists() && file.length() > 0
             } catch (e: Exception) {
                 // stop() throws when stopped before any frame is captured - the clip is unusable.
                 Timber.w(e, "QuickAudioRecorder: stop() threw - discarding empty recording")
@@ -114,14 +142,64 @@ class QuickAudioRecorderService : Service() {
         isRecording = false
         QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
 
-        if (saved && file != null) {
-            toast(getString(R.string.quick_recorder_saved, file.name))
+        if (captured && file != null) {
+            // S0526: hand the finished clip to the shared saver. Stay in the foreground until the
+            // suspend save (which may upload over the network) completes, then report and stop.
+            serviceScope.launch {
+                val result = micRecordingSaver.save(
+                    tempFile = file,
+                    name = file.name,
+                    browsedResource = null,
+                    upload = { tempFile, name, resource -> uploadToResource(tempFile, name, resource) },
+                )
+                file.delete()
+                if (result.success) {
+                    val location = result.savedPath ?: result.resourceName ?: file.name
+                    toast(getString(R.string.quick_recorder_saved_to, location))
+                    result.fallbackReason?.let { reason ->
+                        saveFallbackNotifier.notify(
+                            reason = reason,
+                            folderLabel = result.folderLabel.orEmpty(),
+                            resourceName = result.resourceName.orEmpty(),
+                            background = true,
+                        )
+                    }
+                } else {
+                    toast(getString(R.string.quick_recorder_error))
+                }
+                outputFile = null
+                stopForegroundCompat()
+                stopSelf()
+            }
         } else {
             toast(getString(R.string.quick_recorder_error))
+            outputFile = null
+            stopForegroundCompat()
+            stopSelf()
         }
-        outputFile = null
-        stopForegroundCompat()
-        stopSelf()
+    }
+
+    /** Mirrors the Browse mic upload routing: copy the clip to a network/cloud resource. */
+    private suspend fun uploadToResource(tempFile: File, name: String, resource: MediaResource): Boolean {
+        val sourceUri = Uri.fromFile(tempFile)
+        val destUri = Uri.parse(resource.path.trimEnd('/') + '/' + Uri.encode(name))
+        return when (resource.type) {
+            ResourceType.FTP -> localToFtpStrategy.copy(sourceUri, destUri, true, null, null)
+            ResourceType.SMB -> localToSmbStrategy.copy(sourceUri, destUri, true, null, null)
+            ResourceType.SFTP -> localToSftpStrategy.copy(sourceUri, destUri, true, null, null)
+            ResourceType.CLOUD -> cloudOperationStrategy.copyFile(
+                tempFile.absolutePath,
+                resource.path.trimEnd('/') + '/' + name,
+                true,
+                null,
+            ).isSuccess
+            else -> false
+        }
+    }
+
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
     }
 
     private fun failAndStop() {

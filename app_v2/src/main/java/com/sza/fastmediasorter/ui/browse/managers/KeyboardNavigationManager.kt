@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 import timber.log.Timber
 
@@ -48,7 +48,7 @@ class KeyboardNavigationManager(
     }
 
     private val shortcutHandler = KeyboardShortcutHandler(
-        surface = InputSurface.BROWSE,
+        surface = UiSurface.BROWSE,
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchAction(action) },
     )
 

@@ -7,9 +7,12 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.FocusFinder
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +20,8 @@ import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.input.GamepadNavIntent
+import com.sza.fastmediasorter.core.input.GamepadNavigationTranslator
 import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
@@ -24,6 +29,10 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
+import com.sza.fastmediasorter.ui.common.input.FocusTargetResolver
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,6 +74,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // Activity.onResume() can fire BEFORE lateinit managers from setupViews() are initialised.
     private var viewsReady = false
     private var resumePending = false
+
+    // S0508: one stateful translator per Activity (holds the held-direction repeat counter).
+    private val gamepadNavigationTranslator by lazy(LazyThreadSafetyMode.NONE) { GamepadNavigationTranslator() }
 
     private val activityMouseDispatchHelper by lazy(LazyThreadSafetyMode.NONE) {
         ActivityMouseDispatchHelper(
@@ -110,6 +122,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Timber.d("onCreate: ${this::class.simpleName}")
 
+        // S0538: shrink dialog action buttons to 50% when "Compact elements (global)" is on, app-wide.
+        // Must run before any dialog inflates (its button style reads the size theme attr at inflate).
+        PlayerLayoutModePrefs.applyCompactDialogButtonsOverlay(this)
+
         _binding = getViewBinding()
         setContentView(binding.root)
         
@@ -144,9 +160,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 onResumeWithViews()
             }
             // S0230 + S0289: set initial focus on any non-touch input device.
+            // S0504: redirect off a scrollable/paged container to the first real control inside it,
+            // so D-pad/keyboard focus never parks on a bare container with the controls unreachable.
             val needsInitialFocus = shouldRequestInitialFocus()
             if (needsInitialFocus) {
-                getInitialFocusView()?.requestFocus()
+                getInitialFocusView()?.let { FocusTargetResolver.resolveToLeafFocusable(it) ?: it }
+                    ?.requestFocus()
             }
             showGmsWarningIfNeeded()
         }
@@ -247,6 +266,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        // S0508: gamepad/joystick stick navigation runs before mouse routing. Left stick moves
+        // focus (D-pad equivalent), right stick scrolls the active container. Player-family hosts
+        // route motion through their own dispatcher and opt out via shouldHandleGamepadNavigation().
+        if (_binding != null && shouldHandleGamepadNavigation() && handleGamepadNavigation(event)) {
+            return true
+        }
         // S0289 safety net: generic motion (wheel/hover) from a finger is impossible in
         // practice, but the guard mirrors dispatchTouchEvent so a future regression cannot
         // silently consume finger events here either.
@@ -255,6 +280,37 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             return true
         }
         return super.dispatchGenericMotionEvent(event)
+    }
+
+    /**
+     * Apply one analog-stick sample as focus movement or container scroll. Returns true only when
+     * focus actually moved/redirected or a scroll target consumed the scroll - otherwise the event
+     * falls through to mouse routing and super. S0508.
+     */
+    private fun handleGamepadNavigation(event: MotionEvent): Boolean {
+        return when (val intent = gamepadNavigationTranslator.translate(event)) {
+            is GamepadNavIntent.FocusMove -> moveFocusForGamepad(intent.direction)
+            is GamepadNavIntent.Scroll -> {
+                val target = getGamepadScrollTargetView() ?: return false
+                target.scrollBy(intent.dx, intent.dy)
+                true
+            }
+            null -> false
+        }
+    }
+
+    private fun moveFocusForGamepad(direction: Int): Boolean {
+        val root = _binding?.root as? ViewGroup ?: return false
+        val current = currentFocus
+        // S0506: if focus is parked on a scrollable/paged container, enter the first real control
+        // first so the stick impulse is not wasted.
+        if (FocusTargetResolver.isFocusTrapContainer(current)) {
+            val source = current ?: getInitialFocusView() ?: root
+            val leaf = FocusTargetResolver.resolveToLeafFocusable(source)
+            if (leaf != null && leaf !== current && leaf.requestFocus()) return true
+        }
+        val next = FocusFinder.getInstance().findNextFocus(root, current, direction)
+        return next != null && next !== current && next.requestFocus()
     }
 
     private fun showGmsWarningIfNeeded() {
@@ -304,11 +360,87 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * consumed the event - the subclass override naturally shadows this implementation.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (guardContainerFocusOnDirectionalKey(event)) return true
         val action = tvKeyRouter.route(event)
         if (action != null) {
             if (onTvNavigation(action)) return true
         }
+        // S0508: unconsumed gamepad L1/R1 page-jumps. Positioned after TvKeyRouter and after any
+        // subclass override has already returned (subclasses call super last), so a screen that
+        // consumes L1/R1 itself (browser tab switch, player transport) pre-empts this fallback.
+        if (handleGamepadShoulderPageJump(event)) return true
         return super.dispatchKeyEvent(event)
+    }
+
+    /**
+     * The input-help surface for this screen, or null when F1 help does not apply (default).
+     * Screens that consume F1 in their own onKeyDown (player / browse / settings handlers) leave
+     * this null - their handler fires first and this fallback is never reached. Screens without an
+     * own F1 handler override this so the global F1 key (S0510) opens the per-surface help dialog.
+     */
+    protected open fun getInputHelpSurface(): UiSurface? = null
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_F1) {
+            getInputHelpSurface()?.let { surface ->
+                InputHelpDialogFragment.show(supportFragmentManager, surface)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun handleGamepadShoulderPageJump(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false
+        if (!shouldHandleGamepadNavigation()) return false
+        val fromGamepad = (event.source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
+            (event.source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
+        if (!fromGamepad) return false
+        val forward = when (event.keyCode) {
+            KeyEvent.KEYCODE_BUTTON_R1 -> true
+            KeyEvent.KEYCODE_BUTTON_L1 -> false
+            else -> return false
+        }
+        return onGamepadPageJump(forward)
+    }
+
+    /**
+     * Page-jump on an unconsumed gamepad shoulder button. Default page-scrolls
+     * [getGamepadScrollTargetView] by roughly one viewport; pager/tab screens override for true
+     * page/tab change. Returns false (no scroll target) so the key falls through unchanged. S0508.
+     */
+    protected open fun onGamepadPageJump(forward: Boolean): Boolean {
+        val target = getGamepadScrollTargetView() ?: return false
+        val page = target.height.takeIf { it > 0 } ?: return false
+        target.scrollBy(0, if (forward) page else -page)
+        return true
+    }
+
+    /**
+     * Runtime counterpart to the S0504 initial-focus redirect: if the first directional key on a
+     * non-touch device lands while focus is parked on a scrollable/paged container (or nowhere),
+     * pull focus onto the first real control inside it and consume that key. Subsequent keys follow
+     * normal traversal. No-op in touch mode, on screens that opt out via [shouldGuardContainerFocus],
+     * and whenever focus already sits on a real control. S0506.
+     */
+    private fun guardContainerFocusOnDirectionalKey(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false
+        if (!isDirectionalKey(event.keyCode)) return false
+        if (!shouldGuardContainerFocus()) return false
+        if (!isNonTouchInputActive()) return false
+        val focused = currentFocus
+        if (!FocusTargetResolver.isFocusTrapContainer(focused)) return false
+        val source = focused ?: getInitialFocusView() ?: _binding?.root ?: return false
+        val leaf = FocusTargetResolver.resolveToLeafFocusable(source) ?: return false
+        return leaf !== focused && leaf.requestFocus()
+    }
+
+    private fun isDirectionalKey(keyCode: Int): Boolean = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_UP,
+        KeyEvent.KEYCODE_DPAD_DOWN,
+        KeyEvent.KEYCODE_DPAD_LEFT,
+        KeyEvent.KEYCODE_DPAD_RIGHT -> true
+        else -> false
     }
 
     /**
@@ -336,6 +468,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Default is null so complex surfaces can keep their bespoke wheel routing.
      */
     protected open fun getMouseScrollTargetView(): View? = null
+
+    /**
+     * Opt-out for the shared gamepad/joystick navigation layer (see [dispatchGenericMotionEvent]).
+     * Default true: the left stick moves focus and the right stick scrolls on this screen. Screens
+     * that own their own motion routing (e.g. the player transport) override this to false. S0508.
+     */
+    protected open fun shouldHandleGamepadNavigation(): Boolean = true
+
+    /**
+     * Target container for right-stick scrolling. Defaults to the mouse-wheel scroll target so a
+     * screen wiring one input also gets the other; screens can override to point elsewhere. S0508.
+     */
+    protected open fun getGamepadScrollTargetView(): View? = getMouseScrollTargetView()
 
     /**
      * Keyboard/D-pad focus can land on a non-clickable child inside a clickable row or card.
@@ -408,10 +553,26 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Subclasses can override to opt out (return false) on screens where forced initial focus
      * would be disruptive. S0289.
      */
-    protected open fun shouldRequestInitialFocus(): Boolean {
+    protected open fun shouldRequestInitialFocus(): Boolean = isNonTouchInputActive()
+
+    /**
+     * True when the user is driving the UI with a non-touch input device (TV remote / D-pad,
+     * Quest3 controller, gamepad, attached mouse, or hardware keyboard). Shared by
+     * [shouldRequestInitialFocus] (initial focus on open) and the dispatch-time container guard in
+     * [dispatchKeyEvent] so both react to the same signal and cannot drift. S0289 / S0506.
+     */
+    protected fun isNonTouchInputActive(): Boolean {
         if (isTvDevice()) return true
         val notTouchMode = window?.decorView?.isInTouchMode == false
         val hasHardwareKeyboard = resources.configuration.keyboard != Configuration.KEYBOARD_NOKEYS
         return notTouchMode || hasHardwareKeyboard
     }
+
+    /**
+     * Opt-out for the dispatch-time focus-container guard (see [dispatchKeyEvent]). Default true:
+     * a directional key that lands on a scrollable/paged container first redirects focus to the
+     * first real control inside it. Screens that own their key/focus routing (e.g. the player
+     * transport) override this to false. S0506.
+     */
+    protected open fun shouldGuardContainerFocus(): Boolean = true
 }

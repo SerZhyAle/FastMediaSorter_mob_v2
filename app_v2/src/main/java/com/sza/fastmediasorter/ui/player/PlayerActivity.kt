@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
@@ -156,6 +158,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
     internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
+    // S0550: assigned late in PlayerManagerInitializer.initUiCoordinators(); the slideshow callback
+    // can fire during init (initial displayImage -> updateSlideshowState -> stopSlideshow) before
+    // this manager exists. Callers must gate UI sync on this readiness flag.
+    internal val isDialogAndUiStateManagerInitialized: Boolean
+        get() = ::dialogAndUiStateManager.isInitialized
 
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     internal lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -386,13 +393,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var saveGifFirstFrameUseCase: com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
     @Inject lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
     @Inject lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
+    @Inject lateinit var localDestinationClassifier: LocalDestinationClassifier
+    @Inject lateinit var localDestinationWriter: LocalDestinationWriter
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
     @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
     @Inject lateinit var gamepadInputManager: GamepadInputManager
-
-    /** S0289 Phase 08: surface marker for gamepad routing in the player. */
-    private val gamepadSurface = GamepadInputManager.Surface.PLAYER
 
     @Inject internal lateinit var smbFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SmbFileOperationHandler>
     @Inject internal lateinit var sftpFileOperationHandlerLazy: Lazy<com.sza.fastmediasorter.data.network.SftpFileOperationHandler>
@@ -405,6 +411,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
     @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+    @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
     @Inject
     @com.sza.fastmediasorter.core.di.ApplicationScope
     lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
@@ -521,10 +528,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
     }
 
+    /** S0532: lets keyboard callbacks query move availability without risking a lateinit access before setup. */
+    internal fun isCommandPanelControllerReady(): Boolean = ::commandPanelController.isInitialized
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
+        // Hardware keyboard attach/detach arrives as a configuration change - re-evaluate slot number badges.
+        if (::destinationButtonsManager.isInitialized) destinationButtonsManager.refreshSlotBadges()
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
         binding.root.post {
             val currentFile = viewModel.state.value.currentFile ?: return@post
@@ -807,6 +819,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun populateDestinationButtons() = destinationButtonsManager.populateDestinationButtons()
 
+    /** S0531: number operation slots when driven by non-touch input (TV remote / D-pad / hardware keyboard). */
+    internal fun shouldNumberOperationSlots(): Boolean = isNonTouchInputActive()
+
     /** S0162: Called by PlayerEventHandler when RotationSensorToggled fires. followSystem=false is guaranteed by the guard in PlayerViewModel.toggleRotationSensor(). */
     internal fun onRotationSensorToggled(sensorEnabled: Boolean) {
         screenRotationManager.apply(
@@ -856,7 +871,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: player initial-focus / HUD btnPlayPause")
         return binding.btnPlayPause
     }
 
@@ -873,7 +887,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         pipManager?.onUserLeaveHint(currentSettings?.enablePictureInPicture == true)
     }
 
-    @Suppress("DEPRECATION")
+    // Single-arg override kept for legacy minSdk 23: on API 24-25 the framework calls only this
+    // signature (two-arg added in API 26), so migrating away would drop PiP handling on those devices.
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
@@ -904,8 +920,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
         inputDispatcher.dispatchKeyEvent(event) { super.dispatchKeyEvent(it) }
 
+    // Transport owns directional keys via PlayerInputDispatcher (seek / volume / chapter); the base
+    // container-focus guard must not steal them onto a control. S0506.
+    override fun shouldGuardContainerFocus(): Boolean = false
+
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
         inputDispatcher.dispatchGenericMotionEvent(event) { super.dispatchGenericMotionEvent(it) }
+
+    // Transport routes stick/trigger motion through PlayerInputDispatcher (seek / volume); the
+    // shared gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
 
     fun advanceAudioBackgroundPhoto() = audioSlideshowPhotoModeManager.advancePhoto()
 

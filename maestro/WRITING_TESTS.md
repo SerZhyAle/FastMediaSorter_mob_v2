@@ -2,6 +2,35 @@
 
 A practical guide for developers to create effective Maestro tests for FastMediaSorter v2.
 
+## Oracle convention (authoritative)
+
+A flow is **green only when it proves the behaviour happened**. Three rules, in order:
+
+1. **Assert the expected post-action element by exact id or exact text.** The assertion that
+   proves the feature must NOT carry `optional: true`. `optional` is reserved for genuinely
+   variable UI (system permission dialogs in `_shared/permissions.yaml`) - never for the
+   element that is the point of the test.
+2. **Where a stable completion log marker exists, wait for it** (`extendedWaitUntil` on the
+   element plus, conceptually, the operation's log marker). Markers per operation and ids per
+   screen are inventoried in the S0551 research notes (browse listing
+   `BrowseLoadingManager: COMPLETE`, video `onRenderedFirstFrame` / `Playback ready`, file ops
+   `FileOperationProgressDialog: Completed`, PDF `firstPageRendered`, EPUB `firstChapterRendered`,
+   slideshow `Slideshow auto-start COMPLETE`). Rename, undo, image, text, resume and the info
+   dialog have no marker - assert by element only, never weaken to optional-only.
+3. **Carry a crash guard:** `assertNotVisible` on the crash-activity text after the action.
+
+**Forbidden** (these silently pass and defeat the oracle - they are why the legacy flows were
+fictitious):
+
+- `optional: true` on the proof assertion.
+- Regex matchers in `id:` / `text:` (`id: ".*recycler.*"`, `text: ".*\.(jpg|png)$"`). Maestro
+  does not reliably match these; the assertion never fires. Use exact entry-name ids
+  (`id: "rvMediaFiles"`) or exact visible text, locale-fixed for the run.
+- Coordinate taps (`point: "50%,50%"`) as a stand-in for a real assertion.
+
+The patterns later in this guide that show `optional: true` on a result assertion or regex
+selectors predate this convention and must not be copied - this section overrides them.
+
 ## Test Structure
 
 Every Maestro test follows this pattern:

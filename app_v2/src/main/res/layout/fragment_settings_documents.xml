@@ -84,7 +84,7 @@
             app:str_title="@string/support_office_documents_description"
             app:str_subtitle="@string/setting_support_office_documents_desc" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetDefaultDocsViewer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="wrap_content"

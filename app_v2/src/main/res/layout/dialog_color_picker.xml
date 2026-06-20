@@ -61,18 +61,18 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cancel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOk"
-            style="@style/Widget.Material3.Button"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/ok"
-            android:layout_marginStart="@dimen/dialog_field_spacing" />
+            android:layout_marginStart="@dimen/dialog_action_button_gap" />
 
     </LinearLayout>
 

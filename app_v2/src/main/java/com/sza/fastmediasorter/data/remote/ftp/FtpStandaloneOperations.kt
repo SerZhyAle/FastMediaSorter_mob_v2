@@ -303,7 +303,6 @@ object FtpStandaloneOperations {
                 ?: tempClient.listFiles(remotePath)?.firstOrNull()?.size?.takeIf { it > 0 }
                 ?: fileSize.takeIf { it > 0 }
                 ?: -1L
-            Timber.d("S0496: FTP standalone download total=$total remote=$remotePath")
             val counter = AtomicLong(0)
             val countingOut = FtpProgressOutputStream(outputStream, counter)
             coroutineScope {

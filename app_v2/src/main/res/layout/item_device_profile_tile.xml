@@ -12,6 +12,7 @@
     android:layout_margin="6dp"
     android:clickable="true"
     android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
     app:cardCornerRadius="14dp"
     app:cardElevation="2dp"
     app:rippleColor="?attr/colorControlHighlight"

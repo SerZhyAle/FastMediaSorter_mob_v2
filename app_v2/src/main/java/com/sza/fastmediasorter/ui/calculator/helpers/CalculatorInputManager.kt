@@ -46,6 +46,7 @@ class CalculatorInputManager(
     private var historyLoaded = false
     private var initialInputText: String? = null
     private val memoryStore = CalculatorMemoryStore(context)
+    private val prankManager = CalculatorAprilFoolsPrankManager(context)
     private var memoryRowExpanded = false
 
     fun bind() {
@@ -439,10 +440,17 @@ class CalculatorInputManager(
     }
 
     private fun update(action: CalculatorEngine.() -> String) {
+        val previousError = engine.error
         engine.action()
         hasReturnableResult = engine.error == null
         persistNewHistoryEntries()
         render()
+        if (
+            previousError != CalculatorEngine.CalculatorError.DIVISION_BY_ZERO &&
+            engine.error == CalculatorEngine.CalculatorError.DIVISION_BY_ZERO
+        ) {
+            prankManager.showDivisionByZeroPrank()
+        }
     }
 
     private fun persistNewHistoryEntries() {

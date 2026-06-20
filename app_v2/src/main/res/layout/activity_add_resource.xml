@@ -101,9 +101,9 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
 
             </LinearLayout>
 
@@ -150,7 +150,7 @@
             <!-- Scan Network + Server IP in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanNetwork" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_network_button" android:layout_marginEnd="@dimen/margin_small" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanNetwork" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_network_button" android:layout_marginEnd="@dimen/margin_small" />
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbServer" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:minHeight="64dp" android:hint="@string/smb_server" app:helperText="@string/smb_server_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
@@ -180,10 +180,10 @@
             <!-- Test Connection + Scan Shares in one row to save vertical space -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
 
                 <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
 
             </LinearLayout>
 
@@ -363,7 +363,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button on separate row -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <TextView android:id="@+id/tvSmbResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_section_margin_top" android:visibility="gone" />
 
@@ -450,7 +450,7 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
 
                 </LinearLayout>
 
@@ -464,7 +464,7 @@
             </LinearLayout>
 
             <!-- Test Connection: primary action in the main flow, before optional security and path -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- S0046: host-key pinning (optional, collapsible, SFTP-only). Visibility toggled by protocol in AddResourceActivity. -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -632,7 +632,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
 
         </LinearLayout>
 

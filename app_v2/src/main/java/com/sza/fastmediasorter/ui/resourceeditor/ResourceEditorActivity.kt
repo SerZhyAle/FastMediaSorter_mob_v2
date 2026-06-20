@@ -10,7 +10,7 @@ import com.sza.fastmediasorter.databinding.ActivityResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -24,7 +24,6 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
 
     /** S0289 §2.4: initial focus on the fragment container - inner fragment delegates to first focusable child. */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: resource-editor initial-focus / mouse-wheel ancestor scroll")
         return binding.fragmentContainer
     }
 
@@ -49,7 +48,7 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
             (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
         when {
             keyCode == KeyEvent.KEYCODE_F1 -> {
-                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.RESOURCE_EDITOR)
+                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.RESOURCE_EDITOR)
                 return true
             }
             keyCode == KeyEvent.KEYCODE_S && event?.isCtrlPressed == true -> {

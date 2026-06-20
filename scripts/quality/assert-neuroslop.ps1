@@ -17,6 +17,7 @@
       - assert-globalscope.ps1             (Tier 1: GlobalScope coroutine usage)
       - assert-nontimber-log.ps1           (Tier 1: Log.*/println/System.out)
       - assert-stub-todo.ps1               (Tier 1: TODO()/NotImplementedError stubs)
+      - assert-em-dash.ps1                 (em-dash/en-dash in *.kt -> use hyphen)
 
     Ratchet contract: baselines only go DOWN via each child's -UpdateBaseline;
     raising a baseline is forbidden without an offsetting refactor. Cleanup of the
@@ -59,7 +60,8 @@ $children = @(
     'assert-unsafe-collect.ps1',
     'assert-globalscope.ps1',
     'assert-nontimber-log.ps1',
-    'assert-stub-todo.ps1'
+    'assert-stub-todo.ps1',
+    'assert-em-dash.ps1'
 )
 
 $failures = 0

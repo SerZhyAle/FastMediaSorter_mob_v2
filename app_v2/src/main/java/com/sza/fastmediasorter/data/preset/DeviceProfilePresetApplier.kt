@@ -154,7 +154,7 @@ class DeviceProfilePresetApplier @Inject constructor(
 
             // ── Long SIZE fields (CSV value in the unit shown on the Settings screen) ──
             // Images/Video screens display KB; Audio screen displays MB. textSizeMax has no editable
-            // size widget (plain bytes default); treat its raw as bytes — it is empty in the CSV today.
+            // size widget (plain bytes default); treat its raw as bytes - it is empty in the CSV today.
             "imageSizeMin" -> applySizeField(field, raw, KB_TO_BYTES, settings) { s, v -> s.copy(imageSizeMin = v) }
             "imageSizeMax" -> applySizeField(field, raw, KB_TO_BYTES, settings) { s, v -> s.copy(imageSizeMax = v) }
             "videoSizeMin" -> applySizeField(field, raw, KB_TO_BYTES, settings) { s, v -> s.copy(videoSizeMin = v) }

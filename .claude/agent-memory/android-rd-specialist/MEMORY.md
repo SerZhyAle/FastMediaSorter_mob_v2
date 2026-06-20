@@ -1,12 +1,15 @@
 # Memory Index
 
+- [Play setStatusBarColor warning = unfixable false-positive](project_play_setstatusbarcolor_false_positive.md) - Play's deprecated-API report is static; Material BottomSheet setStatusBarColor flag is a runtime no-op, not clearable; edge-to-edge warning #1 is separate and already handled
+- [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP release if supported countries / age ratings / device reach (minSdk, ABI, uses-feature, flavor) shrink vs prior build
 - [screenCapture is noLegal-only](project_screencapture_nolegal_only.md) - gesture screenshot capture (src/screenCapture) mounts only into noLegal; gates via empty injected controller set, not BuildConfig; FEATURES.md [Standard] label is inaccurate
 
 - [Dirty tree is normal WIP - don't alarm](feedback_dirty_tree_is_normal_wip.md) - repo runs multiple worktrees (mob_v2→DEBUG-vNNN, release→main); uncommitted files = intact WIP, report calmly, never imply revert/clobber/loss
+- [Reuse existing settings toggles](feedback_reuse_existing_settings.md) - before adding a new toggle to gate a feature, grep AppSettings + settings fragment for an existing one covering the same capability; gate on it (S0523: owner cut 3 dup toggles)
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - owner standard for all text I author: hyphen not em-dash, ё not е, `..` not `...`; self-check before every chat/.md/commit
 - [Per-phase debug tags break ticket-log gate](feedback_per_phase_debug_tags_break_gate.md) - never insert Timber.d("Sxxxx:") in intermediate phases; gate rejects unless spec is BlockNeedUserTest; defer all probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default to a.ps1 fk/fr/fc/fu (~2-8s, CC-reused); reserve d/dav for packaging/install proof
-- [No concurrent gradle invocations](feedback_no_concurrent_gradle_invocations.md) - post-change Kotlin gates each spin a compile; running 6 + a build → multiple Kotlin daemons → OOM. Run post-change serially, build after
+- [No concurrent gradle invocations](feedback_no_concurrent_gradle_invocations.md) - never run >1 gradle build at once (multi Kotlin-daemon OOM); post-change.ps1 is static (no compile), safe to run anytime
 - [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick ad-hoc device chores; prefer over raw adb; ~0 tokens
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
 - [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit
@@ -20,9 +23,11 @@
 - [Spec **Status:** header auto-syncs from journal](feedback_spec_header_autosync.md) - owner reads in-file header; update.ps1 now rewrites first **Status:** line on every status change (fail-soft, first-match only)
 
 - [Bottom-sheet menu items untappable on emulator](feedback_bottomsheet_menu_untappable_emulator.md) - ResourceOperationsMenu items ignore mobile-mcp/adb taps on AVD; after 1+1 attempts declare runtime INCONCLUSIVE, keep BlockNeedUserTest, prefer real device/Maestro
+- [AVD media not MediaStore-indexed](feedback_avd_mediastore_not_indexed.md) - seeded test media exists on disk but virtual resources show 0 files; frame-save/duplicate/playback device tests go inconclusive until a folder resource is registered or a scan is forced
 - [Frozen app? check TracerPid / lldb-server](feedback_frozen_app_check_tracerpid.md) - UI frozen + no crash + log stops at "blocking GC ProfileSaver" → native LLDB debugger holds VM via ptrace, not a code bug; check /proc/<pid>/status TracerPid
 - [bash rg skips gitignored CATALOG zone](feedback_rg_gitignore_catalog.md) - "no matches" from bare bash rg inside dev/CATALOG is not proof of absence; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element -DevLogs @(...) needs in-process & call, not pwsh -File (array collapses across process boundary); bash @(...) is a syntax error
+- [string[] param CSV via pwsh -File](feedback_string_array_param_csv_via_file.md) - quoted CSV to a [string[]] param via pwsh -File binds as ONE element (no split); fixed spec-next-preflight -Exclude; pass @(..) or split in-script
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents land core phases but truncate final docs-cleanup; verify files exist, finish last phase centrally
 - [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash silently clobbers another's uncommitted edits; forbid git/build/catalog in parallel briefs, disjoint files, central build; "IDE reverting my files" = suspect a concurrent stash
 - [/spec-dev continue: verify code before checkboxes](feedback_spec_dev_continue_verify_code_first.md) - In-Progress spec may have code done but tracking at 0/N; reconcile via git status + grep first (S0356)
@@ -66,6 +71,7 @@
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash `-Command "..."`, `\$LASTEXITCODE` collapses to empty and PowerShell parse fails silently inside `& {}`; use newline-separated -Command or single-quoted bash
 - [Verify spec id before announcing /spec-* pipeline](feedback_verify_spec_id_before_pipeline.md) - run select.ps1 first; match IDE-open Sxxxx; never narrate "Stage 0" on an unresolved id
 - [Persistent log lines must not contain Sxxxx](feedback_persistent_logs_no_ticket_id.md) - ticket id inside Timber.* is reserved for BlockNeedUserTest probes; permanent info/warn/error logs describe the subject in plain English, never embed a ticket id
+- [Welcome process consolidation](feedback_welcome_process_consolidation.md) - owner wants workflow ceremony cut and authorizes editing CLAUDE.md/agent-defs/skills; keep read-only vs mutation boundaries intact
 - [VR HUD rendering pitfalls](project_vr_hud_quirks.md) - 4 hidden traps caused "HUD invisible" for hours; multiply_matrices column-major formula required, no per-frame queueHud from native callbacks, use ByteBuffer.allocateDirect not wrap, Android Skia copyPixelsToBuffer is RGBA (no R/B swap)
 - [S0002 decomposition toolkit](project_s0002_decomposition_toolkit.md) - reusable scripts (collapse_*/strip_trace_logs/fix_empty_else) + extraction patterns + Wave 54 backlog (TextViewer/PdfViewer/PlayerActivity/CommandPanelController still over 1000)
 - [adb location + .debug package suffix](reference_adb_and_debug_package.md) - adb not on PATH (user SDK platform-tools); debug builds install as com.sza.fastmediasorter.debug; Quest3 logcat buffer short, prefer app file logs in logs/

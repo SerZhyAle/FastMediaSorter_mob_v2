@@ -161,7 +161,7 @@ data class BackupSettings(
     val videoSnapshotFormat: String = "JPG",
     // S0470: copy extracted video frame to clipboard
     val videoFrameCopyToClipboard: Boolean = false,
-    // Link auto-download (S0003) — nullable for forward-compat with older backups
+    // Link auto-download (S0003) - nullable for forward-compat with older backups
     val linkAutoDownloadEnabled: Boolean? = null,
     val linkAutoDownloadResourceId: Long? = null,
     val linkAutoDownloadOpenInPlayer: Boolean? = null,

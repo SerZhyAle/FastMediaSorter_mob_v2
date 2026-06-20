@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -280,7 +280,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
             fileOperationUseCase = activity.fileOperationUseCase,
-            imageClipboardWriter = activity.imageClipboardWriter
+            imageClipboardWriter = activity.imageClipboardWriter,
+            localDestinationClassifier = activity.localDestinationClassifier,
+            localDestinationWriter = activity.localDestinationWriter
         )
         activity.imageCropManager = com.sza.fastmediasorter.ui.player.helpers.ImageCropManager(
             context = activity,
@@ -484,7 +486,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     onCancel: () -> Unit
                 ) {
                     activity.runOnUiThread {
-                        AlertDialog.Builder(activity)
+                        MaterialAlertDialogBuilder(activity)
                             .setTitle(R.string.download_translation_model_title)
                             .setMessage(activity.getString(R.string.download_translation_model_message, languageName))
                             .setPositiveButton(R.string.download) { _, _ ->
@@ -795,6 +797,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
                     activity.viewModel.previousFile()
                 } else {
+                    Timber.d("S0549: audio track ended naturally -> app nextFile() auto-advance (order=${activity.viewModel.state.value.playbackOrderMode})")
                     activity.viewModel.nextFile()
                 }
                 if (wasAudio) {

@@ -162,7 +162,7 @@ Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gat
 | `data-surface` | `room`, `db`, `database`, `migration`, `backup`, `restore`, `schema`, `entity` | Room, схема, миграция, migration, @Entity, backup, restore, persistent storage | **Data compatibility** |
 | `localization-touched` | `i18n`, `locale`, `string`, `translation`, `lang` | строк, локализац, strings.xml, translation, перевод | **Localization** |
 | `ui-facing` | `ui`, `layout`, `dialog`, `screen`, `menu`, `button`, `view` | интерфейс, экран, диалог, кнопка, меню, layout, fragment, activity, view, ориентация, landscape, portrait | **UI placement contract**, **Accessibility** |
-| `comm-policy-applies` | — | toast, тост, snackbar, ошибк, error message, CTA, уведомлен, empty state | **Communication policy** |
+| `comm-policy-applies` | - | toast, тост, snackbar, ошибк, error message, CTA, уведомлен, empty state | **Communication policy** |
 
 **Conditional closure bullets:** if *any* tag matched, additionally emit **Validation level** and **Owner sign-off**. If no tag matched (pure doc/refactor spec), skip both.
 
@@ -171,7 +171,7 @@ Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gat
 **Emission rules.**
 
 - Each emitted bullet carries a concrete value drawn from research in §1/§3.2/§4/§10/§11. Fill values - no bracketed placeholders.
-- If a value genuinely does not apply within the emitted bullet's scope (e.g. flavor-aware spec with one flavor), write `<concrete value> — <one-clause reason>` rather than `n/a` alone.
+- If a value genuinely does not apply within the emitted bullet's scope (e.g. flavor-aware spec with one flavor), write `<concrete value> - <one-clause reason>` rather than `n/a` alone.
 - Do NOT emit irrelevant bullets to look thorough. Gate accepts 1-bullet §3.3 (`Related tickets: none`) on a pure-doc spec.
 
 **Examples.**
@@ -272,7 +272,7 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
 
 ### 3.3 Owner inputs (Approval gate)
 
-Каждое поле ниже должно содержать конкретное значение, чтобы спека могла перейти Draft → Approved. Состав полей определяется характером спеки (см. Process step 5.1) - irrelevant поля не эмитятся, их отсутствие гейтом не блокируется. Универсально обязательное поле — `Related tickets`. Проверка: `pwsh -NoProfile -File scripts/spec_catalog/check-owner-inputs.ps1 -Id Sxxxx`.
+Каждое поле ниже должно содержать конкретное значение, чтобы спека могла перейти Draft → Approved. Состав полей определяется характером спеки (см. Process step 5.1) - irrelevant поля не эмитятся, их отсутствие гейтом не блокируется. Универсально обязательное поле - `Related tickets`. Проверка: `pwsh -NoProfile -File scripts/spec_catalog/check-owner-inputs.ps1 -Id Sxxxx`.
 
 <!-- /spec emits ONLY the bullets matching the detected scope. Examples below; emit only the relevant subset. -->
 <!--

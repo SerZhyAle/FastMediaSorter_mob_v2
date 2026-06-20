@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -39,7 +39,7 @@ class GeneralSettingsProfileHelper(
                             return@launch
                         }
 
-                        AlertDialog.Builder(fragment.requireContext())
+                        MaterialAlertDialogBuilder(fragment.requireContext())
                             .setTitle(R.string.settings_all_files_profile_confirm_title)
                             .setMessage(R.string.settings_all_files_profile_confirm_message)
                             .setPositiveButton(R.string.yes) { _, _ ->

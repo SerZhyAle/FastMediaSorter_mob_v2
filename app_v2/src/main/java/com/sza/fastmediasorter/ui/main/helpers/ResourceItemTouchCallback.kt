@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import com.sza.fastmediasorter.ui.main.MainViewModel
-import timber.log.Timber
 
 /**
  * ItemTouchHelper.Callback for drag-to-reorder in the main resource list.
@@ -63,7 +62,6 @@ class ResourceItemTouchCallback(
         if (target.bindingAdapterPosition == 0 &&
             adapter.getDragOrderedList().firstOrNull()?.isAllFilesPredefined == true
         ) {
-            Timber.d("S0488: blocked drop above pinned All-files row")
             return false
         }
         return super.canDropOver(recyclerView, current, target)

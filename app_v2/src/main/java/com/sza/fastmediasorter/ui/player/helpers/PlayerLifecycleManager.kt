@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.media3.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -445,14 +446,19 @@ class PlayerLifecycleManager(
      */
     fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
         if (!activity.isMediaLoaderManagerInitialized || !activity.mediaLoaderManager.isServiceAudioActive) {
+            warnIfBackgroundHandoffMissed()
             doFinish(withTransition)
             return
         }
 
         val audioPlayer = activity.audioServiceController?.player
-        if (audioPlayer?.isPlaying != true) {
-            Timber.d("PlayerLifecycleManager: service audio is paused/inactive on exit - stopping silently")
-            audioPlayer?.stop()
+        // A still-connecting track (BUFFERING) must be honoured per the saved preference, not silently
+        // stopped: streamed network audio that is mid-connect on exit should keep going in the background.
+        // Only a user-paused track (READY/ENDED but not playing) exits as an implicit stop.
+        val isConnecting = audioPlayer?.playbackState == Player.STATE_BUFFERING
+        if (audioPlayer != null && !audioPlayer.isPlaying && !isConnecting) {
+            Timber.d("PlayerLifecycleManager: service audio is paused on exit - stopping silently")
+            audioPlayer.stop()
             doFinish(withTransition)
             return
         }
@@ -466,6 +472,26 @@ class PlayerLifecycleManager(
                 doFinish(withTransition)
             }
             BackgroundAudioExitBehavior.ASK -> showExitAudioDialog(withTransition)
+        }
+    }
+
+    /**
+     * Tell the user when a network/cloud audio track they expected to keep playing could not be handed
+     * to the background service (e.g. it fell back to the in-app player for lack of credentials), so the
+     * exit is an explicit "couldn't continue" rather than a silent stop. No-op for local audio or when
+     * background playback is off / set to always stop.
+     */
+    private fun warnIfBackgroundHandoffMissed() {
+        val state = viewModel.state.value
+        if (!state.enablePersistentAudioPlayback) return
+        if (state.backgroundAudioExitBehavior == BackgroundAudioExitBehavior.ALWAYS_STOP) return
+        val file = state.currentFile ?: return
+        if (file.type != MediaType.AUDIO) return
+        val path = file.path
+        val isNetworkOrCloud = path.startsWith("smb://") || path.startsWith("sftp://") ||
+            path.startsWith("ftp://") || path.startsWith("cloud://")
+        if (isNetworkOrCloud) {
+            Toast.makeText(activity, R.string.audio_background_handoff_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

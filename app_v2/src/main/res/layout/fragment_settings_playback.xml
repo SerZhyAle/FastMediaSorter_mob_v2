@@ -167,6 +167,15 @@
 
                     </LinearLayout>
 
+                    <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowShowBlackScreenButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/settings_black_screen_button_title"
+                        app:str_subtitle="@string/settings_black_screen_button_desc" />
+
                     <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
                     <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -200,6 +209,18 @@
                         app:str_showHelp="true"
                         app:str_helpTitle="@string/tooltip_big_buttons_mode_title"
                         app:str_helpMessage="@string/tooltip_big_buttons_mode_message" />
+
+                    <!-- Compact player buttons (small controls) - shrinks the player command panel -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSmallControls"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/small_controls"
+                        app:str_subtitle="@string/setting_small_controls_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_compact_controls_title"
+                        app:str_helpMessage="@string/tooltip_compact_controls_message" />
 
                 </LinearLayout>
             </LinearLayout>

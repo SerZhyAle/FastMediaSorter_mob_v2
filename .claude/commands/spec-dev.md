@@ -103,7 +103,7 @@ After all phases done:
           '{"file":"app_v2/src/.../X.kt","target":"spec-dev","desc":"<phase-NN.M edit summary>"}'
           # ...one entry per modified source file
         ) `
-      -FuncOp <ADD|CHANGE|""> -FuncDesc "<english summary or omit>" `
+      -FuncOp <ADD|CHANGE|DELETE|""> -FuncDesc "<english summary or omit>" `
       -FeatArea "<inventory area, e.g. Video Player>" -FeatFlavors "standard,vr" `
       -CatalogModule app_v2
   ```
@@ -113,6 +113,7 @@ After all phases done:
   Feature-inventory block (records the delivered capability in `docs/ALL_FEATURES.jsonl`, the EN-only developer inventory that replaced `dev/FUNCTIONALITY.log`). `docs/FEATURES*` is the curated public showcase and is touched ONLY by `/skill-release` from the inventory diff - never write a per-spec entry into FEATURES here:
   - **`ADD`** - spec introduces a new user-visible capability (no prior equivalent). Hints: §2 Goals describe a new feature; touched files are new classes / new screens / new menu entries. Pass `-FeatArea`/`-FeatFlavors` so the record lands in the right area with correct flavor availability.
   - **`CHANGE`** - spec modifies an existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change.
+  - **`DELETE`** - spec removes a previously-shipped user-visible capability without archiving the spec. Marks the existing record `status: removed` (keeps it for history). Use when §2 Goals remove a feature/menu/screen. (Archiving a capability-removing spec instead uses `/spec-arc --removes-functionality`.)
   - Pass `-SkipFuncLog` (or omit `-FuncOp`) when the spec is purely internal (refactor, performance, build/CI plumbing). Document the skip in chat output.
   - Description: concise user-visible summary, reusing the spec title or first sentence of §2 Goals. EN-only.
   - For a richer record, run `scripts/all_features/add.ps1` directly with `-Id <area>.<feature> -Area -Name -Description -Flavors [-Spec Sxxxx]` instead of the `-FuncOp` shortcut.
@@ -206,5 +207,5 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
   - Before the first non-done step is started: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if already `In Progress` or later).
   - After every phase has all steps `[x] done` and final dev log is written: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
   - When flipping to `BlockNeedUserTest` (on-device acceptance): the `Timber.d("Sxxxx: …")` debug tags were already inserted before the final phase's build (see Process - "Final-phase debug-tag insertion"); here just `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest -StatusNote '<1-2 sentences: what the user must verify on device>'`.
-  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions|BlockExternal|BlockByOtherTask -StatusNote '<reason and what resolves it>'` — the note is **mandatory** for every Block* transition.
+  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions|BlockExternal|BlockByOtherTask -StatusNote '<reason and what resolves it>'` - the note is **mandatory** for every Block* transition.
 - **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never set the journal status to `Verified` from this skill - that is `/spec-check`'s job.

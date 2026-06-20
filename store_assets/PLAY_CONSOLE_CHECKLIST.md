@@ -1,5 +1,7 @@
 # Play Console Operator Checklist - S0135
 
+> Operator slice of the full standard production gate: `docs/RELEASE_READINESS_STANDARD.md` (verdict via `scripts/release/standard-release-gate.ps1`).
+
 Complete this checklist in Play Console → App content / Store listing before publishing to production.
 Check each item only after the change is confirmed in the Console UI.
 

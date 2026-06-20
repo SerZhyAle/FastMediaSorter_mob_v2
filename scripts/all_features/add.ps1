@@ -16,15 +16,21 @@
     .\scripts\all_features\add.ps1 -Id "video.session_restore" -Area "Video Player" `
         -Name "Session save and restore" -Description "Remembers exact playback coordinates" `
         -Flavors "standard,vr" -Spec S0001
+
+.EXAMPLE
+    # List the distinct areas already in use (no exploratory ConvertFrom-Json needed):
+    .\scripts\all_features\add.ps1 -ListAreas
 #>
+[CmdletBinding(DefaultParameterSetName = 'Add')]
 param(
-    [Parameter(Mandatory = $true)] [string]$Id,
-    [Parameter(Mandatory = $true)] [string]$Area,
-    [Parameter(Mandatory = $true)] [string]$Name,
-    [Parameter(Mandatory = $true)] [string]$Description,
-    [Parameter(Mandatory = $true)] [string]$Flavors,
-    [Parameter(Mandatory = $false)] [string]$Spec = "",
-    [Parameter(Mandatory = $false)] [ValidateSet("active", "removed")] [string]$Status = "active",
+    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Id,
+    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Area,
+    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Name,
+    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Description,
+    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Flavors,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Spec = "",
+    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [ValidateSet("active", "removed")] [string]$Status = "active",
+    [Parameter(Mandatory = $true, ParameterSetName = 'List')] [switch]$ListAreas,
     [switch]$NoLegal,
     [switch]$Quiet
 )
@@ -50,6 +56,19 @@ if (-not $repoRoot -or -not (Test-Path (Join-Path $repoRoot "settings.gradle.kts
 }
 $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
 $dataFile = Join-Path (Join-Path $repoRoot "docs") $fileName
+
+# -ListAreas: print the distinct areas already in the inventory and exit. Lets a
+# caller pick an existing area name without a separate exploratory ConvertFrom-Json pass.
+if ($ListAreas) {
+    if (Test-Path $dataFile) {
+        @(Get-Content -LiteralPath $dataFile -Encoding UTF8 |
+            Where-Object { $_.Trim().Length -gt 0 } |
+            ForEach-Object { try { ($_ | ConvertFrom-Json).area } catch { } } |
+            Where-Object { $_ } |
+            Sort-Object -Unique) | ForEach-Object { Write-Output $_ }
+    }
+    exit 0
+}
 
 # Normalize / validate fields (mirror docs/ALL_FEATURES.schema.json)
 $idN = $Id.Trim()

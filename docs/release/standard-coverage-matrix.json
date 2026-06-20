@@ -1,0 +1,38 @@
+{
+  "generatedFor": "standard",
+  "spec": "S0553",
+  "evidenceLevels": [
+    "static",
+    "fast-build",
+    "release-build",
+    "emulator-spine",
+    "manual-device",
+    "play-console"
+  ],
+  "groups": [
+    { "group": "local + SMB + SFTP + FTP resources", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "prerelease spine exercises LOCAL + SFTP; SMB is register-only behind emulator NAT - verify on a real LAN" },
+    { "group": "cloud resources + auth (OAuth/MSAL/Dropbox)", "coverage": "partial", "evidenceLevel": "manual-device", "note": "release-identity OAuth/MSAL/Dropbox callbacks must be proven on the release signing identity (release-only auth seam)" },
+    { "group": "video playback", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "prerelease spine plays sample + large video" },
+    { "group": "audio + persistent playback", "coverage": "partial", "evidenceLevel": "manual-device", "note": "playback covered by spine; persistent notification + Doze survival is a manual-device check" },
+    { "group": "image viewing", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "" },
+    { "group": "PDF / EPUB / text", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "" },
+    { "group": "OCR", "coverage": "partial", "evidenceLevel": "manual-device", "note": "depends on the OCR engine being installed; expected fallback otherwise" },
+    { "group": "translation", "coverage": "partial", "evidenceLevel": "manual-device", "note": "ML Kit downloadable model path - verify on device" },
+    { "group": "Cast (Chromecast)", "coverage": "partial", "evidenceLevel": "manual-device", "note": "best-effort waiver (S0553 §3.3) - physical Cast proof only when a change touches the Cast subsystem" },
+    { "group": "Wear companion", "coverage": "partial", "evidenceLevel": "manual-device", "note": "best-effort waiver (S0553 §3.3) - paired-watch proof only when a change touches the Wear subsystem" },
+    { "group": "quick widgets + default-player integration", "coverage": "partial", "evidenceLevel": "manual-device", "note": "home-screen widgets + system default-player handoff are manual-device checks" },
+    { "group": "statistics + backup/restore + settings search", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "" },
+    { "group": "R8 / shrink integrity of the release artifact", "coverage": "covered", "evidenceLevel": "release-build", "note": "standard-release-smoke.ps1 on the minified APK" },
+    { "group": "standard feature surface vs baseline", "coverage": "covered", "evidenceLevel": "static", "note": "standard-surface-snapshot.ps1 -CheckRegressions" },
+    { "group": "VR immersive player", "coverage": "intentionally-excluded", "evidenceLevel": "static", "note": "SUPPORT_VR_PLAYER=false in standard (S0553 §5.1)" },
+    { "group": "noLegal-only capabilities", "coverage": "intentionally-excluded", "evidenceLevel": "static", "note": "IS_NO_LEGAL_FLAVOR=false in standard (S0553 §5.1)" }
+  ],
+  "coverageGaps": [
+    {
+      "gap": "single-device matrix",
+      "decision": "S0553 §3.3 owner decision: one recent phone is the minimum device matrix",
+      "unproven": "API-level diversity (26-30 vs 33-35), OEM behavior, D-pad/TV, multi-form-factor",
+      "status": "accepted, recorded (not a silent PASS; ADR-2)"
+    }
+  ]
+}

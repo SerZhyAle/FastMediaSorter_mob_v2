@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true">
@@ -18,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/translation_source_language"
-            android:textColor="#A1A1AA"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
@@ -34,14 +35,14 @@
             android:layout_marginBottom="16dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textColor="#FFFFFF" />
+            android:textColor="?attr/colorOnSurface" />
 
         <!-- Target Language Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/translation_target_language"
-            android:textColor="#A1A1AA"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
@@ -57,48 +58,16 @@
             android:layout_marginBottom="16dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textColor="#FFFFFF" />
+            android:textColor="?attr/colorOnSurface" />
 
-        <!-- OCR Only Checkbox -->
-        <LinearLayout
+        <!-- OCR Only -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/cbOcrOnly"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:layout_marginTop="8dp">
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbOcrOnly"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_camera_ocr_only_title"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_camera_ocr_only_desc"
-                    android:textColor="#A1A1AA"
-                    android:textSize="12sp"
-                    android:layout_marginTop="2dp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+            android:layout_marginTop="8dp"
+            app:str_title="@string/setting_camera_ocr_only_title"
+            app:str_subtitle="@string/setting_camera_ocr_only_desc" />
 
     </LinearLayout>
 

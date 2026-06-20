@@ -14,6 +14,7 @@ import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
@@ -34,6 +35,9 @@ class ScheduledOperationDialog(
 ) : Dialog(context) {
 
     private lateinit var b: DialogScheduledOperationBinding
+
+    // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
+    private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
 
     private val nextRunFormat = SimpleDateFormat("yy-MM-dd HH:mm", Locale.getDefault())
 
@@ -109,11 +113,12 @@ class ScheduledOperationDialog(
     }
 
     private fun setupConditionsCollapse() {
-        b.headerConditions.setExpanded(false, notify = false)
-        b.containerConditionsContent.visibility = View.GONE
-        b.headerConditions.setOnExpandedChangeListener { expanded ->
-            b.containerConditionsContent.visibility = if (expanded) View.VISIBLE else View.GONE
-        }
+        sectionsManager.register(
+            header = b.headerConditions,
+            container = b.containerConditionsContent,
+            key = "scheduled_operation__conditions",
+            defaultExpanded = false,
+        )
     }
 
     private fun setupSaveButtonState() {
@@ -191,7 +196,7 @@ class ScheduledOperationDialog(
                 addView(pickerMinutes, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             }
 
-            androidx.appcompat.app.AlertDialog.Builder(context)
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.scheduled_ops_col_schedule))
                 .setView(row)
                 .setPositiveButton(android.R.string.ok) { _, _ ->

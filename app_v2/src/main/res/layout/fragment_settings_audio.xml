@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-    <!-- Support audio — help payload folded into the row -->
+    <!-- Support audio - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSupportAudio"
         android:layout_width="match_parent"
@@ -29,7 +29,7 @@
         app:str_title="@string/search_audio_covers_online"
         app:str_subtitle="@string/setting_search_audio_covers_online_desc" />
 
-    <!-- Search covers only on WiFi (sub-option of searchAudioCoversOnline) — visibility toggled in fragment -->
+    <!-- Search covers only on WiFi (sub-option of searchAudioCoversOnline) - visibility toggled in fragment -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSearchCoversOnlyWifi"
         android:layout_width="match_parent"
@@ -74,7 +74,7 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <!-- Enable photos during audio playback — help payload folded into the row -->
+    <!-- Enable photos during audio playback - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowEnablePhotosDuringAudio"
         android:layout_width="match_parent"
@@ -94,7 +94,7 @@
 
         <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_photos_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <Button android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <!-- Audio empty state animation mode -->
@@ -138,9 +138,9 @@
         app:str_title="@string/background_audio_setting_title"
         app:str_subtitle="@string/background_audio_setting_summary" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnNotificationPermission"
-        style="@style/Widget.FastMediaSorter.SettingsButton.TextM3"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/manage_notifications_permission"
@@ -213,7 +213,7 @@
 
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetDefaultAudioPlayer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="match_parent"

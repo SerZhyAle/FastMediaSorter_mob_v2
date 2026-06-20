@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">Налаштування</string>
-    <string name="settings_3d_vr_help_message">3D VR — це занурений перегляд відео та фото на гарнітурах типу Meta Quest 3 і Android XR. На пристроях без підтримки XR-середовища перемикач залишається недоступним. Додаток сам визначає формат відео (SBS, OU, 360°, VR180); ручний вибір доступний у діалозі плеера.</string>
+    <string name="settings_3d_vr_help_message">3D VR - це занурений перегляд відео та фото на гарнітурах типу Meta Quest 3 і Android XR. На пристроях без підтримки XR-середовища перемикач залишається недоступним. Додаток сам визначає формат відео (SBS, OU, 360°, VR180); ручний вибір доступний у діалозі плеера.</string>
     <string name="settings_3d_vr_help_title">Про режим 3D VR</string>
     <string name="settings_accept_shared_files">Приймати спільні файли</string>
     <string name="settings_already_default_player">✓ Вже встановлено за замовчуванням</string>
@@ -181,7 +181,7 @@
     <string name="setting_skip_camera_filename_dialog">Не питати ім\'я файлу результату зйомки</string>
     <string name="setting_skip_camera_filename_dialog_summary">Використовувати ім\'я за часом зйомки без діалогу</string>
     <string name="setting_slideshow_background_music_desc">Список аудіо під час перегляду (обираєш зображення - слухаєш аудіо)</string>
-    <string name="setting_small_controls_desc">Зменшує командні кнопки внизу для економії місця</string>
+    <string name="setting_small_controls_desc">Зменшує кнопки керування внизу плеєра для економії місця</string>
     <string name="setting_support_audio_desc">Відтворення MP3, FLAC, AAC, OGG та інших аудіоформатів</string>
     <string name="setting_support_epub_desc">Читає EPUB-книги із закладками та змістом</string>
     <string name="setting_support_gifs_desc">Відтворює анімовані GIF у браузері файлів та плеєрі</string>
@@ -200,7 +200,7 @@
     <string name="pref_panel_stereo_single_eye_summary">Якщо увімкнено, SBS- та OU-стерео-відео й повноекранні фото обрізаються до одного ока й розтягуються на весь екран - зручно дивитись без 3D-окулярів. Усталено: увімкнено. У зануреному VR-режимі налаштування автоматично вимикається, і стерео-кадр показується повністю.</string>
     <string name="pref_panel_stereo_single_eye_title">Показувати 3D-контент з одного ока</string>
     <string name="pref_prefetch_cache_auto">Авто</string>
-    <string name="pref_prefetch_cache_help_message">Визначає, скільки відео плеєр буферизує заздалегідь під час потокового відтворення.\n\n• Менше (0.5×) — мінімальна буферизація. Індикатор попереднього завантаження та пропозиція «зберегти кешоване відео» приховані. Економить диск і трафік; за повільної мережі можливі підвисання.\n• Авто — розмір за замовчуванням, підбирається плеєром залежно від пристрою та поточної мережі.\n• Більше (2×) — збільшений буфер для плавного відтворення за нестабільної мережі. Займає більше місця на диску.</string>
+    <string name="pref_prefetch_cache_help_message">Визначає, скільки відео плеєр буферизує заздалегідь під час потокового відтворення.\n\n• Менше (0.5×) - мінімальна буферизація. Індикатор попереднього завантаження та пропозиція «зберегти кешоване відео» приховані. Економить диск і трафік; за повільної мережі можливі підвисання.\n• Авто - розмір за замовчуванням, підбирається плеєром залежно від пристрою та поточної мережі.\n• Більше (2×) - збільшений буфер для плавного відтворення за нестабільної мережі. Займає більше місця на диску.</string>
     <string name="pref_prefetch_cache_help_title">Розмір попереднього кешу відео</string>
     <string name="pref_prefetch_cache_less">Менше (0.5×)</string>
     <string name="pref_prefetch_cache_more">Більше (2×)</string>

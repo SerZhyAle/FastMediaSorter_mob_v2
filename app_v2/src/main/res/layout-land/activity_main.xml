@@ -24,7 +24,7 @@
             <!-- Exit -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExit"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -54,7 +54,7 @@
             <!-- Add Resource -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddResource"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -89,7 +89,7 @@
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -124,7 +124,7 @@
             <!-- Refresh -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRefresh"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -167,7 +167,7 @@
                 <!-- Main window dropdown menu -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnMainDropdownMenu"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.FastMediaSorter.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/control_button_size"
                     android:background="?attr/selectableItemBackgroundBorderless"
@@ -205,7 +205,7 @@
             <!-- Settings -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -240,7 +240,7 @@
             <!-- Toggle List/Grid View -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnToggleView"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -271,7 +271,7 @@
             <!-- Favorites -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFavorites"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -302,7 +302,7 @@
             <!-- Start Player - double sized PLAY icon -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartPlayer"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -428,13 +428,13 @@
                 android:gravity="center"
                 android:textColor="@color/error_color" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRetry"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/button_margin_top_normal"
                 android:text="@string/retry"
-                style="@style/Widget.Material3.Button.TextButton" />
+                style="@style/Widget.FastMediaSorter.Button.Text" />
         </LinearLayout>
 
         <TextView

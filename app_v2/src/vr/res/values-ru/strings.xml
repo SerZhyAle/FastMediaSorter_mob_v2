@@ -15,7 +15,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">Учитывать встроенные метаданные</string>
     <string name="settings_stereo_vr_trust_metadata_summary">Определять по метаданным spatial-видео и фотосфер</string>
     <string name="settings_stereo_vr_trust_aspect_title">Угадывать по пропорциям</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">Менее надёжно — обычные широкие фото могут попасть в 3D</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Менее надёжно - обычные широкие фото могут попасть в 3D</string>
     <string name="settings_stereo_vr_ambiguity_title">Когда формат неясен</string>
     <string name="settings_stereo_vr_ambiguity_summary">Вкл: делать предположение. Выкл: открывать как 2D</string>
 

@@ -105,6 +105,9 @@ pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
 # also catches non-Hilt / @Inject-free collaborators)
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
 
+# Search across class, path, role, dependencies, or functions
+pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Search "Welcome"
+
 # Recently touched data-layer code
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -TouchedSince 2026-04-01
 
@@ -113,10 +116,12 @@ pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer ui -Coroutines -J
 ```
 
 All filters are AND'd. Supported: `-Layer`, `-Status`, `-SideEffect`,
-`-MinLoc`, `-MaxLoc`, `-ClassMatches` (glob), `-PathMatches` (glob),
+`-MinLoc`, `-MaxLoc`, `-ClassMatches` (glob), `-PathMatches` (glob), `-Search`,
 `-Injected`, `-DependsOn`, `-Missing role|description`, `-Coroutines`,
 `-UserFeedback`, `-Tests` / `-NoTests`, `-TouchedSince`, `-TouchedBefore`,
 `-Json`.
+
+`-Search <Term>` searches (case-insensitively) across class name, path, role description, injected types, constructor dependencies, and function names/descriptions.
 
 `-Injected <Type>` matches only `@Inject constructor` parameters; `-DependsOn
 <Type>` matches the broader `constructorDeps` (any constructor parameter type),

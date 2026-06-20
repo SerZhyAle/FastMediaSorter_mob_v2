@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.content.Context
 import android.content.pm.PackageManager
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import android.os.Build
@@ -14,9 +13,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import android.widget.LinearLayout
@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
 import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
@@ -55,21 +54,9 @@ class PlaybackSettingsFragment : Fragment() {
         requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
     }
 
-    companion object {
-        private const val PREFS_NAME = "playback_sections_state"
-        private const val KEY_SORTING_EXPANDED = "section_sorting_expanded"
-        private const val KEY_FILE_OPS_EXPANDED = "section_file_ops_expanded"
-        private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
-        private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
-        private const val KEY_SEND_COMMANDS_EXPANDED = "section_send_commands_expanded"
-    }
-
-    private data class ExpandableSection(
-        val header: CollapsibleSectionHeader,
-        val container: View,
-        val prefKey: String,
-        val defaultExpanded: Boolean,
-    )
+    // S0535: unified collapsible groups - one orchestrator + consolidated store replaces the
+    // fragment-local section state machine (was a UI-layer business-logic violation).
+    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsPlaybackBinding.inflate(inflater, container, false)
@@ -81,7 +68,7 @@ class PlaybackSettingsFragment : Fragment() {
         try {
             setupViews()
             setupSendCommandsGroup()
-            setupExpandableSections()
+            setupCollapsibleSections()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
             Toast.makeText(context, getString(R.string.error_init_settings), Toast.LENGTH_LONG).show()
@@ -184,6 +171,18 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
 
+        binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showSmallControls = isChecked))
+        }
+
+        binding.rowShowBlackScreenButton.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
+        }
+
         binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -223,7 +222,7 @@ class PlaybackSettingsFragment : Fragment() {
         }
 
         binding.btnResetPlaybackSection.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.reset_playback_section_title)
                 .setMessage(R.string.reset_playback_section_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -274,7 +273,6 @@ class PlaybackSettingsFragment : Fragment() {
      * S0463: each row also shows a description subtitle and a (?) help button.
      */
     private fun setupSendCommandsGroup() {
-        Timber.d("S0474: send-commands group built with fast titles; labels resolved async")
         val container = binding.containerSendCommands
         container.removeAllViews()
         sendCommandRows.clear()
@@ -338,7 +336,7 @@ class PlaybackSettingsFragment : Fragment() {
      * S0463: resolves the display label for a settings toggle row.
      *
      * Package-backed targets (non-empty [ShareTarget.packages]) show the installed app's own
-     * label via PackageManager — consistent with SendToBottomSheet (S0459 ADR-5) and avoids
+     * label via PackageManager - consistent with SendToBottomSheet (S0459 ADR-5) and avoids
      * hardcoded brand literals. Falls back to [ShareTarget.titleRes] when no package resolves.
      * Logical targets always use [ShareTarget.titleRes].
      */
@@ -394,8 +392,14 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
                     }
+                    if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
+                        binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
+                    }
                     if (binding.rowDetailedErrors.isChecked != settings.showDetailedErrors) {
                         binding.rowDetailedErrors.setCheckedSilently(settings.showDetailedErrors)
+                    }
+                    if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
+                        binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         if (binding.rowEnablePip.isChecked != settings.enablePictureInPicture) {
@@ -422,55 +426,12 @@ class PlaybackSettingsFragment : Fragment() {
         }
     }
 
-    private fun setupExpandableSections() {
-        val savedStates = getSavedSectionStates()
-        val sections = listOf(
-            ExpandableSection(binding.headerSortingSlideshow, binding.containerSortingSlideshow, KEY_SORTING_EXPANDED, false),
-            ExpandableSection(binding.headerFileOperations, binding.containerFileOperations, KEY_FILE_OPS_EXPANDED, false),
-            ExpandableSection(binding.headerPlayerUI, binding.containerPlayerUI, KEY_PLAYER_UI_EXPANDED, false),
-            ExpandableSection(binding.headerTouchZones, binding.containerTouchZones, KEY_TOUCH_ZONES_EXPANDED, false),
-            ExpandableSection(binding.headerSendCommands, binding.containerSendCommands, KEY_SEND_COMMANDS_EXPANDED, false),
-        )
-
-        sections.forEach { section ->
-            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
-            section.header.setExpanded(expanded, notify = false)
-            section.container.isVisible = expanded
-            section.header.setOnExpandedChangeListener { isExpanded ->
-                section.container.isVisible = isExpanded
-                saveSectionState(section.prefKey, isExpanded)
-            }
-        }
-    }
-
-    /**
-     * Get saved section states from SharedPreferences.
-     * Wrapped in StrictModeHelper to avoid violations during fragment creation.
-     */
-    private fun getSavedSectionStates(): Map<String, Boolean> {
-        return StrictModeHelper.allowDiskReads {
-            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            mapOf(
-                KEY_SORTING_EXPANDED to prefs.getBoolean(KEY_SORTING_EXPANDED, false),
-                KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
-                KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
-                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
-                KEY_SEND_COMMANDS_EXPANDED to prefs.getBoolean(KEY_SEND_COMMANDS_EXPANDED, false)
-            )
-        }
-    }
-
-    /**
-     * Save section expanded state to SharedPreferences.
-     * Wrapped in StrictModeHelper to avoid violations.
-     */
-    private fun saveSectionState(key: String, expanded: Boolean) {
-        StrictModeHelper.allowDiskWrites {
-            requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(key, expanded)
-                .apply()
-        }
+    private fun setupCollapsibleSections() {
+        sectionsManager.register(binding.headerSortingSlideshow, binding.containerSortingSlideshow, "playback__sorting")
+        sectionsManager.register(binding.headerFileOperations, binding.containerFileOperations, "playback__file_ops")
+        sectionsManager.register(binding.headerPlayerUI, binding.containerPlayerUI, "playback__player_ui")
+        sectionsManager.register(binding.headerTouchZones, binding.containerTouchZones, "playback__touch_zones")
+        sectionsManager.register(binding.headerSendCommands, binding.containerSendCommands, "playback__send_commands")
     }
 
     private fun getSortModeName(mode: SortMode): String {

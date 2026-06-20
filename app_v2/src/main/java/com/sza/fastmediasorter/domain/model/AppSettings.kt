@@ -197,7 +197,7 @@ data class AppSettings(
     val isPrimaryMediaPlayer: Boolean = false,
 
     // Phase 6: Accept shared media files (enables ACTION_SEND aliases in Share sheet)
-    // S0133: default ON — fresh installs register in OS share-sheet on first app launch (via bootstrap).
+    // S0133: default ON - fresh installs register in OS share-sheet on first app launch (via bootstrap).
     val acceptSharedFiles: Boolean = true,
 
     // X.11: Background thumbnail pre-generation
@@ -238,7 +238,7 @@ data class AppSettings(
     val linkDownloadAudioOnly: Boolean = false,
     val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
-    // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true).
+    // VR settings (spec §5.7/§8 - visible only when SUPPORT_VR_PLAYER == true).
     val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
     val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
     val vrPlayerEntryPromptDismissed: Boolean = false, // One-time player prompt for XR-capable devices with master toggle OFF
@@ -258,7 +258,7 @@ data class AppSettings(
     val stereoAutoDetectEnabled: Boolean = true,     // Master switch for automatic 3D/VR format recognition
     val stereoTrustFilename: Boolean = true,         // Trust filename markers (_SBS, _TB, 180, 360, ..)
     val stereoTrustMetadata: Boolean = true,         // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
-    val stereoTrustAspectRatio: Boolean = false,     // Aspect-ratio heuristic — off by default (the false-positive source)
+    val stereoTrustAspectRatio: Boolean = false,     // Aspect-ratio heuristic - off by default (the false-positive source)
     val stereoAmbiguityBestGuess: Boolean = false,   // On ambiguity: false → open as 2D, true → apply best guess
     // Global default applied by the coordinator ONLY when detection returned UNKNOWN; MONO == plain 2D.
     val stereoDefaultLayout: StereoMode = StereoMode.MONO,      // Flat-stereo default: MONO / SBS_FULL / OU
@@ -272,10 +272,10 @@ data class AppSettings(
     val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
     val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
 
-    // S0050: Black Screen mode — show/hide the black-screen toolbar button in audio/video players
+    // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
 
-    // S0028: Multi-window mode — allow opening Browse/Player in a separate window
+    // S0028: Multi-window mode - allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
 
     // S0162 / S0439: Screen rotation control

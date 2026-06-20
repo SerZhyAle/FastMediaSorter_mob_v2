@@ -75,7 +75,14 @@ class PlayerNavigationManager(
                     // Synchronize ViewModel state with controller state directly (no toggle to avoid loops)
                     viewModel.setSlideShowActive(isActive)
                     viewModel.setPaused(isPaused)
-                    activity.dialogAndUiStateManager.updateSlideShowButton()
+                    // S0550: this callback can fire during PlayerActivity init (initial displayImage ->
+                    // updateSlideshowState -> stopSlideshow) before dialogAndUiStateManager is assigned in
+                    // initUiCoordinators. Skip the UI sync until ready; the default inactive button state is
+                    // rendered correctly once init completes and state observers fire.
+                    if (activity.isDialogAndUiStateManagerInitialized) {
+                        Timber.d("S0550: onSlideshowStateChanged UI sync (active=$isActive paused=$isPaused)")
+                        activity.dialogAndUiStateManager.updateSlideShowButton()
+                    }
                     activity.updatePlayPauseButton()
                     
                     // Auto-enter fullscreen when slideshow starts
@@ -85,7 +92,10 @@ class PlayerNavigationManager(
                 }
 
                 override fun onCountdownTick(seconds: Int) {
-                    activity.dialogAndUiStateManager.updateCountdownDisplay(seconds)
+                    // S0550: same init-time race guard as onSlideshowStateChanged.
+                    if (activity.isDialogAndUiStateManagerInitialized) {
+                        activity.dialogAndUiStateManager.updateCountdownDisplay(seconds)
+                    }
                 }
                 
                 override fun onMemoryCacheClear() {

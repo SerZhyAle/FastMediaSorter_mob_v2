@@ -23,16 +23,17 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@android:string/cancel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnApply"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dialog_field_spacing"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
             android:text="@string/apply" />
 
     </LinearLayout>

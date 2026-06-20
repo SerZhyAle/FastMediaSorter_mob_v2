@@ -42,7 +42,7 @@ object GmsAvailabilityChecker {
     fun check(context: Context) {
         // XR / VR headsets (Meta Quest, Android XR devices) do not ship Google Play Services
         // and there is no "update Play Services" CTA the user can actually act on. Skip the
-        // check entirely so [status] stays [Status.OK] by default — this naturally suppresses
+        // check entirely so [status] stays [Status.OK] by default - this naturally suppresses
         // the BaseActivity snackbar and the GeneralSettingsFragment CTA row.
         // [recheckFor] is intentionally NOT guarded: cloud sign-in flows that probe Credential
         // Manager still need an honest live answer (it will simply report UNAVAILABLE on Quest).

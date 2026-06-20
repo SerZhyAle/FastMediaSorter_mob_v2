@@ -292,33 +292,33 @@
         android:layout_marginTop="@dimen/margin_large"
         android:gravity="end">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnImportLog"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/dialog_integration_test_btnImportLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCopyLog"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/dialog_integration_test_btnCopyLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveLog"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/dialog_integration_test_btnSaveLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/dialog_integration_test_btnClose_text" />

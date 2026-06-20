@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape (S0378): both ScrollViews use dialog_landscape_list_max_height to fit within landscape
-     screen height; main message sits on a distinct surface; single compact icon action row. -->
+<!-- Landscape (S0544): action row pinned at the TOP so it is always visible. Landscape windows are
+     short; with the row at the bottom the title + fixed-height message scroll + row exceeded the
+     window height and the whole action row was clipped off-screen. Mirrors dialog_resource_picker.
+     Both ScrollViews keep dialog_landscape_list_max_height; main message sits on a distinct surface. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -8,70 +10,13 @@
     android:orientation="vertical"
     android:padding="@dimen/padding_large">
 
-    <!-- Main user-readable message on a distinct surface, scrollbar always visible -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_landscape_list_max_height"
-        android:background="@drawable/bg_dialog_scroll_surface"
-        android:padding="@dimen/padding_small"
-        android:scrollbars="vertical"
-        android:scrollbarStyle="insideInset"
-        android:fadeScrollbars="false">
-
-        <TextView
-            android:id="@+id/tvErrorMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textIsSelectable="true"
-            android:breakStrategy="simple"
-            android:lineSpacingMultiplier="1.2"
-            android:paddingStart="@dimen/dialog_button_icon_padding"
-            android:paddingEnd="@dimen/dialog_button_icon_padding"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-
-    </ScrollView>
-
-    <!-- Collapsible details toggle (hidden when no details provided) -->
-    <TextView
-        android:id="@+id/tvDetailsToggle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/padding_large"
-        android:clickable="true"
-        android:focusable="true"
-        android:textStyle="bold"
-        android:textSize="@dimen/toggler_title_text_size"
-        android:text="@string/error_dialog_show_details"
-        android:visibility="gone" />
-
-    <!-- Collapsible details section (stack trace / technical info) -->
-    <ScrollView
-        android:id="@+id/scrollDetails"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_landscape_list_max_height"
-        android:layout_marginTop="@dimen/padding_large"
-        android:scrollbars="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tvErrorDetails"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textIsSelectable="true"
-            android:breakStrategy="simple"
-            android:lineSpacingMultiplier="1.2"
-            android:paddingStart="@dimen/dialog_button_icon_padding"
-            android:paddingEnd="@dimen/dialog_button_icon_padding"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-
-    </ScrollView>
-
-    <!-- Compact icon action row (all actions wired in ErrorDialog.kt) -->
+    <!-- Compact icon action row (all actions wired in ScrollableTextDialog). Pinned at the top in
+         landscape (S0544) so it is never clipped by the short window. -->
     <LinearLayout
         android:id="@+id/layoutDialogActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginBottom="@dimen/padding_large"
         android:gravity="end|center_vertical"
         android:orientation="horizontal">
 
@@ -133,5 +78,64 @@
             app:icon="@drawable/ic_clear" />
 
     </LinearLayout>
+
+    <!-- Main user-readable message on a distinct surface, scrollbar always visible -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_landscape_list_max_height"
+        android:background="@drawable/bg_dialog_scroll_surface"
+        android:padding="@dimen/padding_small"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="insideInset"
+        android:fadeScrollbars="false">
+
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:breakStrategy="simple"
+            android:lineSpacingMultiplier="1.2"
+            android:paddingStart="@dimen/dialog_button_icon_padding"
+            android:paddingEnd="@dimen/dialog_button_icon_padding"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+
+    </ScrollView>
+
+    <!-- Collapsible details toggle (hidden when no details provided) -->
+    <TextView
+        android:id="@+id/tvDetailsToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:textStyle="bold"
+        android:textSize="@dimen/toggler_title_text_size"
+        android:text="@string/error_dialog_show_details"
+        android:visibility="gone" />
+
+    <!-- Collapsible details section (stack trace / technical info) -->
+    <ScrollView
+        android:id="@+id/scrollDetails"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_landscape_list_max_height"
+        android:layout_marginTop="@dimen/padding_large"
+        android:scrollbars="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvErrorDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:breakStrategy="simple"
+            android:lineSpacingMultiplier="1.2"
+            android:paddingStart="@dimen/dialog_button_icon_padding"
+            android:paddingEnd="@dimen/dialog_button_icon_padding"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+
+    </ScrollView>
 
 </LinearLayout>

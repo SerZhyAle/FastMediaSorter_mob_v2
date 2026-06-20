@@ -1,16 +1,16 @@
 ---
-name: project-functionality-log
-description: dev/FUNCTIONALITY.log - developer journal of user-visible functionality lifecycle (ADD/CHANGE/DELETE/FIX), separate from dev/CHANGELOG.md and docs/FEATURES.md
+name: capability-inventory-all-features
+description: dev/FUNCTIONALITY.log + add_to_functionality_log.ps1 RETIRED (S0489); capability records go to docs/ALL_FEATURES.jsonl; FEATURES*.md is /skill-release-owned
 metadata:
   type: project
 ---
 
-`dev/FUNCTIONALITY.log` is a plain-text developer journal of user-visible functionality lifecycle, introduced 2026-05-14. It sits between the two existing journals:
+The free-text functionality log was retired and replaced by a structured capability inventory.
 
-- `dev/CHANGELOG.md` - every code/config touch (low-level, written via `scripts/add_to_dev_log.ps1`).
-- `docs/FEATURES.md` (+ `_RU`/`_UK`) - public end-user catalogue of significant features only.
-- `dev/FUNCTIONALITY.log` - internal history of *which* user-visible capability was created/changed/deleted/fixed, when, and under which `Sxxxx` ticket.
+**Why:** S0489 migrated user-visible-capability tracking from the plain-text `dev/FUNCTIONALITY.log` to a schema-validated JSONL inventory (`docs/ALL_FEATURES.jsonl`, EN-only, one JSON object per line, upsert-by-id). `scripts/add_to_functionality_log.ps1` now hard-errors pointing at the replacement.
 
-**Why:** the author wants a grep-friendly developer audit trail of feature lifecycle that survives even when `docs/FEATURES.md` updates are skipped (refactors, polish, internal capabilities, `/quick` tweaks). `CHANGELOG.md` is too noisy for this purpose; `FEATURES.md` is too curated.
-
-**How to apply:** When the doc-writer's polish introduces a user-visible behaviour clarification (not just rewording) - e.g. a help string newly admits that "video keeps playing on lock" or a release note documents a hidden gesture - call `scripts/add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"` for that change. Pure copy polish without behavioural shift is logged in `dev/CHANGELOG.md` only via the standard post-change ritual. Line format is fixed by the script: `[YYYY-MM-DD HH:MM] [Sxxxx|------] [OP    ] <english description>`. Omit `-Id` for entries without a spec ticket.
+**How to apply:**
+- Do NOT call `scripts/add_to_functionality_log.ps1` - retired, errors out.
+- If doc-writing surfaces a genuinely new/changed user-visible *behaviour* (not just reworded copy), record the capability via `pwsh -NoProfile -File scripts/all_features/add.ps1 -Id "<area>.<feature>" -Area "<Area>" -Name "<Name>" -Description "<EN desc>" -Flavors "<list>" [-Spec Sxxxx]` (EN-only; `-NoLegal` for noLegal-only; `-ListAreas` to pick a valid area). Usually the owning spec skill already recorded it - check `docs/ALL_FEATURES.jsonl` before adding.
+- Pure copy polish with no behavioural shift = `dev/CHANGELOG.md` only via the standard post-change ritual; no inventory entry.
+- `docs/FEATURES*.md` (EN/RU/UK) is the curated public showcase, edited ONLY by `/skill-release` from the `ALL_FEATURES` diff since the last release - never write a per-spec/per-doc entry into FEATURES yourself. noLegal showcase lives in gitignored `docs/FEATURES_noLegal*.md`.

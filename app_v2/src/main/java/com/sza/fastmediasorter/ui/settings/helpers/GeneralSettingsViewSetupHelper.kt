@@ -9,11 +9,11 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
@@ -127,10 +127,6 @@ class GeneralSettingsViewSetupHelper(
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
-        binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(showSmallControls = isChecked))
-        }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
                 if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
@@ -138,7 +134,7 @@ class GeneralSettingsViewSetupHelper(
                 if (current.useCompactElements == isChecked) return@setOnCheckedChangeListener
                 // Player controls layout is bound to this flag at inflate time (see PlayerLayoutModePrefs);
                 // the switch only takes effect after an app restart, so confirm with the user first.
-                AlertDialog.Builder(fragment.requireContext())
+                MaterialAlertDialogBuilder(fragment.requireContext())
                     .setTitle(R.string.restart_app_title)
                     .setMessage(R.string.restart_app_compact_elements_message)
                     .setCancelable(false)
@@ -260,7 +256,7 @@ class GeneralSettingsViewSetupHelper(
             viewModel.updateSettings(transform(current))
             return
         }
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.settings_remote_source_disable_confirm_title)
             .setMessage(R.string.settings_remote_source_disable_confirm_message)
             .setCancelable(false)
@@ -546,7 +542,7 @@ class GeneralSettingsViewSetupHelper(
             viewModel.updateSettings(current.copy(defaultUser = newUser))
         }
         if (ownerTrigger.isNotEmpty() && newUser.equals(ownerTrigger, ignoreCase = true)) {
-            AlertDialog.Builder(fragment.requireContext())
+            MaterialAlertDialogBuilder(fragment.requireContext())
                 .setTitle(R.string.import_resources_title)
                 .setMessage(R.string.import_resources_message)
                 .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
@@ -662,7 +658,7 @@ class GeneralSettingsViewSetupHelper(
 
     private fun showRestartDialog(previousLanguageCode: String, newLanguageCode: String) {
         val languageName = languageDisplayName(newLanguageCode)
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_message, languageName))
             .setPositiveButton(R.string.restart) { _, _ ->

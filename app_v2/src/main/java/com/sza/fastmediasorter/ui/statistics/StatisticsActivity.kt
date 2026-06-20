@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityStatisticsBinding
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -32,6 +33,9 @@ class StatisticsActivity : BaseActivity<ActivityStatisticsBinding>() {
 
     private val viewModel: StatisticsViewModel by viewModels()
 
+    // S0510: no own F1 handler - declare the surface so BaseActivity's global F1 opens input help.
+    override fun getInputHelpSurface(): UiSurface = UiSurface.MAIN
+
     @Inject
     lateinit var reportShareManager: StatisticsReportShareManager
 
@@ -48,7 +52,6 @@ class StatisticsActivity : BaseActivity<ActivityStatisticsBinding>() {
     override fun getMouseScrollTargetView(): View = binding.rvStatistics
 
     override fun setupViews() {
-        Timber.d("S0473: statistics window opened")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }

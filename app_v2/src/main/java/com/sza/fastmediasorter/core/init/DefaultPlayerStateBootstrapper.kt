@@ -33,7 +33,6 @@ object DefaultPlayerStateBootstrapper {
         // toast during onboarding. All other call sites already gate on this capability; the
         // bootstrapper must too.
         if (!caps.supportsDefaultPlayer) {
-            Timber.d("S0477: skip default player bootstrap (supportsDefaultPlayer=false)")
             return
         }
         val settings = settingsRepository.getSettings().first()

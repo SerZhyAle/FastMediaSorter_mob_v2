@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.util
 
+import android.os.Build
 import android.os.Environment
 import com.sza.fastmediasorter.domain.model.MediaResource
 import java.io.File
@@ -15,6 +16,8 @@ import java.io.File
  * - camera photos: selected writable target, else the device camera folder (DCIM/Camera),
  *   falling back to Downloads when that folder is unavailable.
  * - video recordings: selected writable target, else the public Movies folder.
+ * - quick voice notes (S0523, main-menu capture): always the public recordings folder
+ *   (Recordings on API 31+, Music below) - no resource selection.
  *
  * "Empty" is never an error - it deterministically resolves to the documented fallback.
  * A selected resource is honoured only when it is a real, writable, on-device folder
@@ -51,6 +54,14 @@ object CaptureDestinationPolicy {
     fun resolveVideoDestination(selectedResource: MediaResource?): File =
         usableTargetDirectory(selectedResource) ?: publicMoviesDirectory()
 
+    /**
+     * S0523: resolves the target directory for a quick voice note captured from the main overflow
+     * menu. Always a public folder - the phone's recordings collection on API 31+, the public Music
+     * folder below (and as a fallback when the recordings folder cannot be created). No resource
+     * parameter: the quick-capture entry never targets a sorting resource.
+     */
+    fun resolveQuickVoiceDestination(): File = publicRecordingsDirectory()
+
     /** True when [resource] is a real, writable, on-device folder usable as a capture target. */
     fun isUsableTarget(resource: MediaResource?): Boolean {
         if (resource == null || resource.isReadOnly) return false
@@ -84,4 +95,21 @@ object CaptureDestinationPolicy {
 
     private fun publicMoviesDirectory(): File =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+
+    private fun publicMusicDirectory(): File =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+
+    private fun publicRecordingsDirectory(): File {
+        // DIRECTORY_RECORDINGS exists only on API 31+; on older devices the dictaphone artifact goes
+        // to the public Music folder (the in-repo precedent), which also classifies as AUDIO.
+        val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
+        } else {
+            publicMusicDirectory()
+        }
+        val usable = (dir.exists() && dir.isDirectory) ||
+            dir.mkdirs() ||
+            (dir.exists() && dir.isDirectory)
+        return if (usable) dir else publicMusicDirectory()
+    }
 }

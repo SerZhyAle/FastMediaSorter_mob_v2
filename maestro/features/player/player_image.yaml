@@ -1,0 +1,40 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Open a large image in the player - S0550 regression (S0551 Phase 04).
+# Precondition: seeded photo_001.jpg (4032x2268) indexed in virtual://all_images.
+# Oracle: the image surface (photoView) renders and no crash-report prompt appears -
+#   this is the deterministic regression for S0550 (player crash on large image open).
+# No clearState (preserve the MediaStore-backed listing); element-only oracle (image has
+# no completion log marker).
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Все изображения"
+    timeout: 10000
+- tapOn:
+    text: "Все изображения"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+# Open the large image that crashed in S0550.
+- tapOn:
+    text: "photo_001.jpg"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/photoView"
+    timeout: 15000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/photoView"
+# Crash guard: no crash-report prompt surfaced from the open.
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

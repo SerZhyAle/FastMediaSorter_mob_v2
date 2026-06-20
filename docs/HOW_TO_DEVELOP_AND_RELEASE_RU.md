@@ -144,6 +144,7 @@ git cherry-pick --continue
 - Ты на `DEBUG-v00N` (не на `main`).
 - Рабочее дерево чистое (`git status` показывает nothing to commit).
 - `P:/ANDROID/FastMediaSorter_release` существует (`git worktree list` должен показать оба дерева).
+- Standard production readiness gate пройден: `docs/RELEASE_READINESS_STANDARD.md` (вердикт `scripts/release/standard-release-gate.ps1` -> PASS или WAIVED).
 
 ### Шаги
 

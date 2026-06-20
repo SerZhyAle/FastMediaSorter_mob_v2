@@ -39,6 +39,15 @@ class KeybindingRowLabelFormatter @Inject constructor(
         return if (id != 0) context.getString(id) else resName
     }
 
+    /** Localised label for an input-device slot key (matches the device strings produced by deviceOf). */
+    fun deviceLabel(device: String): String = when (device) {
+        "keyboard" -> context.getString(R.string.keybinding_device_keyboard)
+        "gamepad" -> context.getString(R.string.keybinding_device_gamepad)
+        "mouse" -> context.getString(R.string.keybinding_device_mouse)
+        "vr" -> context.getString(R.string.keybinding_device_vr)
+        else -> device
+    }
+
     // ----- private formatters -----
 
     private fun formatKey(trigger: InputTrigger.Key): String {

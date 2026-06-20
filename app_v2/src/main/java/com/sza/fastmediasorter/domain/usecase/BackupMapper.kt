@@ -466,7 +466,7 @@ object BackupMapper {
     private fun String.gsonSafe(fallback: String): String = (this as? String) ?: fallback
     private fun <T> List<T>.gsonSafeList(): List<T> = (this as? List<T>) ?: emptyList()
 
-    // Safe enum parsers — fall back to defaults for forward compatibility
+    // Safe enum parsers - fall back to defaults for forward compatibility
     private fun safeParseSortMode(value: String): com.sza.fastmediasorter.domain.model.SortMode {
         return try { com.sza.fastmediasorter.domain.model.SortMode.valueOf(value) }
         catch (_: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -431,9 +432,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 Result.FellBackToDownloads(
                     fileName = writeResult.fileName,
                     reason = when (writeResult.reason) {
-                        LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
-                        LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
-                        LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
+                        SaveFallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
+                        SaveFallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
+                        SaveFallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
                     },
                     openInPlayerUri = writeResult.destinationUri,
                 )
@@ -619,9 +620,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
                             fileName = writeResult.fileName,
                             reason = when (writeResult.reason) {
-                                LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
-                                LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
-                                LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
+                                SaveFallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
+                                SaveFallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
+                                SaveFallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
                             },
                             openInPlayerUri = writeResult.destinationUri,
                         )

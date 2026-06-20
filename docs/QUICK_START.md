@@ -20,7 +20,7 @@ FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use
 | **Standard** ⭐ | Everyone | Full features: videos, photos, audio, documents, cloud storage, translation |
 | **Lite** | Smaller downloads | Photos + videos only (no audio, cloud) |
 | **Photos** | Photo enthusiasts | Images only, optimized for photo work |
-| **Legacy** | Local media only | Videos, audio, photos - no cloud/network features |
+| **Legacy** | Older Android (API 23+) | Full media + SMB/FTP/SFTP and cloud; built for older Android (API 23+) |
 | **VR / noLegal** | XR headset / sideload | OpenXR and sideload-only extras on supported hardware |
 
 **👉 Most users should download the "Standard" flavor for the complete experience.**
@@ -196,18 +196,10 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Home Screen Widgets
 
-FastMediaSorter v2 offers two widget types:
+FastMediaSorter v2 ships a variety of home-screen widgets. Long-press your home screen → Widgets → FastMediaSorter to browse them. Highlights include:
 
-1. **Resource Shortcut Widget:**
-   - Long-press home screen → Widgets → FastMediaSorter
-   - Select "Resource Shortcut"
-   - Choose which resource to link
-   - Tap widget to instantly open that resource
-
-2. **Continue Reading Widget:**
-   - Add the "Continue Reading" widget  
-   - Tap to launch app in slideshow mode
-   - Perfect for quick photo viewing sessions
+- **Resource Shortcut** - tap to instantly open any of your resources
+- **Continue Reading** - launches the app straight into slideshow mode
 
 ---
 

@@ -234,9 +234,19 @@ class LinkDownloadWorker @AssistedInject constructor(
                 }
             }
             is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> {
+                // S0522: when the configured destination was unavailable (or its write failed), tell
+                // the user the file went to Downloads instead. A plain "no destination configured"
+                // fallback keeps the neutral saved-text - the redirect there needs no explanation.
+                val textRes = when (result.reason) {
+                    LinkAutoDownloadCoordinator.FallbackReason.ResourceUnavailable,
+                    LinkAutoDownloadCoordinator.FallbackReason.ResourceWriteFailed ->
+                        R.string.link_download_notif_text_saved_fallback
+                    LinkAutoDownloadCoordinator.FallbackReason.NoResourceConfigured ->
+                        R.string.link_download_notif_text_saved
+                }
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
-                    .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
+                    .setContentText(context.getString(textRes, result.fileName))
                 // S0257: see Saved branch.
                 result.openInPlayerUri?.let {
                     builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))

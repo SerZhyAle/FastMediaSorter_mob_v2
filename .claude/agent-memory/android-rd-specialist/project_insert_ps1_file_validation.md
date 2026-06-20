@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-`scripts/spec_catalog/insert.ps1 -File <path>` validates the path against `^PLAN/S\d{4}_(?!spec_)` and **exits 1** on anything else — including the literal `PLAN/placeholder` / `PLAN/<placeholder>` that the `/spec` skill doc tells you to pass ("harmless because step 5 overwrites it"). That documented placeholder flow is broken.
+`scripts/spec_catalog/insert.ps1 -File <path>` validates the path against `^PLAN/S\d{4}_(?!spec_)` and **exits 1** on anything else - including the literal `PLAN/placeholder` / `PLAN/<placeholder>` that the `/spec` skill doc tells you to pass ("harmless because step 5 overwrites it"). That documented placeholder flow is broken.
 
 **Why:** the journal `file` field is format-guarded at insert time, not just at update time. The skill doc predates (or ignores) that guard.
 

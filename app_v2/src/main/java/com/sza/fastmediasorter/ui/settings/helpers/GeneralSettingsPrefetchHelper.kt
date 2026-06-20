@@ -5,6 +5,7 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -152,7 +153,7 @@ class GeneralSettingsPrefetchHelper(
             }
             val message = ctx.getString(R.string.pref_streaming_clear_confirm_format, totalStr, entryLines)
 
-            AlertDialog.Builder(ctx)
+            MaterialAlertDialogBuilder(ctx, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.pref_streaming_clear_now)
                 .setMessage(message)
                 .setPositiveButton(R.string.delete) { _, _ ->

@@ -68,7 +68,7 @@ object CalculatorExpressionEvaluator {
                     if (value != null) out += Num(value)
                 }
                 c == '+' -> { out += Sym("+"); i++ }
-                c == '-' || c == '−' || c == '–' || c == '—' -> { out += Sym("-"); i++ }
+                c == '-' || c == '−' || c == '–' || c == '-' -> { out += Sym("-"); i++ }
                 c == '*' || c == 'x' || c == 'X' || c == '×' -> { out += Sym("*"); i++ }
                 c == '/' || c == '÷' || c == ':' -> { out += Sym("/"); i++ }
                 c == '^' -> { out += Sym("^"); i++ }

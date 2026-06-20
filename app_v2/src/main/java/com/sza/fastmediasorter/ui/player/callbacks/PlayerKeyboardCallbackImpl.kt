@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.player.callbacks
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -53,13 +53,30 @@ class PlayerKeyboardCallbackImpl(
         activity.dialogAndUiStateManager.toggleCopyPanel()
     }
 
-    override fun canCopyCurrent(): Boolean = true
+    // S0533: gate the COPY shortcut on the same availability the copy panel uses (copy enabled +
+    // populated destinations), so it cannot toggle a panel kept hidden when copying is disabled or
+    // no destinations are configured.
+    override fun canCopyCurrent(): Boolean {
+        val available = activity.isCommandPanelControllerReady() &&
+            activity.commandPanelController.isCopyAvailable()
+        return available
+    }
 
     override fun onToggleMovePanel() {
         activity.dialogAndUiStateManager.toggleMovePanel()
     }
 
-    override fun canMoveCurrent(): Boolean = true
+    // S0532: gate the MOVE shortcut on the same availability the move panel uses (move enabled +
+    // populated destinations + write permission), so it cannot toggle a panel kept hidden on a
+    // read-only / non-writable resource.
+    override fun canMoveCurrent(): Boolean {
+        val available = activity.isCommandPanelControllerReady() &&
+            activity.commandPanelController.isMoveAvailable()
+        return available
+    }
+
+    override fun onOperationSlot(slotIndex: Int): Boolean =
+        activity.dialogAndUiStateManager.triggerOperationSlot(slotIndex)
 
     override fun onShowEditDialog() {
         val currentFile = viewModel.state.value.currentFile
@@ -172,7 +189,7 @@ class PlayerKeyboardCallbackImpl(
     }
 
     override fun onShowHelp() {
-        InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.PLAYER)
+        InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.PLAYER)
     }
 
     override fun onDocumentSearch() {

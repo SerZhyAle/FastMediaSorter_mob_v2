@@ -34,7 +34,7 @@ class GeneralSettingsCacheHelper(
     }
 
     fun showCacheSizeRestartDialog(newCacheSizeMb: Int, isUserModified: Boolean = true) {
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_cache_message, newCacheSizeMb))
             .setPositiveButton(R.string.restart) { _, _ ->
@@ -79,7 +79,7 @@ class GeneralSettingsCacheHelper(
     fun autoCalculateCacheSize() {
         val optimalSizeMb = calculateOptimalCacheSizeUseCase()
         val storageInfo = calculateOptimalCacheSizeUseCase.getStorageInfo()
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.auto_calculate_cache_title)
             .setMessage(fragment.getString(R.string.auto_calculate_cache_message, optimalSizeMb, storageInfo))
             .setPositiveButton(R.string.apply) { _, _ ->
@@ -92,7 +92,7 @@ class GeneralSettingsCacheHelper(
     }
 
     fun clearCache() {
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.clear_cache)
             .setMessage(R.string.clear_cache_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -185,7 +185,7 @@ class GeneralSettingsCacheHelper(
 
     private fun showAudioCacheSizeWarning() {
         if (!fragment.isAdded || fragment.activity?.isFinishing == true) return
-        MaterialAlertDialogBuilder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.audio_cache_size_warning_title)
             .setMessage(R.string.audio_cache_size_warning_message)
             .setPositiveButton(R.string.delete_old_files) { _, _ ->

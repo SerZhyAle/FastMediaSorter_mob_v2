@@ -63,9 +63,18 @@
             android:gravity="end"
             android:layout_marginTop="@dimen/margin_large">
 
-            <Button
+            <!-- Stop active scan / restart finished scan -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStopScan"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:text="@string/stop" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@android:string/cancel" />

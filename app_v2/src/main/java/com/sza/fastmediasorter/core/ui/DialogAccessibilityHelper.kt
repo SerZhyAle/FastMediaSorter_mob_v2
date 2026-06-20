@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.accessibility.AccessibilityEvent
-import androidx.appcompat.app.AlertDialog
 import timber.log.Timber
 
 /**
@@ -60,14 +59,26 @@ object DialogAccessibilityHelper {
     }
 
     private fun pickTarget(dialog: Dialog): View? {
-        if (dialog is AlertDialog) {
-            listOf(
-                AlertDialog.BUTTON_POSITIVE,
-                AlertDialog.BUTTON_NEUTRAL,
-                AlertDialog.BUTTON_NEGATIVE,
-            ).forEach { which ->
-                val btn = runCatching { dialog.getButton(which) }.getOrNull()
-                if (btn != null && btn.visibility == View.VISIBLE) return btn
+        when (dialog) {
+            is androidx.appcompat.app.AlertDialog -> {
+                listOf(
+                    androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE,
+                    androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL,
+                    androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE,
+                ).forEach { which ->
+                    val btn = runCatching { dialog.getButton(which) }.getOrNull()
+                    if (btn != null && btn.visibility == View.VISIBLE) return btn
+                }
+            }
+            is android.app.AlertDialog -> {
+                listOf(
+                    android.app.AlertDialog.BUTTON_POSITIVE,
+                    android.app.AlertDialog.BUTTON_NEUTRAL,
+                    android.app.AlertDialog.BUTTON_NEGATIVE,
+                ).forEach { which ->
+                    val btn = runCatching { dialog.getButton(which) }.getOrNull()
+                    if (btn != null && btn.visibility == View.VISIBLE) return btn
+                }
             }
         }
         // Custom-content fallback - walk the decor view tree for the first focusable leaf.

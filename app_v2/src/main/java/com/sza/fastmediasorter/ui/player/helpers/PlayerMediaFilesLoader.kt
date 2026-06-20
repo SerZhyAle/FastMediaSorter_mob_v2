@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
@@ -459,11 +460,28 @@ class PlayerMediaFilesLoader(
                     val autoSlideshow = resource.profile == ResourceProfile.AUDIO_LIBRARY ||
                         resource.profile == ResourceProfile.VIDEO_LIBRARY
 
-                    // Apply shuffle if requested from widget launch (only on first load).
-                    val finalFiles = if (shuffleOnStart && stateFlow.value.files.isEmpty()) {
-                        filesWithFavorites.shuffled()
+                    // S0549: re-roll the random order at the start of a fresh playback-by-list session.
+                    // Two triggers, both first-load only (files still empty) so reload/rotation keeps
+                    // the current order and position:
+                    //  - explicit random play (shuffleOnStart), and
+                    //  - a RANDOM-sorted resource launched by list (no specific initialFilePath to land
+                    //    on). Browse caches the RANDOM order with a seed it only re-rolls on explicit
+                    //    reshuffle, so the player reused that cache and always opened on the same first
+                    //    track. We shuffle the player's own copy here (the Browse cache is untouched, so
+                    //    in-session scroll/re-entry stability is preserved) and land at the list head.
+                    //  A tapped specific file (initialFilePath != null) is never re-rolled - the user
+                    //  expects to start on that file in the existing order.
+                    val isFreshSession = stateFlow.value.files.isEmpty()
+                    val launchedByList = normalizedInitialPath == null
+                    val rerollRandom = isFreshSession &&
+                        (shuffleOnStart || (resource.sortMode == SortMode.RANDOM && launchedByList))
+                    val finalFiles = if (rerollRandom) filesWithFavorites.shuffled() else filesWithFavorites
+                    // After a re-roll the prior index no longer maps to a meaningful file; start at the head.
+                    val finalIndex = if (rerollRandom) {
+                        Timber.d("S0549: re-rolling RANDOM order at playback-launch (size=${finalFiles.size}, shuffleOnStart=$shuffleOnStart, sortMode=${resource.sortMode})")
+                        0
                     } else {
-                        filesWithFavorites
+                        safeIndex
                     }
 
                     // Preserve isPaused on reload (user may have manually paused before background);
@@ -473,7 +491,7 @@ class PlayerMediaFilesLoader(
                     updateState {
                         it.copy(
                             files = finalFiles,
-                            currentIndex = safeIndex,
+                            currentIndex = finalIndex,
                             resource = resource,
                             slideShowInterval = intervalToUse,
                             showCommandPanel = showCommandPanel,

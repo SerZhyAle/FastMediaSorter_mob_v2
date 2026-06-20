@@ -4,7 +4,7 @@
     Generate fastlane changelog files from docs/WHATS_NEW*.md for IzzyOnDroid / F-Droid.
 
 .DESCRIPTION
-    Spec S0215 — fdroid-publish-research, Phase 04 Step 04.1.
+    Spec S0215 - fdroid-publish-research, Phase 04 Step 04.1.
 
     Reads docs/WHATS_NEW.md, docs/WHATS_NEW_RU.md, docs/WHATS_NEW_UK.md and
     writes per-locale fastlane changelog files at:
@@ -134,7 +134,7 @@ function Strip-Markdown {
         if ($ln -match "^>\s") { continue }
         # Skip markdown separators entirely in plain-text changelogs.
         if ($ln -match "^---\s*$") { continue }
-        # Skip the "What's New" / "What's Fixed" headings — leave content but drop the heading itself.
+        # Skip the "What's New" / "What's Fixed" headings - leave content but drop the heading itself.
         if ($ln -match "^##\s") { continue }
         $t = $ln
         # Convert bullets.
@@ -187,7 +187,7 @@ function Trim-ToBudget {
         }
     }
 
-    # Single line still too long — truncate at word boundary.
+    # Single line still too long - truncate at word boundary.
     $single = $Lines[0]
     if ($single.Length -le $MaxChars - 2) { return $single }
     $cut = $single.Substring(0, $MaxChars - 2)

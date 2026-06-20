@@ -38,7 +38,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -83,7 +83,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             return true
         }
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.SETTINGS) }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.SETTINGS) }
         override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
@@ -172,7 +172,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun setupViews() {
-        Timber.d("S0474: settings open - active tab only; search index warmed off main thread")
         if (BuildConfig.DEBUG) setupStartUptimeMs = SystemClock.uptimeMillis()
         fun elapsed() = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() - setupStartUptimeMs else 0L
 
@@ -452,7 +451,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: settings initial-focus / native arrow traversal")
         return binding.viewPager
     }
 
@@ -523,7 +521,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun onSearchResultSelected(item: SettingsSearchIndex) {
-        Timber.d("S0475: settings search routes key=${item.key} -> tab=${item.destination} section=${item.sectionId}")
         closeSearchOverlay()
         binding.viewPager.currentItem = item.destination.tabIndex
 

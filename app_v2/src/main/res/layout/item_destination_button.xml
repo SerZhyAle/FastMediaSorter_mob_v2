@@ -7,6 +7,6 @@
     android:layout_height="@dimen/item_icon_size"
     android:layout_marginVertical="@dimen/margin_tiny"
     android:textSize="@dimen/item_title_text_size"
-    android:textColor="@color/white"
+    android:textColor="?attr/colorOnPrimary"
     app:cornerRadius="@dimen/card_corner_radius"
     style="@style/Widget.Material3.Button" />

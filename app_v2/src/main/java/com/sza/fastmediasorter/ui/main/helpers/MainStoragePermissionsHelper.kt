@@ -6,8 +6,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import timber.log.Timber
@@ -64,7 +64,7 @@ class MainStoragePermissionsHelper(
         } else {
             activity.getString(R.string.permission_storage_rationale)
         }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.permissions_required_title)
             .setMessage(message)
             .setPositiveButton(R.string.grant_permissions) { _, _ -> launchStoragePermissionFlow() }

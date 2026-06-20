@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * S0266 — Adapts the cloud provider's `(TransferProgress) -> Unit` channel into the project's
+ * S0266 - Adapts the cloud provider's `(TransferProgress) -> Unit` channel into the project's
  * [ByteProgressCallback] contract. Computes the transfer speed locally (cloud clients do not
  * expose it) and throttles by [ByteProgressCallback.PROGRESS_REPORT_INTERVAL] so the UI is not
  * flooded.

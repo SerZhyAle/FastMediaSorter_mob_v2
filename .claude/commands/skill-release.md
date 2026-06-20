@@ -3,9 +3,9 @@
 > **GLOBAL DIRECTIVES:**
 > 1. Fully autonomous - execute all steps without confirmation unless a hard blocker hits.
 > 2. Strictly technical language - dry prose in all outputs and commits.
-> 3. Hard blockers only - stop and report only for: merge conflict, dirty working tree, not on a DEBUG branch, release worktree missing. Everything else: decide and proceed.
+> 3. Hard blockers only - stop and report only for: merge conflict, commit/push failure, not on a DEBUG branch, release worktree missing. A dirty working tree is NOT a blocker - Step 1b auto-commits and pushes it via `.\a.ps1 c`. Everything else: decide and proceed.
 
-Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, builds release artifacts, publishes the standard AAB to Google Play, publishes standard + VR APK assets to GitHub Releases - one unattended pipeline.
+Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, builds release artifacts, publishes the standard AAB to Google Play, publishes the requested-flavor APK assets to GitHub Releases - one unattended pipeline. By default only the `standard` edition is built and published; pass extra flavor names (or `all`) to widen the GitHub spectrum (see Usage / `$FLAVORS`).
 
 **Distribution channels** (full matrix in Step 12a): Google Play (automated), GitHub Store (automated), Google Drive (automated inside `a.ps1 r` - password-protected ZIP), 4pda forum (manual post, cumulative since last 4pda post), IzzyOnDroid (one-time RFP, then auto-pull from GitHub releases).
 
@@ -13,9 +13,18 @@ Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md
 
 ```
 /skill-release
+/skill-release <flavor> [<flavor> ..]
+/skill-release all
 ```
 
-No arguments. Always run from the development directory (`FastMediaSorter_mob_v2`), not the release worktree.
+Always run from the development directory (`FastMediaSorter_mob_v2`), not the release worktree.
+
+**Flavor scope (`$FLAVORS`) - resolved once, before Step 12:**
+- No argument → `standard` only. Build and publish just the standard edition; vr/lite/photos/legacy/noLegal/wear are skipped.
+- One or more flavor names (`vr`, `lite`, `photos`, `legacy`, `noLegal`, `wear`) → standard plus the named editions. `standard` is always included (it is the Google Play AAB and the canonical GitHub asset the website's main download button + IzzyOnDroid consume).
+- `all` (aliases `full`, `spectrum`) → the complete spectrum: standard, vr, lite, photos, legacy, noLegal, wear.
+
+Names are case-insensitive and de-duplicated. Record the resolved set as `$FLAVORS` (comma-joined, e.g. `standard` or `standard,vr,noLegal`) and pass it verbatim to both spectrum scripts in Step 12a. The Google Play standard AAB (Step 12, `a.ps1 r`) is always built regardless of `$FLAVORS` - it is the core of a plateau release.
 
 ---
 
@@ -34,10 +43,19 @@ git branch --show-current
 - Match → record as `$CURRENT_DEBUG` (e.g. `DEBUG-v001`).
 
 ```bash
-# 1b. Confirm clean working tree
+# 1b. Ensure a clean working tree - auto-commit any pending WIP
 git status --porcelain
 ```
-- Non-empty → **ABORT**: "Working tree is dirty. Commit or stash all changes before releasing."
+- Non-empty → the working tree has uncommitted WIP. Do NOT abort - commit and push it on `$CURRENT_DEBUG`:
+
+```powershell
+.\a.ps1 c "release: commit pending WIP before plateau merge"
+```
+
+  `.\a.ps1 c` (`scripts/utils/commit-push.ps1`) runs `git add .` + `git commit` + `git push` to the current branch. The quoted argument is the commit subject; omit it and the script falls back to a bare `yyMMddHHmm` timestamp. `$NEW_VERSION` is not known yet (Step 2), so keep the message version-free.
+  - After it returns, re-run `git status --porcelain` to confirm the tree is now clean.
+  - `.\a.ps1 c` exits non-zero (commit or push failed) or the tree is still dirty afterward → **ABORT** with the error output. A clean, pushed tree is required before the merge.
+- Empty → tree already clean; proceed.
 
 ```bash
 # 1c. Confirm release worktree exists
@@ -304,15 +322,17 @@ Both cases: after this step dev dir is on `$NEXT_DEBUG`, release worktree stays 
 # From development directory - a.ps1 auto-delegates to the release worktree
 cd P:/ANDROID/FastMediaSorter_mob_v2
 .\a.ps1 r        # standard AAB (Play) + APK + Google Drive mirror + fastlane changelogs; stamps version V
-# vr and the rest of the GitHub spectrum are built in Step 12a at the same version V.
+# Any extra requested flavors ($FLAVORS minus standard) are built in Step 12a at the same version V.
 ```
+
+`a.ps1 r` always builds the standard AAB - it is the Google Play artifact and the core of a plateau release, independent of `$FLAVORS`.
 
 `a.ps1 r` automatically before building:
 1. Reads `scripts/release-worktree-sync.txt` and copies gitignored-but-required files (signing keys, OAuth config, `local.properties`, `sza_resources.xml`, etc.) from dev dir to release worktree. Dev dir is the single source of truth; files copied fresh each time, remain gitignored in both locations.
 2. Runs the release build script from inside `P:/ANDROID/FastMediaSorter_release`.
 3. Copies build artifacts back to `DOWNLOADS/` in the dev directory.
 
-The full GitHub Release spectrum (incl. `vr`) is built in Step 12a by `build-release-spectrum.ps1 -ReuseVersion`, which reuses the version `a.ps1 r` just stamped - keeping the Play AAB and every GitHub asset (`FastMediaSorter-<flavor>-$NEW_VERSION.apk`) on the same version. Do not bump the version between `a.ps1 r` and Step 12a.
+The requested GitHub Release flavors (`$FLAVORS`) are built in Step 12a by `build-release-spectrum.ps1 -ReuseVersion -Flavors $FLAVORS`, which reuses the version `a.ps1 r` just stamped - keeping the Play AAB and every GitHub asset (`FastMediaSorter-<flavor>-$NEW_VERSION.apk`) on the same version. Do not bump the version between `a.ps1 r` and Step 12a.
 
 ---
 
@@ -321,13 +341,14 @@ The full GitHub Release spectrum (incl. `vr`) is built in Step 12a by `build-rel
 Run GitHub Store publication in the release worktree, Google Play publication from the dev directory. Both belong to the same release window as `standard_release`; do not publish GitHub Store assets as a standalone version.
 
 ```powershell
-# GitHub Release - full spectrum (release worktree on main)
+# GitHub Release - requested flavors only (release worktree on main).
+# $FLAVORS is the set resolved in Usage (default 'standard'; e.g. 'standard,vr,noLegal' or 'all').
 cd P:/ANDROID/FastMediaSorter_release
-# Build every release edition + wear, reusing the version a.ps1 r stamped (no skew vs the Play AAB) (S0394):
-pwsh -NoProfile -File scripts/release/build-release-spectrum.ps1 -ReuseVersion
-# Publish all assets (standard, vr, lite, photos, legacy, noLegal, wear) under one tag:
-pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
-pwsh -NoProfile -File scripts/release/publish-github-release.ps1
+# Build the requested release editions (+ wear if requested), reusing the version a.ps1 r stamped (no skew vs the Play AAB) (S0394):
+pwsh -NoProfile -File scripts/release/build-release-spectrum.ps1 -ReuseVersion -Flavors $FLAVORS
+# Publish the same flavors under one tag (-Flavors must match what was built):
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -Flavors $FLAVORS -DryRun
+pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -Flavors $FLAVORS
 
 # Google Play standard release (development worktree, uses mirrored DOWNLOADS AAB)
 cd P:/ANDROID/FastMediaSorter_mob_v2
@@ -349,7 +370,7 @@ Automated steps above cover Google Play + GitHub Store. A complete plateau relea
    - One-time gate that blocks the commit: **Foreground service permissions** declaration in Play Console -> App content. Re-declare whenever a NEW `FOREGROUND_SERVICE_*` type ships (e.g. `FOREGROUND_SERVICE_MICROPHONE` arrived with Quick Recorder widget). Microphone/camera/location FGS require a short demo video link. AAB uploads fine but commit returns HTTP 403 until the declaration is saved; the uncommitted edit is harmless - re-run the publisher after saving.
    - Do NOT pass `changesNotSentForReview` (Play API returns HTTP 400 for auto-review apps; already removed from the script).
 
-2. **GitHub Release / Store** (full spectrum: `standard`, `vr`, `lite`, `photos`, `legacy`, `wear`, `noLegal`) - built at one shared version by `build-release-spectrum.ps1` (S0394), then automated via `publish-github-release.ps1`: creates GitHub Release `v<version>` from `main` with all seven assets (deterministic `FastMediaSorter-<flavor>-<version>.apk` names, single signing fingerprint pinned - all flavors + wear share the one release key). The website download buttons (`index*.html`; `noLegal` only on `nolegal*.html`) and `docs/DOWNLOADS_*` consume this release automatically via the GitHub API. github-store.org indexes releases automatically; its `app?repo=` page is only a deep-link launcher into the Android client (sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (script auto-resolves from standard install dir).
+2. **GitHub Release / Store** (`$FLAVORS`; default `standard` only, full spectrum is `standard`, `vr`, `lite`, `photos`, `legacy`, `wear`, `noLegal`) - built at one shared version by `build-release-spectrum.ps1 -Flavors $FLAVORS` (S0394), then automated via `publish-github-release.ps1 -Flavors $FLAVORS`: creates GitHub Release `v<version>` from `main` with the requested assets (deterministic `FastMediaSorter-<flavor>-<version>.apk` names, single signing fingerprint pinned - all flavors + wear share the one release key). The website download buttons (`index*.html`; `noLegal` only on `nolegal*.html`) and `docs/DOWNLOADS_*` consume this release automatically via the GitHub API - a button whose flavor was not built this release keeps pointing at the previous release's asset, so widen `$FLAVORS` when a non-standard edition needs refreshing. github-store.org indexes releases automatically; its `app?repo=` page is only a deep-link launcher into the Android client (sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (script auto-resolves from standard install dir).
 
 3. **Google Drive** - automated inside `a.ps1 r` (`build-aab-release.ps1`): copies standard AAB+APK to the synced Drive folder, writes a password-protected ZIP (`FastMediaSorter_standard_release.zip`, password `1`). Other flavors (`lite`/`photos`/`legacy`) refresh their Drive ZIPs only when their own `a.ps1` build runs. No separate step - ensure the Drive desktop-sync folder is present (script warns and skips if absent).
 
@@ -374,7 +395,9 @@ From the diff:
 
 1. Select the important/standout capabilities a user would notice (skip internal/minor inventory entries - most inventory records never reach the showcase).
 2. Add or update them in `docs/FEATURES.md` + `_RU` + `_UK` in lockstep (EN/RU/UK parity), in the relevant numbered section. Keep author style (`..` not `...`, `ё`). This is the ONLY place `FEATURES*` is edited.
-3. noLegal-only standout items come from the gitignored `docs/ALL_FEATURES_noLegal.jsonl` and go into gitignored `docs/FEATURES_noLegal*`, never the public files.
+3. Set each bullet's flavor label (e.g. `[Standard / VR]`, `[VR Only]`, `[Standard Only]`) from the inventory record's `flavors` field - never guess. A capability whose `flavors` is noLegal-only must NOT appear in the public `FEATURES*`; route it per point 4.
+4. noLegal-only standout items come from the gitignored `docs/ALL_FEATURES_noLegal.jsonl` and go into gitignored `docs/FEATURES_noLegal*`, never the public files.
+5. Bump the `Last updated:` line at the top of `docs/FEATURES.md` (+ `_RU`/`_UK`) to the release date, and confirm EN/RU/UK section and bullet counts match before publishing.
 
 Sanity: for every `Sxxxx` whose status reached `Verified` (or `Implemented`+`BlockNeedUserTest`) between `$PREV_TAG` and `HEAD`, confirm at least one ALL_FEATURES record carries that id:
 
@@ -397,8 +420,8 @@ Release pipeline complete.
   Version:  v$NEW_VERSION
   Tag:      release/v$NEW_VERSION
   Next branch: $NEXT_DEBUG (tracking origin/$NEXT_DEBUG)
-  Build:    standard + vr release artifacts built
-  GitHub Store: GitHub Release assets published
+  Build:    $FLAVORS release artifacts built (default: standard only)
+  GitHub Store: GitHub Release assets published ($FLAVORS)
   Google Play: standard release published (or BLOCKED on FGS declaration)
   Google Drive: standard ZIP (password 1) synced by a.ps1 r
   4pda:        manual post pending (channel 4)
@@ -421,7 +444,8 @@ No missed entries → omit the "Manual follow-ups" block. No other prose.
 | Condition | Action |
 |-----------|--------|
 | Not on DEBUG-v00N | Abort before any change |
-| Dirty working tree | Abort before any change |
+| Dirty working tree | Step 1b auto-commits + pushes via `.\a.ps1 c`; not a blocker |
+| `.\a.ps1 c` commit/push fails at Step 1b | Abort; tree must be clean and pushed before any change |
 | Release worktree missing | Abort before any change |
 | `git push` of DEBUG fails | Abort after Step 6 commit; no merge |
 | Merge conflict | Abort after Step 8; leave worktree in conflict state; give resolution instructions |

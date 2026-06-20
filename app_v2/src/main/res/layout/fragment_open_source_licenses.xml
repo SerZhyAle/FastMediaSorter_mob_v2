@@ -71,16 +71,16 @@
                         android:orientation="horizontal"
                         android:layout_marginTop="8dp">
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_smbj_source"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_source" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_smbj_license"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_license" />
@@ -130,16 +130,16 @@
                         android:orientation="horizontal"
                         android:layout_marginTop="8dp">
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_epub4j_source"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_source" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_epub4j_license"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_license" />
@@ -191,16 +191,16 @@
                         android:layout_marginTop="8dp"
                         android:orientation="horizontal">
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_newpipe_source"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_source" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_newpipe_license"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.FastMediaSorter.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/view_license" />

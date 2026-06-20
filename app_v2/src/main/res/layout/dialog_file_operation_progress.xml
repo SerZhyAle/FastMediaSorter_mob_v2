@@ -80,14 +80,14 @@
             android:contentDescription="@string/transfer_eta_desc" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/margin_large"
         android:text="@string/dialog_file_operation_progress_btnCancel_text"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        style="@style/Widget.FastMediaSorter.Button.DialogCancel" />
 
 </LinearLayout>
 

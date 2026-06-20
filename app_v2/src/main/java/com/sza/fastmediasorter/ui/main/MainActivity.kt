@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
@@ -31,6 +30,8 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
+import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
+import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -47,12 +48,22 @@ import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
+import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
+import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
@@ -82,14 +93,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
+    private lateinit var voiceCaptureManager: MainVoiceCaptureManager
+    private lateinit var cameraCaptureManager: MainCameraCaptureManager
+    private lateinit var quickCaptureMenuManager: MainQuickCaptureMenuManager
+    private lateinit var linkDownloadMenuManager: MainLinkDownloadMenuManager
+    private lateinit var linkDownloadManager: MainLinkDownloadManager
     private var startupFullyDrawnReported = false
+    private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
+    private var isQuickVoiceEnabled = false
+    private var isQuickVideoEnabled = false
+    private var isQuickPhotoEnabled = false
+    private var isLinkDownloadEnabled = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
+
+    // S0523: quick-capture launchers MUST be registered before the Activity is STARTED. setupViews()
+    // (where the capture managers are constructed) runs post-STARTED via a posted lambda, so the
+    // launchers live here as field initializers and the host delegates results to the lateinit managers.
+    private val quickCaptureRecordAudioLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (::voiceCaptureManager.isInitialized) voiceCaptureManager.onRecordAudioResult(granted) }
+
+    private val quickCaptureCameraLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result -> if (::cameraCaptureManager.isInitialized) cameraCaptureManager.handleResult(result) }
 
     // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
 
@@ -110,6 +142,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var resourceRepository: ResourceRepository
+
+    @Inject
+    lateinit var mediaCapabilities: MediaCapabilities
+
+    @Inject
+    lateinit var cameraCaptureSaver: CameraCaptureSaver
+
+    @Inject
+    lateinit var localDestinationClassifier: LocalDestinationClassifier
+
+    @Inject
+    lateinit var localDestinationWriter: LocalDestinationWriter
+
+    @Inject
+    lateinit var statsSink: StatsSink
 
     @Inject
     lateinit var gamepadInputManager: GamepadInputManager
@@ -190,6 +237,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (savedInstanceState == null) {
             CrashReportPromptManager(this).maybeShowPrompt()
         }
+
+        // S0510: one-shot first-run hint for non-touch users - "press F1 for shortcuts".
+        binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
 
         // If AudioPlaybackService is already running when MainActivity is freshly created (Android 8.x OEM ROMs can clear the activity back stack while keeping the foreground service alive), restore the user to the player that is currently playing. FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the stack without creating a duplicate instance; creates a new one if not present.
         if (!returnToSettingsRequested
@@ -315,7 +365,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 android.os.Process.killProcess(android.os.Process.myPid())
             },
             onShowHelp = {
-                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.MAIN)
+                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.MAIN)
             },
             onEditResourceClick = { resource ->
                 if (!resource.accessPin.isNullOrBlank()) {
@@ -399,6 +449,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 reportFullyDrawn()
             }
         }
+        if (!startupAprilFoolsPrankChecked) {
+            startupAprilFoolsPrankChecked = true
+            binding.root.post {
+                if (!isFinishing && !isDestroyed) {
+                    CalculatorAprilFoolsPrankManager(this).maybeShowDailyAprilFoolsPrank()
+                }
+            }
+        }
 
         // S0289: if returning from PlayerActivity on a non-touch device, restore focus
         // to the resource row that was being played.
@@ -432,6 +490,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onPause() {
         super.onPause()
         isReturningFromAnotherActivity = true
+        if (::voiceCaptureManager.isInitialized) voiceCaptureManager.release()
     }
 
     // S0043: Manage Storage intent is launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result arrives here and is forwarded to permissionsHelper for re-evaluation.
@@ -465,7 +524,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0289 §2.1: initial focus on the big Play button when the Activity opens on a non-touch device. */
     override fun getInitialFocusView(): View? {
-        Timber.d("S0289: main initial-focus / empty-state CTA reachable")
         return binding.btnStartPlayer
     }
 
@@ -530,7 +588,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun getMainWindowDropdownMenuItemCount(): Int =
-        (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount()
+        (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount() +
+            quickCaptureMenuManager.itemCount(
+                isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
+                isQuickVideoEnabled && mediaCapabilities.supportsVideo,
+                isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+            ) + linkDownloadMenuManager.itemCount(isLinkDownloadEnabled)
 
     private fun getMiniGameMenuItemCount(): Int = miniGameMenuManager.itemCount(isEmbeddedGameEnabled)
 
@@ -544,7 +607,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         popup.setForceShowIcon(true)
         popup.setOnMenuItemClickListener { item ->
-            if (miniGameMenuManager.handleMenuItem(item.itemId)) {
+            if (miniGameMenuManager.handleMenuItem(item.itemId) ||
+                quickCaptureMenuManager.handleMenuItem(item.itemId) ||
+                linkDownloadMenuManager.handleMenuItem(item.itemId)
+            ) {
                 true
             } else {
                 when (item.itemId) {
@@ -574,6 +640,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .setIcon(R.drawable.ic_camera_ocr_translate)
         }
         miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
+        val quickAdded = quickCaptureMenuManager.populate(
+            popup,
+            isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
+            isQuickVideoEnabled && mediaCapabilities.supportsVideo,
+            isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+            2,
+        )
+        linkDownloadMenuManager.populate(popup, isLinkDownloadEnabled, 2 + quickAdded)
         return popup.menu.size()
     }
 
@@ -599,6 +673,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         applyEdgeToEdgeInsets()
 
         miniGameMenuManager = MainMiniGameMenuManager(this)
+        voiceCaptureManager = MainVoiceCaptureManager(
+            this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
+            requestRecordAudioPermission = {
+                quickCaptureRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            },
+        )
+        cameraCaptureManager = MainCameraCaptureManager(
+            this, lifecycleScope, cameraCaptureSaver, quickCaptureCameraLauncher,
+        )
+        quickCaptureMenuManager = MainQuickCaptureMenuManager(
+            onVoice = { voiceCaptureManager.start() },
+            onVideo = { cameraCaptureManager.captureVideo() },
+            onPhoto = { cameraCaptureManager.capturePhoto() },
+        )
+        linkDownloadManager = MainLinkDownloadManager(this)
+        linkDownloadMenuManager = MainLinkDownloadMenuManager(
+            onLinkDownload = { linkDownloadManager.show() },
+        )
         setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 
@@ -886,9 +978,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
+            // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
+            // settings. Voice -> mic recording; video/photo -> the inverted capture-enable flags.
+            val quickVoiceEnabledChanged = isQuickVoiceEnabled != settings.micRecordingEnabled
+            val quickVideoEnabledChanged = isQuickVideoEnabled != !settings.disableVideoCapture
+            val quickPhotoEnabledChanged = isQuickPhotoEnabled != !settings.disableCameraCapture
+            // S0542: the manual "Download by link" entry reuses the existing link auto-download
+            // setting - no separate toggle.
+            val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
             isCalculatorEnabled = settings.enableCalculator
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
+            isQuickVoiceEnabled = settings.micRecordingEnabled
+            isQuickVideoEnabled = !settings.disableVideoCapture
+            isQuickPhotoEnabled = !settings.disableCameraCapture
+            isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
             binding.btnFavorites.visibility = if (settings.enableFavorites) {
                 View.VISIBLE
             } else {
@@ -898,7 +1002,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
-            if (calculatorEnabledChanged || embeddedGameEnabledChanged || cameraOcrEnabledChanged) {
+            if (calculatorEnabledChanged || embeddedGameEnabledChanged || cameraOcrEnabledChanged ||
+                quickVoiceEnabledChanged || quickVideoEnabledChanged || quickPhotoEnabledChanged ||
+                linkDownloadEnabledChanged) {
                 refreshMainWindowDropdownMenuVisibility()
             }
             restitchControlBarFocusChain()
@@ -1002,7 +1108,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
         if (isFinishing || isDestroyed) return
-        AlertDialog.Builder(this)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.delete_resource_title)
             .setMessage(getString(R.string.delete_resource_message, resource.name))
             .setPositiveButton(R.string.delete) { _, _ ->
@@ -1024,7 +1130,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Gamepad buttons first. D-pad / left stick focus moves are left to Android's
         // default focus search (super), which already works with focusable="true" items.
-        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
+        val action = gamepadInputManager.handleKeyEvent(event, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
         if (event.action == KeyEvent.ACTION_DOWN) {
             val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)

@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -28,7 +29,7 @@ class GeneralSettingsImportExportHelper(
     }
 
     fun showExportSettingsConfirmation() {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.export_settings_confirm_title)
             .setMessage(R.string.export_settings_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> exportSettings() }
@@ -37,7 +38,7 @@ class GeneralSettingsImportExportHelper(
     }
 
     fun showImportSettingsConfirmation() {
-        AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.import_settings_confirm_title)
             .setMessage(R.string.import_settings_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> importSettings() }
@@ -128,7 +129,7 @@ class GeneralSettingsImportExportHelper(
     }
 
     private fun showRestartAfterImportDialog() {
-        androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+        MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_required_title)
             .setMessage(R.string.restart_required_message)
             .setPositiveButton(R.string.restart_now) { _, _ ->

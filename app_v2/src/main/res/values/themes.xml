@@ -29,6 +29,23 @@
         <!-- Default player controls layout = compact (matches AppSettings.useCompactElements default true).
              Overridden by Theme.FastMediaSorter.LargePlayerControls applyStyle() when compact is OFF. -->
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
+
+        <!-- S0538: dialog action-button sizing defaults to large; the CompactDialogButtons overlay
+             rebinds these to the 50% compact dimens when "Compact elements (global)" is on. -->
+        <item name="dialogActionButtonMinHeight">@dimen/dialog_action_button_min_height</item>
+        <item name="dialogActionButtonGap">@dimen/dialog_action_button_gap</item>
+
+        <!-- S0538: builder dialogs inherit the unified confirm/cancel pair via this seam. -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
+
+        <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
+        <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
+    </style>
+
+    <!-- S0538: applied via theme.applyStyle() in BaseActivity when compact mode is on. -->
+    <style name="ThemeOverlay.FastMediaSorter.CompactDialogButtons" parent="">
+        <item name="dialogActionButtonMinHeight">@dimen/dialog_action_button_min_height_compact</item>
+        <item name="dialogActionButtonGap">@dimen/dialog_action_button_gap_compact</item>
     </style>
 
     <!-- System bar transparency is applied programmatically via enableEdgeToEdge() in BaseActivity. -->
@@ -66,53 +83,107 @@
         <item name="android:letterSpacing">0</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+    <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
+         via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
+    <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
+
+    <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.FastMediaSorter.Button.Outlined">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.OutlinedIcon" parent="Widget.MaterialComponents.Button.OutlinedButton.Icon">
+    <style name="Widget.FastMediaSorter.SettingsButton.OutlinedIcon" parent="Widget.Material3.Button.OutlinedButton.Icon">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.Text" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="Widget.FastMediaSorter.SettingsButton.Text" parent="Widget.FastMediaSorter.Button.Text">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.TextIcon" parent="Widget.MaterialComponents.Button.TextButton.Icon">
+    <style name="Widget.FastMediaSorter.SettingsButton.TextIcon" parent="Widget.Material3.Button.TextButton.Icon">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.TextM3" parent="Widget.Material3.Button.TextButton">
+    <style name="Widget.FastMediaSorter.SettingsButton.Tonal" parent="Widget.FastMediaSorter.Button.Tonal">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.Tonal" parent="Widget.Material3.Button.TonalButton">
-        <item name="android:textSize">@dimen/toggler_title_text_size</item>
-        <item name="android:textStyle">normal</item>
+    <!-- Unified Material3 button taxonomy: one named style per semantic role, so the same role looks identical everywhere.
+         Pick by role, never reintroduce a plain <Button> or a one-off style. Role -> style mapping and exemptions:
+         docs/ARCHITECTURE.md "Button Taxonomy (MANDATORY)". Filled=primary, Tonal=secondary emphasis, Outlined=secondary, Text=cancel/low-emphasis, Icon=icon-only. -->
+    <style name="Widget.FastMediaSorter.Button.Filled" parent="Widget.Material3.Button">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.SettingsButton.OutlinedM3" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="android:textSize">@dimen/toggler_title_text_size</item>
-        <item name="android:textStyle">normal</item>
+    <style name="Widget.FastMediaSorter.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:letterSpacing">0</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
+
+    <!-- Dialog action pair (S0538): one high-visibility role per slot so confirm/cancel are unmissable by a blind finger tap.
+         Confirm=green filled, Cancel=neutral outlined, Destructive=red filled. Min 56dp, colors from @color/ + ?attr/ only (Rule 19). -->
+    <style name="Widget.FastMediaSorter.Button.DialogConfirm" parent="Widget.FastMediaSorter.Button.Filled">
+        <item name="backgroundTint">@color/success_color</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.DialogDestructive" parent="Widget.FastMediaSorter.Button.Filled">
+        <item name="backgroundTint">@color/delete_button</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Outlined">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+    </style>
+
+    <!-- S0538: builder seam - every MaterialAlertDialogBuilder dialog inherits the unified pair via
+         materialAlertDialogTheme on the app theme, no per-call edit. Destructive dialogs override the
+         positive slot per-call (Phase 03). -->
+    <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogConfirm</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+    </style>
+
+    <!-- S0538: destructive variant of the builder seam - red filled positive for delete/remove/clear
+         confirmations. Passed per-dialog via MaterialAlertDialogBuilder(context, R.style…Destructive);
+         self-contained (mirrors the base overlay) so it styles correctly whether the override theme
+         layers on or replaces materialAlertDialogTheme. -->
+    <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog.Destructive" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Calculator.Button" parent="Widget.MaterialComponents.Button.OutlinedButton">

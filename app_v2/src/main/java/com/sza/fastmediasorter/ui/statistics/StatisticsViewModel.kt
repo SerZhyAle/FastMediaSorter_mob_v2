@@ -65,7 +65,6 @@ class StatisticsViewModel @Inject constructor(
 
     private inline fun emitReport(crossinline toEvent: (String) -> StatisticsEvent) {
         viewModelScope.launch {
-            Timber.d("S0473: building statistics report for send/export")
             val report = withContext(ioDispatcher) { buildReport() }
             _events.send(toEvent(report))
         }
@@ -147,6 +146,18 @@ class StatisticsViewModel @Inject constructor(
             iconRes = R.drawable.ic_play,
             value = snapshot.count(StatsKey.VIDEO_WATCH_MS) + snapshot.count(StatsKey.AUDIO_LISTEN_MS),
             format = MetricFormat.DURATION_MS,
+        ),
+        // S0499: 4th card completes a 2x2 grid on phones (card span = 2 portrait). "Viewed" is the
+        // browsing headline: total media opened across images, videos, audio and documents.
+        SummaryCard(
+            id = "card_viewed",
+            labelRes = R.string.statistics_card_viewed,
+            iconRes = R.drawable.ic_slideshow,
+            value = snapshot.count(StatsKey.IMAGES_VIEWED) +
+                snapshot.count(StatsKey.VIDEOS_WATCHED) +
+                snapshot.count(StatsKey.AUDIO_PLAYED) +
+                snapshot.count(StatsKey.DOCUMENTS_OPENED),
+            format = MetricFormat.COUNT,
         ),
     )
 

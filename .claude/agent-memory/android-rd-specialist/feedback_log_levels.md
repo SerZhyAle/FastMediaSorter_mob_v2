@@ -13,6 +13,6 @@ metadata:
 - Expected device-capability mismatch (e.g. `UnsatisfiedLinkError` for a deliberately-omitted ABI slice, missing optional Vulkan extension, headset features on phone, etc.) → `Timber.i` or `Timber.d`. One line is enough; no stack trace.
 - Genuine misconfiguration we *should* react to (e.g. `SecurityException` blocking a load that should have worked, schema migration crash, unexpected `IllegalStateException` in DI) → `Timber.e` with stack trace.
 - Cleanly-handled exception in a normal-flow `runCatching` (file not found, network unreachable, user cancelled, peer disconnected) → `Timber.w` if worth noting, `Timber.d` if routine, never `Timber.e`.
-- Catch-blocks for `external fun` native calls AFTER a successful `System.loadLibrary` *can* stay at `Timber.e` — at that point an `UnsatisfiedLinkError` IS abnormal. But add a short-circuit `nativeAvailable` flag so they do not fire when the library deliberately did not load.
+- Catch-blocks for `external fun` native calls AFTER a successful `System.loadLibrary` *can* stay at `Timber.e` - at that point an `UnsatisfiedLinkError` IS abnormal. But add a short-circuit `nativeAvailable` flag so they do not fire when the library deliberately did not load.
 
 When auditing existing `Timber.e` calls during any work on a touched file: if the catch covers a documented graceful-fallback path, downgrade it.

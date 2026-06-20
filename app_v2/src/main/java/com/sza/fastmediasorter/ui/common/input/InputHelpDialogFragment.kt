@@ -24,7 +24,7 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 /**
  * Shared F1 help dialog.
  *
- * Shows only the shortcut entries relevant to the current [InputSurface]
+ * Shows only the shortcut entries relevant to the current [UiSurface]
  * and appends a single clickable link to the full website documentation
  * resolved by [InputHelpLinkResolver].
  *
@@ -36,8 +36,8 @@ class InputHelpDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
-        val surfaceName = arguments?.getString(ARG_SURFACE) ?: InputSurface.MAIN.name
-        val surface = runCatching { InputSurface.valueOf(surfaceName) }.getOrDefault(InputSurface.MAIN)
+        val surfaceName = arguments?.getString(ARG_SURFACE) ?: UiSurface.MAIN.name
+        val surface = runCatching { UiSurface.valueOf(surfaceName) }.getOrDefault(UiSurface.MAIN)
         val sections = InputHelpRegistry.get(surface)
         val density = ctx.resources.displayMetrics.density
         val pad = (16 * density).toInt()
@@ -123,7 +123,7 @@ class InputHelpDialogFragment : DialogFragment() {
         private const val ARG_SURFACE = "surface"
 
         /** Show the F1 help dialog for [surface]. */
-        fun show(fm: FragmentManager, surface: InputSurface) {
+        fun show(fm: FragmentManager, surface: UiSurface) {
             if (fm.findFragmentByTag(TAG) != null) return
             InputHelpDialogFragment().apply {
                 arguments = Bundle().apply { putString(ARG_SURFACE, surface.name) }

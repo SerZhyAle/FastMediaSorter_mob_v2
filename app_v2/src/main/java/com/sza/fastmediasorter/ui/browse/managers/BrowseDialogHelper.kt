@@ -1,78 +1,27 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
-import android.app.DatePickerDialog
-import android.content.res.ColorStateList
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.databinding.DialogFilterBinding
-import com.sza.fastmediasorter.databinding.DialogRenameMultipleBinding
+import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.domain.usecase.FileOperation
-import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
-import com.sza.fastmediasorter.ui.dialog.RenameDialog
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import timber.log.Timber
 
 /**
- * Manages all dialog creation and user interactions in BrowseActivity.
- * Handles filter, sort, rename, copy, move, and delete confirmation dialogs.
+ * Thin facade over browse-screen dialog managers.
  */
-@android.annotation.SuppressLint("SetTextI18n")
 class BrowseDialogHelper(
-    private val activity: AppCompatActivity,
-    private val callbacks: DialogCallbacks,
-    private val mediaCapabilities: MediaCapabilities
+    activity: AppCompatActivity,
+    callbacks: DialogCallbacks,
+    mediaCapabilities: MediaCapabilities
 ) {
-    companion object {
-        // Keep dialog order explicit so enum declaration order stays free for persistence concerns.
-        internal val DIALOG_SORT_ORDER = listOf(
-            SortMode.RANDOM,
-            SortMode.NAME_ASC,
-            SortMode.NAME_DESC,
-            SortMode.DATE_ASC,
-            SortMode.DATE_DESC,
-            SortMode.DATE_TAKEN_ASC,
-            SortMode.DATE_TAKEN_DESC,
-            SortMode.SIZE_ASC,
-            SortMode.SIZE_DESC,
-            SortMode.MANUAL,
-            SortMode.DURATION_ASC,
-            SortMode.DURATION_DESC,
-            SortMode.TYPE_ASC,
-            SortMode.TYPE_DESC,
-            SortMode.ARTIST_ASC,
-            SortMode.ARTIST_DESC,
-            SortMode.TITLE_ASC,
-            SortMode.TITLE_DESC
-        )
-    }
-    
     interface DialogCallbacks {
         fun onFilterApplied(filter: FileFilter?)
         fun onSortModeSelected(sortMode: SortMode)
@@ -82,6 +31,7 @@ class BrowseDialogHelper(
         fun onDirectoryRenameConfirmed(oldPath: String, newName: String)
         fun onCopyDestinationSelected(destinationPath: String)
         fun onMoveDestinationSelected(destinationPath: String)
+
         /**
          * Called when the user confirms a delete-files dialog.
          *
@@ -94,7 +44,7 @@ class BrowseDialogHelper(
          *   observed 2026-05-17 - toast `no_files_selected`).
          */
         fun onDeleteConfirmed(overridePaths: Set<String>?)
-        fun onCloudSignInRequested(provider: com.sza.fastmediasorter.data.cloud.CloudProvider)
+        fun onCloudSignInRequested(provider: CloudProvider)
         fun saveUndoOperation(undoOp: UndoOperation)
         fun updateFile(oldPath: String, newFile: MediaFile)
         fun setIgnoringFileChanges(ignoring: Boolean)
@@ -103,671 +53,53 @@ class BrowseDialogHelper(
         fun getResourceName(): String?
         fun getLifecycleOwner(): LifecycleOwner
     }
-    
+
+    private val filterDialogManager = BrowseFilterDialogManager(activity, callbacks, mediaCapabilities)
+    private val sortDialogManager = BrowseSortDialogManager(activity, callbacks)
+    private val deleteDialogManager = BrowseDeleteDialogManager(activity, callbacks)
+    private val feedbackDialogManager = BrowseFeedbackDialogManager(activity, callbacks)
+    private val renameDialogManager = BrowseRenameDialogManager(activity, callbacks)
+
     fun initialize() {
         // No initialization needed
     }
-    
+
     fun cleanup() {
         // Dismiss any open dialogs if needed
     }
 
     fun showFilterDialog(currentFilter: FileFilter?, allowedMediaTypes: Set<MediaType>? = null) {
-        val dialogBinding = DialogFilterBinding.inflate(LayoutInflater.from(activity))
-
-        // Pre-fill current filter values
-        dialogBinding.etFilterName.setText(currentFilter?.nameContains ?: "")
-
-        // Media type checkboxes - only show types allowed by resource AND supported by flavor
-        val allowed = allowedMediaTypes ?: MediaType.entries.toSet()
-        val allTypesSelected = currentFilter?.mediaTypes == null
-
-        // Configure each checkbox: hide if not allowed by resource OR not supported by flavor
-        dialogBinding.cbFilterImage.apply {
-            val vis = if (MediaType.IMAGE in allowed && mediaCapabilities.supportsImages) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.IMAGE in allowed && mediaCapabilities.supportsImages && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.IMAGE) == true)
-        }
-        dialogBinding.cbFilterVideo.apply {
-            val vis = if (MediaType.VIDEO in allowed && mediaCapabilities.supportsVideo) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.VIDEO in allowed && mediaCapabilities.supportsVideo && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.VIDEO) == true)
-        }
-        dialogBinding.cbFilterAudio.apply {
-            val vis = if (MediaType.AUDIO in allowed && mediaCapabilities.supportsAudio) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.AUDIO in allowed && mediaCapabilities.supportsAudio && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.AUDIO) == true)
-        }
-        dialogBinding.cbFilterGif.apply {
-            val vis = if (MediaType.GIF in allowed && mediaCapabilities.supportsImages) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.GIF in allowed && mediaCapabilities.supportsImages && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.GIF) == true)
-        }
-        dialogBinding.cbFilterText.apply {
-            val vis = if (MediaType.TEXT in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.TEXT in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.TEXT) == true)
-        }
-        dialogBinding.cbFilterPdf.apply {
-            val vis = if (MediaType.PDF in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.PDF in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.PDF) == true)
-        }
-        dialogBinding.cbFilterEpub.apply {
-            val vis = if (MediaType.EPUB in allowed && mediaCapabilities.supportsEpub) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.EPUB in allowed && mediaCapabilities.supportsEpub && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
-        }
-        dialogBinding.cbFilterOffice.apply {
-            val vis = if (MediaType.OFFICE_DOCUMENT in allowed && mediaCapabilities.supportsDocuments) android.view.View.VISIBLE else android.view.View.GONE
-            (parent as android.view.View).visibility = vis
-            visibility = vis
-            isChecked = MediaType.OFFICE_DOCUMENT in allowed && mediaCapabilities.supportsDocuments && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.OFFICE_DOCUMENT) == true)
-        }
-
-        // Date pickers
-        var minDate = currentFilter?.minDate
-        var maxDate = currentFilter?.maxDate
-
-        if (minDate != null) {
-            dialogBinding.etMinDate.setText(formatDate(minDate))
-        }
-        if (maxDate != null) {
-            dialogBinding.etMaxDate.setText(formatDate(maxDate))
-        }
-
-        dialogBinding.etMinDate.setOnClickListener {
-            showDatePicker(minDate) { selectedDate ->
-                minDate = selectedDate
-                dialogBinding.etMinDate.setText(formatDate(selectedDate))
-            }
-        }
-
-        dialogBinding.etMaxDate.setOnClickListener {
-            showDatePicker(maxDate) { selectedDate ->
-                maxDate = selectedDate
-                dialogBinding.etMaxDate.setText(formatDate(selectedDate))
-            }
-        }
-
-        // Size filters
-        currentFilter?.minSizeMb?.let {
-            dialogBinding.etMinSize.setText(activity.getString(R.string.string_format, it.toString()))
-        }
-        currentFilter?.maxSizeMb?.let {
-            dialogBinding.etMaxSize.setText(activity.getString(R.string.string_format, it.toString()))
-        }
-
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.filter)
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.btnClearFilter.setOnClickListener {
-            callbacks.onFilterApplied(null)
-            dialog.dismiss()
-        }
-
-        dialogBinding.btnResetTypes.setOnClickListener {
-            val typeCheckboxes = listOf(
-                dialogBinding.cbFilterImage,
-                dialogBinding.cbFilterVideo,
-                dialogBinding.cbFilterAudio,
-                dialogBinding.cbFilterGif,
-                dialogBinding.cbFilterText,
-                dialogBinding.cbFilterPdf,
-                dialogBinding.cbFilterEpub,
-                dialogBinding.cbFilterOffice
-            )
-            typeCheckboxes.forEach { checkbox ->
-                if (checkbox.visibility == android.view.View.VISIBLE) checkbox.isChecked = true
-            }
-        }
-
-        dialogBinding.btnCancelFilter.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialogBinding.btnApplyFilter.setOnClickListener {
-            val nameFilter = dialogBinding.etFilterName.text?.toString()?.trim()
-            val minSizeText = dialogBinding.etMinSize.text?.toString()?.trim()
-            val maxSizeText = dialogBinding.etMaxSize.text?.toString()?.trim()
-
-            // Collect selected media types (only from visible checkboxes)
-            val selectedTypes = mutableSetOf<MediaType>()
-            if (dialogBinding.cbFilterImage.isChecked && dialogBinding.cbFilterImage.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.IMAGE)
-            if (dialogBinding.cbFilterVideo.isChecked && dialogBinding.cbFilterVideo.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.VIDEO)
-            if (dialogBinding.cbFilterAudio.isChecked && dialogBinding.cbFilterAudio.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.AUDIO)
-            if (dialogBinding.cbFilterGif.isChecked && dialogBinding.cbFilterGif.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.GIF)
-            if (dialogBinding.cbFilterText.isChecked && dialogBinding.cbFilterText.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.TEXT)
-            if (dialogBinding.cbFilterPdf.isChecked && dialogBinding.cbFilterPdf.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.PDF)
-            if (dialogBinding.cbFilterEpub.isChecked && dialogBinding.cbFilterEpub.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.EPUB)
-            if (dialogBinding.cbFilterOffice.isChecked && dialogBinding.cbFilterOffice.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.OFFICE_DOCUMENT)
-
-            // If all allowed types selected, set mediaTypes to null (no filter)
-            val allAllowedSelected = selectedTypes == allowed
-
-            val filter = FileFilter(
-                nameContains = nameFilter?.ifBlank { null },
-                minDate = minDate,
-                maxDate = maxDate,
-                minSizeMb = minSizeText?.toFloatOrNull(),
-                maxSizeMb = maxSizeText?.toFloatOrNull(),
-                mediaTypes = if (allAllowedSelected) null else selectedTypes.ifEmpty { null }
-            )
-
-            callbacks.onFilterApplied(if (filter.isEmpty()) null else filter)
-            dialog.dismiss()
-        }
-
-        dialog.show()
-        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
+        filterDialogManager.showFilterDialog(currentFilter, allowedMediaTypes)
     }
 
-    private fun showDatePicker(currentDate: Long?, onDateSelected: (Long) -> Unit) {
-        val calendar = Calendar.getInstance()
-        if (currentDate != null) {
-            calendar.timeInMillis = currentDate
-        }
-        
-        DatePickerDialog(
-            activity,
-            { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
-                onDateSelected(calendar.timeInMillis)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-    
-    /** Public utility to format date for display in filter summaries */
-    fun formatDate(timestamp: Long): String {
-        val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        return format.format(Date(timestamp))
-    }
-    
+    fun formatDate(timestamp: Long): String = filterDialogManager.formatDate(timestamp)
+
     fun showSortDialog(currentSortMode: SortMode) {
-        // Keep dialog order independent from enum declaration to avoid changing persisted sort semantics.
-        val sortModes = DIALOG_SORT_ORDER
-        
-        val dialogBinding = com.sza.fastmediasorter.databinding.DialogSortBinding.inflate(LayoutInflater.from(activity))
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.sort_by_title)
-            .setView(dialogBinding.root)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-            
-        dialogBinding.rvSortOptions.layoutManager = androidx.recyclerview.widget.GridLayoutManager(activity, 2)
-        dialogBinding.rvSortOptions.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_sort_option, parent, false)
-                return object : RecyclerView.ViewHolder(view) {}
-            }
-            
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val mode = sortModes[position]
-                val button = holder.itemView as com.google.android.material.button.MaterialButton
-                button.text = getSortModeName(mode)
-                // RecyclerView reuses buttons, so clear icons for every non-RANDOM row explicitly.
-                button.setIconResource(BrowseSortMenuManager.getSortModeIconRes(mode) ?: 0)
-                
-                // Highlight selected mode
-                if (mode == currentSortMode) {
-                    val colorPrimaryContainer = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimaryContainer)
-                    val colorOnPrimaryContainer = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimaryContainer)
-                    button.setBackgroundColor(colorPrimaryContainer)
-                    button.setTextColor(colorOnPrimaryContainer)
-                    button.iconTint = ColorStateList.valueOf(colorOnPrimaryContainer)
-                } else {
-                    val colorOnSurface = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
-                    button.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                    button.setTextColor(colorOnSurface)
-                    button.iconTint = ColorStateList.valueOf(colorOnSurface)
-                }
-                
-                button.setOnClickListener {
-                    if (mode == SortMode.RANDOM) {
-                        callbacks.onRandomReshuffle()
-                    } else {
-                        callbacks.onSortModeSelected(mode)
-                    }
-                    dialog.dismiss()
-                }
-            }
-            
-            override fun getItemCount() = sortModes.size
-        }
-
-        dialog.show()
-        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
+        sortDialogManager.showSortDialog(currentSortMode)
     }
 
-    private fun getSortModeName(mode: SortMode): String {
-        return when (mode) {
-            SortMode.MANUAL -> activity.getString(R.string.sort_mode_manual)
-            SortMode.NAME_ASC -> activity.getString(R.string.sort_mode_name_asc)
-            SortMode.NAME_DESC -> activity.getString(R.string.sort_mode_name_desc)
-            SortMode.DATE_ASC -> activity.getString(R.string.sort_mode_date_asc)
-            SortMode.DATE_DESC -> activity.getString(R.string.sort_mode_date_desc)
-            SortMode.SIZE_ASC -> activity.getString(R.string.sort_mode_size_asc)
-            SortMode.SIZE_DESC -> activity.getString(R.string.sort_mode_size_desc)
-            SortMode.TYPE_ASC -> activity.getString(R.string.sort_mode_type_asc)
-            SortMode.TYPE_DESC -> activity.getString(R.string.sort_mode_type_desc)
-            SortMode.ARTIST_ASC -> activity.getString(R.string.sort_mode_artist_asc)
-            SortMode.ARTIST_DESC -> activity.getString(R.string.sort_mode_artist_desc)
-            SortMode.TITLE_ASC -> activity.getString(R.string.sort_mode_title_asc)
-            SortMode.TITLE_DESC -> activity.getString(R.string.sort_mode_title_desc)
-            SortMode.DURATION_ASC -> activity.getString(R.string.sort_mode_duration_asc)
-            SortMode.DURATION_DESC -> activity.getString(R.string.sort_mode_duration_desc)
-            SortMode.DATE_TAKEN_ASC -> activity.getString(R.string.sort_mode_date_taken_asc)
-            SortMode.DATE_TAKEN_DESC -> activity.getString(R.string.sort_mode_date_taken_desc)
-            SortMode.RANDOM -> activity.getString(R.string.sort_mode_random)
-        }
-    }
-    
-    /**
-     * Show delete-confirmation dialog for [files].
-     *
-     * @param overridePaths When non-null, forwarded to [DialogCallbacks.onDeleteConfirmed]
-     *   verbatim - used by the per-file overflow menu to delete a single file without
-     *   touching the global multiselect. When null, the callback resolves to the current
-     *   global multiselect.
-     */
     fun showDeleteConfirmation(
         files: List<MediaFile>,
-        resource: com.sza.fastmediasorter.domain.model.MediaResource?,
+        resource: MediaResource?,
         settings: AppSettings,
         overridePaths: Set<String>? = null
     ) {
-        val fileCount = files.size
-        if (fileCount == 0) return
-
-        val isNetwork = resource?.type?.isNetworkResource == true
-
-        if (isNetwork) {
-            val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
-            val prefKey = "dont_show_network_delete_${resource?.id ?: 0}"
-            val dontShowAgain = prefs.getBoolean(prefKey, false)
-
-            if (!dontShowAgain) {
-                showNetworkDeleteConfirmation(files, resource, fileCount, prefKey, overridePaths)
-                return
-            }
-        }
-
-        // Standard check
-        val shouldConfirmDelete = settings.enableSafeMode && settings.confirmDelete
-
-        if (shouldConfirmDelete) {
-            val dirCount = files.count { it.isDirectory }
-            val message = when {
-                dirCount == 1 && fileCount == 1 -> {
-                    val folderName = files.first { it.isDirectory }.name
-                    activity.getString(R.string.delete_folder_confirm, folderName)
-                }
-                dirCount > 0 && dirCount == fileCount -> {
-                    activity.getString(R.string.delete_n_folders_confirm, dirCount)
-                }
-                else -> activity.getString(R.string.confirm_delete_message, fileCount)
-            }
-            AlertDialog.Builder(activity)
-                .setTitle(R.string.confirm_delete_title)
-                .setMessage(message)
-                .setPositiveButton(R.string.delete) { _, _ ->
-                    callbacks.onDeleteConfirmed(overridePaths)
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-        } else {
-            // Skip confirmation - execute immediately
-            callbacks.onDeleteConfirmed(overridePaths)
-        }
+        deleteDialogManager.showDeleteConfirmation(files, resource, settings, overridePaths)
     }
 
-    private fun showNetworkDeleteConfirmation(
-        files: List<MediaFile>,
-        resource: com.sza.fastmediasorter.domain.model.MediaResource?,
-        fileCount: Int,
-        prefKey: String,
-        overridePaths: Set<String>?
-    ) {
-        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_network_delete_confirmation, null)
-        
-        val tvDeleteMessage = view.findViewById<android.widget.TextView>(R.id.tvDeleteMessage)
-        val tvFilesList = view.findViewById<android.widget.TextView>(R.id.tvFilesList)
-        val tvMoreFilesCount = view.findViewById<android.widget.TextView>(R.id.tvMoreFilesCount)
-        val tvResourceInfo = view.findViewById<android.widget.TextView>(R.id.tvResourceInfo)
-        val cbDontShowAgain = view.findViewById<android.widget.CheckBox>(R.id.cbDontShowAgain)
-        
-        tvDeleteMessage.text = activity.getString(R.string.delete_n_files_from_network_title, fileCount)
-        
-        val displayLimit = 5
-        val filesToDisplay = files.take(displayLimit)
-        val sb = java.lang.StringBuilder()
-        filesToDisplay.forEachIndexed { index, file ->
-            sb.append("• ").append(file.name)
-            if (index < filesToDisplay.size - 1) sb.append("\n")
-        }
-        tvFilesList.text = sb.toString()
-        
-        if (fileCount > displayLimit) {
-            tvMoreFilesCount.visibility = android.view.View.VISIBLE
-            tvMoreFilesCount.text = activity.getString(R.string.and_n_more_files_network, fileCount - displayLimit)
-        }
-        
-        val resourceName = resource?.name ?: "Unknown"
-        val basePath = resource?.path ?: ""
-        tvResourceInfo.text = "$resourceName\n$basePath"
-        cbDontShowAgain.text = activity.getString(R.string.dont_show_again_for_resource)
-        
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setView(view)
-            .setPositiveButton(R.string.delete_permanently) { _, _ ->
-                if (cbDontShowAgain.isChecked) {
-                    val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
-                    prefs.edit().putBoolean(prefKey, true).apply()
-                }
-                callbacks.onDeleteConfirmed(overridePaths)
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-            
-        // Make positive button text error color
-        val colorError = com.google.android.material.color.MaterialColors.getColor(view, androidx.appcompat.R.attr.colorError)
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(colorError)
-    }
-    
     fun showErrorDialog(message: String, details: String?) {
-        val dialogBuilder = AlertDialog.Builder(activity)
-            .setTitle(R.string.error_title)
-            .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
-        
-        // Add "Show Details" button if details are available
-        if (!details.isNullOrBlank()) {
-            dialogBuilder.setNeutralButton(R.string.show_details) { _, _ ->
-                showErrorDetailsDialog(details)
-            }
-        }
+        feedbackDialogManager.showErrorDialog(message, details)
+    }
 
-        val dialog = dialogBuilder.show()
-        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
-    }
-    
-    private fun showErrorDetailsDialog(details: String) {
-        ScrollableTextDialog.show(
-            context = activity,
-            title = activity.getString(R.string.error_details_title),
-            message = details
-        )
-    }
-    
     fun showCloudAuthenticationDialog(
-        provider: com.sza.fastmediasorter.data.cloud.CloudProvider,
+        provider: CloudProvider,
         resourceName: String,
         onRemoveResource: () -> Unit = {}
     ) {
-        val providerName = when (provider) {
-            com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> activity.getString(R.string.google_drive)
-            com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> activity.getString(R.string.dropbox)
-            com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE -> activity.getString(R.string.onedrive)
-        }
-        
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.authentication_required))
-            .setMessage(activity.getString(R.string.cloud_auth_dialog_message, resourceName, providerName))
-            .setPositiveButton(activity.getString(R.string.sign_in_now)) { _, _ ->
-                callbacks.onCloudSignInRequested(provider)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            // Allows removing orphaned cloud resources that lost authentication (e.g. from a
-            // previous installation or after revoked OAuth tokens). lastBrowseDate is already
-            // cleared in BrowseLoadingAuxManager, so this simply closes the screen.
-            .setNeutralButton(activity.getString(R.string.remove_resource)) { _, _ ->
-                onRemoveResource()
-            }
-            .show()
+        feedbackDialogManager.showCloudAuthenticationDialog(provider, resourceName, onRemoveResource)
     }
-    
-    private fun copyToClipboard(text: String) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("Error Details", text)
-        clipboard.setPrimaryClip(clip)
-    }
-    
+
     fun showRenameDialog(selectedFiles: List<MediaFile>) {
-        if (selectedFiles.isEmpty()) {
-            Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        if (selectedFiles.size == 1 && selectedFiles.first().isDirectory) {
-            showRenameDirectoryDialog(selectedFiles.first())
-        } else if (selectedFiles.size == 1) {
-            showRenameSingleDialog(selectedFiles.first())
-        } else {
-            showRenameMultipleDialog(selectedFiles)
-        }
-    }
-
-    private fun showRenameDirectoryDialog(file: MediaFile) {
-        // Use the display name, not the last path segment: for cloud folders the path
-        // ends with the provider's internal folder id, not a human-readable name.
-        val currentName = file.name.ifBlank { file.path.trimEnd('/').substringAfterLast('/') }
-        val editText = android.widget.EditText(activity).apply {
-            setText(currentName)
-            selectAll()
-            inputType = android.text.InputType.TYPE_CLASS_TEXT
-        }
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.rename)
-            .setView(editText)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val newName = editText.text.toString().trim()
-                if (newName.isNotEmpty() && newName != currentName) {
-                    callbacks.onDirectoryRenameConfirmed(file.path, newName)
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-    
-    private fun showRenameSingleDialog(mediaFile: MediaFile) {
-        val filePath = mediaFile.path
-        val displayName = mediaFile.name
-        // Create File object that preserves network/cloud paths. getName() must return the
-        // display name: a cloud path ends with the provider's internal item id, so the default
-        // File.name would prefill the rename field with that id instead of the real file name.
-        val file = if (filePath.startsWith("smb://") ||
-                       filePath.startsWith("sftp://") ||
-                       filePath.startsWith("ftp://") ||
-                       filePath.startsWith("cloud://")) {
-            object : File(filePath) {
-                override fun getAbsolutePath(): String = filePath
-                override fun getPath(): String = filePath
-                override fun getName(): String = displayName
-            }
-        } else {
-            File(filePath)
-        }
-        
-        RenameDialog(
-            context = activity,
-            lifecycleOwner = callbacks.getLifecycleOwner(),
-            files = listOf(file),
-            sourceFolderName = callbacks.getResourceName() ?: "",
-            fileOperationUseCase = callbacks.getFileOperationUseCase(),
-            onComplete = { oldPath, newFile ->
-                // Block FileObserver during programmatic update
-                callbacks.setIgnoringFileChanges(true)
-                
-                // Instant update without full reload
-                val mediaFile = callbacks.createMediaFileFromFile(newFile)
-                callbacks.updateFile(oldPath, mediaFile)
-                
-                // Re-enable FileObserver after 200ms (enough for OS events)
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    callbacks.setIgnoringFileChanges(false)
-                }, 200)
-            }
-        ).show()
-    }
-    
-    private fun showRenameMultipleDialog(mediaFiles: List<MediaFile>) {
-        // Create File objects that preserve network/cloud paths. getName() must return the
-        // display name so the prefilled rows show real file names rather than the cloud
-        // provider's internal item ids (which are the last segment of a cloud path).
-        val files = mediaFiles.map { mediaFile ->
-            val path = mediaFile.path
-            val displayName = mediaFile.name
-            if (path.startsWith("smb://") ||
-                path.startsWith("sftp://") ||
-                path.startsWith("ftp://") ||
-                path.startsWith("cloud://")) {
-                object : File(path) {
-                    override fun getAbsolutePath(): String = path
-                    override fun getPath(): String = path
-                    override fun getName(): String = displayName
-                }
-            } else {
-                File(path)
-            }
-        }
-        val fileNames = files.map { it.name }.toMutableList()
-        
-        val dialogBinding = DialogRenameMultipleBinding.inflate(LayoutInflater.from(activity))
-        
-        val adapter = BrowseRenameFilesAdapter(fileNames)
-        dialogBinding.rvFileNames.apply {
-            layoutManager = LinearLayoutManager(activity)
-            this.adapter = adapter
-        }
-        
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(activity.getString(R.string.renaming_n_files_from_folder, files.size, callbacks.getResourceName() ?: ""))
-            .setView(dialogBinding.root)
-            .create()
-        
-        dialogBinding.btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-        
-        dialogBinding.btnApply.setOnClickListener {
-            val newNames = adapter.getFileNames()
-            callbacks.getLifecycleOwner().lifecycleScope.launch {
-                var renamedCount = 0
-                val errors = mutableListOf<String>()
-                // (currentPathAfterRename, originalDisplayName) pairs for undo.
-                val undoPairs = mutableListOf<Pair<String, String>>()
-
-                files.forEachIndexed { index, file ->
-                    val newName = newNames.getOrNull(index)?.trim().orEmpty()
-                    if (newName.isBlank() || newName == file.name) {
-                        return@forEachIndexed
-                    }
-
-                    val oldPath = file.absolutePath
-                    val originalName = file.name
-
-                    try {
-                        when (val result = callbacks.getFileOperationUseCase()
-                            .execute(FileOperation.Rename(file, newName))) {
-                            is FileOperationResult.Success -> {
-                                renamedCount++
-                                val newPath = result.copiedFilePaths.firstOrNull() ?: run {
-                                    val p = file.path
-                                    if (p.startsWith("smb://") || p.startsWith("sftp://") ||
-                                        p.startsWith("ftp://") || p.startsWith("cloud://")) {
-                                        "${p.substring(0, p.lastIndexOf('/'))}/$newName"
-                                    } else {
-                                        File(file.parent, newName).absolutePath
-                                    }
-                                }
-                                undoPairs.add(newPath to originalName)
-
-                                // Instant pointwise update, no full reload; suppress FileObserver during it.
-                                callbacks.setIgnoringFileChanges(true)
-                                val renamedFile = object : File(newPath) {
-                                    override fun getPath(): String = newPath
-                                    override fun getAbsolutePath(): String = newPath
-                                    override fun getName(): String = newName
-                                }
-                                callbacks.updateFile(oldPath, callbacks.createMediaFileFromFile(renamedFile))
-                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                    callbacks.setIgnoringFileChanges(false)
-                                }, 200)
-                            }
-                            is FileOperationResult.Failure -> {
-                                val message = result.errorRes?.let { activity.getString(it, *result.formatArgs.toTypedArray()) }
-                                    ?: if (result.error.contains("already exists", ignoreCase = true)) {
-                                        activity.getString(R.string.file_already_exists, newName)
-                                    } else {
-                                        activity.getString(R.string.rename_failed_generic)
-                                    }
-                                errors.add("${file.name}: $message")
-                            }
-                            else -> {
-                                errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Timber.w(e, "showRenameMultipleDialog: batch rename failed for %s", file.path)
-                        errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
-                    }
-                }
-
-                if (undoPairs.isNotEmpty()) {
-                    callbacks.saveUndoOperation(
-                        UndoOperation(
-                            type = com.sza.fastmediasorter.domain.model.FileOperationType.RENAME,
-                            sourceFiles = undoPairs.map { it.first },
-                            destinationFolder = null,
-                            copiedFiles = null,
-                            oldNames = undoPairs
-                        )
-                    )
-                }
-
-                if (renamedCount > 0) {
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.renamed_n_files, renamedCount),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                if (errors.isNotEmpty()) {
-                    Toast.makeText(
-                        activity,
-                        errors.joinToString("\n"),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
-                dialog.dismiss()
-            }
-        }
-
-        dialog.show()
-        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
-
-        // Show keyboard for first EditText after RecyclerView is laid out
-        dialogBinding.rvFileNames.postDelayed({
-            val firstViewHolder = dialogBinding.rvFileNames.findViewHolderForAdapterPosition(0)
-            if (firstViewHolder is BrowseRenameFilesAdapter.ViewHolder) {
-                firstViewHolder.binding.etFileName.requestFocus()
-                val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.showSoftInput(firstViewHolder.binding.etFileName, InputMethodManager.SHOW_IMPLICIT)
-            }
-        }, 200)
+        renameDialogManager.showRenameDialog(selectedFiles)
     }
 }

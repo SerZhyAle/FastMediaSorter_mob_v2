@@ -36,7 +36,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
 
     /** Launches the route configured for [action]. No-op for silent/disabled; degrades to silent save when [savedUri] is null. */
     fun runPostSave(context: Context, action: ScreenshotGestureAction, savedUri: Uri?) {
-        Timber.d("S0425: runPostSave action=%s uri=%s", action, savedUri)
         when (action) {
             ScreenshotGestureAction.SILENT_SCREENSHOT,
             ScreenshotGestureAction.DO_NOT_USE -> return

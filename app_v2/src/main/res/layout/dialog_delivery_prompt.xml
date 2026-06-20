@@ -52,7 +52,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_delivery_cancel"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
@@ -61,9 +61,10 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_delivery_confirm"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
             android:focusable="true"
             android:text="@string/delivery_action_download" />
     </LinearLayout>

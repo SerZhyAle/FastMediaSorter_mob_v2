@@ -2,7 +2,7 @@
 
 ## 1. Communication & Style
 - **Chat**: RU. **Code/Docs/Logs/Commits**: EN. **Tone**: dry, concise. Ask if ambiguous.
-- **Ellipsis**: `..` (never `...`). **Russian Ё/ё**: mandatory in chat, UI, docs, Approved specs. Draft specs exempt.
+- **Ellipsis**: `..` (never `...`). **Dash**: plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`). **Russian Ё/ё**: mandatory in chat, UI, docs, Approved specs. Draft specs exempt.
 - **Caveman Mode**: Trigger via `/caveman` / `be brief`. Keep RU in chat, EN in code. Drop filler.
 - **Spec Writing**: Lists over tables (tables only for 3+ columns). No pseudographics. No self-evident links. One idea per bullet. No section summaries. Draft specs exempt.
 
@@ -21,6 +21,7 @@
 - `/spec-tech`: break approved strategic spec into tactical plan.
 - `/spec-update`: review/refine spec file.
 - `/spec-dev`: execute tactical spec step-by-step.
+- `/spec-quiz`: unstick one spec via multiple-choice Q&A - ask owner only the decisions blocking the next transition, write answers into the spec, advance exactly one lifecycle level (Draft -> Approved, BlockQuestions -> restore).
 - `/spec-check`: audit spec against codebase; sets status Verified/Partial/Broken; writes to `## Last Audit`.
 - `/spec-fix`: mechanical fixes after spec-check.
 - `/spec-arc`: archive one or more specs (move files to `temp/done/`, set status `Archived`).
@@ -115,9 +116,10 @@
 16. UI consistency: Support keyboard, D-pad/TV, and mouse inputs. Set focusable, clickable, nextFocus*.
 17. System bar safety: Keep UI inside `systemBars` + `displayCutout` safe bounds in portrait/landscape.
 18. Lazy optimization: Use Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources immediately when paused.
-19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
+19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`), no typographic long dashes in `.kt` (em-dash `—`/en-dash `–`/horizontal bar `―` -> plain hyphen `-`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
 21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
+22. Settings docs sync: Any change to a setting - its presence, behavior, position, or naming - must regenerate the settings manifest (`docs/settings/settings-manifest.json`) and reference (`docs/SETTINGS_REFERENCE*.md`) and update its annotation (`docs/settings/settings-annotations.json`). Mechanical gate: `scripts/quality/assert-settings-doc-sync.ps1` (in `post-change.ps1`).
 
 ## 11. Feature & UI Policies
 - **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.
@@ -126,7 +128,8 @@
 
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.
-- Mechanical closure: `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<desc>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>]`.
+- Mechanical closure: `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<desc>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>]`. Skills SHOULD route mechanical closure through this facade instead of hand-rolling each step.
+- Journaling granularity: one dev-log entry per logical change/ticket, not per touched file (batch multi-file changes via `close-and-log.ps1 -DevLogs`); run `catalog_sync.ps1` once per ticket, not per `.kt` edit.
 - Validation Ladder:
   - Doc: Grep for content.
   - Script: Run, exit 0.

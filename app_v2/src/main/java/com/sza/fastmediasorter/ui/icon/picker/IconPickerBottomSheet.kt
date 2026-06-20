@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.BottomSheetIconPickerBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.icon.ResourceIconSet
 import timber.log.Timber
 
@@ -99,6 +100,13 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
         ResourceIconSet.IMAGE -> getString(R.string.icon_set_image)
         ResourceIconSet.DOCS  -> getString(R.string.icon_set_docs)
         ResourceIconSet.OTHER -> getString(R.string.icon_set_other)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Pure picker: tapping an icon selects and closes, so no-op confirm only adds Esc-dismiss and
+        // focus traversal across the tabs/grid.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.common.input
 import com.sza.fastmediasorter.R
 
 /**
- * Central registry of F1 help entries per [InputSurface].
+ * Central registry of F1 help entries per [UiSurface].
  *
  * Kept in one place so documentation generators and the in-app help
  * dialog share a single source of truth. Per-surface tables only list
@@ -156,20 +156,20 @@ object InputHelpRegistry {
      * @return help sections for [surface] followed by the shared global
      *   section. Returns an empty list only if no entries exist.
      */
-    fun get(surface: InputSurface): List<InputHelpEntry.Section> {
+    fun get(surface: UiSurface): List<InputHelpEntry.Section> {
         val surfaceSections = when (surface) {
-            InputSurface.MAIN -> MAIN
-            InputSurface.BROWSE -> BROWSE
-            InputSurface.PLAYER, InputSurface.VR_PLAYER -> PLAYER
-            InputSurface.SETTINGS -> SETTINGS
-            InputSurface.DIALOG -> DIALOG
-            InputSurface.ADD_RESOURCE,
-            InputSurface.CLOUD_PICKER,
-            InputSurface.DUPLICATES,
-            InputSurface.RESOURCE_EDITOR,
-            InputSurface.RECEIVE_SHARE,
-            InputSurface.WIDGET_CONFIG,
-            InputSurface.WELCOME -> GENERIC_NAV
+            UiSurface.MAIN -> MAIN
+            UiSurface.BROWSE -> BROWSE
+            UiSurface.PLAYER, UiSurface.VR_PLAYER -> PLAYER
+            UiSurface.SETTINGS -> SETTINGS
+            UiSurface.DIALOG -> DIALOG
+            UiSurface.ADD_RESOURCE,
+            UiSurface.CLOUD_PICKER,
+            UiSurface.DUPLICATES,
+            UiSurface.RESOURCE_EDITOR,
+            UiSurface.RECEIVE_SHARE,
+            UiSurface.WIDGET_CONFIG,
+            UiSurface.WELCOME -> GENERIC_NAV
         }
         return surfaceSections + GLOBAL
     }

@@ -1,20 +1,19 @@
 ---
-name: project_functionality_log
-description: dev/FUNCTIONALITY.log - developer journal of user-visible functionality lifecycle (ADD/CHANGE/DELETE/FIX), separate from dev/CHANGELOG.md and docs/FEATURES.md
+name: capability-inventory-all-features
+description: dev/FUNCTIONALITY.log + add_to_functionality_log.ps1 RETIRED (S0489); record capabilities in docs/ALL_FEATURES.jsonl via scripts/all_features/add.ps1
 metadata:
   type: project
 ---
 
-`dev/FUNCTIONALITY.log` is a plain-text developer journal of user-visible functionality lifecycle, introduced 2026-05-14. It sits between the two existing journals:
+The free-text functionality log was retired and replaced by a structured capability inventory.
 
-- `dev/CHANGELOG.md` - every code/config touch (low-level, written via `scripts/add_to_dev_log.ps1`).
-- `docs/FEATURES.md` (+ `_RU`/`_UK`) - public end-user catalogue of significant features only.
-- `dev/FUNCTIONALITY.log` - internal history of *which* user-visible capability was created/changed/deleted/fixed, when, and under which `Sxxxx` ticket.
-
-**Why:** the author wants a grep-friendly developer audit trail of feature lifecycle that survives even when `docs/FEATURES.md` updates are skipped (refactors, polish, internal capabilities, `/quick` tweaks). `CHANGELOG.md` is too noisy for this purpose; `FEATURES.md` is too curated.
+**Why:** S0489 migrated user-visible-capability tracking from the plain-text `dev/FUNCTIONALITY.log` to a schema-validated JSONL inventory (`docs/ALL_FEATURES.jsonl`, EN-only, one JSON object per line, upsert-by-id). `scripts/add_to_functionality_log.ps1` now hard-errors pointing at the replacement.
 
 **How to apply:**
-- After completing a code change whose effect a user can perceive (new button works, a bug is fixed, a capability is removed, an existing flow changes), call `pwsh -NoProfile -File scripts/add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"`. Omit `-Id` only for unticketed `/quick` tweaks.
-- Skip the call entirely for pure refactors, build/config changes invisible to the user, internal performance work, or anything that has no end-user-visible delta - same skip criteria as `docs/FEATURES.md`, but broader (visible bug fixes still get a `FIX` line).
-- The skill in flight may have already called the script - check `dev/FUNCTIONALITY.log` last line before adding a duplicate. Skills that own the write: `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/quick`, `/skill-fix-release`. If a skill is driving the work, don't call the script manually.
-- Line format is fixed: `[YYYY-MM-DD HH:MM] [Sxxxx|------] [OP    ] <english description>`. `OP` is padded to 6 chars. Description in English (like all code/docs/logs).
+- Do NOT call `scripts/add_to_functionality_log.ps1` - retired, errors out (`exit 1`).
+- After delivering a shippable user-visible capability, record it: `pwsh -NoProfile -File scripts/all_features/add.ps1 -Id "<area>.<feature>" -Area "<Area>" -Name "<Name>" -Description "<EN desc>" -Flavors "standard,lite,photos,legacy[,vr,noLegal]" [-Spec Sxxxx] [-Status active|removed]`.
+  - `-Id` is kebab `<area>.<feature>` lowercase (regex-validated); upsert replaces a same-id record in place. `-ListAreas` prints existing areas so you pick a valid one without an exploratory pass.
+  - Name/Description ASCII/EN-only (non-ASCII rejected). Flavors validated against standard,lite,photos,legacy,vr,noLegal. noLegal-only: `-NoLegal` → gitignored `docs/ALL_FEATURES_noLegal.jsonl`.
+- When a spec skill is driving the work (`/spec-dev`, `/spec-check`, `/spec-fix`), the record is written by `close-and-log.ps1 -FuncOp/-FuncDesc` (+ `-FeatArea`/`-FeatFlavors`/`-FeatName` for a meaningful entry) - do not double-write.
+- Layer roles otherwise unchanged: `dev/CHANGELOG.md` = low-level code-touch journal (via `add_to_dev_log.ps1`); `docs/FEATURES*.md` = curated end-user showcase, edited ONLY by `/skill-release` from the inventory diff - never per-spec.
+- A rendering/UI bug fix is NOT a capability - skip ALL_FEATURES, the CHANGELOG dev-log is the record. Reserve ALL_FEATURES for added/changed/removed user-visible capabilities.

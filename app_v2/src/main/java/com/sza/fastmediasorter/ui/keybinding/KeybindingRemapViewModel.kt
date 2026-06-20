@@ -1,8 +1,12 @@
 package com.sza.fastmediasorter.ui.keybinding
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.data.input.InputBindingRepository
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
+import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputBinding
@@ -30,7 +34,8 @@ sealed class PendingConfirmation {
 data class RemapUiState(
     val rows: List<KeybindingRow> = emptyList(),
     val filter: String = "",
-    val expandedGroups: Set<CommandGroup> = CommandGroup.values().toSet(),
+    // S0535: default collapsed; init restores the persisted set from the consolidated store.
+    val expandedGroups: Set<CommandGroup> = emptySet(),
     val pendingCapture: CaptureRequest? = null,
     val pendingConfirmation: PendingConfirmation? = null,
     val conflicts: Map<InputTrigger, List<String>> = emptyMap()
@@ -49,6 +54,7 @@ data class CaptureRequest(val commandId: String, val device: String, val slot: I
 
 @HiltViewModel
 class KeybindingRemapViewModel @Inject constructor(
+    @ApplicationContext appContext: Context,
     private val repo: InputBindingRepository,
     private val setBinding: SetBindingUseCase,
     private val resetBinding: ResetBindingUseCase,
@@ -58,8 +64,11 @@ class KeybindingRemapViewModel @Inject constructor(
     private val formatter: KeybindingRowLabelFormatter
 ) : ViewModel() {
 
+    // S0535: command groups are a stable set, so expansion persists between sessions (research 02 D3).
+    private val sectionStore: CollapsibleSectionStore = SharedPreferencesCollapsibleSectionStore(appContext)
+
     private val allRows = MutableStateFlow<List<KeybindingRow>>(emptyList())
-    private val _state = MutableStateFlow(RemapUiState())
+    private val _state = MutableStateFlow(RemapUiState(expandedGroups = restoreExpandedGroups()))
     val state: StateFlow<RemapUiState> = _state.asStateFlow()
 
     init {
@@ -80,8 +89,11 @@ class KeybindingRemapViewModel @Inject constructor(
 
     fun onGroupToggle(group: CommandGroup) {
         val current = _state.value.expandedGroups.toMutableSet()
-        if (group in current) current.remove(group) else current.add(group)
+        val nowExpanded = group !in current
+        if (nowExpanded) current.add(group) else current.remove(group)
         _state.update { it.copy(expandedGroups = current) }
+        sectionStore.setExpanded(keyFor(group), nowExpanded)
+        Timber.d("S0535: keybinding group '${group.name}' expansion persisted=$nowExpanded")
     }
 
     fun onRemapRequested(commandId: String, device: String, slot: Int) {
@@ -132,6 +144,11 @@ class KeybindingRemapViewModel @Inject constructor(
 
     // ----- private helpers -----
 
+    private fun keyFor(group: CommandGroup): String = "keybinding__" + group.name.lowercase()
+
+    private fun restoreExpandedGroups(): Set<CommandGroup> =
+        CommandGroup.values().filterTo(mutableSetOf()) { sectionStore.isExpanded(keyFor(it), false) }
+
     private fun refreshState() {
         val filtered = applyFilter(allRows.value, _state.value.filter)
         _state.update { it.copy(rows = filtered) }
@@ -176,7 +193,9 @@ class KeybindingRemapViewModel @Inject constructor(
         commandId.startsWith("view.") -> CommandGroup.VIEW_ZOOM
         commandId.startsWith("audio.") -> CommandGroup.AUDIO_SUBTITLES
         commandId.startsWith("system.") -> CommandGroup.SYSTEM_UI
+        commandId.startsWith("sorting.op_slot_") -> CommandGroup.OPERATION_SLOTS
         commandId.startsWith("sorting.") -> CommandGroup.SORTING_ACTIONS
+        commandId.startsWith("browser.") -> CommandGroup.BROWSER_ACTIONS
         commandId.startsWith("vr.") -> CommandGroup.VR_ONLY
         else -> CommandGroup.SYSTEM_UI
     }

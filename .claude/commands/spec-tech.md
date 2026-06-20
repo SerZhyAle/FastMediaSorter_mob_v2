@@ -358,5 +358,5 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
 - **File / folder names.** Strategic spec at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder `PLAN/<Sxxxx>_<slug>/`. Phase files follow `PHASE_NN__<topic>.md` (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
-- **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`. For any `Block*` transition include `-StatusNote '<reason and what resolves it>'` — mandatory per CLAUDE.md §4.
+- **Status transition.** After the tactical folder is fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`. For any `Block*` transition include `-StatusNote '<reason and what resolves it>'` - mandatory per CLAUDE.md §4.
 - **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

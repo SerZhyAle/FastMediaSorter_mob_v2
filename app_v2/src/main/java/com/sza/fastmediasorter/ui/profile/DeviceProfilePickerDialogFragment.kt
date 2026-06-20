@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.DialogDeviceProfilePickerBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -88,6 +89,9 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
             setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             setGravity(Gravity.CENTER)
         }
+        // Pure picker: tapping a tile selects and closes, so no-op confirm only adds Esc-dismiss and
+        // tile focus traversal. Initial focus is left to the tile grid.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

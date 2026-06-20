@@ -50,7 +50,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityCameraQuickCaptureWidgetConfigBinding
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,7 +86,7 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
 
     /** Multimodal surface marker - widget config activity (mirrors the resource-launch config). */
     @Suppress("unused")
-    private val multimodalInputSurface: InputSurface = InputSurface.WIDGET_CONFIG
+    private val multimodalInputSurface: UiSurface = UiSurface.WIDGET_CONFIG
 
     override fun getInitialFocusView(): View? = binding.cameraWidgetConfigComposeView
 

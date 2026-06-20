@@ -61,6 +61,22 @@ function Get-Adb {
     return $null
 }
 
+# True for an Android emulator (qemu/ranchu/goldfish or an SDK image). On such targets the
+# gfxinfo janky% scroll metric is structurally inflated by software/host-GPU rendering and is
+# therefore reported but not release-gating (record marked advisory; the verdict aggregator skips
+# advisory records). Physical devices return false and gate normally.
+function Test-IsEmulator {
+    param([string]$Adb, [string[]]$Target)
+    $qemu  = "$(& $Adb @Target shell getprop ro.kernel.qemu 2>&1)".Trim()
+    $bqemu = "$(& $Adb @Target shell getprop ro.boot.qemu 2>&1)".Trim()
+    $hw    = "$(& $Adb @Target shell getprop ro.hardware 2>&1)".Trim()
+    $model = "$(& $Adb @Target shell getprop ro.product.model 2>&1)".Trim()
+    if ($qemu -eq '1' -or $bqemu -eq '1') { return $true }
+    if ($hw -in @('ranchu', 'goldfish'))  { return $true }
+    if ($model -match 'sdk|emulator|Android SDK') { return $true }
+    return $false
+}
+
 $adb = Get-Adb
 if (-not $adb) { if ($Json) { '{"error":"adb not found"}' } else { Write-Host 'adb not found' }; exit 1 }
 $adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
@@ -101,13 +117,23 @@ $limit  = $thresholds[$keyMap[$Checkpoint]].Limit
 # Unmeasured (null) fails closed; otherwise pass when measured value is within the limit.
 $pass = ($null -ne $measured) -and ($limit -ne $null) -and ([double]$measured -le [double]$limit)
 
+# Advisory: list-scroll gfxinfo janky% is not a valid release gate on an emulator. Keep the raw
+# measured/pass for transparency but flag the record so the verdict aggregator does not gate on it.
+$advisory = $false
+if ($Checkpoint -eq 'list-scroll' -and (Test-IsEmulator -Adb $adb -Target $adbTarget)) {
+    $advisory = $true
+    $detail   = "$detail (advisory: emulator software render, not release-gating)"
+}
+
 $record = [ordered]@{
     checkpoint = $Checkpoint
     measured   = $measured
     limit      = $limit
     pass       = [bool]$pass
+    advisory   = [bool]$advisory
     detail     = $detail
 }
 if ($Json) { $record | ConvertTo-Json -Compress }
-else { Write-Host ("{0}: measured={1} limit={2} pass={3} ({4})" -f $Checkpoint, $measured, $limit, $pass, $detail) }
-exit $(if ($pass) { 0 } else { 11 })
+else { Write-Host ("{0}: measured={1} limit={2} pass={3} advisory={4} ({5})" -f $Checkpoint, $measured, $limit, $pass, $advisory, $detail) }
+# An advisory record never reports failure on a standalone call; the aggregator owns gating.
+exit $(if ($pass -or $advisory) { 0 } else { 11 })

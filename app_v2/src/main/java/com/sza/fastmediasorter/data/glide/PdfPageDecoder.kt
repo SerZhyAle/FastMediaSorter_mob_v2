@@ -71,25 +71,34 @@ class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
                 targetHeight = (targetWidth / pageAspectRatio).toInt()
             }
             
-            // Create bitmap with calculated dimensions
-            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, decodeFormatResolver.bitmapConfig())
-            
-            // Fill with white background (standard for PDFs)
-            bitmap.eraseColor(Color.WHITE)
-            
-            // Render PDF page to bitmap
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            
+            // PdfRenderer.Page.render() only accepts ARGB_8888; an RGB_565 target throws
+            // IllegalArgumentException. Render into ARGB_8888, then down-copy to the
+            // memory-pressure config so the cached thumbnail keeps the reduced footprint.
+            val rendered = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+            rendered.eraseColor(Color.WHITE)
+            page.render(rendered, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+            val targetConfig = decodeFormatResolver.bitmapConfig()
+            val bitmap = if (targetConfig != Bitmap.Config.ARGB_8888) {
+                rendered.copy(targetConfig, false)?.also { rendered.recycle() } ?: rendered
+            } else {
+                rendered
+            }
+
             Timber.d("PdfPageDecoder: Generated thumbnail for ${source.name} (${targetWidth}x${targetHeight})")
-            
+
             return SimpleResource(bitmap)
-            
+
         } catch (e: IOException) {
             Timber.e(e, "PdfPageDecoder: Failed to decode PDF: ${source.name}")
             return null
         } catch (e: SecurityException) {
             // Password-protected PDF
             Timber.w("PdfPageDecoder: PDF is password-protected: ${source.name}")
+            return null
+        } catch (e: IllegalArgumentException) {
+            // Unexpected render-config / dimension mismatch - degrade to placeholder, do not crash decode.
+            Timber.w(e, "PdfPageDecoder: Render rejected for ${source.name}")
             return null
         } finally {
             // Clean up resources in correct order

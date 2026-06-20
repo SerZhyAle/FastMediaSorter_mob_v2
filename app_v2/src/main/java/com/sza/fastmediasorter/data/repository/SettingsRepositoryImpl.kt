@@ -218,7 +218,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     }
 
-    // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
+    // Cached once per singleton - avoids repeated getSharedPreferences() calls inside DataStore map {}
     private val glidePrefs by lazy {
         context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
     }
@@ -259,7 +259,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
-                // glidePrefs is a lazy singleton field — no disk access on every emission
+                // glidePrefs is a lazy singleton field - no disk access on every emission
                 val cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048
                 val savedCacheSize = glidePrefs.getInt("cache_size_mb_cached", 0)
                 if (savedCacheSize != cacheSizeMb) {
@@ -504,11 +504,11 @@ class SettingsRepositoryImpl @Inject constructor(
         // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
         val current = runCatching { getSettings().first() }.getOrNull()
         if (current != null && current == settings) {
-            Timber.v("SettingsRepo: updateSettings idempotent — skipping DataStore write")
+            Timber.v("SettingsRepo: updateSettings idempotent - skipping DataStore write")
             return
         }
         if (BuildConfig.DEBUG && current != null) {
-            Timber.d("SettingsRepo: updateSettings diff detected — proceeding with DataStore write")
+            Timber.d("SettingsRepo: updateSettings diff detected - proceeding with DataStore write")
         }
 
         // NOTE: Language is NOT synced to SharedPreferences here.
@@ -635,7 +635,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
             preferences.setOrRemove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID, settings.videoSnapshotResourceId)
 
-            // Video frame snapshot format — always present with "PNG" default
+            // Video frame snapshot format - always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
             preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] = settings.videoFrameCopyToClipboard
 

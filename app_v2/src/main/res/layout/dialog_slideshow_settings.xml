@@ -48,24 +48,15 @@
             android:stepSize="1"
             app:layout_constraintTop_toBottomOf="@id/tvIntervalLabel" />
 
-        <!-- Play to End Checkbox -->
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <!-- Play to End -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/cbPlayToEnd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
-            android:text="@string/play_video_audio_to_end"
+            app:str_title="@string/play_video_audio_to_end"
+            app:str_subtitle="@string/play_to_end_hint"
             app:layout_constraintTop_toBottomOf="@id/sliderInterval" />
-
-        <TextView
-            android:id="@+id/tvPlayToEndHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dialog_slideshow_settings_tvPlayToEndHint_layout_marginStart"
-            android:text="@string/play_to_end_hint"
-            android:textSize="@dimen/dialog_slideshow_settings_tvPlayToEndHint_textSize"
-            android:textColor="@color/text_color_secondary"
-            app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
 
         <!-- Background Music Section -->
 
@@ -78,7 +69,7 @@
             android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
+            app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
 
         <TextView
             android:id="@+id/tvMusicStatus"

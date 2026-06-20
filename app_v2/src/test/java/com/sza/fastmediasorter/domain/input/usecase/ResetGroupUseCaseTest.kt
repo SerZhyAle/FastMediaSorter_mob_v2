@@ -30,6 +30,7 @@ class ResetGroupUseCaseTest {
             CommandGroup.AUDIO_SUBTITLES to "audio.",
             CommandGroup.SYSTEM_UI to "system.",
             CommandGroup.SORTING_ACTIONS to "sorting.",
+            CommandGroup.BROWSER_ACTIONS to "browser.",
             CommandGroup.VR_ONLY to "vr.",
         )
 

@@ -62,38 +62,17 @@
 
                     </LinearLayout>
 
-                    <!-- Global scaling (compact elements) + compact controls (small controls) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="horizontal" android:baselineAligned="false">
-
-                        <LinearLayout android:id="@+id/layoutCompactElements" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowCompactElements"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/compact_elements"
-                                app:str_subtitle="@string/setting_compact_elements_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_compact_elements_title"
-                                app:str_helpMessage="@string/tooltip_compact_elements_message" />
-
-                        </LinearLayout>
-
-                        <LinearLayout android:id="@+id/layoutSmallControls" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowSmallControls"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/small_controls"
-                                app:str_subtitle="@string/setting_small_controls_desc"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_compact_controls_title"
-                                app:str_helpMessage="@string/tooltip_compact_controls_message" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
+                    <!-- Global scaling (compact elements) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCompactElements"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_title="@string/compact_elements"
+                        app:str_subtitle="@string/setting_compact_elements_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_compact_elements_title"
+                        app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->
                     <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
@@ -110,7 +89,7 @@
 
                     </LinearLayout>
 
-                    <!-- S0028: Multi-window mode — allow opening in a separate window. Relocated here from VideoSettings; placed at the bottom of the Interface section. -->
+                    <!-- S0028: Multi-window mode - allow opening in a separate window. Relocated here from VideoSettings; placed at the bottom of the Interface section. -->
                     <LinearLayout android:id="@+id/layoutAllowSeparateWindow" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -134,66 +113,6 @@
                             android:layout_height="wrap_content"
                             app:str_title="@string/resource_ops_in_overflow_menu"
                             app:str_subtitle="@string/setting_resource_ops_in_overflow_menu_desc" />
-
-                    </LinearLayout>
-
-                    <!-- S0473: opt-in local usage statistics (default OFF). Dashboard nav row arrives in Phase 04. -->
-                    <LinearLayout android:id="@+id/layoutEnableStatistics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowEnableStatistics"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_title="@string/settings_statistics_collection_title"
-                            app:str_subtitle="@string/settings_statistics_collection_summary" />
-
-                        <!-- S0473 Phase 04: opens the statistics dashboard. Visibility is bound to the
-                             toggle above in GeneralSettingsViewSetupHelper (GONE while collection is off). -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/rowOpenStatistics"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:visibility="gone"
-                            app:cardCornerRadius="@dimen/card_corner_radius"
-                            app:cardElevation="2dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:minHeight="@dimen/settings_item_min_height"
-                                android:orientation="horizontal"
-                                android:padding="16dp">
-
-                                <ImageView
-                                    android:layout_width="@dimen/settings_help_icon_size"
-                                    android:layout_height="@dimen/settings_help_icon_size"
-                                    android:layout_marginEnd="@dimen/margin_medium"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_history"
-                                    app:tint="?attr/colorPrimary" />
-
-                                <TextView
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="@string/settings_statistics_open"
-                                    android:textSize="@dimen/toggler_title_text_size" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_marginStart="@dimen/margin_small"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_chevron_right"
-                                    app:tint="?attr/colorPrimary" />
-
-                            </LinearLayout>
-
-                        </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
 
@@ -387,6 +306,7 @@
                          visually paired with the Google Account card above. -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/row_saved_authorizations"
+                        android:foreground="@drawable/focus_button_background"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="16dp"
@@ -514,9 +434,9 @@
                     <!-- Google Drive Backup/Restore. Equal-weight 0dp buttons match the file row above and let long labels wrap. -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedM3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
 
                         <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
@@ -578,7 +498,7 @@
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <Button android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -710,12 +630,74 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- S0499: opt-in local usage statistics, relocated here from the Interface section
+                         (toggle + dashboard button belong with data/background work, not UI). Placed at
+                         the end of this section as a self-contained data/usage block. -->
+                    <LinearLayout android:id="@+id/layoutEnableStatistics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableStatistics"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_title="@string/settings_statistics_collection_title"
+                            app:str_subtitle="@string/settings_statistics_collection_summary" />
+
+                        <!-- S0499: dashboard button hugs its text (wrap_content) per owner request. Visibility
+                             stays bound to the toggle above in GeneralSettingsViewSetupHelper (GONE while off). -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/rowOpenStatistics"
+                            android:foreground="@drawable/focus_button_background"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:visibility="gone"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="2dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:minHeight="@dimen/settings_item_min_height"
+                                android:orientation="horizontal"
+                                android:padding="16dp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/settings_help_icon_size"
+                                    android:layout_height="@dimen/settings_help_icon_size"
+                                    android:layout_marginEnd="@dimen/margin_medium"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_history"
+                                    app:tint="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/settings_statistics_open"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_marginStart="@dimen/margin_small"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Reset General Section button (moved out of the System collapsible group; sits between System and Debug sections). -->
-        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- DEBUG SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -743,9 +725,9 @@
                     <!-- Integration tests and debug import -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerIntegrationTests" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <Button android:id="@+id/btnIntegrationTests" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:textSize="@dimen/toggler_title_text_size" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnIntegrationTests" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:textSize="@dimen/toggler_title_text_size" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
-                        <Button android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:textSize="@dimen/toggler_title_text_size" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:textSize="@dimen/toggler_title_text_size" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -805,7 +787,7 @@
 
         </LinearLayout>
 
-        <!-- ABOUT SECTION (heading removed — content sits flush under permissions section) -->
+        <!-- ABOUT SECTION (heading removed - content sits flush under permissions section) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

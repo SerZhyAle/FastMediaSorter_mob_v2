@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import com.sza.fastmediasorter.domain.model.ResourceType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -168,6 +169,40 @@ class NetworkStateMonitor @Inject constructor(
         }
     }
     
+    /**
+     * Synchronous snapshot: the active network can reach the public internet.
+     * Used as the cheap pre-check before attempting a CLOUD upload.
+     */
+    fun isInternetAvailable(): Boolean = hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+
+    /**
+     * Synchronous snapshot: the active network is a local LAN transport (Wi-Fi or Ethernet).
+     * A local-network resource (SMB/SFTP/FTP) is unreachable without one regardless of cellular.
+     */
+    fun isLocalNetworkAvailable(): Boolean =
+        hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+            hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+
+    /**
+     * Whether a resource of [type] can plausibly be reached right now. LOCAL is always reachable;
+     * SMB/SFTP/FTP need a LAN transport; CLOUD needs internet. The save flows use this for the
+     * pre-write fallback decision; a runtime write failure is still caught separately as a safety net.
+     */
+    fun canReach(type: ResourceType): Boolean = when (type) {
+        ResourceType.LOCAL -> true
+        ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> isLocalNetworkAvailable()
+        ResourceType.CLOUD -> isInternetAvailable()
+    }
+
+    private fun activeCapabilities(): NetworkCapabilities? =
+        connectivityManager.activeNetwork?.let { connectivityManager.getNetworkCapabilities(it) }
+
+    private fun hasCapability(capability: Int): Boolean =
+        activeCapabilities()?.hasCapability(capability) == true
+
+    private fun hasTransport(transport: Int): Boolean =
+        activeCapabilities()?.hasTransport(transport) == true
+
     /**
      * Start monitoring network state changes.
      * Should be called in Application.onCreate().

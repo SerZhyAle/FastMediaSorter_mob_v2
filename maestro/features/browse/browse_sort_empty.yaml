@@ -1,0 +1,76 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: browse sort + empty-state on the Downloads resource (S0551 Phase 02, sort + matrix 15.4).
+# Precondition: registered "Загрузки" LOCAL resource (/storage/emulated/0/Download,
+#   scanSubdirectories) listing the seeded media as a flat list. No clearState.
+# Oracle (a) sort: picking "Дата (Новые)" (DATE_DESC) keeps the listing populated and does not crash.
+#   The newest file is a churning log, so the oracle is rvMediaFiles populated + crash guard,
+#   not a fixed top filename.
+# Oracle (b) empty: a no-match name filter yields emptyStateView + tvEmptyStateMessage.
+# Cleanup: clear the filter and restore name-asc sort so the persisted per-resource state
+#   does not leak into other flows that open Загрузки.
+# Maestro treats `text` as a regex, so literal parentheses in sort-menu labels are escaped.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+# (a) Sort by newest; the listing stays populated and does not crash.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSort"
+- tapOn:
+    text: 'Дата \(Новые\)'
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+# (b) Empty-state via a no-match name filter.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+- inputText: "zzqq_nomatch_xyz"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/emptyStateView"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/emptyStateView"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tvEmptyStateMessage"
+
+# Cleanup: clear the persisted filter and restore name-asc so Загрузки is pristine for other flows.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnClearFilter"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSort"
+- tapOn:
+    text: 'Имя \(А-Я\)'

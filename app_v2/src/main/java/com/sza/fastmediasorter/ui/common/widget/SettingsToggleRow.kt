@@ -11,7 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
@@ -36,7 +36,7 @@ class SettingsToggleRow @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    private val switchView: SwitchMaterial
+    private val switchView: MaterialSwitch
     private val titleView: TextView
     private val subtitleView: TextView
     private val helpIcon: ImageButton

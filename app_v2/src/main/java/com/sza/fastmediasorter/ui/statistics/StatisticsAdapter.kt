@@ -16,9 +16,10 @@ import com.sza.fastmediasorter.databinding.ItemStatsDistributionBinding
 import com.sza.fastmediasorter.databinding.ItemStatsDistributionLegendBinding
 import com.sza.fastmediasorter.databinding.ItemStatsMetricRowBinding
 import com.sza.fastmediasorter.databinding.ItemStatsPrivacyNoteBinding
-import com.sza.fastmediasorter.databinding.ItemStatsSectionHeaderBinding
 import com.sza.fastmediasorter.databinding.ViewStatsEmptyBinding
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import timber.log.Timber
 
 /**
  * Multi-view-type list renderer for the statistics dashboard (S0473 Phase 04).
@@ -51,7 +52,7 @@ class StatisticsAdapter(
         return when (viewType) {
             TYPE_CARD -> CardViewHolder(ItemStatsCardBinding.inflate(inflater, parent, false))
             TYPE_DISTRIBUTION -> DistributionViewHolder(ItemStatsDistributionBinding.inflate(inflater, parent, false))
-            TYPE_HEADER -> HeaderViewHolder(ItemStatsSectionHeaderBinding.inflate(inflater, parent, false), onToggleSection)
+            TYPE_HEADER -> HeaderViewHolder(createHeaderView(parent), onToggleSection)
             TYPE_ROW -> RowViewHolder(ItemStatsMetricRowBinding.inflate(inflater, parent, false))
             TYPE_EMPTY -> EmptyViewHolder(ViewStatsEmptyBinding.inflate(inflater, parent, false))
             else -> PrivacyViewHolder(ItemStatsPrivacyNoteBinding.inflate(inflater, parent, false))
@@ -69,6 +70,16 @@ class StatisticsAdapter(
         }
     }
 
+    // S0535: section headers use the unified CollapsibleSectionHeader, absorbing the second
+    // (bespoke list-header) collapsible mechanism. Built programmatically as Keybinding does.
+    private fun createHeaderView(parent: ViewGroup): CollapsibleSectionHeader =
+        CollapsibleSectionHeader(parent.context).apply {
+            layoutParams = RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+        }
+
     private class CardViewHolder(
         private val binding: ItemStatsCardBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -80,14 +91,15 @@ class StatisticsAdapter(
     }
 
     private class HeaderViewHolder(
-        private val binding: ItemStatsSectionHeaderBinding,
+        private val header: CollapsibleSectionHeader,
         private val onToggleSection: (com.sza.fastmediasorter.domain.stats.StatsCategory) -> Unit,
-    ) : RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(header) {
         fun bind(item: StatisticsListItem.SectionHeader) {
-            binding.tvSectionTitle.setText(item.titleRes)
-            // Drawable points down; rotate to -90° (chevron-right) when the section is collapsed.
-            binding.ivSectionChevron.rotation = if (item.expanded) 0f else -90f
-            binding.sectionHeaderRoot.setOnClickListener { onToggleSection(item.category) }
+            Timber.d("S0535: statistics section header bound via unified widget")
+            header.setTitle(item.titleRes)
+            header.setExpanded(item.expanded, notify = false)
+            // State is owned by the ViewModel list; the toggle rebuilds it and re-binds.
+            header.setOnExpandedChangeListener { onToggleSection(item.category) }
         }
     }
 

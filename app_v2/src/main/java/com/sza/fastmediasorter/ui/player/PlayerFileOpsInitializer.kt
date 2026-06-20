@@ -7,7 +7,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
@@ -54,12 +56,22 @@ internal class PlayerFileOpsInitializer(
             onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) },
         )
 
+        val slotLabelFormatter = KeybindingRowLabelFormatter(activity)
         activity.destinationButtonsManager = DestinationButtonsManager(
             binding = activity.activityBinding,
             settingsRepository = activity.settingsRepository,
             getDestinationsUseCase = activity.viewModel.getDestinationsUseCase,
             lifecycleScope = activity.lifecycleScope,
             callback = buildDestinationButtonsCallback(),
+            // TV remote / D-pad / hardware keyboard all number the slots; touch-only does not.
+            shouldNumberSlots = { activity.shouldNumberOperationSlots() },
+            // Reflect the key actually bound to the slot; null falls back to the position digit in refreshSlotBadges.
+            slotKeyGlyph = { slot ->
+                activity.keyBindingManager.triggersFor("sorting.op_slot_$slot")
+                    .filterIsInstance<InputTrigger.Key>()
+                    .firstOrNull()
+                    ?.let { slotLabelFormatter.format(it) }
+            },
         )
     }
 

@@ -54,7 +54,7 @@ class GamepadInputManagerTest {
 
         val result = GamepadInputManager(mockManager).handleKeyEvent(
             gamepadKeyEvent(KeyEvent.KEYCODE_BUTTON_A),
-            GamepadInputManager.Surface.PLAYER,
+            InputSurface.PLAYER,
         )
         assertTrue("Expected PlayerAction.PlayPause", result is GamepadAction.PlayerAction.PlayPause)
     }
@@ -71,7 +71,7 @@ class GamepadInputManagerTest {
 
         val result = GamepadInputManager(mockManager).handleMotionEvent(
             joystickMoveEvent(mapOf(MotionEvent.AXIS_Y to 0.8f)),
-            GamepadInputManager.Surface.PLAYER,
+            InputSurface.PLAYER,
         )
         assertNotNull("Expected Volume action for AXIS_Y = 0.8", result)
         assertTrue("Expected PlayerAction.Volume", result is GamepadAction.PlayerAction.Volume)
@@ -86,7 +86,7 @@ class GamepadInputManagerTest {
 
         val result = GamepadInputManager(mockManager).handleMotionEvent(
             joystickMoveEvent(mapOf(MotionEvent.AXIS_Y to 0.1f)), // 0.1 < DEADZONE 0.15
-            GamepadInputManager.Surface.PLAYER,
+            InputSurface.PLAYER,
         )
         assertNull("AXIS_Y = 0.1 is below deadzone - no action expected", result)
     }
@@ -104,8 +104,8 @@ class GamepadInputManagerTest {
         val manager = GamepadInputManager(mockManager)
         val event = gamepadKeyEvent(KeyEvent.KEYCODE_BUTTON_R1)
 
-        val first = manager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)
-        val second = manager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)
+        val first = manager.handleKeyEvent(event, InputSurface.PLAYER)
+        val second = manager.handleKeyEvent(event, InputSurface.PLAYER)
 
         // First press fires (lastTriggerSeekMs initialised to negative offset);
         // second within TRIGGER_SEEK_INTERVAL_MS is suppressed.
@@ -113,18 +113,47 @@ class GamepadInputManagerTest {
         assertNull("Second rapid seek press should be rate-limited", second)
     }
 
-    // ── test 5: BROWSER surface uses legacy literal tree, not resolver ────────
+    // ── test 5: BROWSER surface resolves through the resolver (S0519) ─────────
 
     @Test
-    fun `BROWSER surface dispatches BrowserAction without calling resolver`() {
+    fun `BROWSER surface resolves BrowserAction via resolver`() {
         val mockManager = mockk<KeyBindingManager>()
-        // Resolver must NOT be called for BROWSER surface - an invocation would be an error.
-        every { mockManager.resolve(any(), any()) } throws AssertionError("resolver called for BROWSER surface")
+        every { mockManager.resolve(any(), any()) } returns null
+        every {
+            mockManager.resolve(
+                InputTrigger.GamepadButton(KeyEvent.KEYCODE_BUTTON_A),
+                InputSurface.BROWSER,
+            )
+        } returns CommandId.BROWSER_SELECT
 
         val result = GamepadInputManager(mockManager).handleKeyEvent(
             gamepadKeyEvent(KeyEvent.KEYCODE_BUTTON_A),
-            GamepadInputManager.Surface.BROWSER,
+            InputSurface.BROWSER,
         )
         assertTrue("Expected BrowserAction.Select", result is GamepadAction.BrowserAction.Select)
+    }
+
+    // ── test 6: same physical button resolves per surface (S0519) ────────────
+
+    @Test
+    fun `BUTTON_A resolves to PlayPause for player and Select for browser`() {
+        val mockManager = mockk<KeyBindingManager>()
+        every { mockManager.resolve(any(), any()) } returns null
+        val aTrigger = InputTrigger.GamepadButton(KeyEvent.KEYCODE_BUTTON_A)
+        every { mockManager.resolve(aTrigger, InputSurface.PLAYER) } returns CommandId.PAUSE_PLAY
+        every { mockManager.resolve(aTrigger, InputSurface.BROWSER) } returns CommandId.BROWSER_SELECT
+
+        val manager = GamepadInputManager(mockManager)
+        val player = manager.handleKeyEvent(
+            gamepadKeyEvent(KeyEvent.KEYCODE_BUTTON_A),
+            InputSurface.PLAYER,
+        )
+        val browser = manager.handleKeyEvent(
+            gamepadKeyEvent(KeyEvent.KEYCODE_BUTTON_A),
+            InputSurface.BROWSER,
+        )
+
+        assertTrue("PLAYER A -> PlayPause", player is GamepadAction.PlayerAction.PlayPause)
+        assertTrue("BROWSER A -> Select", browser is GamepadAction.BrowserAction.Select)
     }
 }

@@ -10,7 +10,7 @@ import javax.inject.Singleton
  *   `SettingsSearchSource` → `SettingsSearchKeywordCollector` → `SettingsSearchAvailability` filter.
  *
  * The heavy work (XML scan + per-locale string resolution) runs on the first access to
- * `entries` or `search()` — typically the moment the user opens the search overlay,
+ * `entries` or `search()` - typically the moment the user opens the search overlay,
  * not on app cold start.
  */
 @Singleton

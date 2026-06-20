@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.widget.AudioNowPlayingSnapshotStore
 import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
+import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -71,6 +72,11 @@ class AudioPlaybackService : MediaSessionService() {
     @Inject
     lateinit var statsSink: StatsSink
 
+    // Lets the service stream SMB/SFTP/FTP/cloud URIs directly (no mandatory pre-cache to a local file),
+    // so background-continue works for network audio the same way it does for local files.
+    @Inject
+    lateinit var networkMediaSourceFactory: NetworkAwareMediaSourceFactory
+
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
     private val autoStopHandler = Handler(Looper.getMainLooper())
@@ -88,8 +94,23 @@ class AudioPlaybackService : MediaSessionService() {
     // reaches STATE_READY. Bounds the skip loop under REPEAT_MODE_ALL (see S0413 research/03).
     private var consecutiveSkipCount = 0
     private var lastSkipToastElapsedMs = 0L
+
+    // "Player time" accounting: the service lifetime is the audio-open window, so wall-clock accrues
+    // from the first ready track until the service is destroyed, including paused/buffering. A periodic
+    // bank caps the loss to one interval if the process is killed mid-session (e.g. swipe-away). 0 = off.
+    private var listenClockStartMs = 0L
+    private val listenBankHandler = Handler(Looper.getMainLooper())
+    private val listenBankRunnable = object : Runnable {
+        override fun run() {
+            bankListenTime()
+            listenBankHandler.postDelayed(this, LISTEN_BANK_INTERVAL_MS)
+        }
+    }
+
     companion object {
         private const val AUTO_STOP_DELAY_MS = 10_000L
+        /** How often the accrued audio player time is banked, bounding loss on process kill. */
+        private const val LISTEN_BANK_INTERVAL_MS = 30_000L
         /** Suppress repeat skip toasts within this window so a run of bad files does not spam (S0413). */
         private const val SKIP_TOAST_DEBOUNCE_MS = 3_000L
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
@@ -172,6 +193,7 @@ class AudioPlaybackService : MediaSessionService() {
         ) C.WAKE_MODE_LOCAL else C.WAKE_MODE_NONE
 
         val exoPlayer = ExoPlayer.Builder(this, createPlaybackRenderersFactory(this))
+            .setMediaSourceFactory(networkMediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(wakeMode)
@@ -185,10 +207,10 @@ class AudioPlaybackService : MediaSessionService() {
                         // Don't stopSelf immediately - give Activity time to load next track.
                         // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
                         Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
-                        // S0473: one audio track listened to the end. duration==listened time at
-                        // STATE_ENDED; C.TIME_UNSET (early/unknown duration) is reported as 0.
-                        val listenedMs = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: 0L
-                        statsSink.record(StatsEvent.View(ViewKind.AUDIO, durationMs = listenedMs))
+                        // S0473: one audio track listened to the end. Listen time is accrued separately
+                        // via the listen clock (StatsEvent.PlaybackTime), so this only bumps the count and
+                        // must not also report a duration or the player time would be double-counted.
+                        statsSink.record(StatsEvent.View(ViewKind.AUDIO))
                         // S0172: stop save loop and persist final position before track ends
                         stopPositionSaving()
                         saveCurrentPosition()
@@ -199,6 +221,7 @@ class AudioPlaybackService : MediaSessionService() {
                     Player.STATE_READY -> {
                         // New track loaded - cancel auto-stop, start position save loop
                         consecutiveSkipCount = 0
+                        startListenClock()
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         // S0172: begin periodic save once player is ready
                         startPositionSaving()
@@ -370,6 +393,7 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onDestroy() {
         Timber.d("AudioPlaybackService: onDestroy")
         isRunning = false
+        stopListenClock()
         autoStopHandler.removeCallbacks(autoStopRunnable)
 
         // Capture position before player is released, then stop the save loop
@@ -423,6 +447,33 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun saveCurrentPosition() {
         positionSaveLoop?.saveNow()
+    }
+
+    // ─── Player-time accounting (S0473 follow-up) ───────────────────────────
+
+    /** Start the listen clock and the periodic bank loop on the first ready track. */
+    private fun startListenClock() {
+        if (listenClockStartMs != 0L) return
+        listenClockStartMs = SystemClock.elapsedRealtime()
+        listenBankHandler.postDelayed(listenBankRunnable, LISTEN_BANK_INTERVAL_MS)
+    }
+
+    /** Bank elapsed audio player time as a PlaybackTime delta and keep the clock running. */
+    private fun bankListenTime() {
+        val start = listenClockStartMs
+        if (start == 0L) return
+        val now = SystemClock.elapsedRealtime()
+        val elapsed = now - start
+        if (elapsed <= 0L) return
+        listenClockStartMs = now
+        statsSink.record(StatsEvent.PlaybackTime(ViewKind.AUDIO, elapsed))
+    }
+
+    /** Bank the final partial interval and stop the clock; called on service destroy. */
+    private fun stopListenClock() {
+        listenBankHandler.removeCallbacks(listenBankRunnable)
+        bankListenTime()
+        listenClockStartMs = 0L
     }
 
     // Parsing (3xxx) and decoding (4xxx) errors are intrinsic to a single file's bytes/format, so the

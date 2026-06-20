@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
@@ -30,7 +30,7 @@ object StreamingCacheCleanupHelper {
         val entry = request.entry
         Timber.d("StreamingCacheCleanupHelper: showing prompt for %s", entry.localPath)
 
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.cleanup_prompt_title)
             .setMessage(
                 // %1$s = filename, %2$s = human-readable size (string requires 2 args)

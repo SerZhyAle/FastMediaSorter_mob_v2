@@ -64,7 +64,7 @@ class StandaloneFileOperationsHandler(
 
     fun deleteCurrentFile() {
         val file = getCurrentMediaFile() ?: return
-        MaterialAlertDialogBuilder(activity)
+        MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.confirm_delete_title)
             .setMessage(activity.getString(R.string.confirm_delete_standalone, file.name))
             .setPositiveButton(R.string.delete) { _, _ ->

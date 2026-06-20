@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import timber.log.Timber
 
@@ -61,7 +61,7 @@ class DrawSettingsDialog(
             else -> radioOpacity.check(R.id.radio_op_100)
         }
 
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.draw_settings_title)
             .setView(view)
             .setNegativeButton(android.R.string.cancel, null)

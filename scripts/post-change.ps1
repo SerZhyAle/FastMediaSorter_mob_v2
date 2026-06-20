@@ -136,10 +136,26 @@ $runsFgsGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
 # S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
 # getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
 $runsPmFlagsGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S0507 focus-highlight ratchet gate. Layout-only concern: interactive views without a visible
+# focus indication (Rule 16) must never grow. Covers Xml + Mixed (layout edits). Baseline ratchets DOWN.
+$runsFocusHighlightGate = $resolvedChangeType -in @('Xml', 'Mixed')
 # S0489 ALL_FEATURES inventory drift gate. Fires only when the touched file is the
 # inventory data, its schema, or the noLegal variant - validates the JSONL and blocks
 # a silent record-count drop below the committed baseline. Narrow trigger by path.
 $runsAllFeaturesGate = (($File -replace '\\', '/') -match 'docs/ALL_FEATURES.*\.(jsonl|json)$')
+# S0440 settings-doc drift gate. Fires only when the touched file is a settings
+# surface (settings fragment layout, the settings-search pipeline, a per-flavor
+# availability module) or a settings doc artifact (manifest / annotations /
+# reference). Re-runs the composite gate so a settings change that skipped
+# regenerating the manifest, annotations, or reference is blocked. Narrow trigger.
+$normFile = ($File -replace '\\', '/')
+$runsSettingsDocGate = (
+    $normFile -match 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$' -or
+    $normFile -match 'app_v2/.*/ui/settings/search/' -or
+    $normFile -match 'SettingsSearchAvailabilityModule\.kt$' -or
+    $normFile -match 'docs/settings/' -or
+    $normFile -match 'docs/SETTINGS_REFERENCE'
+)
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -231,6 +247,15 @@ else {
     Skip-Step "deprecated-pm-flags-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
+if ($runsFocusHighlightGate) {
+    Invoke-Step "focus-highlight-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-focus-highlight.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "focus-highlight-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
 if ($runsAllFeaturesGate) {
     Invoke-Step "all-features-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1") -Gate -Quiet
@@ -238,6 +263,15 @@ if ($runsAllFeaturesGate) {
 }
 else {
     Skip-Step "all-features-gate" "not applicable - touched file is not an ALL_FEATURES artifact"
+}
+
+if ($runsSettingsDocGate) {
+    Invoke-Step "settings-doc-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-settings-doc-sync.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "settings-doc-sync-gate" "not applicable - touched file is not a settings surface or settings doc"
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

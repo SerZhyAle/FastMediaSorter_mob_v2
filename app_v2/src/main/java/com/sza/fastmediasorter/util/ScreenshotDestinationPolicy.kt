@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.util
 import android.os.Environment
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 
 class ScreenshotDestinationPolicy {
 
@@ -11,33 +12,51 @@ class ScreenshotDestinationPolicy {
 
         data class PublicCollection(
             val collection: LocalDestinationCategory.PublicCollection.Kind,
-            val relativePath: String
+            val relativePath: String,
+            // Non-null only when the selected network resource was unreachable and we redirected
+            // here; drives the user-facing "saved locally because X is unavailable" notice.
+            val fallbackReason: SaveFallbackReason? = null
         ) : Target
     }
 
     fun resolve(
         selectedResourceId: String?,
         resources: List<MediaResource>,
-        availableScreenshotRelativePaths: Set<String> = DEFAULT_SCREENSHOT_RELATIVE_PATHS
+        availableScreenshotRelativePaths: Set<String> = DEFAULT_SCREENSHOT_RELATIVE_PATHS,
+        isResourceReachable: (MediaResource) -> Boolean = { true }
     ): Target {
         val selectedResource = resources.firstOrNull { it.id.toString() == selectedResourceId }
         if (selectedResource != null) {
-            return Target.SelectedResource(selectedResource)
+            val unreachableNetwork =
+                selectedResource.type.isNetworkResource && !isResourceReachable(selectedResource)
+            if (!unreachableNetwork) {
+                return Target.SelectedResource(selectedResource)
+            }
+            return publicScreenshotTarget(availableScreenshotRelativePaths, SaveFallbackReason.ResourceUnavailable)
         }
 
+        return publicScreenshotTarget(availableScreenshotRelativePaths, fallbackReason = null)
+    }
+
+    private fun publicScreenshotTarget(
+        availableScreenshotRelativePaths: Set<String>,
+        fallbackReason: SaveFallbackReason?
+    ): Target.PublicCollection {
         val screenshotRelativePath = SCREENSHOT_PATH_PRIORITY.firstOrNull {
             availableScreenshotRelativePaths.contains(it)
         }
         if (screenshotRelativePath != null) {
             return Target.PublicCollection(
                 collection = LocalDestinationCategory.PublicCollection.Kind.IMAGES,
-                relativePath = screenshotRelativePath
+                relativePath = screenshotRelativePath,
+                fallbackReason = fallbackReason
             )
         }
 
         return Target.PublicCollection(
             collection = LocalDestinationCategory.PublicCollection.Kind.DOWNLOADS,
-            relativePath = DOWNLOADS_RELATIVE_PATH
+            relativePath = DOWNLOADS_RELATIVE_PATH,
+            fallbackReason = fallbackReason
         )
     }
 

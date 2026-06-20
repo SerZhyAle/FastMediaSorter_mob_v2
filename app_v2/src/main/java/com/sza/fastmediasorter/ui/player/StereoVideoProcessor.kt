@@ -84,7 +84,7 @@ class StereoVideoProcessor {
         // PlayerView uses surface_type=texture_view (androidx/media issue #779). The
         // single-eye crop is therefore applied via a TextureView matrix in
         // PanelStereoCropApplier instead, and this builder returns null for every mode.
-        // Hue / brightness effects from VideoColorProcessor are unaffected — they sit in
+        // Hue / brightness effects from VideoColorProcessor are unaffected - they sit in
         // the same pipeline and have the same constraint, tracked separately as
         // pre-existing tech debt.
         Timber.d(

@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.sza.fastmediasorter.core.input.GamepadInputManager
+import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
@@ -35,19 +35,18 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
         }
         // Gamepad buttons intercepted before onKeyDown so input routing stays in one place.
         // BT keyboard / remote keys fall through to super → onKeyDown → keyboardHandler.
-        val action = activity.gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)
+        val action = activity.gamepadInputManager.handleKeyEvent(event, InputSurface.PLAYER)
         if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
         return superHandler(event)
     }
 
     fun dispatchGenericMotionEvent(event: MotionEvent, superHandler: (MotionEvent) -> Boolean): Boolean {
-        Timber.d("S0289: player gamepad-analog dispatchGenericMotionEvent")
         // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
         // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {
             // reserved for joystick-specific routing
         }
-        val action = activity.gamepadInputManager.handleMotionEvent(event, GamepadInputManager.Surface.PLAYER)
+        val action = activity.gamepadInputManager.handleMotionEvent(event, InputSurface.PLAYER)
         if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
         return activity.keyboardHandler.handlePointerEvent(activity.window.decorView, event) || superHandler(event)
     }

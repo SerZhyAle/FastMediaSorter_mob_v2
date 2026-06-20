@@ -286,7 +286,7 @@
     <string name="reset_settings_success">Settings reset to defaults successfully</string>
     <string name="setup_content_first_toast">Setup the content first..</string>
     <string name="prevent_sleep">Prevent sleep</string>
-    <string name="small_controls">Compact bottom buttons</string>
+    <string name="small_controls">Compact player buttons</string>
     <string name="compact_elements">Compact elements</string>
     <string name="enable_favorites">Enable Favorites</string>
     <string name="favorite">Favorite</string>
@@ -699,7 +699,7 @@ Close the player and try again.</string>
     <string name="reset_smb_connections_title">Reset SMB Connections</string>
     <string name="reset_smb_connections_message">This will close all SMB connections and clear error state. Use if you experience persistent connection issues.</string>
     <string name="reset_smb_success">SMB connections reset successfully</string>
-    <string name="gms_update_required">Google Play Services are outdated. Most of the app works fine without them — updating only adds a few optional features. Skip if you don\'t need them.</string>
+    <string name="gms_update_required">Google Play Services are outdated. Most of the app works fine without them - updating only adds a few optional features. Skip if you don\'t need them.</string>
     <string name="gms_unavailable">Google Play Services aren\'t available. Most of the app works without them; only a few optional features will be unavailable.</string>
     <string name="gms_update_action">Update</string>
     <string name="gms_settings_link">You can update Google Play Services to enable a few optional features. If you don\'t need them, skip it.</string>
@@ -2431,7 +2431,6 @@ Close the player and try again.</string>
     <string name="quick_recorder_notification_recording">Recording..</string>
     <string name="quick_recorder_notification_channel">Voice recording</string>
     <string name="quick_recorder_action_stop">Stop</string>
-    <string name="quick_recorder_saved">Recording saved: %1$s</string>
     <string name="quick_recorder_error">Could not record audio</string>
     <string name="quick_recorder_permission_needed">Microphone access is needed to record</string>
     <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
@@ -2523,7 +2522,7 @@ Close the player and try again.</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
-    <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource — by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>
+    <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource - by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
     <string name="setting_screenshot_destination_default">Device screenshots folder (or Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Allow drawing over other apps to show the gesture strip</string>
@@ -2693,4 +2692,21 @@ Close the player and try again.</string>
     <string name="backup_export_favorites">Export Favorites</string>
     <string name="backup_import_favorites">Import Favorites</string>
     <string name="resource_share_export_success">Exported %1$d resource(s); skipped %2$d.</string>
+    <string name="duplicate_select_resources_subtitle">Select resources to scan for duplicates</string>
+    <string name="statistics_card_viewed">Viewed</string>
+    <string name="save_fallback_resource_unavailable">Saved to %1$s - %2$s is unavailable</string>
+    <string name="save_fallback_channel_name">Save fallback</string>
+    <string name="link_download_notif_text_saved_fallback">Saved %1$s to Downloads - the destination was unavailable</string>
+    <string name="quick_voice_recording_dialog_title">Recording..</string>
+    <string name="quick_voice_recording_stop">Stop and save</string>
+    <string name="quick_voice_menu_label">Voice recording</string>
+    <string name="quick_video_menu_label">Record video</string>
+    <string name="quick_photo_menu_label">Take photo</string>
+    <string name="quick_recorder_saved_to">Recording saved to %1$s</string>
+    <string name="audio_background_handoff_failed">Couldn\'t keep this track playing in the background</string>
+    <string name="download_by_link_menu_label">Download by link</string>
+    <string name="download_by_link_dialog_title">Link to download</string>
+    <string name="download_by_link_dialog_hint">Paste or type a link</string>
+    <string name="collapsible_section_state_expanded">Expanded</string>
+    <string name="collapsible_section_state_collapsed">Collapsed</string>
 </resources>

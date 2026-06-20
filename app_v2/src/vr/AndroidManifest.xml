@@ -35,7 +35,7 @@
         OpenXR permissions:
         `org.khronos.openxr.permission.OPENXR` and `OPENXR_SYSTEM` are auto-merged from the
         OpenXR loader AAR (`org.khronos.openxr:openxr_loader_for_android`). Verified by reading
-        the merged_manifests output for noLegalDebug — no manual declaration needed here.
+        the merged_manifests output for noLegalDebug - no manual declaration needed here.
     -->
 
     <application>

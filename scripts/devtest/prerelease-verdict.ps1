@@ -98,14 +98,18 @@ $logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors
 # perf: every measure record in MetricsFile must have pass=true. Missing file = no perf data
 # supplied this run (perf neutral/pass); a present file with any failing checkpoint = FAIL.
 $perfFailures = @()
+$perfAdvisory = @()
 $perfPass = $true
 if ($MetricsFile -and (Test-Path $MetricsFile)) {
     $records = @(Get-Content -Raw -Path $MetricsFile | ConvertFrom-Json)
     foreach ($r in $records) {
+        # Advisory checkpoints (e.g. list-scroll on an emulator, where gfxinfo janky% is
+        # structurally inflated by software rendering) are reported but never gate the verdict.
+        if ($r.advisory) { $perfAdvisory += "$($r.checkpoint)=$($r.measured)/$($r.limit)"; continue }
         if (-not $r.pass) { $perfPass = $false; $perfFailures += "$($r.checkpoint)=$($r.measured)/$($r.limit)" }
     }
 }
-$perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures }
+$perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; advisory = $perfAdvisory }
 
 # screenshot: a present ScreensDir must contain at least one captured checkpoint screenshot.
 $screenshotFailures = @()

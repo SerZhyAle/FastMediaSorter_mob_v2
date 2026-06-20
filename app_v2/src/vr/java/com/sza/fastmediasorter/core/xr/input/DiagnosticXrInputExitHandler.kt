@@ -14,10 +14,10 @@ import timber.log.Timber
  * request for the diagnostic OpenXR session.
  *
  * The handler is shared between three input surfaces:
- * - Hardware key events (`KeyEvent`) — controller buttons routed through Android input, plus
+ * - Hardware key events (`KeyEvent`) - controller buttons routed through Android input, plus
  *   external keyboards on Android XR.
- * - Touch and pointer events (`MotionEvent`) — mouse clicks, taps on hosting Activity.
- * - Native OpenXR action set polling (see `diagnostic_xr_runtime.cpp`) — controller triggers
+ * - Touch and pointer events (`MotionEvent`) - mouse clicks, taps on hosting Activity.
+ * - Native OpenXR action set polling (see `diagnostic_xr_runtime.cpp`) - controller triggers
  *   and buttons not exposed as Android `KeyEvent`s.
  *
  * Any of the three triggers writes to [exitRequested]; callers observe it and tear down the

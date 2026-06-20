@@ -7,11 +7,14 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -23,6 +26,9 @@ internal class AddResourceScanManager(
     private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
     private val mediaCapabilities: MediaCapabilities
 ) {
+
+    // S0535: folder-picker sections go through the unified orchestrator + consolidated store.
+    private val sectionsManager by lazy { CollapsibleSectionsManager(activity) }
 
     fun loadSshKeyFromFile(uri: Uri) {
         try {
@@ -141,7 +147,25 @@ internal class AddResourceScanManager(
             folderPickerLauncher.launch(null)
         }
 
+        setupCollapsibleFolderSections(dialogView)
+
         dialog.show()
+    }
+
+    /**
+     * Wires the two top groups of the folder dialog to the unified collapsible orchestrator.
+     * Short dialog -> default expanded (research 02 D4); state persists in the consolidated store.
+     */
+    private fun setupCollapsibleFolderSections(dialogView: android.view.View) {
+        val sections = listOf(
+            Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_selection__special"),
+            Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_selection__quick"),
+        )
+        sections.forEach { (headerId, containerId, key) ->
+            val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
+            val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
+            sectionsManager.register(header, container, key, defaultExpanded = true)
+        }
     }
 
     fun selectFolderByPath(path: String, dialog: Dialog) {
@@ -269,7 +293,7 @@ internal class AddResourceScanManager(
     // ========== Permission Dialog ==========
 
     fun showAllFilesAccessPermissionDialog() {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.all_files_access_required)
             .setMessage(R.string.all_files_access_explanation)
             .setPositiveButton(R.string.grant_permission) { _, _ ->

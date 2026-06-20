@@ -3,7 +3,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="?attr/colorOnSurface">
+    android:tint="@color/color_media_other">
     <path
         android:fillColor="#000000"
         android:pathData="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm14 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0zM12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 12H4m4 0H6m10 0h2m-4 0h2M12 6V4m0 4V6m0 10v2m0-4v2M7.76 7.76l1.42 1.42M14.82 14.82l1.42 1.42M16.24 7.76l-1.42 1.42M9.18 14.82l-1.42 1.42" />

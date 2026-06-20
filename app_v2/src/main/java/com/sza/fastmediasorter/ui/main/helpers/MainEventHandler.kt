@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.view.View
 import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
@@ -94,7 +94,7 @@ internal class MainEventHandler(
             MainEvent.ScanComplete -> binding.scanProgressLayout.visibility = View.GONE
             MainEvent.ConfirmRescanWithVirtualResources -> {
                 if (activity.isFinishing || activity.isDestroyed) return
-                AlertDialog.Builder(activity)
+                MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.rescan_all_virtual_warning_title)
                     .setMessage(R.string.rescan_all_virtual_warning_message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.forceRescanAllResources() }

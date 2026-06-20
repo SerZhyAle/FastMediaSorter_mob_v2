@@ -76,8 +76,8 @@ class PlayerSettingsDialog(
             // Just for tracking, actual value read on apply
         }
 
-        // Subtitles checkbox listener - enable/disable language spinner
-        binding.cbShowSubtitles.setOnCheckedChangeListener { _, isChecked ->
+        // Subtitles toggle listener - enable/disable language spinner
+        binding.cbShowSubtitles.setOnCheckedChangeListener { isChecked ->
             binding.spinnerSubtitleLanguage.isEnabled = isChecked
             binding.tvSubtitleLanguageLabel.alpha = if (isChecked) 1.0f else 0.5f
             binding.spinnerSubtitleLanguage.alpha = if (isChecked) 1.0f else 0.5f

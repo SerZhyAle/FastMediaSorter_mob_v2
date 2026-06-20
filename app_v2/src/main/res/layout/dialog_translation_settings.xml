@@ -19,27 +19,11 @@
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/translation_settings"
             android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/btnCancel"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/dialog_field_spacing"
-            android:text="@android:string/cancel" />
-
-        <Button
-            android:id="@+id/btnOk"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@android:string/ok" />
 
     </LinearLayout>
 
@@ -120,29 +104,13 @@
 
     </LinearLayout>
 
-    <!-- Google Lens Style Checkbox -->
-    <LinearLayout
+    <!-- Google Lens Style -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/switchLensStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
-        android:layout_marginBottom="@dimen/margin_small">
-
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/switchLensStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/dialog_field_spacing" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/translation_lens_style"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-
-    </LinearLayout>
+        android:layout_marginBottom="@dimen/margin_small"
+        app:str_title="@string/translation_lens_style" />
 
     <!-- Font Size Section -->
     <TextView
@@ -171,6 +139,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_normal" />
+
+    <!-- S0538: unified bottom action row (cancel left, confirm right) - moved out of the title row. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOk"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@android:string/ok" />
+
+    </LinearLayout>
 
 </LinearLayout>
 

@@ -20,6 +20,8 @@ class ResetGroupUseCase @Inject constructor(private val repo: InputBindingReposi
         CommandGroup.AUDIO_SUBTITLES -> "audio."
         CommandGroup.SYSTEM_UI -> "system."
         CommandGroup.SORTING_ACTIONS -> "sorting."
+        CommandGroup.OPERATION_SLOTS -> "sorting.op_slot_"
+        CommandGroup.BROWSER_ACTIONS -> "browser."
         CommandGroup.VR_ONLY -> "vr."
     }
 }

@@ -337,7 +337,7 @@ class ResourceOpsMenuManager @Inject constructor(
             root.addView(tvWarning)
         }
 
-        val dialog = MaterialAlertDialogBuilder(activity)
+        MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.delete_by_size_preview_title)
             .setView(root)
             .setNegativeButton(android.R.string.cancel, null)
@@ -345,11 +345,6 @@ class ResourceOpsMenuManager @Inject constructor(
                 viewModel.executeBySizeDeleteConfirmed(matchedFiles)
             }
             .show()
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
-            ?.let { btn ->
-                val errorColor = MaterialColors.getColor(btn, androidx.appcompat.R.attr.colorError, 0)
-                btn.setTextColor(errorColor)
-            }
     }
 
     // -------------------------------------------------------------------------

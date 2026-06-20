@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityKeybindingRemapBinding
 import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputTrigger
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import com.sza.fastmediasorter.ui.keybinding.helpers.ResetConfirmationDialog
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -31,13 +31,15 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
 
     /** S0289 Phase 09: multimodal surface marker - hotkey remap lives under the settings host. */
     @Suppress("unused")
-    private val multimodalInputSurface: InputSurface = InputSurface.SETTINGS
+    private val multimodalInputSurface: UiSurface = UiSurface.SETTINGS
 
     /** S0289 §2.4: initial focus on the bindings list. */
     override fun getInitialFocusView(): android.view.View? {
-        Timber.d("S0289: keybinding-remap initial-focus / focus chain")
         return binding.recyclerView
     }
+
+    // S0510: no own F1 handler - declare the surface so BaseActivity's global F1 opens input help.
+    override fun getInputHelpSurface(): UiSurface = UiSurface.SETTINGS
 
     /** S0289 Phase 09: route mouse wheel onto the bindings list. */
     override fun getMouseScrollTargetView(): android.view.View? = binding.recyclerView

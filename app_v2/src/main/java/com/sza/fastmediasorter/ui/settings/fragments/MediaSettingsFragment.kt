@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +10,11 @@ import androidx.core.view.isVisible
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -37,20 +37,14 @@ class MediaSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
     
-    companion object {
-        private const val PREFS_NAME = "media_sections_state"
-        private const val KEY_IMAGES_EXPANDED = "section_images_expanded"
-        private const val KEY_VIDEO_EXPANDED = "section_video_expanded"
-        private const val KEY_VR_EXPANDED = "section_vr_expanded"
-        private const val KEY_AUDIO_EXPANDED = "section_audio_expanded"
-        private const val KEY_DOCUMENTS_EXPANDED = "section_documents_expanded"
-        private const val KEY_OTHER_EXPANDED = "section_other_expanded"
-    }
+    // S0535: unified collapsible groups - one orchestrator + consolidated store replaces the
+    // fragment-local section state machine; lazy child-fragment attach is kept via the expand hook.
+    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
     private data class MediaChildSection(
         val header: CollapsibleSectionHeader,
         val container: View,
-        val prefKey: String,
+        val key: String,
         val defaultExpanded: Boolean,
         val tag: String,
         // null factory => section has no child fragment (capability off or VR unavailable): header/container hidden.
@@ -75,7 +69,7 @@ class MediaSettingsFragment : Fragment() {
 
     private fun setupResetSection() {
         binding.btnResetMediaSection.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                 .setTitle(R.string.reset_media_section_title)
                 .setMessage(R.string.reset_media_section_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -100,17 +94,18 @@ class MediaSettingsFragment : Fragment() {
     private fun buildSections(): List<MediaChildSection> {
         val vrFragment = if (vrMediaSection.isAvailable) vrMediaSection.createFragment() else null
         return listOf(
-            MediaChildSection(binding.headerImages, binding.containerImages, KEY_IMAGES_EXPANDED, false, "media_images",
+            MediaChildSection(binding.headerImages, binding.containerImages, "media__images", false, "media_images",
                 if (mediaCapabilities.supportsImages) ({ ImagesSettingsFragment() }) else null),
-            MediaChildSection(binding.headerVideo, binding.containerVideo, KEY_VIDEO_EXPANDED, false, "media_video",
+            MediaChildSection(binding.headerVideo, binding.containerVideo, "media__video", false, "media_video",
                 if (mediaCapabilities.supportsVideo) ({ VideoSettingsFragment() }) else null),
-            MediaChildSection(binding.headerVr, binding.containerVr, KEY_VR_EXPANDED, true, "media_vr",
+            // S0249: VR section defaults to expanded (preserved across the unification).
+            MediaChildSection(binding.headerVr, binding.containerVr, "media__vr", true, "media_vr",
                 if (vrFragment != null) ({ vrFragment }) else null),
-            MediaChildSection(binding.headerAudio, binding.containerAudio, KEY_AUDIO_EXPANDED, false, "media_audio",
+            MediaChildSection(binding.headerAudio, binding.containerAudio, "media__audio", false, "media_audio",
                 if (mediaCapabilities.supportsAudio) ({ AudioSettingsFragment() }) else null),
-            MediaChildSection(binding.headerDocuments, binding.containerDocuments, KEY_DOCUMENTS_EXPANDED, false, "media_documents",
+            MediaChildSection(binding.headerDocuments, binding.containerDocuments, "media__documents", false, "media_documents",
                 if (mediaCapabilities.supportsDocuments) ({ DocumentsSettingsFragment() }) else null),
-            MediaChildSection(binding.headerOther, binding.containerOther, KEY_OTHER_EXPANDED, false, "media_other",
+            MediaChildSection(binding.headerOther, binding.containerOther, "media__other", false, "media_other",
                 { OtherMediaSettingsFragment() }),
         )
     }
@@ -123,8 +118,6 @@ class MediaSettingsFragment : Fragment() {
     }
 
     private fun setupSections() {
-        Timber.d("S0474: media child fragments attached lazily on section expand")
-        val savedStates = getSavedSectionStates()
         buildSections().forEach { section ->
             val factory = section.factory
             if (factory == null) {
@@ -132,19 +125,14 @@ class MediaSettingsFragment : Fragment() {
                 section.container.isVisible = false
                 return@forEach
             }
-
-            val expanded = savedStates[section.prefKey] ?: section.defaultExpanded
-            if (expanded) {
-                ensureChildAttached(section.container.id, section.tag, factory)
-            }
-            section.header.setExpanded(expanded, notify = false)
-            section.container.isVisible = expanded
-            section.header.setOnExpandedChangeListener { isExpanded ->
-                if (isExpanded) {
-                    ensureChildAttached(section.container.id, section.tag, factory)
-                }
-                section.container.isVisible = isExpanded
-                saveSectionState(section.prefKey, isExpanded)
+            sectionsManager.register(
+                header = section.header,
+                container = section.container,
+                key = section.key,
+                defaultExpanded = section.defaultExpanded,
+            ) { expanded ->
+                // Lazy first-expand attach: build the child only when the section becomes visible.
+                if (expanded) ensureChildAttached(section.container.id, section.tag, factory)
             }
         }
     }
@@ -159,37 +147,6 @@ class MediaSettingsFragment : Fragment() {
         section.header.setExpanded(true)
     }
     
-    /**
-     * Get saved section states from SharedPreferences.
-     * Wrapped in StrictModeHelper to avoid violations during fragment creation.
-     */
-    private fun getSavedSectionStates(): Map<String, Boolean> {
-        return StrictModeHelper.allowDiskReads {
-            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            mapOf(
-                KEY_IMAGES_EXPANDED to prefs.getBoolean(KEY_IMAGES_EXPANDED, false),
-                KEY_VIDEO_EXPANDED to prefs.getBoolean(KEY_VIDEO_EXPANDED, false),
-                KEY_VR_EXPANDED to prefs.getBoolean(KEY_VR_EXPANDED, true),  // S0249: default expanded
-                KEY_AUDIO_EXPANDED to prefs.getBoolean(KEY_AUDIO_EXPANDED, false),
-                KEY_DOCUMENTS_EXPANDED to prefs.getBoolean(KEY_DOCUMENTS_EXPANDED, false),
-                KEY_OTHER_EXPANDED to prefs.getBoolean(KEY_OTHER_EXPANDED, false)
-            )
-        }
-    }
-    
-    /**
-     * Save section expanded state to SharedPreferences.
-     * Wrapped in StrictModeHelper to avoid violations.
-     */
-    private fun saveSectionState(key: String, expanded: Boolean) {
-        StrictModeHelper.allowDiskWrites {
-            requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(key, expanded)
-                .apply()
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

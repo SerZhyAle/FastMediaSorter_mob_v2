@@ -60,9 +60,9 @@ permalink: /docs/LIMITATIONS_RU.html
 ### VR-редакция
 
 - **Оборудование:** Запускается только на Meta Quest 2/3/Pro и гарнитурах Android XR (`arm64-v8a` + OpenXR-рантайм). На телефоне без XR-рантайма приложение показывает экран-заглушку и не стартует воспроизведение.
-- **Дистрибуция:** Два канала — Meta Horizon Store / Google Play (флейвор `vr`, Store-clean: без GPL-экстракторов и yt-dlp) и ADB sideload (флейвор `noLegal`, всё включено: VR + Python + yt-dlp + GPL-экстракторы, runtime-gate на устройствах без OpenXR).
+- **Дистрибуция:** Два канала - Meta Horizon Store / Google Play (флейвор `vr`, Store-clean: без GPL-экстракторов и yt-dlp) и ADB sideload (флейвор `noLegal`, всё включено: VR + Python + yt-dlp + GPL-экстракторы, runtime-gate на устройствах без OpenXR).
 - **Нет Wear OS companion:** у шлемов нет парных часов.
-- Полный перечень ограничений — в [VR Edition](VR_EDITION_RU.md).
+- Полный перечень ограничений - в [VR Edition](VR_EDITION_RU.md).
 
 ---
 

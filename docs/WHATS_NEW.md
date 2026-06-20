@@ -1,6 +1,41 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6180.134** (June 2026)
+**Current release: 2.60.6200.317** (June 2026)
+
+> Changes since version 2.60.6180.134
+
+---
+
+## What's New
+
+- **Quick capture menu** - record a voice note, video, or photo from the main menu.
+- **Download by link** - paste a link from the clipboard to fetch media.
+- **Chromecast video** - cast video to a Chromecast, not just audio.
+- **New drawing canvas** - start a blank canvas straight from Browse.
+- **Custom brush color and size** - pick any color and adjust brush thickness.
+- **Drag to reorder resources** - rearrange your resource list by dragging.
+- **File details sheet** - view file metadata in a bottom sheet from Browse.
+- **Video player gestures** - vertical brightness and volume sliders, configurable touch zones.
+- **Text viewer themes** - choose a reader theme for text files.
+- **Fallback save** - auto-save to a backup location when the destination is unavailable.
+- **Controller, keyboard and TV navigation** - full gamepad support, number-key shortcuts, remappable browser actions.
+- **Settings reference and groups** - in-app settings reference with collapsible section groups.
+- **Crash email prompt** - after a crash, the next launch offers to email the report.
+- **Mini-game** - play Kryvavitsa and the Monster from its launcher widget.
+
+## What's Fixed
+
+- Player time statistic now records real on-screen time instead of zero.
+- PDF thumbnails no longer vanish while browsing.
+- Player controls no longer hide behind the navigation bar in standalone players.
+- The stop-scan button is back in the landscape network discovery dialog.
+- Camera capture no longer crashes when closed mid-capture.
+- Camera OCR now themes correctly in light mode.
+- D-pad navigation now works on the welcome carousel.
+
+---
+
+## Previous Release: 2.60.6180.134 (June 2026)
 
 > Changes since version 2.60.6141.930
 

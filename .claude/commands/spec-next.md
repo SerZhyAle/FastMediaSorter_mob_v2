@@ -26,7 +26,7 @@ No positional arguments. Selection derived from `PLAN/spec-catalog.jsonl` plus `
 - `Implemented`
 - `Partial`
 - `Broken`
-- `BlockByOtherTask` - **conditional**: include only if the blocker (named in §10 of the spec file) is currently `Verified`. §10 missing or blocker id unresolvable -> skip.
+- `BlockByOtherTask` - **conditional**: included by the preflight, then auto-skipped (`reason: blocker-not-verified`) unless the blocker named in §10 of the spec file is currently `Verified`.
 
 **Excluded** (always):
 
@@ -39,95 +39,61 @@ No positional arguments. Selection derived from `PLAN/spec-catalog.jsonl` plus `
 
 ## Process
 
-### Stage 1 - Query the catalog
+### Stage 1 - Preflight (rank + skip-cache + auto-skip + drift, one call)
 
 ```powershell
-pwsh -NoProfile -File scripts/spec_catalog/search.ps1 -Format json
+pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude <processed-ids-csv>
 ```
 
-Parse the JSON. For each record:
+One read-only call replaces the previous `search.ps1` + manual rank + `skip-cache.ps1 -Action list` + per-candidate `preview.ps1` + `drift-check.ps1` chain. It returns a single JSON blob:
 
-1. Apply eligibility filter above.
-2. For `BlockByOtherTask`: blocker resolution is performed by `preview.ps1` in Stage 3, so this stage does not pre-filter by blocker. Pass `BlockByOtherTask` records through to Stage 2.
+- `ranked[]` - eligible set (the statuses above), already sorted `priority` desc -> `updated` desc -> `id` asc, with the active persistent skip-cache and the `-Exclude` round-memory set already removed.
+- `skip_cache` / `skip_cached_ids` - active persistent skips and which ranked ids they removed (informational; no action needed).
+- `auto_skipped[]` - candidates the preflight previewed and rejected while walking down to the selection. Each `{ id, reason, detail }`, `reason ∈ { tier-5-epic | owner-gate | blocker-not-verified | research-heavy }`.
+- `selected` - the chosen ticket's full `preview.ps1` payload (`status`, `frontmatter`, `sections`, `tactical_folder`, `last_audit_present`, `timber_tags_kt`, `depends_on`) plus `drift` (the `drift-check.ps1` verdict object) and `status_mismatch` (`{catalog,file}` or `null`). `null` when the eligible set is exhausted.
 
-### Stage 2 - Rank, apply persistent skip-cache
+`-Exclude` carries the in-memory `processed` round-memory set (Stage 5) so each loop iteration gets the next candidate in one call. First iteration: omit `-Exclude`.
 
-Sort the eligible set by:
+`selected == null` -> eligible set exhausted -> final report (Stage 6) and stop.
 
-1. `priority` **descending** (100 -> 0)
-2. `updated` **descending** (newest first) - tiebreak
-3. `id` ascending - final tiebreak
+### Stage 2 - Persist preflight side effects (the only mutations in selection)
 
-**Persistent skip-cache.** Before picking the top candidate, load `temp/spec-next-skip-cache.json`:
+The preflight is read-only by contract; this skill performs the writes it implies:
 
-```powershell
-pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action list
-```
+1. **Persist auto-skips.** For each entry in `auto_skipped[]`, write it to the persistent cache and log one line `[auto-skip] <id> - <reason>`:
+   ```powershell
+   pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <id> -Reason "<reason>"
+   ```
+   These close the deterministic skip cases (Tier 5 epic-containers, §12 owner-gate, unverified blocker chains, >=3 unresolved §6 research items) with no `AskUserQuestion`.
+2. **Resolve status mismatch.** If `selected.status_mismatch` is non-null, the file is authoritative - sync the catalog and log `Sync: <id> catalog <catalog> -> <file> (file authoritative)`:
+   ```powershell
+   pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <id> -Status <file-status>
+   ```
+   If the synced status is no longer eligible, add `<id>` to `processed` and re-run Stage 1 with the updated `-Exclude`.
 
-Each entry: `{ "Sxxxx": { "reason": "...", "expires": "<iso>" } }`. Past-`expires` entries auto-pruned by the script on every call. **Treat every active entry as already in `processed`** for this session - exclude from the ranked list, log one line `[skip-cache] Sxxxx - <reason>`. TTL 7 days default; `/spec-next --reset-skips` clears the cache.
+### Stage 3 - Drift gate
 
-Top of the ranked list (minus session `processed` and skip-cache) = **the chosen spec**.
+`selected.drift.verdict == DRIFT` = git commits carrying the spec id marker AND/OR inline `// <id>:` markers exist in `app_v2/src/`. The fix is likely already (partly) in code and `/spec-all` would re-discover it expensively. Note it in the round verdict, then:
 
-Eligible set empty -> final report (Stage 6) and stop.
+- `selected.last_audit_present` is true OR the spec has an "Implementation State" block -> proceed to Stage 4 (`/spec-all` resumes at the right stage).
+- Neither -> defer: skip-cache the spec with `Reason "drift-needs-review"` (TTL 3 days), surface in the final report under "Drift detected - needs manual review", add to `processed`, re-run Stage 1.
 
-### Stage 3 - One-shot preview (status sync + auto-skip + drift detection)
+### Stage 4 - Delegate to `/spec-all` (with preflight handoff)
 
-Replaces the previous 4-command bash boilerplate (head/grep/ls/grep) with a single `preview.ps1` call:
-
-```powershell
-pwsh -NoProfile -File scripts/spec_catalog/preview.ps1 -Id <Sxxxx> -Format json
-```
-
-JSON gives:
-
-- `status`, `frontmatter.Status` - file/catalog sync
-- `tactical_folder`, `last_audit_present`, `timber_tags_kt` - resume routing
-- `depends_on[]` - pre-resolved blocker statuses (replaces manual §10 walk for `BlockByOtherTask`)
-- `auto_skip` ∈ { `tier-5-epic` | `owner-gate` | `blocker-not-verified` | `research-heavy` | `null` }
-
-**3a - Auto-skip predicates (no user prompt).** `auto_skip` non-null -> record skip in persistent cache and drop the candidate:
-
-```powershell
-pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <Sxxxx> -Reason "<auto_skip>"
-```
-
-Return to Stage 2 with the next ranked candidate. These predicates close the deterministic skip cases (Tier 5 epic-containers, explicit §12 owner-gate, unverified blocker chains, >=3 unresolved §6 research items on Draft/Approved specs) without spending a turn on `AskUserQuestion`.
-
-**3b - File/catalog sync check.** If `record.status` (catalog) differs from `frontmatter.Status` (file):
-
-- Default: trust the file. Sync catalog:
-  ```powershell
-  pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <file-status>
-  ```
-- Log one-line note in chat: `Sync: <Sxxxx> catalog <old> -> <file-status> (file authoritative).`
-- New status no longer eligible -> drop candidate, return to Stage 2 (do NOT re-query the catalog).
-
-**3c - Drift detection (`Sxxxx` already in code).** For specs in `Draft`, `Approved`, `Tactical`, or `Broken`:
-
-```powershell
-pwsh -NoProfile -File scripts/spec_catalog/drift-check.ps1 -Id <Sxxxx>
-```
-
-Exit 1 (`DRIFT`) = git commits with the spec id marker exist AND/OR inline `// Sxxxx:` markers present in `app_v2/src/`. Spec likely already (partially) implemented and `/spec-all` would re-discover this expensively. Mark as **drift candidate**: insert one-line note in the round verdict, then either:
-
-- Spec has §10 "Implementation State" or a `## Last Audit` block -> proceed to Stage 4 (delegate to `/spec-all`, which resumes at the right stage).
-- Neither block exists -> defer: skip-cache the spec with `Reason "drift-needs-review"` (TTL 3 days), surface in Stage 6 final report under "Drift detected - needs manual review".
-
-### Stage 4 - Delegate to `/spec-all`
-
-Hand the chosen ticket id to `/spec-all`:
+Hand the chosen ticket id to `/spec-all`, passing the preflight `selected` payload as already-resolved context so `/spec-all` does not re-resolve it:
 
 ```text
 /spec-all <Sxxxx>
+preflight: status=<status> tier=<tier> tactical_folder=<bool> last_audit=<bool> timber_tags_kt=<n> drift=<verdict> sections=<count>; depends_on=<id(status),..>
 ```
 
-`/spec-all`'s Resume Map selects the correct stage for every status (`Draft` -> F1, `Approved` -> F2, `Tactical` -> F3, `In Progress` -> F3 resume, `Implemented` -> F5, `Partial`/`Broken` -> F5 fix loop, `BlockByOtherTask` with Verified blocker -> continues from last stage). All hard-stops, build gates, defer-first behaviour, and debug-tag lifecycle come from `/spec-all` - do NOT reimplement them here.
+`/spec-all` trusts this context and skips its own opening `select.ps1` / catalog re-query for this ticket (its Resume Map keys off the handed `status`). It does NOT re-run `preview.ps1` / `drift-check.ps1` for the same ticket. All hard-stops, build gates, defer-first behaviour, and debug-tag lifecycle still come from `/spec-all` - do NOT reimplement them here.
 
 While `/spec-all` runs, do not start another spec. One spec per delegation.
 
 ### Stage 5 - Inspect outcome and loop
 
-When `/spec-all` returns, re-read the chosen spec's catalog row:
+When `/spec-all` returns, re-read the chosen spec's catalog row (single authoritative read):
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
@@ -138,21 +104,21 @@ Record the final status. Possible terminations for one round:
 | New status | Round verdict | Loop action |
 |------------|---------------|-------------|
 | `Verified` | Closed ✅ | Continue loop |
-| `Implemented` | Audit deferred / max iterations hit | Continue loop (won't re-pick - Stage 1 includes `Implemented`, but `/spec-all` already ran F5 on it; if priority still tops, audit was likely capped - skip via "round memory" below) |
-| `Partial` / `Broken` | Audit incomplete | Continue loop (same skip rule as `Implemented`) |
-| `BlockNeedUserTest` | Manual gate set (the `/spec-all` round already auto-ran `/spec-test-device` + `/spec-check` via its Device-test gate if a device was online; reaching this row means no device was attached) | Continue loop |
+| `Implemented` | Audit deferred / max iterations hit | Continue loop (add to `processed`; `/spec-all` already ran F5) |
+| `Partial` / `Broken` | Audit incomplete | Continue loop (add to `processed`) |
+| `BlockNeedUserTest` | Manual gate set (no device attached this round) | Continue loop |
 | `BlockByOtherTask` | Blocked by new dependency | Continue loop |
 | `BlockExternal` / `BlockQuestions` | Hard external block | Continue loop |
 | `Archived` | Aborted as archived | Continue loop |
-| Unchanged from start | `/spec-all` made no progress | Skip via round memory, continue loop |
+| Unchanged from start | `/spec-all` made no progress | Add to `processed`, continue loop |
 
-**Round memory.** Maintain an in-memory `processed` set of ticket ids touched during this `/spec-next` invocation. After Stage 5, add the just-handled id to `processed`. Next iteration's Stage 2 excludes any id in `processed` from the eligible set - prevents infinite re-selection of a spec whose status `/spec-all` could not advance.
+**Round memory.** Maintain an in-memory `processed` set of ticket ids touched during this `/spec-next` invocation. After Stage 5, add the just-handled id. Pass the whole set to the next Stage 1 call via `-Exclude` - prevents infinite re-selection of a spec whose status `/spec-all` could not advance.
 
 **`--once` mode.** Skip the loop. After Stage 5 print the final report and exit.
 
 ### Stage 6 - Final report
 
-When Stage 2 has no eligible candidates left (truly empty or all remaining in `processed`), print:
+When Stage 1 returns `selected == null` (truly empty or all remaining excluded), print:
 
 ```text
 spec-next: session complete
@@ -182,7 +148,7 @@ Run dev log once for the session:
 
 ## `--dry` mode
 
-Skip Stages 3..6. After Stage 2, print:
+Run Stage 1 (preflight is read-only) only. Skip Stages 2..6. Print:
 
 ```text
 spec-next: dry run
@@ -192,20 +158,21 @@ Eligible candidates (ranked):
   Syyyy <pri> <status> <updated> <slug>
   ...
 
+Would auto-skip: Szzzz (<reason>), ...
 Would run: /spec-all Sxxxx
 ```
 
-Do NOT mutate anything (no `update.ps1`, no `add_to_dev_log.ps1`).
+Use `ranked[]`, `auto_skipped[]`, and `selected` straight from the preflight JSON. Do NOT mutate anything (no `skip-cache.ps1 -Action add`, no `update.ps1`, no `add_to_dev_log.ps1`).
 
 ---
 
 ## Hard rules
 
-- **Never edit `PLAN/spec-catalog.jsonl` directly** - only via `update.ps1`, `select.ps1`, `search.ps1`.
+- **Never edit `PLAN/spec-catalog.jsonl` directly** - only via `update.ps1`, `select.ps1`, `search.ps1`, `spec-next-preflight.ps1` (read-only).
 - **Do not duplicate `/spec-all` logic** - every progress decision delegates to it. This skill's responsibility is *selection*, not *execution*.
-- **No user prompts in loop mode.** A stage detecting unresolvable ambiguity -> skip the spec via round memory + persistent skip-cache, continue the loop. Final report names all skipped specs. `AskUserQuestion` MUST NOT be invoked from any stage of `/spec-next` - auto-skip predicates (Stage 3a) replace every previous owner-gate / tier-5 / VR-child / research-heavy prompt.
-- **Spec status sync is one-way per run.** If Stage 3 syncs catalog from file, do not later flip it back from the catalog side mid-run.
-- **No spec file rewrites here.** Sync touches the journal, not the `.md`. If the `.md` is malformed (no `Status:` line, missing §10 for `BlockByOtherTask`), skip the spec and list it under "Skipped" in the final report with the parse error.
+- **No user prompts in loop mode.** A stage detecting unresolvable ambiguity -> skip the spec via round memory + persistent skip-cache, continue the loop. Final report names all skipped specs. `AskUserQuestion` MUST NOT be invoked from any stage of `/spec-next` - the preflight's auto-skip predicates replace every previous owner-gate / tier-5 / VR-child / research-heavy prompt.
+- **Spec status sync is one-way per run.** If Stage 2 syncs catalog from file, do not later flip it back from the catalog side mid-run.
+- **No spec file rewrites here.** Sync touches the journal, not the `.md`. If the `.md` is malformed (preflight returns it under `malformed`), skip the spec and list it under "Skipped" in the final report.
 - **Round memory is session-scoped.** Resets on every fresh `/spec-next` invocation. Crashes / interruptions do not persist it.
 - **Branch awareness.** Do not switch git branches. The user controls the active branch; `/spec-next` runs on whatever branch is checked out.
 
@@ -213,8 +180,8 @@ Do NOT mutate anything (no `update.ps1`, no `add_to_dev_log.ps1`).
 
 ## Spec Catalog hooks
 
-- **Reads:** `search.ps1` (rank source), `preview.ps1` (Stage 3 combined sync + auto-skip + blocker resolution), `drift-check.ps1` (Stage 3c code-vs-spec drift), `skip-cache.ps1 -Action list` (persistent skip), `select.ps1` (post-`/spec-all` status check).
-- **Writes:** `update.ps1 -Status` only when Stage 3b detects a file/catalog mismatch. `skip-cache.ps1 -Action add` on every auto-skip and on `drift-needs-review`. `skip-cache.ps1 -Action reset` on `--reset-skips`.
+- **Reads:** `spec-next-preflight.ps1` (the single Stage 1 selection call: rank + skip-cache consume + per-candidate preview + drift, read-only), `select.ps1` (post-`/spec-all` status check in Stage 5).
+- **Writes:** `skip-cache.ps1 -Action add` for each `auto_skipped[]` entry and on `drift-needs-review`; `update.ps1 -Status` only when the preflight reports `status_mismatch`; `skip-cache.ps1 -Action reset` on `--reset-skips`.
 - **Indirect writes:** all status transitions during execution come from `/spec-all` and its sub-skills (`/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`). This skill never sets `Implemented`, `Verified`, `Partial`, `Broken`, or any `Block*` directly.
 - **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; writing to `temp/spec-next-skip-cache.json` directly (use `skip-cache.ps1`); renaming spec files; creating audit / fix files in `PLAN/`.
 
@@ -225,10 +192,10 @@ Do NOT mutate anything (no `update.ps1`, no `add_to_dev_log.ps1`).
 ```text
 # Full session
 /spec-next
-# -> picks S0142 (pri 90, In Progress), runs /spec-all S0142 -> Verified
-# -> picks S0156 (pri 85, Tactical), runs /spec-all S0156 -> BlockNeedUserTest
-# -> picks S0200 (pri 80, Draft), runs /spec-all S0200 -> Implemented (audit deferred)
-# -> no more eligible; final report.
+# -> preflight selects S0142 (pri 90, In Progress), runs /spec-all S0142 -> Verified
+# -> preflight (-Exclude S0142) selects S0156 (pri 85, Tactical) -> BlockNeedUserTest
+# -> preflight (-Exclude S0142,S0156) selects S0200 (pri 80, Draft) -> Implemented
+# -> preflight returns selected=null; final report.
 
 # One round only
 /spec-next --once
@@ -236,5 +203,5 @@ Do NOT mutate anything (no `update.ps1`, no `add_to_dev_log.ps1`).
 
 # Preview without execution
 /spec-next --dry
-# -> prints ranked list + chosen, no mutations.
+# -> prints ranked list + auto-skips + chosen, no mutations.
 ```

@@ -34,7 +34,10 @@ class DestinationButtonsManager(
     private val settingsRepository: SettingsRepository,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val callback: DestinationButtonsCallback
+    private val callback: DestinationButtonsCallback,
+    // True when the user drives the UI with non-touch input (TV remote / D-pad / hardware keyboard) - then slots are numbered.
+    private val shouldNumberSlots: () -> Boolean,
+    private val slotKeyGlyph: (slotIndex: Int) -> String?
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
 
@@ -243,6 +246,7 @@ class DestinationButtonsManager(
                 // This may hide moveToPanel if canWrite=false (read-only resource)
                 Timber.d("DestinationButtonsManager: Calling onUpdateCommandAvailability callback - copyGrid.childCount=${safeViews.copyToButtonsGrid.childCount}, moveGrid.childCount=${safeViews.moveToButtonsGrid.childCount}")
                 callback.onUpdateCommandAvailability()
+                refreshSlotBadges()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load destinations")
                 Toast.makeText(binding.root.context, R.string.toast_failed_to_load_destinations, Toast.LENGTH_SHORT).show()
@@ -276,6 +280,7 @@ class DestinationButtonsManager(
         return MaterialButton(context).apply {
             text = ".."
             contentDescription = context.getString(R.string.btn_select_folder_description)
+            tag = SlotLabelBase("..", contentDescription)
             textSize = 12f
             cornerRadius = cornerRadiusPx
             backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#888888"))
@@ -360,6 +365,7 @@ class DestinationButtonsManager(
                 else -> destination.name.take(8) + ".."
             }
             text = shortName
+            tag = SlotLabelBase(shortName, null)
 
             // S0227: auto-size keeps long labels stable, while the computed cap lets wide buttons grow.
             val minAutoSizeSp = SP_MIN.toInt()
@@ -499,6 +505,7 @@ class DestinationButtonsManager(
         safeViews.copyToButtonsGrid.isVisible = !collapsed
         safeViews.copyToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
+        refreshSlotBadges()
     }
     
     /**
@@ -508,6 +515,7 @@ class DestinationButtonsManager(
         safeViews.moveToButtonsGrid.isVisible = !collapsed
         safeViews.moveToPanelHeader.setExpanded(!collapsed, notify = false)
         updateContainerOrientation()
+        refreshSlotBadges()
     }
 
     /**
@@ -537,6 +545,75 @@ class DestinationButtonsManager(
             }
             panel.layoutParams = lp
         }
+    }
+
+    /**
+     * Launch the [slotIndex]-th (1-based) button across the addressable Copy/Move groups, numbered continuously:
+     * Copy buttons come first, then Move buttons. So with both groups expanded, Copy gets 1..N and Move continues N+1..
+     * Returns false (silent no-op) when the slot is out of range (no addressable group, or fewer buttons than the slot).
+     */
+    fun triggerSlotInAddressableGroup(slotIndex: Int): Boolean {
+        val buttons = addressableButtons()
+        val button = buttons.getOrNull(slotIndex - 1)
+        Timber.d("S0531: keyboard slot=$slotIndex of ${buttons.size} fired=${button != null}")
+        button?.performClick()
+        return button != null
+    }
+
+    /** Buttons of all addressable groups in one continuous visual order: Copy first, then Move (each only when shown, expanded, non-empty). */
+    private fun addressableButtons(): List<MaterialButton> = buildList {
+        if (isAddressable(safeViews.copyToPanel, safeViews.copyToButtonsGrid)) addAll(flattenButtons(safeViews.copyToButtonsGrid))
+        if (isAddressable(safeViews.moveToPanel, safeViews.moveToButtonsGrid)) addAll(flattenButtons(safeViews.moveToButtonsGrid))
+    }
+
+    private fun isAddressable(panel: ViewGroup, grid: ViewGroup): Boolean =
+        panel.isVisible && grid.isVisible && grid.childCount > 0
+
+    /** Destination buttons in visual order (rows top-to-bottom, buttons left-to-right), including the trailing «..» button. */
+    private fun flattenButtons(grid: ViewGroup): List<MaterialButton> =
+        (0 until grid.childCount).flatMap { i ->
+            when (val child = grid.getChildAt(i)) {
+                is MaterialButton -> listOf(child)
+                is ViewGroup -> (0 until child.childCount).mapNotNull { child.getChildAt(it) as? MaterialButton }
+                else -> emptyList()
+            }
+        }
+
+    /** Original button label/description, stashed in the button tag so badges can be applied and cleared idempotently. */
+    private data class SlotLabelBase(val text: CharSequence, val description: CharSequence?)
+
+    /**
+     * Number the addressable groups continuously when non-touch input is active (TV remote / D-pad / keyboard); clear all badges otherwise.
+     * The sequence is Copy buttons then Move buttons, so both expanded groups are reachable (Copy 1..N, Move N+1..).
+     * The glyph reflects the bound key ([slotKeyGlyph]); falls back to the position digit (1..9, 0 = slot 10). A collapsed group is skipped.
+     */
+    fun refreshSlotBadges() {
+        val numbered = if (shouldNumberSlots()) addressableButtons() else emptyList()
+        Timber.d("S0531: refreshSlotBadges numberingActive=${shouldNumberSlots()} numbered=${numbered.size}")
+        // Clear badges on every button first, then re-apply the continuous numbering to the addressable sequence.
+        listOf(safeViews.copyToButtonsGrid, safeViews.moveToButtonsGrid).forEach { grid ->
+            flattenButtons(grid).forEach { button -> if (button !in numbered) applyBadge(button, null) }
+        }
+        numbered.forEachIndexed { index, button ->
+            applyBadge(button, slotKeyGlyph(index + 1) ?: positionDigit(index + 1))
+        }
+    }
+
+    private fun applyBadge(button: MaterialButton, glyph: String?) {
+        val base = button.tag as? SlotLabelBase ?: return
+        if (glyph != null) {
+            button.text = "$glyph ${base.text}"
+            button.contentDescription = "$glyph ${base.description ?: base.text}"
+        } else {
+            button.text = base.text
+            button.contentDescription = base.description
+        }
+    }
+
+    private fun positionDigit(slotIndex: Int): String? = when (slotIndex) {
+        in 1..9 -> slotIndex.toString()
+        10 -> "0"
+        else -> null
     }
 
     companion object {

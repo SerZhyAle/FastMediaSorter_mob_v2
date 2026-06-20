@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,6 +20,7 @@ import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.share.ShareableContent
@@ -580,7 +580,7 @@ class StandaloneViewManager(
      * contract. Strings stay factual (COMMUNICATION_POLICY §6).
      */
     private fun showOfficeFallbackDialog(mediaFile: MediaFile) {
-        androidx.appcompat.app.AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.office_viewer_fallback_title)
             .setMessage(R.string.office_viewer_fallback_message)
             .setPositiveButton(R.string.office_viewer_fallback_open_external) { _, _ ->
@@ -694,7 +694,7 @@ class StandaloneViewManager(
     }
 
     private fun showTranslatedTextDialog(text: String) {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.translation_result_title)
             .setMessage(text)
             .setPositiveButton(R.string.copy) { _, _ ->

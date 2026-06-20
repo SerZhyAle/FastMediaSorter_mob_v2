@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -447,7 +447,7 @@ class BrowseFileOperationsManager(
         
         if (shouldConfirmMove) {
             // Show confirmation dialog first
-            AlertDialog.Builder(context)
+            MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.confirm_move_title)
                 .setMessage(context.getString(R.string.confirm_move_message, selectedPaths.size, resource.name))
                 .setPositiveButton(R.string.move) { _, _ ->

@@ -205,7 +205,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
             )
         }
 
-        Timber.d("S0496: FTP download via isolated connection ok=${result.isSuccess} -> $server:$port$filePath")
         return result.isSuccess
     }
 }

@@ -316,7 +316,6 @@ class PhotoVideoStandaloneActivity :
             // S0470: when enabled, also place the extracted frame on the system clipboard. This host has
             // the live bitmap (no encoded temp file), so copy it as a lossless PNG via the shared role.
             val copiedToClipboard = if (settingsRepository.getSettings().first().videoFrameCopyToClipboard) {
-                Timber.d("S0470: standalone video-frame clipboard gate flag=true")
                 imageClipboardWriter.copyBitmap(bitmap)
             } else false
             withContext(Dispatchers.Main) {
@@ -582,7 +581,7 @@ class PhotoVideoStandaloneActivity :
             onShowHelp = {
                 com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
                     supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.InputSurface.PLAYER
+                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
                 )
             },
         ).handler
@@ -599,6 +598,10 @@ class PhotoVideoStandaloneActivity :
             keyboardHandler.handlePointerEvent(window.decorView, event)) return true
         return super.dispatchGenericMotionEvent(event)
     }
+
+    // Standalone player surface routes motion through its own keyboard/pointer handler; the shared
+    // gamepad navigation layer must not also move focus here. S0508.
+    override fun shouldHandleGamepadNavigation(): Boolean = false
 
     private fun showFileInfo() {
         val file = viewModel.state.value.mediaFile ?: return
@@ -796,6 +799,9 @@ class PhotoVideoStandaloneActivity :
         pipManager?.onUserLeaveHint(pipManager?.isEnabled ?: false)
     }
 
+    // Single-arg override kept for legacy minSdk 23: on API 24-25 the framework calls only this
+    // signature (two-arg added in API 26), so migrating away would drop PiP handling on those devices.
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)

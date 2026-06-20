@@ -17,7 +17,7 @@ $prefsFile = Join-Path $OutputDir "app_settings_$timestamp.xml"
 function Resolve-Adb {
     $onPath = Get-Command adb -ErrorAction SilentlyContinue
     if ($onPath) { return $onPath.Source }
-    # Build SDK-root candidates only from env vars that are actually set —
+    # Build SDK-root candidates only from env vars that are actually set -
     # Join-Path throws on a null Path argument, which would abort the whole list.
     $roots = @($env:LOCALAPPDATA, $env:ANDROID_HOME, $env:ANDROID_SDK_ROOT) | Where-Object { $_ }
     $candidates = @()

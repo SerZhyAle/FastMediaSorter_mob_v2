@@ -41,23 +41,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_perm_title" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_perm_grant"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Grant"
+            android:text="@string/perm_action_grant"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_perm_desc" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_perm_skip"
-            style="?android:attr/borderlessButtonStyle"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Not now"
+            android:layout_marginTop="@dimen/dialog_action_button_gap"
+            android:text="@string/auth_offer_dialog_skip"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_perm_grant"

@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -267,6 +268,12 @@ class VideoPlayerManager(
     internal val retryHandler = Handler(Looper.getMainLooper())
     internal var retryRunnable: Runnable? = null
 
+    // Wall-clock accumulator for "player time": counts time the video player is on screen with media
+    // loaded, including paused/buffering, and excluding time spent in the background. elapsedRealtime
+    // is monotonic so wall-clock changes can't corrupt it. 0 = not running. Banked as
+    // StatsEvent.PlaybackTime on pause/release/destroy.
+    internal var watchClockStartMs = 0L
+
     // Playback position saving
     internal var currentFilePath: String? = null
     internal var positionSaveLoop: com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop? = null
@@ -352,7 +359,7 @@ class VideoPlayerManager(
                 panelStereoSingleEyeEnabled = enabled
                 Timber.d("VideoPlayerManager: panelStereoSingleEye=$enabled - re-applying video effects")
                 applyConfiguredVideoEffects()
-                // S0264: user toggled single-eye crop on/off mid-playback — push the matrix.
+                // S0264: user toggled single-eye crop on/off mid-playback - push the matrix.
                 com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier.apply(
                     playerView = currentPlayerView,
                     mode = stereoVideoProcessor.getCurrentMode(),
@@ -425,6 +432,7 @@ class VideoPlayerManager(
                         scenarioTag = currentFilePath?.let(::scenarioTagFor),
                     )
                     playbackRetryCount = 0
+                    startWatchClock()
                     currentFilePath?.let(VideoPlaybackFailureSessionCache::clear)
                     // S0213 Pillar A: any source playing successfully proves the native graph
                     // recovered, so prior cooldown entries are no longer needed.
@@ -444,12 +452,10 @@ class VideoPlayerManager(
                     val completedPath = currentFilePath
                     if (completedPath != null && completedPath != lastCompletedPath) {
                         lastCompletedPath = completedPath
-                        // S0473: one video watched to the end. duration==watched time at STATE_ENDED;
-                        // an unknown duration (C.TIME_UNSET) is reported as 0. Guarded by the same
-                        // once-per-file check as position-completion so it fires once per playthrough.
-                        val watchedMs = exoPlayer?.duration
-                            ?.takeIf { it != androidx.media3.common.C.TIME_UNSET && it > 0 } ?: 0L
-                        statsSink.record(StatsEvent.View(ViewKind.VIDEO, durationMs = watchedMs))
+                        // S0473: one video watched to the end. Watch time is accrued separately via
+                        // the watch clock (StatsEvent.PlaybackTime), so this only bumps the count and
+                        // must not also report a duration or the player time would be double-counted.
+                        statsSink.record(StatsEvent.View(ViewKind.VIDEO))
                         managerScope.launch(Dispatchers.IO) {
                             try {
                                 playbackPositionRepository.markPlaybackCompleted(
@@ -716,6 +722,28 @@ class VideoPlayerManager(
 
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
     fun releasePlayer() = lifecycleHelper.releasePlayer()
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Player-time accounting (S0473 follow-up)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /** Start the watch clock if a media player is loaded and the clock is not already running. */
+    internal fun startWatchClock() {
+        if (watchClockStartMs == 0L && exoPlayer != null) {
+            watchClockStartMs = SystemClock.elapsedRealtime()
+        }
+    }
+
+    /** Bank the elapsed watch time as a video PlaybackTime delta and stop the clock. */
+    internal fun flushWatchClock() {
+        val start = watchClockStartMs
+        if (start == 0L) return
+        watchClockStartMs = 0L
+        val elapsed = SystemClock.elapsedRealtime() - start
+        if (elapsed > 0L) {
+            statsSink.record(StatsEvent.PlaybackTime(ViewKind.VIDEO, elapsed))
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Lifecycle

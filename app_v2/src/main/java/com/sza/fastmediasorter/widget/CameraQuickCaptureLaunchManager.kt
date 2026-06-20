@@ -9,9 +9,9 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
@@ -167,7 +167,7 @@ class CameraQuickCaptureLaunchManager(
 
     private fun showNameDialog(tempFile: File, defaultName: String, boundTarget: CameraCaptureTarget) {
         val input = EditText(activity).apply { setText(defaultName); selectAll() }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.camera_capture_filename_title)
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->

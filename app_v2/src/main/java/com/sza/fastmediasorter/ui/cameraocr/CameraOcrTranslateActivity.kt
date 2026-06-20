@@ -6,13 +6,12 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
@@ -92,7 +91,7 @@ class CameraOcrTranslateActivity :
                     onCancel: () -> Unit
                 ) {
                     runOnUiThread {
-                        AlertDialog.Builder(this@CameraOcrTranslateActivity)
+                        MaterialAlertDialogBuilder(this@CameraOcrTranslateActivity)
                             .setTitle(R.string.download_translation_model_title)
                             .setMessage(getString(R.string.download_translation_model_message, languageName))
                             .setPositiveButton(R.string.download) { _, _ -> onConfirm() }
@@ -292,7 +291,7 @@ class CameraOcrTranslateActivity :
             // target re-translates the existing recognized text without a new OCR.
             val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
             val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
-            val cbOcrOnly = view.findViewById<CheckBox>(R.id.cbOcrOnly)
+            val cbOcrOnly = view.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow>(R.id.cbOcrOnly)
 
             val interfaceLang = settings.language
             var selectedSourceLang = settings.translationSourceLanguage
@@ -337,11 +336,11 @@ class CameraOcrTranslateActivity :
             // (gone after process death); disable it otherwise so re-OCR has a source to work on.
             updateTargetLanguageEnabled(sourceView, flowManager.hasRetainedSourceImage())
             updateTargetLanguageEnabled(targetView, settings.enableTranslation && !settings.cameraOcrOnly)
-            cbOcrOnly.setOnCheckedChangeListener { _, isChecked ->
+            cbOcrOnly.setOnCheckedChangeListener { isChecked ->
                 updateTargetLanguageEnabled(targetView, settings.enableTranslation && !isChecked)
             }
 
-            AlertDialog.Builder(this@CameraOcrTranslateActivity)
+            MaterialAlertDialogBuilder(this@CameraOcrTranslateActivity)
                 .setTitle(R.string.settings)
                 .setView(view)
                 .setPositiveButton(R.string.apply) { _, _ ->

@@ -75,9 +75,10 @@ class DuplicatesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = DuplicateGroupAdapter { file ->
-            viewModel.toggleFileSelection(file.path)
-        }
+        adapter = DuplicateGroupAdapter(
+            onToggleSelection = { file -> viewModel.toggleFileSelection(file.path) },
+            onSelectRange = { paths -> viewModel.selectFileRange(paths) }
+        )
         binding.rvDuplicates.adapter = adapter
     }
 
@@ -91,7 +92,7 @@ class DuplicatesFragment : Fragment() {
         binding.fabDeleteSelected.setOnClickListener {
             val count = viewModel.state.value.selectedFilePaths.size
             if (count > 0 && isAdded) {
-                MaterialAlertDialogBuilder(requireContext())
+                MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                     .setTitle(R.string.duplicate_delete_title)
                     .setMessage(getString(R.string.duplicate_delete_message, count))
                     .setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteSelectedFiles() }

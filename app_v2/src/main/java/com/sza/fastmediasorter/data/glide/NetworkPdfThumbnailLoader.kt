@@ -443,21 +443,33 @@ private class NetworkPdfDataFetcher(
                 targetHeight = (targetWidth / pageAspectRatio).toInt()
             }
             
-            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, decodeFormatResolver.bitmapConfig())
-            bitmap.eraseColor(Color.WHITE)
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            
+            // PdfRenderer.Page.render() only accepts ARGB_8888; an RGB_565 target throws
+            // IllegalArgumentException. Render (and draw the badge) into ARGB_8888, then
+            // down-copy to the memory-pressure config so the cached thumbnail stays compact.
+            val rendered = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+            rendered.eraseColor(Color.WHITE)
+            page.render(rendered, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
             // Draw page count badge in top-right corner
             val pageCount = renderer.pageCount
-            drawPageCountBadge(bitmap, pageCount)
-            
-            return bitmap
-            
+            drawPageCountBadge(rendered, pageCount)
+
+            val targetConfig = decodeFormatResolver.bitmapConfig()
+            return if (targetConfig != Bitmap.Config.ARGB_8888) {
+                rendered.copy(targetConfig, false)?.also { rendered.recycle() } ?: rendered
+            } else {
+                rendered
+            }
+
         } catch (e: IOException) {
             Timber.e(e, "NetworkPdfDataFetcher: Failed to render PDF page")
             return null
         } catch (e: SecurityException) {
             Timber.w("NetworkPdfDataFetcher: PDF is password-protected")
+            return null
+        } catch (e: IllegalArgumentException) {
+            // Unexpected render-config / dimension mismatch - degrade to placeholder, do not crash decode.
+            Timber.w(e, "NetworkPdfDataFetcher: Render rejected")
             return null
         } finally {
             page?.close()

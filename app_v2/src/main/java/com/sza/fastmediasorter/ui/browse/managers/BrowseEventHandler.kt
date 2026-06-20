@@ -3,12 +3,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
-import androidx.appcompat.app.AlertDialog
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -187,7 +187,7 @@ class BrowseEventHandler(
     }
 
     private fun showLocalNetworkPermissionRationale() {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.local_network_permission_rationale_title)
             .setMessage(R.string.local_network_permission_rationale_message)
             .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->

@@ -571,7 +571,7 @@ class FileOperationDestinationDialog(
     }
     
     private fun showCloudAuthenticationError(errorMessage: String, destinationResource: MediaResource? = null) {
-        val builder = androidx.appcompat.app.AlertDialog.Builder(context)
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.authentication_required))
             .setMessage(context.getString(R.string.cloud_auth_copy_error))
             .setNeutralButton(context.getString(R.string.copy_error)) { _, _ ->

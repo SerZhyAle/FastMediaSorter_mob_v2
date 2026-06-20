@@ -1,34 +1,16 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: App Launch (Resilient)
-# Description: Verify app launches successfully and main UI is responsive
-# Duration: ~20 seconds
+# Smoke: app launches to the resource list with no crash (S0551 Phase 02, rewrite).
+# Replaces the prior all-`optional` fictitious flow with a real launch oracle.
+# No clearState: the suite's resource-dependent flows rely on registered resources
+# (S0551 resource-precondition decision); a cold-wipe belongs to a dedicated setup step.
+# Oracle: the resource-type tabs + Add-resource control render, and no crash-report prompt.
 
-# Launch the application
 - launchApp
-
-# Wait for app to fully load
-- waitForAnimationToEnd
-
 - runFlow: ../_shared/permissions.yaml
-- waitForAnimationToEnd
-
-# Verify app is alive - use optional checks so single missing element doesn't fail
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 - assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
-    optional: true
-
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
 - assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/btnSettings"
-    optional: true
-
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/btnStartPlayer"
-    optional: true
-
-# Verify app responds to interaction
-- tapOn:
-    point: "50%,50%"
-- waitForAnimationToEnd
-- back
-- waitForAnimationToEnd
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"

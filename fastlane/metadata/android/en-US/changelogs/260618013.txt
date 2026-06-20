@@ -1,0 +1,6 @@
+• Send to network and cloud - share files from SMB, SFTP, FTP, and cloud, fetched on demand.
+• Usage statistics - opt-in dashboard of capture, viewing, editing, and operation metrics.
+• Favorites backup - export favorites to a file and import them back later.
+• Photo and frame to clipboard - optionally copy each captured photo or extracted frame.
+• Crash report prompt - after an unexpected stop, offer to send a diagnostic report.
+..

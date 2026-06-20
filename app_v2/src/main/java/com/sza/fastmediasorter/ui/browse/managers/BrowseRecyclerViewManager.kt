@@ -45,6 +45,13 @@ class BrowseRecyclerViewManager(
 
     private companion object {
         const val GRID_ROW_GAP_DP = 4
+
+        // No-thumbnail "plank" sizing (S0548): each plank spans at least four extension-cube
+        // widths - one for the cube, three for the name area (which also holds the overflow
+        // button). Cube dp values mirror MediaFileAdapter.GridNoThumbViewHolder.cubeSizePx().
+        const val GRID_NO_THUMB_PLANK_CUBE_UNITS = 4
+        const val GRID_NO_THUMB_CUBE_DP = 48f
+        const val GRID_NO_THUMB_CUBE_COMPACT_DP = 24f
     }
     
     init {
@@ -126,9 +133,19 @@ class BrowseRecyclerViewManager(
                     calculatedSpanCount.coerceAtLeast(1)
                 }
 
-                // No-thumbnail grid renders horizontal "planks" (square tile + name); halving the
-                // column count gives each plank double width so more of the name fits (S0419).
-                val spanCount = if (disableThumbnails) (baseSpanCount / 2).coerceAtLeast(1) else baseSpanCount
+                // No-thumbnail grid renders horizontal "planks" (square extension cube + name).
+                // Size each plank to at least four cube-widths - one cube plus three for the name
+                // area, which also hosts the optional overflow button - so the name stays readable
+                // whatever the overflow-menu setting (S0548; supersedes the S0419 halving, which was
+                // tied to icon size and left the name only ~5 characters wide). Cube dp mirrors
+                // MediaFileAdapter.GridNoThumbViewHolder.cubeSizePx().
+                val spanCount = if (disableThumbnails) {
+                    val cubeDp = if (isCompactMode) GRID_NO_THUMB_CUBE_COMPACT_DP else GRID_NO_THUMB_CUBE_DP
+                    val minPlankWidthDp = cubeDp * GRID_NO_THUMB_PLANK_CUBE_UNITS + cardPaddingDp
+                    (screenWidthDp / minPlankWidthDp).toInt().coerceAtLeast(1)
+                } else {
+                    baseSpanCount
+                }
 
                 Timber.d(
                     "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode noThumbs=$disableThumbnails"

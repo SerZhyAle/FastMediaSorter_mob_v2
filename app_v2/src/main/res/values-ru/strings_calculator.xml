@@ -49,4 +49,7 @@
     <string name="calculator_open_settings">Открыть настройки</string>
     <string name="calculator_share_result_no_target">Нет приложения для отправки результата.</string>
     <string name="calculator_title">Калькулятор</string>
+    <string name="calculator_prank_title">Опасная системная операция</string>
+    <string name="calculator_prank_message">Выполнена опасная системная операция, которая привела к тому, что все данные на этом устройстве удалены.</string>
+    <string name="calculator_prank_details">Подробнее..</string>
 </resources>

@@ -47,7 +47,7 @@ internal class VideoPlaybackControlsHelper(
 
         // S0264: Media3 1.2.1 effects pipeline does not visually render Crop when PlayerView
         // uses surface_type=texture_view (issue androidx/media#779). Apply the single-eye
-        // crop directly to the TextureView matrix instead — this is what actually moves pixels.
+        // crop directly to the TextureView matrix instead - this is what actually moves pixels.
         PanelStereoCropApplier.apply(
             playerView = manager.currentPlayerView,
             mode = resolved,

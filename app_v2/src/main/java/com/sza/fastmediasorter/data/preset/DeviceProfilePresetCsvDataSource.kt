@@ -16,7 +16,7 @@ import javax.inject.Singleton
  * field name); each remaining column header is a profile key. One data row per AppSettings field;
  * each cell is the override value for that profile, an empty cell means "no override".
  *
- * The parse is performed once and cached for the process lifetime — the asset is immutable at runtime.
+ * The parse is performed once and cached for the process lifetime - the asset is immutable at runtime.
  */
 @Singleton
 class DeviceProfilePresetCsvDataSource @Inject constructor(
@@ -86,7 +86,7 @@ class DeviceProfilePresetCsvDataSource @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            // Asset missing or unreadable — return empty overrides so callers fall back to defaults.
+            // Asset missing or unreadable - return empty overrides so callers fall back to defaults.
             Timber.e(e, "Failed to read device profile preset CSV: $ASSET_PATH")
         }
 

@@ -166,7 +166,6 @@ class GeneralSettingsBackupHelper(
     // ── Favorites + resource-share export/import (S0491 resurrection) ─────────────
 
     fun setupExportImportButtons() {
-        Timber.d("S0491: settings export/import buttons wired")
         binding.btnExportFavorites.setOnClickListener { backupViewModel.exportFavorites() }
         binding.btnImportFavorites.setOnClickListener {
             try {

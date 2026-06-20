@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.addresource
 import android.view.KeyEvent
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
-import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 
 /**
@@ -23,7 +23,7 @@ class AddResourceKeyboardDelegate(
     }
 
     private val shortcutHandler = KeyboardShortcutHandler(
-        surface = InputSurface.ADD_RESOURCE,
+        surface = UiSurface.ADD_RESOURCE,
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchAction(action) },
     )
 

@@ -42,7 +42,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_perm_action"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="80dp"

@@ -20,7 +20,7 @@ import timber.log.Timber
  *
  * Runtime probe: if the native library is unavailable on the current device (non-arm64 ABI
  * where the OpenXR slice is absent), short-circuit to [XrEntryResult.UnavailableNoRuntime]
- * before starting the Activity — otherwise the user would see a blank Activity flash before
+ * before starting the Activity - otherwise the user would see a blank Activity flash before
  * the on-device runtime check rejects the session.
  */
 @Singleton

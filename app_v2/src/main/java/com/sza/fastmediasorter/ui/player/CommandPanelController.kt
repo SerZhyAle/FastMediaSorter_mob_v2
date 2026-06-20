@@ -289,6 +289,32 @@ class CommandPanelController(
         availabilityUpdater.update(state)
     }
 
+    /**
+     * S0532: whether the MOVE operation is actually usable right now, matching the exact criterion
+     * that gates [CommandPanelAvailabilityUpdater] move-panel visibility (move enabled + populated
+     * destinations + write permission). The keyboard MOVE guard consults this so the shortcut cannot
+     * expand a panel header that visibility logic keeps hidden on a non-writable resource.
+     */
+    fun isMoveAvailable(): Boolean {
+        val state = cachedState ?: return false
+        val currentFile = state.currentFile ?: return false
+        if (!state.enableMoving) return false
+        if (safeViews.moveToButtonsGrid.childCount == 0) return false
+        return resolvePlayerFilePermissions(binding.root.context, state.resource, currentFile.path).canWrite
+    }
+
+    /**
+     * S0533: whether the COPY operation is usable right now, matching the criterion that gates
+     * [CommandPanelAvailabilityUpdater] copy-panel visibility (copy enabled + populated destinations).
+     * Copy reads the source, so this intentionally omits the write-permission check used by [isMoveAvailable].
+     */
+    fun isCopyAvailable(): Boolean {
+        val state = cachedState ?: return false
+        if (state.currentFile == null) return false
+        if (!state.enableCopying) return false
+        return safeViews.copyToButtonsGrid.childCount > 0
+    }
+
     private fun logPanelGeometrySnapshot(stage: String) {
         val visibleFrame = Rect()
         binding.root.getWindowVisibleDisplayFrame(visibleFrame)
