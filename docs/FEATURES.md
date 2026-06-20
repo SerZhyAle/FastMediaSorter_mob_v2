@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-19*
+*Last updated: 2026-06-20*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -16,6 +16,7 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 1. Sources & Storage
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
 - **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
+- **Drag to reorder resources** `[Standard]`: Long-press and drag entries in your resource list to set the exact order they appear in.
 
 ## 2. Media Browsing
 - **File Manager Mode** `[Standard / VR]`: Toggle visibility of dot-hidden files or bypass media filters entirely to manage any file type or archive (ZIP, APK, EXE, etc.) across local and network resources.
@@ -23,6 +24,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Office & PDF document handoff** `[Standard / VR]`: Filter and open DOC, DOCX, RTF, ODT, or protected PDF files in external apps or fallback viewers with integrated password indicators.
 - **External file viewing** `[Standard / VR]`: When you open a file from another app, page through the neighbouring files in the same folder (next, previous, random, slideshow), and use *Open in FastMediaSorter* to jump straight into the in-app player on that file. In fullscreen mode - tap the Fullscreen button in the command bar to hide the system bars and command panel for immersive viewing; tap the Fullscreen button again (or use the keyboard shortcut) to exit.
 - **External image editing** `[Standard / VR]`: When you open an image from another app, edit it right there - crop, save a cropped copy, make a compressed copy, and toggle screen rotation - the same image actions as the in-app player.
+- **File details sheet** `[Standard]`: Open a bottom sheet showing a file's metadata - size, dates, path, resolution or duration - straight from the browser.
+- **Drag multi-select** `[Standard / VR]`: Select many items at once by dragging across them with touch, or band-select with a mouse, in both Browse and the Duplicates list.
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
@@ -30,9 +33,11 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 - **Soft delete & Trash restore** `[Standard / VR]`: Deleted files move to a per-folder trash snapshot instead of vanishing; undo restores them in one tap and old trash clears automatically in the background.
 - **Download by link** `[Standard]`: Paste a URL into the Download-by-link dialog and the file downloads straight to your chosen folder, no browser needed.
+- **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 30 favorite target folders (default 10) inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
+- **Number-key sort shortcuts** `[Standard]`: Trigger destination operation buttons with number keys on a keyboard or TV remote for fast keyboard-driven sorting.
 
 ## 5. Image & GIF Viewer
 - **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
@@ -41,6 +46,7 @@ This document is the curated showcase of standout user-facing features. The comp
 
 ## 6. Drawing & Annotations Editor
 - **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, then send the result through the unified Send to.. menu (Google Keep, Lens, and the other enabled receivers).
+- **Custom brush color & size** `[Standard]`: Pick any brush color from a full color picker and adjust brush thickness while drawing or annotating.
 
 ## 7. Video Player
 - **Session save & restore** `[Standard / VR]`: Remembers exact playback coordinates and restores remote active network/cloud sessions upon app cold start.
@@ -49,6 +55,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Blu-ray Transport Stream (.m2ts)** `[Standard / VR]`: Plays BD-TS files from local, SMB, SFTP, FTP, and cloud sources - the 192-byte BD packet format is auto-detected, while plain 188-byte MPEG-TS files with a .m2ts extension play without unnecessary stripping. Unsupported audio tracks (TrueHD, DTS-HD MA) are reported with a one-time notification listing the detected codecs.
 - **Chromecast video casting** `[Standard]`: Cast the current video to any Chromecast device through a local proxy, straight from the player overflow menu.
 - **Video frame to clipboard** `[Standard / VR]`: Optionally copy each captured video frame to the system clipboard alongside saving it, ready to paste into another app.
+- **Player gesture controls** `[Standard / VR]`: Swipe vertical sliders for brightness and volume, and customize the 3x3 grid of tap zones that map to player actions.
 
 ## 8. VR Edition & OpenXR
 - **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.
@@ -65,11 +72,13 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 11. PDF & EPUB Reader
 - **E-book reader formatting** `[Standard / VR]`: View DRM-free EPUBs with customizable fonts, margins, line spacing, themes (including OLED black), and chapter maps.
 - **Read Aloud (TTS) & Text selection** `[Standard / VR]`: Synthesizes page text via Text-to-Speech (TTS) and copy text fragments using long-press drag handles.
+- **PDF page to Google Lens** `[Standard / VR]`: Send the current PDF page straight to Google Lens to search or extract its text.
 
 ## 12. Text Editor
 - **In-place Markdown editor** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or remote storage with live syntax highlighting, Markdown rendering, and auto-save.
 - **Send text to Google Keep** `[Standard / VR]`: From the read-only text viewer, send the current text straight to Google Keep as a note - available in both the in-app player and the standalone text viewer, shown only when Keep is installed.
 - **Embedded text calculator** `[Standard / VR]`: Parse and solve math equations from selected reader/OCR/lyrics text blocks without writing results back.
+- **Text viewer reader themes** `[Standard / VR]`: Choose a reading theme - light, dark, sepia, or OLED black - in the read-only text viewer.
 
 ## 13. Offline OCR & Translation
 - **Offline OCR & Translation engine** `[Standard / VR]`: Extract text from images/PDFs and translate it completely offline using ML Kit and Tesseract with custom models.
@@ -93,6 +102,9 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
 - **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format - to a local file or Google Drive - and restore everything after a reinstall.
 - **Set as default app from settings** `[Standard / VR]`: Make FastMediaSorter the default handler for images, audio, video, and documents right from the playback settings page, without opening the welcome screen; only the buttons for functions enabled in your build are shown.
+- **Full gamepad & joystick navigation** `[Standard]`: Drive every screen with a gamepad or joystick, with remappable browser actions for controller users.
+- **Settings reference page** `[Standard]`: Browse an in-app reference describing every setting, searchable from the settings screen.
+- **Collapsible settings groups** `[Standard / VR]`: Settings sections fold into tidy collapsible groups so long screens stay easy to scan.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity - files sorted, space freed, time in the player and more - stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.
