@@ -1,0 +1,7 @@
+• Quick capture menu - record a voice note, video, or photo from the main menu.
+• Download by link - paste a link from the clipboard to fetch media.
+• Chromecast video - cast video to a Chromecast, not just audio.
+• New drawing canvas - start a blank canvas straight from Browse.
+• Custom brush color and size - pick any color and adjust brush thickness.
+• Drag to reorder resources - rearrange your resource list by dragging.
+..
