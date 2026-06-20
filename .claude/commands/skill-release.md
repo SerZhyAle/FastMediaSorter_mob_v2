@@ -3,7 +3,7 @@
 > **GLOBAL DIRECTIVES:**
 > 1. Fully autonomous - execute all steps without confirmation unless a hard blocker hits.
 > 2. Strictly technical language - dry prose in all outputs and commits.
-> 3. Hard blockers only - stop and report only for: merge conflict, dirty working tree, not on a DEBUG branch, release worktree missing. Everything else: decide and proceed.
+> 3. Hard blockers only - stop and report only for: merge conflict, commit/push failure, not on a DEBUG branch, release worktree missing. A dirty working tree is NOT a blocker - Step 1b auto-commits and pushes it via `.\a.ps1 c`. Everything else: decide and proceed.
 
 Merges current `DEBUG-v00N` into `main`, tags the release, updates `WHATS_NEW.md` + `README.md` from git history, opens the next DEBUG branch, builds release artifacts, publishes the standard AAB to Google Play, publishes the requested-flavor APK assets to GitHub Releases - one unattended pipeline. By default only the `standard` edition is built and published; pass extra flavor names (or `all`) to widen the GitHub spectrum (see Usage / `$FLAVORS`).
 
@@ -43,10 +43,19 @@ git branch --show-current
 - Match → record as `$CURRENT_DEBUG` (e.g. `DEBUG-v001`).
 
 ```bash
-# 1b. Confirm clean working tree
+# 1b. Ensure a clean working tree - auto-commit any pending WIP
 git status --porcelain
 ```
-- Non-empty → **ABORT**: "Working tree is dirty. Commit or stash all changes before releasing."
+- Non-empty → the working tree has uncommitted WIP. Do NOT abort - commit and push it on `$CURRENT_DEBUG`:
+
+```powershell
+.\a.ps1 c "release: commit pending WIP before plateau merge"
+```
+
+  `.\a.ps1 c` (`scripts/utils/commit-push.ps1`) runs `git add .` + `git commit` + `git push` to the current branch. The quoted argument is the commit subject; omit it and the script falls back to a bare `yyMMddHHmm` timestamp. `$NEW_VERSION` is not known yet (Step 2), so keep the message version-free.
+  - After it returns, re-run `git status --porcelain` to confirm the tree is now clean.
+  - `.\a.ps1 c` exits non-zero (commit or push failed) or the tree is still dirty afterward → **ABORT** with the error output. A clean, pushed tree is required before the merge.
+- Empty → tree already clean; proceed.
 
 ```bash
 # 1c. Confirm release worktree exists
@@ -435,7 +444,8 @@ No missed entries → omit the "Manual follow-ups" block. No other prose.
 | Condition | Action |
 |-----------|--------|
 | Not on DEBUG-v00N | Abort before any change |
-| Dirty working tree | Abort before any change |
+| Dirty working tree | Step 1b auto-commits + pushes via `.\a.ps1 c`; not a blocker |
+| `.\a.ps1 c` commit/push fails at Step 1b | Abort; tree must be clean and pushed before any change |
 | Release worktree missing | Abort before any change |
 | `git push` of DEBUG fails | Abort after Step 6 commit; no merge |
 | Merge conflict | Abort after Step 8; leave worktree in conflict state; give resolution instructions |
