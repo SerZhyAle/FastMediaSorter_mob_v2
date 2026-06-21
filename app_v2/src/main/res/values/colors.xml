@@ -292,5 +292,10 @@
     <color name="color_media_image">#FF1976D2</color>     <!-- Blue 700 -->
     <color name="color_media_docs">#FFE65100</color>      <!-- Orange 900 -->
     <color name="color_media_other">#FF616161</color>     <!-- Grey 700 -->
+
+    <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone). -->
+    <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->
+    <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
+    <color name="stream_status_unknown">#FFF9A825</color> <!-- Amber 800 - not yet played -->
 </resources>
 

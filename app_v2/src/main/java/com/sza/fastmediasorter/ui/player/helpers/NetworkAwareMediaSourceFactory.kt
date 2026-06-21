@@ -110,6 +110,10 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
                     "dropbox" to dropboxClient
                 )
             )
+            // Internet radio/HLS played through the background service must use the same HTTP factory
+            // as the in-app player: cross-protocol redirects + Icy-MetaData. Without it an Icecast/
+            // Shoutcast 30x across http<->https surfaces as a fatal "Response code: 301" source error.
+            "http", "https" -> StreamDataSourceFactoryProvider.create(context)
             else -> null
         }
     }

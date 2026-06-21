@@ -5,18 +5,6 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
-        <!-- S0565: Трансляции entry-point. Opens StreamsActivity; hidden in photos (SUPPORT_STREAMS=false). -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStreams"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
-            android:layout_marginTop="@dimen/margin_small"
-            android:text="@string/streams_title"
-            app:icon="@drawable/ic_video"
-            app:iconGravity="start" />
-
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -32,24 +20,26 @@
 
                 <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Sort Mode and Slideshow Interval (one row) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                    <!-- S0567: Sort Mode + Slideshow Interval restructured into full-width compound rows.
+                         Stacking the previously-horizontal fields is expected (ADR-1). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/spinnerSortMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:sdr_title="@string/default_sort_mode" />
 
-                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/layout_settings_text_field_max_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/default_sort_mode">
-
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView android:id="@+id/spinnerSortMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSlideshowInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_width_input_small" android:layout_height="wrap_content" android:hint="@string/slideshow_interval">
-
-                            <AutoCompleteTextView android:id="@+id/etSlideshowInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/slideshow_interval" android:inputType="number" android:maxLength="@integer/input_max_length_medium" android:text="@string/default_slideshow_interval" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <ImageButton android:id="@+id/iconHelpSlideshow" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_slideshow_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-                    </LinearLayout>
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                        android:id="@+id/etSlideshowInterval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sir_title="@string/slideshow_interval"
+                        app:sir_inputType="2"
+                        app:sir_showHelp="true"
+                        app:sir_helpTitle="@string/tooltip_slideshow_title"
+                        app:sir_helpMessage="@string/tooltip_slideshow_message" />
 
                     <!-- Play Video to End -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -151,7 +141,7 @@
                             app:str_title="@string/hide_system_ui_in_fullscreen"
                             app:str_subtitle="@string/setting_hide_system_ui_desc" />
 
-                        <!-- S0439: player-scope Follow OS auto-rotate. Visible only when the program-wide toggle is off (and accelerometer present). -->
+                        <!-- S0439: player-scope Follow OS auto-rotate. Independent of the program toggle; visible when an accelerometer is present. -->
                         <LinearLayout
                             android:id="@+id/layoutFollowSystemRotationPlayer"
                             android:layout_width="0dp"
@@ -347,6 +337,108 @@
                     app:csh_title="@string/settings_send_commands_group" />
 
                 <LinearLayout android:id="@+id/containerSendCommands" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Background audio playback (S0577) - moved from Media/Audio; gated at runtime by ENABLE_PERSISTENT_AUDIO_PLAYBACK -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBackgroundAudio" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerBackgroundAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/background_audio_group_title" />
+
+                <LinearLayout android:id="@+id/containerBackgroundAudio" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnablePersistentAudioPlayback"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/background_audio_setting_title"
+                        app:str_subtitle="@string/background_audio_setting_summary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNotificationPermission"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/manage_notifications_permission"
+                        android:visibility="gone" />
+
+                    <!-- Sub-setting: behaviour when leaving the player/streams during audio playback -->
+                    <!-- Shown only when rowEnablePersistentAudioPlayback is checked -->
+                    <LinearLayout
+                        android:id="@+id/layoutExitBehaviorSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="0dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="8dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/background_audio_exit_behavior_title"
+                            android:textSize="@dimen/toggler_title_text_size"
+                            android:paddingBottom="2dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/background_audio_exit_behavior_summary"
+                            android:textSize="@dimen/toggler_desc_text_size"
+                            android:textColor="@color/text_color_secondary"
+                            android:paddingBottom="6dp" />
+
+                        <RadioGroup
+                            android:id="@+id/radioGroupExitBehavior"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/radioExitBehaviorAsk"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/background_audio_exit_behavior_ask"
+                                android:checked="true" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/radioExitBehaviorAlwaysStop"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/background_audio_exit_behavior_always_stop" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/radioExitBehaviorAlwaysContinue"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/background_audio_exit_behavior_always_continue" />
+
+                        </RadioGroup>
+
+                        <!-- Sub-setting: show mini now-playing bar when browsing non-audio/video files -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowShowNowPlayingPanel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            app:str_title="@string/show_now_playing_panel_title"
+                            app:str_subtitle="@string/show_now_playing_panel_summary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -249,12 +249,8 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked)
         }
 
-        binding.cbRememberFileList.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbRememberFileList.setOnCheckedChangeListener { isChecked ->
             viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked)
-        }
-
-        binding.btnHelpRememberFileListEditor.setOnClickListener {
-            showRememberFileListHelpDialog()
         }
 
         // Destination & read-only
@@ -683,7 +679,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.DISABLE_THUMBNAILS, isChecked) }
         binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_HIDDEN_FILES, isChecked) }
         binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked) }
-        binding.cbRememberFileList.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked) }
+        binding.cbRememberFileList.setOnCheckedChangeListener { isChecked -> viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked) }
 
         // Destination checkboxes (guarded: programmatic setChecked must NOT fire onFieldChanged)
         binding.cbIsDestination.setOnCheckedChangeListener(null)
@@ -813,7 +809,6 @@ class ResourceEditorFragment : Fragment() {
         binding.cbShowHiddenFiles.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_HIDDEN_FILES)
         binding.cbShowSubfoldersAsItems.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS)
         binding.cbRememberFileList.isVisible = hasScanSettings
-        binding.btnHelpRememberFileListEditor.isVisible = hasScanSettings
 
         // Destination section (collapsible header + content)
         val hasDestination = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION) ||
@@ -879,14 +874,6 @@ class ResourceEditorFragment : Fragment() {
             ResourceFieldKey.SHOW_COMMAND_PANEL -> null
             else -> null
         }
-    }
-
-    private fun showRememberFileListHelpDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.remember_file_list_help_title)
-            .setMessage(R.string.remember_file_list_help_message)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
     }
 
     private fun getErrorMessage(errorCode: ResourceErrorCode): String =

@@ -27,7 +27,7 @@ The VR edition is not a separate app - it is the same codebase built as a `vr` p
 
 ## What's Identical
 
-Everything else works the same - file operations (copy, move, delete, rename), sorting, favorites, network drives (SMB, SFTP, FTP), cloud storage (Google Drive, OneDrive, Dropbox), subtitles, audio track selection, sleep timer, slideshow, and all navigation controls.
+Everything else works the same - file operations (copy, move, delete, rename), sorting, favorites, network drives (SMB, SFTP, FTP), cloud storage (Google Drive, OneDrive, Dropbox), subtitles, audio track selection, sleep timer, slideshow, and all navigation controls. Internet Streams is fully included - radio and video stream playback (http/HLS/DASH/RTSP), the curated stream catalog, inline audio mini-player with ICY now-playing metadata, and category/language filters all work the same as on the phone.
 
 ## How It Works
 
@@ -47,6 +47,8 @@ Everything else works the same - file operations (copy, move, delete, rename), s
 | 2D video | Cinema mode (flat virtual screen) |
 | 2D photos | Cinema mode |
 | Audio | Standard playback (inherited) |
+| Internet radio (http/HLS, ICY) | Inline audio playback via Streams mini-player |
+| Video stream / RTSP | Fullscreen player (Cinema mode on VR) |
 
 ## Distribution
 

@@ -12,6 +12,7 @@ Senior Android (Kotlin) developer for FastMediaSorter v2. Implement correct, idi
 - Russian in chat; English in code/docs/logs/commits.
 - Author style: `..` not `...`; ё/Ё where grammatically correct.
 - Professional, dry, concise. Ask if ambiguous - do not guess paths/values.
+- Working tree is the source of truth. Do NOT consult git history (`git log`/`blame`/`diff`/`status`, `HEAD~N`) to learn current state, what changed, or whether something is WIP - single dev + infrequent commits + many tickets per file make history misleading. Read the live files. Use git only when the user explicitly asks or inside release/commit flows.
 - Auto-capture out-of-scope findings (CLAUDE.md §3.1): while implementing, a problem unrelated to the current task + non-trivial (own research + fix) gets parked via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), not fixed inline and not folded into the current change; note `parked: Sxxxx`, then continue. Trivial in-scope issues are still fixed inline.
 
 ## Project Stack

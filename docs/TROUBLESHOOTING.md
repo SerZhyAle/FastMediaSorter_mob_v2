@@ -287,6 +287,41 @@ Include this information:
 
 ---
 
+## Internet Streams Issues
+
+### Stream does not start / plays for a second then stops
+
+**Possible causes:**
+1. The URL is dead or redirecting to a different protocol.
+2. The server requires authentication (not supported).
+3. Cleartext http:// blocked by a VPN or corporate network.
+
+**Solution:**
+- Tap **Retry** in the stream-unavailable dialog to try again.
+- Verify the URL in a browser.
+- Disable VPN temporarily to test.
+- If the stream redirects and still fails, tap **Remove** and re-add the corrected URL.
+
+### Catalog import spinner does not stop / hangs
+
+The app applies a fast timeout for catalog downloads. If the spinner hangs beyond ~15 seconds, the host is likely unreachable. Check your internet connection and try again. The dialog will dismiss automatically on timeout - it will not hang indefinitely.
+
+### HLS / DASH / RTSP shows 'unsupported' message
+
+The **Lite** flavor supports progressive http/https audio only. HLS, DASH, and RTSP require the **Standard**, **Legacy**, or **noLegal** build.
+
+### Streams option is not visible in the menu or settings
+
+- In **Standard / Legacy / noLegal**: go to **Settings > Media > Streams** and ensure **Enable Streams** is toggled on. The dropdown item appears only when Streams is enabled.
+- In **Photos**: Streams is not available in this flavor.
+- In **Lite**: Streams (progressive-audio only) is available but HLS/DASH/RTSP are not.
+
+### ICY now-playing metadata not showing
+
+ICY metadata requires an Icecast/Shoutcast stream that sends the `Icy-MetaData: 1` header. Plain http mp3 streams without ICY headers show no station/track info in the bottom mini-control. This is a server-side limitation.
+
+---
+
 ## Content Issues
 
 ### ❌ "Cannot see Text or PDF files"

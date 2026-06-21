@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -31,7 +30,7 @@ class OperationsCaptureManager(
     private val recordAudioPermissionLauncher: ActivityResultLauncher<String>,
     private val isUpdatingFromSettings: () -> Boolean,
     private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
-    private val refreshLabel: (String?, TextView, Int) -> Unit,
+    private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
     private val fragment: Fragment,
 ) {
 
@@ -145,9 +144,8 @@ class OperationsCaptureManager(
         binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
         refreshLabel(
             settings.cameraPhotosDestinationResourceId,
-            binding.tvCameraPhotosDest,
             R.string.setting_camera_photos_destination_default_camera
-        )
+        ) { binding.tvCameraPhotosDest.text = it }
         // Video recording rows (master toggle inverted).
         if (binding.rowVideoCaptureEnabled.isChecked != !settings.disableVideoCapture) {
             binding.rowVideoCaptureEnabled.setCheckedSilently(!settings.disableVideoCapture)
@@ -158,9 +156,8 @@ class OperationsCaptureManager(
         binding.layoutVideoCaptureOptions.isVisible = !settings.disableVideoCapture
         refreshLabel(
             settings.videoRecordingDestinationResourceId,
-            binding.tvVideoRecordingDest,
             R.string.setting_video_recording_destination_default_movies
-        )
+        ) { binding.tvVideoRecordingDest.text = it }
         // Microphone recording rows (feature-gated).
         if (mediaCapabilities.supportsMicRecording) {
             if (binding.rowMicRecordingEnabled.isChecked != settings.micRecordingEnabled) {
@@ -172,9 +169,8 @@ class OperationsCaptureManager(
             binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
             refreshLabel(
                 settings.micRecordingDestinationResourceId,
-                binding.tvMicRecordingDest,
                 R.string.setting_mic_recording_destination_default_downloads
-            )
+            ) { binding.tvMicRecordingDest.text = it }
         }
     }
 

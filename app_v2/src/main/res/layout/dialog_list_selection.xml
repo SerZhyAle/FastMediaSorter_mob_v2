@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Generic list-selection dialog (S0567). Title + RecyclerView of selectable items
+  (item_list_selection.xml via ListSelectionAdapter) + Clear/Cancel actions.
+  Self-sizing vertical dialog - works in both orientations, no layout-land variant needed.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,25 +15,17 @@
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/select_music_source"
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
         android:textAlignment="center"
         android:paddingBottom="@dimen/margin_large" />
 
-    <!-- ScrollView for resource list -->
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_selection_recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="@dimen/dialog_resource_picker_tvTitle_maxHeight">
+        android:maxHeight="@dimen/dialog_resource_picker_tvTitle_maxHeight"
+        android:scrollbars="vertical" />
 
-        <LinearLayout
-            android:id="@+id/layoutResources"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
-
-    <!-- Bottom buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

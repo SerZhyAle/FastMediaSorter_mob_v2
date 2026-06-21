@@ -204,7 +204,9 @@ class PlayerUiStateCoordinator(
         }
 
         state.currentFile?.let { file ->
-            binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - ${file.name}"
+            // S0590: stream sources carry the channel name in title; everything else falls back to name.
+            val displayName = file.title?.takeIf { it.isNotBlank() } ?: file.name
+            binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - $displayName"
             binding.btnPrevious.isEnabled = state.hasPrevious
             binding.btnNext.isEnabled = state.hasNext
             binding.btnPreviousCmd.isEnabled = state.hasPrevious
@@ -220,10 +222,10 @@ class PlayerUiStateCoordinator(
             // For other types: add position index for navigation context
             if (file.type == MediaType.AUDIO) {
                 binding.tvFileNameOverlay.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
-                binding.tvFileNameOverlay.text = file.name
+                binding.tvFileNameOverlay.text = displayName
             } else {
                 binding.tvFileNameOverlay.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
-                binding.tvFileNameOverlay.text = "${file.name} (${state.currentIndex + 1}/${state.files.size})"
+                binding.tvFileNameOverlay.text = "$displayName (${state.currentIndex + 1}/${state.files.size})"
             }
 
             val currentFilePath = callback.getCurrentFilePath()

@@ -22,6 +22,7 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 - **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
 - **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
+- **Internet radio / IPTV player** (TuneIn, RadioDroid, Online Radio Box, VLC network streams, IPTV players) - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / noLegal; progressive-audio only in Lite; absent in Photos)*
 - **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
 - **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
 - **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.
@@ -181,6 +182,7 @@ Full-size images:
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
 - 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
+- 📻 **Internet Streams:** Dedicated Streams screen for internet audio and video sources - add URLs manually, import `.m3u` playlists, or download the curated FastMediaSorter station catalog. Inline audio: radio plays from the list via a sticky bottom mini-control showing ICY now-playing metadata; the list stays interactive. Video and RTSP open in the fullscreen player.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -263,6 +265,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 ### 10. 🚗 In-Car Music with Android Head Unit
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+
+With the **Streams** screen, the same head unit plays internet radio stations over Wi-Fi or mobile data - no separate radio app required. Add any station URL or import the curated catalog from Extensions. The sticky bottom mini-control shows the current track name while the full station list remains scrollable and interactive.
 
 ### 11. 📺 Media Centre on an Android TV Box
 

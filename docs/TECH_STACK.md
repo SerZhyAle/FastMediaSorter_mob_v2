@@ -33,3 +33,4 @@ Version source of truth: `app_v2/build.gradle.kts` (versions are declared inline
 - **SMB**: `SmbConnectionManager`.
 - **FTP**: Apache Commons Net. Active mode fallback.
 - **SFTP**: SSHJ + EdDSA. Check `Job.isActive`.
+- **Internet Streams (HLS/DASH/RTSP/ICY)**: Media3 (ExoPlayer) `HlsMediaSource`, `DashMediaSource`, `RtspMediaSource`, and `ProgressiveMediaSource` selected at runtime by `NetworkAwareMediaSourceFactory`. RTSP uses RTP-over-TCP interleaved as priority; UDP/multicast best-effort. ICY/Shoutcast metadata extracted via `IcyInfo` from Media3. Remote `.m3u` playlist and curated catalog fetched via OkHttp with connect+read timeout (fails fast on dead host). Public `http://` cleartext allowed (no host allowlist required - most internet radio is unencrypted).

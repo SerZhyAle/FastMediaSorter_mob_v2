@@ -1,13 +1,20 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
+import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -58,6 +65,25 @@ class PlaybackSettingsFragment : Fragment() {
     // fragment-local section state machine (was a UI-layer business-logic violation).
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
+    // S0577: background-audio block (moved from AudioSettingsFragment). The POST_NOTIFICATIONS
+    // request (API 33+) is wired to the persistent-playback toggle.
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
+            updateNotificationPermissionButtonVisibility()
+        } else {
+            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(false)
+            Snackbar.make(
+                binding.root,
+                R.string.notification_permission_required_for_background,
+                Snackbar.LENGTH_LONG
+            ).show()
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsPlaybackBinding.inflate(inflater, container, false)
         return binding.root
@@ -67,6 +93,7 @@ class PlaybackSettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         try {
             setupViews()
+            setupBackgroundAudioSection()
             setupSendCommandsGroup()
             setupCollapsibleSections()
         } catch (e: Exception) {
@@ -82,45 +109,29 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Sort mode dropdown
-        val sortModes = arrayOf(
-            "Name (A-Z)", "Name (Z-A)",
-            "Date (Old first)", "Date (New first)",
-            "Size (Small first)", "Size (Large first)",
-            "Type (A-Z)", "Type (Z-A)"
-        )
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, sortModes)
-        binding.spinnerSortMode.setAdapter(adapter)
-        binding.spinnerSortMode.setOnItemClickListener { _, _, position, _ ->
+        // S0594: each visible entry maps to an explicit SortMode value (see PLAYBACK_SORT_MODES),
+        // so the persisted value cannot drift from the displayed label if SortMode is reordered.
+        val sortModeEntries: List<CharSequence> = PLAYBACK_SORT_MODES.map { getSortModeName(it) }
+        binding.spinnerSortMode.setEntries(sortModeEntries)
+        binding.spinnerSortMode.setOnItemSelectedListener { position ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val sortMode = PLAYBACK_SORT_MODES.getOrNull(position) ?: return@setOnItemSelectedListener
             val current = viewModel.settings.value
-            val sortMode = SortMode.entries[position]
             viewModel.updateSettings(current.copy(defaultSortMode = sortMode))
         }
 
-        // Slideshow interval dropdown (1,5,10,30,60,120,300 sec)
-        val slideshowOptions = arrayOf("1", "5", "10", "30", "60", "120", "300")
-        val slideshowAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, slideshowOptions)
-        binding.etSlideshowInterval.setAdapter(slideshowAdapter)
-        binding.etSlideshowInterval.setText(getString(R.string.number_format, viewModel.settings.value.slideshowInterval), false)
-
-        binding.etSlideshowInterval.setOnItemClickListener { _, _, position, _ ->
-            val seconds = slideshowOptions[position].toInt()
+        // S0567: Slideshow interval migrated to SettingsInputRow (numeric). The fixed-option dropdown
+        // is dropped (ADR-1); the field stays free-form with the same 1..3600 clamp on commit.
+        binding.etSlideshowInterval.text = getString(R.string.number_format, viewModel.settings.value.slideshowInterval)
+        binding.etSlideshowInterval.setOnCommitListener { value ->
+            val seconds = value.toString().toIntOrNull() ?: 5
+            val clampedSeconds = seconds.coerceIn(1, 3600)
+            if (seconds != clampedSeconds) {
+                binding.etSlideshowInterval.text = getString(R.string.number_format, clampedSeconds)
+            }
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(slideshowInterval = seconds))
-        }
-
-        binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val text = binding.etSlideshowInterval.text.toString()
-                val seconds = text.toIntOrNull() ?: 5
-                val clampedSeconds = seconds.coerceIn(1, 3600)
-                if (seconds != clampedSeconds) {
-                    binding.etSlideshowInterval.setText(getString(R.string.number_format, clampedSeconds), false)
-                }
-                val current = viewModel.settings.value
-                if (clampedSeconds != current.slideshowInterval) {
-                    viewModel.updateSettings(current.copy(slideshowInterval = clampedSeconds))
-                }
+            if (clampedSeconds != current.slideshowInterval) {
+                viewModel.updateSettings(current.copy(slideshowInterval = clampedSeconds))
             }
         }
 
@@ -156,7 +167,7 @@ class PlaybackSettingsFragment : Fragment() {
         }
 
         // S0439: player-scope Follow OS auto-rotate - listener persists the player flag.
-        // Visibility is reactive (accelerometer present AND the program-wide toggle off) - set in the settings observer.
+        // Visibility is reactive (accelerometer present; independent of the program-wide toggle) - set in the settings observer.
         if (hasAccelerometer) {
             binding.rowFollowSystemRotationPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -201,22 +212,8 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(alwaysShowTouchZonesOverlay = isChecked))
         }
 
-        binding.iconHelpSlideshow.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_slideshow_title,
-                R.string.tooltip_slideshow_message
-            )
-        }
-
+        // S0567: slideshow help folded into the SettingsInputRow (sir_showHelp); standalone icon removed.
         // Help for touch zones is now inline on rowAlwaysShowTouchZones (folded by SettingsToggleRow).
-
-        // S0565: Трансляции entry-point. SUPPORT_STREAMS is a capability flag (not an IS_* flavor
-        // guard), so reading it here is allowed; photos has it false and hides the entry.
-        binding.btnStreams?.isVisible = com.sza.fastmediasorter.BuildConfig.SUPPORT_STREAMS
-        binding.btnStreams?.setOnClickListener {
-            startActivity(android.content.Intent(requireContext(), com.sza.fastmediasorter.ui.streams.StreamsActivity::class.java))
-        }
 
         binding.btnShowHintNow.setOnClickListener {
             // Reset first-run flag to trigger hint on next PlayerActivity launch
@@ -365,13 +362,14 @@ class PlaybackSettingsFragment : Fragment() {
         collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
 
-                    // Sort mode
-                    binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
+                    // S0594: select by explicit value lookup; a mode outside the visible subset yields
+                    // -1 (unselected), preserving the legacy behaviour for modes the selector omits.
+                    binding.spinnerSortMode.setSelection(PLAYBACK_SORT_MODES.indexOf(settings.defaultSortMode))
 
                     // Slideshow interval
                     val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
                     if (currentSlideshow != settings.slideshowInterval) {
-                        binding.etSlideshowInterval.setText(getString(R.string.number_format, settings.slideshowInterval), false)
+                        binding.etSlideshowInterval.text = getString(R.string.number_format, settings.slideshowInterval)
                     }
 
                     // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
@@ -390,9 +388,8 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
                         binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
                     }
-                    // S0439: player toggle visible only when accelerometer present AND the program-wide toggle is off.
-                    binding.layoutFollowSystemRotationPlayer.isVisible =
-                        hasAccelerometer && !settings.programFollowSystemRotation
+                    // Player toggle is independent of the program-wide toggle: shown whenever an accelerometer is present.
+                    binding.layoutFollowSystemRotationPlayer.isVisible = hasAccelerometer
                     if (binding.rowFollowSystemRotationPlayer.isChecked != settings.playerFollowSystemRotation) {
                         binding.rowFollowSystemRotationPlayer.setCheckedSilently(settings.playerFollowSystemRotation)
                     }
@@ -429,6 +426,26 @@ class PlaybackSettingsFragment : Fragment() {
                         if (row.isChecked != enabled) row.setCheckedSilently(enabled)
                     }
 
+                    // S0577: background-audio block (moved from Media/Audio).
+                    if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+                        if (binding.rowEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
+                            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(settings.enablePersistentAudioPlayback)
+                        }
+                        if (binding.rowShowNowPlayingPanel.isChecked != settings.showNowPlayingPanel) {
+                            binding.rowShowNowPlayingPanel.setCheckedSilently(settings.showNowPlayingPanel)
+                        }
+                        updateNotificationPermissionButtonVisibility()
+                        val radioId = when (settings.backgroundAudioExitBehavior) {
+                            BackgroundAudioExitBehavior.ALWAYS_STOP -> R.id.radioExitBehaviorAlwaysStop
+                            BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> R.id.radioExitBehaviorAlwaysContinue
+                            BackgroundAudioExitBehavior.ASK -> R.id.radioExitBehaviorAsk
+                        }
+                        if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
+                            binding.radioGroupExitBehavior.check(radioId)
+                        }
+                        updateExitBehaviorVisibility()
+                    }
+
                     isUpdatingFromSettings = false
         }
     }
@@ -439,6 +456,101 @@ class PlaybackSettingsFragment : Fragment() {
         sectionsManager.register(binding.headerPlayerUI, binding.containerPlayerUI, "playback__player_ui")
         sectionsManager.register(binding.headerTouchZones, binding.containerTouchZones, "playback__touch_zones")
         sectionsManager.register(binding.headerSendCommands, binding.containerSendCommands, "playback__send_commands")
+        sectionsManager.register(binding.headerBackgroundAudio, binding.containerBackgroundAudio, "playback__bg_audio")
+    }
+
+    // ── S0577: Background Audio Section (moved from AudioSettingsFragment) ──
+
+    private fun setupBackgroundAudioSection() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+            // No background audio on lite/photos - hide the whole group.
+            binding.cardBackgroundAudio.isVisible = false
+            return
+        }
+        Timber.d("S0577: background-audio settings group shown on Player tab")
+
+        binding.rowEnablePersistentAudioPlayback.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            if (isChecked) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationPermissionGranted()) {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    return@setOnCheckedChangeListener
+                }
+                showBatteryOptimizationHintIfNeeded()
+            }
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
+            updateNotificationPermissionButtonVisibility()
+            updateExitBehaviorVisibility()
+        }
+
+        binding.rowShowNowPlayingPanel.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showNowPlayingPanel = isChecked))
+        }
+
+        binding.btnNotificationPermission.setOnClickListener {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+            }
+            startActivity(intent)
+        }
+
+        updateNotificationPermissionButtonVisibility()
+        setupExitBehaviorSection()
+    }
+
+    private fun setupExitBehaviorSection() {
+        binding.radioGroupExitBehavior.setOnCheckedChangeListener { _, checkedId ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val behavior = when (checkedId) {
+                R.id.radioExitBehaviorAlwaysStop -> BackgroundAudioExitBehavior.ALWAYS_STOP
+                R.id.radioExitBehaviorAlwaysContinue -> BackgroundAudioExitBehavior.ALWAYS_CONTINUE
+                else -> BackgroundAudioExitBehavior.ASK
+            }
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(backgroundAudioExitBehavior = behavior))
+        }
+        updateExitBehaviorVisibility()
+    }
+
+    private fun updateExitBehaviorVisibility() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        binding.layoutExitBehaviorSection.isVisible = binding.rowEnablePersistentAudioPlayback.isChecked
+    }
+
+    private fun isNotificationPermissionGranted(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun updateNotificationPermissionButtonVisibility() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        binding.btnNotificationPermission.isVisible =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                !isNotificationPermissionGranted() &&
+                binding.rowEnablePersistentAudioPlayback.isChecked
+    }
+
+    private fun showBatteryOptimizationHintIfNeeded() {
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)) return
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.battery_optimization_hint_title)
+            .setMessage(R.string.battery_optimization_hint_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun getSortModeName(mode: SortMode): String {
@@ -462,5 +574,27 @@ class PlaybackSettingsFragment : Fragment() {
             SortMode.DATE_TAKEN_DESC -> getString(R.string.sort_mode_date_taken_desc)
             SortMode.RANDOM -> getString(R.string.sort_mode_random)
         }
+    }
+
+    companion object {
+        // S0594: explicit visible-option -> SortMode mapping for the Playback default-sort selector.
+        // Only the media-type-agnostic modes are offered here (no artist/title/duration/dateTaken/type);
+        // an explicit list keeps SortMode declaration order free for persistence concerns and removes the
+        // fragile position<->enum-ordinal coupling (parity with BrowseSortDialogManager.DIALOG_SORT_ORDER).
+        private val PLAYBACK_SORT_MODES = listOf(
+            SortMode.RANDOM,
+            SortMode.NAME_ASC,
+            SortMode.NAME_DESC,
+            SortMode.DATE_ASC,
+            SortMode.DATE_DESC,
+            SortMode.SIZE_ASC,
+            SortMode.SIZE_DESC,
+            SortMode.MANUAL,
+        )
+
+        // S0577: re-used from AudioSettingsFragment - same prefs file/key so the one-shot battery hint
+        // is not re-shown after the block moved tabs.
+        private const val PREFS_NAME_HINT = "playback_sections_state"
+        private const val KEY_HAS_SHOWN_BATTERY_HINT = "has_shown_battery_hint_background_audio"
     }
 }

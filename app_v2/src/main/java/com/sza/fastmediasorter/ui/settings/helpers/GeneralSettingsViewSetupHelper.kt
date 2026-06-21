@@ -65,29 +65,25 @@ class GeneralSettingsViewSetupHelper(
         setupActionButtons()
     }
 
+    // S0567: spinnerLanguage migrated from raw Spinner to SettingsDropdownRow (ADR-1).
     private fun setupLanguageSpinner() {
-        val languages = listOf(
+        val languages = listOf<CharSequence>(
             fragment.getString(R.string.language_default),
             fragment.getString(R.string.language_english),
             fragment.getString(R.string.language_russian),
             fragment.getString(R.string.language_ukrainian)
         )
-        val adapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_spinner_item, languages)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         setIsUpdatingSpinner(true)
-        binding.spinnerLanguage.adapter = adapter
-        binding.spinnerLanguage.setSelection(languageSelectionToPosition(currentLanguageSelectionCode()), false)
-        binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (getIsUpdatingSpinner()) return
-                val newLanguageCode = positionToLanguageSelection(position)
-                val currentLanguageCode = currentLanguageSelectionCode()
-                if (newLanguageCode != currentLanguageCode) {
-                    showRestartDialog(currentLanguageCode, newLanguageCode)
-                }
+        binding.spinnerLanguage.setEntries(languages)
+        binding.spinnerLanguage.setSelection(languageSelectionToPosition(currentLanguageSelectionCode()))
+        binding.spinnerLanguage.setOnItemSelectedListener { position ->
+            if (getIsUpdatingSpinner()) return@setOnItemSelectedListener
+            val newLanguageCode = positionToLanguageSelection(position)
+            val currentLanguageCode = currentLanguageSelectionCode()
+            if (newLanguageCode != currentLanguageCode) {
+                showRestartDialog(currentLanguageCode, newLanguageCode)
             }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        })
+        }
         binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
     }
 
@@ -196,7 +192,7 @@ class GeneralSettingsViewSetupHelper(
      * toggle off hides it again without a screen reload. Click opens the dashboard activity.
      */
     private fun setupStatisticsRow() {
-        binding.rowOpenStatistics.setOnClickListener {
+        binding.rowOpenStatistics.setOnRowClickListener {
             fragment.startActivity(Intent(fragment.requireContext(), StatisticsActivity::class.java))
         }
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
@@ -326,55 +322,37 @@ class GeneralSettingsViewSetupHelper(
         }
     }
 
+    // S0567: Network Parallelism migrated to SettingsInputRow (numeric, free-form). The fixed-option
+    // dropdown is dropped (ADR-1); the value commits on focus loss / IME done with the same 1..32 clamp.
     private fun setupNetworkParallelism() {
-        val parallelismOptions = arrayOf("1", "2", "4", "8", "12", "24")
-        val parallelismAdapter = android.widget.ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, parallelismOptions)
-        binding.actvNetworkParallelism.setAdapter(parallelismAdapter)
-        binding.actvNetworkParallelism.setText(fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism), false)
-        binding.actvNetworkParallelism.setOnItemClickListener { _, _, position, _ ->
-            if (getIsUpdatingSpinner()) return@setOnItemClickListener
-            val limit = parallelismOptions[position].toInt()
-            val current = viewModel.settings.value
-            if (current.networkParallelism != limit) {
-                viewModel.updateSettings(current.copy(networkParallelism = limit))
-                com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setUserNetworkLimit(limit)
-            }
-        }
-        binding.actvNetworkParallelism.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !getIsUpdatingSpinner()) {
-                val limit = binding.actvNetworkParallelism.text.toString().toIntOrNull()
-                if (limit != null && limit in 1..32) {
-                    val current = viewModel.settings.value
-                    if (current.networkParallelism != limit) {
-                        viewModel.updateSettings(current.copy(networkParallelism = limit))
-                        com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setUserNetworkLimit(limit)
-                    }
-                } else {
-                    binding.actvNetworkParallelism.setText(fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism), false)
+        binding.actvNetworkParallelism.text = fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism)
+        binding.actvNetworkParallelism.setOnCommitListener { value ->
+            if (getIsUpdatingSpinner()) return@setOnCommitListener
+            val limit = value.toString().toIntOrNull()
+            if (limit != null && limit in 1..32) {
+                val current = viewModel.settings.value
+                if (current.networkParallelism != limit) {
+                    viewModel.updateSettings(current.copy(networkParallelism = limit))
+                    com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setUserNetworkLimit(limit)
                 }
+            } else {
+                binding.actvNetworkParallelism.text = fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism)
             }
         }
     }
 
+    // S0567: Cache Size migrated to SettingsInputRow (numeric, free-form). The fixed-option dropdown
+    // is dropped (ADR-1); the value commits on focus loss / IME done with the same 512..16384 range.
     private fun setupCacheSizeInput() {
-        val cacheSizeOptions = arrayOf("512", "1024", "2048", "4096", "8192", "16384")
-        val cacheSizeAdapter = android.widget.ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, cacheSizeOptions)
-        binding.actvCacheSizeLimit.setAdapter(cacheSizeAdapter)
-        binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
-        binding.actvCacheSizeLimit.setOnItemClickListener { _, _, position, _ ->
-            if (getIsUpdatingSpinner()) return@setOnItemClickListener
-            val sizeMb = cacheSizeOptions[position].toInt()
-            if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
-        }
-        binding.actvCacheSizeLimit.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !getIsUpdatingSpinner()) {
-                val sizeMb = binding.actvCacheSizeLimit.text.toString().toIntOrNull()
-                if (sizeMb != null && sizeMb in 512..16384) {
-                    if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
-                } else {
-                    binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
-                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()
-                }
+        binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb)
+        binding.actvCacheSizeLimit.setOnCommitListener { value ->
+            if (getIsUpdatingSpinner()) return@setOnCommitListener
+            val sizeMb = value.toString().toIntOrNull()
+            if (sizeMb != null && sizeMb in 512..16384) {
+                if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
+            } else {
+                binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb)
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -669,7 +647,7 @@ class GeneralSettingsViewSetupHelper(
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languageSelectionToPosition(previousLanguageCode), false)
+                binding.spinnerLanguage.setSelection(languageSelectionToPosition(previousLanguageCode))
                 binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
                 dialog.dismiss()
             }

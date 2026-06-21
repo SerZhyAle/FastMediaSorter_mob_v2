@@ -1913,7 +1913,7 @@ Close the player and try again.</string>
     <string name="background_audio_exit_always_stop">Always Stop</string>
     <string name="background_audio_exit_always_continue">Always Continue</string>
     <!-- Background audio exit behavior - Settings sub-row -->
-    <string name="background_audio_exit_behavior_title">When leaving player</string>
+    <string name="background_audio_exit_behavior_title">When leaving player or streams</string>
     <string name="background_audio_exit_behavior_summary">Choose what happens to background audio when you navigate back</string>
     <string name="background_audio_exit_behavior_ask">Ask every time (default)</string>
     <string name="background_audio_exit_behavior_always_stop">Always stop</string>
@@ -1936,7 +1936,6 @@ Close the player and try again.</string>
     <!-- Remember file list -->
     <string name="default_remember_file_list">Remember file lists (default for new resources)</string>
     <string name="remember_file_list">Remember file list for this resource</string>
-    <string name="help_remember_file_list">Help: Remember File List</string>
     <string name="remember_file_list_help_title">Remember File List</string>
     <string name="remember_file_list_help_message">When enabled, the app stores the resource file list in the database after scan. Next openings load from cache instantly. Use Refresh to pick up external file changes.</string>
 
@@ -2741,7 +2740,6 @@ Close the player and try again.</string>
     <string name="streams_error_network">Could not load the list. Check the connection and try again.</string>
     <string name="streams_now_playing">Now playing</string>
     <string name="streams_empty">No streams yet. Add a URL or import a list.</string>
-    <string name="streams_cleartext_note">This screen can play public http streams, which are not encrypted.</string>
     <string name="streams_stop">Stop</string>
     <string name="streams_import_done">Imported %1$d streams</string>
     <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
@@ -2765,4 +2763,20 @@ Close the player and try again.</string>
     <string name="settings_streams_section">Streams</string>
     <string name="settings_streams_toggle">Enable Streams</string>
     <string name="settings_take_screenshot_now">Take screenshot</string>
+    <string name="streams_unavailable_title">Stream unavailable</string>
+    <string name="streams_unavailable_message">&quot;%1$s&quot; is not responding. Remove it from your list?</string>
+    <string name="background_audio_group_title">Background audio playback</string>
+    <string name="streams_filter_category">Category</string>
+    <string name="streams_filter_language">Language</string>
+    <string name="streams_filter_media_kind">Type</string>
+    <string name="streams_filter_media_audio">Audio</string>
+    <string name="streams_filter_media_video">Video</string>
+    <string name="streams_filter_clear">Clear filters</string>
+    <string name="streams_picker_search_hint">Type to search</string>
+    <string name="streams_picker_empty">Nothing found</string>
+    <string name="streams_filter_active">Filter active</string>
+    <string name="stream_status_ok">Verified online</string>
+    <string name="stream_status_failed">Last playback failed</string>
+    <string name="stream_status_unknown">Not played yet</string>
+    <string name="programs">Programs</string>
 </resources>

@@ -23,16 +23,28 @@
     Probes run from THIS machine, so geo-restricted streams may read dead/unknown here yet work
     elsewhere. Treat "dead" conservatively before deleting catalog rows.
 
+    Pruning (-Prune): opt-in deletion of dead rows from the CSV. Off by default - a plain run is a
+    non-destructive report that also prints a "Would prune N" preview. Only statuses in
+    -PruneStatuses (default 'dead': DNS-fail / conn-refused / 404|410) are removed; 'unknown' is
+    never deleted. -Prune writes a timestamped backup to temp/ BEFORE rewriting the CSV, and
+    preserves original row + column order (quoted fields round-trip via Export-Csv).
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1
     pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -TimeoutSec 10 -Throttle 32
+
+    # Dry-run preview of dead rows, then apply the prune (backs up the CSV first):
+    pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1            # preview only
+    pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -Prune     # delete dead rows
 #>
 [CmdletBinding()]
 param(
-    [string] $CsvPath = "delivery/stream-catalog/streams.csv",
-    [string] $OutReport = "temp/stream-catalog-liveness.csv",
-    [int]    $TimeoutSec = 7,
-    [int]    $Throttle = 24
+    [string]   $CsvPath = "delivery/stream-catalog/streams.csv",
+    [string]   $OutReport = "temp/stream-catalog-liveness.csv",
+    [int]      $TimeoutSec = 7,
+    [int]      $Throttle = 24,
+    [switch]   $Prune,
+    [string[]] $PruneStatuses = @('dead')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -131,3 +143,34 @@ $results | Group-Object status | Sort-Object Name | ForEach-Object { "{0,-8} {1}
 Write-Host "`nDead (drop candidates):" -ForegroundColor Yellow
 $results | Where-Object status -eq 'dead' | Sort-Object category, name | ForEach-Object { " - [{0}] {1}  ({2})  {3}" -f $_.category, $_.name, $_.note, $_.url }
 Write-Host "`nReport written: $OutReport"
+
+# --- S0589: conservative opt-in prune of dead catalog rows ---
+# Only statuses in $PruneStatuses (default 'dead') are eligible. 'dead' is the conservative
+# bucket: DNS-fail / conn-refused / HTTP 404|410 only. 'unknown' (auth/geo/rate/timeout) is
+# never deleted. Default run is a dry-run; -Prune writes back, backing up the CSV first.
+$pruneUrls = @($results | Where-Object { $PruneStatuses -contains $_.status } | ForEach-Object { [string]$_.url })
+$pruneSet = [System.Collections.Generic.HashSet[string]]::new()
+foreach ($u in $pruneUrls) { [void]$pruneSet.Add($u) }
+$pruneCount = $pruneSet.Count
+
+if ($pruneCount -eq 0) {
+    Write-Host "`nNothing to prune (no rows classified: $($PruneStatuses -join ', '))." -ForegroundColor Green
+}
+elseif (-not $Prune) {
+    Write-Host "`nWould prune $pruneCount row(s) [status in: $($PruneStatuses -join ', ')] - re-run with -Prune to apply:" -ForegroundColor Yellow
+    $results | Where-Object { $pruneSet.Contains([string]$_.url) } | Sort-Object category, name |
+        ForEach-Object { " - [{0}] {1}  ({2})  {3}" -f $_.category, $_.name, $_.note, $_.url }
+}
+else {
+    # Backup BEFORE any write; abort the prune if the backup cannot be created.
+    if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Force -Path 'temp' | Out-Null }
+    $ts = (Get-Date).ToString('yyyyMMdd-HHmmss')
+    $backup = Join-Path 'temp' ("{0}.{1}.bak" -f (Split-Path -Leaf $CsvPath), $ts)
+    Copy-Item -Path $CsvPath -Destination $backup -Force
+    if (-not (Test-Path $backup)) { throw "Backup failed, aborting prune: $backup" }
+
+    # Keep original row + column order; Export-Csv re-quotes comma/quote fields losslessly.
+    $survivors = $rows | Where-Object { -not $pruneSet.Contains([string]$_.url) }
+    $survivors | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding utf8
+    Write-Host "`nPruned $pruneCount row(s); backup: $backup; catalog now $($survivors.Count) row(s)." -ForegroundColor Green
+}

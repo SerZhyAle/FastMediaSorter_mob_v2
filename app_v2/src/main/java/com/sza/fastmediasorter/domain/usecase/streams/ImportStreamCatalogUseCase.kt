@@ -9,6 +9,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import javax.inject.Inject
 
@@ -83,7 +84,13 @@ class ImportStreamCatalogUseCase @Inject constructor(
      */
     private fun downloadCsv(): String? {
         val request = Request.Builder().url(CATALOG_URL).build()
-        okHttpClient.newCall(request).execute().use { response ->
+        // Derive a client that keeps the shared pool/dispatcher and 10s connect/read/write timeouts
+        // but adds the overall call deadline the shared client lacks, so a slow-trickle host (one that
+        // resets the read timeout on each tiny chunk) cannot hold the import coroutine indefinitely.
+        val client = okHttpClient.newBuilder()
+            .callTimeout(CATALOG_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+        client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) error("HTTP ${response.code}")
             val stream = response.body?.byteStream() ?: error("empty response body")
             ZipInputStream(stream).use { zip ->
@@ -131,5 +138,9 @@ class ImportStreamCatalogUseCase @Inject constructor(
         const val CATALOG_URL =
             "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip"
         const val MAX_CSV_BYTES = 8 * 1024 * 1024
+
+        // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). Mirrors the
+        // download-client callTimeout in di/LinkDownloadModule.kt; generous for a small catalog zip.
+        const val CATALOG_CALL_TIMEOUT_SECONDS = 30L
     }
 }

@@ -261,6 +261,28 @@ The **Lite** flavor does not include audio features.
 
 ---
 
+## Internet Streams
+
+### Does FastMediaSorter play internet radio?
+Yes. The **Streams** screen plays http/https audio streams (mp3/aac), Icecast/Shoutcast radio with ICY now-playing metadata, HLS (.m3u8) and DASH VOD, and RTSP sources. Available in Standard, Legacy, and noLegal/VR. Lite supports progressive-audio only. Photos has no Streams feature.
+
+### How do I open the Streams screen?
+Tap **Streams** in the main window dropdown (visible when Streams is enabled). You can also reach it via **Settings > Media > Streams** where the master toggle lives.
+
+### How do I add a radio station?
+In the Streams screen, tap **+** and paste the station URL. Tap Save. The station appears in the list immediately.
+
+### Can I import a playlist?
+Yes - tap **Import > From URL** and enter a remote `.m3u` address. A curated FastMediaSorter catalog (with topic and language chips) is available for download from **Settings > Extensions** or the Welcome onboarding screen.
+
+### A stream is not playing - what do I do?
+If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** options. Cross-protocol 301 redirects are handled automatically. If the host is dead or very slow, the catalog import times out quickly rather than hanging.
+
+### Does radio keep playing when I leave the Streams screen?
+Depends on **Settings > Player > Background audio playback**. With background audio ON, playback continues. With it OFF, leaving the screen stops the stream and offers a Stop / Keep playing choice - the same behaviour as the local audio player.
+
+---
+
 ## Wear OS
 
 ### Does FastMediaSorter work on Wear OS smartwatches?

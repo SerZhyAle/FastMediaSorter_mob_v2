@@ -1580,7 +1580,6 @@
     <!-- Remember file list -->
     <string name="default_remember_file_list">Запамʼятовувати списки файлів (за замовчуванням для нових ресурсів)</string>
     <string name="remember_file_list">Запамʼятовувати список файлів для цього ресурсу</string>
-    <string name="help_remember_file_list">Довідка: Запамʼятовувати список файлів</string>
     <string name="remember_file_list_help_title">Запамʼятовувати список файлів</string>
     <string name="remember_file_list_help_message">Коли увімкнено, застосунок зберігає список файлів ресурсу в базі даних після сканування. Під час наступних відкриттів список завантажується з кешу миттєво. Для зовнішніх змін використовуйте кнопку «Оновити».</string>
 
@@ -1662,7 +1661,7 @@
     <string name="background_audio_exit_always_stop">Завжди зупиняти</string>
     <string name="background_audio_exit_always_continue">Завжди продовжувати</string>
     <!-- Background audio exit behavior - Settings sub-row -->
-    <string name="background_audio_exit_behavior_title">При виході з плеєра</string>
+    <string name="background_audio_exit_behavior_title">При виході з плеєра та трансляцій</string>
     <string name="background_audio_exit_behavior_summary">Виберіть, що трапиться з фоновою музикою при поверненні</string>
     <string name="background_audio_exit_behavior_ask">Запитати кожен раз (за замовчуванням)</string>
     <string name="background_audio_exit_behavior_always_stop">Завжди зупинити</string>
@@ -2661,7 +2660,6 @@
     <string name="streams_error_network">Не вдалося завантажити список. Перевірте зʼєднання та повторіть.</string>
     <string name="streams_now_playing">Зараз грає</string>
     <string name="streams_empty">Поки немає трансляцій. Додайте URL або імпортуйте список.</string>
-    <string name="streams_cleartext_note">Цей екран може відтворювати публічні http-потоки без шифрування.</string>
     <string name="streams_stop">Зупинити</string>
     <string name="streams_import_done">Імпортовано трансляцій: %1$d</string>
     <string name="settings_streams_summary">Відкрити інтернет-аудіо, відео та RTSP-трансляції.</string>
@@ -2685,4 +2683,20 @@
     <string name="settings_streams_section">Трансляції</string>
     <string name="settings_streams_toggle">Увімкнути трансляції</string>
     <string name="settings_take_screenshot_now">Зробити знімок екрана</string>
+    <string name="streams_unavailable_title">Трансляція недоступна</string>
+    <string name="streams_unavailable_message">«%1$s» не відповідає. Видалити зі списку?</string>
+    <string name="background_audio_group_title">Фонове відтворення аудіо</string>
+    <string name="streams_filter_category">Категорія</string>
+    <string name="streams_filter_language">Мова</string>
+    <string name="streams_filter_media_kind">Тип</string>
+    <string name="streams_filter_media_audio">Аудіо</string>
+    <string name="streams_filter_media_video">Відео</string>
+    <string name="streams_filter_clear">Скинути фільтри</string>
+    <string name="streams_picker_search_hint">Введіть для пошуку</string>
+    <string name="streams_picker_empty">Нічого не знайдено</string>
+    <string name="streams_filter_active">Фільтр активний</string>
+    <string name="stream_status_ok">Перевірено онлайн</string>
+    <string name="stream_status_failed">Останній запуск не вдався</string>
+    <string name="stream_status_unknown">Ще не перевірялось</string>
+    <string name="programs">Програми</string>
 </resources>

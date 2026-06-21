@@ -52,13 +52,14 @@ $publishedFlavors = @('standard','lite','photos','legacy')
 
 # --- Localized labels ----------------------------------------------------------
 $locales = @('en','ru','uk')
-$sectionOrder = @('general','images','video','audio','documents','other','playback','destinations')
+$sectionOrder = @('general','images','video','audio','documents','streams','other','playback','destinations')
 $sectionLabel = @{
     general      = @{ en='General';      ru='Общие';            uk='Загальні' }
     images       = @{ en='Images';       ru='Изображения';      uk='Зображення' }
     video        = @{ en='Video';        ru='Видео';            uk='Відео' }
     audio        = @{ en='Audio';        ru='Аудио';            uk='Аудіо' }
     documents    = @{ en='Documents';    ru='Документы';        uk='Документи' }
+    streams      = @{ en='Streams';      ru='Трансляции';       uk='Трансляції' }
     other        = @{ en='Other';        ru='Прочее';           uk='Інше' }
     playback     = @{ en='Playback';     ru='Воспроизведение';  uk='Відтворення' }
     destinations = @{ en='Destinations'; ru='Назначения';       uk='Призначення' }

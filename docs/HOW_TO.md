@@ -25,6 +25,7 @@ Some features are only available in specific flavors. This guide follows the cur
 | Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✓ (progressive only) | ✗ | ✓ | ✓ |
 | Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
@@ -192,6 +193,36 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not use non-VR builds (Standard/Lite/Legacy) expecting full headset tracking; the VR edition requires the dedicated OpenXR build.
+
+## Play Internet Radio on a Car Head Unit or Audio Player
+
+**Available in:** Standard, Legacy, XR/noLegal (full); Lite (progressive-audio only)
+
+**Quick Path**
+
+1. Open the main window dropdown and tap **Streams**, or go to **Settings > Media > Streams** and enable the toggle if it is off.
+2. Tap **+** and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
+3. Tap the station row - audio starts in the sticky bottom mini-control. The list stays scrollable.
+4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated FastMediaSorter catalog from the **Extensions** screen.
+
+**Scenario Walkthrough**
+
+- The curated catalog arrives with topic and language chips; filter by genre or language via the filter button (dot indicator when active). The AND/OR toggle lets you match stations that fit all criteria or any one of them.
+- Pin your favourite stations to the top with the pin icon - order is independent of global Favorites.
+- ICY now-playing metadata (station name, current track) shows in the bottom mini-control.
+- Video and RTSP streams open in the fullscreen player; pressing Back returns to the Streams list with scroll position preserved.
+- Background audio behaviour follows **Settings > Playback > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
+
+**When It Helps**
+
+- Android car stereos, audio players, and media boxes where you want internet radio without a separate app (TuneIn, RadioDroid, VLC network streams).
+- IPTV-lite use: HLS/DASH VOD streams play in the fullscreen player.
+
+**Avoid This**
+
+- Do not expect live HLS/DASH offset (live-edge) playback - only VOD HLS/DASH is supported in this release.
+- Do not use the Photos flavor for Streams; it has no Streams entry.
+- On Lite, HLS/DASH and RTSP show an unsupported message; use Standard for those protocols.
 
 ## Travel, reading and document workflows
 
@@ -379,6 +410,31 @@ These sections are intentionally more varied than the core reference blocks belo
 - Do not use Move immediately if you are still unsure which folders should stay as the long-term archive.
 
 ## Core Task Reference
+
+## How to Add or Import an Internet Stream
+
+**Available in:** Standard, Legacy, XR/noLegal (all protocols); Lite (http/https progressive audio + .m3u import only)
+
+**Add a single URL:**
+
+1. Open **Streams** from the main window dropdown.
+2. Tap the **+** button.
+3. Paste the stream URL (http/https radio, .m3u8, rtsp://). Tap **Save**.
+4. Tap the row to start playback.
+
+**Import a remote .m3u playlist:**
+
+1. In the Streams screen, tap **Import > From URL**.
+2. Enter the remote .m3u address. Tap **Import**.
+3. All stations from the file appear in the list.
+
+**Download the curated FastMediaSorter catalog:**
+
+1. Open **Settings > Extensions** (or the Welcome onboarding Streams row).
+2. Tap **Download** next to the Streams catalog entry.
+3. After download, the catalog rows appear in Streams with topic/language chips and are searchable and sortable.
+
+---
 
 ## How to Connect to Network Drive (SMB)
 

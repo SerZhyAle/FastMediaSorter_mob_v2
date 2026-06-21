@@ -211,20 +211,24 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     }
 
     override fun onDoubleTapZoom() {
+        Timber.d("S0566: double-tap zoom toggle gesture")
         flowManager.onDoubleTapZoom()
         syncZoomSelection()
     }
 
     override fun onPinchZoom(scaleFactor: Float) {
+        Timber.d("S0566: pinch zoom gesture factor=%s", scaleFactor)
         flowManager.onPinchZoom(scaleFactor)
         syncZoomSelection()
     }
 
     override fun onSwipeLensSwitch() {
+        Timber.d("S0566: swipe lens-switch gesture")
         flowManager.onLensSwitch()
     }
 
     override fun onSwipeModeSwitch(toNext: Boolean) {
+        Timber.d("S0566: swipe mode-switch gesture toNext=%s", toNext)
         if (!flowManager.allowModeSwitch || sessionManager.isRecording()) return
         selectMode(if (flowManager.isVideoMode) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO)
     }
@@ -342,6 +346,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
 
     private fun onPauseResumeClicked() {
         if (!sessionManager.isRecording()) return
+        Timber.d("S0566: recording pause/resume toggle, paused=%s", !recordingPaused)
         recordingPaused = !recordingPaused
         if (recordingPaused) {
             sessionManager.pauseRecording()
@@ -504,6 +509,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
      * gallery thumbnail. The saver deletes the scratch file; the camera is never finished here.
      */
     private fun persistMultiCapture(file: File, isVideo: Boolean) {
+        Timber.d("S0566: multi-capture persist (stay-open), isVideo=%s", isVideo)
         val name = file.name
         lifecycleScope.launch {
             val result = saveCapturedMedia(file, isVideo)
@@ -540,6 +546,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
      * gallery, keeping the user inside the app. A missing/unviewable file is logged, not fatal.
      */
     private fun openLastCapture() {
+        Timber.d("S0566: open last capture thumbnail in in-app player")
         val path = lastSavedPath ?: return
         val file = File(path)
         if (!file.exists()) return

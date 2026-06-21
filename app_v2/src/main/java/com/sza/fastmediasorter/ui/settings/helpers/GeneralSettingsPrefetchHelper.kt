@@ -34,7 +34,6 @@ class GeneralSettingsPrefetchHelper(
 
     fun setup() {
         setupPrefetchCacheDropdown()
-        setupPrefetchCacheHelpButton()
         setupCleanupModeDropdown()
         setupTtlDropdown()
         setupClearButton()
@@ -43,7 +42,9 @@ class GeneralSettingsPrefetchHelper(
     fun updateFromSettings(settings: AppSettings) {
         if (isUpdatingSpinner) return
         isUpdatingSpinner = true
-        binding.actvPrefetchCache.setText(prefetchCacheLabel(settings.prefetchCacheMultiplier), false)
+        // S0567: prefetch cache migrated to SettingsDropdownRow - select by enum ordinal (entry order
+        // mirrors PrefetchCacheMultiplier.values()). The other two remain AutoCompleteTextView dropdowns.
+        binding.actvPrefetchCache.setSelection(settings.prefetchCacheMultiplier.ordinal)
         binding.actvStreamingCleanup.setText(cleanupModeLabel(settings.streamingCacheCleanupMode), false)
         binding.actvStreamingTtl.setText(ttlLabel(settings.streamingCacheTtlDays), false)
         isUpdatingSpinner = false
@@ -51,12 +52,13 @@ class GeneralSettingsPrefetchHelper(
 
     // ── Prefetch cache dropdown ────────────────────────────────────────────────
 
+    // S0567: migrated to SettingsDropdownRow; the standalone help icon is folded into the row
+    // (sdr_showHelp in the layout). Help wiring is owned by the widget now.
     private fun setupPrefetchCacheDropdown() {
-        val labels = PrefetchCacheMultiplier.values().map { prefetchCacheLabel(it) }
-        val adapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, labels)
-        binding.actvPrefetchCache.setAdapter(adapter)
-        binding.actvPrefetchCache.setOnItemClickListener { _, _, position, _ ->
-            if (isUpdatingSpinner) return@setOnItemClickListener
+        val labels = PrefetchCacheMultiplier.values().map { prefetchCacheLabel(it) as CharSequence }
+        binding.actvPrefetchCache.setEntries(labels)
+        binding.actvPrefetchCache.setOnItemSelectedListener { position ->
+            if (isUpdatingSpinner) return@setOnItemSelectedListener
             val selected = PrefetchCacheMultiplier.values()[position]
             Timber.d("GeneralSettingsPrefetchHelper: prefetchCacheMultiplier → %s", selected)
             saveSettings { it.copy(prefetchCacheMultiplier = selected) }
@@ -67,16 +69,6 @@ class GeneralSettingsPrefetchHelper(
         PrefetchCacheMultiplier.LESS -> fragment.getString(R.string.pref_prefetch_cache_less)
         PrefetchCacheMultiplier.AUTO -> fragment.getString(R.string.pref_prefetch_cache_auto)
         PrefetchCacheMultiplier.MORE -> fragment.getString(R.string.pref_prefetch_cache_more)
-    }
-
-    private fun setupPrefetchCacheHelpButton() {
-        binding.iconHelpPrefetchCache.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                fragment.requireContext(),
-                R.string.pref_prefetch_cache_help_title,
-                R.string.pref_prefetch_cache_help_message
-            )
-        }
     }
 
     // ── Cleanup mode dropdown ─────────────────────────────────────────────────

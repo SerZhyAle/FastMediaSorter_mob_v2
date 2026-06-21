@@ -95,16 +95,40 @@ pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -TimeoutSec 10 -
   work on a user's device. Only drop confirmed-dead (DNS/refused/404/410).
 - Report: `temp/stream-catalog-liveness.csv` (per-URL status + http code + note).
 
+### Pruning dead rows
+
+The checker can also delete confirmed-dead rows from the CSV. Pruning is **opt-in** and conservative -
+only rows classified `dead` (DNS-fail / connection-refused / HTTP 404|410) are eligible; `unknown`
+(auth / geo / rate / timeout) is never removed.
+
+```
+# 1. Dry-run first - lists what WOULD be removed, writes nothing:
+pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1
+
+# 2. Review temp/stream-catalog-liveness.csv; ideally re-probe from a second
+#    network vantage (geo-restricted streams read dead locally yet work elsewhere).
+
+# 3. Apply - backs up the CSV to temp/<name>.<timestamp>.bak before writing:
+pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -Prune
+```
+
+- Default run (no `-Prune`) stays a non-destructive report and prints a `Would prune N row(s)` preview.
+- `-Prune` writes a timestamped backup under `temp/` first, then rewrites the CSV keeping original row
+  and column order (quoted fields round-trip losslessly).
+- `-PruneStatuses dead,unknown` widens the set if you deliberately want to drop `unknown` too - not
+  recommended for a publish.
+- After pruning, re-zip and re-upload the release asset (see Hosting above).
+
 ## Inventory (snapshot 2026-06-21)
 
-- Total: **384** streams - AUDIO 306, VIDEO 72, RTSP 6 (last liveness pass: 359 alive, 25 unknown,
-  2 dead dropped).
-- Rubrics: Radio 250, Radio (SomaFM) 56, Live TV 32, Test stream 32, Open movies 14.
+- Total: **426** streams - AUDIO 341, VIDEO 79, RTSP 6 (2026-06-21 new-row liveness pass: 17/17 alive;
+  a full-catalog sweep was not rerun in this edit).
+- Rubrics: Radio 285, Radio (SomaFM) 56, Live TV 39, Test stream 32, Open movies 14.
 - Topics (25): News, Ambient, Test pattern, Electronic, Oldies, Pop, Lo-fi, Jazz, Reggae, World,
   Classical, Rock, General, Movie, Eclectic, Chillout, Lounge, Folk, Vocal, Documentary,
   Science & Space, Metal, Sports, Celtic, Hip-hop.
-- Languages: english 180, french 43, german 36, italian 16, spanish 12, dutch 12, russian 9,
-  arabic 4, polish 4, korean 2, turkish 2, portuguese 2, slovak 2, plus others.
+- Languages: english 218, french 44, german 42, italian 18, ukrainian 18, russian 15, spanish 14,
+  dutch 13, polish 4, arabic 4, korean 3, turkish 2, plus others.
 - Live TV languages span en / de / es / fr / ar / it / pt / ko / ru.
 - Cleartext `http://` radio entries exist (importing them is only useful if the app permits cleartext
   for stream hosts - S0565 strategic §3.3 owner decision).

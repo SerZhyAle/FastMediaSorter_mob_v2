@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
 import com.sza.fastmediasorter.data.local.db.MIGRATION_33_34
+import com.sza.fastmediasorter.data.local.db.MIGRATION_34_35
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
@@ -100,7 +101,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_30_31,
                 MIGRATION_31_32,
                 MIGRATION_32_33,
-                MIGRATION_33_34
+                MIGRATION_33_34,
+                MIGRATION_34_35
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()

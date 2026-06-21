@@ -28,6 +28,10 @@ interface StreamSourceDao {
     @Delete
     suspend fun delete(source: StreamSourceEntity)
 
+    /** S0581: resolve the stream row for a failing playback URL, so the player can offer to remove it. */
+    @Query("SELECT * FROM stream_sources WHERE url = :url LIMIT 1")
+    suspend fun getByUrl(url: String): StreamSourceEntity?
+
     @Query("SELECT MIN(sortIndex) FROM stream_sources")
     suspend fun minSortIndex(): Int?
 
@@ -36,6 +40,10 @@ interface StreamSourceDao {
 
     @Query("UPDATE stream_sources SET lastPlayedAt = :atMillis WHERE id = :id")
     suspend fun markPlayed(id: String, atMillis: Long)
+
+    /** S0593: record the last local play outcome ("OK"/"FAIL") for the row status bullet. */
+    @Query("UPDATE stream_sources SET lastPlayOutcome = :outcome, lastPlayOutcomeAt = :atMillis WHERE id = :id")
+    suspend fun markPlayOutcome(id: String, outcome: String, atMillis: Long)
 
     /** S0570: snapshot of catalog-origin rows, used to compute the merge/prune delta. */
     @Query("SELECT * FROM stream_sources WHERE sourceOrigin = 'CATALOG'")

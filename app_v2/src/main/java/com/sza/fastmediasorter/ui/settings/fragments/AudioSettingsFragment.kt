@@ -1,24 +1,14 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
@@ -41,8 +31,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
-        private const val PREFS_NAME_HINT = "playback_sections_state"
-        private const val KEY_HAS_SHOWN_BATTERY_HINT = "has_shown_battery_hint_background_audio"
 
         // Audio empty state mode keys (stored in DataStore)
         private const val MODE_NONE = "NONE"
@@ -56,23 +44,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     // Ordered list of mode keys - index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
-
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
-            updateNotificationPermissionButtonVisibility()
-        } else {
-            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(false)
-            Snackbar.make(
-                binding.root,
-                R.string.notification_permission_required_for_background,
-                Snackbar.LENGTH_LONG
-            ).show()
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -210,9 +181,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             }
         }
 
-        // Background audio playback
-        setupBackgroundAudioSection()
-
         // Default player button
         setupDefaultPlayerButton()
         // S0367: microphone-recording and camera-photos sections moved to PlaybackSettingsFragment.
@@ -292,125 +260,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 )
                 binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
 
-                // Background audio playback
-                if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
-                    setSwitchChecked(binding.rowEnablePersistentAudioPlayback, settings.enablePersistentAudioPlayback)
-                    setSwitchChecked(binding.rowShowNowPlayingPanel, settings.showNowPlayingPanel)
-                    updateNotificationPermissionButtonVisibility()
-                    // Sync exit behavior radio group
-                    val radioId = when (settings.backgroundAudioExitBehavior) {
-                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP ->
-                            R.id.radioExitBehaviorAlwaysStop
-                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE ->
-                            R.id.radioExitBehaviorAlwaysContinue
-                        com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK ->
-                            R.id.radioExitBehaviorAsk
-                    }
-                    if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
-                        binding.radioGroupExitBehavior.check(radioId)
-                    }
-                    updateExitBehaviorVisibility()
-                }
-
                 // S0367: microphone-recording and camera-photos state sync moved to PlaybackSettingsFragment.
             }
         }
-    }
-
-    // ── Background Audio Section ──
-
-    private fun setupBackgroundAudioSection() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
-            binding.rowEnablePersistentAudioPlayback.isVisible = false
-            binding.btnNotificationPermission.visibility = View.GONE
-            binding.layoutExitBehaviorSection.visibility = View.GONE
-            return
-        }
-
-        bindSwitch(binding.rowEnablePersistentAudioPlayback) { isChecked ->
-            if (isChecked) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationPermissionGranted()) {
-                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    return@bindSwitch
-                }
-                showBatteryOptimizationHintIfNeeded()
-            }
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
-            updateNotificationPermissionButtonVisibility()
-            updateExitBehaviorVisibility()
-        }
-
-        bindSwitch(binding.rowShowNowPlayingPanel) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showNowPlayingPanel = isChecked))
-        }
-
-        binding.btnNotificationPermission.setOnClickListener {
-            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
-            }
-            startActivity(intent)
-        }
-
-        updateNotificationPermissionButtonVisibility()
-        setupExitBehaviorSection()
-    }
-
-    private fun setupExitBehaviorSection() {
-        binding.radioGroupExitBehavior.setOnCheckedChangeListener { _, checkedId ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val behavior = when (checkedId) {
-                R.id.radioExitBehaviorAlwaysStop ->
-                    com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP
-                R.id.radioExitBehaviorAlwaysContinue ->
-                    com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE
-                else -> com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK
-            }
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(backgroundAudioExitBehavior = behavior))
-        }
-        updateExitBehaviorVisibility()
-    }
-
-    private fun updateExitBehaviorVisibility() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
-        val show = binding.rowEnablePersistentAudioPlayback.isChecked
-        binding.layoutExitBehaviorSection.visibility = if (show) View.VISIBLE else View.GONE
-    }
-
-    private fun isNotificationPermissionGranted(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-    }
-
-    private fun updateNotificationPermissionButtonVisibility() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
-        binding.btnNotificationPermission.visibility =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                && !isNotificationPermissionGranted()
-                && binding.rowEnablePersistentAudioPlayback.isChecked
-            ) View.VISIBLE else View.GONE
-    }
-
-    private fun showBatteryOptimizationHintIfNeeded() {
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)) return
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.battery_optimization_hint_title)
-            .setMessage(R.string.battery_optimization_hint_message)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
-            }
-            .setCancelable(false)
-            .show()
     }
 
     override fun onDestroyView() {

@@ -69,24 +69,27 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/offloadDownloadButton"
         style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginBottom="@dimen/dialog_action_button_gap"
         android:text="@string/offload_action_download" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/offloadTryAnywayButton"
         style="@style/Widget.FastMediaSorter.Button.Text"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginBottom="4dp"
         android:text="@string/offload_action_try_anyway" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/offloadCancelButton"
         style="@style/Widget.FastMediaSorter.Button.DialogCancel"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="@string/offload_action_cancel" />
 
 </LinearLayout>

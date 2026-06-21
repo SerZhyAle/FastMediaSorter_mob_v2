@@ -29,6 +29,16 @@ This document outlines the current technical constraints, functional limitations
 - **Network/Cloud:** Requires an active connection.
 - **OCR/Translation:** Requires a one-time internet connection to download language models (~15-50 MB depending on the language).
 
+### Internet Streams
+- **Lite flavor:** Progressive http/https audio streams only. HLS (.m3u8), DASH, and RTSP are unsupported and will show an unsupported-format message.
+- **Photos flavor:** The Streams feature is entirely absent.
+- **Live HLS/DASH:** Only VOD (on-demand) HLS/DASH is supported in this release. Live-offset / live-edge HLS/DASH playback is deferred.
+- **Playlist formats:** Only `.m3u` playlist import and the curated FastMediaSorter catalog are supported. `.pls`, `.xspf`, and custom-JSON imports are deferred.
+- **Playback position:** Stream playback position is not saved or restored (dynamic source by nature).
+- **DRM:** No DRM-protected streams.
+- **Closed platforms:** YouTube, Twitch, and similar closed-platform URLs are not supported.
+- **EPG / DVR / Timeshift:** Not supported.
+
 ---
 
 ## 📂 File & Media Support

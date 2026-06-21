@@ -58,23 +58,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="end"
         android:layout_marginBottom="@dimen/margin_tiny">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotateLeft"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_left" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotate180"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
             android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_180" />
@@ -82,9 +81,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotateRight"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_right" />
     </LinearLayout>
@@ -103,23 +101,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="end"
         android:layout_marginBottom="0dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFlipHorizontal"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="@dimen/dialog_field_spacing"
             android:text="@string/image_edit_flip_horizontal" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFlipVertical"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/image_edit_flip_vertical" />
     </LinearLayout>
 
@@ -137,35 +134,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="0dp"
-        android:gravity="center_vertical"
+        android:gravity="end|center_vertical"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGrayscale"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_tiny"
-            android:layout_weight="1"
             android:text="@string/image_edit_grayscale" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSepia"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_tiny"
             android:layout_marginEnd="@dimen/margin_tiny"
-            android:layout_weight="1"
             android:text="@string/image_edit_sepia" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNegative"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_tiny"
-            android:layout_weight="1"
             android:text="@string/image_edit_negative" />
     </LinearLayout>
 
@@ -297,8 +291,9 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnApplyAdjustments"
         style="@style/Widget.Material3.Button"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="@string/image_edit_apply_adjustments" />
 
 </LinearLayout>

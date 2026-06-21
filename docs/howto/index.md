@@ -19,6 +19,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - 🍿 _"I want to watch movies/series from my PC on my phone, without copying anything"_ → [Home Cinema & VR Streaming](scenario-home-cinema.md)
 - 🖼️ _"I have an old tablet and want to turn it into a photo frame"_ → [Digital Photo Frame](scenario-photo-frame.md)
 - 🚗 _"I have an Android car stereo and want to play my music from a USB or phone"_ → [In-Car Music Player](scenario-car-music.md)
+- 📻 _"I have an Android car stereo and want to listen to internet radio stations"_ → [Internet Radio & Streams](scenario-internet-radio.md)
 - 🧹 _"I have 200 files in Downloads and want to sort them into folders quickly"_ → [Download Organizer (Quick Sort)](scenario-download-organizer.md)
 - 🖥️ _"I hear about SMB/NAS but don't know how to connect"_ → [Connect to NAS / Windows Share](scenario-smb-setup.md)
 - 📱 _"I want to place one-tap shortcuts on my home screen to record notes or start slides"_ → [Home-Screen Smart Widgets](../HOW_TO.md#home-screen-smart-widgets)
@@ -34,6 +35,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 |-------|-------------|------|--------|
 | [🖼️ Digital Photo Frame on Tablet](scenario-photo-frame.md) | Turn an old tablet into an always-on frame streaming photos from NAS or cloud, with optional music | ~15 min | Standard / Any |
 | [🚗 In-Car Music Player](scenario-car-music.md) | Play your full music library on Android head unit with steering wheel button support | ~10 min | Standard / Legacy |
+| [📻 Internet Radio & Streams](scenario-internet-radio.md) | Play internet radio and IPTV streams on any Android device - add a URL, import an .m3u playlist, or pick from a curated catalog | ~10 min | Standard / Legacy |
 | [🍿 Home Cinema & VR Streaming](scenario-home-cinema.md) | Watch series from your PC on phone/tablet/VR headset - no USB, no copying | ~15 min | Standard / Legacy |
 | [🧹 Download Organizer (Quick Sort)](scenario-download-organizer.md) | Sort hundreds of files into folders with one tap per file - set up once, use daily | ~10 min | Any |
 | [📷 Scheduled Camera Backup to PC](scenario-camera-backup.md) | Automatic nightly photo backup over Wi-Fi - wakes up, copies, goes back to sleep | ~15 min | Standard |

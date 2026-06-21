@@ -9,32 +9,24 @@
 
         <LinearLayout android:id="@+id/containerSpecialFolders" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-        <!-- Row: Recent + All Music -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
+        <!-- Flow chip group: text-sized buttons wrap to new lines -->
+        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualRecent" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/recent_media" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowVirtualFolders" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnVirtualRecent,btnVirtualAllMusic,btnVirtualAllVideo,btnVirtualCameraPhotos,btnVirtualAllImages,btnVirtualAllDocs" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllMusic" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_all_music" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualRecent" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/recent_media" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllMusic" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/virtual_all_music" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-        <!-- Row: All Videos + Camera Photos -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllVideo" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/virtual_all_video" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllVideo" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/virtual_all_video" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualCameraPhotos" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/virtual_camera_photos" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualCameraPhotos" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_camera_photos" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllImages" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/virtual_all_images" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllDocs" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/virtual_all_docs" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-        <!-- Row: All Images + All Documents -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_medium">
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllImages" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/virtual_all_images" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllDocs" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_all_docs" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
-
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 
@@ -47,37 +39,29 @@
         <LinearLayout android:id="@+id/containerQuickFolders" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
         <!-- Root Folder -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnRoot" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/folder_root" android:textSize="@dimen/resource_text_13sp" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_button" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnRoot" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="start" android:layout_marginBottom="@dimen/margin_small" android:text="@string/folder_root" android:textSize="@dimen/resource_text_13sp" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_button" />
 
-        <!-- Row 1: Media Folders -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
+        <!-- Flow chip group: text-sized buttons wrap to new lines -->
+        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDCIM" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/folder_dcim" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowQuickFolders" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnDCIM,btnPictures,btnDownload,btnDocuments,btnWhatsApp,btnTelegram" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnPictures" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/folder_pictures" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDCIM" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_dcim" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnPictures" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_pictures" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-        <!-- Row 2: Downloads & Documents -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDownload" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_download" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDownload" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/folder_download" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDocuments" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_documents" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDocuments" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/folder_documents" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnWhatsApp" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_whatsapp" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTelegram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_telegram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
-        <!-- Row 3: Messaging Apps -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnWhatsApp" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/folder_whatsapp" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnTelegram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/folder_telegram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
-
-        </LinearLayout>
-
-        <!-- Row 4: Instagram -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnInstagram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:text="@string/folder_instagram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+        <!-- Instagram -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnInstagram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="start" android:layout_marginBottom="@dimen/margin_medium" android:text="@string/folder_instagram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
         </LinearLayout>
 
@@ -93,7 +77,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@drawable/ic_search" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@drawable/ic_search" />
 
         <!-- Divider -->
         <View android:layout_width="match_parent" android:layout_height="@dimen/item_divider_height" android:background="?android:attr/listDivider" android:layout_marginVertical="@dimen/margin_small" />
@@ -101,7 +85,7 @@
         <!-- SAF Picker Section -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_use_system_picker" android:textStyle="bold" android:textSize="@dimen/resource_card_title_text_size" android:layout_marginBottom="@dimen/margin_small" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseWithSAF" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/browse_with_system_picker" app:icon="@drawable/ic_search" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseWithSAF" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/browse_with_system_picker" app:icon="@drawable/ic_search" />
 
     </LinearLayout>
 

@@ -83,25 +83,26 @@ internal class AddResourceFormManager(
     }
 
     fun setupCheckboxInteractions() {
-        binding.cbLocalReadOnlyMode.setOnCheckedChangeListener { _, isChecked ->
+        Timber.d("S0596: Add Resource option rows wired as FormCheckboxRow")
+        binding.cbLocalReadOnlyMode.setOnCheckedChangeListener { isChecked ->
             binding.cbLocalAddToDestinations.isChecked = if (isChecked) false else binding.cbLocalAddToDestinations.isChecked
             binding.cbLocalAddToDestinations.isEnabled = !isChecked
         }
-        binding.cbSmbReadOnlyMode.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbSmbReadOnlyMode.setOnCheckedChangeListener { isChecked ->
             binding.cbSmbAddToDestinations.isChecked = if (isChecked) false else binding.cbSmbAddToDestinations.isChecked
             binding.cbSmbAddToDestinations.isEnabled = !isChecked
         }
-        binding.cbSftpReadOnlyMode.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbSftpReadOnlyMode.setOnCheckedChangeListener { isChecked ->
             binding.cbSftpAddToDestinations.isChecked = if (isChecked) false else binding.cbSftpAddToDestinations.isChecked
             binding.cbSftpAddToDestinations.isEnabled = !isChecked
         }
-        binding.cbSmbAllFiles.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbSmbAllFiles.setOnCheckedChangeListener { isChecked ->
             updateMediaTypeCheckboxes(isChecked,
                 binding.cbSmbSupportImage, binding.cbSmbSupportVideo, binding.cbSmbSupportAudio,
                 binding.cbSmbSupportGif, binding.cbSmbSupportText, binding.cbSmbSupportPdf,
                 binding.cbSmbSupportEpub, binding.cbSmbSupportOffice)
         }
-        binding.cbSftpAllFiles.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbSftpAllFiles.setOnCheckedChangeListener { isChecked ->
             updateMediaTypeCheckboxes(isChecked,
                 binding.cbSftpSupportImage, binding.cbSftpSupportVideo, binding.cbSftpSupportAudio,
                 binding.cbSftpSupportGif, binding.cbSftpSupportText, binding.cbSftpSupportPdf,

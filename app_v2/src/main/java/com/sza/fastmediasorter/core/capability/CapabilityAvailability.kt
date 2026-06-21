@@ -46,6 +46,14 @@ class CapabilityAvailability @Inject constructor(
     /** Whether the Streams feature surface is offered in this build (compile-time capability flag). */
     fun isStreamsAvailable(): Boolean = BuildConfig.SUPPORT_STREAMS
 
+    /**
+     * Whether persistent (background) audio playback is compiled into this build. The flag is
+     * declared in every flavor block, so reading it here is variant-safe; this is the single
+     * source of truth behind the runtime gate in `PlaybackSettingsFragment` and the settings-search
+     * suppression of the background-audio rows (S0600).
+     */
+    fun isPersistentAudioPlaybackAvailable(): Boolean = BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+
     fun isExtensionsScreenAvailable(): Boolean = isOcrCompiledIn() || isTranslationAvailable() || isStreamsAvailable()
 
     /**

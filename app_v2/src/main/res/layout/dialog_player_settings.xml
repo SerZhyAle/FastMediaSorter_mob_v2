@@ -132,41 +132,23 @@
         app:str_title="@string/player_show_subtitles"
         app:str_subtitle="@string/cb_show_subtitles_desc" />
 
-    <TextView
-        android:id="@+id/tvSubtitleLanguageLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/player_subtitle_language"
-        android:textSize="@dimen/resource_card_desc_text_size"
-        android:layout_marginStart="@dimen/margin_xxlarge"
-        android:layout_marginBottom="0dp" />
-
-    <Spinner
+    <!-- Subtitle language (S0567: raw Spinner -> SettingsDropdownRow; the row owns its title.
+         Enable/disable is driven by the subtitles toggle via the controller's isEnabled). -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
         android:id="@+id/spinnerSubtitleLanguage"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_color_item_size"
+        android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/margin_xxlarge"
         android:layout_marginBottom="@dimen/margin_small"
-        android:background="@drawable/spinner_background"
-        android:padding="@dimen/padding_small" />
+        app:sdr_title="@string/player_subtitle_language" />
 
-    <!-- Audio Track Section -->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/player_audio_track"
-        android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="bold"
-        android:layout_marginBottom="@dimen/margin_tiny" />
-
-    <Spinner
+    <!-- Audio track (S0567: raw Spinner -> SettingsDropdownRow; the row owns its title). -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
         android:id="@+id/spinnerAudioLanguage"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_color_item_size"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
-        android:background="@drawable/spinner_background"
-        android:padding="@dimen/padding_small" />
+        app:sdr_title="@string/player_audio_track" />
 
     <!-- 3D Video Section - only visible for video files (controller hides it otherwise) -->
     <TextView

@@ -31,5 +31,10 @@ data class StreamSourceEntity(
     val lastPlayedAt: Long? = null,
     val category: String? = null,
     val topic: String? = null,
-    val language: String? = null
+    val language: String? = null,
+    // S0593: outcome of the last local playback attempt on this device, driving the row status bullet.
+    // null = never tried (amber/unknown), "OK" = last play reached playing (green), "FAIL" = last
+    // attempt errored (red). [lastPlayOutcomeAt] is the epoch-millis timestamp of that outcome.
+    val lastPlayOutcome: String? = null,
+    val lastPlayOutcomeAt: Long? = null
 )

@@ -127,7 +127,6 @@ class AppStartupInitializer @Inject constructor(
     
     /**
      * Sync cache size setting to SharedPreferences for Glide initialization.
-     * Also logs all settings in DEBUG builds.
      */
     private fun syncCacheSizeToSharedPreferences() {
         applicationScope.launch {
@@ -138,132 +137,10 @@ class AppStartupInitializer @Inject constructor(
                     .putInt("cache_size_mb", settings.cacheSizeMb)
                     .apply()
                 Timber.d("Synced cache size to SharedPreferences: ${settings.cacheSizeMb}MB")
-                
-                // Log all settings for debugging (DEBUG builds only)
-                if (BuildConfig.DEBUG) {
-                    logAllSettings(settings)
-                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sync cache size to SharedPreferences")
             }
         }
-    }
-    
-    /**
-     * Log all application settings for debugging in DEBUG builds.
-     * Manual property logging (no reflection) for startup diagnostics.
-     */
-    private fun logAllSettings(settings: com.sza.fastmediasorter.domain.model.AppSettings) {
-        Timber.i("========== APP SETTINGS AT STARTUP (DEBUG) ==========")
-        
-        try {
-            with(settings) {
-                // UI State
-                Timber.i("%-30s = %s", "isResourceGridMode", isResourceGridMode)
-                
-                // General
-                Timber.i("%-30s = %s", "language", language)
-                Timber.i("%-30s = %s", "preventSleep", preventSleep)
-                Timber.i("%-30s = %s", "showSmallControls", showSmallControls)
-                Timber.i("%-30s = %s", "defaultUser", if (defaultUser.isEmpty()) "(empty)" else defaultUser)
-                Timber.i("%-30s = %s", "defaultPassword", if (defaultPassword.isEmpty()) "(empty)" else "********")
-                Timber.i("%-30s = %s", "networkParallelism", networkParallelism)
-                Timber.i("%-30s = %s", "cacheSizeMb", cacheSizeMb)
-                Timber.i("%-30s = %s", "isCacheSizeUserModified", isCacheSizeUserModified)
-                
-                // Network Sync
-                Timber.i("%-30s = %s", "enableBackgroundSync", enableBackgroundSync)
-                Timber.i("%-30s = %s", "backgroundSyncIntervalHours", backgroundSyncIntervalHours)
-                
-                // File Visibility
-                Timber.i("%-30s = %s", "allFiles", allFiles)
-                Timber.i("%-30s = %s", "showHiddenFiles", showHiddenFiles)
-                
-                // Media Support
-                Timber.i("%-30s = %s", "supportImages", supportImages)
-                Timber.i("%-30s = %s", "imageSizeMin", imageSizeMin)
-                Timber.i("%-30s = %s", "imageSizeMax", imageSizeMax)
-                Timber.i("%-30s = %s", "loadFullSizeImages", loadFullSizeImages)
-                Timber.i("%-30s = %s", "supportGifs", supportGifs)
-                Timber.i("%-30s = %s", "supportVideos", supportVideos)
-                Timber.i("%-30s = %s", "videoSizeMin", videoSizeMin)
-                Timber.i("%-30s = %s", "videoSizeMax", videoSizeMax)
-                Timber.i("%-30s = %s", "supportAudio", supportAudio)
-                Timber.i("%-30s = %s", "audioSizeMin", audioSizeMin)
-                Timber.i("%-30s = %s", "audioSizeMax", audioSizeMax)
-                Timber.i("%-30s = %s", "searchAudioCoversOnline", searchAudioCoversOnline)
-                Timber.i("%-30s = %s", "searchAudioCoversOnlyOnWifi", searchAudioCoversOnlyOnWifi)
-                Timber.i("%-30s = %s", "audioEmptyStateMode", audioEmptyStateMode)
-                
-                // Documents
-                Timber.i("%-30s = %s", "supportText", supportText)
-                Timber.i("%-30s = %s", "supportPdf", supportPdf)
-                Timber.i("%-30s = %s", "supportEpub", supportEpub)
-                Timber.i("%-30s = %s", "supportOfficeDocuments", supportOfficeDocuments)
-                Timber.i("%-30s = %s", "showPdfThumbnails", showPdfThumbnails)
-                Timber.i("%-30s = %s", "textSizeMax", textSizeMax)
-                Timber.i("%-30s = %s", "showTextLineNumbers", showTextLineNumbers)
-                
-                // Translation/OCR
-                Timber.i("%-30s = %s", "enableTranslation", enableTranslation)
-                Timber.i("%-30s = %s", "translationSourceLanguage", translationSourceLanguage)
-                Timber.i("%-30s = %s", "translationTargetLanguage", translationTargetLanguage)
-                Timber.i("%-30s = %s", "translationLensStyle", translationLensStyle)
-                Timber.i("%-30s = %s", "enableOcr", enableOcr)
-                Timber.i("%-30s = %s", "ocrDefaultFontSize", ocrDefaultFontSize)
-                Timber.i("%-30s = %s", "ocrDefaultFontFamily", ocrDefaultFontFamily)
-                
-                // Playback/Sorting
-                Timber.i("%-30s = %s", "defaultSortMode", defaultSortMode)
-                Timber.i("%-30s = %s", "slideshowInterval", slideshowInterval)
-                Timber.i("%-30s = %s", "playToEndInSlideshow", playToEndInSlideshow)
-                Timber.i("%-30s = %s", "allowRename", allowRename)
-                Timber.i("%-30s = %s", "allowDelete", allowDelete)
-                Timber.i("%-30s = %s", "confirmDelete", confirmDelete)
-                Timber.i("%-30s = %s", "confirmMove", confirmMove)
-                Timber.i("%-30s = %s", "defaultGridMode", defaultGridMode)
-                Timber.i("%-30s = %s", "hideGridActionButtons", hideGridActionButtons)
-                Timber.i("%-30s = %s", "defaultIconSize", defaultIconSize)
-                Timber.i("%-30s = %s", "defaultShowCommandPanel", defaultShowCommandPanel)
-                Timber.i("%-30s = %s", "showDetailedErrors", showDetailedErrors)
-                Timber.i("%-30s = %s", "showPlayerHintOnFirstRun", showPlayerHintOnFirstRun)
-                Timber.i("%-30s = %s", "alwaysShowTouchZonesOverlay", alwaysShowTouchZonesOverlay)
-                Timber.i("%-30s = %s", "showVideoThumbnails", showVideoThumbnails)
-                
-                // Safe Mode
-                Timber.i("%-30s = %s", "enableSafeMode", enableSafeMode)
-                
-                // Destinations
-                Timber.i("%-30s = %s", "enableCopying", enableCopying)
-                Timber.i("%-30s = %s", "goToNextAfterCopy", goToNextAfterCopy)
-                Timber.i("%-30s = %s", "overwriteOnCopy", overwriteOnCopy)
-                Timber.i("%-30s = %s", "enableMoving", enableMoving)
-                Timber.i("%-30s = %s", "overwriteOnMove", overwriteOnMove)
-                Timber.i("%-30s = %s", "enableUndo", enableUndo)
-                Timber.i("%-30s = %s", "maxRecipients", maxRecipients)
-                Timber.i("%-30s = %s", "enableFavorites", enableFavorites)
-                
-                // Player UI
-                Timber.i("%-30s = %s", "copyPanelCollapsed", copyPanelCollapsed)
-                Timber.i("%-30s = %s", "movePanelCollapsed", movePanelCollapsed)
-                
-                // Mic Recording
-                Timber.i("%-30s = %s", "micRecordingEnabled", micRecordingEnabled)
-                Timber.i("%-30s = %s", "micRecordingAskFilename", micRecordingAskFilename)
-
-                // S0162: Screen rotation control
-                Timber.i("%-30s = %s", "programFollowSystemRotation", programFollowSystemRotation)
-                Timber.i("%-30s = %s", "playerFollowSystemRotation", playerFollowSystemRotation)
-                Timber.i("%-30s = %s", "playerRotationSensorEnabled", playerRotationSensorEnabled)
-
-                // Misc
-                Timber.i("%-30s = %s", "lastUsedResourceId", lastUsedResourceId)
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to log settings")
-        }
-        
-        Timber.i("====================================================")
     }
     
     /**

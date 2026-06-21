@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.media3.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -445,6 +444,7 @@ class PlayerLifecycleManager(
      * - ASK (default): shows a 4-item dialog (Stop / Keep Playing / Always Stop / Always Continue).
      */
     fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
+        Timber.d("S0577: player exit via shared resolver")
         if (!activity.isMediaLoaderManagerInitialized || !activity.mediaLoaderManager.isServiceAudioActive) {
             warnIfBackgroundHandoffMissed()
             doFinish(withTransition)
@@ -452,26 +452,19 @@ class PlayerLifecycleManager(
         }
 
         val audioPlayer = activity.audioServiceController?.player
-        // A still-connecting track (BUFFERING) must be honoured per the saved preference, not silently
-        // stopped: streamed network audio that is mid-connect on exit should keep going in the background.
-        // Only a user-paused track (READY/ENDED but not playing) exits as an implicit stop.
-        val isConnecting = audioPlayer?.playbackState == Player.STATE_BUFFERING
-        if (audioPlayer != null && !audioPlayer.isPlaying && !isConnecting) {
-            Timber.d("PlayerLifecycleManager: service audio is paused on exit - stopping silently")
-            audioPlayer.stop()
-            doFinish(withTransition)
-            return
-        }
-
-        when (viewModel.state.value.backgroundAudioExitBehavior) {
-            BackgroundAudioExitBehavior.ALWAYS_STOP -> {
+        when (
+            AudioExitBehaviorResolver.resolve(
+                serviceAudioActive = true,
+                player = audioPlayer,
+                behavior = viewModel.state.value.backgroundAudioExitBehavior,
+            )
+        ) {
+            AudioExitAction.FINISH -> doFinish(withTransition)
+            AudioExitAction.STOP_AND_FINISH -> {
                 audioPlayer?.stop()
                 doFinish(withTransition)
             }
-            BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> {
-                doFinish(withTransition)
-            }
-            BackgroundAudioExitBehavior.ASK -> showExitAudioDialog(withTransition)
+            AudioExitAction.ASK -> showExitAudioDialog(withTransition)
         }
     }
 
@@ -496,35 +489,23 @@ class PlayerLifecycleManager(
     }
 
     private fun showExitAudioDialog(withTransition: Boolean) {
-        val items = arrayOf(
-            activity.getString(R.string.background_audio_exit_stop),
-            activity.getString(R.string.background_audio_exit_continue),
-            activity.getString(R.string.background_audio_exit_always_stop),
-            activity.getString(R.string.background_audio_exit_always_continue),
+        BackgroundAudioExitDialog.show(
+            context = activity,
+            onStopThisTime = {
+                activity.audioServiceController?.player?.stop()
+                doFinish(withTransition)
+            },
+            onContinueThisTime = { doFinish(withTransition) },
+            onAlwaysStop = {
+                viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
+                activity.audioServiceController?.player?.stop()
+                doFinish(withTransition)
+            },
+            onAlwaysContinue = {
+                viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
+                doFinish(withTransition)
+            },
         )
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.background_audio_exit_message)
-            .setItems(items) { _, which ->
-                when (which) {
-                    0 -> { // Stop (this time only)
-                        activity.audioServiceController?.player?.stop()
-                        doFinish(withTransition)
-                    }
-                    1 -> { // Keep Playing (this time only)
-                        doFinish(withTransition)
-                    }
-                    2 -> { // Always Stop - save preference then stop
-                        viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
-                        activity.audioServiceController?.player?.stop()
-                        doFinish(withTransition)
-                    }
-                    3 -> { // Always Continue - save preference then continue
-                        viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
-                        doFinish(withTransition)
-                    }
-                }
-            }
-            .show()
     }
 
     fun doFinish(withTransition: Boolean = false) {

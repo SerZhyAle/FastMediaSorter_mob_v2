@@ -5,11 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -17,10 +21,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,10 +50,17 @@ class StreamsViewModel @Inject constructor(
     private val importStreamCatalog: ImportStreamCatalogUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
+    private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
     val state: StateFlow<StreamsUiState> = _state.asStateFlow()
+
+    // S0577: the streams screen reads the background-playback gate and exit preference to mirror the
+    // player's behavior. Eager so `.value` is current when the Activity decides the playback path.
+    val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
 
     private val _filter = MutableStateFlow(StreamsFilter())
 
@@ -113,11 +127,10 @@ class StreamsViewModel @Inject constructor(
 
     fun onFilter(
         category: String? = null,
-        topic: String? = null,
         language: String? = null,
-        mediaKind: String? = null,
+        mediaKind: MediaKindFilter = MediaKindFilter.ALL,
     ) = _filter.update {
-        it.copy(category = category, topic = topic, language = language, mediaKind = mediaKind)
+        it.copy(category = category, language = language, mediaKind = mediaKind)
     }
 
     fun onSort(mode: SortMode) {
@@ -129,39 +142,76 @@ class StreamsViewModel @Inject constructor(
 
     fun onRemove(source: StreamSourceEntity) = viewModelScope.launch { removeStreamSource(source) }
 
-    /**
-     * Filters by case-insensitive query (title/topic/language substring) and exact facet equality,
-     * then orders pinned-first followed by the chosen [SortMode]. The incoming list is already
-     * pinned-first from the DAO; re-sorting here keeps that invariant explicit and stable.
-     */
-    private fun applyFilter(sources: List<StreamSourceEntity>, filter: StreamsFilter): List<StreamSourceEntity> {
-        val query = filter.query.trim().lowercase()
-        val matched = sources.filter { source ->
-            val queryHit = query.isEmpty() ||
-                source.title.lowercase().contains(query) ||
-                source.topic?.lowercase()?.contains(query) == true ||
-                source.language?.lowercase()?.contains(query) == true
-            val facetHit = (filter.category == null || source.category == filter.category) &&
-                (filter.topic == null || source.topic == filter.topic) &&
-                (filter.language == null || source.language == filter.language) &&
-                (filter.mediaKind == null || source.mediaKind == filter.mediaKind)
-            queryHit && facetHit
-        }
-        val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
-            SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
-            SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic }
-            SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
-            SortMode.RECENT -> compareByDescending { it.addedAt }
-        }
-        // Pinned-first is the primary key regardless of the chosen secondary order.
-        return matched.sortedWith(compareByDescending<StreamSourceEntity> { it.pinned }.then(secondary))
+    /** S0593: record the inline-audio play outcome (OK on first playing, FAIL on error) for the row bullet. */
+    fun recordStreamOutcome(id: String, ok: Boolean) =
+        viewModelScope.launch { recordStreamPlayOutcome(id, ok) }
+
+    /** S0577: persist the background-audio exit preference chosen from the streams exit dialog. */
+    fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) = viewModelScope.launch {
+        val settings = settingsRepository.getSettings().first()
+        settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
     }
 
-    private fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets = StreamsFacets(
-        categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
-        topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
-        languages = sources.mapNotNull { it.language?.takeIf(String::isNotBlank) }.distinct().sorted(),
-    )
+    companion object {
+        /**
+         * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
+         * orders pinned-first followed by the chosen [SortMode]. Category, language and media-kind facets
+         * are ANDed: each unset facet passes everything, so a separate ALL/ANY match-mode toggle is
+         * redundant (selecting "All" on a facet already disables it). A language-less row always passes the
+         * language predicate (strategic §6.4). The media-kind facet folds VIDEO and RTSP transports into a
+         * single "video" bucket. The incoming list is already pinned-first from the DAO; re-sorting keeps
+         * that invariant explicit and stable. `internal` so the pure filter logic is unit-testable without
+         * the ViewModel's injected graph.
+         */
+        internal fun applyFilter(sources: List<StreamSourceEntity>, filter: StreamsFilter): List<StreamSourceEntity> {
+            val query = filter.query.trim().lowercase()
+            val matched = sources.filter { source ->
+                val queryHit = query.isEmpty() ||
+                    source.title.lowercase().contains(query) ||
+                    source.topic?.lowercase()?.contains(query) == true ||
+                    source.language?.lowercase()?.contains(query) == true
+                val categoryHit = filter.category == null || source.category == filter.category
+                // Per strategic §6.4 a language-less row is never hidden by an active language filter,
+                // so the language predicate passes when the cell is null/blank.
+                val languageHit = filter.language == null ||
+                    source.language.isNullOrBlank() ||
+                    source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
+                // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
+                val mediaHit = when (filter.mediaKind) {
+                    MediaKindFilter.ALL -> true
+                    MediaKindFilter.AUDIO -> source.mediaKind == "AUDIO"
+                    // RTSP is a video transport, so it shares the "video" bucket.
+                    MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
+                }
+                // topic stays ANDed: not exposed in the filter UI (the query box covers topic).
+                val topicHit = filter.topic == null || source.topic == filter.topic
+                queryHit && categoryHit && languageHit && mediaHit && topicHit
+            }
+            val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
+                SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+                SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic }
+                SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+                SortMode.RECENT -> compareByDescending { it.addedAt }
+            }
+            // Pinned-first is the primary key regardless of the chosen secondary order.
+            return matched.sortedWith(compareByDescending<StreamSourceEntity> { it.pinned }.then(secondary))
+        }
+
+        internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets = StreamsFacets(
+            categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
+            topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
+            // Catalog language cells can be comma-separated (e.g. "russian,ukrainian"); split into
+            // individual language names so each is a separate, single-language facet option.
+            languages = sources.asSequence()
+                .mapNotNull { it.language }
+                .flatMap { it.splitToSequence(',') }
+                .map { it.trim().lowercase() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+                .sorted()
+                .toList(),
+        )
+    }
 
     data class StreamsUiState(
         val sources: List<StreamSourceEntity> = emptyList(),
@@ -185,11 +235,14 @@ class StreamsViewModel @Inject constructor(
         val category: String? = null,
         val topic: String? = null,
         val language: String? = null,
-        val mediaKind: String? = null,
+        val mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         val sort: SortMode = SortMode.NAME,
     )
 
     enum class SortMode { NAME, TOPIC, LANGUAGE, RECENT }
+
+    /** Media-kind facet: ALL passes everything, AUDIO matches audio rows, VIDEO matches VIDEO + RTSP rows. */
+    enum class MediaKindFilter { ALL, AUDIO, VIDEO }
 
     sealed interface StreamsEvent {
         data class Message(@StringRes val messageResId: Int) : StreamsEvent
@@ -197,3 +250,7 @@ class StreamsViewModel @Inject constructor(
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
     }
 }
+
+/** Splits a catalog language cell (e.g. "russian,ukrainian") into trimmed, non-blank language tokens. */
+private fun String?.tokens(): List<String> =
+    this?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()

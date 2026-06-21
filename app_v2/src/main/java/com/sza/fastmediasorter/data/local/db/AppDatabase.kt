@@ -28,7 +28,7 @@ import timber.log.Timber
         DeviceProfileEntity::class,
         StreamSourceEntity::class
     ],
-    version = 34,
+    version = 35,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

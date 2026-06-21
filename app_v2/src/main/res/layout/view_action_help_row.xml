@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Layout for ActionHelpRow compound view.
+  A project button-taxonomy button + optional help icon on one line.
+  Replaces the repeated "button + help icon" strips in dialogs (S0567 survey item 7).
+  Root orientation is HORIZONTAL (set by the view). The default button style is the
+  project Outlined taxonomy; ahr_buttonStyle can override it at inflation time.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/ahr_button"
+        style="@style/Widget.FastMediaSorter.Button.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/settings_help_icon_margin"
+        android:ellipsize="end"
+        android:maxLines="2" />
+
+    <ImageButton
+        android:id="@+id/ahr_iconHelp"
+        android:layout_width="@dimen/button_height"
+        android:layout_height="@dimen/button_height"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription=""
+        android:focusable="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_help_outline_24"
+        app:tint="@color/text_color_secondary"
+        android:visibility="gone" />
+
+</merge>

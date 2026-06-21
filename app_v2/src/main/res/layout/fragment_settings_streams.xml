@@ -17,4 +17,16 @@
         app:str_title="@string/settings_streams_toggle"
         app:str_subtitle="@string/settings_streams_summary" />
 
+    <!-- Streams shortcut (relocated from Playback). Visibility follows the master toggle above
+         (StreamsSettingsFragment) so the feature is hidden everywhere while disabled. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStreams"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/streams_title"
+        app:icon="@drawable/ic_video"
+        app:iconGravity="start" />
+
 </LinearLayout>

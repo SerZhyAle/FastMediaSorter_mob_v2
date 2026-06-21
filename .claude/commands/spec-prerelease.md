@@ -8,8 +8,9 @@
 
 Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on an emulator: prepare a clean
 standard-debug install with seeded media → configure resources + settings → drive the core
-scenario (playback, standalone-player roundtrip, re-entry, network scroll) → measure perf →
-aggregate a machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped
+scenario (playback, standalone-player roundtrip, re-entry, network scroll, landscape-rotation
+crash sweep) → measure perf → aggregate a machine PASS/FAIL verdict. PASS proposes
+`/skill-release`; FAIL parks deduped
 `/spec-draft` tickets and routes pending-test tickets through `/spec-check`.
 
 It composes existing tools - `scripts/devtest/prerelease-prepare.ps1`,
@@ -99,6 +100,15 @@ Scenario steps and the perf checkpoint each captures:
 5. **Re-entry without reinstall** - relaunch the app; confirm warm start, no crash.
 6. **Network scroll + playback** - open the SFTP resource, scroll the listing, play a file; time
    the listing open and pass it to `prerelease-measure.ps1 -Checkpoint network-listing -ElapsedMs <n> -Json`.
+7. **Landscape rotation crash sweep** - for each of the three primary surfaces in turn - the main
+   browse Activity, the Settings screen, and the in-app `PlayerActivity` with a file playing -
+   rotate to landscape (`mobile_set_orientation landscape`), confirm the surface re-renders and is
+   still foreground (`dumpsys activity top`), then rotate back to portrait
+   (`mobile_set_orientation portrait`) and confirm again. An orientation change destroys and
+   recreates the Activity, so a missing `layout-land/*.xml` view id, an unchecked binding cast, or
+   a non-config-safe ViewModel surfaces here as a crash / `ActivityThread` exception in the same
+   logcat capture that step 4/4.1 reads. Treat any crash, ANR, or new actionable cluster bound to a
+   rotation as a FAIL finding. Restore portrait before stopping the capture.
 
 Stop the background logcat capture at the end. Write each measure record to
 `temp/s0484_metrics_<TS>.json` (array consumed by the verdict aggregator).

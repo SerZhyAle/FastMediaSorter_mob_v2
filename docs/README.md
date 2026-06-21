@@ -129,6 +129,7 @@ Full-size images:
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
 - 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
+- 📻 **Internet Streams (Streams screen):** Play internet radio (http/https, Icecast/Shoutcast with ICY now-playing), HLS/DASH streams, and RTSP sources directly from a dedicated Streams screen. Add URLs manually, import a `.m3u` playlist, or download a curated FastMediaSorter catalog. Pin favourites to the top; filter by category and language. Inline audio: radio plays from the list via a sticky bottom mini-control while the list stays scrollable. Video and RTSP open in the fullscreen player. Available in Standard, Legacy, noLegal/VR; progressive-audio only in Lite; absent in Photos.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -214,6 +215,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 ### 10. 🚗 In-Car Music with Android Head Unit
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+
+With the **Streams** screen enabled, the same head unit also plays internet radio stations directly over mobile data or Wi-Fi - no separate TuneIn or RadioDroid app needed. Add any radio URL, or import a curated station catalog from the Extensions screen. The sticky mini-control shows the current ICY track name while the station list stays visible.
 
 ### 11. 📺 Media Center on an Android TV Box
 

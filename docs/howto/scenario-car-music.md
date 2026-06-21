@@ -120,6 +120,22 @@ Perfect for when you just want to get in the car and tap one button to start mus
 
 ---
 
+## Step 8 - (Optional) Add Internet Radio Stations
+
+If your head unit has an active mobile data or Wi-Fi connection, you can add internet radio stations directly - no extra app needed:
+
+1. Open the main menu (hamburger or dropdown) → tap **Streams**
+2. Tap **Add (+)** → paste any internet radio URL (http/https, .m3u8, RTSP) and tap Save
+3. Or tap **Import catalog** to browse the built-in curated station list and add stations by genre or language
+4. Tap a station row to start inline audio playback - the station name and current track appear in the bottom mini-control
+5. The list stays visible so you can switch stations without leaving the screen
+
+> **Background audio:** to keep radio playing when you switch apps, go to **Settings → Media → Player → Background audio playback** and enable it.
+
+Note: Streams requires a network connection. On the Lite flavor, only progressive http/https audio streams are supported (no HLS/DASH/RTSP).
+
+---
+
 ## Done! Player Controls
 
 While music is playing, the screen is your control panel:
@@ -141,3 +157,4 @@ While music is playing, the screen is your control panel:
 | No album art shown | Enable **"Fetch audio covers online"** in Settings → Media → Audio (requires Wi-Fi). For offline art, the app reads embedded cover art from the MP3/FLAC file automatically |
 | Can't find music on SD card | Some Android versions restrict SD card access. Try adding the SD card path by using the **"Browse.."** button in the folder picker, which uses the Android system file picker with full SD card access |
 | Audio stutters or skips | Close other apps running in the background. For FLAC files, make sure the head unit has enough processing power |
+| Internet radio stops when I switch apps | Go to Settings → Media → Player → Background audio playback and make sure it is enabled |

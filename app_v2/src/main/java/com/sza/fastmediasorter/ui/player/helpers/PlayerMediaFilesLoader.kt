@@ -14,12 +14,14 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -85,6 +87,7 @@ class PlayerMediaFilesLoader(
     private val setLoading: (Boolean) -> Unit,
     private val stereoCoordinator: PlayerStereoModeCoordinator,
     private val isShareTargetEnabled: IsShareTargetEnabledUseCase,
+    private val getStreamSourceByUrlUseCase: GetStreamSourceByUrlUseCase,
 ) {
 
     private var loadingJob: Job? = null
@@ -164,9 +167,13 @@ class PlayerMediaFilesLoader(
                 // Captured before reload for use as nearest-by-order fallback when the target file is gone.
                 val currentIndexBeforeReload = stateFlow.value.currentIndex
 
-                val resource = if (resourceId == -100L) {
-                    MediaResource(
-                        id = -100L,
+                // S0591: synthetic resources have no DB row, so resolve them by their sentinel id.
+                // FAVORITES and STREAM must stay numerically distinct - a stream sharing the Favorites
+                // id would be materialized as the Favorites resource and inherit its favorite-toggle and
+                // per-file credential behavior downstream (every `resource.id == FAVORITES` branch).
+                val resource = when (resourceId) {
+                    SyntheticResourceIds.FAVORITES -> MediaResource(
+                        id = SyntheticResourceIds.FAVORITES,
                         name = "Favorites",
                         path = "Favorites",
                         type = ResourceType.LOCAL,
@@ -175,8 +182,19 @@ class PlayerMediaFilesLoader(
                         isWritable = false,
                         supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.GIF)
                     )
-                } else {
-                    getResourcesUseCase.getById(resourceId)
+                    SyntheticResourceIds.STREAM -> MediaResource(
+                        id = SyntheticResourceIds.STREAM,
+                        name = "Stream",
+                        path = "Stream",
+                        // Per-file scheme classification (determineResourceType over the URL) drives stream
+                        // routing; this neutral type only feeds the non-URL fallback, which never applies here.
+                        type = ResourceType.LOCAL,
+                        isAvailable = true,
+                        fileCount = 0,
+                        isWritable = false,
+                        supportedMediaTypes = setOf(MediaType.VIDEO)
+                    )
+                    else -> getResourcesUseCase.getById(resourceId)
                 }
 
                 if (resource == null) {
@@ -242,14 +260,30 @@ class PlayerMediaFilesLoader(
                     it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
                 }
                 if (streamPath != null) {
+                    // S0591: BlockNeedUserTest probe - proves the stream launch uses the dedicated STREAM
+                    // synthetic resource (id -200), not Favorites (id -100). Removed when S0591 leaves test.
+                    Timber.d(
+                        "S0591: stream launch resourceId=%d (STREAM=%d FAVORITES=%d)",
+                        resource.id, SyntheticResourceIds.STREAM, SyntheticResourceIds.FAVORITES,
+                    )
+                    // S0590: show the human-readable channel name (from the stream list) as the
+                    // player title instead of the raw URL segment. Resolved by URL so it works for
+                    // any launch path; null title falls back to the URL-derived name downstream.
+                    // S0592: derive MediaType from the catalog mediaKind so audio-only streams open on
+                    // the audio branch instead of being forced to VIDEO. VIDEO/RTSP and unknown URLs
+                    // (no catalog row) keep VIDEO.
+                    val streamSource = getStreamSourceByUrlUseCase(streamPath)
+                    val channelTitle = streamSource?.title?.takeIf { it.isNotBlank() }
+                    val streamType = if (streamSource?.mediaKind == "AUDIO") MediaType.AUDIO else MediaType.VIDEO
                     val streamFile = MediaFile(
                         name = streamPath.substringAfterLast('/').substringBefore('?').ifBlank { streamPath },
                         path = streamPath,
-                        type = MediaType.VIDEO,
+                        type = streamType,
                         size = 0L,
                         createdDate = System.currentTimeMillis(),
                         lastModified = System.currentTimeMillis(),
                         resourceId = resource.id,
+                        title = channelTitle,
                     )
                     updateState {
                         it.copy(

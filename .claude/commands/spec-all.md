@@ -187,12 +187,12 @@ Follow `/spec-dev` executing all phases from first non-done step.
 
 ### Stage F4 - Build Gate
 
-Run `git diff --name-only HEAD`. Exclude `PLAN/`, `docs/`, `dev/CHANGELOG.md`, `*.md`.
+Consider only the files **this pipeline run actually edited** (F3 tracks them - do NOT derive this from `git diff`, which mixes in unrelated WIP across many tickets on this repo). Exclude `PLAN/`, `docs/`, `dev/CHANGELOG.md`, `*.md`.
 
 - **Skip when F3 already built post-tags.** If F3's final phase ended with a `Project compiles` build that already included the inserted Timber tags (the `BlockNeedUserTest` path) and no code changed since, F4 is the redundant second build - skip.
 - Code files present (and no post-tags build in F3) -> `/build` -> `standard debug`. Persistent FAIL -> hard-stop.
-- `src/vr/` in diff -> also `/build` -> `vr debug`.
-- Docs-only diff -> skip.
+- `src/vr/` among the edited files -> also `/build` -> `vr debug`.
+- Docs-only changes -> skip.
 
 ### Stage F5 - Audit Loop (max 5 iterations)
 

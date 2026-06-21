@@ -282,9 +282,9 @@ data class AppSettings(
     val allowSeparateWindow: Boolean = false,
 
     // S0162 / S0439: Screen rotation control
-    // Program-scope follow-OS flag (umbrella). true = delegate to OS auto-rotate across the whole app.
+    // Program-scope follow-OS flag. true = every app window EXCEPT the player follows OS auto-rotate.
     val programFollowSystemRotation: Boolean = true,
-    // S0439: Player-scope follow-OS flag. Consulted only when programFollowSystemRotation is false.
+    // Player-scope follow-OS flag, independent of the program-scope flag: governs the player family only.
     val playerFollowSystemRotation: Boolean = false,
     // Per-session sensor state (persisted; restored on next player launch).
     // Active only when the player is not following the OS.

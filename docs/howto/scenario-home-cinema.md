@@ -122,6 +122,7 @@ Once installed, the video player works exactly the same:
 - Add a **Google Drive** or **Dropbox** resource for movies stored in the cloud - works the same way
 - Use **Favorites** (tap the ★ star button while watching) to bookmark your "currently watching" series - jump back to it any time
 - **Subtitles:** if your video folder has matching `.srt` subtitle files next to the video files, tap the **CC / subtitle button** in the player toolbar to enable them
+- **Internet radio or live streams:** if you also want to add internet radio stations or RTSP/HLS sources, see the [Internet Radio & Streams](scenario-internet-radio.md) guide - no NAS or PC required, just a network connection.
 
 ---
 

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.widget
 
 import android.content.Context
 import android.content.Intent
-import android.text.format.DateFormat
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.sza.fastmediasorter.R
@@ -10,7 +9,9 @@ import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 /**
  * Service providing data for the Scheduled Tasks widget upcoming list (2x2, S0353).
@@ -31,6 +32,9 @@ class ScheduledTasksRemoteViewsFactory(
     )
 
     private var items = listOf<UpcomingItem>()
+
+    // Date + time so the upcoming run is unambiguous when it is not today (matches the editor preview).
+    private val nextRunFormat = SimpleDateFormat("yy-MM-dd HH:mm", Locale.getDefault())
 
     @dagger.hilt.EntryPoint
     @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
@@ -83,7 +87,7 @@ class ScheduledTasksRemoteViewsFactory(
         val item = items[position]
         views.setTextViewText(R.id.widget_scheduled_item_type, item.typeName)
         val formattedNext = item.nextRunAt
-            ?.let { DateFormat.getTimeFormat(context).format(Date(it)) }
+            ?.let { nextRunFormat.format(Date(it)) }
             ?: "-"
         views.setTextViewText(
             R.id.widget_scheduled_item_next,

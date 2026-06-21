@@ -98,7 +98,7 @@ Resources for developers, QA, and contributors.
 ### Specifications
 | Document | Description | Last Updated |
 |---|---|---|
-| [Architecture Overview](V2_architecture_overview.md) | Product structure and implementation map. | Current |
+| [Architecture Overview](V2_architecture_overview.md) | Product structure and implementation map, including the Internet Streams subsystem (HLS/DASH/RTSP/ICY, flavor scope, catalog import). | Current |
 | [Technical Specification](V2_Specification.md) | Current implementation-level reference for maintainers. | Current |
 
 ### UI Communication Policy

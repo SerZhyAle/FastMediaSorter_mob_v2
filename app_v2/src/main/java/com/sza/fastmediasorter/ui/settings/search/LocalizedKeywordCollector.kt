@@ -49,7 +49,8 @@ class LocalizedKeywordCollector @Inject constructor(
             keywords = keywords,
             sectionId = assignment.sectionId,
             destination = assignment.destination,
-            viewId = raw.viewId
+            viewId = raw.viewId,
+            ancestorIds = raw.ancestorIds
         )
     }
 

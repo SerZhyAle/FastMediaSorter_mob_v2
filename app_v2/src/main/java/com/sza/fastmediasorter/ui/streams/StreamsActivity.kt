@@ -1,21 +1,34 @@
 package com.sza.fastmediasorter.ui.streams
 
+import android.content.res.ColorStateList
 import android.view.View
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.viewModels
+import androidx.core.view.MenuItemCompat
+import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.color.MaterialColors
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
+import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -44,8 +57,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private lateinit var inlineAudio: StreamInlineAudioManager
 
+    // S0587: file-browser-style scroll-navigation buttons (top / page-up / page-down / bottom).
+    private lateinit var scrollButtons: StreamScrollButtonManager
+
     /** Last rendered state, kept so the filter dialog can populate its facet choices on demand. */
     private var latestState = StreamsViewModel.StreamsUiState()
+
+    private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
+
+    /** S0577: set when the user chose to keep a background stream playing on exit (skip teardown). */
+    private var keepBackgroundService = false
 
     override fun getViewBinding(): ActivityStreamsBinding =
         ActivityStreamsBinding.inflate(layoutInflater)
@@ -64,12 +85,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             playStopButton = binding.btnMiniPlayStop,
             audioController = AudioServiceController(this),
             onPlayingChanged = adapter::setPlayingId,
+            onError = ::showStreamUnavailable,
+            onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
         )
 
         binding.rvStreams.layoutManager = LinearLayoutManager(this)
         binding.rvStreams.adapter = adapter
 
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        scrollButtons = StreamScrollButtonManager(
+            recyclerView = binding.rvStreams,
+            fabScrollToTop = binding.fabStreamsScrollToTop,
+            fabPageUp = binding.fabStreamsPageUp,
+            fabPageDown = binding.fabStreamsPageDown,
+            fabScrollToBottom = binding.fabStreamsScrollToBottom,
+        )
+        scrollButtons.attach()
+
+        binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
+        onBackPressedDispatcher.addCallback(this) { exitStreamsWithAudioCheck() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
@@ -78,17 +111,38 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 else -> false
             }
         }
+        tintToolbarMenuIcons()
 
         binding.etSearch.doAfterTextChanged { viewModel.onQueryChanged(it?.toString().orEmpty()) }
         binding.btnFilter.setOnClickListener { showFilterDialog() }
         binding.btnSort.setOnClickListener { showSortDialog() }
     }
 
+    /**
+     * MaterialToolbar does not tint menu icons, and ic_add/ic_refresh ship a white fill ("tinted at
+     * usage site"). Without an explicit tint they render white-on-light and look missing (only the
+     * pre-tinted ic_import shows). The toolbar now uses a colorPrimary background (app header color
+     * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
+     * but legacy minSdk is 23, so apply via MenuItemCompat in code.
+     */
+    private fun tintToolbarMenuIcons() {
+        Timber.d("S0586: tinting streams toolbar menu icons")
+        val tint = ColorStateList.valueOf(
+            MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)
+        )
+        binding.toolbar.menu.forEach { item -> MenuItemCompat.setIconTintList(item, tint) }
+    }
+
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
-            adapter.submitList(state.sources)
+            adapter.submitList(state.sources) {
+                // S0587: recompute scroll-button visibility once the new list is laid out
+                // (filter/sort/search change the row count).
+                if (::scrollButtons.isInitialized) scrollButtons.updateVisibility()
+            }
             binding.tvEmpty.isVisible = state.isEmpty
             latestState = state
+            updateFilterIndicator(state.filter)
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -119,7 +173,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private fun onPlay(source: StreamSourceEntity) {
         if (source.mediaKind == "AUDIO") {
-            inlineAudio.play(source)
+            inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
             return
         }
         // VIDEO / RTSP: open the existing fullscreen player. The stream URL is carried as the initial
@@ -129,11 +183,71 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         startActivity(
             PlayerActivity.createIntent(
                 context = this,
-                resourceId = SYNTHETIC_STREAM_RESOURCE_ID,
+                resourceId = SyntheticResourceIds.STREAM,
                 initialFilePath = source.url,
                 skipAvailabilityCheck = true,
             )
         )
+    }
+
+    /**
+     * S0577: leave the streams screen honoring the background-audio exit preference. Mirrors
+     * PlayerLifecycleManager.exitPlayerWithAudioCheck via the shared resolver + dialog. Only ON-mode
+     * (service) playback can continue in the background; OFF-mode audio is already torn down by onStop.
+     */
+    private fun exitStreamsWithAudioCheck() {
+        Timber.d("S0577: streams exit audio check serviceActive=%b", inlineAudio.isServiceAudioActive)
+        when (
+            AudioExitBehaviorResolver.resolve(
+                serviceAudioActive = inlineAudio.isServiceAudioActive,
+                player = inlineAudio.activeServicePlayer,
+                behavior = viewModel.settings.value.backgroundAudioExitBehavior,
+            )
+        ) {
+            AudioExitAction.FINISH -> {
+                keepBackgroundService = inlineAudio.isServiceAudioActive
+                finish()
+            }
+            AudioExitAction.STOP_AND_FINISH -> {
+                inlineAudio.stop()
+                finish()
+            }
+            AudioExitAction.ASK -> BackgroundAudioExitDialog.show(
+                context = this,
+                onStopThisTime = { inlineAudio.stop(); finish() },
+                onContinueThisTime = { keepBackgroundService = true; finish() },
+                onAlwaysStop = {
+                    viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
+                    inlineAudio.stop()
+                    finish()
+                },
+                onAlwaysContinue = {
+                    viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
+                    keepBackgroundService = true
+                    finish()
+                },
+            )
+        }
+    }
+
+    /**
+     * S0581: a stream that did not respond. Offer to retry the same source or remove it from the
+     * local list (every listed stream is a persisted DB row, so removal is always meaningful).
+     */
+    private fun showStreamUnavailable(source: StreamSourceEntity) {
+        Timber.d("S0581: inline stream unavailable dialog for %s", source.url)
+        // S0593: the inline audio attempt failed -> record the red status for this source.
+        Timber.d("S0593: inline audio failed - record FAIL %s", source.url)
+        viewModel.recordStreamOutcome(source.id, ok = false)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.streams_unavailable_title)
+            .setMessage(getString(R.string.streams_unavailable_message, source.title))
+            .setPositiveButton(R.string.retry) { _, _ ->
+                inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+            }
+            .setNeutralButton(R.string.streams_remove) { _, _ -> viewModel.onRemove(source) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun confirmRemove(source: StreamSourceEntity) {
@@ -188,24 +302,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             .show()
     }
 
-    /**
-     * Single-facet filter picker. Offers the distinct topic values present in the catalog plus an
-     * "All" reset; topic is the primary facet surfaced here (category/language stay available in the
-     * ViewModel API for later controls). The chosen value is forwarded to the ViewModel.
-     */
+    /** Opens the category + language + media-kind filter dialog; the manager marshals selections to the ViewModel. */
     private fun showFilterDialog() {
-        val topics = latestState.facets.topics
-        val items = (listOf(getString(R.string.streams_filter_all)) + topics).toTypedArray()
-        val current = latestState.filter.topic
-        val checked = if (current == null) 0 else topics.indexOf(current) + 1
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.streams_filter)
-            .setSingleChoiceItems(items, checked.coerceAtLeast(0)) { dialog, which ->
-                viewModel.onFilter(topic = if (which == 0) null else topics[which - 1])
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        filterDialogManager.show(latestState) { category, language, mediaKind ->
+            viewModel.onFilter(category = category, language = language, mediaKind = mediaKind)
+        }
+    }
+
+    /** Marks an active filter on the filter button by a dot glyph (shape, not color alone). */
+    private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
+        val active = filter.category != null ||
+            filter.language != null ||
+            filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL
+        binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
+        binding.btnFilter.contentDescription =
+            getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
     }
 
     /** Sort-mode picker mapping each label to a [StreamsViewModel.SortMode]. */
@@ -230,14 +341,26 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         StreamsViewModel.SortMode.RECENT -> R.string.streams_sort_recent
     }
 
-    override fun onDestroy() {
-        // setupViews() is deferred to a post{}; guard against destroy before it ran.
-        if (::inlineAudio.isInitialized) inlineAudio.release()
-        super.onDestroy()
+    /** S0577: background streaming uses the foreground service only when the user enabled it and the flavor supports it. */
+    private fun isBackgroundAudioEnabled(): Boolean =
+        viewModel.settings.value.enablePersistentAudioPlayback && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+
+    override fun onStop() {
+        // S0577: OFF-mode (in-app) stream audio must not survive the screen going to background -
+        // mirrors local audio. Service-mode (ON) playback is owned by AudioPlaybackService and left alone.
+        if (::inlineAudio.isInitialized && inlineAudio.isLocalPlaybackActive) {
+            inlineAudio.stop()
+        }
+        super.onStop()
     }
 
-    private companion object {
-        // Matches the synthetic single-item resource branch in PlayerMediaFilesLoader (no DB resource).
-        const val SYNTHETIC_STREAM_RESOURCE_ID = -100L
+    override fun onDestroy() {
+        // setupViews() is deferred to a post{}; guard against destroy before it ran.
+        if (::inlineAudio.isInitialized) {
+            // S0577: on a background-continue exit, detach without stopping the service stream.
+            if (keepBackgroundService) inlineAudio.releaseKeepingBackgroundService()
+            else inlineAudio.release()
+        }
+        super.onDestroy()
     }
 }

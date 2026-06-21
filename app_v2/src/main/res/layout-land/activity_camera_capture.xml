@@ -235,6 +235,7 @@
             android:clickable="true"
             android:contentDescription="@string/camera_gallery_preview"
             android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerCrop"
             android:visibility="gone"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FastMediaSorter.Circle"

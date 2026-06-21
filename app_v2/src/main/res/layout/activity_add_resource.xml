@@ -93,17 +93,17 @@
 
     </GridLayout>
 
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnAddToResources" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:text="@string/add_to_resources_button" android:visibility="gone" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:layout_marginStart="@dimen/padding_large" android:layout_marginEnd="@dimen/padding_large" android:layout_marginBottom="@dimen/padding_large" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnAddToResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_to_resources_button" android:visibility="gone" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:layout_marginStart="@dimen/padding_large" android:layout_marginEnd="@dimen/padding_large" android:layout_marginBottom="@dimen/padding_large" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.core.widget.NestedScrollView android:id="@+id/layoutLocalFolder" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/toolbarContainer" app:layout_constraintBottom_toTopOf="@id/btnAddToResources" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:paddingTop="@dimen/padding_small" android:paddingBottom="@dimen/padding_large">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical|end">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
 
             </LinearLayout>
 
@@ -114,23 +114,14 @@
             <!-- Scan Subdirectories and Destination checkboxes -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" android:id="@+id/layoutLocalOptions">
 
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
+                <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbLocalScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_checked="true" app:fcr_title="@string/scan_subdirectories" app:fcr_subtitle="@string/cb_local_scan_subdirectories_desc" />
 
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/add_to_destinations" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
+                <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbLocalAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/add_to_destinations" app:fcr_subtitle="@string/cb_local_add_to_destinations_desc" />
 
             </LinearLayout>
 
             <!-- Read-Only Mode checkbox -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
+            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbLocalReadOnlyMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_local_read_only_mode_desc" />
 
             <!-- PIN Code (Optional) -->
             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
@@ -161,48 +152,48 @@
             </LinearLayout>
 
             <!-- Username and Password in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="one_one">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbUsername" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_username">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbUsername" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_username">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_password" app:endIconMode="password_toggle">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPassword" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_password" app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
             <!-- Test Connection + Scan Shares in one row to save vertical space -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
 
                 <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
 
             </LinearLayout>
 
             <!-- Share Name and Resource Name in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="one_one">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbShareName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_share_name" app:helperText="@string/smb_share_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbShareName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_share_name" app:helperText="@string/smb_share_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbResourceName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
             <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -218,36 +209,18 @@
 
                         <!-- Scan Subdirectories and All Files in one row -->
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_checked="true" app:fcr_title="@string/scan_subdirectories" app:fcr_subtitle="@string/cb_smb_scan_subdirectories_desc" />
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/all_files" app:fcr_subtitle="@string/cb_smb_all_files_desc" />
                         </LinearLayout>
 
                         <!-- Show Subfolders Separately (option parity fix - was missing in create flow) -->
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbShowSubfoldersAsItems" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/show_subfolders_as_items" app:fcr_subtitle="@string/show_subfolders_as_items_hint" />
 
                         <!-- Disable Thumbnails -->
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbDisableThumbnails" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/disable_thumbnails" app:fcr_subtitle="@string/cb_smb_disable_thumbnails_desc" />
 
                         <!-- Remember File List -->
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/remember_file_list" app:fcr_subtitle="@string/cb_smb_remember_file_list_desc" app:fcr_showHelp="true" app:fcr_helpTitle="@string/remember_file_list_help_title" app:fcr_helpMessage="@string/remember_file_list_help_message" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -328,48 +301,42 @@
 
                         <!-- Add to Destinations and Read-Only checkboxes -->
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/register_as_destination" app:fcr_subtitle="@string/cb_smb_add_to_destinations_desc" />
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSmbReadOnlyMode" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_smb_read_only_mode_desc" />
                         </LinearLayout>
 
                         <!-- Comment and PIN Code in one row -->
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
+                        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbComment" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_comment">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPinCode" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
+                        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
                         <!-- Domain and Port in one row (optional, advanced) -->
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:ffp_ratio="two_one">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="@string/default_smb_port" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
+                        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button on separate row -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <TextView android:id="@+id/tvSmbResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_section_margin_top" android:visibility="gone" />
 
             <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvSmbResourcesToAdd" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_section_margin_top" app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:visibility="gone" tools:listitem="@layout/item_resource_to_add" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddToResources" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/add_to_resources_button" android:visibility="gone" android:layout_marginTop="@dimen/resource_section_margin_top" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddToResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/add_to_resources_button" android:visibility="gone" android:layout_marginTop="@dimen/resource_section_margin_top" />
 
 
 
@@ -394,21 +361,21 @@
             </RadioGroup>
 
             <!-- Host and Port in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHost" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_host" app:helperText="@string/sftp_host_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHost" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_host" app:helperText="@string/sftp_host_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.IpAddressEditText android:id="@+id/etSftpHost" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/sftp_port">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPort" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_port">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
             <!-- Authentication Method Selection -->
             <TextView android:id="@+id/tvSftpAuthMethodLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:labelFor="@id/rgSftpAuthMethod" android:text="@string/sftp_auth_method_label" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_margin_4dp" />
@@ -422,21 +389,21 @@
             </RadioGroup>
 
             <!-- Username and Password in one row -->
-            <LinearLayout android:id="@+id/layoutSftpPasswordAuth" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="visible" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:id="@+id/layoutSftpPasswordAuth" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="visible" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="one_one">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpUsername" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_username">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpUsername" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_username">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/sftp_password" app:endIconMode="password_toggle">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPassword" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_password" app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
             <!-- SSH Key Authentication Section -->
             <LinearLayout android:id="@+id/layoutSftpSshKeyAuth" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
@@ -464,7 +431,7 @@
             </LinearLayout>
 
             <!-- Test Connection: primary action in the main flow, before optional security and path -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- S0046: host-key pinning (optional, collapsible, SFTP-only). Visibility toggled by protocol in AddResourceActivity. -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -493,21 +460,21 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Remote Path and Resource Name in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
+            <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:ffp_ratio="one_one">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPath" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_remote_path" app:helperText="@string/sftp_remote_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPath" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_remote_path" app:helperText="@string/sftp_remote_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.NetworkPathEditText android:id="@+id/etSftpPath" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
             <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
             <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -523,36 +490,18 @@
 
                         <!-- Scan Subdirectories and All Files in one row -->
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_checked="true" app:fcr_title="@string/scan_subdirectories" app:fcr_subtitle="@string/cb_sftp_scan_subdirectories_desc" />
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/all_files" app:fcr_subtitle="@string/cb_sftp_all_files_desc" />
                         </LinearLayout>
 
                         <!-- Show Subfolders Separately (option parity fix - was missing in create flow) -->
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpShowSubfoldersAsItems" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/show_subfolders_as_items" app:fcr_subtitle="@string/show_subfolders_as_items_hint" />
 
                         <!-- Disable Thumbnails -->
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpDisableThumbnails" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/disable_thumbnails" app:fcr_subtitle="@string/cb_sftp_disable_thumbnails_desc" />
 
                         <!-- Remember File List -->
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
-                        </LinearLayout>
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/remember_file_list" app:fcr_subtitle="@string/cb_sftp_remember_file_list_desc" app:fcr_showHelp="true" app:fcr_helpTitle="@string/remember_file_list_help_title" app:fcr_helpMessage="@string/remember_file_list_help_message" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -607,32 +556,26 @@
 
                         <!-- Destination and Read-Only checkboxes -->
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/register_as_destination" app:fcr_subtitle="@string/cb_sftp_add_to_destinations_desc" />
+                            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpReadOnlyMode" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_sftp_read_only_mode_desc" />
                         </LinearLayout>
 
                         <!-- Comment and PIN Code in one row -->
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
+                        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_comment">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
                                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
+                        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
 
         </LinearLayout>
 
@@ -694,10 +637,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage_info" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Read-Only Mode checkbox -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_section_margin_top">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbCloudReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_cloud_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
+            <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbCloudReadOnlyMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_section_margin_top" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_cloud_read_only_mode_desc" />
 
         </LinearLayout>
 

@@ -237,6 +237,8 @@
     <dimen name="add_resource_title_text_size">18sp</dimen>
     <dimen name="add_resource_title_margin">16dp</dimen>
     <dimen name="checkbox_subtitle_margin_start">16dp</dimen>
+    <!-- Default inter-field gap for FormFieldPairLayout (Host+Port, User+Password, ..). -->
+    <dimen name="form_field_pair_spacing">8dp</dimen>
 
     <!-- Welcome Activity -->
     <dimen name="welcome_button_min_height">48dp</dimen>

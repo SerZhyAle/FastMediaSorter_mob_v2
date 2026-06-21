@@ -13,6 +13,7 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 ## Viewing & Playback
 - **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
 - **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
+- **Internet radio / IPTV player** (TuneIn, Shoutcast, Online Radio, RadioDroid, VLC network streams, IPTV players) - add any http/https radio URL, import an .m3u playlist or a curated station catalog; inline audio playback with ICY now-playing metadata; HLS/DASH VOD and RTSP video streams; category and language filters. *(Standard / Legacy; limited to progressive audio on Lite)*
 - **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
 - **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
 - **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.

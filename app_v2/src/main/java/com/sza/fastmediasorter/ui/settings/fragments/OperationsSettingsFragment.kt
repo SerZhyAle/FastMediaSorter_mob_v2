@@ -339,7 +339,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
             }
         }
-        binding.layoutDefaultPlayerToggles.isVisible = mediaCapabilities.supportsDefaultPlayer
+        // S0602: visibility and persisted-state reset of the default-player toggles are owned by
+        // applyFlavorRestrictions(); here we only attach listeners on flavors that support them.
         if (mediaCapabilities.supportsDefaultPlayer) {
             binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -366,7 +367,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
-        binding.rowLinkAutodownloadResource.setOnClickListener {
+        binding.rowLinkAutodownloadResource.setOnRowClickListener {
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
             ) { resource ->
@@ -483,12 +484,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             // Disable child controls when master link-download toggle is off.
                             binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
                             binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
-                            binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
                             refreshDestinationLabel(
                                 resourceId = settings.linkAutoDownloadResourceId?.toString(),
-                                target = binding.tvLinkAutodownloadResourceValue,
                                 fallbackRes = R.string.link_autodownload_resource_not_set,
-                            )
+                            ) { binding.rowLinkAutodownloadResource.setValue(it) }
 
                             gesturesManager.render(settings)
                         }
@@ -539,6 +538,22 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 ))
             }
         }
+
+        val supportsDefaultPlayer = mediaCapabilities.supportsDefaultPlayer
+        binding.rowPrimaryMediaPlayer.isVisible = supportsDefaultPlayer
+        binding.rowAcceptSharedFiles.isVisible = supportsDefaultPlayer
+        binding.layoutDefaultPlayerToggles.isVisible = supportsDefaultPlayer
+        if (!supportsDefaultPlayer) {
+            binding.rowPrimaryMediaPlayer.setCheckedSilently(false)
+            binding.rowAcceptSharedFiles.setCheckedSilently(false)
+            val current = viewModel.settings.value
+            if (current.isPrimaryMediaPlayer || current.acceptSharedFiles) {
+                viewModel.updateSettings(current.copy(
+                    isPrimaryMediaPlayer = false,
+                    acceptSharedFiles = false
+                ))
+            }
+        }
     }
 
     /**
@@ -572,16 +587,20 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             .show()
     }
 
-    /** Resolves a destination resource label into [target], falling back to [fallbackRes] when unset/missing. */
-    private fun refreshDestinationLabel(resourceId: String?, target: android.widget.TextView, fallbackRes: Int) {
+    /**
+     * Resolves a destination resource label and writes it via [setLabel], falling back to [fallbackRes]
+     * when unset/missing. S0567: takes a setter lambda so both plain TextViews (capture selectors) and
+     * SettingsSelectionRow targets (link-autodownload, screenshot destination) share one resolver.
+     */
+    private fun refreshDestinationLabel(resourceId: String?, fallbackRes: Int, setLabel: (CharSequence) -> Unit) {
         val id = resourceId?.toLongOrNull()
         if (id == null) {
-            target.setText(fallbackRes)
+            setLabel(getString(fallbackRes))
             return
         }
         viewLifecycleOwner.lifecycleScope.launch {
             val resource = viewModel.resourceRepository.getResourceById(id)
-            target.text = resource?.name ?: getString(fallbackRes)
+            setLabel(resource?.name ?: getString(fallbackRes))
         }
     }
 

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ClearScheduledOperationsLogUseCase
 import com.sza.fastmediasorter.domain.usecase.ClearScheduledOperationsUseCase
@@ -45,7 +46,15 @@ class ScheduledOperationsViewModel @Inject constructor(
             val id = upsertScheduledOperationUseCase(operation)
             val saved = operation.copy(id = if (operation.id == 0L) id else operation.id)
             val scheduled = if (saved.isEnabled && saved.nextRunAt == null) {
-                val withNext = saved.copy(nextRunAt = computeInitialNextRunAt(saved.startTimeHour, saved.startTimeMinute))
+                val withNext = saved.copy(
+                    nextRunAt = computeNextRunAt(
+                        saved.startTimeHour,
+                        saved.startTimeMinute,
+                        saved.intervalHours,
+                        saved.intervalMinutes,
+                        System.currentTimeMillis()
+                    )
+                )
                 updateScheduledOperationUseCase(withNext)
                 withNext
             } else saved
@@ -55,19 +64,6 @@ class ScheduledOperationsViewModel @Inject constructor(
                 workManagerScheduler.cancelOperation(scheduled.id)
             }
         }
-    }
-
-    private fun computeInitialNextRunAt(hour: Int, minute: Int): Long {
-        val cal = java.util.Calendar.getInstance().apply {
-            set(java.util.Calendar.HOUR_OF_DAY, hour)
-            set(java.util.Calendar.MINUTE, minute)
-            set(java.util.Calendar.SECOND, 0)
-            set(java.util.Calendar.MILLISECOND, 0)
-        }
-        if (cal.timeInMillis <= System.currentTimeMillis()) {
-            cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
-        }
-        return cal.timeInMillis
     }
 
     fun toggleEnabled(operation: ScheduledOperation) {

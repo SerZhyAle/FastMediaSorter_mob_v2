@@ -51,7 +51,7 @@ class GeneralSettingsProfileHelper(
                 }
         }
 
-        binding.rowDeviceProfile.setOnClickListener {
+        binding.rowDeviceProfile.setOnRowClickListener {
             val current = viewModel.currentProfile.value?.type ?: DeviceProfileType.PERSONAL_SMARTPHONE
             DeviceProfilePickerDialogFragment.newInstance(
                 current = current,
@@ -62,7 +62,7 @@ class GeneralSettingsProfileHelper(
 
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.currentProfile) { currentProfile ->
             currentProfile?.let { profile ->
-                binding.tvDeviceProfileValue.text = fragment.getString(DeviceProfileUi.titleRes(profile.type))
+                binding.rowDeviceProfile.setValue(fragment.getString(DeviceProfileUi.titleRes(profile.type)))
             }
         }
     }

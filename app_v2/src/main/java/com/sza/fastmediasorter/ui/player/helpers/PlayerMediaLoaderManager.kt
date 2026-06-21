@@ -1036,8 +1036,25 @@ class PlayerMediaLoaderManager(
         currentFile: MediaFile?,
         resource: com.sza.fastmediasorter.domain.model.MediaResource?
     ) {
-        if (currentFile != null && 
-            (resourceType == ResourceType.SMB || resourceType == ResourceType.SFTP || 
+        // Internet streams carry no credentials and must keep their stream type so VideoPlayerManager
+        // routes them to playStreamVideo - the legacy else-branch forced LOCAL, which then failed
+        // File.exists() and aborted playback (the "Local file does not exist" stream regression).
+        if (resourceType == ResourceType.HTTP_STREAM || resourceType == ResourceType.RTSP_STREAM) {
+            videoPlayerManager.playVideo(
+                path = path,
+                resourceType = resourceType,
+                credentialsId = null,
+                playWhenReady = !viewModel.state.value.isPaused,
+                onComplete = {
+                    syncVideoPlaybackOrderMode()
+                    exoPlayerControlsManager.updatePlaybackOrderButtonState()
+                }
+            )
+            return
+        }
+
+        if (currentFile != null &&
+            (resourceType == ResourceType.SMB || resourceType == ResourceType.SFTP ||
              resourceType == ResourceType.FTP || resourceType == ResourceType.CLOUD)) {
             
             // For Favorites, get credentialsId from the file's original resource

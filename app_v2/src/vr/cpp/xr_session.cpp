@@ -262,6 +262,18 @@ void main() {
 
         State g;
 
+        // S0607: set once, after the OpenXR loader has been initialized with the process-stable
+        // Application context. The loader holds its own ref to whatever Context it is given for the
+        // whole process; a finish()-ed Activity ref is what aborted the next xrEnumerate* under
+        // CheckJNI (S0291). With the Application context that ref never goes stale, which is what
+        // makes destroying and recreating the XrInstance per entry safe.
+        bool g_loaderInitialized = false;
+        // S0607: process-lifetime GLOBAL ref to the Application context passed to the OpenXR loader.
+        // The Quest loader lazily NewGlobalRef's this context during the first xrEnumerate*, so it
+        // must outlive every Activity and must never be a local ref (deleting it crashed CheckJNI).
+        // Intentionally never released - it is the Application context, alive for the whole process.
+        jobject g_appContextGlobal = nullptr;
+
         // Smoothed frame rate (Hz) measured from `XrFrameState::predictedDisplayTime` deltas.
         // EMA with alpha = 0.1 -> effective 10-frame window. Updated only on the render thread,
         // read atomically by `xr_session_get_fps()` from any thread.
@@ -388,6 +400,36 @@ void main() {
             env->ExceptionDescribe();
             env->ExceptionClear();
             LOGW("%s threw; cleared JNI exception", label);
+        }
+
+        // S0607: fetch the process-stable Application context from the Activity
+        // (Context.getApplicationContext()). Used to initialize the OpenXR loader once with a ref
+        // that outlives every per-entry Activity. Returns a local ref the caller must delete, or
+        // null on any JNI failure (the caller then falls back to the Activity).
+        jobject getApplicationContextLocal(JNIEnv *env, jobject activity)
+        {
+            if (!env || !activity)
+                return nullptr;
+            jclass cls = env->GetObjectClass(activity);
+            if (!cls)
+            {
+                clearJniException(env, "GetObjectClass(activity)");
+                return nullptr;
+            }
+            jmethodID mid = env->GetMethodID(cls, "getApplicationContext", "()Landroid/content/Context;");
+            env->DeleteLocalRef(cls);
+            if (!mid)
+            {
+                clearJniException(env, "GetMethodID(getApplicationContext)");
+                return nullptr;
+            }
+            jobject ctx = env->CallObjectMethod(activity, mid);
+            if (env->ExceptionCheck())
+            {
+                clearJniException(env, "Activity.getApplicationContext");
+                return nullptr;
+            }
+            return ctx;
         }
 
         bool createVideoSurfaceObjects()
@@ -751,35 +793,63 @@ void main() {
         {
             LOGD("createInstance: begin vm=%p activity=%p", (void *)vm, activity);
 
-            PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
-            XrResult r = xrGetInstanceProcAddr(
-                XR_NULL_HANDLE,
-                "xrInitializeLoaderKHR",
-                reinterpret_cast<PFN_xrVoidFunction *>(&initializeLoader));
-            if (XR_FAILED(r) || initializeLoader == nullptr)
+            // S0607: initialize the OpenXR loader exactly once per process, with the process-stable
+            // Application context (not the per-entry Activity). The loader keeps its own JNI ref to
+            // whatever Context it is given; a finish()-ed Activity ref is what aborted the next
+            // xrEnumerate* under CheckJNI (S0291). With the Application context that ref never goes
+            // stale, so the XrInstance below can be destroyed and recreated on every entry.
+            if (!g_loaderInitialized)
             {
-                LOGE(
-                    "xrGetInstanceProcAddr(xrInitializeLoaderKHR)=%d ptr=%p",
-                    (int)r,
-                    reinterpret_cast<void *>(initializeLoader));
-                return NativeResult::InstanceCreationFailed;
-            }
-            XrLoaderInitInfoAndroidKHR loaderInfo{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
-            loaderInfo.applicationVM = vm;
-            loaderInfo.applicationContext = activity;
-            r = initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR *>(&loaderInfo));
-            if (XR_FAILED(r))
-            {
-                LOGE("xrInitializeLoaderKHR=%d", (int)r);
-                return NativeResult::InstanceCreationFailed;
-            }
-            LOGD("xrInitializeLoaderKHR ok");
+                PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+                XrResult lr = xrGetInstanceProcAddr(
+                    XR_NULL_HANDLE,
+                    "xrInitializeLoaderKHR",
+                    reinterpret_cast<PFN_xrVoidFunction *>(&initializeLoader));
+                if (XR_FAILED(lr) || initializeLoader == nullptr)
+                {
+                    LOGE(
+                        "xrGetInstanceProcAddr(xrInitializeLoaderKHR)=%d ptr=%p",
+                        (int)lr,
+                        reinterpret_cast<void *>(initializeLoader));
+                    return NativeResult::InstanceCreationFailed;
+                }
+                // Build a process-lifetime GLOBAL ref to the Application context and hand THAT to
+                // the loader. The Quest loader lazily NewGlobalRef's this context (during the first
+                // xrEnumerate*), so a local ref deleted after the call crashed CheckJNI. We never
+                // delete g_appContextGlobal and never detach the long-lived render thread.
+                if (g_appContextGlobal == nullptr)
+                {
+                    bool loaderEnvAttached = false;
+                    JNIEnv *loaderEnv = getAttachedEnv(loaderEnvAttached);
+                    if (loaderEnv)
+                    {
+                        jobject appLocal = getApplicationContextLocal(loaderEnv, activity);
+                        if (appLocal)
+                        {
+                            g_appContextGlobal = loaderEnv->NewGlobalRef(appLocal);
+                            loaderEnv->DeleteLocalRef(appLocal);
+                        }
+                    }
+                }
+                XrLoaderInitInfoAndroidKHR loaderInfo{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
+                loaderInfo.applicationVM = vm;
+                loaderInfo.applicationContext = g_appContextGlobal ? g_appContextGlobal : activity;
+                lr = initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR *>(&loaderInfo));
+                if (XR_FAILED(lr))
+                {
+                    LOGE("xrInitializeLoaderKHR=%d", (int)lr);
+                    return NativeResult::InstanceCreationFailed;
+                }
+                LOGD("xrInitializeLoaderKHR ok (process-stable Application context)");
 
-            // xrEnumerateInstanceExtensionProperties needs the Android OpenXR loader initialized first.
-            // Calling it before xrInitializeLoaderKHR yields "LoaderInitData not initialized" and stalls
-            // cold-start XR init on Quest 3 (focus never delivered -> ANR). Diagnostic logging only, so it
-            // runs after the loader is up and before xrCreateInstance.
-            logInstanceExtensionSupport();
+                // xrEnumerateInstanceExtensionProperties needs the loader initialized first.
+                // Diagnostic logging only; runs once right after loader init, before any Activity
+                // teardown could make a ref stale.
+                logInstanceExtensionSupport();
+                g_loaderInitialized = true;
+            }
+
+            XrResult r;
 
             std::vector<const char *> exts = {
                 XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
@@ -1415,9 +1485,9 @@ void main() {
     {
         std::lock_guard<std::mutex> lock(g.mutex);
         // S0291 owner round 4 (2026-05-22 21:51): "initialized" now means "session is active",
-        // not "instance exists". g.instance and g.eglContext are intentionally process-scoped
-        // (see xr_session_init / xr_session_shutdown comments) and persist across exit/re-enter.
-        // A fresh session is detected by g.session being XR_NULL_HANDLE.
+        // not "instance exists". S0607: the XrInstance is recreated per entry and only the EGL
+        // context persists across exit/re-enter. A fresh session is detected by g.session being
+        // XR_NULL_HANDLE.
         return g.session != XR_NULL_HANDLE;
     }
 
@@ -1443,17 +1513,14 @@ void main() {
         }
         g.vm = vm;
         g.activity = static_cast<jobject>(activity);
-        // S0291 owner round 4 (2026-05-22 21:51): re-entry crashed with CheckJNI abort inside
-        // libopenxr_loader.so::xrEnumerateInstanceExtensionProperties (logcat 21:45 line 430-445
-        // stack trace). Quest 3's OpenXR loader holds an internal JNI global ref to the Activity
-        // it received during xrInitializeLoaderKHR; that ref is NOT released when we call
-        // xrDestroyInstance. After ANY shutdown, the loader's cached ref races with ART CheckJNI
-        // and the next xrEnumerate* call (re-init) aborts the whole process. Mitigation: keep
-        // the XrInstance + EGL context alive for the WHOLE process lifetime, only destroy the
-        // per-session pieces (session handle, swapchains, GL objects, hud, input) in shutdown.
-        // This matches the standard OpenXR pattern - instance is process-scoped, session is
-        // immersive-scoped. Logged transitions so we can verify the path in the next test.
-        LOGD("xr_session_init: g.instance=%p g.eglContext=%p (will reuse if non-null)",
+        // S0607: the XrInstance is recreated every entry, bound to the CURRENT Activity (it is
+        // destroyed in xr_session_shutdown). The original S0291 reason for keeping it alive - a
+        // CheckJNI abort on re-init - came from the loader holding a finish()-ed Activity ref;
+        // createInstance now initializes the loader once with the process-stable Application
+        // context, so recreating the instance is safe. Reusing the instance bound it to a dead
+        // Activity, which made the Meta runtime resolve a null VolumetricWindowInfo and hang the
+        // re-entry session in IDLE. The EGL context is Activity-agnostic and is kept across entries.
+        LOGD("xr_session_init: g.instance=%p g.eglContext=%p (instance recreated per entry, EGL reused)",
              (void *)g.instance, (void *)g.eglContext);
         NativeResult r;
         if (g.instance == XR_NULL_HANDLE)
@@ -1859,13 +1926,22 @@ void main() {
             xrDestroySession(g.session);
             g.session = XR_NULL_HANDLE;
         }
-        // S0291 owner round 4 (2026-05-22 21:51): keep XrInstance, XrSystemId, view configs,
-        // and the EGL context alive for the process lifetime. See xr_session_init for the
-        // rationale (Quest 3 OpenXR loader holds its own JNI globalref to Activity that does
-        // NOT survive re-create cleanly). We DO destroy the per-session EGLSurface because it
-        // is bound to a per-Activity ANativeWindow that legitimately changes across sessions.
-        LOGD("xr_session_shutdown: preserving XrInstance %p, EGL context %p across exit",
-             (void *)g.instance, (void *)g.eglContext);
+        // S0607: destroy the XrInstance on every exit so the next entry recreates it bound to the
+        // CURRENT Activity. The instance is bound to the Activity passed at creation; reusing it
+        // across entries (S0291) left it pointing at a finish()-ed Activity, so the Meta runtime
+        // resolved a null VolumetricWindowInfo and the re-entry session hung in IDLE. The loader
+        // stays initialized with the Application context (see createInstance), so recreating the
+        // instance no longer triggers the S0291 CheckJNI abort. The EGL context is Activity-agnostic
+        // and is kept; only the per-Activity EGLSurface is destroyed below.
+        if (g.instance != XR_NULL_HANDLE)
+        {
+            xrDestroyInstance(g.instance);
+            g.instance = XR_NULL_HANDLE;
+            g.systemId = XR_NULL_SYSTEM_ID;
+            g.viewConfigs.clear();
+        }
+        LOGD("xr_session_shutdown: destroyed XrInstance, kept EGL context %p across exit",
+             (void *)g.eglContext);
         if (g.eglSurface != EGL_NO_SURFACE && g.eglDisplay != EGL_NO_DISPLAY)
         {
             eglMakeCurrent(g.eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);

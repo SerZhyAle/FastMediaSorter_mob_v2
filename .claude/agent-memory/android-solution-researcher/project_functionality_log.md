@@ -11,6 +11,6 @@ The free-text functionality log was retired; capability history now lives in a s
 
 **How to apply (researcher is read-only):**
 - When researching whether/when a user-visible capability exists, grep `docs/ALL_FEATURES.jsonl` first - each line is `{id, area, name, description, flavors, spec, status}`; filter by `spec` (`Sxxxx`), `area`, or `status` (`active`/`removed`). noLegal-only capabilities are in gitignored `docs/ALL_FEATURES_noLegal.jsonl`.
-- For *when* a capability landed (the inventory has no timestamps), use `git log` over `docs/ALL_FEATURES.jsonl` / the touched source, or the per-release FEATURES diff.
+- For current capability state, read `docs/ALL_FEATURES.jsonl` + the code - never git. Only when the question is **explicitly about timeline** ("when did X land") and the user asked for it may you fall back to `git log` over `docs/ALL_FEATURES.jsonl` / the touched source, or the per-release FEATURES diff; the inventory itself has no timestamps.
 - Do NOT write the inventory or call any `*functionality_log*` script - read-only role. If an audit notices a missing/incorrect record, flag it under "Open Questions" / as a `/spec-draft` candidate for the caller, never mutate.
 - Layer roles: `dev/CHANGELOG.md` = low-level code-touch journal; `docs/FEATURES*.md` = curated end-user showcase (edited only by `/skill-release`); `docs/ALL_FEATURES.jsonl` = the developer capability inventory.

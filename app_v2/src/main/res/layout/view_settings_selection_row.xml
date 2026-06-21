@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Layout for SettingsSelectionRow compound view.
+  Canonical pattern: optional leading icon + text group (title + inline helper, subtitle below) +
+  trailing value text + chevron, with an optional trailing slot for a custom control.
+  See docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/ssr_icon"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="@dimen/settings_help_icon_margin"
+        android:contentDescription="@null"
+        app:tint="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/ssr_textGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Title line: title + helper inline (helper sits next to the title, not at the right edge). -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/ssr_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/toggler_title_text_size" />
+
+            <ImageButton
+                android:id="@+id/ssr_iconHelp"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription=""
+                android:focusable="true"
+                android:src="@drawable/ic_help_outline_24"
+                app:tint="@color/text_color_secondary"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/ssr_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_color_secondary"
+            android:textSize="@dimen/toggler_desc_text_size"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/ssr_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/settings_help_icon_margin"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/toggler_desc_text_size"
+        android:visibility="gone" />
+
+    <!-- Optional trailing control slot, hidden by default. -->
+    <FrameLayout
+        android:id="@+id/ssr_trailingSlot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/ssr_chevron"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/settings_help_icon_margin"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+</merge>

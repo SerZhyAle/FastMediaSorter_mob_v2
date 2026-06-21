@@ -36,7 +36,14 @@ class StreamSourceRepository @Inject constructor(
 
     suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
 
+    /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
+    suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
+
     suspend fun markPlayed(id: String, atMillis: Long) = dao.markPlayed(id, atMillis)
+
+    /** S0593: persist the last local play outcome ("OK"/"FAIL") for the streams-list status bullet. */
+    suspend fun recordPlayOutcome(id: String, outcome: String) =
+        dao.markPlayOutcome(id, outcome, System.currentTimeMillis())
 
     /**
      * S0570: synchronize the curated catalog into stream_sources. New catalog rows are inserted,

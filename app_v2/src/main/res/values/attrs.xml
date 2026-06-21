@@ -43,4 +43,68 @@
         <attr name="str_helpMessage" format="string|reference" />
         <attr name="str_checked" format="boolean" />
     </declare-styleable>
+
+    <!-- Consumed by SettingsSelectionRow.kt. All public attrs use the ssr_ prefix. -->
+    <declare-styleable name="SettingsSelectionRow">
+        <attr name="ssr_title" format="string|reference" />
+        <attr name="ssr_value" format="string|reference" />
+        <attr name="ssr_subtitle" format="string|reference" />
+        <attr name="ssr_icon" format="reference" />
+        <attr name="ssr_showHelp" format="boolean" />
+        <attr name="ssr_helpTitle" format="string|reference" />
+        <attr name="ssr_helpMessage" format="string|reference" />
+        <attr name="ssr_showChevron" format="boolean" />
+    </declare-styleable>
+
+    <!-- Consumed by SettingsDropdownRow.kt. All public attrs use the sdr_ prefix. -->
+    <declare-styleable name="SettingsDropdownRow">
+        <attr name="sdr_title" format="string|reference" />
+        <attr name="sdr_showHelp" format="boolean" />
+        <attr name="sdr_helpTitle" format="string|reference" />
+        <attr name="sdr_helpMessage" format="string|reference" />
+        <attr name="sdr_entries" format="reference" />
+    </declare-styleable>
+
+    <!-- Consumed by SettingsInputRow.kt. All public attrs use the sir_ prefix. -->
+    <declare-styleable name="SettingsInputRow">
+        <attr name="sir_title" format="string|reference" />
+        <attr name="sir_hint" format="string|reference" />
+        <attr name="sir_inputType" format="integer" />
+        <attr name="sir_showHelp" format="boolean" />
+        <attr name="sir_helpTitle" format="string|reference" />
+        <attr name="sir_helpMessage" format="string|reference" />
+        <attr name="sir_endIconMode">
+            <enum name="none" value="0" />
+            <enum name="clear_text" value="1" />
+            <enum name="password_toggle" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <!-- Consumed by FormFieldPairLayout.kt. All public attrs use the ffp_ prefix. -->
+    <declare-styleable name="FormFieldPairLayout">
+        <attr name="ffp_ratio">
+            <enum name="one_one" value="0" />
+            <enum name="two_one" value="1" />
+        </attr>
+        <attr name="ffp_stackThreshold" format="dimension" />
+    </declare-styleable>
+
+    <!-- Consumed by FormCheckboxRow.kt. All public attrs use the fcr_ prefix. -->
+    <declare-styleable name="FormCheckboxRow">
+        <attr name="fcr_title" format="string|reference" />
+        <attr name="fcr_subtitle" format="string|reference" />
+        <attr name="fcr_checked" format="boolean" />
+        <attr name="fcr_showHelp" format="boolean" />
+        <attr name="fcr_helpTitle" format="string|reference" />
+        <attr name="fcr_helpMessage" format="string|reference" />
+    </declare-styleable>
+
+    <!-- Consumed by ActionHelpRow.kt. All public attrs use the ahr_ prefix. -->
+    <declare-styleable name="ActionHelpRow">
+        <attr name="ahr_buttonText" format="string|reference" />
+        <attr name="ahr_buttonStyle" format="reference" />
+        <attr name="ahr_showHelp" format="boolean" />
+        <attr name="ahr_helpTitle" format="string|reference" />
+        <attr name="ahr_helpMessage" format="string|reference" />
+    </declare-styleable>
 </resources>

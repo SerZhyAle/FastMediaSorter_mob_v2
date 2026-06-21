@@ -88,6 +88,10 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             is PlayerViewModel.PlayerEvent.RotationSensorToggled -> {
                 activity.onRotationSensorToggled(event.sensorEnabled)
             }
+            // S0581: a list stream failed to play - offer retry / remove-from-list.
+            is PlayerViewModel.PlayerEvent.ShowStreamUnavailable -> {
+                showStreamUnavailable(event.source)
+            }
         }
     }
 
@@ -151,6 +155,30 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerEventHandler: showFileNotFound failed - bad window token")
         }
+    }
+
+    /**
+     * S0581: a video/RTSP stream from the list did not respond. Offer to retry the same URL or
+     * remove the dead stream from the local list (then leave the player, since there is nothing to
+     * show). Cancel simply closes the player.
+     */
+    private fun showStreamUnavailable(
+        source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        Timber.d("S0581: player stream unavailable dialog for %s", source.url)
+        activeDialog?.dismiss()
+        activeDialog = AlertDialog.Builder(activity)
+            .setTitle(R.string.streams_unavailable_title)
+            .setMessage(activity.getString(R.string.streams_unavailable_message, source.title))
+            .setPositiveButton(R.string.retry) { _, _ -> activity.playVideo(source.url) }
+            .setNeutralButton(R.string.streams_remove) { _, _ ->
+                activity.viewModel.removeStreamSource(source)
+                activity.finish()
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> activity.finish() }
+            .setOnCancelListener { activity.finish() }
+            .show()
     }
 
     fun showCloudAuthenticationError(providerName: String? = null) {

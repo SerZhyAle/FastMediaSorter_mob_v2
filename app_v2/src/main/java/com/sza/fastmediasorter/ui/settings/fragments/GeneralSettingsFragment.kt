@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
@@ -289,17 +288,10 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     // S0255: Wire the saved-authorizations row inside the new "Authorization" group.
-    // Tooltip mirrors the legacy Playback row behavior; navigation opens the sessions list activity.
+    // S0567: the SettingsSelectionRow owns the tooltip via ssr_help*; only the row click is wired here.
     // Row stays always enabled per strategic decision §6.2.
     private fun setupSavedAuthorizationsRow() {
-        binding.iconHelpSavedAuthorizations.setOnClickListener {
-            TooltipDialog.show(
-                requireContext(),
-                R.string.tooltip_saved_authorizations_title,
-                R.string.tooltip_saved_authorizations_message
-            )
-        }
-        binding.rowSavedAuthorizations.setOnClickListener {
+        binding.rowSavedAuthorizations.setOnRowClickListener {
             AuthSessionsActivity.start(requireContext())
         }
     }

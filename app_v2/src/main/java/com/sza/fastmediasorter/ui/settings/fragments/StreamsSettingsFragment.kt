@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.databinding.FragmentSettingsStreamsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -42,6 +44,14 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         }
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             setSwitchChecked(binding.rowEnableStreams, settings.enableStreams)
+            // S0578: the shortcut follows the master toggle - hidden when Streams is off so the
+            // feature is absent everywhere while disabled, present only once the user opts in.
+            binding.btnStreams.visibility = if (settings.enableStreams) View.VISIBLE else View.GONE
+        }
+        // Opens the Streams screen to manage sources when the feature is enabled.
+        binding.btnStreams.setOnClickListener {
+            Timber.d("S0578: open Streams screen from Media > Streams section")
+            startActivity(Intent(requireContext(), StreamsActivity::class.java))
         }
     }
 

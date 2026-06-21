@@ -24,4 +24,12 @@ FastMediaSorter v2 follows **Clean Architecture + MVVM + Hilt**.
 - Data layer handles network/cloud/local providers
 - Complex Activity logic is delegated to helper/manager classes
 
+### Internet Streams subsystem
+
+- Dedicated `StreamsActivity` / `StreamsViewModel` with a `StreamsRepository` and `StreamDataSource`.
+- Inline audio playback via `StreamInlineAudioManager`; sticky mini-control surfaces ICY now-playing metadata without leaving the list.
+- Video/RTSP opens the fullscreen player; back returns to list with scroll position preserved.
+- Catalog import: `ImportStreamCatalogUseCase` fetches a remote curated catalog with fast-fail timeout; imported rows carry topic/language metadata and are filterable.
+- Flavor scope: standard/legacy/noLegal receive full HLS/DASH/RTSP+progressive support; lite receives progressive-audio only (HLS/DASH/RTSP show unsupported message); photos flavor has no Streams entry.
+
 For full architecture details see [ARCHITECTURE.md](ARCHITECTURE.md).

@@ -1,20 +1,26 @@
 ---
 name: dirty-tree-is-normal-wip
-description: The working tree IS the dev state; committed-vs-uncommitted is not a meaningful signal during development - only at release. Never alarm about a dirty tree.
+description: The working tree IS the source of truth during dev. Never consult git history (log/blame/diff/status/HEAD~N) to understand current state, what changed, or whether something is WIP - only the user-driven release/commit flows touch git.
 type: feedback
 ---
 
-The working tree is the single source of development truth. There are no "dirty" or "clean" files during development - only **recently-used** files. Commits matter **only before releases**; the rest of the time committed-vs-uncommitted carries no meaning. Do NOT reason about "is it committed", "stable committed baseline", "unverified/uncommitted foundation", or "collision with uncommitted WIP" when deciding whether to edit/build/defer. Just work on the current files.
+**Do not consult git history to understand current state.** The working tree is the single source of development truth. Never run `git log` / `git blame` / `git diff` / `git status` / `git show` / `HEAD~N` comparisons to figure out "what changed recently", "what did this file look like yesterday", "is this committed", or "is this WIP". On this project that signal is actively misleading and just burns iterations. Read the live files instead.
 
-When `git status` shows uncommitted/untracked changes, report them calmly as the user's **intact WIP** - never frame a dirty tree as alarming, as "another session clobbered" something, or in any way that implies loss. Keep git inspection limited to what the workflow strictly needs (e.g. `/spec-all` build-gate `git diff --name-only HEAD`, drift-check), and don't editorialize the result.
+There are no "dirty" or "clean" files during development - only **recently-used** files. Commits matter **only before releases**; the rest of the time committed-vs-uncommitted carries no meaning. Do NOT reason about "is it committed", "stable committed baseline", "unverified/uncommitted foundation", or "collision with uncommitted WIP" when deciding whether to edit/build/defer. Just work on the current files.
 
-**Why (2026-06-20):** owner pushed back - "не знаю чего ты такой внимательный к тому что закоммичено .. разработка происходит только здесь над настоящими файлами, коммиты нужны перед релизами, в остальное время нет грязных или чистых файлов, есть недавно использованные." During a batch I had deferred tickets and narrated decisions around "committed baseline", "uncommitted WIP overlap", and "unverified foundation" - over-weighting git state. A mid-session timestamp WIP commit (`72b3fd2c "2606201743"`) is just the owner's routine save, not a meaningful state transition.
+If the working tree is dirty/untracked, that is the **normal** state - report it calmly as the user's intact WIP if it ever comes up. Never frame a dirty tree as alarming, as "another session clobbered" something, or in any way that implies loss.
 
-**Why:** during a `/spec-next` run I described ~30 uncommitted files as a "dirty tree from a concurrent session" and a "safety hazard." The owner read that as "someone reverted git / my code is lost" and got alarmed - then had to go hunt for their code. Nothing was lost (reflog showed only commits + a branch checkout, zero reset/revert; `git diff --stat` showed all +2121/-1755 intact). The scare was caused purely by my framing.
+**Use git only when:** the user explicitly asks ("show me the old version", "what changed", `/git`), or inside a release/commit flow (`/skill-release`, `/skill-fix-release`, `/caveman-commit`, `.\a.ps1 c`). Those flows own git deliberately. Everything else: stay out of git.
+
+**Why (2026-06-22):** owner directive - "Не лезь в ГИТ историю если не просят - не пытайся понять как этот файл выглядел вчера и что там WIP или нет. Это всё лишние итерации." Single developer; commit decisions come sometimes less than once a day while many tickets touch the **same** files. So an uncommitted pile mixes dozens of unrelated tickets, and `HEAD~1..HEAD` / `git diff HEAD` tell you nothing about the task at hand. The release branch is the only "clean" thing; everything else is intentionally dirty - do not go there.
+
+**Why (2026-06-20):** owner pushed back - "разработка происходит только здесь над настоящими файлами, коммиты нужны перед релизами, в остальное время нет грязных или чистых файлов, есть недавно использованные." I had over-weighted git state, narrating decisions around "committed baseline", "uncommitted WIP overlap", "unverified foundation". A mid-session timestamp WIP commit is just the owner's routine save, not a meaningful state transition.
+
+**Why (earlier):** during a `/spec-next` run I described ~30 uncommitted files as a "dirty tree from a concurrent session" and a "safety hazard." The owner read that as "someone reverted git / my code is lost" and got alarmed - then had to go hunt for their code. Nothing was lost; the scare was caused purely by my framing.
 
 **How to apply:**
-- This repo legitimately runs **multiple git worktrees** (`P:/ANDROID/FastMediaSorter_mob_v2` -> `DEBUG-vNNN`, `P:/ANDROID/FastMediaSorter_release` -> `main`) plus stashes across branches. An uncommitted/dirty tree is the **normal working state**, not a red flag.
-- Do NOT defer/gate work on git state. "Spec X's code isn't committed yet" is NOT a reason to defer a dependent ticket - just build on the current files. A legitimate deferral signal is **device-unverified** (a BlockNeedUserTest foundation whose behaviour is genuinely unproven), NOT "uncommitted".
-- The only real edit hazard is **truly concurrent** writers (e.g. parallel subagents mutating the same files in one run) - that is about simultaneity, not about commit state. A single dev session over the live files is normal, never a hazard.
-- Verify before claiming anything destructive happened: `git reflog` is authoritative for reset/revert/checkout; presence of modified files = nothing was reset (reset would empty the tree).
+- Need to know what a feature does or where it stands → **read the code** (Grep/Read/catalog), never git.
+- Continuing an In-Progress ticket → reconcile against the live files (Grep the spec's symbols, check files exist), not against `git status`. See [[feedback_spec_dev_continue_verify_code_first]].
+- Don't defer/gate work on git state. "Spec X's code isn't committed yet" is NOT a reason to defer a dependent ticket - build on the current files. A legitimate deferral signal is **device-unverified** (a `BlockNeedUserTest` foundation whose behaviour is genuinely unproven), NOT "uncommitted".
+- The only real edit hazard is **truly concurrent** writers (parallel subagents mutating the same files in one run) - simultaneity, not commit state. See [[feedback-parallel-agents-no-git-build]].
 - Commit only when the owner asks (typically pre-release). Otherwise leave the tree as working state.

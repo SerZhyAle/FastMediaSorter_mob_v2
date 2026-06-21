@@ -238,6 +238,21 @@ data class MediaResource(
 val MediaResource.isAllFilesPredefined: Boolean
     get() = profile == ResourceProfile.ALL_FILES && allFiles
 
+/**
+ * Sentinel [MediaResource.id] values for synthetic resources that exist only at runtime and have no
+ * database row. The player and browse layers branch on the raw id to materialize the matching synthetic
+ * resource, so these values MUST stay numerically distinct: a shared value silently routes one concept
+ * into the other. S0591 - a stream launch equalled the Favorites id and only avoided loading the
+ * favorites list because an unrelated branch happened to run first.
+ */
+object SyntheticResourceIds {
+    /** Favorites virtual resource - aggregates user-starred files across real resources. */
+    const val FAVORITES = -100L
+
+    /** Single-item internet-stream launch (Трансляции screen -> fullscreen player). */
+    const val STREAM = -200L
+}
+
 data class FileAttributes(
     val readOnly: Boolean = false,
     val hidden: Boolean = false
