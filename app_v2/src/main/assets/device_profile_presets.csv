@@ -147,6 +147,7 @@
 "prefetchCacheMultiplier","AUTO","AUTO","AUTO","LESS","AUTO","MORE","AUTO","LESS","AUTO","AUTO",""
 "streamingCacheCleanupMode","ASK","ASK","ASK","AUTO_DELETE","ASK","AUTO_KEEP","ASK","AUTO_DELETE","ASK","ASK",""
 "streamingCacheTtlDays","7","7","7","14","7","30","7","14","7","7",""
+"enableStreams","TRUE","TRUE","TRUE","TRUE","TRUE","FALSE","TRUE","TRUE","FALSE","TRUE",""
 "showBlackScreenButton","FALSE","FALSE","FALSE","TRUE","FALSE","FALSE","FALSE","TRUE","FALSE","FALSE",""
 "allowSeparateWindow","FALSE","true_if_capable","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","true_if_capable","true_if_capable",""
 "programFollowSystemRotation","TRUE","TRUE","TRUE","FALSE","TRUE","FALSE","TRUE","FALSE","TRUE","FALSE",""

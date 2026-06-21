@@ -2264,6 +2264,8 @@ class IntegrationTestRunner @Inject constructor(
                 ResourceType.SFTP -> "sftp://integration-server:22/policy_sample.txt"
                 ResourceType.FTP -> "ftp://integration-server:21/policy_sample.txt"
                 ResourceType.CLOUD -> "cloud://google_drive/policy_sample.txt"
+                ResourceType.HTTP_STREAM -> "http://integration-server/policy_sample.m3u8"
+                ResourceType.RTSP_STREAM -> "rtsp://integration-server/policy_sample"
             }
 
             val expected = resourceType == ResourceType.LOCAL
@@ -2423,6 +2425,7 @@ class IntegrationTestRunner @Inject constructor(
                     File("$basePath/$normalizedSubPath")
                 }
             }
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
         }
     }
     

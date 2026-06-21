@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.PayloadFile
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import io.mockk.every
 import io.mockk.mockk
@@ -34,6 +35,7 @@ class DeliverableInventoryFilterTest {
     private val capabilityAvailability = mockk<CapabilityAvailability>()
     private val bundled = mockk<BundledDeliverableSets>()
     private val appContext = mockk<Context>(relaxed = true)
+    private val importStreamCatalogUseCase = mockk<ImportStreamCatalogUseCase>(relaxed = true)
 
     // `ocr` here means "OCR offered on this build AND runnable on this device" - the inventory now
     // gates OCR rows on the combined CapabilityAvailability.isOcrAvailable() axis (compile-time +
@@ -46,6 +48,7 @@ class DeliverableInventoryFilterTest {
     ): DeliverableInventoryImpl {
         every { capabilityAvailability.isOcrAvailable(any()) } returns ocr
         every { capabilityAvailability.isTranslationAvailable() } returns translation
+        every { capabilityAvailability.isStreamsAvailable() } returns false
         every { bundled.contains(any()) } answers { firstArg<DeliverableSet>() in bundledSets }
         return DeliverableInventoryImpl(
             runner = runner,
@@ -53,6 +56,7 @@ class DeliverableInventoryFilterTest {
             repository = repository,
             tesseractModelManager = tesseractModelManager,
             capabilityAvailability = capabilityAvailability,
+            importStreamCatalogUseCase = importStreamCatalogUseCase,
             bundled = bundled,
             descriptors = descriptors,
             appContext = appContext

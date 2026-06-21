@@ -63,7 +63,11 @@ field names.
   - `textSizeMax` → bytes (× 1; no UI unit widget)
 - Enums: the enum value name (e.g. `defaultSortMode=DATE_DESC`, `prefetchCacheMultiplier=AUTO`,
   `streamingCacheCleanupMode=AUTO_DELETE`, `backgroundAudioExitBehavior=ALWAYS_CONTINUE`,
-  `stereoDefaultLayout=MONO`).
+  `stereoDefaultLayout=MONO`, `screenshotGestureActionDown=SILENT_SCREENSHOT`). An unknown enum name
+  is skipped (the field keeps its current value), never coerced to a default.
+- String-set fields (`enabledShareTargets`, `disabledShareTargets`): a list of ids separated by
+  comma, semicolon or pipe (e.g. `email;telegram;print`); blanks are dropped. An empty cell clears
+  no override (keeps current).
 - String fields: verbatim. **Exception:** `colorTheme=BLACK` is mapped to `DARK` (the field accepts
   `AUTO`/`LIGHT`/`DARK`).
 - `allowSeparateWindow=true_if_capable` → true only when the device actually supports separate
@@ -81,6 +85,8 @@ field names.
   playback-oriented profiles; `skipCameraFilenameDialog` is `FALSE` on the touch-first profiles and
   `TRUE` on the remote / one-purpose profiles; `cameraCaptureOpenForEditing` is conservatively
   `FALSE` everywhere until the owner wants stronger editing-oriented presets.
+- `enableStreams` (S0575) defaults `TRUE` on every profile except `photo_frame` and `ebook_reader`
+  (`FALSE`). The Streams feature UI is hidden in the `lite` and `photos` flavors regardless of this row.
 
 ---
 

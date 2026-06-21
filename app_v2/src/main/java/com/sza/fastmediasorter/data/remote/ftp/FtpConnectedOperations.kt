@@ -174,6 +174,13 @@ class FtpConnectedOperations(
                                 allBytes
                             }
                         } ?: return@withContext Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
+                    } catch (active: Exception) {
+                        // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
+                        // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
+                        Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
+                        return@withContext Result.failure(
+                            IOException("FTP active-mode data connection failed: $remotePath", active)
+                        )
                     } finally {
                         try {
                             client.enterLocalPassiveMode()
@@ -185,10 +192,10 @@ class FtpConnectedOperations(
                 }
                 Result.success(bytes)
             } catch (e: IOException) {
-                Timber.e(e, "FTP read file bytes failed: $remotePath")
+                Timber.w(e, "FTP read file bytes failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
-                Timber.e(e, "FTP read file bytes error: $remotePath")
+                Timber.w(e, "FTP read file bytes error: $remotePath")
                 Result.failure(e)
             }
         }
@@ -242,6 +249,13 @@ class FtpConnectedOperations(
                             }
                             if (totalRead < length) buffer.copyOf(totalRead) else buffer
                         } ?: return@withContext Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
+                    } catch (active: Exception) {
+                        // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
+                        // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
+                        Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
+                        return@withContext Result.failure(
+                            IOException("FTP active-mode data connection failed: $remotePath", active)
+                        )
                     } finally {
                         try {
                             client.enterLocalPassiveMode()
@@ -253,10 +267,10 @@ class FtpConnectedOperations(
                 }
                 Result.success(bytes)
             } catch (e: IOException) {
-                Timber.e(e, "FTP read bytes range failed: $remotePath offset=$offset length=$length")
+                Timber.w(e, "FTP read bytes range failed: $remotePath offset=$offset length=$length")
                 Result.failure(e)
             } catch (e: Exception) {
-                Timber.e(e, "FTP read bytes range error: $remotePath offset=$offset length=$length")
+                Timber.w(e, "FTP read bytes range error: $remotePath offset=$offset length=$length")
                 Result.failure(e)
             }
         }
@@ -282,6 +296,13 @@ class FtpConnectedOperations(
                     Timber.d("FTP retrying download in active mode: $remotePath")
                     try {
                         client.retrieveFile(remotePath, outputStream)
+                    } catch (active: Exception) {
+                        // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
+                        // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
+                        Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
+                        return@withContext Result.failure(
+                            IOException("FTP active-mode data connection failed: $remotePath", active)
+                        )
                     } finally {
                         try {
                             client.enterLocalPassiveMode()
@@ -304,10 +325,10 @@ class FtpConnectedOperations(
                 Timber.i("FTP download success: $remotePath")
                 Result.success(Unit)
             } catch (e: IOException) {
-                Timber.e(e, "FTP download failed: $remotePath")
+                Timber.w(e, "FTP download failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
-                Timber.e(e, "FTP download error: $remotePath")
+                Timber.w(e, "FTP download error: $remotePath")
                 Result.failure(e)
             }
         }

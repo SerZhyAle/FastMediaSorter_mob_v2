@@ -146,6 +146,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Reset Player settings | Restores all Player settings in this section to their factory defaults. |
 | Show Hint Next Time | Schedules the touch zones hint to appear the next time the player opens. |
+| Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
 | Default slideshow (sec.) | Sets the default number of seconds each slide is shown during a slideshow. |
 | Deletion and renaming in player | Settings for deleting and renaming files while inside the player. |
 | Player interface and commands | Settings for the player's visual interface, control buttons, and command layout. |

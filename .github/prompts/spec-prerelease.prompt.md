@@ -76,7 +76,10 @@ target from `mobile_list_elements_on_screen`, never hard-coded coordinates):
 ### 3 - Drive the core scenario
 
 Start a background logcat capture into `temp/s0484_run_<TS>.log` first (clear, then
-`adb logcat -v time *:V`). Walk the scenario via mobile-mcp; resolve every target from
+`adb logcat -v threadtime *:V`). **Use `threadtime`, not `time`** - `search-log.ps1` and the
+verdict error count only parse the `threadtime` line shape; a `-v time` capture parses to zero
+rows, so the verdict silently reads `actionableErrors=0` and red error toasts pass as a clean
+log. Walk the scenario via mobile-mcp; resolve every target from
 `mobile_list_elements_on_screen` immediately before acting; save evidence with
 `mobile_save_screenshot` to `temp/s0484_screens/` (off-context). Token discipline mirrors
 `/spec-test-device` - never screenshot to find an element.
@@ -119,13 +122,28 @@ Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write a timesta
 `temp/s0484_prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence
 paths).
 
-**On PASS:** print the report path and propose `/skill-release` as the next step. **Do not
-auto-run it** - the release starts only on explicit owner confirmation (ADR-1). State this in the
-final line.
+### 4.1 - Detailed log audit (mandatory, every run)
+
+The verdict's log signal is a single count and gates only on crashes; red toasts and handled-but-loud
+failures hide behind it. Run the deep audit over the same log:
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/s0484_run_<TS>.log -Json
+```
+
+It folds stack traces into clusters and splits them into **benign** (known emulator/capability
+fallbacks) vs **actionable**, and flags user-facing error surfaces (toast/snackbar/`showError`).
+Exit `0` clean, `1` actionable clusters/error toasts present, `2` unreadable. Treat every actionable
+cluster and error toast as a finding even on a PASS verdict; fold them into the report and the
+FAIL-branch `/spec-draft` triage. Include the audit JSON path in the evidence pack.
+
+**On PASS:** only after the audit is clean or its findings are triaged/parked, print the report path
+and propose `/skill-release` as the next step. **Do not auto-run it** - the release starts only on
+explicit owner confirmation (ADR-1). State this in the final line.
 
 ### 5 - Branch on FAIL
 
-For each distinct defect the verdict surfaced (research/06):
+For each distinct defect the verdict **or the step-4.1 audit** surfaced (research/06):
 
 - **Dedup first** by symptom via `scripts/spec_catalog/search.ps1` (error code / class / subsystem
   keyword + same-day created). If an open ticket already covers it, reference that id; do not draft

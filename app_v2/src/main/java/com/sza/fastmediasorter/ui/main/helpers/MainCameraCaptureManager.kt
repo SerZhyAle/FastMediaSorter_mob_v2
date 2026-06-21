@@ -45,6 +45,11 @@ class MainCameraCaptureManager(
     private var pendingDir: File? = null
     private var pendingBaseName: String? = null
 
+    // S0566/ADR-2: the general entry launches a stay-open multi-capture session, so the host saves each
+    // capture itself. This flag makes "do not move on result" explicit instead of inferring it from the
+    // host's RESULT_CANCELED close; persisted across process death so a restored session stays authoritative.
+    private var multiCapture = false
+
     /**
      * Launches the unified camera. [photoAvailable] / [videoAvailable] reflect the user settings AND
      * media capability already resolved by the caller. The in-screen PHOTO|VIDEO switch is offered only
@@ -71,6 +76,7 @@ class MainCameraCaptureManager(
         val allowSwitch = photoAvailable && videoOk
         pendingDir = dir
         pendingBaseName = baseName
+        multiCapture = true
         dispatch(
             CameraCaptureContract.createSwitchableIntent(
                 activity,
@@ -78,6 +84,7 @@ class MainCameraCaptureManager(
                 baseName,
                 initialMode,
                 allowSwitch,
+                multiCapture = true,
             ),
         )
     }
@@ -101,6 +108,12 @@ class MainCameraCaptureManager(
     }
 
     fun handleResult(result: ActivityResult) {
+        if (multiCapture) {
+            // S0566/ADR-2: the host already saved every in-session capture to its public folder; the
+            // manager must not move anything. Just drop the scratch bookkeeping for this session.
+            clearPending()
+            return
+        }
         val dir = pendingDir
         val base = pendingBaseName
         if (dir == null || base == null) {
@@ -153,6 +166,7 @@ class MainCameraCaptureManager(
         }
         pendingDir = null
         pendingBaseName = null
+        multiCapture = false
     }
 
     /**
@@ -164,6 +178,7 @@ class MainCameraCaptureManager(
     fun saveState(outState: Bundle) {
         pendingDir?.absolutePath?.let { outState.putString(KEY_PENDING_DIR, it) }
         pendingBaseName?.let { outState.putString(KEY_PENDING_BASE, it) }
+        outState.putBoolean(KEY_PENDING_MULTI, multiCapture)
     }
 
     /**
@@ -182,6 +197,7 @@ class MainCameraCaptureManager(
         }
         pendingDir = dir
         pendingBaseName = base
+        multiCapture = savedState.getBoolean(KEY_PENDING_MULTI, false)
         Timber.d("S0564: restored pending quick-capture target dir=$dirPath base=$base")
     }
 
@@ -196,5 +212,6 @@ class MainCameraCaptureManager(
     private companion object {
         const val KEY_PENDING_DIR = "main_cam_pending_dir"
         const val KEY_PENDING_BASE = "main_cam_pending_base"
+        const val KEY_PENDING_MULTI = "main_cam_pending_multi"
     }
 }

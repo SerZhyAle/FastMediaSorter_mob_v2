@@ -6,6 +6,51 @@
     <!-- Accent colors -->
     <color name="teal_700">#FF018786</color>
 
+    <!-- S0569: fixed palettes for the custom accent themes. Each theme is a single fixed-brightness
+         set (night mode is forced separately for system-bar / base-resource consistency), so all
+         values live in this default bucket and are referenced by the ThemeOverlay.* styles. -->
+    <color name="theme_dark_green_primary">#FF2E7D32</color>
+    <color name="theme_dark_green_primary_variant">#FF1B5E20</color>
+    <color name="theme_dark_green_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_green_background">#FF0F1A0F</color>
+    <color name="theme_dark_green_surface">#FF152015</color>
+    <color name="theme_dark_green_on_surface">#FFE6E6E6</color>
+
+    <color name="theme_dark_blue_primary">#FF1565C0</color>
+    <color name="theme_dark_blue_primary_variant">#FF0D47A1</color>
+    <color name="theme_dark_blue_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_blue_background">#FF0F1420</color>
+    <color name="theme_dark_blue_surface">#FF151B2A</color>
+    <color name="theme_dark_blue_on_surface">#FFE6E6E6</color>
+
+    <color name="theme_dark_red_primary">#FFC62828</color>
+    <color name="theme_dark_red_primary_variant">#FF8E0000</color>
+    <color name="theme_dark_red_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_red_background">#FF1A0F0F</color>
+    <color name="theme_dark_red_surface">#FF241515</color>
+    <color name="theme_dark_red_on_surface">#FFE6E6E6</color>
+
+    <color name="theme_light_green_primary">#FF2E7D32</color>
+    <color name="theme_light_green_primary_variant">#FF1B5E20</color>
+    <color name="theme_light_green_on_primary">#FFFFFFFF</color>
+    <color name="theme_light_green_background">#FFF1F8E9</color>
+    <color name="theme_light_green_surface">#FFFFFFFF</color>
+    <color name="theme_light_green_on_surface">#FF1B1B1B</color>
+
+    <color name="theme_light_blue_primary">#FF1565C0</color>
+    <color name="theme_light_blue_primary_variant">#FF0D47A1</color>
+    <color name="theme_light_blue_on_primary">#FFFFFFFF</color>
+    <color name="theme_light_blue_background">#FFE3F2FD</color>
+    <color name="theme_light_blue_surface">#FFFFFFFF</color>
+    <color name="theme_light_blue_on_surface">#FF1B1B1B</color>
+
+    <color name="theme_light_red_primary">#FFC62828</color>
+    <color name="theme_light_red_primary_variant">#FF8E0000</color>
+    <color name="theme_light_red_on_primary">#FFFFFFFF</color>
+    <color name="theme_light_red_background">#FFFFEBEE</color>
+    <color name="theme_light_red_surface">#FFFFFFFF</color>
+    <color name="theme_light_red_on_surface">#FF1B1B1B</color>
+
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

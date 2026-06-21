@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionMana
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -68,6 +69,10 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             mode: CameraCaptureMode,
         ): Intent =
             CameraCaptureContract.createIntent(context, outputUri, outputPath, mode)
+
+        private const val TAB_SELECTED_ALPHA = 1f
+        private const val TAB_UNSELECTED_ALPHA = 0.5f
+        private const val ZOOM_PILL_MATCH_EPSILON = 0.15f
     }
 
     // S0566: host-side persistence for the stay-open multi-capture session. Reuses the shared
@@ -513,7 +518,12 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
-                else -> showError(R.string.camera_capture_error_save_generic)
+                else -> {
+                    // The saver only deletes the scratch file on success, so drop the failed shot's
+                    // scratch copy here to avoid leaving CAP_<stamp>_<seq> orphans in the session dir.
+                    file.delete()
+                    showError(R.string.camera_capture_error_save_generic)
+                }
             }
         }
     }
@@ -523,7 +533,12 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         Glide.with(this).load(File(path)).centerCrop().into(binding.btnGalleryThumbnail)
     }
 
-    /** Opens the most recent capture in a system viewer; a missing/unviewable file is logged, not fatal. */
+    /**
+     * S0566/§6.7: opens the most recent capture in the in-app player. Routes through
+     * [StandalonePlayerDispatcherActivity] (resolves the media family from the URI and forwards to the
+     * matching standalone host) instead of an implicit ACTION_VIEW the OS would hand to an external
+     * gallery, keeping the user inside the app. A missing/unviewable file is logged, not fatal.
+     */
     private fun openLastCapture() {
         val path = lastSavedPath ?: return
         val file = File(path)
@@ -531,18 +546,10 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         val uri = runCatching {
             FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
         }.getOrNull() ?: return
-        val mime = if (file.extension.equals("mp4", ignoreCase = true)) "video/*" else "image/*"
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mime)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = Intent(this, StandalonePlayerDispatcherActivity::class.java)
+            .setData(uri)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         runCatching { startActivity(intent) }
-            .onFailure { Timber.w(it, "CameraCaptureActivity: no viewer for last capture") }
-    }
-
-    private companion object {
-        const val TAB_SELECTED_ALPHA = 1f
-        const val TAB_UNSELECTED_ALPHA = 0.5f
-        const val ZOOM_PILL_MATCH_EPSILON = 0.15f
+            .onFailure { Timber.w(it, "CameraCaptureActivity: failed to open last capture in player") }
     }
 }

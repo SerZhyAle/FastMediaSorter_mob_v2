@@ -31,11 +31,9 @@ class LinkAutoDownloadProgressDialog(
 
     fun show() {
         if (dialog != null) return
-        // The host (ReceiveShareActivity) runs under the translucent Theme.FastMediaSorter.Transparent,
-        // which DynamicColors rebuilds layer-by-layer at runtime - dropping ?attr/dialogActionButtonMinHeight
-        // that the cancel MaterialButton (Widget.FastMediaSorter.Button.DialogCancel) resolves. Wrap with
-        // Theme.FastMediaSorter.App, the theme that DECLARES that attr directly (the bare Theme.FastMediaSorter
-        // alias is parent-only, so applying it would not reliably re-inject the attr), so inflation resolves it.
+        // The host runs under the translucent theme. Inflate the custom dialog view against the app
+        // Material3 theme directly so the progress dialog keeps the normal dialog palette and avoids
+        // relying on the flattened transparent host theme chain.
         val themedContext = ContextThemeWrapper(activity, R.style.Theme_FastMediaSorter_App)
         val view = LayoutInflater.from(themedContext).inflate(R.layout.dialog_link_autodownload_progress, null)
         titleView = view.findViewById(R.id.titleText)

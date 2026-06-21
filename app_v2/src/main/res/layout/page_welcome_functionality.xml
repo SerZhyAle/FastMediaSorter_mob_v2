@@ -181,6 +181,42 @@
 
                 </LinearLayout>
 
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowStreams"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:str_title="@string/welcome_func_streams" />
+
+                <!-- S0575: inline stream-catalog download progress; optional, hidden until a download starts -->
+                <LinearLayout
+                    android:id="@+id/groupStreamsProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="0dp"
+                    android:visibility="gone">
+
+                    <ProgressBar
+                        android:id="@+id/progressStreams"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100" />
+
+                    <TextView
+                        android:id="@+id/tvStreamsStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:accessibilityLiveRegion="polite"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnElements"
                     style="@style/Widget.Material3.Button.TonalButton"

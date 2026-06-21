@@ -48,6 +48,8 @@ import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
@@ -93,6 +95,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
+    private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
     private lateinit var cameraCaptureManager: MainCameraCaptureManager
     private lateinit var quickCaptureMenuManager: MainQuickCaptureMenuManager
@@ -107,6 +110,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isQuickVideoEnabled = false
     private var isQuickPhotoEnabled = false
     private var isLinkDownloadEnabled = false
+    private var isStreamsEnabled = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -618,6 +622,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         popup.setForceShowIcon(true)
         popup.setOnMenuItemClickListener { item ->
             if (miniGameMenuManager.handleMenuItem(item.itemId) ||
+                streamsMenuManager.handleMenuItem(item.itemId) ||
                 quickCaptureMenuManager.handleMenuItem(item.itemId) ||
                 linkDownloadMenuManager.handleMenuItem(item.itemId)
             ) {
@@ -650,6 +655,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .setIcon(R.drawable.ic_camera_ocr_translate)
         }
         miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
+        // S0565: SUPPORT_STREAMS is a capability flag (not an IS_* flavor guard), so reading it in
+        // src/main is allowed; photos/lite have it false. S0575: also gate on the runtime master toggle
+        // so the main-menu entry appears only when the user enabled Streams (the Playback-settings
+        // shortcut stays SUPPORT_STREAMS-only as the way back).
+        Timber.d("S0575: main menu streams gate support=%b enabled=%b", BuildConfig.SUPPORT_STREAMS, isStreamsEnabled)
+        streamsMenuManager.populate(popup, BuildConfig.SUPPORT_STREAMS && isStreamsEnabled, 1)
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
             isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
@@ -683,6 +694,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         applyEdgeToEdgeInsets()
 
         miniGameMenuManager = MainMiniGameMenuManager(this)
+        streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
             this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
             requestRecordAudioPermission = {
@@ -1007,6 +1019,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isQuickVideoEnabled = !settings.disableVideoCapture
             isQuickPhotoEnabled = !settings.disableCameraCapture
             isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
+            isStreamsEnabled = settings.enableStreams
             binding.btnFavorites.visibility = if (settings.enableFavorites) {
                 View.VISIBLE
             } else {

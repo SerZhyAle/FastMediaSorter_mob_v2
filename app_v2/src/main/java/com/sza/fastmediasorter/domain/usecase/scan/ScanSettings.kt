@@ -51,7 +51,9 @@ class ScanSettings @Inject constructor() {
         ResourceType.SMB,
         ResourceType.SFTP,
         ResourceType.FTP -> networkParallelism
-        ResourceType.CLOUD -> cloudParallelism
+        ResourceType.CLOUD,
+        ResourceType.HTTP_STREAM,
+        ResourceType.RTSP_STREAM -> cloudParallelism
     }
 
     companion object {

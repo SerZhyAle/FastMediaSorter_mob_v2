@@ -268,6 +268,8 @@ fun ResourceItem(
                         com.sza.fastmediasorter.domain.model.ResourceType.SFTP -> R.string.resource_type_sftp
                         com.sza.fastmediasorter.domain.model.ResourceType.FTP -> R.string.resource_type_ftp
                         com.sza.fastmediasorter.domain.model.ResourceType.CLOUD -> R.string.resource_type_cloud
+                        com.sza.fastmediasorter.domain.model.ResourceType.HTTP_STREAM,
+                        com.sza.fastmediasorter.domain.model.ResourceType.RTSP_STREAM -> R.string.resource_type_stream
                     }
                 ),
                 style = MaterialTheme.typography.labelSmall,

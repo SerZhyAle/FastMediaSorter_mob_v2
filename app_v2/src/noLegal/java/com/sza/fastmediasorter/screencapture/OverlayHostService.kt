@@ -40,8 +40,9 @@ class OverlayHostService : Service() {
     override fun onCreate() {
         super.onCreate()
         // Application-overlay strip; the gesture launches the MediaProjection consent activity. This
-        // is the sole capture path on Play flavors (standard/photos, all API levels) and the API
-        // 26..29 fallback on noLegal, where API 30+ uses the silent accessibility path instead.
+        // overlay launcher is noLegal (sideload) only: it is the API 26..29 fallback there, while API
+        // 30+ uses the silent accessibility path instead. Store flavors never mount this launcher and
+        // reach the same capture engine through the menu action only (S0559).
         overlayManager = ScreenGestureOverlayManager(
             context = this,
             overlayWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,

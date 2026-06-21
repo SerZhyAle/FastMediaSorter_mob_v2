@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared screen-capture engine manifest (S0559).
+
+  Mounted into BOTH standard and noLegal via build.gradle.kts addStaticManifestFile. Declares only
+  the Play-safe confirmable capture path: the MediaProjection consent activity and the capture
+  foreground service. The overlay-strip launcher (SYSTEM_ALERT_WINDOW / specialUse FGS) and the
+  accessibility silent-capture service stay in src/noLegal/AndroidManifest.xml only.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
+    <application>
+        <activity
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+    </application>
+
+</manifest>

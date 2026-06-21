@@ -499,7 +499,8 @@ class PlayerMediaLoaderManager(
             destFile.delete()
             throw e
         } catch (e: Exception) {
-            Timber.e(e, "preCacheNetworkAudio: download failed for $path")
+            // Recoverable: prefetch/precache falls back to direct streaming, so this is not an error.
+            Timber.w(e, "preCacheNetworkAudio: download failed for $path")
             destFile.delete()
             null
         }
@@ -565,7 +566,7 @@ class PlayerMediaLoaderManager(
         return destFile.outputStream().use { out ->
             when (client.downloadFile(connInfo, remotePath, out)) {
                 is SmbResult.Success -> destFile
-                else -> { Timber.e("preCacheNetworkAudio: SMB download failed for $path"); null }
+                else -> { Timber.w("preCacheNetworkAudio: SMB download failed for $path"); null }
             }
         }
     }
@@ -592,7 +593,7 @@ class PlayerMediaLoaderManager(
         val connInfo = SftpClient.SftpConnectionInfo(host = host, port = port, username = creds.username, password = creds.password)
         return destFile.outputStream().use { out ->
             val result = client.downloadFile(connInfo, remotePath, out)
-            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: SFTP download failed for $path"); null }
+            if (result.isSuccess) destFile else { Timber.w("preCacheNetworkAudio: SFTP download failed for $path"); null }
         }
     }
 
@@ -618,7 +619,7 @@ class PlayerMediaLoaderManager(
         client.connect(host, port, creds.username, creds.password)
         return destFile.outputStream().use { out ->
             val result = client.downloadFile(remotePath, out)
-            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: FTP download failed for $path"); null }
+            if (result.isSuccess) destFile else { Timber.w("preCacheNetworkAudio: FTP download failed for $path"); null }
         }
     }
 

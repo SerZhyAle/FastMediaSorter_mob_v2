@@ -250,6 +250,12 @@
         <item>Auto (follow device)</item>
         <item>Light</item>
         <item>Dark</item>
+        <item>Dark Green</item>
+        <item>Dark Blue</item>
+        <item>Dark Red</item>
+        <item>Light Green</item>
+        <item>Light Blue</item>
+        <item>Light Red</item>
     </string-array>
     <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
@@ -2720,4 +2726,43 @@ Close the player and try again.</string>
     <string name="camera_control_pause">Pause</string>
     <string name="camera_control_resume">Resume</string>
     <string name="camera_gallery_preview">View last capture</string>
+    <string name="resource_type_stream">Stream</string>
+    <string name="streams_error_unsupported_in_build">This stream type is not supported in this app version.</string>
+    <string name="streams_title">Streams</string>
+    <string name="streams_add">Add stream</string>
+    <string name="streams_import">Import list</string>
+    <string name="streams_refresh">Refresh</string>
+    <string name="streams_pin_to_top">Pin to top</string>
+    <string name="streams_remove">Remove</string>
+    <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
+    <string name="streams_import_url_hint">Playlist URL (.m3u)</string>
+    <string name="streams_title_hint">Title (optional)</string>
+    <string name="streams_error_invalid_url">Enter a valid http, https or rtsp address.</string>
+    <string name="streams_error_network">Could not load the list. Check the connection and try again.</string>
+    <string name="streams_now_playing">Now playing</string>
+    <string name="streams_empty">No streams yet. Add a URL or import a list.</string>
+    <string name="streams_cleartext_note">This screen can play public http streams, which are not encrypted.</string>
+    <string name="streams_stop">Stop</string>
+    <string name="streams_import_done">Imported %1$d streams</string>
+    <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
+    <string name="crash_report_no_share_target">No app available to send the crash report. The report stays saved on this device.</string>
+    <string name="streams_import_choose_title">Import list</string>
+    <string name="streams_import_catalog">Update FastMediaSorter catalog</string>
+    <string name="streams_import_from_url">Import from URL</string>
+    <string name="streams_catalog_updated">Catalog: +%1$d new, %2$d updated, %3$d removed</string>
+    <string name="streams_catalog_empty">Catalog is empty or unavailable</string>
+    <string name="streams_search_hint">Search</string>
+    <string name="streams_filter">Filter</string>
+    <string name="streams_sort">Sort</string>
+    <string name="streams_sort_name">By name</string>
+    <string name="streams_sort_topic">By topic</string>
+    <string name="streams_sort_language">By language</string>
+    <string name="streams_sort_recent">Recently added</string>
+    <string name="streams_filter_all">All</string>
+    <string name="ext_section_streams">Streams</string>
+    <string name="ext_streams_title">Stream sources catalog</string>
+    <string name="ext_streams_desc">Download the catalog of available stream sources</string>
+    <string name="settings_streams_section">Streams</string>
+    <string name="settings_streams_toggle">Enable Streams</string>
+    <string name="settings_take_screenshot_now">Take screenshot</string>
 </resources>

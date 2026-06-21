@@ -90,6 +90,9 @@ data class AppSettings(
     val pdfColorMode: String = "NORMAL", // PDF color mode: NORMAL, NIGHT, SEPIA
     val epubLineHeight: Float = 1.6f, // EPUB line height multiplier (1.0 - 3.0)
     val epubHorizontalMargin: Int = 16, // EPUB horizontal margin in px (0 - 48)
+
+    // S0575: Streams feature master switch (internet stream sources). Default OFF; the per-device-profile preset raises it for streaming-oriented devices.
+    val enableStreams: Boolean = false,
     
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand

@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.player.StreamProtocolSupport
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -47,6 +48,7 @@ import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
+import com.sza.fastmediasorter.ui.player.helpers.playStreamVideo
 import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
 import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
 import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
@@ -106,6 +108,9 @@ class VideoPlayerManager(
     internal val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
     internal val statsSink: StatsSink,
+    // S0565: flavor-gated stream-protocol support; the stream helper reads supportsRtsp /
+    // createRtspMediaSource so lite/photos never reference the RTSP module.
+    internal val streamProtocolSupport: StreamProtocolSupport,
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -627,9 +632,17 @@ class VideoPlayerManager(
                     ResourceType.SFTP -> playSftpVideo(path, credentialsId, playWhenReady)
                     ResourceType.FTP -> playFtpVideo(path, credentialsId, playWhenReady)
                     ResourceType.LOCAL -> playLocalVideoInternal(path, playWhenReady)
+                    ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> playStreamVideo(path, playWhenReady)
                 }
 
-                if (savedPosition != null && savedPosition > 0 && !isUsingMediaPlayer) {
+                // S0565: a live/dynamic stream has no meaningful saved position (C.TIME_UNSET), so
+                // both restore and the auto-save loop are suppressed for stream resource types or any
+                // dynamic timeline - otherwise an unset position would be persisted and restored.
+                val isDynamicStream = resourceType == ResourceType.HTTP_STREAM ||
+                    resourceType == ResourceType.RTSP_STREAM ||
+                    exoPlayer?.isCurrentMediaItemDynamic == true
+
+                if (savedPosition != null && savedPosition > 0 && !isUsingMediaPlayer && !isDynamicStream) {
                     withContext(Dispatchers.Main) {
                         exoPlayer?.seekTo(savedPosition)
                         Timber.d("VideoPlayerManager: Restored playback position: ${savedPosition}ms")
@@ -641,7 +654,7 @@ class VideoPlayerManager(
                     }
                 }
 
-                startPositionSaving()
+                if (!isDynamicStream) startPositionSaving()
                 onComplete()
             } catch (e: CancellationException) {
                 // Lifecycle/scope cancel (activity destroy, file switch, player release) - not a playback failure.

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  * Logical grouping the Extensions Manager screen renders as sections (S0386 Phase 11): OCR engines +
  * OCR language data, translation module + translation language packs, and media-playback assets.
  */
-enum class ExtensionSection { OCR, TRANSLATION, MEDIA_PLAYBACK }
+enum class ExtensionSection { OCR, TRANSLATION, MEDIA_PLAYBACK, STREAMS }
 
 sealed class ExtensionItem {
     abstract val id: String
@@ -33,6 +33,17 @@ sealed class ExtensionItem {
     data class LanguageData(
         override val id: String,
         val languageCode: String,
+        override val displayNameRes: Int,
+        override val descriptionRes: Int,
+        override val sizeLabel: String,
+        override val section: ExtensionSection,
+        override val statusFlow: Flow<ExtensionStatus>
+    ) : ExtensionItem()
+
+    // S0575: a downloadable catalog of stream sources. Not a DeliverableSet - fetched directly via
+    // ImportStreamCatalogUseCase, so it carries no `set` field.
+    data class Catalog(
+        override val id: String,
         override val displayNameRes: Int,
         override val descriptionRes: Int,
         override val sizeLabel: String,

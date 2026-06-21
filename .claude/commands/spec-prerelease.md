@@ -14,8 +14,9 @@ aggregate a machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL park
 
 It composes existing tools - `scripts/devtest/prerelease-prepare.ps1`,
 `scripts/devtest/prerelease-configure.ps1`, `scripts/devtest/prerelease-measure.ps1`,
-`scripts/devtest/prerelease-verdict.ps1`, `scripts/utils/search-log.ps1`, mobile-mcp,
-`/skill-release`, `/spec-draft`, `/spec-check` - and adds **no** app runtime code (S0484 ADR-2).
+`scripts/devtest/prerelease-verdict.ps1`, `scripts/devtest/prerelease-log-audit.ps1`,
+`scripts/utils/search-log.ps1`, mobile-mcp, `/skill-release`, `/spec-draft`, `/spec-check` -
+and adds **no** app runtime code (S0484 ADR-2).
 
 ## Usage
 
@@ -71,7 +72,11 @@ target from `mobile_list_elements_on_screen`, never hard-coded coordinates):
 ### 3 - Drive the core scenario
 
 Start a background logcat capture into `temp/s0484_run_<TS>.log` first (clear, then
-`adb logcat -v time *:V`). Walk the scenario via mobile-mcp; resolve every target from
+`adb logcat -v threadtime *:V`). **Use `threadtime`, not `time`** - `search-log.ps1` (and the
+verdict's error count built on it) only parse the `threadtime` line shape (pid+tid+package
+columns); a `-v time` capture parses to zero rows, so the verdict silently reads
+`actionableErrors=0` and a screen full of red error toasts passes as a clean log. Walk the
+scenario via mobile-mcp; resolve every target from
 `mobile_list_elements_on_screen` immediately before acting; save evidence with
 `mobile_save_screenshot` to `temp/s0484_screens/` (off-context). Token discipline mirrors
 `/spec-test-device` - never screenshot to find an element.
@@ -114,13 +119,39 @@ Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write a timesta
 `temp/s0484_prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence
 paths).
 
-**On PASS:** print the report path and propose `/skill-release` as the next step. **Do not
-auto-run it** - the release starts only on explicit owner confirmation (ADR-1). State this in the
-final line.
+The verdict is a coarse gate: it produces one error count and hard-stops only on crashes/ANR.
+It does **not** enumerate which app errors fired, so a green verdict alone never proves the run
+was clean. Always run the detailed log audit below before trusting a PASS.
+
+### 4.1 - Detailed log audit (mandatory, every run)
+
+The verdict's log signal is a single number; red toasts and handled-but-loud failures hide
+behind it. Run the deep audit over the same log:
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/s0484_run_<TS>.log -Json
+```
+
+It parses both logcat formats, keeps app-process lines, folds stack traces into their throwing
+cluster, then splits clusters into **benign** (known emulator/capability fallbacks - Cast/Dynamite
+absent, `WifiRequiredException`, emulator GPU noise) and **actionable**, and separately flags
+user-facing error surfaces (toast / snackbar / `showError`). Exit `0` = clean, `1` = actionable
+clusters and/or error toasts present (triage), `2` = log unreadable.
+
+Treat every **actionable cluster** and every **error toast** as a finding even when the machine
+verdict is PASS - a working stream that still throws a red toast (e.g. FTP active-mode fallback
+NPE during otherwise-fine audio playback) is a real defect. Fold the audit's actionable clusters
+into the report's verdict breakdown and into the FAIL-branch `/spec-draft` triage below; an
+emulator-only benign cluster that recurs every sweep is a candidate for the audit's benign
+allowlist, not a ticket. Include the audit JSON path in the evidence pack.
+
+**On PASS:** only after the audit is clean (or its findings are triaged/parked) print the report
+path and propose `/skill-release` as the next step. **Do not auto-run it** - the release starts
+only on explicit owner confirmation (ADR-1). State this in the final line.
 
 ### 5 - Branch on FAIL
 
-For each distinct defect the verdict surfaced (research/06):
+For each distinct defect the verdict **or the step-4.1 audit** surfaced (research/06):
 
 - **Dedup first** by symptom via `scripts/spec_catalog/search.ps1` (error code / class / subsystem
   keyword + same-day created). If an open ticket already covers it, reference that id; do not draft

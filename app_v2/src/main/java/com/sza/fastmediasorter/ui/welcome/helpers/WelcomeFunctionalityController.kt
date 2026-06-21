@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
@@ -50,6 +51,7 @@ class WelcomeFunctionalityController @Inject constructor(
     private val downloadRunner: DeliverableDownloadRunner,
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val capabilityAvailability: CapabilityAvailability,
+    private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val installSource: InstallSourceProvider,
     private val mediaCapabilities: MediaCapabilities,
     @param:ApplicationScope private val appScope: CoroutineScope,
@@ -58,12 +60,15 @@ class WelcomeFunctionalityController @Inject constructor(
     // Held so a rebind (the page can be re-created) cancels the prior collections before re-collecting.
     private var ocrProgressJob: Job? = null
     private var translationProgressJob: Job? = null
+    private var streamsCatalogJob: Job? = null
 
     fun bind(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
         ocrProgressJob?.cancel()
         translationProgressJob?.cancel()
+        streamsCatalogJob?.cancel()
         ocrProgressJob = null
         translationProgressJob = null
+        streamsCatalogJob = null
 
         // Post-preset defaults: a one-shot read of the current settings drives the initial checked
         // state. The welcome page is the only writer during onboarding, so a live observer is not
@@ -85,6 +90,7 @@ class WelcomeFunctionalityController @Inject constructor(
         bindDocumentsRow(binding.rowDocuments, settings)
         bindOcrRow(binding, owner, settings)
         bindTranslationRow(binding, owner, settings)
+        bindStreamsRow(binding, owner, settings)
         bindElementsButton(binding, owner)
     }
 
@@ -228,6 +234,59 @@ class WelcomeFunctionalityController @Inject constructor(
     // Standard and legacy flavors can use the Google Play DFM or fall back to the GitHub mirror.
     private fun isTranslationVisible(): Boolean =
         capabilityAvailability.isTranslationAvailable()
+
+    // S0575: enabling Streams commits the master flag immediately; the source-catalog fetch is offered
+    // but optional - a refusal or failure leaves the feature ON (manual sources still work) and never
+    // blocks navigation. This is deliberately NOT the OCR/translation install-then-persist pattern.
+    private fun bindStreamsRow(
+        binding: PageWelcomeFunctionalityBinding,
+        owner: LifecycleOwner,
+        settings: AppSettings,
+    ) {
+        val row = binding.rowStreams
+        if (!capabilityAvailability.isStreamsAvailable()) {
+            row.visibility = View.GONE
+            binding.groupStreamsProgress.visibility = View.GONE
+            return
+        }
+        row.visibility = View.VISIBLE
+        row.setCheckedSilently(settings.enableStreams)
+        binding.groupStreamsProgress.visibility = View.GONE
+        row.setOnCheckedChangeListener { isChecked ->
+            Timber.d("S0575: welcome Streams toggle -> %b", isChecked)
+            if (isChecked) {
+                persist { it.copy(enableStreams = true) }
+                startStreamCatalogImport(binding, owner)
+            } else {
+                streamsCatalogJob?.cancel()
+                streamsCatalogJob = null
+                binding.groupStreamsProgress.visibility = View.GONE
+                persist { it.copy(enableStreams = false) }
+            }
+        }
+    }
+
+    // Page-scoped best-effort import: if the user advances or it fails, the catalog can still be pulled
+    // later from the Extensions screen; the master flag is already persisted on the app scope.
+    private fun startStreamCatalogImport(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
+        val statusView = binding.tvStreamsStatus
+        binding.groupStreamsProgress.visibility = View.VISIBLE
+        binding.progressStreams.isIndeterminate = true
+        statusView.text = statusView.context.getString(R.string.welcome_func_downloading, 0)
+
+        streamsCatalogJob?.cancel()
+        streamsCatalogJob = owner.lifecycleScope.launch {
+            val result = importStreamCatalogUseCase()
+            binding.progressStreams.isIndeterminate = false
+            statusView.setText(
+                if (result is ImportStreamCatalogUseCase.CatalogImportResult.Success) {
+                    R.string.welcome_streams_catalog_done
+                } else {
+                    R.string.welcome_streams_catalog_failed
+                }
+            )
+        }
+    }
 
     // Hide the OCR row on a Play install: the OCR engines are .so delivered from GitHub on every
     // flavor, and S0401 gates that off on Play-acquired store builds (Device & Network Abuse), so the

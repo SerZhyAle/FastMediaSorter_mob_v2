@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -60,14 +59,11 @@ class CrashReportPromptManager(private val activity: Activity) {
                 }
             }
             withContext(Dispatchers.Main) {
-                val intent = SupportIntentFactory.buildCrashReportEmail(subject, body, zipUri)
-                // The intent carries a mailto: selector; launch it directly - createChooser would
-                // strip the selector and fall back to the generic share sheet.
-                try {
-                    activity.startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Timber.w(e, "CrashReportPromptManager: no email app to send crash report")
-                    Toast.makeText(activity, R.string.export_logs_no_share_target, Toast.LENGTH_SHORT).show()
+                Timber.d("S0572: crash-report send tapped, launching email/share fallback")
+                // Email-first with share-sheet fallback so a missing mail app does not drop the report.
+                val delivered = SupportIntentFactory.launchCrashReport(activity, subject, body, zipUri)
+                if (!delivered) {
+                    Toast.makeText(activity, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
                 }
             }
         }

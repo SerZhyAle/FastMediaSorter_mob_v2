@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.core.input.GamepadNavIntent
 import com.sza.fastmediasorter.core.input.GamepadNavigationTranslator
 import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
+import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -125,6 +126,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // S0538: shrink dialog action buttons to 50% when "Compact elements (global)" is on, app-wide.
         // Must run before any dialog inflates (its button style reads the size theme attr at inflate).
         PlayerLayoutModePrefs.applyCompactDialogButtonsOverlay(this)
+
+        // S0569: layer the saved custom accent theme overlay onto this Activity before any view or
+        // dialog inflates and resolves color attributes. No-op for AUTO/LIGHT/DARK.
+        ColorThemePrefs.applyThemeOverlay(this)
 
         _binding = getViewBinding()
         setContentView(binding.root)

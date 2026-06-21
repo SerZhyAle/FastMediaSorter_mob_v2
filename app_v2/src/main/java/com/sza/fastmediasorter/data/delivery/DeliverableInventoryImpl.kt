@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,7 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Aggregates the deliverable modules (sets A/B/C/D) and OCR language data into a single inventory
@@ -47,6 +49,7 @@ class DeliverableInventoryImpl @Inject constructor(
     private val repository: DeliverableCapabilityRepository,
     private val tesseractModelManager: TesseractModelManager,
     private val capabilityAvailability: CapabilityAvailability,
+    private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val bundled: BundledDeliverableSets,
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>,
     @ApplicationContext private val appContext: Context
@@ -137,6 +140,18 @@ class DeliverableInventoryImpl @Inject constructor(
                 )
             )
         }
+        if (capabilityAvailability.isStreamsAvailable()) {
+            add(
+                ExtensionItem.Catalog(
+                    id = STREAM_CATALOG_ID,
+                    displayNameRes = R.string.ext_streams_title,
+                    descriptionRes = R.string.ext_streams_desc,
+                    sizeLabel = formatBytes(STREAM_CATALOG_SIZE),
+                    section = ExtensionSection.STREAMS,
+                    statusFlow = catalogStatusFlow(STREAM_CATALOG_ID)
+                )
+            )
+        }
     }
 
     // OCR_ENGINES + TRANSLATION are gated by compile-time capability (the .so / DFM may be delivered
@@ -160,6 +175,7 @@ class DeliverableInventoryImpl @Inject constructor(
                     runner.progressOf(item.set)
                 }
                 is ExtensionItem.LanguageData -> downloadTesseractModel(item.languageCode)
+                is ExtensionItem.Catalog -> importStreamCatalog()
             }
             progressFlow.collect { progress ->
                 statusFlow.value = progress.toExtensionStatus()
@@ -179,6 +195,9 @@ class DeliverableInventoryImpl @Inject constructor(
         when (item) {
             is ExtensionItem.Module -> repository.uninstall(item.set)
             is ExtensionItem.LanguageData -> tesseractModelManager.deleteModel(item.languageCode)
+            // S0575: catalog rows are re-importable; uninstall only resets the row status below and
+            // never deletes manually-added stream sources (strategic decision: off keeps data).
+            is ExtensionItem.Catalog -> Unit
         }
         statusFlowFor(item).value = ExtensionStatus.NotInstalled
     }
@@ -212,6 +231,23 @@ class DeliverableInventoryImpl @Inject constructor(
     private fun statusFlowFor(item: ExtensionItem): MutableStateFlow<ExtensionStatus> =
         activeDownloads.getOrPut(item.id) { MutableStateFlow(ExtensionStatus.NotInstalled) }
 
+    private fun catalogStatusFlow(id: String): Flow<ExtensionStatus> =
+        activeDownloads.getOrPut(id) { MutableStateFlow(ExtensionStatus.NotInstalled) }
+
+    // S0575: the stream catalog is fetched directly (not a DeliverableSet), so map its one-shot import
+    // result to the terminal DownloadProgress the shared row machinery already understands.
+    private fun importStreamCatalog(): Flow<DownloadProgress> = flow {
+        Timber.d("S0575: extensions stream catalog import requested")
+        emit(DownloadProgress.Queued)
+        emit(
+            when (val result = importStreamCatalogUseCase()) {
+                is ImportStreamCatalogUseCase.CatalogImportResult.Success -> DownloadProgress.Installed
+                ImportStreamCatalogUseCase.CatalogImportResult.Empty -> DownloadProgress.Failed("empty")
+                is ImportStreamCatalogUseCase.CatalogImportResult.Failure -> DownloadProgress.Failed(result.reason)
+            }
+        )
+    }
+
     private fun downloadTesseractModel(languageCode: String): Flow<DownloadProgress> = channelFlow {
         send(DownloadProgress.Queued)
         val success = tesseractModelManager.downloadModel(languageCode) { percent, _, _ ->
@@ -243,6 +279,8 @@ class DeliverableInventoryImpl @Inject constructor(
     companion object {
         // Estimated arm64-v8a download sizes (bytes) shown until a flavor contributes a real
         // descriptor; values mirror temp/S0386_B3_so_staging.md (strategic §5.4).
+        private const val STREAM_CATALOG_ID = "stream_catalog"
+        private const val STREAM_CATALOG_SIZE = 200_000L
         private const val LANG_SIZE_RUS = 15_000_000L
         private const val LANG_SIZE_UKR = 11_600_000L
         private val FALLBACK_SIZE = mapOf(

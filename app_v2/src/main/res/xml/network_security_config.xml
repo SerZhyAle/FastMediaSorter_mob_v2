@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Base policy: HTTPS only for all domains by default -->
-    <!-- This restricts HTTP traffic but does NOT affect SMB/FTP/SFTP protocols -->
-    <!-- SMB (port 445), FTP (port 21), SFTP (port 22) use their own ports, not HTTP -->
-    <base-config cleartextTrafficPermitted="false" />
+    <!-- S0565: cleartext permitted app-wide so the Трансляции feature can play arbitrary
+         public http:// radio/stream hosts (most internet radio is plain HTTP and the source
+         list is user-supplied, so a static allowlist cannot cover it). Owner-approved
+         security trade-off. SMB (445)/FTP (21)/SFTP (22) use their own ports, unaffected. -->
+    <base-config cleartextTrafficPermitted="true" />
     
     <!-- Allow cleartext (HTTP) traffic for local network only -->
     <!-- This is needed for potential local HTTP APIs (if any) -->

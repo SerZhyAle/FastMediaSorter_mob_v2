@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerSettingsManager
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
@@ -56,6 +57,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     // Empty on every flavor except noLegal, where the gesture-overlay capability contributes one.
     @Inject
     lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
+
+    // Empty except on standard + noLegal, where the shared capture engine binds the menu launcher.
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
     private val defaultPlayerSettingsManager = DefaultPlayerSettingsManager()
 
@@ -264,6 +269,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Capture group (camera photos, video recording, microphone).
         captureManager.setup()
+        captureManager.setupScreenshotAction(menuScreenshotLaunchers, requireActivity())
 
         // Screen-gesture overlay group (noLegal-only capability).
         gesturesManager.setup()

@@ -211,6 +211,13 @@ class PlaybackSettingsFragment : Fragment() {
 
         // Help for touch zones is now inline on rowAlwaysShowTouchZones (folded by SettingsToggleRow).
 
+        // S0565: Трансляции entry-point. SUPPORT_STREAMS is a capability flag (not an IS_* flavor
+        // guard), so reading it here is allowed; photos has it false and hides the entry.
+        binding.btnStreams?.isVisible = com.sza.fastmediasorter.BuildConfig.SUPPORT_STREAMS
+        binding.btnStreams?.setOnClickListener {
+            startActivity(android.content.Intent(requireContext(), com.sza.fastmediasorter.ui.streams.StreamsActivity::class.java))
+        }
+
         binding.btnShowHintNow.setOnClickListener {
             // Reset first-run flag to trigger hint on next PlayerActivity launch
             viewModel.resetPlayerFirstRun()

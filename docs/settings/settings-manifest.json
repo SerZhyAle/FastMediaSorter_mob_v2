@@ -1431,6 +1431,16 @@
       "titleUk": "Показати підказку наступного разу"
     },
     {
+      "key": "btnStreams",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "BUTTON",
+      "titleEn": "Streams",
+      "titleRu": "Трансляции",
+      "titleUk": "Трансляції"
+    },
+    {
       "key": "etSlideshowInterval",
       "sectionId": "playback",
       "destination": "PLAYBACK",

@@ -149,6 +149,7 @@ class ResourceEditorFragment : Fragment() {
             ResourceType.SFTP -> getString(R.string.resource_type_sftp)
             ResourceType.FTP -> getString(R.string.resource_type_ftp)
             ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> getString(R.string.resource_type_stream)
         }
         binding.toolbar.title = "$toolbarBaseTitle · $typeLabel"
     }

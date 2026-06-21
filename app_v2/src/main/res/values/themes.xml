@@ -48,6 +48,70 @@
         <item name="dialogActionButtonGap">@dimen/dialog_action_button_gap_compact</item>
     </style>
 
+    <!-- S0569: custom accent themes. Applied via theme.applyStyle() in BaseActivity from
+         ColorThemePrefs.applyThemeOverlay() when the saved theme is one of the six custom values.
+         Each overlay only re-points the key color attributes the base Theme.FastMediaSorter.App
+         defines; brightness is set separately via AppCompatDelegate night mode. -->
+    <style name="ThemeOverlay.FastMediaSorter.DarkGreen" parent="">
+        <item name="colorPrimary">@color/theme_dark_green_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_dark_green_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_dark_green_on_primary</item>
+        <item name="android:colorBackground">@color/theme_dark_green_background</item>
+        <item name="colorSurface">@color/theme_dark_green_surface</item>
+        <item name="colorOnSurface">@color/theme_dark_green_on_surface</item>
+        <item name="android:windowBackground">@color/theme_dark_green_background</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.DarkBlue" parent="">
+        <item name="colorPrimary">@color/theme_dark_blue_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_dark_blue_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_dark_blue_on_primary</item>
+        <item name="android:colorBackground">@color/theme_dark_blue_background</item>
+        <item name="colorSurface">@color/theme_dark_blue_surface</item>
+        <item name="colorOnSurface">@color/theme_dark_blue_on_surface</item>
+        <item name="android:windowBackground">@color/theme_dark_blue_background</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.DarkRed" parent="">
+        <item name="colorPrimary">@color/theme_dark_red_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_dark_red_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_dark_red_on_primary</item>
+        <item name="android:colorBackground">@color/theme_dark_red_background</item>
+        <item name="colorSurface">@color/theme_dark_red_surface</item>
+        <item name="colorOnSurface">@color/theme_dark_red_on_surface</item>
+        <item name="android:windowBackground">@color/theme_dark_red_background</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.LightGreen" parent="">
+        <item name="colorPrimary">@color/theme_light_green_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_light_green_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_light_green_on_primary</item>
+        <item name="android:colorBackground">@color/theme_light_green_background</item>
+        <item name="colorSurface">@color/theme_light_green_surface</item>
+        <item name="colorOnSurface">@color/theme_light_green_on_surface</item>
+        <item name="android:windowBackground">@color/theme_light_green_background</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.LightBlue" parent="">
+        <item name="colorPrimary">@color/theme_light_blue_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_light_blue_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_light_blue_on_primary</item>
+        <item name="android:colorBackground">@color/theme_light_blue_background</item>
+        <item name="colorSurface">@color/theme_light_blue_surface</item>
+        <item name="colorOnSurface">@color/theme_light_blue_on_surface</item>
+        <item name="android:windowBackground">@color/theme_light_blue_background</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.LightRed" parent="">
+        <item name="colorPrimary">@color/theme_light_red_primary</item>
+        <item name="colorPrimaryVariant">@color/theme_light_red_primary_variant</item>
+        <item name="colorOnPrimary">@color/theme_light_red_on_primary</item>
+        <item name="android:colorBackground">@color/theme_light_red_background</item>
+        <item name="colorSurface">@color/theme_light_red_surface</item>
+        <item name="colorOnSurface">@color/theme_light_red_on_surface</item>
+        <item name="android:windowBackground">@color/theme_light_red_background</item>
+    </style>
+
     <!-- System bar transparency is applied programmatically via enableEdgeToEdge() in BaseActivity. -->
     <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App" />
 
@@ -148,23 +212,25 @@
     <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
 
     <!-- Dialog action pair (S0538): one high-visibility role per slot so confirm/cancel are unmissable by a blind finger tap.
-         Confirm=green filled, Cancel=neutral outlined, Destructive=red filled. Min 56dp, colors from @color/ + ?attr/ only (Rule 19). -->
+         Confirm=green filled, Cancel=neutral outlined, Destructive=red filled. Min 56dp, colors from @color/ + ?attr/ only (Rule 19).
+         S0573: minHeight is bound directly to @dimen, not through ?attr/dialogActionButtonMinHeight, because
+         MaterialButton inflation under transparent/dynamic dialog hosts proved that attr chain can fail at runtime. -->
     <style name="Widget.FastMediaSorter.Button.DialogConfirm" parent="Widget.FastMediaSorter.Button.Filled">
         <item name="backgroundTint">@color/success_color</item>
         <item name="android:textColor">@color/white</item>
-        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+        <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.DialogDestructive" parent="Widget.FastMediaSorter.Button.Filled">
         <item name="backgroundTint">@color/delete_button</item>
         <item name="android:textColor">@color/white</item>
-        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+        <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Outlined">
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="strokeColor">?attr/colorOutline</item>
-        <item name="android:minHeight">?attr/dialogActionButtonMinHeight</item>
+        <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
     </style>
 
     <!-- S0538: builder seam - every MaterialAlertDialogBuilder dialog inherits the unified pair via

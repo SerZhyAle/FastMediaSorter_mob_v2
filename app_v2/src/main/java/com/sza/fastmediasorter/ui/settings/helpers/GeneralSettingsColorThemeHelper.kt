@@ -30,12 +30,24 @@ class GeneralSettingsColorThemeHelper(
     private fun positionToValue(position: Int): String = when (position) {
         1 -> "LIGHT"
         2 -> "DARK"
+        3 -> "DARK_GREEN"
+        4 -> "DARK_BLUE"
+        5 -> "DARK_RED"
+        6 -> "LIGHT_GREEN"
+        7 -> "LIGHT_BLUE"
+        8 -> "LIGHT_RED"
         else -> "AUTO"
     }
 
     private fun valueToPosition(value: String): Int = when (value) {
         "LIGHT" -> 1
         "DARK" -> 2
+        "DARK_GREEN" -> 3
+        "DARK_BLUE" -> 4
+        "DARK_RED" -> 5
+        "LIGHT_GREEN" -> 6
+        "LIGHT_BLUE" -> 7
+        "LIGHT_RED" -> 8
         else -> 0
     }
 

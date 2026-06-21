@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_stream_add"
+        android:icon="@drawable/ic_add"
+        android:title="@string/streams_add"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_stream_import"
+        android:icon="@drawable/ic_import"
+        android:title="@string/streams_import"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_stream_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/streams_refresh"
+        app:showAsAction="ifRoom" />
+</menu>

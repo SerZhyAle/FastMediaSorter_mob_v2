@@ -163,6 +163,8 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />

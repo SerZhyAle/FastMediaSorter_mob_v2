@@ -370,6 +370,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
     @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
+    // S0565: flavor-gated stream-protocol support; threaded into VideoPlayerManager for RTSP isolation.
+    @Inject lateinit var streamProtocolSupport: com.sza.fastmediasorter.domain.player.StreamProtocolSupport
+
     // S0436: flavor-resolved capability layer; passed down to the player-manager cascade in place of BuildConfig.SUPPORT_* reads.
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 

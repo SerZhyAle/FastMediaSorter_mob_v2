@@ -299,6 +299,12 @@
         <item>Авто (за устройством)</item>
         <item>Светлая</item>
         <item>Тёмная</item>
+        <item>Тёмно-зелёная</item>
+        <item>Тёмно-синяя</item>
+        <item>Тёмно-красная</item>
+        <item>Светло-зелёная</item>
+        <item>Светло-синяя</item>
+        <item>Светло-красная</item>
     </string-array>
     <string name="backup_restore_settings">Резервное копирование</string>
     <string name="backup_info_description">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
@@ -2673,4 +2679,43 @@
     <string name="camera_control_pause">Пауза</string>
     <string name="camera_control_resume">Продолжить</string>
     <string name="camera_gallery_preview">Просмотр последнего снимка</string>
+    <string name="resource_type_stream">Трансляция</string>
+    <string name="streams_error_unsupported_in_build">Этот тип трансляции не поддерживается в этой версии приложения.</string>
+    <string name="streams_title">Трансляции</string>
+    <string name="streams_add">Добавить трансляцию</string>
+    <string name="streams_import">Импорт списка</string>
+    <string name="streams_refresh">Обновить</string>
+    <string name="streams_pin_to_top">Закрепить вверху</string>
+    <string name="streams_remove">Удалить</string>
+    <string name="streams_add_url_hint">URL трансляции (http, https, rtsp)</string>
+    <string name="streams_import_url_hint">URL плейлиста (.m3u)</string>
+    <string name="streams_title_hint">Название (необязательно)</string>
+    <string name="streams_error_invalid_url">Введите корректный адрес http, https или rtsp.</string>
+    <string name="streams_error_network">Не удалось загрузить список. Проверьте соединение и повторите.</string>
+    <string name="streams_now_playing">Сейчас играет</string>
+    <string name="streams_empty">Пока нет трансляций. Добавьте URL или импортируйте список.</string>
+    <string name="streams_cleartext_note">Этот экран может воспроизводить публичные http-потоки без шифрования.</string>
+    <string name="streams_stop">Остановить</string>
+    <string name="streams_import_done">Импортировано трансляций: %1$d</string>
+    <string name="settings_streams_summary">Открыть интернет-аудио, видео и RTSP-трансляции.</string>
+    <string name="crash_report_no_share_target">Нет приложения для отправки отчёта о сбое. Отчёт сохранён на устройстве.</string>
+    <string name="streams_import_choose_title">Импорт списка</string>
+    <string name="streams_import_catalog">Обновить каталог FastMediaSorter</string>
+    <string name="streams_import_from_url">Импорт по URL</string>
+    <string name="streams_catalog_updated">Каталог: +%1$d новых, %2$d обновлено, %3$d удалено</string>
+    <string name="streams_catalog_empty">Каталог пуст или недоступен</string>
+    <string name="streams_search_hint">Поиск</string>
+    <string name="streams_filter">Фильтр</string>
+    <string name="streams_sort">Сортировка</string>
+    <string name="streams_sort_name">По названию</string>
+    <string name="streams_sort_topic">По теме</string>
+    <string name="streams_sort_language">По языку</string>
+    <string name="streams_sort_recent">Недавно добавленные</string>
+    <string name="streams_filter_all">Все</string>
+    <string name="ext_section_streams">Трансляции</string>
+    <string name="ext_streams_title">Каталог источников трансляций</string>
+    <string name="ext_streams_desc">Скачать каталог доступных источников трансляций</string>
+    <string name="settings_streams_section">Трансляции</string>
+    <string name="settings_streams_toggle">Включить трансляции</string>
+    <string name="settings_take_screenshot_now">Сделать скриншот</string>
 </resources>

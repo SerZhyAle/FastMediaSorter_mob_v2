@@ -46,9 +46,9 @@ class WebViewAuthDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        // Host (ReceiveShareActivity) runs under the translucent theme that the AppCompat DayNight
-        // delegate flattens onto a non-Material base at runtime, dropping the Material3 / custom dialog
-        // attrs the MaterialButtons in this layout resolve. Inflate against a guaranteed Material3 context.
+        // The dialog is launched from a transparent host. Inflate the custom layout against an explicit
+        // Material-themed context so the embedded buttons and text fields do not inherit the flattened
+        // transparent-host theme chain.
         val themedInflater = inflater.cloneInContext(
             ContextThemeWrapper(requireContext(), R.style.Theme_FastMediaSorter)
         )

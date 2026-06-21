@@ -177,6 +177,7 @@ class MainResumePlaybackHelper(
             ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
                 resourceRepository.testConnection(resource).isSuccess
             }
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> true
         }
     }
 

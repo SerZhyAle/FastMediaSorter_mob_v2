@@ -8,7 +8,12 @@ enum class ResourceType {
     SMB,
     SFTP,
     FTP,
-    CLOUD;
+    CLOUD,
+
+    // S0565: internet streams. Routed by URI scheme in determineResourceType() before the LOCAL
+    // fallback. Excluded from isNetworkResource - public streams carry no SMB-style credentials.
+    HTTP_STREAM,
+    RTSP_STREAM;
 
     val isNetworkResource: Boolean
         get() = this in listOf(SMB, SFTP, FTP, CLOUD)

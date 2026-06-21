@@ -233,6 +233,37 @@ class PlayerMediaFilesLoader(
                     return@launch
                 }
 
+                // S0565: an internet stream has no DB resource to scan. When the player is launched
+                // with a stream URL as the initial path (from the Трансляции screen against the
+                // synthetic resource id), play it directly as a one-item list instead of running a
+                // file scanner over a non-filesystem path. determineResourceType() then classifies the
+                // scheme to a stream ResourceType and routes it to the stream playback helper.
+                val streamPath = initialFilePath?.takeIf {
+                    it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
+                }
+                if (streamPath != null) {
+                    val streamFile = MediaFile(
+                        name = streamPath.substringAfterLast('/').substringBefore('?').ifBlank { streamPath },
+                        path = streamPath,
+                        type = MediaType.VIDEO,
+                        size = 0L,
+                        createdDate = System.currentTimeMillis(),
+                        lastModified = System.currentTimeMillis(),
+                        resourceId = resource.id,
+                    )
+                    updateState {
+                        it.copy(
+                            files = listOf(streamFile),
+                            currentIndex = 0,
+                            resource = resource,
+                            isSlideShowActive = false,
+                            isPaused = false,
+                        )
+                    }
+                    setLoading(false)
+                    return@launch
+                }
+
                 // Configure ConnectionThrottleManager for active resource (instead of global config in MainViewModel)
                 if (resource.recommendedThreads != null) {
                     val resourceKey = when {

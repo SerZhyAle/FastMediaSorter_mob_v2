@@ -67,6 +67,7 @@ class VideoPlayerManagerStateEndedTest {
             decoderFailureTracker = mockk(relaxed = true),
             remoteSourceGate = mockk(relaxed = true),
             statsSink = mockk(relaxed = true),
+            streamProtocolSupport = mockk(relaxed = true),
         )
     }
 

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -241,14 +240,12 @@ object ScrollableTextDialog {
                 CoroutineScope(Dispatchers.IO).launch {
                     val zipUri = LogExportHelper.buildLogsZipUri(context)
                     withContext(Dispatchers.Main) {
-                        val emailIntent = SupportIntentFactory.buildCrashReportEmail(subject, body, zipUri)
-                        val chooser = Intent.createChooser(emailIntent, subject)
-                        if (context !is Activity) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        try {
-                            context.startActivity(chooser)
-                        } catch (e: ActivityNotFoundException) {
-                            Timber.w(e, "ScrollableTextDialog: no email app to send crash report")
-                            Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_SHORT).show()
+                        Timber.d("S0572: dialog report-to-author tapped, launching email/share fallback")
+                        // Email-first with share-sheet fallback; previously createChooser stripped the
+                        // mailto selector and silently dropped the recipient for non-email targets.
+                        val delivered = SupportIntentFactory.launchCrashReport(context, subject, body, zipUri)
+                        if (!delivered) {
+                            Toast.makeText(context, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
                         }
                     }
                 }

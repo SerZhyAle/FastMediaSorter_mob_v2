@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Emulator verifies MediaProjection screenshot](reference_emulator_mediaprojection_capture.md) - standard non-VR AVD fully verifies menu-screenshot path end-to-end (consent + capture + MediaStore PNG save); treat as emulator-testable unlike VR/seeded-media cases
 - [HOW_TO settings-path drift gate](reference_howto_settings_path_gate.md) - S0558 gate validates "Settings -> .." recipes in docs/HOW_TO*.md vs manifest; on failure extend docs/settings/howto-path-vocab.json or fix the label
 - [Flavor matrix: legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - persona's flavor table is stale; legacy=full set incl cloud/docs/translation, photos has cloud+network (no docs/video/audio), lite is the only no-cloud flavor; verify SUPPORT_*/ENABLE_* in build.gradle.kts
 - [Play edge-to-edge warnings status](project_play_setstatusbarcolor_false_positive.md) - #2 setStatusBarColor was FIXED by Material 1.14.0 (cleared on release 6200.317; my earlier "unfixable" call was WRONG); #1 may-not-display is informational + app-side-complete, not reliably clearable
@@ -46,6 +47,7 @@
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare `pwsh` works in bash via /c/Users/serzh/bin/pwsh; no full path needed (since 2026-05-21)
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tags bound to BlockNeedUserTest; removal is a side effect of leaving that status, never speculative
 - [Build gotchas](project_build_gotchas.md) - build-debug.PS1 flaky "daemon stopped" → retry; dev/CATALOG/*.jsonl+.md are gitignored
+- [Unmask kapt stackless NPE](project_kapt_npe_unmask.md) - "Cannot read field tree" NPE = masked error; -XX:-OmitStackTraceInFastThrow + correctErrorTypes=false reveal real javac error (S0566: two companion objects)
 - [AVD device-sweep gotchas](feedback_avd_device_sweep_gotchas.md) - headless Pixel_4: touch input wedge (keyevent-probe + cold reboot), ACCESS_LOCAL_NETWORK for SMB/SFTP/FTP, logcat death recovery, mcp coords top-left
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew tag(.424) vs built artifact(.446); DEBUG-not-rebased-after-main-rebuild merge conflict in release-doc files; gitignored PLAN/ makes Step 12a git-diff empty (use local catalog)
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md

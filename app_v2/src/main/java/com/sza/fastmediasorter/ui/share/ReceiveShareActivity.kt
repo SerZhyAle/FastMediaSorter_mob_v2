@@ -105,12 +105,9 @@ class ReceiveShareActivity : AppCompatActivity() {
     private var isFinishTriggered = false
     private var folderPickerActive = false
 
-    // This Activity runs under the translucent Theme.FastMediaSorter.Transparent. At runtime the
-    // AppCompat DayNight delegate flattens that window theme onto a non-Material base (AppCompat.Empty/
-    // DeviceDefault), dropping the Material3 + custom dialog attrs (e.g. ?attr/dialogActionButtonMinHeight
-    // bound only on Theme.FastMediaSorter.App). Inflating a MaterialButton against the raw Activity then
-    // throws "Failed to resolve attribute". Every dialog spawned here (and the Dialog chain it passes a
-    // context down to) must inflate against this guaranteed-Material3 context instead.
+    // This Activity runs under the translucent Theme.FastMediaSorter.Transparent. Route every spawned
+    // dialog through an explicit Material-themed context instead of the raw host theme chain so the
+    // dialog UI keeps the normal app palette and avoids transparent-host theming edge cases.
     private val dialogContext: Context by lazy { ContextThemeWrapper(this, R.style.Theme_FastMediaSorter) }
 
     // S0170 BUG-1: the unknown-host auth offer must fire at most once per Activity instance.

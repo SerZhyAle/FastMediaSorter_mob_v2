@@ -110,6 +110,8 @@ class CameraCaptureSaver @Inject constructor(
                                 localOk
                             }
                         }
+                        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                            throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
                     }
                 }
             }
