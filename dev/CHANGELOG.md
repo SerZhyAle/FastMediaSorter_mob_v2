@@ -19614,3 +19614,5 @@ Format: | datetime | file | target | description |
 | 2026-06-22 02:32:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev` | S0610 Phase 04: wire copy/move destination panels + custom-path picker in standalone image host [branch: DEBUG-v016] |
 | 2026-06-22 02:35:38 | `docs/ALL_FEATURES.jsonl` | `spec-dev` | S0610: record standalone image print + copy/move capability [branch: DEBUG-v016] |
 | 2026-06-22 02:35:38 | `PLAN/S0610_standalone-image-player-commands.md` | `spec-dev` | S0610 all phases implemented; status -> BlockNeedUserTest [branch: DEBUG-v016] |
+| 2026-06-22 02:41:19 | `PLAN/S0612_standalone-nonimage-copy-move-groups.md` | `spec-draft` | Draft S0612: copy/move groups in audio/document/text standalone hosts (found during S0610) [branch: DEBUG-v016] |
+| 2026-06-22 02:41:20 | `PLAN/S0613_standalone-document-text-print-send-to.md` | `spec-draft` | Draft S0613: print via Send-to in document/text standalone viewers (found during S0610) [branch: DEBUG-v016] |
