@@ -94,7 +94,8 @@ import javax.inject.Inject
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class PhotoVideoStandaloneActivity :
-    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation {
+    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation,
+    com.sza.fastmediasorter.core.share.SharePrintHost {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -281,15 +282,14 @@ class PhotoVideoStandaloneActivity :
         }
     }
 
-    // S0393 wave-C: print the displayed image via the platform PrintHelper.
-    private fun printCurrentImage() {
-        val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
-            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show(); return
-        }
-        val name = viewModel.state.value.mediaFile?.name ?: "image"
+    // S0610: Print receiver for the unified «Send to..» menu (S0459 ADR-10). Reuses the displayed-bitmap
+    // print path; returns false when no rendered image is available so the menu gate / dispatch fails cleanly.
+    override fun printMediaFile(mediaFile: MediaFile): Boolean {
+        val bitmap = binding.photoView.drawable?.toBitmap() ?: return false
         androidx.print.PrintHelper(this).apply {
             scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
-        }.printBitmap(name, bitmap)
+        }.printBitmap(mediaFile.name, bitmap)
+        return true
     }
 
     // S0393 wave-C: capture the current video frame from the TextureView and save it to Pictures.
@@ -505,7 +505,9 @@ class PhotoVideoStandaloneActivity :
                 hasBitmap && capabilityAvailability.isTranslationAvailable()
             popup.menu.findItem(R.id.menu_image_text_settings).isVisible =
                 hasBitmap && capabilityAvailability.isTranslationAvailable()
-            popup.menu.findItem(R.id.menu_print).isVisible = hasBitmap
+            // S0610: print is now a receiver of the unified «Send to..» menu (btnShareCmd), so the
+            // isolated overflow print item is dropped for this host to keep a single invocation point.
+            popup.menu.findItem(R.id.menu_print).isVisible = false
             val isVideo = viewModel.state.value.mediaType == MediaType.VIDEO
             popup.menu.findItem(R.id.menu_black_screen).isVisible = isVideo
             popup.menu.findItem(R.id.menu_save_frame).isVisible = isVideo
@@ -545,7 +547,6 @@ class PhotoVideoStandaloneActivity :
                     }
                     R.id.menu_ocr_image -> { ocrCurrentImage(); true }
                     R.id.menu_translate_image -> { translateCurrentImage(); true }
-                    R.id.menu_print -> { printCurrentImage(); true }
                     R.id.menu_save_frame -> { saveCurrentFrame(); true }
                     R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
                     R.id.menu_black_screen -> { blackScreenManager.show(); true }

@@ -58,7 +58,7 @@ internal class PlayerFileOpsInitializer(
 
         val slotLabelFormatter = KeybindingRowLabelFormatter(activity)
         activity.destinationButtonsManager = DestinationButtonsManager(
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             settingsRepository = activity.settingsRepository,
             getDestinationsUseCase = activity.viewModel.getDestinationsUseCase,
             lifecycleScope = activity.lifecycleScope,

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.graphics.Color
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -12,7 +13,6 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -30,7 +30,7 @@ import timber.log.Timber
  * - Persists collapsed state to settings
  */
 class DestinationButtonsManager(
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val settingsRepository: SettingsRepository,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val lifecycleScope: LifecycleCoroutineScope,
@@ -39,7 +39,7 @@ class DestinationButtonsManager(
     private val shouldNumberSlots: () -> Boolean,
     private val slotKeyGlyph: (slotIndex: Int) -> String?
 ) {
-    private val safeViews = PlayerBindingSafeViews(binding)
+    private val safeViews = PlayerBindingSafeViews(root)
 
     // Cache settings to avoid repeated reads
     private var cachedCopyCollapsed: Boolean? = null
@@ -92,7 +92,7 @@ class DestinationButtonsManager(
                 val destinationsList = destinations.take(maxRecipients)
                 val count = destinationsList.size
 
-                val density = binding.root.context.resources.displayMetrics.density
+                val density = root.context.resources.displayMetrics.density
                 val measuredPanelContentWidthPx = resolveMeasuredPanelContentWidthPx()
                 val availableWidthPx = measuredPanelContentWidthPx ?: run {
                     // S0227 relies on real panel width, but the first populate can race the initial layout.
@@ -234,7 +234,7 @@ class DestinationButtonsManager(
                     safeViews.moveToPanel.isVisible = true
                     
                     // Force layout recalculation to prevent panels from being pushed off-screen
-                    binding.root.requestLayout()
+                    root.requestLayout()
                     
                     // Restore collapsed state AFTER showing panels
                     Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
@@ -249,7 +249,7 @@ class DestinationButtonsManager(
                 refreshSlotBadges()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load destinations")
-                Toast.makeText(binding.root.context, R.string.toast_failed_to_load_destinations, Toast.LENGTH_SHORT).show()
+                Toast.makeText(root.context, R.string.toast_failed_to_load_destinations, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -258,7 +258,7 @@ class DestinationButtonsManager(
      * Create horizontal LinearLayout for button row
      */
     private fun createButtonRow(): LinearLayout {
-        return LinearLayout(binding.root.context).apply {
+        return LinearLayout(root.context).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -269,7 +269,7 @@ class DestinationButtonsManager(
     }
     
     private fun createCustomPathButton(isCopy: Boolean): MaterialButton {
-        val context = binding.root.context
+        val context = root.context
         val density = context.resources.displayMetrics.density
         val screenWidthDp = context.resources.displayMetrics.widthPixels / density
         val buttonHeightDp = if (screenWidthDp < 500f) 44f else 56f
@@ -321,7 +321,7 @@ class DestinationButtonsManager(
     }
 
     private fun computeFallbackPanelContentWidthPx(): Int {
-        val displayWidthPx = binding.root.context.resources.displayMetrics.widthPixels
+        val displayWidthPx = root.context.resources.displayMetrics.widthPixels
         return (displayWidthPx - safeViews.copyToPanel.paddingLeft - safeViews.copyToPanel.paddingRight)
             .coerceAtLeast(0)
     }
@@ -357,7 +357,7 @@ class DestinationButtonsManager(
         isCopy: Boolean,
         fontSizeSp: Float
     ): MaterialButton {
-        return MaterialButton(binding.root.context).apply {
+        return MaterialButton(root.context).apply {
             // Short name - take first 8 characters or first word
             val shortName = when {
                 destination.name.length <= 10 -> destination.name
