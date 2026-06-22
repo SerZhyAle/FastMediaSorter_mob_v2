@@ -245,9 +245,9 @@
     "uk": "Вмикає планувальник для автоматичного виконання налаштованих операцій у заданий час."
   },
   "rowFollowSystemRotation": {
-    "en": "Rotates every app window except the player when the device auto-rotate setting changes.",
-    "ru": "Поворачивает все окна приложения, кроме плеера, вместе с системным авто-поворотом устройства.",
-    "uk": "Повертає всі вікна застосунку, крім плеєра, разом із системним авто-поворотом пристрою."
+    "en": "When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock.",
+    "ru": "Когда включено, все окна приложения, кроме плеера, следуют системному авто-повороту; когда выключено, они поворачиваются по датчику устройства независимо от блокировки ОС.",
+    "uk": "Коли увімкнено, усі вікна застосунку, крім плеєра, слідують системному авто-повороту; коли вимкнено, вони повертаються за датчиком пристрою незалежно від блокування ОС."
   },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",

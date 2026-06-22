@@ -240,7 +240,6 @@ object ScrollableTextDialog {
                 CoroutineScope(Dispatchers.IO).launch {
                     val zipUri = LogExportHelper.buildLogsZipUri(context)
                     withContext(Dispatchers.Main) {
-                        Timber.d("S0572: dialog report-to-author tapped, launching email/share fallback")
                         // Email-first with share-sheet fallback; previously createChooser stripped the
                         // mailto selector and silently dropped the recipient for non-email targets.
                         val delivered = SupportIntentFactory.launchCrashReport(context, subject, body, zipUri)

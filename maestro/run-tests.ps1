@@ -12,7 +12,8 @@
   contract over a discovered flow set and aggregates per-flow results into one suite verdict.
 
   Selection (-Suite):
-    all       - every *.yaml under smoke/, critical/, features/ (excludes _shared/ fragments)
+    all       - emulator-default *.yaml under smoke/, critical/, features/
+                (excludes _shared/ fragments and device-only file-operation flows)
     smoke      | critical | features      - that category, recursively
     features\browse  (or features/files)  - a single category subpath
     smoke\app_launch.yaml  | a full path  - a single flow file
@@ -118,6 +119,48 @@ function Set-AndroidHome {
     return $null
 }
 
+# ---------- adb discovery + deterministic device input state ----------
+function Find-Adb {
+    param([string]$Sdk)
+    $cmd = Get-Command adb -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    if ($Sdk) {
+        $candidate = Join-Path $Sdk 'platform-tools\adb.exe'
+        if (Test-Path -Path $candidate -PathType Leaf) { return $candidate }
+    }
+    return $null
+}
+
+# Stylus handwriting turns text-field taps into a handwriting panel on API 34 tablet images,
+# so flows that type into a field (browse filter) never land their text. Force it off for a
+# deterministic input state. Non-fatal: a probe failure never blocks the suite.
+function Set-DeviceInputDeterminism {
+    param([string]$Sdk, [string]$Device)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    try {
+        & $adb @target shell settings put secure stylus_handwriting_enabled 0 *> $null
+    } catch { }
+}
+
+# ---------- Maestro local session cleanup ----------
+function Clear-MaestroSessions {
+    $roots = @()
+    if ($env:USERPROFILE) { $roots += (Join-Path $env:USERPROFILE '.maestro') }
+    if ($env:HOME) { $roots += (Join-Path $env:HOME '.maestro') }
+    foreach ($root in $roots) {
+        $sessions = Join-Path $root 'sessions'
+        if (-not (Test-Path -Path $sessions -PathType Container)) { continue }
+        $resolvedRoot = Resolve-Path -LiteralPath $root -ErrorAction SilentlyContinue
+        $resolvedSessions = Resolve-Path -LiteralPath $sessions -ErrorAction SilentlyContinue
+        if ($resolvedRoot -and $resolvedSessions -and
+            $resolvedSessions.Path.StartsWith($resolvedRoot.Path, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Remove-Item -LiteralPath $resolvedSessions.Path -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 # ---------- flow-set resolution from -Suite ----------
 function Get-FlowSet {
     param([string]$Selection)
@@ -131,7 +174,11 @@ function Get-FlowSet {
 
     if ($Selection.ToLower() -eq 'all') {
         return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter '*.yaml' -File |
-            Where-Object { $_.FullName -match '[\\/](smoke|critical|features)[\\/]' })
+            Where-Object {
+                $_.FullName -match '[\\/](smoke|critical|features)[\\/]' -and
+                $_.FullName -notmatch '[\\/]features[\\/]files[\\/]' -and
+                $_.FullName -notmatch '[\\/]critical[\\/]file_operations\.yaml$'
+            })
     }
 
     # A category (smoke|critical|features) or a subpath (features\browse).
@@ -146,6 +193,10 @@ function Get-FlowSet {
 # ---------- run one flow, capture trace off-context ----------
 function Invoke-Flow {
     param([string]$Maestro, [System.IO.FileInfo]$FlowFile)
+
+    # Maestro 2.x can leave a local session lock after stopApp/relaunch-heavy flows; clearing the
+    # per-user session cache before each isolated CLI invocation keeps the suite deterministic.
+    Clear-MaestroSessions
 
     $stamp   = (Get-Date).ToString('yyyyMMdd_HHmmss')
     $logFile = Join-Path $TempDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
@@ -187,6 +238,9 @@ Write-Line "OK maestro: $maestro" 'Green'
 
 $sdk = Set-AndroidHome
 Write-Line "OK android-sdk: $(if ($sdk) { $sdk } else { '(not found - Maestro may not detect devices)' })" $(if ($sdk) { 'Green' } else { 'Yellow' })
+
+# Deterministic device input state (stylus handwriting off) so text-entry flows are reliable.
+Set-DeviceInputDeterminism -Sdk $sdk -Device $DeviceId
 
 $flows = Get-FlowSet -Selection $Suite
 if ($flows.Count -eq 0) {

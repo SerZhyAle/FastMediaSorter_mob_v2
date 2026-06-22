@@ -50,7 +50,6 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         }
         // Opens the Streams screen to manage sources when the feature is enabled.
         binding.btnStreams.setOnClickListener {
-            Timber.d("S0578: open Streams screen from Media > Streams section")
             startActivity(Intent(requireContext(), StreamsActivity::class.java))
         }
     }

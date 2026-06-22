@@ -175,13 +175,15 @@ class OperationsCaptureManager(
     }
 
     /**
-     * S0559: store-safe menu screenshot action. The card is shown only when a [MenuScreenshotLauncher]
-     * is bound (standard + noLegal); it stays gone on flavors without the capture engine, where the
-     * injected set is empty.
+     * S0559: store-safe menu-screenshot test action. The button now lives inside the screen-gestures
+     * card (after the gesture-action rows), not its own card, so its own visibility is gated here on
+     * the launcher set: shown only when a [MenuScreenshotLauncher] is bound (standard + noLegal),
+     * gone otherwise. On standard the enclosing gestures card is itself hidden, so the button never
+     * appears there regardless.
      */
     fun setupScreenshotAction(launchers: Set<MenuScreenshotLauncher>, activity: Activity) {
         val launcher = launchers.firstOrNull()
-        binding.groupMenuScreenshot.isVisible = launcher != null
+        binding.btnTakeScreenshotNow.isVisible = launcher != null
         if (launcher != null) {
             binding.btnTakeScreenshotNow.setOnClickListener { launcher.launch(activity) }
         }

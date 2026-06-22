@@ -1,0 +1,117 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/settings_padding">
+
+        <!-- Text support + Line numbers (inline right) -->
+        <LinearLayout
+            android:id="@+id/layoutSupportText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:nextFocusRight="@+id/rowShowTextLineNumbers"
+                app:str_title="@string/support_text_description"
+                app:str_subtitle="@string/setting_support_text_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowShowTextLineNumbers"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
+                android:nextFocusLeft="@+id/rowSupportText"
+                android:visibility="gone"
+                app:str_title="@string/show_text_line_numbers"
+                app:str_subtitle="@string/setting_show_text_line_numbers_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_line_numbers_title"
+                app:str_helpMessage="@string/tooltip_line_numbers_message" />
+
+        </LinearLayout>
+
+        <!-- PDF support + Thumbnails (inline right) -->
+        <LinearLayout
+            android:id="@+id/layoutSupportPdf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportPdf"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:nextFocusRight="@+id/rowShowPdfThumbnails"
+                app:str_title="@string/support_pdf_description"
+                app:str_subtitle="@string/setting_support_pdf_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowShowPdfThumbnails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
+                android:nextFocusLeft="@+id/rowSupportPdf"
+                android:visibility="gone"
+                app:str_title="@string/show_pdf_thumbnails"
+                app:str_subtitle="@string/setting_show_pdf_thumbnails_desc" />
+
+        </LinearLayout>
+
+        <!-- EPUB + Office documents support (paired side-by-side in landscape) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportEpub"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:nextFocusRight="@+id/rowSupportOfficeDocuments"
+                app:str_title="@string/support_epub_description"
+                app:str_subtitle="@string/setting_support_epub_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSupportOfficeDocuments"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
+                android:nextFocusLeft="@+id/rowSupportEpub"
+                app:str_title="@string/support_office_documents_description"
+                app:str_subtitle="@string/setting_support_office_documents_desc" />
+
+        </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSetDefaultDocsViewer"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/settings_set_default_docs_viewer"
+        android:textAllCaps="false" />
+
+</LinearLayout>

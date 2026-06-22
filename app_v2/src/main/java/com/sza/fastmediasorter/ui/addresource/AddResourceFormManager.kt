@@ -83,7 +83,6 @@ internal class AddResourceFormManager(
     }
 
     fun setupCheckboxInteractions() {
-        Timber.d("S0596: Add Resource option rows wired as FormCheckboxRow")
         binding.cbLocalReadOnlyMode.setOnCheckedChangeListener { isChecked ->
             binding.cbLocalAddToDestinations.isChecked = if (isChecked) false else binding.cbLocalAddToDestinations.isChecked
             binding.cbLocalAddToDestinations.isEnabled = !isChecked

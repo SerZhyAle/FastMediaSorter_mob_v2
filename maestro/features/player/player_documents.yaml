@@ -1,0 +1,80 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Document renderers for PDF, EPUB, and TXT (S0551 Phase 04).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Docs/test_doc_romcom.pdf, test_book.epub, and readme.txt.
+# Oracle: each document-specific surface renders and no crash prompt appears. The default PDF
+#   view mode is page mode, which renders the page into photoView (pdfScrollRecyclerView is only
+#   inflated in scroll mode); EPUB uses epubWebView; TXT renders inside mediaContentArea.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "test_doc_romcom.pdf"
+    timeout: 30000
+- tapOn:
+    text: "test_doc_romcom.pdf"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/photoView"
+    timeout: 20000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/photoView"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+- back
+
+# Back lands on the previous file's row; the next target may sort above it, so reset to the top
+# before the down-only scroll.
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+- scrollUntilVisible:
+    element:
+      text: "test_book.epub"
+    timeout: 30000
+- tapOn:
+    text: "test_book.epub"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/epubWebView"
+    timeout: 20000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/epubWebView"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+- back
+
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+- scrollUntilVisible:
+    element:
+      text: "readme.txt"
+    timeout: 30000
+- tapOn:
+    text: "readme.txt"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/mediaContentArea"
+    timeout: 15000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/mediaContentArea"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

@@ -59,7 +59,6 @@ class CrashReportPromptManager(private val activity: Activity) {
                 }
             }
             withContext(Dispatchers.Main) {
-                Timber.d("S0572: crash-report send tapped, launching email/share fallback")
                 // Email-first with share-sheet fallback so a missing mail app does not drop the report.
                 val delivered = SupportIntentFactory.launchCrashReport(activity, subject, body, zipUri)
                 if (!delivered) {

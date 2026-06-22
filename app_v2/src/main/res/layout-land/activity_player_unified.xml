@@ -250,7 +250,7 @@
     <!-- Fullscreen controls overlay (Portrait style, hidden but required for binding types) -->
     <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:elevation="@dimen/toolbar_elevation" android:background="?attr/colorPrimary" app:navigationIcon="@drawable/ic_back" app:titleTextColor="@color/white" />
+        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:elevation="@dimen/toolbar_elevation" android:background="?attr/colorPrimary" app:navigationIcon="@drawable/ic_back" app:navigationIconTint="?attr/colorOnPrimary" app:titleTextColor="?attr/colorOnPrimary" />
 
         <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 

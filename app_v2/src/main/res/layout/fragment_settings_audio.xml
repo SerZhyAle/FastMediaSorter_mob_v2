@@ -116,7 +116,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAudioEmptyStateMode"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/settings_dropdown_wide_width"
             android:layout_height="wrap_content"
             app:hintTextColor="@color/settings_textinput_hint">
 

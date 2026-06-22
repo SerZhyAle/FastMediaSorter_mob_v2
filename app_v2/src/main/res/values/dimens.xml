@@ -307,6 +307,12 @@
     <dimen name="settings_nested_margin_start">24dp</dimen>
     <dimen name="settings_spinner_min_width">120dp</dimen>
     <dimen name="settings_text_input_width">160dp</dimen>
+    <!-- Fixed compact width for short-value dropdown selectors (Language, Color theme) so they do not stretch to fill the row. Sized to fit the longest localized value. -->
+    <dimen name="settings_dropdown_compact_width">240dp</dimen>
+    <!-- Wider fixed width for dropdown selectors whose longest value exceeds 3 words (e.g. audio empty-state animation modes) so it does not stretch full-width yet avoids truncation. -->
+    <dimen name="settings_dropdown_wide_width">280dp</dimen>
+    <!-- Max width cap for numeric settings inputs (e.g. network parallelism): stays compact on wide screens, shrinks on narrow ones. -->
+    <dimen name="settings_input_numeric_max_width">140dp</dimen>
     <dimen name="settings_icon_size">18dp</dimen>
 
     <!-- Dialog Layouts -->
@@ -699,6 +705,7 @@
     <dimen name="fragment_settings_video_iconHelpVideoThumbnails_layout_marginStart">@dimen/layout_button_size_large</dimen>
     <dimen name="fragment_settings_video_tilVideoSizeMax_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
     <dimen name="fragment_settings_video_tilVideoSizeMin_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
+    <dimen name="fragment_settings_video_tvSelectedSnapshotResource_maxWidth">220dp</dimen>
     <dimen name="item_media_file_grid_unknown_padding">@dimen/layout_spacing_tiny</dimen>
     <dimen name="item_resource_btnCopy_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnDelete_padding">@dimen/layout_spacing_normal</dimen>
@@ -729,5 +736,10 @@
     <dimen name="device_storage_text_size">10sp</dimen>
     <dimen name="device_storage_button_size">18dp</dimen>
     <dimen name="device_storage_padding_vertical">0dp</dimen>
+
+    <!-- Playback control sliders (S0619) -->
+    <dimen name="playback_slider_track_height">12dp</dimen>
+    <dimen name="playback_slider_thumb_size">28dp</dimen>
+    <dimen name="playback_slider_min_height">48dp</dimen>
 
 </resources>

@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandaloneDocumentBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -52,7 +53,12 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import android.content.res.Configuration
 import android.view.ActionMode
 import com.sza.fastmediasorter.BuildConfig
+import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.share.SharePrintHost
+import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintHost
+import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import dagger.Lazy
@@ -72,7 +78,7 @@ import javax.inject.Inject
  */
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
-class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBinding>() {
+class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBinding>(), SharePrintHost, DocumentPrintHost {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -87,6 +93,29 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private val recoverableDeleteLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
+
+    // S0612: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
+    // pending operation type decides whether the current file is copied or moved into it.
+    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
+    private val customPathPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        val op = pendingCustomPathOp
+        pendingCustomPathOp = null
+        if (uri == null || op == null) return@registerForActivityResult
+        contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
+            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
+        when (op) {
+            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
+                fileOperations.moveCurrentFileToPath(uri.toString(), label)
+            else ->
+                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+        }
+    }
 
     @Inject lateinit var smbClient: Lazy<SmbClient>
     @Inject lateinit var sftpClient: Lazy<SftpClient>
@@ -108,7 +137,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    // S0612: global destination list (no resource context) for the Copy/Move bottom panels.
+    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 
     // S0393 U4/U5: keyboard / D-pad handler (pdf/epub keys + paging).
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -173,6 +205,30 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             sendToMenuManager = sendToMenuManager,
             getCurrentSettings = { settingsRepository.getSettings().first() },
             fileOperationUseCase = fileOperationUseCase
+        )
+    }
+
+    // S0612: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
+    // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
+    private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
+        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+            root = binding.root,
+            settingsRepository = settingsRepository,
+            getDestinationsUseCase = getDestinationsUseCase,
+            lifecycleScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
+                override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
+                override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
+                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                    pendingCustomPathOp = operationType
+                    customPathPickerLauncher.launch(null)
+                }
+                override fun getCurrentResourceId(): Long = -1L
+                override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
+                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+            },
+            shouldNumberSlots = { false },
+            slotKeyGlyph = { null },
         )
     }
 
@@ -260,6 +316,29 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     /** Path of the file last rendered; lets folder paging swap to a neighbour on change. */
     private var lastShownPath: String? = null
+
+    // S0613: print is a «Send to..» receiver. Implementing SharePrintHost makes the Print row appear
+    // (the menu gates on host capability), and DocumentPrintHost lets the shared DocumentPrintManager
+    // run here without depending on PlayerActivity.
+    private val documentPrintManager by lazy {
+        DocumentPrintManager(host = this, mediaCapabilities = mediaCapabilities)
+    }
+
+    override val printHostActivity: AppCompatActivity get() = this
+    override val printNetworkFileManager: NetworkFileManager get() = networkFileManager
+    // Print the rendered Office document only when the internal viewer was actually built (noLegal
+    // internal render path); market external-handoff never creates it, so there is nothing to print.
+    override fun printOfficeDocument(): Boolean =
+        if (officeViewerHostDelegate.isInitialized()) officeViewerHost.print() else false
+    override fun showPrintMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun printMediaFile(mediaFile: MediaFile): Boolean {
+        Timber.d("S0613: standalone document print dispatched via Send-to receiver")
+        documentPrintManager.printCurrentFile(mediaFile)
+        return true
+    }
 
     override fun getViewBinding(): ActivityStandaloneDocumentBinding =
         ActivityStandaloneDocumentBinding.inflate(layoutInflater)
@@ -395,12 +474,15 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
-        // Keep content above the nav bar - setDecorFitsSystemWindows(false) makes the window
-        // draw behind it, so content area needs an explicit bottom inset offset.
-        ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
-            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(0, 0, 0, nav.bottom)
-            insets
+        // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar bottom inset
+        // moves here from mediaContentArea. setDecorFitsSystemWindows(false) draws behind the nav bar;
+        // a GONE 0-height container still reserves the nav gap, keeping the document content above it.
+        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+            ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
+                val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+                view.setPadding(0, 0, 0, nav.bottom)
+                insets
+            }
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
@@ -582,6 +664,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 if (lastShownPath != null) releaseActiveViewer()
                 resolvedType = type
                 displayDocument(file, type)
+                destinationButtonsManager.populateDestinationButtons()
+                Timber.d("S0612: document standalone copy/move panels populated for shown file")
                 lastShownPath = file.path
             }
             updateEpubTranslatorVisibility() // S0393 U7/U8: re-eval after the viewer changes

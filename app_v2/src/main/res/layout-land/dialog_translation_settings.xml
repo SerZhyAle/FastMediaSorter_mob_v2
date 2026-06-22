@@ -120,6 +120,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
+        app:sdr_inline="true"
+        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
         app:sdr_title="@string/translation_font_size" />
 
     <!-- Font Family Section (S0567: raw Spinner -> SettingsDropdownRow; the row owns its title). -->
@@ -128,6 +130,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_normal"
+        app:sdr_inline="true"
+        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
         app:sdr_title="@string/translation_font_family" />
 
     <!-- S0538: unified bottom action row (cancel left, confirm right) - moved out of the title row. -->

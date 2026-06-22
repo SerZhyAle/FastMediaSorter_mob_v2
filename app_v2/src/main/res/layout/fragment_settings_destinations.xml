@@ -802,39 +802,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Menu screenshot (S0559) - store-safe confirmable capture action; shown only when a MenuScreenshotLauncher is bound (standard + noLegal), hidden on flavors without the capture engine. Separate from the noLegal-only groupScreenGestures card below, which is hidden on standard. -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/groupMenuScreenshot"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
-            android:visibility="gone"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
-            app:contentPadding="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/margin_small"
-                android:paddingEnd="@dimen/margin_small"
-                android:paddingTop="@dimen/margin_small"
-                android:paddingBottom="@dimen/margin_small">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTakeScreenshotNow"
-                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:text="@string/settings_take_screenshot_now" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- GROUP: Screen gestures (S0435) - extracted from the OS-interaction card into its own collapsible group; noLegal-only, hidden when the gesture capability is absent. -->
+        <!-- GROUP: Screen gestures (S0435) - extracted from the OS-interaction card into its own collapsible group; noLegal-only, hidden when the gesture capability is absent. The screenshot-test button (btnTakeScreenshotNow, S0559 menu capture) lives inside this card after the gesture-action rows, so it now follows the gesture-card visibility. -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/groupScreenGestures"
             android:layout_width="match_parent"
@@ -888,6 +856,17 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
+
+                    <!-- S0559 menu-screenshot test action, moved here from the standalone groupMenuScreenshot card so it sits right after the gesture actions. Wired + shown by OperationsCaptureManager only when a MenuScreenshotLauncher is bound. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTakeScreenshotNow"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/settings_take_screenshot_now" />
 
                     <!-- Screenshot destination (tap opens the destination picker) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow

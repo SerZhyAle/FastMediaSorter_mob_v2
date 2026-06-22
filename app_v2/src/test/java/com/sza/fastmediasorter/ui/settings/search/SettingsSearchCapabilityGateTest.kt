@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.settings.search
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.ui.settings.SettingsSearchDestination
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
@@ -17,42 +16,42 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `suppresses gesture-card row when controller set is empty`() {
-        val gate = gate(controllers = emptySet(), launchers = nonEmptyLaunchers())
+        val gate = gate(controllers = emptySet())
 
         assertFalse(gate.isAvailable(entry(ancestorIds = listOf(R.id.groupScreenGestures))))
     }
 
     @Test
     fun `keeps gesture-card row when controller set is non-empty`() {
-        val gate = gate(controllers = nonEmptyControllers(), launchers = emptySet())
+        val gate = gate(controllers = nonEmptyControllers())
 
         assertTrue(gate.isAvailable(entry(ancestorIds = listOf(R.id.groupScreenGestures))))
     }
 
     @Test
-    fun `suppresses menu-screenshot row when launcher set is empty`() {
-        val gate = gate(controllers = nonEmptyControllers(), launchers = emptySet())
+    fun `suppresses accessibility-shortcut button when no controller offers the silent path`() {
+        val gate = gate(controllers = controllersWithSilentPath(false))
 
-        assertFalse(gate.isAvailable(entry(ancestorIds = listOf(R.id.groupMenuScreenshot))))
+        assertFalse(gate.isAvailable(entry(key = "btnOpenAccessibilitySettings")))
     }
 
     @Test
-    fun `keeps menu-screenshot row when launcher set is non-empty`() {
-        val gate = gate(controllers = emptySet(), launchers = nonEmptyLaunchers())
+    fun `keeps accessibility-shortcut button when a controller offers the silent path`() {
+        val gate = gate(controllers = controllersWithSilentPath(true))
 
-        assertTrue(gate.isAvailable(entry(ancestorIds = listOf(R.id.groupMenuScreenshot))))
+        assertTrue(gate.isAvailable(entry(key = "btnOpenAccessibilitySettings")))
     }
 
     @Test
     fun `keeps row that has no gated ancestor regardless of capability sets`() {
-        val gate = gate(controllers = emptySet(), launchers = emptySet())
+        val gate = gate(controllers = emptySet())
 
         assertTrue(gate.isAvailable(entry(ancestorIds = listOf(R.id.containerBehaviour))))
     }
 
     @Test
     fun `keeps row with empty ancestor chain`() {
-        val gate = gate(controllers = emptySet(), launchers = emptySet())
+        val gate = gate(controllers = emptySet())
 
         assertTrue(gate.isAvailable(entry(ancestorIds = emptyList())))
     }
@@ -174,19 +173,18 @@ class SettingsSearchCapabilityGateTest {
 
     private fun gate(
         controllers: Set<ScreenGestureOverlayController> = nonEmptyControllers(),
-        launchers: Set<MenuScreenshotLauncher> = nonEmptyLaunchers(),
         media: MediaCapabilities = mediaCaps(),
         capability: CapabilityAvailability = capabilityAvailability()
     ) = SettingsSearchCapabilityGate(
         screenGestureControllers = controllers,
-        menuScreenshotLaunchers = launchers,
         mediaCapabilities = media,
         capabilityAvailability = capability
     )
 
     private fun nonEmptyControllers(): Set<ScreenGestureOverlayController> = setOf(mockk(relaxed = true))
 
-    private fun nonEmptyLaunchers(): Set<MenuScreenshotLauncher> = setOf(mockk(relaxed = true))
+    private fun controllersWithSilentPath(available: Boolean): Set<ScreenGestureOverlayController> =
+        setOf(mockk { every { isFallbackCaptureAvailable() } returns available })
 
     private fun capabilityAvailability(
         stub: CapabilityAvailability.() -> Unit = {}

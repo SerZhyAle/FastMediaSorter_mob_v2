@@ -215,8 +215,6 @@ internal class PlayerVrLaunchManager(
         val currentFilePath = viewModel.state.value.currentFile?.path ?: return
         if (currentFilePath != target.sourceFilePath) return
 
-        Timber.d("S0292: applyPendingReturnIfReady consumed, photoZoom=${target.snapshot.photoZoom}")
-
         if (target.snapshot.commandPanelVisible) {
             viewModel.enterCommandPanelMode()
             activity.isExplicitFullscreenMode = false

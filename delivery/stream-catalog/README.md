@@ -77,14 +77,18 @@ channels (re-streamed commercial TV). When the free/legal status of a candidate 
 dropped. The legality audit removed e.g. CGTN (state-controlled, revoked Ofcom licence) and a third-party
 Amagi FAST mirror of DW (not the broadcaster's own feed).
 
-## Maintenance: liveness checker
+## Maintenance: unified collector
 
-`scripts/stream_catalog/check-liveness.ps1` probes every URL and classifies it alive / dead / unknown.
-This is the mechanism for keeping the catalog fresh - add new streams, drop dead ones.
+`scripts/streams/collect-stream-candidates.ps1` is now the single entrypoint for both:
+
+- discovering + validating new legal/public streams and appending them to `streams.csv`
+- probing the current catalog and pruning confirmed-dead rows when requested
 
 ```
-pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1
-pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -TimeoutSec 10 -Throttle 32
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PreviewOnly
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead
 ```
 
 - http(s): HEAD/GET with `ResponseHeadersRead` (the endless radio body is never downloaded - reads
@@ -93,27 +97,31 @@ pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -TimeoutSec 10 -
 - rtsp: TCP connect probe (weak; never auto-dead on timeout).
 - Probes run from the maintainer's machine; geo-restricted streams may read dead/unknown locally yet
   work on a user's device. Only drop confirmed-dead (DNS/refused/404/410).
-- Report: `temp/stream-catalog-liveness.csv` (per-URL status + http code + note).
+- Default run appends only `alive` new rows to `delivery/stream-catalog/streams.csv` and writes a
+  timestamped backup under `temp/` first.
+- Preview run writes `temp/stream-candidates.csv` + `temp/stream-candidates-report.csv` and does not
+  touch the catalog.
+- Catalog maintenance report: `temp/stream-catalog-liveness.csv` (per-URL status + http code + note).
 
 ### Pruning dead rows
 
-The checker can also delete confirmed-dead rows from the CSV. Pruning is **opt-in** and conservative -
+The unified script can also delete confirmed-dead rows from the CSV. Pruning is **opt-in** and conservative -
 only rows classified `dead` (DNS-fail / connection-refused / HTTP 404|410) are eligible; `unknown`
 (auth / geo / rate / timeout) is never removed.
 
 ```
 # 1. Dry-run first - lists what WOULD be removed, writes nothing:
-pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 
 # 2. Review temp/stream-catalog-liveness.csv; ideally re-probe from a second
 #    network vantage (geo-restricted streams read dead locally yet work elsewhere).
 
 # 3. Apply - backs up the CSV to temp/<name>.<timestamp>.bak before writing:
-pwsh -NoProfile -File scripts/stream_catalog/check-liveness.ps1 -Prune
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead
 ```
 
-- Default run (no `-Prune`) stays a non-destructive report and prints a `Would prune N row(s)` preview.
-- `-Prune` writes a timestamped backup under `temp/` first, then rewrites the CSV keeping original row
+- `-CatalogOnly` stays a non-destructive report and prints a `Would prune N row(s)` preview.
+- `-CatalogOnly -PruneDead` writes a timestamped backup under `temp/` first, then rewrites the CSV keeping original row
   and column order (quoted fields round-trip losslessly).
 - `-PruneStatuses dead,unknown` widens the set if you deliberately want to drop `unknown` too - not
   recommended for a publish.

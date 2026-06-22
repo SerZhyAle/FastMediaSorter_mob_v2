@@ -741,7 +741,7 @@ Close the player and try again.</string>
     <string name="tooltip_destinations_title">Destinations</string>
     <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
-    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20%% - Previous file\nCenter 60%% - Select / Actions\nRight 20%% - Next file\n\nTap anywhere to dismiss</string>
+    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20% - Previous file\nCenter 60% - Select / Actions\nRight 20% - Next file\n\nTap anywhere to dismiss</string>
     <string name="hint_touch_zone_media">Media Playback Mode\n\nTouch zones active in upper area only.\nBottom part is reserved for player controls.\n\nTap anywhere to dismiss</string>
     <string name="tooltip_touch_zones_message">9 invisible zones (3×3 grid) for gesture control in fullscreen mode. Left/Center/Right and Top/Middle/Bottom combinations trigger different actions like navigation, file operations, and panel control.</string>
     <string name="tooltip_safe_mode_title">Safe Mode</string>
@@ -2762,7 +2762,7 @@ Close the player and try again.</string>
     <string name="ext_streams_desc">Download the catalog of available stream sources</string>
     <string name="settings_streams_section">Streams</string>
     <string name="settings_streams_toggle">Enable Streams</string>
-    <string name="settings_take_screenshot_now">Take screenshot</string>
+    <string name="settings_take_screenshot_now">Screenshot test</string>
     <string name="streams_unavailable_title">Stream unavailable</string>
     <string name="streams_unavailable_message">&quot;%1$s&quot; is not responding. Remove it from your list?</string>
     <string name="background_audio_group_title">Background audio playback</string>
@@ -2779,4 +2779,5 @@ Close the player and try again.</string>
     <string name="stream_status_failed">Last playback failed</string>
     <string name="stream_status_unknown">Not played yet</string>
     <string name="programs">Programs</string>
+    <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
 </resources>

@@ -256,7 +256,6 @@ class GeneralSettingsFragment : Fragment() {
         // the activity FragmentManager so the full-screen overlay attaches to a real container.
         // S0547: hide on flavors with nothing to download (lite/photos) - mirrors the welcome page gate.
         if (!capabilityAvailability.isExtensionsScreenAvailable()) {
-            Timber.d("S0547: Downloadable Extensions row hidden on settings - no downloadable sets in this build")
             binding.btnDownloadableExtensions?.visibility = View.GONE
         } else {
             binding.btnDownloadableExtensions?.setOnClickListener {

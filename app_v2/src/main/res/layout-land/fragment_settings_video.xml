@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -68,7 +69,7 @@
         <!-- Current selection + picker button + frame format stay on one landscape row for tighter alignment. -->
         <LinearLayout android:id="@+id/layoutSnapshotResourceSelector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:gravity="center_vertical" android:orientation="horizontal">
 
-            <TextView android:id="@+id/tvSelectedSnapshotResource" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/video_snapshot_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+            <TextView android:id="@+id/tvSelectedSnapshotResource" android:layout_width="wrap_content" android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1" android:maxWidth="@dimen/fragment_settings_video_tvSelectedSnapshotResource_maxWidth" android:text="@string/video_snapshot_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectSnapshotResource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:maxWidth="140dp" android:maxLines="2" android:breakStrategy="balanced" android:text="@string/select_snapshot_destination" android:textAllCaps="false" />
 
@@ -86,23 +87,53 @@
 
         </LinearLayout>
 
-        <!-- S0470: also place the extracted frame on the system clipboard -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowVideoFrameCopyToClipboard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            app:str_title="@string/setting_video_frame_copy_to_clipboard_title"
-            app:str_subtitle="@string/setting_video_frame_copy_to_clipboard_summary" />
     </LinearLayout>
 
-    <!-- S0021: Show FPS over flat (non-immersive) player -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowPlayerShowFps"
+    <!-- Landscape pairs the two remaining solo toggles into one weighted row to reduce vertical scroll. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        app:str_title="@string/settings_player_show_fps"
-        app:str_subtitle="@string/settings_player_show_fps_desc" />
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        tools:ignore="NestedWeights">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- S0470: also place the extracted frame on the system clipboard -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowVideoFrameCopyToClipboard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusRight="@id/rowPlayerShowFps"
+                app:str_title="@string/setting_video_frame_copy_to_clipboard_title"
+                app:str_subtitle="@string/setting_video_frame_copy_to_clipboard_summary" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- S0021: Show FPS over flat (non-immersive) player -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowPlayerShowFps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusLeft="@id/rowVideoFrameCopyToClipboard"
+                app:str_title="@string/settings_player_show_fps"
+                app:str_subtitle="@string/settings_player_show_fps_desc" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

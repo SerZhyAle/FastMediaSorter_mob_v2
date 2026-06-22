@@ -39,6 +39,13 @@ class OperationsGesturesManager(
             binding.groupScreenGestures.isVisible = false
             return
         }
+        // S0621: on standard the controller exposes only the MediaProjection consent path
+        // (isFallbackCaptureAvailable() == false), so the accessibility-shortcut rows are hidden;
+        // noLegal (API 30+) keeps them as the silent-capture opt-in.
+        val supportsA11ySilent = controller.isFallbackCaptureAvailable()
+        Timber.d("S0621: gestures settings group setup; supportsA11ySilent=$supportsA11ySilent (accessibility-shortcut rows ${if (supportsA11ySilent) "shown" else "hidden"})")
+        binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
+        binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
         binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked) {

@@ -57,7 +57,6 @@ class MainCameraCaptureManager(
      */
     fun captureCamera(photoAvailable: Boolean, videoAvailable: Boolean) {
         Timber.d("S0523: quick capture from main menu")
-        Timber.d("S0563: unified camera entry photo=$photoAvailable video=$videoAvailable")
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             return
@@ -198,7 +197,6 @@ class MainCameraCaptureManager(
         pendingDir = dir
         pendingBaseName = base
         multiCapture = savedState.getBoolean(KEY_PENDING_MULTI, false)
-        Timber.d("S0564: restored pending quick-capture target dir=$dirPath base=$base")
     }
 
     private fun showSnackbar(msgRes: Int) {

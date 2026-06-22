@@ -1,385 +1,118 @@
-# Maestro E2E Tests - FastMediaSorter v2
+# Maestro Capability Suite
 
-This directory contains end-to-end tests for FastMediaSorter v2 using Maestro testing framework.
+This directory contains the root Maestro capability-regression suite for FastMediaSorter v2
+(S0551). It is separate from the per-ticket runner under `scripts/devtest/maestro/`.
 
-## 📋 Overview
+## Runner
 
-Maestro is a simple yet powerful mobile UI testing framework that allows you to write tests in YAML format without writing code.
-
-## 🏗️ Directory Structure
-
-```
-maestro/
-├── config.yaml              # Global Maestro configuration
-├── smoke/                   # Quick smoke tests (5-10 min total)
-│   ├── app_launch.yaml      # App startup & permissions
-│   ├── local_browse.yaml    # Browse local files
-│   ├── media_play.yaml      # Video/Audio playback
-│   └── image_view.yaml      # Image viewing & editing
-├── critical/                # Critical path tests
-│   ├── file_operations.yaml # Copy/Move/Delete
-│   └── settings.yaml        # Settings persistence
-└── README.md                # This file
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-1. **Install Maestro CLI**
-
-   ```bash
-   # Using Homebrew (macOS/Linux)
-   brew tap mobile-dev-inc/tap
-   brew install maestro
-   
-   # Using PowerShell (Windows - Run as Administrator)
-   Invoke-WebRequest -Uri "https://get.maestro.mobile.dev/install.ps1" -OutFile install.ps1
-   .\install.ps1
-   Remove-Item install.ps1
-   
-   # Using curl (Linux/macOS)
-   curl -Ls "https://get.maestro.mobile.dev" | bash
-   ```
-
-   **Important**: DO NOT use `npm install -g maestro-cli` - that's a different package!
-
-2. **Start Android Device**
-   - Connect physical device via USB with USB debugging enabled
-   - Or start Android emulator:
-
-     ```bash
-     emulator -avd <your_avd_name>
-     ```
-
-3. **Verify ADB Connection**
-
-   ```bash
-   adb devices
-   # Should show your device/emulator
-   ```
-
-4. **Build and Install App**
-
-   ```powershell
-   # From project root
-   .\dev\build-with-version.ps1
-   
-   # Or build manually
-   .\gradlew.bat assembleStandardDebug
-   
-   # Install on device
-   adb install app_v2/build/outputs/apk/standard/debug/FastMediaSorter_standard_debug_*.apk
-   ```
-
-### Running Tests
-
-#### Run Single Test
-
-```bash
-# From project root
-maestro test maestro/smoke/app_launch.yaml
-```
-
-#### Run All Smoke Tests
-
-```bash
-maestro test maestro/smoke/
-```
-
-#### Run All Critical Tests
-
-```bash
-maestro test maestro/critical/
-```
-
-#### Run All Tests
-
-```bash
-maestro test maestro/
-```
-
-#### Interactive Mode (Maestro Studio)
-
-```bash
-maestro studio
-# Opens browser-based interactive test editor
-```
-
-#### Debug Mode
-
-```bash
-maestro test --debug maestro/smoke/app_launch.yaml
-# Shows detailed execution logs
-```
-
-## 📊 Test Suites
-
-### Smoke Tests (~5-10 minutes)
-
-Essential functionality that must work in every build:
-
-| Test | Description | Duration |
-|------|-------------|----------|
-| `app_launch.yaml` | App launches, handles permissions | ~20s |
-| `local_browse.yaml` | Browse and navigate local files | ~30s |
-| `media_play.yaml` | Play video/audio files | ~40s |
-| `image_view.yaml` | View and edit images | ~40s |
-
-### Critical Path Tests (~5-10 minutes)
-
-Core operations that users rely on:
-
-| Test | Description | Duration |
-|------|-------------|----------|
-| `file_operations.yaml` | Copy, move, delete files | ~50s |
-| `settings.yaml` | Settings persistence across restarts | ~30s |
-
-## 🔧 Configuration
-
-### Environment Variables
-
-You can set test configuration via environment variables:
+Use the project runner instead of calling Maestro directly:
 
 ```powershell
-# PowerShell
-$env:TEST_SMB_HOST = "192.168.1.100"
-$env:TEST_SMB_USER = "testuser"
-$env:TEST_SMB_PASSWORD = "testpass"
-$env:TEST_SMB_SHARE = "media"
-
-# Then run tests
-maestro test maestro/smoke/
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -Json
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -DeviceId emulator-5554
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite maestro/features/player/player_image.yaml -Json
 ```
 
-```bash
-# Bash
-export TEST_SMB_HOST="192.168.1.100"
-export TEST_SMB_USER="testuser"
-export TEST_SMB_PASSWORD="testpass"
-export TEST_SMB_SHARE="media"
+Runner contract:
 
-maestro test maestro/smoke/
-```
+- Full Maestro traces are written under `temp/`; console output is a compact verdict only.
+- `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,log}] }`.
+- `-DeviceId <adb serial>` pins a device; omit it when exactly one device is online.
+- Exit `0`: all selected flows passed.
+- Exit `1`: bad args or no flow matched `-Suite`.
+- Exit `2`: Maestro CLI not found.
+- Exit `3`: at least one flow assertion failed.
+- Exit `4`: execution error such as no device or Maestro runtime failure.
 
-### Timeouts
+## Flow Map
 
-Default timeouts are defined in `config.yaml`:
+`smoke/`:
 
-- `SHORT_TIMEOUT`: 5s (quick operations)
-- `DEFAULT_TIMEOUT`: 30s (normal operations)
-- `LONG_TIMEOUT`: 60s (network operations)
+- `app_launch.yaml` - launch, permissions, main resources surface.
+- `local_browse.yaml` - legacy smoke for local browsing.
 
-You can override them per test if needed.
+`critical/`:
 
-## 🐛 Troubleshooting
+- `file_operations.yaml` - copy + move from `Ops/src` to `Ops/dst`.
+- `settings.yaml` - settings smoke.
 
-### "Device not found"
+`features/browse/`:
 
-```bash
-# Check ADB connection
-adb devices
+- `browse_all_images.yaml` - built-in All Images listing.
+- `browse_filter.yaml` - include/exclude name filter.
+- `browse_sort_empty.yaml` - sort + empty-state on the Downloads resource.
 
-# Restart ADB server
-adb kill-server
-adb start-server
-```
+`features/files/`:
 
-### "App not installed"
+- `file_rename.yaml` - rename oracle.
+- `file_trash_undo.yaml` - soft-delete + undo oracle.
+- `file_overwrite.yaml` - copy conflict / overwrite guidance.
 
-```bash
-# Check if app is installed
-adb shell pm list packages | grep fastmediasorter
+File-operation flows are device-only for now and are excluded from `-Suite all` on the emulator
+default path. Run them explicitly once `Ops/src` and `Ops/dst` are registered as writable
+operation resources and the file-operation menu is known tappable on that device.
 
-# Install app
-adb install <path_to_apk>
-```
+`features/player/`:
 
-### "Element not found"
+- `player_video.yaml` - video render + play/pause controls.
+- `player_image.yaml` - S0550 large-image regression.
+- `player_audio_lyrics.yaml` - audio playback + lyrics overlay.
+- `player_documents.yaml` - PDF, EPUB, and TXT renderers.
+- `player_resume.yaml` - resume-position affordance.
+- `player_info_dialog.yaml` - metadata dialog with audio section.
 
-- Ensure the app is built with **debug** variant (not release)
-- Check if app animations are complete
-- Verify element IDs in app code match test expectations
-- Add `waitForAnimationToEnd` before assertions
+`features/slideshow/`:
 
-### "Test is flaky"
+- `slideshow_basic.yaml` - slideshow start on a large image.
 
-- Add delays between actions: `- waitForAnimationToEnd`
-- Increase timeouts in config.yaml
-- Use more specific element selectors
-- Check for race conditions in app code
+`features/edge/`:
 
-### "Permission dialog not appearing"
+- `edge_cases.yaml` - large (>100 MB) video opens without crash (S0550-class).
 
-```bash
-# Clear app data to reset permissions
-adb shell pm clear com.sza.fastmediasorter.debug
+`device_only/` (excluded from `-Suite all`; run explicitly on a real device):
 
-# Uninstall and reinstall
-adb uninstall com.sza.fastmediasorter.debug
-adb install <path_to_apk>
-```
+- `3d-video-sbs.yaml` - 3D side-by-side video; needs a real SBS test clip, not seeded.
+- `3d-video-switching.yaml` - 3D mode switching; same media dependency.
 
-## 📝 Writing New Tests
+`_shared/`:
 
-### Basic Template
+- `permissions.yaml` - optional system permission taps.
+- `navigate_to_add_resource.yaml` - shared add-resource navigation fragment.
+- `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`.
+- `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
 
-```yaml
-appId: com.sza.fastmediasorter.debug
----
-# Test: <Test Name>
-# Description: <What this test does>
+## Preconditions
 
-- launchApp
+Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability flows expect:
 
-- tapOn:
-    text: "Button Text"
-    
-- assertVisible:
-    text: "Expected Text"
-    
-- scroll
+- **Russian app locale** - flows locate tabs and built-in resources by their RU labels
+  (`Локальные`, `Загрузки`, `Все изображения`, sort labels, crash prompt). Set it once with
+  `adb shell cmd locale set-app-locales com.sza.fastmediasorter.debug --locales ru`.
+- **Media permissions granted** and the welcome screen completed (first run done).
+- **Seeded test media** under `/storage/emulated/0/Download/FastMediaSorter_Test/` via
+  `scripts/utils/setup_test_media.ps1`.
+- A **`Загрузки` local resource** over `/storage/emulated/0/Download` that flattens the seeded
+  tree. This appears automatically as a standard-folder resource on the Local tab; the
+  `/spec-prerelease` OWNER_TRIGGER import is one way to register it but is not required for the
+  core flows.
+- **Stylus handwriting off** so text-entry flows land their input. The runner sets this on every
+  invocation (`settings put secure stylus_handwriting_enabled 0`); no manual step needed.
 
-- swipe:
-    direction: DOWN
-```
+The runner needs `resumeOnNextLaunch` and `rememberTheFileList` to stay at their defaults; the
+`go_home` and `downloads_sort_reset` fragments make flows deterministic against both. Flows do
+not use `clearState`, because that would wipe registered resources.
 
-### Common Commands
+Network/cloud capability flows are intentionally not in the active suite yet; they require
+external reachability and are covered by later, environment-specific work.
 
-```yaml
-# Launch app
-- launchApp
+## Oracle Convention
 
-# Tap element
-- tapOn:
-    text: "Settings"        # By text
-    id: "button_id"         # By resource ID
-    point: "50%, 50%"       # By coordinates
-    
-# Assert element state
-- assertVisible:
-    text: "Welcome"
-- assertNotVisible:
-    text: "Error"
-    
-# Input text
-- tapOn:
-    id: "edit_text"
-- inputText: "Hello World"
+A green flow must prove behavior, not only "did not crash":
 
-# Wait
-- waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      text: "Loading"
-    timeout: 10000
+- assert the expected post-action element is visible;
+- use a stable completion log marker where the app already has one;
+- assert that the crash-report prompt is not visible after risky opens;
+- avoid coordinate taps and regex catch-all locators for proof assertions.
 
-# Navigation
-- scroll                     # Scroll down
-- scrollUntilVisible:
-    element:
-      text: "Item"
-- swipe:
-    direction: UP
-- backPress
-```
-
-### Element Selectors
-
-```yaml
-# By text (visible text)
-tapOn:
-  text: "Submit"
-
-# By resource ID (from layout XML)
-tapOn:
-  id: "com.sza.fastmediasorter:id/button_submit"
-
-# By coordinates (percentage)
-tapOn:
-  point: "50%, 80%"
-
-# Combined selectors
-tapOn:
-  text: "Submit"
-  below:
-    text: "Username"
-```
-
-## 🔄 CI/CD Integration
-
-### GitHub Actions Example
-
-Create `.github/workflows/maestro-tests.yml`:
-
-```yaml
-name: Maestro E2E Tests
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-
-jobs:
-  maestro-tests:
-    runs-on: macos-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          
-      - name: Build app
-        run: ./gradlew assembleStandardDebug
-        
-      - name: Install Maestro
-        run: brew tap mobile-dev-inc/tap && brew install maestro
-        
-      - name: Start Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          script: echo "Emulator started"
-          
-      - name: Run Maestro smoke tests
-        run: maestro test maestro/smoke/
-        
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: maestro-results
-          path: ~/.maestro/tests/
-```
-
-## 📚 Resources
-
-- [Maestro Official Documentation](https://maestro.mobile.dev)
-- [Maestro GitHub Repository](https://github.com/mobile-dev-inc/maestro)
-- [YAML Syntax Reference](https://maestro.mobile.dev/reference/yaml-syntax)
-- [Best Practices](https://maestro.mobile.dev/best-practices)
-- [Maestro Cloud](https://cloud.mobile.dev)
-
-## 📞 Support
-
-For issues related to:
-
-- **Maestro framework**: Check [Maestro GitHub Issues](https://github.com/mobile-dev-inc/maestro/issues)
-- **FastMediaSorter tests**: Create an issue in this repository
-
-## 🎯 Next Steps
-
-1. Install Maestro CLI
-2. Run `maestro test maestro/smoke/app_launch.yaml` to verify setup
-3. Run full smoke suite: `maestro test maestro/smoke/`
-4. Integrate into CI/CD pipeline
-
-Happy Testing! 🚀
+See `WRITING_TESTS.md` for authoring rules and `config.yaml` for shared timeout values.

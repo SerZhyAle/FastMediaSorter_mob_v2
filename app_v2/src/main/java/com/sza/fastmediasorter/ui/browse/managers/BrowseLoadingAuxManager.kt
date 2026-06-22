@@ -69,6 +69,13 @@ class BrowseLoadingAuxManager(
         // not a generic outage. Must be checked by type before the message-based heuristics below.
         if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
 
+        // A watchdog-aborted scan is a distinct case: a folder that never finished listing, not a
+        // per-request socket timeout. Map by type so the user sees the scan-specific message.
+        if (throwable is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
+            Timber.d("S0624: SFTP scan timeout surfaced in browse")
+            return R.string.error_scan_timeout
+        }
+
         val message = throwable.message.orEmpty()
         return when {
             message.contains("Authentication", ignoreCase = true) ||

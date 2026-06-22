@@ -20,46 +20,22 @@ Write-Host @"
 $checks = @()
 $issuesFound = 0
 
-# Check 1: Node.js
-Write-Host "`n📍 Checking Node.js..."
-try {
-    $nodeVersion = & "C:\Program Files\nodejs\node.exe" --version 2>$null
-    Write-Host "✅ Node.js: $nodeVersion"
-    $checks += "Node.js"
-}
-catch {
-    Write-Host "❌ Node.js not found"
-    Write-Host "   Fix with: winget install OpenJS.NodeJS"
-    $issuesFound++
-}
-
-# Check 2: npm
-Write-Host "`n📍 Checking npm..."
-try {
-    $npmVersion = & "C:\Program Files\nodejs\npm.cmd" --version 2>$null
-    Write-Host "✅ npm: v$npmVersion"
-    $checks += "npm"
-}
-catch {
-    Write-Host "❌ npm not found"
-    Write-Host "   Usually installed with Node.js"
-    $issuesFound++
-}
-
-# Check 3: Maestro CLI
+# Check 1: Maestro CLI
 Write-Host "`n📍 Checking Maestro CLI..."
-$maestroPath = "C:\Users\$env:USERNAME\AppData\Roaming\npm\maestro-cli.ps1"
-if (Test-Path $maestroPath) {
+$maestroCommand = Get-Command maestro -ErrorAction SilentlyContinue
+$maestroPerUser = Join-Path $env:USERPROFILE ".maestro\bin\maestro.bat"
+if ($maestroCommand -or (Test-Path $maestroPerUser)) {
     Write-Host "✅ Maestro CLI installed"
     $checks += "Maestro CLI"
 }
 else {
     Write-Host "❌ Maestro CLI not found"
-    Write-Host "   Install with: npm install -g maestro-cli"
+    Write-Host "   Install from https://maestro.mobile.dev/getting-started/installing-maestro"
+    Write-Host "   Do not use npm install -g maestro-cli; that is a different package."
     $issuesFound++
 }
 
-# Check 4: Android SDK
+# Check 2: Android SDK
 Write-Host "`n📍 Checking Android SDK..."
 $sdkPath = "C:\Users\$env:USERNAME\AppData\Local\Android\Sdk"
 if (Test-Path $sdkPath) {
@@ -72,7 +48,7 @@ else {
     $issuesFound++
 }
 
-# Check 5: ADB
+# Check 3: ADB
 Write-Host "`n📍 Checking ADB..."
 $adbPath = "$sdkPath\platform-tools\adb.exe"
 if (Test-Path $adbPath) {
@@ -98,7 +74,7 @@ else {
     $issuesFound++
 }
 
-# Check 6: FastMediaSorter app
+# Check 4: FastMediaSorter app
 Write-Host "`n📍 Checking FastMediaSorter app..."
 if (Test-Path "$adbPath") {
     $appInstalled = & $adbPath shell pm list packages 2>$null | Select-String "com.sza.fastmediasorter"
@@ -112,17 +88,18 @@ if (Test-Path "$adbPath") {
     }
 }
 
-# Check 7: Maestro test files
+# Check 5: Maestro test files
 Write-Host "`n📍 Checking Maestro test files..."
 $testDir = Get-Location
 $testFiles = @(
     "maestro/config.yaml",
+    "maestro/run-tests.ps1",
     "maestro/smoke/app_launch.yaml",
     "maestro/smoke/local_browse.yaml",
-    "maestro/smoke/media_play.yaml",
-    "maestro/smoke/image_view.yaml",
-    "maestro/smoke/file_operations.yaml",
-    "maestro/smoke/settings.yaml"
+    "maestro/critical/file_operations.yaml",
+    "maestro/critical/settings.yaml",
+    "maestro/features/browse/browse_all_images.yaml",
+    "maestro/features/player/player_image.yaml"
 )
 
 $missingTests = 0
@@ -140,12 +117,13 @@ if ($missingTests -eq 0) {
     $checks += "Test Files"
 }
 
-# Check 8: Documentation
+# Check 6: Documentation
 Write-Host "`n📍 Checking documentation..."
 $docs = @(
     "maestro/README.md",
-    "maestro/MAESTRO_SETUP_GUIDE.md",
-    "maestro/SETUP_COMPLETE.md"
+    "maestro/INSTALLATION_WINDOWS.md",
+    "maestro/TROUBLESHOOTING.md",
+    "maestro/WRITING_TESTS.md"
 )
 
 $missingDocs = 0
@@ -173,18 +151,16 @@ if ($issuesFound -eq 0) {
 Your system is ready for Maestro testing. Next steps:
 
 1. Build the app:
-   .\dev\build-with-version.ps1
+   .\a.ps1 d
 
-2. Run smoke tests:
-   cd maestro
-   maestro-cli test smoke/
+2. Run the compact suite runner:
+   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -Json
 
-3. Expected result: All 6 tests pass (~3-4 minutes)
+3. Expected result: runner exits 0 and reports pass=true
 
 For more information:
-  • Quick Reference: maestro/QUICK_REFERENCE.txt
-  • Detailed Setup: maestro/MAESTRO_SETUP_GUIDE.md
   • README: maestro/README.md
+  • Troubleshooting: maestro/TROUBLESHOOTING.md
 "@
 }
 else {
@@ -194,11 +170,8 @@ else {
 Quick Fix Guide:
 "@
     
-    if (-not (Test-Path "C:\Program Files\nodejs")) {
-        Write-Host "  • Install Node.js: winget install OpenJS.NodeJS"
-    }
-    if (-not (Test-Path $maestroPath)) {
-        Write-Host "  • Install Maestro: npm install -g maestro-cli"
+    if (-not $maestroCommand -and -not (Test-Path $maestroPerUser)) {
+        Write-Host "  • Install Maestro Mobile CLI from https://maestro.mobile.dev"
     }
     if (-not (Test-Path $adbPath)) {
         Write-Host "  • Install Android SDK: Download from developer.android.com/studio"
@@ -209,13 +182,5 @@ Quick Fix Guide:
 Write-Host "`n"
 
 if ($Fix) {
-    Write-Host "🔧 Attempting auto-fix..."
-    
-    if (-not (Test-Path $maestroPath)) {
-        Write-Host "Installing Maestro CLI..."
-        & "C:\Program Files\nodejs\npm.cmd" install -g maestro-cli
-        Write-Host "✅ Maestro CLI installed"
-    }
-    
-    Write-Host "✅ Auto-fix complete. Run verification again."
+    Write-Host "🔧 Auto-fix is not available for Maestro Mobile CLI. Install it from https://maestro.mobile.dev and rerun verification."
 }

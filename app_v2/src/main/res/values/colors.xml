@@ -9,26 +9,67 @@
     <!-- S0569: fixed palettes for the custom accent themes. Each theme is a single fixed-brightness
          set (night mode is forced separately for system-bar / base-resource consistency), so all
          values live in this default bucket and are referenced by the ThemeOverlay.* styles. -->
-    <color name="theme_dark_green_primary">#FF2E7D32</color>
+    <!-- S0611: DARK_* primary lightened to M3 dark tone-80 + dark on_primary (accent on dark surface was ~3:1). -->
+    <color name="theme_dark_green_primary">#FF81C784</color>
     <color name="theme_dark_green_primary_variant">#FF1B5E20</color>
-    <color name="theme_dark_green_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_green_on_primary">#FF0A2E0A</color>
     <color name="theme_dark_green_background">#FF0F1A0F</color>
     <color name="theme_dark_green_surface">#FF152015</color>
     <color name="theme_dark_green_on_surface">#FFE6E6E6</color>
+    <!-- S0611: M3 tonal roles (fixed brightness, night-agnostic). -->
+    <color name="theme_dark_green_surface_container_lowest">#FF0B140B</color>
+    <color name="theme_dark_green_surface_container_low">#FF182418</color>
+    <color name="theme_dark_green_surface_container">#FF1C2B1C</color>
+    <color name="theme_dark_green_surface_container_high">#FF263826</color>
+    <color name="theme_dark_green_surface_container_highest">#FF314A31</color>
+    <color name="theme_dark_green_surface_variant">#FF1C2B1C</color>
+    <color name="theme_dark_green_on_surface_variant">#FFC2D0C2</color>
+    <color name="theme_dark_green_outline">#FF8A9C8A</color>
+    <color name="theme_dark_green_outline_variant">#FF455045</color>
+    <color name="theme_dark_green_primary_container">#FF2E5A30</color>
+    <color name="theme_dark_green_on_primary_container">#FFC8E6C9</color>
+    <color name="theme_dark_green_secondary_container">#FF33472F</color>
+    <color name="theme_dark_green_on_secondary_container">#FFD6E8C8</color>
 
-    <color name="theme_dark_blue_primary">#FF1565C0</color>
+    <color name="theme_dark_blue_primary">#FF64B5F6</color>
     <color name="theme_dark_blue_primary_variant">#FF0D47A1</color>
-    <color name="theme_dark_blue_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_blue_on_primary">#FF06243B</color>
     <color name="theme_dark_blue_background">#FF0F1420</color>
     <color name="theme_dark_blue_surface">#FF151B2A</color>
     <color name="theme_dark_blue_on_surface">#FFE6E6E6</color>
+    <color name="theme_dark_blue_surface_container_lowest">#FF0A1018</color>
+    <color name="theme_dark_blue_surface_container_low">#FF172033</color>
+    <color name="theme_dark_blue_surface_container">#FF1B2638</color>
+    <color name="theme_dark_blue_surface_container_high">#FF243551</color>
+    <color name="theme_dark_blue_surface_container_highest">#FF2E4060</color>
+    <color name="theme_dark_blue_surface_variant">#FF1B2638</color>
+    <color name="theme_dark_blue_on_surface_variant">#FFC0C8D6</color>
+    <color name="theme_dark_blue_outline">#FF8893A0</color>
+    <color name="theme_dark_blue_outline_variant">#FF404A58</color>
+    <color name="theme_dark_blue_primary_container">#FF1565C0</color>
+    <color name="theme_dark_blue_on_primary_container">#FFD6E8FF</color>
+    <color name="theme_dark_blue_secondary_container">#FF2A3F5A</color>
+    <color name="theme_dark_blue_on_secondary_container">#FFCAD9EC</color>
 
-    <color name="theme_dark_red_primary">#FFC62828</color>
+    <color name="theme_dark_red_primary">#FFEF9A9A</color>
     <color name="theme_dark_red_primary_variant">#FF8E0000</color>
-    <color name="theme_dark_red_on_primary">#FFFFFFFF</color>
+    <color name="theme_dark_red_on_primary">#FF3B0A0A</color>
     <color name="theme_dark_red_background">#FF1A0F0F</color>
     <color name="theme_dark_red_surface">#FF241515</color>
     <color name="theme_dark_red_on_surface">#FFE6E6E6</color>
+    <color name="theme_dark_red_surface_container_lowest">#FF160B0B</color>
+    <color name="theme_dark_red_surface_container_low">#FF261818</color>
+    <color name="theme_dark_red_surface_container">#FF2D1C1C</color>
+    <color name="theme_dark_red_surface_container_high">#FF3F2626</color>
+    <color name="theme_dark_red_surface_container_highest">#FF4A3131</color>
+    <color name="theme_dark_red_surface_variant">#FF2D1C1C</color>
+    <color name="theme_dark_red_on_surface_variant">#FFD6C2C2</color>
+    <color name="theme_dark_red_outline">#FF9C8A8A</color>
+    <color name="theme_dark_red_outline_variant">#FF504545</color>
+    <color name="theme_dark_red_primary_container">#FFC62828</color>
+    <color name="theme_dark_red_on_primary_container">#FFFFEAE7</color>
+    <color name="theme_dark_red_secondary_container">#FF4A2F2F</color>
+    <color name="theme_dark_red_on_secondary_container">#FFECCACA</color>
 
     <color name="theme_light_green_primary">#FF2E7D32</color>
     <color name="theme_light_green_primary_variant">#FF1B5E20</color>
@@ -36,6 +77,20 @@
     <color name="theme_light_green_background">#FFF1F8E9</color>
     <color name="theme_light_green_surface">#FFFFFFFF</color>
     <color name="theme_light_green_on_surface">#FF1B1B1B</color>
+    <!-- S0611: M3 tonal roles (fixed brightness). Light containers kept light so accent text stays >= 4.5:1. -->
+    <color name="theme_light_green_surface_container_lowest">#FFFFFFFF</color>
+    <color name="theme_light_green_surface_container_low">#FFF2F7EC</color>
+    <color name="theme_light_green_surface_container">#FFEDF4E5</color>
+    <color name="theme_light_green_surface_container_high">#FFEDF4E5</color>
+    <color name="theme_light_green_surface_container_highest">#FFE6F0DC</color>
+    <color name="theme_light_green_surface_variant">#FFEDF4E5</color>
+    <color name="theme_light_green_on_surface_variant">#FF42493E</color>
+    <color name="theme_light_green_outline">#FF72796C</color>
+    <color name="theme_light_green_outline_variant">#FFC2C9BC</color>
+    <color name="theme_light_green_primary_container">#FFB8E6BA</color>
+    <color name="theme_light_green_on_primary_container">#FF0A2E0A</color>
+    <color name="theme_light_green_secondary_container">#FFD6E8C8</color>
+    <color name="theme_light_green_on_secondary_container">#FF26331C</color>
 
     <color name="theme_light_blue_primary">#FF1565C0</color>
     <color name="theme_light_blue_primary_variant">#FF0D47A1</color>
@@ -43,6 +98,19 @@
     <color name="theme_light_blue_background">#FFE3F2FD</color>
     <color name="theme_light_blue_surface">#FFFFFFFF</color>
     <color name="theme_light_blue_on_surface">#FF1B1B1B</color>
+    <color name="theme_light_blue_surface_container_lowest">#FFFFFFFF</color>
+    <color name="theme_light_blue_surface_container_low">#FFEFF4FB</color>
+    <color name="theme_light_blue_surface_container">#FFE6EFF8</color>
+    <color name="theme_light_blue_surface_container_high">#FFDCE8F4</color>
+    <color name="theme_light_blue_surface_container_highest">#FFD2E1F0</color>
+    <color name="theme_light_blue_surface_variant">#FFE6EFF8</color>
+    <color name="theme_light_blue_on_surface_variant">#FF3E4650</color>
+    <color name="theme_light_blue_outline">#FF6C747F</color>
+    <color name="theme_light_blue_outline_variant">#FFBFC7D2</color>
+    <color name="theme_light_blue_primary_container">#FFCFE3FB</color>
+    <color name="theme_light_blue_on_primary_container">#FF06243B</color>
+    <color name="theme_light_blue_secondary_container">#FFCAD9EC</color>
+    <color name="theme_light_blue_on_secondary_container">#FF1B2A3A</color>
 
     <color name="theme_light_red_primary">#FFC62828</color>
     <color name="theme_light_red_primary_variant">#FF8E0000</color>
@@ -50,6 +118,19 @@
     <color name="theme_light_red_background">#FFFFEBEE</color>
     <color name="theme_light_red_surface">#FFFFFFFF</color>
     <color name="theme_light_red_on_surface">#FF1B1B1B</color>
+    <color name="theme_light_red_surface_container_lowest">#FFFFFFFF</color>
+    <color name="theme_light_red_surface_container_low">#FFFCF1F2</color>
+    <color name="theme_light_red_surface_container">#FFF9E8E9</color>
+    <color name="theme_light_red_surface_container_high">#FFF9E8E9</color>
+    <color name="theme_light_red_surface_container_highest">#FFF5DEDF</color>
+    <color name="theme_light_red_surface_variant">#FFF9E8E9</color>
+    <color name="theme_light_red_on_surface_variant">#FF50403F</color>
+    <color name="theme_light_red_outline">#FF7F6C6C</color>
+    <color name="theme_light_red_outline_variant">#FFD6C2C2</color>
+    <color name="theme_light_red_primary_container">#FFF8CFCF</color>
+    <color name="theme_light_red_on_primary_container">#FF3B0A0A</color>
+    <color name="theme_light_red_secondary_container">#FFECCACA</color>
+    <color name="theme_light_red_on_secondary_container">#FF3A1B1B</color>
 
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
@@ -88,6 +169,9 @@
     <color name="error_color">#FFD32F2F</color>
     <color name="warning_color">#FFF57C00</color>
     <color name="success_color">#FF2E7D32</color>
+    <!-- S0611: dialog confirm button fill, decoupled from semantic success_color (day = white on green-800, 5.13:1). -->
+    <color name="confirm_button_bg">#FF2E7D32</color>
+    <color name="confirm_button_on">#FFFFFFFF</color>
     <color name="info_color">#FF0288D1</color>
     <color name="scrollbar_thumb">#FF9E9E9E</color>
 

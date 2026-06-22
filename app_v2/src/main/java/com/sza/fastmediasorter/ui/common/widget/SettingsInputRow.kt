@@ -183,6 +183,8 @@ class SettingsInputRow @JvmOverloads constructor(
             helpMessageText = typedArray.getText(R.styleable.SettingsInputRow_sir_helpMessage)
             val showHelp = typedArray.getBoolean(R.styleable.SettingsInputRow_sir_showHelp, false)
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            val fieldMaxWidthPx = typedArray.getDimensionPixelSize(R.styleable.SettingsInputRow_sir_fieldMaxWidth, 0)
+            if (fieldMaxWidthPx > 0) inputLayout.maxWidth = fieldMaxWidthPx
         }
     }
 

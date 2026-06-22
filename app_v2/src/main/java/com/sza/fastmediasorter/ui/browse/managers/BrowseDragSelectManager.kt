@@ -28,7 +28,6 @@ class BrowseDragSelectManager(
                 viewModel.state.value.selectedFiles.isNotEmpty()
 
             override fun onSelectionStart(position: Int) {
-                timber.log.Timber.d("S0512: Browse drag-select start at position=$position")
                 // Seeding the range on an empty selection selects exactly the start file and sets
                 // BrowseSelectionManager.lastSelectedPath, so subsequent range updates extend from here.
                 selectablePathAt(position)?.let { viewModel.selectFileRange(it) }

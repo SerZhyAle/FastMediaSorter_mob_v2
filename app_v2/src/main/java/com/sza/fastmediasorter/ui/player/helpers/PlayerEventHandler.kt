@@ -166,7 +166,6 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
         source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
     ) {
         if (activity.isFinishing || activity.isDestroyed) return
-        Timber.d("S0581: player stream unavailable dialog for %s", source.url)
         activeDialog?.dismiss()
         activeDialog = AlertDialog.Builder(activity)
             .setTitle(R.string.streams_unavailable_title)

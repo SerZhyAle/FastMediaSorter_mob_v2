@@ -20,6 +20,7 @@ object NetworkErrorMessageMapper {
         is NetworkRateLimitException -> R.string.error_network_rate_limit
         is NetworkServerErrorException -> R.string.error_network_server_error
         is NetworkTimeoutException -> R.string.error_network_timeout
+        is ScanTimeoutException -> R.string.error_scan_timeout
         is NetworkAccessDeniedException -> R.string.error_network_access_denied
         is NetworkFileNotFoundException -> R.string.error_network_not_found
         // WifiRequiredException is a NetworkConnectionLostException subclass - must come first

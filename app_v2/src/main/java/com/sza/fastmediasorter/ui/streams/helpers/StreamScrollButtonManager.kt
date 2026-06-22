@@ -87,6 +87,5 @@ class StreamScrollButtonManager(
         fabPageUp.isVisible = !atTop
         fabScrollToBottom.isVisible = !atBottom
         fabPageDown.isVisible = !atBottom
-        Timber.d("S0587: stream scroll buttons updated atTop=%b atBottom=%b count=%d", atTop, atBottom, itemCount)
     }
 }

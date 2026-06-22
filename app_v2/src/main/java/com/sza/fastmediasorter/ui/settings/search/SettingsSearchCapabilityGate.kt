@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.settings.search
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
 import javax.inject.Inject
@@ -34,17 +33,17 @@ import javax.inject.Singleton
 @Singleton
 class SettingsSearchCapabilityGate @Inject constructor(
     private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
-    private val menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val mediaCapabilities: MediaCapabilities,
     private val capabilityAvailability: CapabilityAvailability
 ) {
 
-    // Gating-container view-id -> "is the capability present". Mirrors the runtime gates:
+    // Gating-container view-id -> "is the capability present". Mirrors the runtime gate:
     //  - OperationsGesturesManager.setup: groupScreenGestures GONE when the controller set is empty.
-    //  - OperationsCaptureManager.setupScreenshotAction: groupMenuScreenshot GONE when launchers empty.
+    // The S0559 screenshot-test button (btnTakeScreenshotNow) now lives inside groupScreenGestures,
+    // so it is covered by this same container gate; its own launcher set is a superset of the
+    // controller set, so no flavor shows the card without a bound launcher.
     private val capabilityByContainer: Map<Int, () -> Boolean> = mapOf(
-        R.id.groupScreenGestures to { screenGestureControllers.isNotEmpty() },
-        R.id.groupMenuScreenshot to { menuScreenshotLaunchers.isNotEmpty() }
+        R.id.groupScreenGestures to { screenGestureControllers.isNotEmpty() }
     )
 
     /** False when a gated container is absent OR the row's own capability is absent. */
@@ -84,6 +83,11 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "spinnerOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
         // Downloadable extensions - GeneralSettingsFragment.
         "btnDownloadableExtensions" -> capabilityAvailability.isExtensionsScreenAvailable()
+        // S0621: accessibility-shortcut button lives in the gestures group, which is now visible on
+        // standard once the controller set is non-empty. The button is meaningful only where the
+        // silent accessibility path exists; OperationsGesturesManager hides it on standard, so mirror
+        // that here keyed on the controller capability.
+        "btnOpenAccessibilitySettings" -> screenGestureControllers.any { it.isFallbackCaptureAvailable() }
         else -> true
     }
 }

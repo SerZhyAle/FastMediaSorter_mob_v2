@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.updateLayoutParams
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
@@ -241,7 +242,27 @@ class SettingsSelectionRow @JvmOverloads constructor(
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
             val showChevron = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showChevron, true)
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
+            if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_inline, false)) {
+                applyInlineLayout()
+            }
         }
+    }
+
+    /**
+     * Collapses the row to hug its content: the text group stops stretching so the chevron sits
+     * right after the value, and the tall touch-target band is dropped. Used for dense landscape
+     * rows where the default full-width layout wastes vertical space (S0618 follow-up).
+     */
+    private fun applyInlineLayout() {
+        minimumHeight = 0
+        (findViewById<LinearLayout>(R.id.ssr_textGroup)).updateLayoutParams<LayoutParams> {
+            width = LayoutParams.WRAP_CONTENT
+            weight = 0f
+        }
+        findViewById<LinearLayout>(R.id.ssr_titleLine).updateLayoutParams<ViewGroup.LayoutParams> {
+            width = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        findViewById<View>(R.id.ssr_titleLineSpacer).visibility = View.GONE
     }
 
     private fun syncHelpVisibility() {

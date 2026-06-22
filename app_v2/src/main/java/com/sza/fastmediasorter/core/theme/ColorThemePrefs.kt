@@ -88,6 +88,7 @@ object ColorThemePrefs {
             "LIGHT_RED" -> R.style.ThemeOverlay_FastMediaSorter_LightRed
             else -> return
         }
+        Timber.d("S0611: applying custom theme overlay '${getMode(activity)}' - verify themed (non-grey) dialog/menu surfaces, >=4.5:1 text and toolbar aesthetic")
         activity.theme.applyStyle(overlayResId, true)
     }
 

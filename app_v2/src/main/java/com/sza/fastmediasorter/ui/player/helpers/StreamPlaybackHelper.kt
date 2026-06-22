@@ -37,7 +37,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     releasePlayer()
 
     val isRtsp = path.startsWith("rtsp://")
-    Timber.d("S0565: stream playback start rtsp=%s path=%s", isRtsp, path)
     val uri: Uri = Uri.parse(path)
     val dataSourceFactory = StreamDataSourceFactoryProvider.create(context)
 

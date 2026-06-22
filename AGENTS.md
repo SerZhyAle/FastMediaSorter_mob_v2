@@ -7,6 +7,7 @@
 ## 2. Communication
 - Chat: RU. Code, docs, logs, commits, changelog: EN. Dry, concise.
 - Ellipsis: `..` (never `...`). Russian Ё/ё grammatically correct in chat, UI, docs, Approved specs. Draft specs exempt.
+- Timestamps: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
 
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.

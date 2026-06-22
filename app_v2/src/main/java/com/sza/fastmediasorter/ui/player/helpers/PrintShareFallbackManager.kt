@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.app.Activity
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.player.PlayerActivity
 import timber.log.Timber
 import java.io.File
 
@@ -14,8 +14,8 @@ import java.io.File
  * "Send to…" chooser so the user can still route it to a print target. The file is always local by
  * the time this is called (DocumentPrintManager materialises network/cloud sources first).
  */
-class PlayerPrintFallbackManager(
-    private val activity: PlayerActivity
+class PrintShareFallbackManager(
+    private val activity: Activity
 ) {
 
     /**
@@ -45,7 +45,7 @@ class PlayerPrintFallbackManager(
             activity.startActivity(chooser)
             true
         } catch (e: Exception) {
-            Timber.e(e, "PlayerPrintFallbackManager: share chooser failed (${e.javaClass.simpleName}: ${e.message})")
+            Timber.e(e, "PrintShareFallbackManager: share chooser failed (${e.javaClass.simpleName}: ${e.message})")
             false
         }
     }

@@ -42,7 +42,6 @@ class LayoutSettingsSearchSource @Inject constructor(
                 Timber.w(e, "Settings search: layout $layoutName not found, skipping")
             }
         }
-        Timber.d("S0603: settings-search indexed ${all.size} rows (incl. AppCompatSpinner OCR pickers + TextView language pickers)")
         return all
     }
 

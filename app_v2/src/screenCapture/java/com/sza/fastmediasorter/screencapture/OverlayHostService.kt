@@ -40,9 +40,9 @@ class OverlayHostService : Service() {
     override fun onCreate() {
         super.onCreate()
         // Application-overlay strip; the gesture launches the MediaProjection consent activity. This
-        // overlay launcher is noLegal (sideload) only: it is the API 26..29 fallback there, while API
-        // 30+ uses the silent accessibility path instead. Store flavors never mount this launcher and
-        // reach the same capture engine through the menu action only (S0559).
+        // overlay launcher is shared by the standard MediaProjection consent path (S0621) and the
+        // noLegal MediaProjection fallback. On noLegal API 30+ the silent accessibility path hosts the
+        // strip instead through its own service; that accessibility path stays a noLegal exclusive.
         overlayManager = ScreenGestureOverlayManager(
             context = this,
             overlayWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,

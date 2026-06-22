@@ -1,0 +1,36 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Return to the main resource-type tabs screen (MainActivity).
+#
+# resumeOnNextLaunch is on by default, so a cold launch reopens the last played file directly
+# in the player. In a multi-flow suite that means any flow running after a player flow would
+# start inside the restored player instead of the main screen. This fragment backs out of any
+# restored player/browse screen until the resource-type tabs are shown, giving every capability
+# flow a deterministic MainActivity starting point.
+#
+# Each back is guarded on tabResourceTypes, so a screen that is already home is never
+# over-backed out of (which would exit the app).
+
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"

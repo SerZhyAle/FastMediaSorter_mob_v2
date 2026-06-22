@@ -1,17 +1,23 @@
 #requires -Version 7
 <#
 .SYNOPSIS
-  Discover new stream-catalog candidates for delivery/stream-catalog/streams.csv.
+  Collect, validate, and maintain delivery/stream-catalog/streams.csv.
 
 .DESCRIPTION
-  Pulls free/publicly-listed streams from community/official sources, normalizes them to the
-  17-column catalog schema, de-duplicates against the existing streams.csv, runs a liveness probe,
-  and writes two artifacts to the output dir:
-    - stream-candidates.csv         : exactly the 17 catalog columns, ready to review + append.
-    - stream-candidates-report.csv  : same rows plus diagnostic columns (axis, liveness, http, dup, score).
+  Default mode discovers free/publicly-listed streams from community/official sources, normalizes
+  them to the 17-column catalog schema, de-duplicates against the existing catalog, runs a fast
+  liveness probe, writes review artifacts to the output dir, and appends the kept rows directly to
+  delivery/stream-catalog/streams.csv.
 
-  This NEVER edits streams.csv. The merge stays a manual review step (matches the existing
-  temp/*-candidates / *-report workflow).
+  Preview mode keeps the old safe workflow: write artifacts only, do not touch streams.csv.
+
+  Catalog-only mode replaces the old standalone liveness checker: probe the current catalog,
+  write a maintenance report, and optionally prune confirmed-dead rows.
+
+  Probe behavior:
+    - Uses .NET HttpClient with ResponseHeadersRead, so endless live bodies are NOT downloaded.
+    - HEAD first, then GET fallback for media servers that reject HEAD.
+    - Shows console progress with done/total, elapsed time, and ETA.
 
   Sources by axis:
     livetv : iptv-org public index (VIDEO / Live TV), official-leaning, NSFW + referrer/UA-gated dropped.
@@ -24,8 +30,10 @@
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PreviewOnly
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -Axis genres,geo -PerQuery 30
-  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -SkipLiveness
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead
 #>
 [CmdletBinding()]
 param(
@@ -36,9 +44,14 @@ param(
     [int]$LivenessTimeoutSec = 12,
     [int]$Throttle = 12,
     [switch]$SkipLiveness,
+    [switch]$PreviewOnly,
+    [switch]$CatalogOnly,
+    [switch]$PruneDead,
 
     [string]$ExistingCsv = 'delivery/stream-catalog/streams.csv',
     [string]$OutDir = 'temp',
+    [string]$CatalogLivenessReport = 'temp/stream-catalog-liveness.csv',
+    [string[]]$PruneStatuses = @('dead'),
 
     # radio-browser genre tags (exact match) - skewed toward catalog's weak genres.
     [string[]]$GenreTags = @(
@@ -60,14 +73,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $ua = 'FastMediaSorter-catalog/1.0 (+stream-candidate-collector)'
 
-# ---- schema -----------------------------------------------------------------
 $Schema = @(
     'category', 'topic', 'name', 'url', 'media_kind', 'protocol', 'format', 'bitrate',
     'is_live', 'https', 'language', 'country', 'homepage', 'source_kind',
     'license_note', 'notes', 'confidence'
 )
 
-# ---- helpers ----------------------------------------------------------------
 function Get-Host2([string]$url) {
     try { return ([uri]$url).Host.ToLowerInvariant() } catch { return '' }
 }
@@ -97,6 +108,42 @@ function To-Title([string]$s) {
     return (Get-Culture).TextInfo.ToTitleCase($s.ToLowerInvariant())
 }
 
+function Format-DurationShort([TimeSpan]$duration) {
+    $hours = [int][Math]::Floor($duration.TotalHours)
+    if ($hours -gt 0) {
+        return ('{0:00}:{1:00}:{2:00}' -f $hours, $duration.Minutes, $duration.Seconds)
+    }
+    return ('{0:00}:{1:00}' -f $duration.Minutes, $duration.Seconds)
+}
+
+function Backup-IfExists([string]$Path) {
+    if (-not (Test-Path $Path)) { return '' }
+    if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
+    $ts = (Get-Date).ToString('yyyyMMdd-HHmmss')
+    $backup = Join-Path 'temp' ("{0}.{1}.bak" -f (Split-Path -Leaf $Path), $ts)
+    Copy-Item -Path $Path -Destination $backup -Force
+    if (-not (Test-Path $backup)) { throw "Backup failed: $backup" }
+    return $backup
+}
+
+function Write-CsvUtf8 {
+    param([object[]]$Rows, [string]$Path, [string[]]$Columns)
+    $parent = Split-Path -Parent $Path
+    if ($parent -and -not (Test-Path $parent)) {
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    }
+    $Rows | Select-Object $Columns | Export-Csv -Path $Path -NoTypeInformation -Encoding utf8
+}
+
+function Show-LivenessSummary {
+    param([object[]]$Rows, [string]$Title)
+    Write-Host ''
+    Write-Host $Title -ForegroundColor Green
+    $Rows | Group-Object liveness_status | Sort-Object Name | ForEach-Object {
+        "{0,-8} {1}" -f $_.Name, $_.Count
+    }
+}
+
 # Map iptv-org category id -> our topic vocabulary.
 function Map-IptvTopic([string]$cat) {
     switch ($cat) {
@@ -115,12 +162,166 @@ function Map-IptvTopic([string]$cat) {
     }
 }
 
+function Invoke-LivenessProbe {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [string]$Activity = 'Liveness probe'
+    )
+
+    if (-not $Rows -or $Rows.Count -eq 0) { return @() }
+
+    Write-Host ("{0} {1} URLs (throttle {2}, timeout {3}s) .." -f $Activity, $Rows.Count, $Throttle, $LivenessTimeoutSec) -ForegroundColor Yellow
+    $probeJob = $Rows | ForEach-Object -ThrottleLimit $Throttle -Parallel {
+        $row = $_
+        $timeout = $using:LivenessTimeoutSec
+        $ua2 = $using:ua
+        $status = 'unknown'
+        $httpCode = ''
+        $note = ''
+        $url = [string]$row.url
+
+        if ($url -like 'rtsp://*') {
+            try {
+                $u = [Uri]$url
+                $port = if ($u.Port -gt 0) { $u.Port } else { 554 }
+                $tcp = [System.Net.Sockets.TcpClient]::new()
+                $iar = $tcp.BeginConnect($u.Host, $port, $null, $null)
+                if ($iar.AsyncWaitHandle.WaitOne([TimeSpan]::FromSeconds($timeout))) {
+                    $tcp.EndConnect($iar)
+                    $status = 'alive'
+                    $note = 'rtsp tcp-connect'
+                }
+                else {
+                    $status = 'unknown'
+                    $note = 'rtsp tcp-timeout'
+                }
+                $tcp.Close()
+            }
+            catch {
+                $message = $_.Exception.Message
+                if ($message -match 'refused|actively refused') {
+                    $status = 'dead'
+                    $note = 'rtsp conn-refused'
+                }
+                else {
+                    $status = 'unknown'
+                    $note = ('rtsp ' + ($message -replace '\s+', ' ').Trim())
+                }
+            }
+        }
+        else {
+            $handler = [System.Net.Http.HttpClientHandler]::new()
+            $handler.AllowAutoRedirect = $true
+            $handler.MaxAutomaticRedirections = 6
+            try { $handler.AutomaticDecompression = [System.Net.DecompressionMethods]::All } catch {}
+            $client = [System.Net.Http.HttpClient]::new($handler)
+            $client.Timeout = [TimeSpan]::FromSeconds($timeout)
+            $client.DefaultRequestHeaders.TryAddWithoutValidation('User-Agent', $ua2) | Out-Null
+            $client.DefaultRequestHeaders.TryAddWithoutValidation('Icy-MetaData', '1') | Out-Null
+            $responseHeadersRead = [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead
+
+            $probe = {
+                param([string]$methodName)
+                $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::$methodName, $url)
+                $response = $client.SendAsync($request, $responseHeadersRead).GetAwaiter().GetResult()
+                try {
+                    return [int]$response.StatusCode
+                }
+                finally {
+                    $response.Dispose()
+                    $request.Dispose()
+                }
+            }
+
+            try {
+                try { $statusCode = & $probe 'Head' } catch { $statusCode = & $probe 'Get' }
+                if (-not ($statusCode -ge 200 -and $statusCode -lt 400)) {
+                    try { $statusCode = & $probe 'Get' } catch { }
+                }
+
+                if ($statusCode -ge 200 -and $statusCode -lt 400) {
+                    $status = 'alive'
+                    $httpCode = [string]$statusCode
+                }
+                elseif ($statusCode -in 404, 410) {
+                    $status = 'dead'
+                    $httpCode = [string]$statusCode
+                    $note = "http $statusCode"
+                }
+                else {
+                    $status = 'unknown'
+                    $httpCode = [string]$statusCode
+                    $note = "http $statusCode"
+                }
+            }
+            catch {
+                $message = $_.Exception.Message
+                $inner = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { '' }
+                $full = ("$message $inner" -replace '\s+', ' ').Trim()
+                if ($full -match 'ICY|status line|invalid response|unrecognized|ended prematurely') {
+                    $status = 'alive'
+                    $note = 'icy/non-http'
+                }
+                elseif ($full -match 'No such host|not known|name resolution|NameResolution|known host') {
+                    $status = 'dead'
+                    $note = 'dns-fail'
+                }
+                elseif ($full -match 'refused|actively refused') {
+                    $status = 'dead'
+                    $note = 'conn-refused'
+                }
+                elseif ($full -match 'canceled|cancelled|timed out|timeout|task was canceled') {
+                    $status = 'unknown'
+                    $note = 'timeout'
+                }
+                else {
+                    $status = 'unknown'
+                    $note = $full
+                }
+            }
+            finally {
+                $client.Dispose()
+                $handler.Dispose()
+            }
+        }
+
+        Add-Member -InputObject $row -NotePropertyName 'liveness_status' -NotePropertyValue $status -Force
+        Add-Member -InputObject $row -NotePropertyName 'http_code' -NotePropertyValue $httpCode -Force
+        Add-Member -InputObject $row -NotePropertyName 'liveness_note' -NotePropertyValue $note -Force
+        $row
+    } -AsJob
+
+    $total = $Rows.Count
+    $progressWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($probeJob.State -in @('NotStarted', 'Running')) {
+        $done = @($probeJob.ChildJobs | Where-Object { $_.State -in @('Completed', 'Failed', 'Stopped') }).Count
+        $percent = if ($total -gt 0) { [int][Math]::Floor(($done / $total) * 100) } else { 100 }
+        $elapsedText = Format-DurationShort $progressWatch.Elapsed
+        $statusText = "{0}/{1} done | elapsed {2} | ETA estimating.." -f $done, $total, $elapsedText
+        if ($done -gt 0 -and $done -lt $total) {
+            $avgSeconds = $progressWatch.Elapsed.TotalSeconds / $done
+            $eta = [TimeSpan]::FromSeconds($avgSeconds * ($total - $done))
+            $statusText = "{0}/{1} done | elapsed {2} | ETA {3}" -f $done, $total, $elapsedText, (Format-DurationShort $eta)
+        }
+        elseif ($done -ge $total) {
+            $statusText = "{0}/{1} done | elapsed {2} | finishing results.." -f $done, $total, $elapsedText
+        }
+
+        Write-Progress -Activity $Activity -Status $statusText -PercentComplete $percent
+        Start-Sleep -Milliseconds 500
+    }
+    Write-Progress -Activity $Activity -Completed
+
+    return @(Receive-Job -Job $probeJob -Wait -AutoRemoveJob)
+}
+
 $rbServers = @(
     'https://de1.api.radio-browser.info',
     'https://de2.api.radio-browser.info',
     'https://nl1.api.radio-browser.info',
     'https://at1.api.radio-browser.info'
 )
+
 function Invoke-RadioBrowser([string]$path) {
     foreach ($srv in $rbServers) {
         try {
@@ -133,7 +334,6 @@ function Invoke-RadioBrowser([string]$path) {
     throw "All radio-browser mirrors failed for $path"
 }
 
-# Build one normalized candidate PSCustomObject (17 schema cols + diagnostics).
 function New-Candidate {
     param(
         [string]$axis, [string]$category, [string]$topic, [string]$name, [string]$url,
@@ -144,33 +344,32 @@ function New-Candidate {
     )
     $https = $url.ToLowerInvariant().StartsWith('https')
     [pscustomobject]@{
-        category     = $category
-        topic        = $topic
-        name         = ($name -replace '\s+', ' ').Trim()
-        url          = $url.Trim()
-        media_kind   = $mediaKind
-        protocol     = $protocol
-        format       = $format
-        bitrate      = $bitrate
-        is_live      = $isLive.ToString().ToLowerInvariant()
-        https        = $https.ToString().ToLowerInvariant()
-        language     = $language
-        country      = $country
-        homepage     = $homepage
-        source_kind  = $sourceKind
-        license_note = $licenseNote
-        notes        = $notes
-        confidence   = $confidence
-        # diagnostics (not part of catalog schema):
-        axis            = $axis
-        score           = $score
+        category      = $category
+        topic         = $topic
+        name          = ($name -replace '\s+', ' ').Trim()
+        url           = $url.Trim()
+        media_kind    = $mediaKind
+        protocol      = $protocol
+        format        = $format
+        bitrate       = $bitrate
+        is_live       = $isLive.ToString().ToLowerInvariant()
+        https         = $https.ToString().ToLowerInvariant()
+        language      = $language
+        country       = $country
+        homepage      = $homepage
+        source_kind   = $sourceKind
+        license_note  = $licenseNote
+        notes         = $notes
+        confidence    = $confidence
+        axis          = $axis
+        score         = $score
         liveness_status = ''
         http_code       = ''
+        liveness_note   = ''
         dup             = ''
     }
 }
 
-# ---- pull: radio-browser genres / geo ---------------------------------------
 function Get-RadioBrowserStations {
     param([string]$axis, [string]$kind, [string]$key, [string]$topicHint)
     $enc = [uri]::EscapeDataString($key)
@@ -204,9 +403,9 @@ function Get-RadioBrowserStations {
     return $out
 }
 
-# ---- pull: iptv-org ---------------------------------------------------------
 $script:IptvChannels = $null
 $script:IptvStreams = $null
+
 function Initialize-Iptv {
     if ($null -ne $script:IptvChannels) { return }
     Write-Host '  downloading iptv-org channels.json + streams.json ..' -ForegroundColor DarkGray
@@ -226,12 +425,11 @@ function Get-IptvCandidates {
     foreach ($s in $script:IptvStreams) {
         $url = $s.url
         if ([string]::IsNullOrWhiteSpace($url)) { continue }
-        # Drop streams that need a custom referrer/user-agent - they won't "just play" in ExoPlayer.
         if ($s.referrer) { continue }
         if ($s.user_agent) { continue }
         $cid = $s.channel
         if ([string]::IsNullOrWhiteSpace($cid)) { continue }
-        if ($seenChannel.ContainsKey($cid)) { continue }   # one feed per channel
+        if ($seenChannel.ContainsKey($cid)) { continue }
         $c = $script:IptvChannels[$cid]
         if ($null -eq $c) { continue }
         if ($c.is_nsfw -eq $true) { continue }
@@ -254,12 +452,11 @@ function Get-IptvCandidates {
             -licenseNote 'iptv-org public index, publicly listed free stream (verify broadcaster-official before promote)' `
             -notes ("iptv-org; categories=$($cats -join '|'); quality=$($s.quality)") `
             -confidence 'medium' -score 0
-        if ($out.Count -ge ($PerQuery * 50)) { break }   # global safety cap
+        if ($out.Count -ge ($PerQuery * 50)) { break }
     }
     return $out
 }
 
-# ---- pull: webcam / 24-7 seed ----------------------------------------------
 function Get-WebcamSeeds {
     param([string]$axis)
     $seeds = @(
@@ -277,7 +474,62 @@ function Get-WebcamSeeds {
     return $out
 }
 
-# ---- main: collect ----------------------------------------------------------
+function Invoke-CatalogMaintenance {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $rows = @(Import-Csv -Path $ExistingCsv)
+    if (-not $rows -or $rows.Count -eq 0) { throw "No rows in $ExistingCsv" }
+
+    Write-Host ("Catalog maintenance mode for {0} rows" -f $rows.Count) -ForegroundColor Cyan
+    $probed = if ($SkipLiveness) { $rows } else { Invoke-LivenessProbe -Rows $rows -Activity 'Catalog liveness' }
+
+    $reportRows = $probed | ForEach-Object {
+        [pscustomobject]@{
+            status     = $_.liveness_status
+            http       = $_.http_code
+            note       = $_.liveness_note
+            media_kind = $_.media_kind
+            category   = $_.category
+            topic      = $_.topic
+            name       = $_.name
+            url        = $_.url
+            country    = $_.country
+            homepage   = $_.homepage
+        }
+    }
+    Write-CsvUtf8 -Rows ($reportRows | Sort-Object status, category, topic, name) -Path $CatalogLivenessReport `
+        -Columns @('status', 'http', 'note', 'media_kind', 'category', 'topic', 'name', 'url', 'country', 'homepage')
+    Show-LivenessSummary -Rows $probed -Title '=== Catalog liveness summary ==='
+    Write-Host ''
+    Write-Host ("Report written: {0}" -f $CatalogLivenessReport) -ForegroundColor Green
+
+    $pruneUrls = @($probed | Where-Object { $PruneStatuses -contains $_.liveness_status } | ForEach-Object { [string]$_.url })
+    $pruneSet = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($u in $pruneUrls) { [void]$pruneSet.Add($u) }
+    $pruneCount = $pruneSet.Count
+
+    if ($pruneCount -eq 0) {
+        Write-Host "`nNothing to prune (no rows classified: $($PruneStatuses -join ', '))." -ForegroundColor Green
+        return
+    }
+
+    if (-not $PruneDead) {
+        Write-Host "`nWould prune $pruneCount row(s) [status in: $($PruneStatuses -join ', ')] - re-run with -PruneDead to apply:" -ForegroundColor Yellow
+        $reportRows | Where-Object { $pruneSet.Contains([string]$_.url) } | Sort-Object category, topic, name |
+            ForEach-Object { " - [{0}] {1}  ({2})  {3}" -f $_.category, $_.name, $_.note, $_.url }
+        return
+    }
+
+    $backup = Backup-IfExists -Path $ExistingCsv
+    $survivors = $rows | Where-Object { -not $pruneSet.Contains([string]$_.url) }
+    Write-CsvUtf8 -Rows $survivors -Path $ExistingCsv -Columns $Schema
+    Write-Host "`nPruned $pruneCount row(s); backup: $backup; catalog now $($survivors.Count) row(s)." -ForegroundColor Green
+}
+
+if ($CatalogOnly) {
+    Invoke-CatalogMaintenance
+    return
+}
+
 Write-Host "Collecting stream candidates [axis: $($Axis -join ', ')]" -ForegroundColor Cyan
 $all = [System.Collections.Generic.List[object]]::new()
 
@@ -289,6 +541,7 @@ if ($Axis -contains 'genres') {
         $r | ForEach-Object { $all.Add($_) }
     }
 }
+
 if ($Axis -contains 'geo') {
     Write-Host '* radio-browser by country ..' -ForegroundColor Yellow
     foreach ($cc in $GeoCountries) {
@@ -301,12 +554,14 @@ if ($Axis -contains 'geo') {
     Write-Host ("    iptv-org geo: {0} channels" -f $r.Count)
     $r | ForEach-Object { $all.Add($_) }
 }
+
 if ($Axis -contains 'livetv') {
     Write-Host '* iptv-org by category (Live TV) ..' -ForegroundColor Yellow
     $r = Get-IptvCandidates -axis 'livetv' -categories $LiveTvCategories -countries @()
     Write-Host ("    iptv-org livetv: {0} channels" -f $r.Count)
     $r | ForEach-Object { $all.Add($_) }
 }
+
 if ($Axis -contains 'webcam') {
     Write-Host '* webcam / 24-7 seeds ..' -ForegroundColor Yellow
     $r = Get-WebcamSeeds -axis 'webcam'
@@ -316,11 +571,11 @@ if ($Axis -contains 'webcam') {
 
 Write-Host ("Raw candidates: {0}" -f $all.Count) -ForegroundColor Cyan
 
-# ---- dedup: within batch + against existing streams.csv ---------------------
+$existing = @()
 $existingKeys = [System.Collections.Generic.HashSet[string]]::new()
 $existingUrls = [System.Collections.Generic.HashSet[string]]::new()
 if (Test-Path $ExistingCsv) {
-    $existing = Import-Csv -Path $ExistingCsv
+    $existing = @(Import-Csv -Path $ExistingCsv)
     foreach ($e in $existing) {
         [void]$existingUrls.Add($e.url.Trim().ToLowerInvariant())
         $h = Get-Host2 $e.url
@@ -329,7 +584,7 @@ if (Test-Path $ExistingCsv) {
     Write-Host ("Existing catalog rows: {0}" -f $existing.Count)
 }
 else {
-    Write-Warning "Existing CSV not found: $ExistingCsv (dedup vs catalog skipped)"
+    Write-Warning "Existing CSV not found: $ExistingCsv (catalog will be created on apply)"
 }
 
 $batchUrls = [System.Collections.Generic.HashSet[string]]::new()
@@ -344,68 +599,53 @@ foreach ($c in $all) {
 }
 Write-Host ("After dedup: {0} new candidates" -f $deduped.Count) -ForegroundColor Cyan
 
-# ---- liveness probe ---------------------------------------------------------
 if (-not $SkipLiveness -and $deduped.Count -gt 0) {
-    Write-Host ("Liveness probing {0} URLs (throttle {1}, timeout {2}s) .." -f $deduped.Count, $Throttle, $LivenessTimeoutSec) -ForegroundColor Yellow
-    $probed = $deduped | ForEach-Object -ThrottleLimit $Throttle -Parallel {
-        $c = $_
-        $timeout = $using:LivenessTimeoutSec
-        $ua2 = $using:ua
-        $status = 'unknown'; $code = ''
-        try {
-            $isHls = $c.format -eq 'm3u8'
-            $resp = Invoke-WebRequest -Uri $c.url -TimeoutSec $timeout -MaximumRedirection 5 `
-                -Headers @{ 'User-Agent' = $ua2 } -SkipHttpErrorCheck
-            $code = [string]$resp.StatusCode
-            if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 400) {
-                if ($isHls) {
-                    $body = ''
-                    try { $body = [string]$resp.Content } catch { $body = '' }
-                    if ($body -match '#EXTM3U') {
-                        if ($body -match '#EXT-X-ENDLIST') { $status = 'alive-vod' }
-                        elseif ($body -match '#EXT-X-STREAM-INF' -or $body -match '#EXTINF') { $status = 'alive' }
-                        else { $status = 'alive-thin' }
-                    }
-                    else { $status = 'not-hls' }
-                }
-                else {
-                    $status = 'alive'
-                }
-            }
-            else { $status = 'dead' }
-        }
-        catch {
-            $status = 'dead'; $code = $_.Exception.Message
-        }
-        $c.liveness_status = $status
-        $c.http_code = $code
-        $c
-    }
+    $probed = Invoke-LivenessProbe -Rows @($deduped) -Activity 'Candidate liveness'
     $deduped = [System.Collections.Generic.List[object]]::new()
     $probed | ForEach-Object { $deduped.Add($_) }
-    $aliveCount = ($deduped | Where-Object { $_.liveness_status -like 'alive*' }).Count
+    $aliveCount = ($deduped | Where-Object { $_.liveness_status -eq 'alive' }).Count
     Write-Host ("Liveness: {0}/{1} alive" -f $aliveCount, $deduped.Count) -ForegroundColor Cyan
 }
 
-# ---- write artifacts --------------------------------------------------------
 if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Force | Out-Null }
 $candPath = Join-Path $OutDir 'stream-candidates.csv'
 $reportPath = Join-Path $OutDir 'stream-candidates-report.csv'
 
-# Report = everything (sorted: alive first, then by axis/score).
 $sorted = $deduped | Sort-Object `
-    @{ Expression = { if ($_.liveness_status -like 'alive*') { 0 } else { 1 } } }, `
+    @{ Expression = { if ($_.liveness_status -eq 'alive') { 0 } else { 1 } } }, `
     axis, @{ Expression = 'score'; Descending = $true }, category, topic, name
-$sorted | Select-Object ($Schema + @('axis', 'score', 'liveness_status', 'http_code', 'dup')) |
-    Export-Csv -Path $reportPath -NoTypeInformation -Encoding utf8
+$reportColumns = $Schema + @('axis', 'score', 'liveness_status', 'http_code', 'liveness_note', 'dup')
+Write-CsvUtf8 -Rows $sorted -Path $reportPath -Columns $reportColumns
 
-# Clean candidates = schema-only, alive (or unknown when liveness skipped), ready to append.
-$keep = if ($SkipLiveness) { $sorted } else { $sorted | Where-Object { $_.liveness_status -like 'alive*' } }
-$keep | Select-Object $Schema | Export-Csv -Path $candPath -NoTypeInformation -Encoding utf8
+$keep = if ($SkipLiveness) { $sorted } else { $sorted | Where-Object { $_.liveness_status -eq 'alive' } }
+Write-CsvUtf8 -Rows $keep -Path $candPath -Columns $Schema
+
+Show-LivenessSummary -Rows $sorted -Title '=== Candidate liveness summary ==='
+Write-Host ''
+Write-Host ("Wrote {0} clean candidates -> {1}" -f @($keep).Count, $candPath) -ForegroundColor Green
+Write-Host ("Wrote {0} report rows    -> {1}" -f @($sorted).Count, $reportPath) -ForegroundColor Green
+
+if ($PreviewOnly) {
+    Write-Host ''
+    Write-Host 'Preview only mode: streams.csv was not changed.' -ForegroundColor Yellow
+    return
+}
+
+$rowsToAppend = @($keep | Select-Object $Schema)
+if ($rowsToAppend.Count -eq 0) {
+    Write-Host ''
+    Write-Host 'No alive new rows to append to streams.csv.' -ForegroundColor Yellow
+    return
+}
+
+$backup = Backup-IfExists -Path $ExistingCsv
+$mergedRows = @($existing) + $rowsToAppend
+Write-CsvUtf8 -Rows $mergedRows -Path $ExistingCsv -Columns $Schema
 
 Write-Host ''
-Write-Host ("Wrote {0} clean candidates -> {1}" -f $keep.Count, $candPath) -ForegroundColor Green
-Write-Host ("Wrote {0} report rows    -> {1}" -f $sorted.Count, $reportPath) -ForegroundColor Green
-Write-Host ''
-Write-Host 'Next: review the report CSV, then append vetted rows from stream-candidates.csv to' -ForegroundColor DarkGray
-Write-Host '      delivery/stream-catalog/streams.csv (header columns match 1:1).' -ForegroundColor DarkGray
+if ($backup) {
+    Write-Host ("Updated catalog: +{0} row(s), now {1}; backup -> {2}" -f $rowsToAppend.Count, $mergedRows.Count, $backup) -ForegroundColor Green
+}
+else {
+    Write-Host ("Created catalog: {0} row(s) -> {1}" -f $mergedRows.Count, $ExistingCsv) -ForegroundColor Green
+}

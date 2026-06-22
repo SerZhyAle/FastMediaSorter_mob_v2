@@ -140,6 +140,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/margin_xxlarge"
         android:layout_marginBottom="@dimen/margin_small"
+        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
         app:sdr_title="@string/player_subtitle_language" />
 
     <!-- Audio track (S0567: raw Spinner -> SettingsDropdownRow; the row owns its title). -->
@@ -148,6 +149,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
+        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
         app:sdr_title="@string/player_audio_track" />
 
     <!-- 3D Video Section - only visible for video files (controller hides it otherwise) -->

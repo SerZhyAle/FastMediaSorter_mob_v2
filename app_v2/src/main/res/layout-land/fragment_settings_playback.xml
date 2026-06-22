@@ -27,6 +27,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_small"
+                        app:sdr_inline="true"
+                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/default_sort_mode" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
@@ -187,48 +189,64 @@
 
                     </LinearLayout>
 
-                    <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowShowBlackScreenButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/settings_black_screen_button_title"
-                        app:str_subtitle="@string/settings_black_screen_button_desc" />
+                    <!-- S0609: Black Screen button + PiP paired into a weighted 2-column row (landscape). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
-                    <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
-                    <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
+                        <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowEnablePip"
-                            android:layout_width="match_parent"
+                            android:id="@+id/rowShowBlackScreenButton"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:str_title="@string/setting_enable_pip"
-                            app:str_subtitle="@string/setting_enable_pip_desc" />
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
+                            android:nextFocusRight="@id/rowEnablePip"
+                            app:str_title="@string/settings_black_screen_button_title"
+                            app:str_subtitle="@string/settings_black_screen_button_desc" />
+
+                        <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
+                        <LinearLayout android:id="@+id/layoutPip" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowEnablePip"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:nextFocusLeft="@id/rowShowBlackScreenButton"
+                                app:str_title="@string/setting_enable_pip"
+                                app:str_subtitle="@string/setting_enable_pip_desc" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Panel Stereo Single-Eye View (spec_panel-stereo-single-eye) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowPanelStereoSingleEye"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/pref_panel_stereo_single_eye_title"
-                        app:str_subtitle="@string/pref_panel_stereo_single_eye_summary" />
+                    <!-- S0609: Panel Stereo + Big Buttons paired into a weighted 2-column row (landscape). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
-                    <!-- S0158: Big Buttons Mode -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowBigButtonsMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/big_buttons_mode_title"
-                        app:str_subtitle="@string/big_buttons_mode_summary"
-                        app:str_showHelp="true"
-                        app:str_helpTitle="@string/tooltip_big_buttons_mode_title"
-                        app:str_helpMessage="@string/tooltip_big_buttons_mode_message" />
+                        <!-- Panel Stereo Single-Eye View (spec_panel-stereo-single-eye) -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowPanelStereoSingleEye"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
+                            android:nextFocusRight="@id/rowBigButtonsMode"
+                            app:str_title="@string/pref_panel_stereo_single_eye_title"
+                            app:str_subtitle="@string/pref_panel_stereo_single_eye_summary" />
+
+                        <!-- S0158: Big Buttons Mode -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowBigButtonsMode"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            android:nextFocusLeft="@id/rowPanelStereoSingleEye"
+                            app:str_title="@string/big_buttons_mode_title"
+                            app:str_subtitle="@string/big_buttons_mode_summary"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_big_buttons_mode_title"
+                            app:str_helpMessage="@string/tooltip_big_buttons_mode_message" />
+
+                    </LinearLayout>
 
                     <!-- Compact player buttons (small controls) - shrinks the player command panel -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -400,28 +418,31 @@
                             android:textColor="@color/text_color_secondary"
                             android:paddingBottom="6dp" />
 
+                        <!-- S0609: landscape lays the up-to-3 exit-behavior options in one row. -->
                         <RadioGroup
                             android:id="@+id/radioGroupExitBehavior"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:orientation="horizontal">
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radioExitBehaviorAsk"
-                                android:layout_width="match_parent"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/dialog_field_spacing"
                                 android:text="@string/background_audio_exit_behavior_ask"
                                 android:checked="true" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radioExitBehaviorAlwaysStop"
-                                android:layout_width="match_parent"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/dialog_field_spacing"
                                 android:text="@string/background_audio_exit_behavior_always_stop" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/radioExitBehaviorAlwaysContinue"
-                                android:layout_width="match_parent"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/background_audio_exit_behavior_always_continue" />
 

@@ -467,7 +467,6 @@ class PlaybackSettingsFragment : Fragment() {
             binding.cardBackgroundAudio.isVisible = false
             return
         }
-        Timber.d("S0577: background-audio settings group shown on Player tab")
 
         binding.rowEnablePersistentAudioPlayback.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener

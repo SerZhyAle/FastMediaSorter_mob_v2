@@ -7,6 +7,7 @@ appId: com.sza.fastmediasorter.debug
 
 - launchApp
 - runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
 

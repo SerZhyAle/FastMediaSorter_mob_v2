@@ -105,12 +105,10 @@ class StreamsViewModel @Inject constructor(
 
     /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
     fun onImportCatalog() = viewModelScope.launch {
-        Timber.d("S0570: catalog import requested")
         _state.update { it.copy(isImporting = true) }
         try {
             when (val result = importStreamCatalog()) {
                 is ImportStreamCatalogUseCase.CatalogImportResult.Success -> {
-                    Timber.d("S0570: catalog merged added=%d updated=%d removed=%d", result.added, result.updated, result.removed)
                     _events.send(StreamsEvent.CatalogUpdated(result.added, result.updated, result.removed))
                 }
                 ImportStreamCatalogUseCase.CatalogImportResult.Empty ->
@@ -134,7 +132,6 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun onSort(mode: SortMode) {
-        Timber.d("S0570: list sort changed to %s", mode)
         _filter.update { it.copy(sort = mode) }
     }
 

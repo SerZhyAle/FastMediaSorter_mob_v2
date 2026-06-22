@@ -80,9 +80,11 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
             if (segment.isEmpty()) "" else Uri.encode(segment, "@")
         } ?: ""
 
+    // encodedAuthority keeps the host:port colon verbatim; authority() would percent-encode it to
+    // %3A, after which Uri.getHost()/getPort() on the rebuilt URI return "host:port" and -1.
     val ftpUri = Uri.Builder()
         .scheme("ftp")
-        .authority(parsedUri.authority)
+        .encodedAuthority(parsedUri.encodedAuthority)
         .encodedPath(encodedPath)
         .build()
 

@@ -55,7 +55,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             }
 
             ScreenshotGestureAction.SEND_TO_RECIPIENTS -> {
-                Timber.d("S0472: dispatch SEND_TO_RECIPIENTS -> standalone viewer, uri=%s", savedUri)
                 openInViewer(context, savedUri, autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
             }
 

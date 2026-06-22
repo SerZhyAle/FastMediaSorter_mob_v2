@@ -81,11 +81,11 @@ class SftpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
     private val idleDisconnectPolicy: com.sza.fastmediasorter.data.network.IdleDisconnectPolicy,
+    private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
 ) {
 
     companion object {
         private const val CONNECTION_TIMEOUT = 10000 // 10 seconds (reduced from 15s for faster error feedback)
-        private const val SOCKET_TIMEOUT = 30000 // 30 seconds (long timeout for slow file operations)
         private const val MAX_CONCURRENT_CONNECTIONS = 15 // Increased for channel pooling
         private const val MAX_CHANNELS_PER_SESSION = 5 // Max channels per session
         // Connection pool settings
@@ -104,6 +104,20 @@ class SftpClient @Inject constructor(
 
     private val pool = SftpConnectionPool()
     private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    init {
+        // Parity with SmbConnectionManager: invalidate the SFTP pool on a network handover so a
+        // half-open socket on the dead interface is force-closed and a parked listing unblocks.
+        networkStateMonitor.registerCallback(object : com.sza.fastmediasorter.core.network.NetworkStateMonitor.NetworkChangeCallback {
+            override fun onNetworkChanged() {
+                pool.disconnectAllOnNetworkChange()
+            }
+
+            override fun onNetworkLost() {
+                pool.disconnectAllOnNetworkChange()
+            }
+        })
+    }
 
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(

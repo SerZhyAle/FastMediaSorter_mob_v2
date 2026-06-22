@@ -54,6 +54,8 @@
         <attr name="ssr_helpTitle" format="string|reference" />
         <attr name="ssr_helpMessage" format="string|reference" />
         <attr name="ssr_showChevron" format="boolean" />
+        <!-- Packs the chevron right after the value (text group hugs content) and drops the tall touch-target band, for dense landscape rows. Default false. -->
+        <attr name="ssr_inline" format="boolean" />
     </declare-styleable>
 
     <!-- Consumed by SettingsDropdownRow.kt. All public attrs use the sdr_ prefix. -->
@@ -63,6 +65,12 @@
         <attr name="sdr_helpTitle" format="string|reference" />
         <attr name="sdr_helpMessage" format="string|reference" />
         <attr name="sdr_entries" format="reference" />
+        <!-- Renders the label inline to the left of the field on one line (dense landscape, S0618). Default false = stacked. -->
+        <attr name="sdr_inline" format="boolean" />
+        <!-- Caps the dropdown field to a fixed width instead of filling the row, for short-value selectors. Default unset = match_parent (stacked) / weight (inline). -->
+        <attr name="sdr_fieldWidth" format="dimension|reference" />
+        <!-- Caps the dropdown field max width while it still shrinks with the row (weighted columns). Default unset = uncapped. -->
+        <attr name="sdr_fieldMaxWidth" format="dimension|reference" />
     </declare-styleable>
 
     <!-- Consumed by SettingsInputRow.kt. All public attrs use the sir_ prefix. -->
@@ -78,6 +86,8 @@
             <enum name="clear_text" value="1" />
             <enum name="password_toggle" value="2" />
         </attr>
+        <!-- Caps the input field max width while it still shrinks with the row (weighted columns). Default unset = uncapped. -->
+        <attr name="sir_fieldMaxWidth" format="dimension|reference" />
     </declare-styleable>
 
     <!-- Consumed by FormFieldPairLayout.kt. All public attrs use the ffp_ prefix. -->

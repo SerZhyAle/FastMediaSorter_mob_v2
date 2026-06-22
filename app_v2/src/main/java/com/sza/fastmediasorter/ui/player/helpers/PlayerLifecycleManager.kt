@@ -444,7 +444,6 @@ class PlayerLifecycleManager(
      * - ASK (default): shows a 4-item dialog (Stop / Keep Playing / Always Stop / Always Continue).
      */
     fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
-        Timber.d("S0577: player exit via shared resolver")
         if (!activity.isMediaLoaderManagerInitialized || !activity.mediaLoaderManager.isServiceAudioActive) {
             warnIfBackgroundHandoffMissed()
             doFinish(withTransition)

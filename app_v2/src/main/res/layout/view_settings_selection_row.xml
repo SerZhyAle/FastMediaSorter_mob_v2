@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Layout for SettingsSelectionRow compound view.
-  Canonical pattern: optional leading icon + text group (title + inline helper, subtitle below) +
-  trailing value text + chevron, with an optional trailing slot for a custom control.
+  Canonical pattern: optional leading icon + text group (title + inline helper + value, subtitle below) +
+  trailing slot + chevron.
+  Value sits inline next to the title (S0618, R3); the text group keeps weight so the chevron stays
+  pinned at the row's right edge and long titles never crowd it.
   See docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
@@ -26,8 +28,10 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- Title line: title + helper inline (helper sits next to the title, not at the right edge). -->
+        <!-- Title line: title + inline helper + value, all hugging the left. Value sits next to the
+             title (S0618 R3); the trailing weighted spacer fills the rest so they never drift apart. -->
         <LinearLayout
+            android:id="@+id/ssr_titleLine"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -52,7 +56,17 @@
                 app:tint="@color/text_color_secondary"
                 android:visibility="gone" />
 
+            <TextView
+                android:id="@+id/ssr_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/toggler_desc_text_size"
+                android:visibility="gone" />
+
             <View
+                android:id="@+id/ssr_titleLineSpacer"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
@@ -68,16 +82,6 @@
             android:visibility="gone" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/ssr_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="@dimen/settings_help_icon_margin"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="@dimen/toggler_desc_text_size"
-        android:visibility="gone" />
 
     <!-- Optional trailing control slot, hidden by default. -->
     <FrameLayout

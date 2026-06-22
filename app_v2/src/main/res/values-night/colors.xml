@@ -45,6 +45,9 @@
     <color name="error_color">#FFEF5350</color>
     <color name="warning_color">#FFFFB74D</color>
     <color name="success_color">#FF81C784</color>
+    <!-- S0611: dialog confirm button fill in dark mode = dark text on green-300 (7.41:1); white-on-success_color was ~1.9:1. -->
+    <color name="confirm_button_bg">#FF81C784</color>
+    <color name="confirm_button_on">#FF0A2E0A</color>
     <color name="info_color">#FF4FC3F7</color>
     <color name="scrollbar_thumb">#FF757575</color>
 

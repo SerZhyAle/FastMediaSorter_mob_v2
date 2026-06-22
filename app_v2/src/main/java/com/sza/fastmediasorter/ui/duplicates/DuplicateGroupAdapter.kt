@@ -71,7 +71,6 @@ class DuplicateGroupAdapter(
             override fun isActive(): Boolean = true
 
             override fun onSelectionStart(position: Int) {
-                timber.log.Timber.d("S0512: Duplicates within-group drag-select start at position=$position")
                 pathsInRange(position, position)?.let(onSelectRange)
             }
 

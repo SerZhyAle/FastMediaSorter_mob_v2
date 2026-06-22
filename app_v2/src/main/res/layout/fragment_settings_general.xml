@@ -36,6 +36,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/resource_field_margin_top"
                         android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/language" />
 
                     <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow). -->
@@ -45,6 +46,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/resource_field_margin_top"
                         android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/color_theme"
                         app:sdr_entries="@array/color_theme_options" />
 
@@ -480,38 +482,52 @@
 
                     <!-- ── network + cache settings ─────────────────────── -->
 
-                    <!-- S0567: Network Parallelism + Prefetch Cache restructured into full-width compound
-                         rows. Network Parallelism is a free-form numeric field; Prefetch Cache is an
-                         enumerated dropdown with its help folded in (standalone help icon removed). -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
-                        android:id="@+id/actvNetworkParallelism"
+                    <!-- S0567: Network Parallelism + Prefetch Cache. Both share one row; each field is
+                         width-capped so it stays compact on wide screens yet shrinks on narrow ones
+                         (numeric input is a free-form field; Prefetch Cache is an enumerated dropdown
+                         with its help folded in - standalone help icon removed). -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/resource_field_margin_top"
                         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-                        app:sir_title="@string/network_parallelism_title"
-                        app:sir_inputType="2" />
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/actvPrefetchCache"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-                        app:sdr_title="@string/pref_prefetch_cache_title"
-                        app:sdr_showHelp="true"
-                        app:sdr_helpTitle="@string/pref_prefetch_cache_help_title"
-                        app:sdr_helpMessage="@string/pref_prefetch_cache_help_message" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                            android:id="@+id/actvNetworkParallelism"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
+                            app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width"
+                            app:sir_title="@string/network_parallelism_title"
+                            app:sir_inputType="2" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/actvPrefetchCache"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                            app:sdr_title="@string/pref_prefetch_cache_title"
+                            app:sdr_showHelp="true"
+                            app:sdr_helpTitle="@string/pref_prefetch_cache_help_title"
+                            app:sdr_helpMessage="@string/pref_prefetch_cache_help_message" />
+
+                    </LinearLayout>
 
                     <!-- Row 2: Streaming Cleanup | Streaming TTL -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/pref_streaming_cleanup_title">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/pref_streaming_cleanup_title">
 
                             <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_streaming_ttl_title">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxWidth="@dimen/settings_dropdown_compact_width" android:hint="@string/pref_streaming_ttl_title">
 
                             <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
 

@@ -79,6 +79,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
+            app:sdr_inline="true"
+            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/sort_by" />
 
         <!-- Divider -->

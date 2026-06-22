@@ -252,7 +252,6 @@ class PlayerViewModel @Inject constructor(
             val source = getStreamSourceByUrlUseCase(url)
             if (source != null) {
                 // S0593: a saved stream that failed to play here -> record the red status.
-                Timber.d("S0593: fullscreen stream failed - record FAIL %s", url)
                 recordStreamPlayOutcomeUseCase(source.id, ok = false)
                 sendEvent(PlayerEvent.ShowStreamUnavailable(source))
             } else {
@@ -270,7 +269,6 @@ class PlayerViewModel @Inject constructor(
     fun recordStreamPlayOk(url: String) {
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url) ?: return@launch
-            Timber.d("S0593: fullscreen stream reached READY - record OK %s", url)
             recordStreamPlayOutcomeUseCase(source.id, ok = true)
         }
     }

@@ -690,7 +690,6 @@ class PhotoVideoStandaloneActivity :
             }
             AUTO_ACTION_SEND_TO -> {
                 autoActionConsumed = true
-                Timber.d("S0472: standalone auto-action SEND_TO -> curated send-to menu")
                 fileOperations.shareCurrentFile()
             }
         }

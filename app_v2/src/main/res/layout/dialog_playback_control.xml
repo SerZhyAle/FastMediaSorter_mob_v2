@@ -184,6 +184,7 @@
 
                     <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                         android:id="@+id/seekVolume"
+                        style="@style/Widget.FMS.PlaybackSlider"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:focusable="true"
@@ -462,6 +463,7 @@
 
                     <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                         android:id="@+id/seekHue"
+                        style="@style/Widget.FMS.PlaybackSlider"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:focusable="true"
@@ -495,6 +497,7 @@
 
                     <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                         android:id="@+id/seekBrightness"
+                        style="@style/Widget.FMS.PlaybackSlider"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:focusable="true"
@@ -528,6 +531,7 @@
 
                     <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                         android:id="@+id/seekSpeed"
+                        style="@style/Widget.FMS.PlaybackSlider"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:focusable="true"

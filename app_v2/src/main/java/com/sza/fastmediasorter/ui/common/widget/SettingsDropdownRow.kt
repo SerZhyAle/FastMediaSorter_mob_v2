@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.updateLayoutParams
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
@@ -41,6 +42,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private var itemSelectedListener: ((Int) -> Unit)? = null
     private var entries: List<CharSequence> = emptyList()
     private var selectedIndex: Int = -1
+
+    // -1 (MATCH_PARENT) keeps the legacy fill behaviour; a positive value caps the field to a fixed width.
+    private var fieldWidthPx: Int = LayoutParams.MATCH_PARENT
 
     init {
         orientation = VERTICAL
@@ -162,6 +166,42 @@ class SettingsDropdownRow @JvmOverloads constructor(
             if (entriesRes != 0) {
                 setEntries(resources.getTextArray(entriesRes).toList())
             }
+            fieldWidthPx = typedArray.getDimensionPixelSize(
+                R.styleable.SettingsDropdownRow_sdr_fieldWidth,
+                LayoutParams.MATCH_PARENT,
+            )
+            val fieldMaxWidthPx = typedArray.getDimensionPixelSize(R.styleable.SettingsDropdownRow_sdr_fieldMaxWidth, 0)
+            if (fieldMaxWidthPx > 0) inputLayout.maxWidth = fieldMaxWidthPx
+            if (typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_inline, false)) {
+                applyInlineLayout()
+            } else if (fieldWidthPx != LayoutParams.MATCH_PARENT) {
+                inputLayout.updateLayoutParams<LayoutParams> { width = fieldWidthPx }
+            }
+        }
+    }
+
+    /**
+     * Switches the row to a single inline line - label left of the field - for dense landscape
+     * settings layouts (S0618). The default (portrait/stacked) path is left untouched.
+     */
+    private fun applyInlineLayout() {
+        orientation = HORIZONTAL
+        gravity = android.view.Gravity.CENTER_VERTICAL
+        (titleView.parent as View).updateLayoutParams<LayoutParams> {
+            width = LayoutParams.WRAP_CONTENT
+            marginEnd = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        findViewById<View>(R.id.sdr_titleLineSpacer).visibility = View.GONE
+        inputLayout.updateLayoutParams<LayoutParams> {
+            // A fixed field width opts out of weight-based stretching for short-value selectors.
+            if (fieldWidthPx != LayoutParams.MATCH_PARENT) {
+                width = fieldWidthPx
+                weight = 0f
+            } else {
+                width = 0
+                weight = 1f
+            }
+            gravity = android.view.Gravity.CENTER_VERTICAL
         }
     }
 

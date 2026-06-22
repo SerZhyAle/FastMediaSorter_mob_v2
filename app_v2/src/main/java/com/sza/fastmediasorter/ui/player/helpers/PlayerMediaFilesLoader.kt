@@ -543,7 +543,6 @@ class PlayerMediaFilesLoader(
                     val finalFiles = if (rerollRandom) filesWithFavorites.shuffled() else filesWithFavorites
                     // After a re-roll the prior index no longer maps to a meaningful file; start at the head.
                     val finalIndex = if (rerollRandom) {
-                        Timber.d("S0549: re-rolling RANDOM order at playback-launch (size=${finalFiles.size}, shuffleOnStart=$shuffleOnStart, sortMode=${resource.sortMode})")
                         0
                     } else {
                         safeIndex
@@ -567,9 +566,17 @@ class PlayerMediaFilesLoader(
                 }
                 setLoading(false)
             } catch (e: Exception) {
+                // A watchdog-aborted scan gets the scan-specific message; everything else keeps the
+                // generic load-failed copy. The player cannot list files, so re-opening is the retry.
+                val msgRes = if (e is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
+                    Timber.d("S0624: SFTP scan timeout surfaced in player")
+                    R.string.error_scan_timeout
+                } else {
+                    R.string.player_media_files_load_failed
+                }
                 sendEvent(
                     PlayerViewModel.PlayerEvent.ShowError(
-                        context.getString(R.string.player_media_files_load_failed)
+                        context.getString(msgRes)
                     )
                 )
                 sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)

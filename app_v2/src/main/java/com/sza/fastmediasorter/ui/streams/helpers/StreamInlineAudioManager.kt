@@ -59,7 +59,6 @@ class StreamInlineAudioManager(
             if (isPlaying && !successReported) {
                 successReported = true
                 val playing = currentSource ?: return
-                Timber.d("S0593: inline audio started playing - record OK %s", playing.url)
                 onSuccess(playing)
             }
         }
@@ -107,8 +106,6 @@ class StreamInlineAudioManager(
         onPlayingChanged(source.id)
         renderTitle()
         Timber.i("StreamInlineAudioManager: inline audio start - %s (bg=%b)", source.url, useBackgroundService)
-        Timber.d("S0565: inline audio start %s", source.url)
-        Timber.d("S0577: stream play useBackgroundService=%b", useBackgroundService)
         usingService = useBackgroundService
         if (useBackgroundService) {
             audioController.playAudioWithMetadata(Uri.parse(source.url), source.title) { startedPlayer ->

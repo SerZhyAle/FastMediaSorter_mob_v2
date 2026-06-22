@@ -387,13 +387,17 @@ class PlayerMediaLoaderManager(
                 .encodedPath("/$share/$encodedPath")
                 .build()
         }
-        // sftp:// and ftp:// - the authority already carries host:port
+        // sftp:// and ftp:// - the authority already carries host:port. Set it via encodedAuthority
+        // so the host:port colon survives verbatim. Uri.Builder.authority() treats the value as
+        // decoded and percent-encodes the ':' to %3A; the rebuilt URI's getHost() then returns the
+        // whole "host:port" string and getPort() returns -1, so the background audio service hands
+        // JSch "host:port" as the hostname and SFTP/FTP streaming dies with UnknownHostException.
         val parsed = PathUtils.safeParseUri(path)
         val encodedPath = parsed.path?.split("/")
             ?.joinToString("/") { segment -> if (segment.isEmpty()) "" else Uri.encode(segment, "@") } ?: ""
         return Uri.Builder()
             .scheme(parsed.scheme)
-            .authority(parsed.authority)
+            .encodedAuthority(parsed.encodedAuthority)
             .encodedPath(encodedPath)
             .build()
     }

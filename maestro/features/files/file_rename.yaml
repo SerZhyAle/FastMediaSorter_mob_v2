@@ -1,0 +1,49 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Rename a seeded file in Ops/src (S0551 Phase 03).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Ops/src/ops_rename_me.png under /storage/emulated/0/Download.
+# Oracle: renamed file appears and the old name disappears. Rename has no completion marker.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      text: "ops_rename_me.png"
+    timeout: 10000
+- longPressOn:
+    text: "ops_rename_me.png"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnRename"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnRename"
+- inputText: "ops_renamed_by_maestro.png"
+- tapOn:
+    text: "(OK|ОК|Rename|Переименовать)"
+- extendedWaitUntil:
+    visible:
+      text: "ops_renamed_by_maestro.png"
+    timeout: 10000
+- assertVisible:
+    text: "ops_renamed_by_maestro.png"
+- assertNotVisible:
+    text: "ops_rename_me.png"

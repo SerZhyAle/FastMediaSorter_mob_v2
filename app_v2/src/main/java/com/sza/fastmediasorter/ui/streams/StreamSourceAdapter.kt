@@ -67,7 +67,6 @@ class StreamSourceAdapter(
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindPlayStatus(source.lastPlayOutcome)
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
-            timber.log.Timber.d("S0579: bind row isPlaying=%b id=%s", isPlaying, source.id)
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
             bindChip(binding.tvTopic, source.topic)
             bindChip(binding.tvLanguage, source.language)
@@ -94,7 +93,6 @@ class StreamSourceAdapter(
                     Triple(R.drawable.ic_stream_status_unknown, R.color.stream_status_unknown, R.string.stream_status_unknown)
             }
             val context = binding.ivPlayStatus.context
-            timber.log.Timber.d("S0593: bind play-status outcome=%s", outcome ?: "none")
             binding.ivPlayStatus.setImageResource(iconRes)
             ImageViewCompat.setImageTintList(
                 binding.ivPlayStatus,
@@ -105,7 +103,6 @@ class StreamSourceAdapter(
 
         /** S0588: a pinned row shows the filled accent pin; others the neutral outline. */
         private fun bindPinState(pinned: Boolean) {
-            timber.log.Timber.d("S0588: render pin state pinned=%b", pinned)
             binding.btnPin.setImageResource(if (pinned) R.drawable.ic_pin else R.drawable.ic_pin_outline)
             val attr = if (pinned) {
                 androidx.appcompat.R.attr.colorPrimary

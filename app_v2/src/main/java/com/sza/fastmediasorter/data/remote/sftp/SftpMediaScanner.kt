@@ -15,8 +15,12 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SftpPathUtils
+import com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
@@ -64,12 +68,14 @@ class SftpMediaScanner @Inject constructor(
 
             // List files in remote path (throttled to avoid network overload)
             val resourceKey = "sftp://${connectionInfo.host}:${connectionInfo.port}"
-            val filesResult = ConnectionThrottleManager.withThrottle(
-                protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-                resourceKey = resourceKey,
-                highPriority = false
-            ) {
-                sftpClient.listFiles(clientInfo, connectionInfo.remotePath, recursive = scanSubdirectories)
+            val filesResult = listWithWatchdog(connectionInfo.host) {
+                ConnectionThrottleManager.withThrottle(
+                    protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+                    resourceKey = resourceKey,
+                    highPriority = false
+                ) {
+                    sftpClient.listFiles(clientInfo, connectionInfo.remotePath, recursive = scanSubdirectories)
+                }
             }
             
             if (filesResult.isFailure) {
@@ -215,12 +221,14 @@ class SftpMediaScanner @Inject constructor(
 
             // List files in remote path (throttled to avoid network overload)
             val resourceKey = "sftp://${connectionInfo.host}:${connectionInfo.port}"
-            val filesResult = ConnectionThrottleManager.withThrottle(
-                protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-                resourceKey = resourceKey,
-                highPriority = false
-            ) {
-                sftpClient.listFiles(clientInfo, connectionInfo.remotePath)
+            val filesResult = listWithWatchdog(connectionInfo.host) {
+                ConnectionThrottleManager.withThrottle(
+                    protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+                    resourceKey = resourceKey,
+                    highPriority = false
+                ) {
+                    sftpClient.listFiles(clientInfo, connectionInfo.remotePath)
+                }
             }
             
             if (filesResult.isFailure) {
@@ -537,6 +545,40 @@ class SftpMediaScanner @Inject constructor(
         return MediaTypeUtils.getMediaType(fileName)
     }
 
+    /**
+     * Bounds a blocking SFTP listing with a force-close watchdog. A bare withTimeout cannot
+     * interrupt the blocking JSch ls; only closing the socket unblocks it. On expiry the watchdog
+     * force-closes the pool (sftpClient.disconnectAll), which makes the parked ls return - either by
+     * throwing or, via SftpConnectionPool.withConnection's outer catch, as a Result.failure. Both
+     * shapes are converted to [ScanTimeoutException] so the failure reaches the UI as one message.
+     */
+    private suspend fun listWithWatchdog(
+        resourceName: String,
+        op: suspend () -> Result<List<SftpFileListing>>
+    ): Result<List<SftpFileListing>> = coroutineScope {
+        var timedOut = false
+        val watchdog = launch {
+            delay(SCAN_WATCHDOG_TIMEOUT_MS)
+            timedOut = true
+            Timber.d("S0624: SFTP scan watchdog fired, forcing pool close")
+            Timber.w("SFTP scan watchdog fired after ${SCAN_WATCHDOG_TIMEOUT_MS}ms - forcing pool close for $resourceName")
+            runCatching { sftpClient.disconnectAll() }
+        }
+        try {
+            val result = op()
+            if (timedOut) throw ScanTimeoutException(resourceName, result.exceptionOrNull())
+            result
+        } catch (e: ScanTimeoutException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (timedOut) throw ScanTimeoutException(resourceName, e) else throw e
+        } finally {
+            watchdog.cancel()
+        }
+    }
+
     private data class SftpConnectionInfo(
         val host: String,
         val port: Int,
@@ -545,4 +587,11 @@ class SftpMediaScanner @Inject constructor(
         val privateKey: String?,
         val remotePath: String
     )
+
+    private companion object {
+        // Above the 30 s JSch SO_TIMEOUT and the ~30 s keep-alive window so cleaner library-level
+        // recoveries get first crack; this watchdog is the last-resort backstop guaranteeing the
+        // scan terminates in any scenario.
+        private const val SCAN_WATCHDOG_TIMEOUT_MS = 60_000L
+    }
 }

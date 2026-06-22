@@ -176,9 +176,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "BUTTON",
-      "titleEn": "Take screenshot",
-      "titleRu": "Сделать скриншот",
-      "titleUk": "Зробити знімок екрана"
+      "titleEn": "Screenshot test",
+      "titleRu": "Тест скриншота (снимка экрана)",
+      "titleUk": "Тест знімка екрана"
     },
     {
       "key": "etMaxRecipients",

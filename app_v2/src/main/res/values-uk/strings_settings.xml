@@ -151,7 +151,7 @@
     <string name="setting_enable_pip_desc">Показувати кнопку PiP у плеєрі та автоматично переходити в режим PiP при натисканні «Додому» (Android 12+)</string>
     <string name="setting_enable_translation_desc">Увімкнути підтримку перекладу тексту через OCR</string>
     <string name="setting_file_ops_in_overflow_menu_desc">Приховує Copy/Move/Rename/Delete у меню рядка, що випадає</string>
-    <string name="setting_follow_system_rotation_summary">Увімкнено - усі вікна застосунку, крім плеєра, слідують системній авторотації. Вимкнено - вікна зафіксовані.</string>
+    <string name="setting_follow_system_rotation_summary">Увімкнено - усі вікна застосунку, крім плеєра, слідують системній авторотації. Вимкнено - вікна слідують датчику пристрою незалежно від налаштувань ОС.</string>
     <string name="setting_follow_system_rotation_title">Повертати екран разом із ОС (крім плеєра)</string>
     <string name="setting_follow_system_rotation_player_title">Повертати екран плеєра разом із ОС</string>
     <string name="setting_follow_system_rotation_player_summary">Плеєр слідує авторотації ОС незалежно від загального налаштування.</string>

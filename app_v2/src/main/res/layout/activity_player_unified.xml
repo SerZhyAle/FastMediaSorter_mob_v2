@@ -223,7 +223,7 @@
         <!-- Fullscreen controls overlay (visible only in fullscreen mode when showControls=true) -->
         <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-            <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_back" app:titleTextColor="@color/white" />
+            <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_back" app:navigationIconTint="?attr/colorOnPrimary" app:titleTextColor="?attr/colorOnPrimary" />
 
             <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 

@@ -1,0 +1,71 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Resume-position path for a video (S0551 Phase 05).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   DCIM/video_large.mp4 (unconditionally seeded, ~3 min). Resume-on-next-launch stays enabled.
+# Oracle: opening video_large.mp4, watching briefly, leaving, then reopening returns to the
+#   player (playerView) without a crash. The saved-position restore surfaces as a Toast
+#   (PlaybackPositionRestorer.restoreAndNotify); Android 11+ hides Toasts from the accessibility
+#   tree, so Maestro cannot assert the toast text - the observable oracle is the player
+#   re-rendering on reopen plus the crash guard.
+# Determinism: downloads_sort_reset scrolls the list back to the top on entry so the first
+#   scrollUntilVisible reaches video_large.mp4 regardless of any restored scroll position.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+# Reset the list to the top so the scroll below is independent of any scroll position restored
+# from a prior flow.
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "video_large.mp4"
+    timeout: 30000
+- tapOn:
+    text: "video_large.mp4"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/playerView"
+    timeout: 20000
+# Let playback advance so a non-zero resume position is persisted on exit.
+- waitForAnimationToEnd
+- back
+
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "video_large.mp4"
+    timeout: 30000
+- tapOn:
+    text: "video_large.mp4"
+# Oracle: reopening returns to the player without crashing (the resume restore itself is a
+# Toast, invisible to UiAutomator on API 30+).
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/playerView"
+    timeout: 20000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

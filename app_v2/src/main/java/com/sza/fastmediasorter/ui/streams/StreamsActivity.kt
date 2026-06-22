@@ -76,8 +76,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun getInitialFocusView(): View = binding.toolbar
 
     override fun setupViews() {
-        Timber.d("S0565: Streams screen opened")
-
         inlineAudio = StreamInlineAudioManager(
             lifecycleOwner = this,
             miniControl = binding.streamMiniControl,
@@ -149,7 +147,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 is StreamsViewModel.StreamsEvent.Message ->
                     Toast.makeText(this, event.messageResId, Toast.LENGTH_LONG).show()
                 is StreamsViewModel.StreamsEvent.ImportFinished -> {
-                    Timber.d("S0565: m3u import done inserted=%d", event.inserted)
                     Toast.makeText(
                         this,
                         getString(R.string.streams_import_done, event.inserted),
@@ -196,7 +193,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * (service) playback can continue in the background; OFF-mode audio is already torn down by onStop.
      */
     private fun exitStreamsWithAudioCheck() {
-        Timber.d("S0577: streams exit audio check serviceActive=%b", inlineAudio.isServiceAudioActive)
         when (
             AudioExitBehaviorResolver.resolve(
                 serviceAudioActive = inlineAudio.isServiceAudioActive,
@@ -235,9 +231,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * local list (every listed stream is a persisted DB row, so removal is always meaningful).
      */
     private fun showStreamUnavailable(source: StreamSourceEntity) {
-        Timber.d("S0581: inline stream unavailable dialog for %s", source.url)
         // S0593: the inline audio attempt failed -> record the red status for this source.
-        Timber.d("S0593: inline audio failed - record FAIL %s", source.url)
         viewModel.recordStreamOutcome(source.id, ok = false)
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.streams_unavailable_title)
@@ -286,7 +280,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * ViewModel/use case (Rule 3).
      */
     private fun showImportChooser() {
-        Timber.d("S0570: import chooser opened")
         val items = arrayOf(
             getString(R.string.streams_import_catalog),
             getString(R.string.streams_import_from_url),

@@ -71,3 +71,15 @@ class NetworkRateLimitException(
     message: String = "Rate limit exceeded",
     cause: Throwable? = null
 ) : NetworkException(message, cause)
+
+/**
+ * A media-folder scan exceeded its application-level watchdog budget and was force-aborted
+ * (the underlying socket was closed to unblock a parked listing). Distinct from
+ * [NetworkTimeoutException] (a per-connection timeout): this is the whole-scan backstop. The
+ * "timed out" substring is intentional so message-based error mappers still classify it as a
+ * timeout if a typed branch is missed.
+ */
+class ScanTimeoutException(
+    resourceName: String,
+    cause: Throwable? = null
+) : NetworkException("Scan for '$resourceName' timed out", cause)

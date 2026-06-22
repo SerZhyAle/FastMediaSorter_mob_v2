@@ -3,15 +3,16 @@
   S0484 pre-release sweep - verdict aggregator (PASS/FAIL).
 
 .DESCRIPTION
-  Folds three signal sources into one machine verdict (research/05):
+  Folds four signal sources into one machine verdict (research/05 + S0551):
     - log         : crashes/ANR + app errors (minus expected fallbacks) via search-log.ps1
     - perf        : per-checkpoint pass flags from the measure records (Phase 03 output)
-    - screenshot  : checkpoint screenshot results
+    - maestro     : capability regression suite pass flags from maestro/run-tests.ps1 -Json
+    - screenshot  : checkpoint screenshots as evidence only
   Reuses scripts/utils/search-log.ps1 - never reads a large logcat into context directly.
 
   Exit codes:
     0 - PASS
-    1 - content FAIL (log / perf / screenshot)
+    1 - content FAIL (log / perf / maestro)
     2 - infrastructure abort (LogFile missing / inputs unreadable)
 
 .PARAMETER LogFile
@@ -21,7 +22,10 @@
   JSON file: array of per-checkpoint measure records (each with a `pass` field).
 
 .PARAMETER ScreensDir
-  Directory of per-checkpoint screenshots (evidence).
+  Directory of per-checkpoint screenshots (evidence only; never gates PASS/FAIL).
+
+.PARAMETER MaestroResults
+  JSON file emitted by maestro/run-tests.ps1 -Json: { flows:[{flow,pass,log}] }.
 
 .PARAMETER FromTs
   Optional HH:MM:SS lower bound to scope log queries to the run window.
@@ -37,6 +41,7 @@ param(
     [Parameter(Mandatory)][string]$LogFile,
     [string]$MetricsFile,
     [string]$ScreensDir,
+    [string]$MaestroResults,
     [string]$FromTs,
     [switch]$Json
 )
@@ -94,7 +99,7 @@ $priorCrash = (Get-Count -ExtraArgs @('-AppOnly', '-Pattern', 'PREVIOUS SESSION 
 $logPass = ($netErrors -eq 0) -and (-not $crashBlocks) -and (-not $priorCrash)
 $logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors; crashBlocks = [bool]$crashBlocks; priorCrash = [bool]$priorCrash }
 
-# ---------- perf + screenshot signals (step 04.2) ----------
+# ---------- perf + maestro + screenshot signals (step 04.2) ----------
 # perf: every measure record in MetricsFile must have pass=true. Missing file = no perf data
 # supplied this run (perf neutral/pass); a present file with any failing checkpoint = FAIL.
 $perfFailures = @()
@@ -111,16 +116,34 @@ if ($MetricsFile -and (Test-Path $MetricsFile)) {
 }
 $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; advisory = $perfAdvisory }
 
-# screenshot: a present ScreensDir must contain at least one captured checkpoint screenshot.
-$screenshotFailures = @()
-$screenshotPass = $true
+# maestro: every suite flow in MaestroResults must have pass=true. Missing file = no suite data
+# supplied this run (neutral/pass); a present file with any failing flow = FAIL.
+$maestroFailures = @()
+$maestroTotal = 0
+$maestroPass = $true
+if ($MaestroResults -and (Test-Path $MaestroResults)) {
+    $suite = Get-Content -Raw -Path $MaestroResults | ConvertFrom-Json
+    $flows = @($suite.flows)
+    $maestroTotal = $flows.Count
+    foreach ($flow in $flows) {
+        if (-not $flow.pass) {
+            $maestroPass = $false
+            $maestroFailures += "$($flow.flow)"
+        }
+    }
+}
+$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures }
+
+# screenshot: evidence only. A present ScreensDir reports the number of captured screenshots
+# but does not contribute to PASS/FAIL.
+$screenshotCount = 0
 if ($ScreensDir -and (Test-Path $ScreensDir)) {
     $shots = @(Get-ChildItem -Path $ScreensDir -Filter '*.png' -File -ErrorAction SilentlyContinue)
-    if ($shots.Count -eq 0) { $screenshotPass = $false; $screenshotFailures += 'no checkpoint screenshots captured' }
+    $screenshotCount = $shots.Count
 }
-$screenshotBreakdown = [ordered]@{ pass = [bool]$screenshotPass; failures = $screenshotFailures }
+$screenshotBreakdown = [ordered]@{ count = $screenshotCount; evidenceOnly = $true }
 
-$pass = $logPass -and $perfPass -and $screenshotPass
+$pass = $logPass -and $perfPass -and $maestroPass
 
 # ---------- emit verdict (step 04.3) ----------
 $verdict = [ordered]@{
@@ -128,11 +151,12 @@ $verdict = [ordered]@{
     breakdown = [ordered]@{
         log        = $logBreakdown
         perf       = $perfBreakdown
+        maestro    = $maestroBreakdown
         screenshot = $screenshotBreakdown
     }
 }
 
 if ($Json) { $verdict | ConvertTo-Json -Depth 6 -Compress }
-else { Write-Host ("VERDICT {0} - log={1} perf={2} screenshot={3}" -f $(if ($pass) { 'PASS' } else { 'FAIL' }), $logPass, $perfPass, $screenshotPass) }
+else { Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} screenshots={4}" -f $(if ($pass) { 'PASS' } else { 'FAIL' }), $logPass, $perfPass, $maestroPass, $screenshotCount) }
 
 exit $(if ($pass) { 0 } else { 1 })

@@ -138,4 +138,8 @@
 
     </FrameLayout>
 
+    <include
+        android:id="@+id/bottomPanelsContainer"
+        layout="@layout/player_bottom_panels_container_content" />
+
 </LinearLayout>

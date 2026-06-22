@@ -202,7 +202,7 @@ _Available in: Standard, Legacy_
 | Default document viewer | Sets which app opens document files by default when tapped from outside this app. |
 | Default image viewer | Sets which app opens image files by default when tapped from outside this app. |
 | Default video player | Sets which app opens video files by default when tapped from outside this app. |
-| Take screenshot | Takes a screenshot of the app right away using the built-in capture flow. |
+| Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
 | Copy, move and overwrite behavior | Settings that control what happens when files are copied, moved, or a name conflict occurs. |
@@ -230,7 +230,7 @@ _Available in: Standard, Legacy_
 | Allow moving | Allows files to be moved to Quick Sort destinations. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
-| Rotate screen with OS auto-rotate (except player) | Rotates every app window except the player when the device auto-rotate setting changes. |
+| Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
