@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-20*
+*Last updated: 2026-06-22*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -36,9 +36,12 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
 - **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
+- **Samsung-style in-app camera** `[Standard]`: A built-in camera with a single entry point and an in-screen photo/video switch - frame the shot, take stills or record video, and save straight to your target folder without leaving the app.
 - **Soft delete & Trash restore** `[Standard / VR]`: Deleted files move to a per-folder trash snapshot instead of vanishing; undo restores them in one tap and old trash clears automatically in the background.
 - **Download by link** `[Standard]`: Paste a URL into the Download-by-link dialog and the file downloads straight to your chosen folder, no browser needed.
 - **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
+- **Screen capture** `[Standard]`: Take a screenshot of the device screen from the Operations settings, or with an edge gesture, using Android's system capture consent, and save it to your chosen folder.
+- **Copy or move an opened file** `[Standard]`: When you open a file from another app, copy or move it straight to a configured destination folder from within the viewer.
 
 ## 4. Destination Management
 - **Instant sorting panel** `[Standard / VR]`: Set up to 30 favorite target folders (default 10) inside the player as shortcuts to copy or move the current file instantly with auto-advance to the next item.
@@ -48,6 +51,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
 - **Animated GIF speed controls** `[Standard / VR]`: Fine-tune GIF playback speed (0.25x to 4x) and export individual frames as static images.
 - **Send to..** `[Standard / VR]`: One high-priority command gathers every way to send the current file out - system Share, Email, Telegram and other messengers, Google Keep, Google Lens, Print, Open in another app - into a single list. The list shows only the receivers you enabled in settings that fit the current file type, so the file menu stays short instead of listing a dozen separate items. Works from the browser, the player, and standalone viewers.
+- **Standalone image viewer actions** `[Standard / Lite / Photos / Legacy]`: From the standalone image viewer, print the picture or copy and move it to another folder - without opening the full app.
 
 ## 6. Drawing & Annotations Editor
 - **Drawing & annotations canvas** `[Standard / VR]`: Create blank canvases or annotate photos using brushes, geometric shapes, and text layers, then send the result through the unified Send to.. menu (Google Keep, Lens, and the other enabled receivers).
@@ -78,6 +82,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **E-book reader formatting** `[Standard / VR]`: View DRM-free EPUBs with customizable fonts, margins, line spacing, themes (including OLED black), and chapter maps.
 - **Read Aloud (TTS) & Text selection** `[Standard / VR]`: Synthesizes page text via Text-to-Speech (TTS) and copy text fragments using long-press drag handles.
 - **PDF page to Google Lens** `[Standard / VR]`: Send the current PDF page straight to Google Lens to search or extract its text.
+- **Print from the standalone viewer** `[Standard / VR]`: Print documents and text directly from the standalone viewer.
 
 ## 12. Text Editor
 - **In-place Markdown editor** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or remote storage with live syntax highlighting, Markdown rendering, and auto-save.
@@ -102,7 +107,8 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 16. Settings & Navigation
 - **Email crash report to author** `[Standard / VR]`: When a real error - not a routine "unavailable" message - is shown in the error dialog, a button emails the error details to the author with the app log attached, so a problem can be reported in one step.
 - **Crash report after a restart** `[Standard / VR]`: If the app closes unexpectedly, the next launch offers to email the crash report - with the app log attached - to the author, so even a hard crash can be reported.
-- **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting, custom light/dark theme selection, and system diagnostic info.
+- **Settings search & customization** `[Standard / VR]`: Full-text settings search with spotlight targeting - now also finds dropdown and selection settings and hides rows for features your edition lacks - plus system diagnostic info.
+- **Custom color themes** `[Standard / Lite / Photos / Legacy]`: Build and apply your own color theme - choose accent and surface colors instead of only the built-in light and dark options.
 - **Complete DPAD & TV remote remapping** `[Standard / VR]`: TV remote key assignments, DPAD acceleration, and Wear OS Companion app support.
 - **Downloadable Extensions manager** `[Standard / VR]`: A settings screen listing every optional module (OCR engines, translation, audio visualizations, FFmpeg DTS decoder) and OCR language pack with its status, size, and download/remove actions to manage device storage.
 - **Unified settings backup & restore** `[Standard / VR]`: Back up your sources, favorites, schedules, network passwords, and saved site sign-ins in one format - to a local file or Google Drive - and restore everything after a reinstall.
