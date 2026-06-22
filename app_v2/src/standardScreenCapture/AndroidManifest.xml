@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0630: relocated from src/standard/AndroidManifest.xml. Injected into the standard build via
+    addStaticManifestFile (build.gradle.kts) ONLY when fms.screenCapture != off, so a Play-fast
+    standard release can ship without the SPECIAL_USE / SYSTEM_ALERT_WINDOW declarations.
+
+    S0621: the edge-gesture screenshot overlay-strip host. The MediaProjection consent activity +
+    capture service + FOREGROUND_SERVICE_MEDIA_PROJECTION arrive from the shared src/screenCapture
+    manifest (also gated on standard by the same flag). The accessibility silent-capture service is
+    deliberately NOT declared here - it stays a noLegal exclusive (Play-policy boundary).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
+        </service>
+    </application>
+
+</manifest>
