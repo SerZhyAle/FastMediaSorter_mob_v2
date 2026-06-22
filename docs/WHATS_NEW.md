@@ -6,7 +6,31 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6200.317** (June 2026)
+**Current release: 2.60.6221.755** (June 2026)
+
+> Changes since version 2.60.6200.317
+
+---
+
+## What's New
+
+- **Internet Streams** - browse, filter and play live TV and radio channels.
+- **Stream playback polish** - channel name in the title, per-channel status, and background audio with an exit choice.
+- **Streams setup** - enable streams per device profile with a Welcome introduction.
+- **In-app camera** - Samsung-style capture with an in-screen photo and video switch.
+- **Custom color themes** - build and apply your own color theme.
+- **Screenshot capture** - take a screenshot from Operations settings or an edge gesture.
+- **Print and transfer from viewers** - print documents, text and images; copy or move opened files to a folder.
+- **Smarter settings search** - finds dropdown settings and hides rows your edition lacks.
+
+## What's Fixed
+
+- Network folder scans no longer hang and now end with a clear timeout message.
+- Receiving a shared download link no longer crashes the share screen.
+
+---
+
+## Previous Release: 2.60.6200.317 (June 2026)
 
 > Changes since version 2.60.6180.134
 

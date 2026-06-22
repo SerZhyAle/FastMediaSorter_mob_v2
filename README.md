@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.6200.317 (June 2026)
+## What's New in v2.60.6221.755 (June 2026)
 
 **New:**
-Quick capture menu, download by link, Chromecast video, new drawing canvas with custom brush color and size, drag to reorder resources, file details sheet, video player gestures, text viewer themes, fallback save, controller/keyboard/TV navigation, settings reference with collapsible groups, crash email prompt, mini-game.
+Internet Streams with live TV and radio channels, stream filters and per-channel status, background stream audio, streams setup with Welcome onboarding, in-app Samsung-style camera, custom color themes, screenshot capture from Operations or edge gesture, print and transfer from viewers, smarter settings search.
 
 **Fixed:**
-Player time statistic stuck at zero, vanishing PDF thumbnails, player controls behind navigation bar, missing landscape stop-scan button, camera capture crash, Camera OCR light theme, welcome carousel D-pad.
+Network folder scans no longer hang and now time out clearly, shared download link no longer crashes the share screen.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
