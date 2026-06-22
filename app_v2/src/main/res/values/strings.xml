@@ -741,7 +741,7 @@ Close the player and try again.</string>
     <string name="tooltip_destinations_title">Destinations</string>
     <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
-    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20% - Previous file\nCenter 60% - Select / Actions\nRight 20% - Next file\n\nTap anywhere to dismiss</string>
+    <string name="hint_touch_zone_3zone" formatted="false">Command Panel Mode\n\nLeft 20% - Previous file\nCenter 60% - Select / Actions\nRight 20% - Next file\n\nTap anywhere to dismiss</string>
     <string name="hint_touch_zone_media">Media Playback Mode\n\nTouch zones active in upper area only.\nBottom part is reserved for player controls.\n\nTap anywhere to dismiss</string>
     <string name="tooltip_touch_zones_message">9 invisible zones (3×3 grid) for gesture control in fullscreen mode. Left/Center/Right and Top/Middle/Bottom combinations trigger different actions like navigation, file operations, and panel control.</string>
     <string name="tooltip_safe_mode_title">Safe Mode</string>
