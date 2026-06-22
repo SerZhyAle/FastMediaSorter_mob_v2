@@ -183,6 +183,18 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## Internet Streams Subsystem
+
+Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries:
+
+- **Entry**: `StreamsActivity` (no business logic) delegates to `StreamsViewModel` and `StreamInlineAudioManager`.
+- **Inline audio**: `StreamInlineAudioManager` manages ExoPlayer lifecycle for radio playback directly from the list; exposes ICY now-playing metadata as `StateFlow`; stops or continues on leave depending on the background-audio playback setting.
+- **Video/RTSP**: delegates to the existing fullscreen player; `PlayerMediaLoaderManager` handles protocol selection via `NetworkAwareMediaSourceFactory` (HLS/DASH/RTSP/progressive auto-detection).
+- **Data flow**: `StreamsViewModel` -> `GetStreamsUseCase` / `ImportStreamCatalogUseCase` / `AddStreamUseCase` -> `StreamsRepository` -> `StreamsDataSource` (Room) + `StreamCatalogRemoteDataSource` (OkHttp).
+- **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
+- **Flavor scope**: standard/legacy/noLegal - HLS, DASH VOD, RTSP, progressive HTTP/ICY; lite - progressive-audio only (HLS/DASH/RTSP show unsupported message); photos - feature absent (no entry point).
+- **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
+
 ## Performance & Resource Optimization
 
 To maintain fast startup times (cold start), low memory consumption, and efficient CPU usage, the following patterns must be strictly enforced:

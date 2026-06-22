@@ -1,12 +1,9 @@
 package com.sza.fastmediasorter.ui.main
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -97,27 +94,16 @@ class FilterResourceDialog : DialogFragment() {
             "File Count (High → Low)" to SortMode.SIZE_DESC
         )
 
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            sortOptions.map { it.first }
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerSort.adapter = adapter
+        // S0567: spinnerSort migrated from raw Spinner to SettingsDropdownRow (ADR-1).
+        binding.spinnerSort.setEntries(sortOptions.map { it.first as CharSequence })
 
         val currentIndex = sortOptions.indexOfFirst { it.second == currentSortMode }
         if (currentIndex >= 0) {
             binding.spinnerSort.setSelection(currentIndex)
         }
 
-        binding.spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                currentSortMode = sortOptions[position].second
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Keep current sort mode
-            }
+        binding.spinnerSort.setOnItemSelectedListener { position ->
+            currentSortMode = sortOptions[position].second
         }
     }
 

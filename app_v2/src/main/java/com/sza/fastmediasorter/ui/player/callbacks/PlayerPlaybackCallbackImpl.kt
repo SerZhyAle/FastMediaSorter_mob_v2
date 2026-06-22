@@ -47,6 +47,13 @@ class PlayerPlaybackCallbackImpl(
         // Update track switcher buttons visibility (audio/subtitle)
         activity.updateTrackButtonsVisibility()
 
+        // S0593: a stream URL that reached READY played OK here - record the green status in the
+        // streams list. No-op for non-stream local files and http(s) media that is not a saved entry.
+        val readyPath = viewModel.state.value.currentFile?.path
+        if (readyPath != null && isStreamUrl(readyPath)) {
+            viewModel.recordStreamPlayOk(readyPath)
+        }
+
         // Update audio info and load cover art for audio files
         val currentFile = viewModel.state.value.currentFile
         if (currentFile?.type == MediaType.AUDIO) {
@@ -62,6 +69,14 @@ class PlayerPlaybackCallbackImpl(
         if (activity.slideshowResourceAvailabilityManager.handlePlaybackError(error, userMessage)) {
             return
         }
+        // S0581: a list stream that did not respond gets a friendly retry / remove-from-list dialog
+        // instead of a silent skip. The ViewModel resolves the URL against the stored streams and
+        // only shows the dialog when it maps to a saved row; otherwise the generic path runs.
+        val currentPath = viewModel.state.value.currentFile?.path
+        if (currentPath != null && isStreamUrl(currentPath)) {
+            viewModel.onStreamPlaybackFailed(currentPath)
+            return
+        }
         if (userMessage != null) {
             // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
             Toast.makeText(activity, userMessage, Toast.LENGTH_LONG).show()
@@ -69,6 +84,11 @@ class PlayerPlaybackCallbackImpl(
             return
         }
         activity.handleMediaLoadErrorAndSkip()
+    }
+
+    private fun isStreamUrl(path: String): Boolean {
+        val lower = path.lowercase()
+        return lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("rtsp://")
     }
     
     override fun onBuffering(isBuffering: Boolean) {

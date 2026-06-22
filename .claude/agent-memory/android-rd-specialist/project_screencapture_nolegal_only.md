@@ -1,11 +1,17 @@
 ---
-name: screencapture-nolegal-only
-description: Gesture screenshot capture (screenCapture source set) is mounted only into the noLegal flavor, not standard
+name: screencapture-split-standard-vs-nolegal
+description: screenCapture source set + MenuScreenshotLauncher are standard+noLegal; only the edge-gesture overlay controller and accessibility path stay noLegal-only
 type: project
 ---
 
-The edge-gesture screenshot capture feature (overlay + MediaProjection FGS) lives in the `src/screenCapture/` source set, which `app_v2/build.gradle.kts` mounts **only into the `noLegal` flavor**. The `ScreenGestureOverlayController` multibinding (`@IntoSet`) that activates it exists only in `src/noLegal/java/.../di/ScreenCaptureModule.kt`. So in standard/lite/photos/legacy/vr the injected `screenGestureControllers` set is empty and the whole gesture-settings group in `OperationsSettingsFragment` (rendered inside `if (screenGestureControllers.isNotEmpty())`) is hidden.
+The `src/screenCapture/` source set is NO LONGER noLegal-only. Since S0559 (verified 2026-06-22) `app_v2/build.gradle.kts` mounts it into BOTH `standard` (line ~574) and `noLegal` (line ~592). The split now runs through DI bindings, not the source-set mount:
 
-**Why:** S0418/S0423 kept it noLegal-only - the SPECIAL_USE / SYSTEM_ALERT_WINDOW manifest declarations are a Play-review risk, so they're not mounted into store flavors.
+**standard + noLegal (capture ENGINE shared):**
+- `MenuScreenshotLauncher` (bound in `src/screenCapture/di/ScreenCaptureLauncherModule.kt`) → the store-safe confirmable MediaProjection menu-screenshot (`ScreenCaptureConsentActivity` + `ScreenCaptureService`). The settings test button `btnTakeScreenshotNow` is gated on this launcher set being non-empty (`OperationsCaptureManager.setupScreenshotAction`).
 
-**How to apply:** Any work on screenshot-gesture capture is noLegal-scoped. Place capture-side code in `src/screenCapture/` (or `src/noLegal/`); shared contracts/utilities go in `src/main`. Don't add `BuildConfig.IS_*` guards - the feature gates itself via the empty-vs-nonempty injected controller set. Note: `docs/FEATURES.md` labels this `[Standard]`, which does not match the current runtime gating (possible staged-toward-standard intent or a doc lag).
+**noLegal-only (overlay strip + silent path):**
+- `ScreenGestureOverlayController` `@IntoSet` binding exists ONLY in `src/noLegal/.../di/ScreenCaptureModule.kt`; `src/main/.../di/ScreenGestureOverlayModule.kt` declares just an empty `@Multibinds Set`. So the injected `screenGestureControllers` set is empty on standard, and `OperationsGesturesManager.setup()` hides the whole "Жесты с левого края" settings group (`binding.groupScreenGestures` GONE). The SYSTEM_ALERT_WINDOW edge strip + AccessibilityService silent screenshots are not declared/mounted on standard (Play-review risk, S0418/S0423).
+
+**S0621 (Draft, parked 2026-06-22):** owner reports the edge-gesture group SHOULD be partially available on standard (S0418 intent, Play-safe MediaProjection path) but the settings UI "didn't pull through" - because the controller binding was never added to the standard source set. Fix = expose a Play-safe `ScreenGestureOverlayController` in `src/standard`.
+
+**How to apply:** Don't assume "screenshot capture = noLegal-only" anymore. Menu/MediaProjection capture is standard-shipping; only the always-on edge-overlay + accessibility silent capture are noLegal-gated. Gate UI on the matching injected set (launchers vs controllers), never on `BuildConfig.IS_*`. Capture-side code still goes in `src/screenCapture/` (shared) or `src/noLegal/` (overlay/accessibility); shared contracts in `src/main`.

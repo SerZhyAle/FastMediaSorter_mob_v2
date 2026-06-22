@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.ui.common.support
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import timber.log.Timber
 
 /**
  * S0118: Builds Android intents for the three canonical S0118 follow-up channels.
@@ -93,8 +96,17 @@ object SupportIntentFactory {
      * Build a crash-report email to the author with an optional log attachment.
      *
      * Uses ACTION_SEND, not ACTION_SENDTO: only ACTION_SEND carries [Intent.EXTRA_STREAM], so a
-     * mailto:-based intent would silently drop the attachment. The recipient travels in
-     * [Intent.EXTRA_EMAIL] instead of the mailto URI.
+     * plain mailto:-based intent would silently drop the attachment. The recipient travels in
+     * [Intent.EXTRA_EMAIL].
+     *
+     * A bare ACTION_SEND resolves to the generic share sheet (Drive, Bluetooth, messengers..), which
+     * is not what "email the author" means and on some OEM share panels just flickers shut. The
+     * mailto: [Intent.setSelector] restricts resolution to email apps while ACTION_SEND still carries
+     * the attachment. The selector means the result MUST be launched directly: [Intent.createChooser]
+     * strips the selector.
+     *
+     * Callers should not launch this intent themselves - use [launchCrashReport], which keeps the
+     * email-first behavior but falls back to the generic share sheet when no email app is installed.
      */
     fun buildCrashReportEmail(
         subject: String,
@@ -110,6 +122,43 @@ object SupportIntentFactory {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         } else {
             type = "text/plain"
+        }
+        selector = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
+    }
+
+    /**
+     * Launch the crash-report email with a graceful fallback chain so the report is never lost:
+     * 1. Direct email app via the mailto: selector - keeps the recipient + subject pre-filled.
+     * 2. No email app: strip the selector and open the generic share sheet so the zip can still
+     *    reach Drive, messengers, file managers, etc.
+     *
+     * Returns false only when even the generic share sheet has no target (fully sandboxed/kiosk
+     * device); the caller should then tell the user the report stays saved on internal storage.
+     */
+    fun launchCrashReport(
+        context: Context,
+        subject: String,
+        body: String,
+        attachmentUri: Uri?,
+    ): Boolean {
+        val emailIntent = buildCrashReportEmail(subject, body, attachmentUri)
+        if (context !is Activity) emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(emailIntent)
+            return true
+        } catch (e: ActivityNotFoundException) {
+            Timber.i(e, "SupportIntentFactory: no email app, falling back to generic share sheet")
+        }
+        // Drop the mailto selector so any share target (not just email apps) can receive the zip.
+        val shareIntent = buildCrashReportEmail(subject, body, attachmentUri).apply { selector = null }
+        val chooser = Intent.createChooser(shareIntent, subject)
+        if (context !is Activity) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return try {
+            context.startActivity(chooser)
+            true
+        } catch (e: ActivityNotFoundException) {
+            Timber.w(e, "SupportIntentFactory: no share target available for crash report")
+            false
         }
     }
 

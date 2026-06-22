@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.view.View
-import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -10,7 +8,6 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * S0328: owns the "Color theme" spinner in Settings → General.
@@ -30,38 +27,45 @@ class GeneralSettingsColorThemeHelper(
     private fun positionToValue(position: Int): String = when (position) {
         1 -> "LIGHT"
         2 -> "DARK"
+        3 -> "DARK_GREEN"
+        4 -> "DARK_BLUE"
+        5 -> "DARK_RED"
+        6 -> "LIGHT_GREEN"
+        7 -> "LIGHT_BLUE"
+        8 -> "LIGHT_RED"
         else -> "AUTO"
     }
 
     private fun valueToPosition(value: String): Int = when (value) {
         "LIGHT" -> 1
         "DARK" -> 2
+        "DARK_GREEN" -> 3
+        "DARK_BLUE" -> 4
+        "DARK_RED" -> 5
+        "LIGHT_GREEN" -> 6
+        "LIGHT_BLUE" -> 7
+        "LIGHT_RED" -> 8
         else -> 0
     }
 
+    // S0567: spinnerColorTheme migrated from raw Spinner to SettingsDropdownRow (ADR-1).
+    // Entries come from app:sdr_entries="@array/color_theme_options" in the layout.
     fun setup() {
-        val options = fragment.resources.getStringArray(R.array.color_theme_options)
-        val adapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_spinner_item, options)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         setIsUpdatingSpinner(true)
-        binding.spinnerColorTheme.adapter = adapter
-        binding.spinnerColorTheme.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (getIsUpdatingSpinner()) return
-                val newValue = positionToValue(position)
-                val current = viewModel.settings.value
-                if (newValue == current.colorTheme) return
-                showRestartDialog(current.colorTheme, newValue)
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        })
+        binding.spinnerColorTheme.setOnItemSelectedListener { position ->
+            if (getIsUpdatingSpinner()) return@setOnItemSelectedListener
+            val newValue = positionToValue(position)
+            val current = viewModel.settings.value
+            if (newValue == current.colorTheme) return@setOnItemSelectedListener
+            showRestartDialog(current.colorTheme, newValue)
+        }
         binding.spinnerColorTheme.post { setIsUpdatingSpinner(false) }
 
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
             val position = valueToPosition(settings.colorTheme)
-            if (binding.spinnerColorTheme.selectedItemPosition != position) {
+            if (binding.spinnerColorTheme.getSelectedIndex() != position) {
                 setIsUpdatingSpinner(true)
-                binding.spinnerColorTheme.setSelection(position, false)
+                binding.spinnerColorTheme.setSelection(position)
                 binding.spinnerColorTheme.post { setIsUpdatingSpinner(false) }
             }
         }
@@ -82,7 +86,7 @@ class GeneralSettingsColorThemeHelper(
             }
             .setNegativeButton(R.string.restart_later) { dialog, _ ->
                 setIsUpdatingSpinner(true)
-                binding.spinnerColorTheme.setSelection(valueToPosition(previousValue), false)
+                binding.spinnerColorTheme.setSelection(valueToPosition(previousValue))
                 binding.spinnerColorTheme.post { setIsUpdatingSpinner(false) }
                 dialog.dismiss()
             }

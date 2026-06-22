@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -31,7 +30,7 @@ class OperationsGesturesManager(
     private val overlayPermissionLauncher: ActivityResultLauncher<Intent>,
     private val isUpdatingFromSettings: () -> Boolean,
     private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
-    private val refreshLabel: (String?, TextView, Int) -> Unit,
+    private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
 ) {
 
     fun setup() {
@@ -40,6 +39,13 @@ class OperationsGesturesManager(
             binding.groupScreenGestures.isVisible = false
             return
         }
+        // S0621: on standard the controller exposes only the MediaProjection consent path
+        // (isFallbackCaptureAvailable() == false), so the accessibility-shortcut rows are hidden;
+        // noLegal (API 30+) keeps them as the silent-capture opt-in.
+        val supportsA11ySilent = controller.isFallbackCaptureAvailable()
+        Timber.d("S0621: gestures settings group setup; supportsA11ySilent=$supportsA11ySilent (accessibility-shortcut rows ${if (supportsA11ySilent) "shown" else "hidden"})")
+        binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
+        binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
         binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked) {
@@ -58,7 +64,7 @@ class OperationsGesturesManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
         }
-        binding.rowScreenshotDestination.setOnClickListener {
+        binding.rowScreenshotDestination.setOnRowClickListener {
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
             ) { resource ->
@@ -66,7 +72,7 @@ class OperationsGesturesManager(
                 viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
             }
         }
-        binding.rowScreenshotGestureActionDown.setOnClickListener {
+        binding.rowScreenshotGestureActionDown.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
                 viewModel.settings.value.screenshotGestureActionDown
@@ -74,7 +80,7 @@ class OperationsGesturesManager(
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionDown = picked))
             }
         }
-        binding.rowScreenshotGestureActionRight.setOnClickListener {
+        binding.rowScreenshotGestureActionRight.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
                 viewModel.settings.value.screenshotGestureActionRight
@@ -82,7 +88,7 @@ class OperationsGesturesManager(
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionRight = picked))
             }
         }
-        binding.rowScreenshotGestureActionUp.setOnClickListener {
+        binding.rowScreenshotGestureActionUp.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
                 viewModel.settings.value.screenshotGestureActionUp
@@ -111,17 +117,19 @@ class OperationsGesturesManager(
         if (binding.rowCopyScreenshotToClipboard.isChecked != settings.copyScreenshotToClipboard) {
             binding.rowCopyScreenshotToClipboard.setCheckedSilently(settings.copyScreenshotToClipboard)
         }
-        binding.tvScreenshotGestureActionDownValue.text =
+        binding.rowScreenshotGestureActionDown.setValue(
             gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionDown)
-        binding.tvScreenshotGestureActionRightValue.text =
+        )
+        binding.rowScreenshotGestureActionRight.setValue(
             gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionRight)
-        binding.tvScreenshotGestureActionUpValue.text =
+        )
+        binding.rowScreenshotGestureActionUp.setValue(
             gestureActionPickerManager.labelFor(fragment.requireContext(), settings.screenshotGestureActionUp)
+        )
         refreshLabel(
             settings.screenshotDestinationResourceId,
-            binding.tvScreenshotDestinationValue,
             R.string.setting_screenshot_destination_default
-        )
+        ) { binding.rowScreenshotDestination.setValue(it) }
     }
 
     /** Re-applies the overlay state after returning from the system permission screen. */

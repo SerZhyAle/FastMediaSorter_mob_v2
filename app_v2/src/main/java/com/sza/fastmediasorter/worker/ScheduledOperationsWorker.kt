@@ -12,6 +12,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.MIN_SCHEDULED_INTERVAL_MS
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
@@ -73,7 +74,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
 
     private fun calculateNextRunAt(op: ScheduledOperation, fromMs: Long): Long {
         val intervalMs = (op.intervalHours * 3600L + op.intervalMinutes * 60L) * 1000L
-        return fromMs + intervalMs.coerceAtLeast(15 * 60 * 1000L)
+        return fromMs + intervalMs.coerceAtLeast(MIN_SCHEDULED_INTERVAL_MS)
     }
 
     private fun createForegroundInfo(): ForegroundInfo {

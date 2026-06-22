@@ -29,38 +29,36 @@
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Language -->
-                    <LinearLayout android:id="@+id/layoutLanguageSelection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+                    <!-- Language (S0567: raw Spinner -> SettingsDropdownRow; entries are built in code by GeneralSettingsViewSetupHelper). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/spinnerLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/language" />
 
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/language" android:textSize="@dimen/toggler_title_text_size" />
+                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/spinnerColorTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/color_theme"
+                        app:sdr_entries="@array/color_theme_options" />
 
-                        <Spinner android:id="@+id/spinnerLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:entries="@array/languages" android:minWidth="@dimen/settings_spinner_min_width" />
-
-                    </LinearLayout>
-
-                    <!-- Color theme (S0328) -->
-                    <LinearLayout android:id="@+id/layoutColorThemeSelection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/color_theme" android:textSize="@dimen/toggler_title_text_size" />
-
-                        <Spinner android:id="@+id/spinnerColorTheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:entries="@array/color_theme_options" android:minWidth="@dimen/settings_spinner_min_width" />
-
-                    </LinearLayout>
-
-                    <!-- Device Profile Row (S0327) -->
-                    <LinearLayout android:id="@+id/rowDeviceProfile" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="center_vertical" android:minHeight="56dp" android:orientation="horizontal">
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_profile_title" android:textSize="@dimen/toggler_title_text_size" />
-
-                            <TextView android:id="@+id/tvDeviceProfileValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/welcome_profile_other_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />
-
-                        </LinearLayout>
-
-                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" app:tint="?attr/colorPrimary" />
-
-                    </LinearLayout>
+                    <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowDeviceProfile"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:ssr_title="@string/settings_profile_title"
+                        app:ssr_value="@string/welcome_profile_other_title" />
 
                     <!-- Global scaling (compact elements) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -302,63 +300,19 @@
                     <include layout="@layout/card_google_account" />
 
                     <!-- S0255: saved authorizations sub-screen entry (always active per strategic §6.2).
-                         Wrapped in MaterialCardView so the row reads as a tappable action,
-                         visually paired with the Google Account card above. -->
-                    <com.google.android.material.card.MaterialCardView
+                         S0567: unified to SettingsSelectionRow (owns the help tooltip + chevron internally). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                         android:id="@+id/row_saved_authorizations"
-                        android:foreground="@drawable/focus_button_background"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="16dp"
                         android:layout_marginTop="8dp"
                         android:layout_marginBottom="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="2dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:minHeight="@dimen/settings_item_min_height"
-                            android:orientation="horizontal"
-                            android:padding="16dp">
-
-                            <ImageButton
-                                android:id="@+id/iconHelpSavedAuthorizations"
-                                android:layout_width="@dimen/settings_help_icon_size"
-                                android:layout_height="@dimen/settings_help_icon_size"
-                                android:layout_marginEnd="@dimen/settings_help_icon_margin"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/tooltip_saved_authorizations_title"
-                                android:src="@drawable/ic_help_outline_24"
-                                app:tint="@color/text_color_secondary" />
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="@string/setting_saved_authorizations_title"
-                                    android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="@string/setting_saved_authorizations_summary"
-                                    android:textSize="@dimen/toggler_desc_text_size"
-                                    android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginStart="@dimen/margin_small"
-                                android:src="@drawable/ic_chevron_right"
-                                android:importantForAccessibility="no"
-                                app:tint="?attr/colorPrimary" />
-
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        app:ssr_title="@string/setting_saved_authorizations_title"
+                        app:ssr_subtitle="@string/setting_saved_authorizations_summary"
+                        app:ssr_showHelp="true"
+                        app:ssr_helpTitle="@string/tooltip_saved_authorizations_title"
+                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message" />
 
                     <!-- Default User and Password -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
@@ -420,27 +374,31 @@
                     <!-- Settings backup group: file export/import + Google Drive backup/restore (all operate on settings, kept adjacent). -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <!-- Export/Import Settings to/from file. Equal-weight 0dp buttons let long labels wrap to multiple lines instead of overflowing. -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
+                    <!-- Export/Import Settings to/from file. Flow chip group: text-sized buttons wrap to new lines. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_upload" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsFile" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportSettings,btnImportSettings,btnHelpExportImport" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/import_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_download" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/export_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_upload" />
 
-                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" android:tooltipText="@string/export_import_file_info" app:tint="@color/text_color_secondary" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_download" />
 
-                    </LinearLayout>
+                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" android:tooltipText="@string/export_import_file_info" app:tint="@color/text_color_secondary" />
 
-                    <!-- Google Drive Backup/Restore. Equal-weight 0dp buttons match the file row above and let long labels wrap. -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+                    <!-- Google Drive Backup/Restore. Flow chip group: text-sized buttons wrap to new lines. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsBackup" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnBackup,btnRestore,iconHelpBackupInfo" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
 
-                    </LinearLayout>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+
+                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp">
 
@@ -461,14 +419,16 @@
                     <!-- Favorites + resource-share export/import (S0491): operate on app data, kept in this card. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <!-- Favorites export/import. Equal-weight 0dp buttons mirror the rows above. -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_tiny">
+                    <!-- Favorites export/import. Flow chip group: text-sized buttons wrap to new lines. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/backup_export_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsFavorites" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportFavorites,btnImportFavorites" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/backup_import_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/backup_export_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
 
-                    </LinearLayout>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFavorites" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/backup_import_favorites" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_favorite" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
 
@@ -478,14 +438,16 @@
 
                     </FrameLayout>
 
-                    <!-- Resource-share export/import (.sza). -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny">
+                    <!-- Resource-share export/import (.sza). Flow chip group: text-sized buttons wrap to new lines. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsResources" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportResources,btnImportResources" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
-                    </LinearLayout>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
 
@@ -518,37 +480,54 @@
 
                 <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- ── 2x2 grid: network + cache settings ─────────────────────── -->
+                    <!-- ── network + cache settings ─────────────────────── -->
 
-                    <!-- Row 1: Network Parallelism | Prefetch Cache -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                    <!-- S0567: Network Parallelism + Prefetch Cache. Both share one row; each field is
+                         width-capped so it stays compact on wide screens yet shrinks on narrow ones
+                         (numeric input is a free-form field; Prefetch Cache is an enumerated dropdown
+                         with its help folded in - standalone help icon removed). -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilNetworkParallelism" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/network_parallelism_title">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                            android:id="@+id/actvNetworkParallelism"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
+                            app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width"
+                            app:sir_title="@string/network_parallelism_title"
+                            app:sir_inputType="2" />
 
-                            <AutoCompleteTextView android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/network_parallelism_title" android:inputType="number" android:text="@string/default_network_parallelism" android:textSize="@dimen/toggler_title_text_size" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_prefetch_cache_title">
-
-                            <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <ImageButton android:id="@+id/iconHelpPrefetchCache" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_gravity="center_vertical" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/pref_prefetch_cache_help_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/actvPrefetchCache"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                            app:sdr_title="@string/pref_prefetch_cache_title"
+                            app:sdr_showHelp="true"
+                            app:sdr_helpTitle="@string/pref_prefetch_cache_help_title"
+                            app:sdr_helpMessage="@string/pref_prefetch_cache_help_message" />
 
                     </LinearLayout>
 
                     <!-- Row 2: Streaming Cleanup | Streaming TTL -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/pref_streaming_cleanup_title">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/pref_streaming_cleanup_title">
 
                             <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_streaming_ttl_title">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxWidth="@dimen/settings_dropdown_compact_width" android:hint="@string/pref_streaming_ttl_title">
 
                             <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/toggler_title_text_size" />
 
@@ -614,17 +593,15 @@
                     </LinearLayout>
 
                     <!-- Cache Management Container -->
+                    <!-- S0567: cache-size field migrated to SettingsInputRow (numeric). Sibling buttons +
+                         readout re-anchored to the new row id so the action row still lays out beside it. -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilCacheSizeLimit" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:hint="@string/cache_size_limit" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_tilCacheSizeLimit_layout_constraintWidth_max" app:layout_constraintHorizontal_bias="0">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow android:id="@+id/actvCacheSizeLimit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" app:sir_title="@string/cache_size_limit" app:sir_inputType="2" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_tilCacheSizeLimit_layout_constraintWidth_max" app:layout_constraintHorizontal_bias="0" />
 
-                            <AutoCompleteTextView android:id="@+id/actvCacheSizeLimit" android:layout_width="100dp" android:layout_height="wrap_content" android:hint="@string/cache_size_limit" android:inputType="number" android:text="@string/default_cache_size_limit_mb" android:textSize="@dimen/toggler_title_text_size" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnAutoCalculateCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/fragment_settings_general_btnAutoCalculateCache_minWidth" android:layout_marginEnd="@dimen/margin_small" android:text="@string/auto_calculate_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_schedule" app:layout_constraintStart_toEndOf="@+id/actvCacheSizeLimit" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
 
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnAutoCalculateCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/fragment_settings_general_btnAutoCalculateCache_minWidth" android:layout_marginEnd="@dimen/margin_small" android:text="@string/auto_calculate_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_schedule" app:layout_constraintStart_toEndOf="@+id/tilCacheSizeLimit" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
 
                         <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -642,53 +619,17 @@
                             app:str_title="@string/settings_statistics_collection_title"
                             app:str_subtitle="@string/settings_statistics_collection_summary" />
 
-                        <!-- S0499: dashboard button hugs its text (wrap_content) per owner request. Visibility
-                             stays bound to the toggle above in GeneralSettingsViewSetupHelper (GONE while off). -->
-                        <com.google.android.material.card.MaterialCardView
+                        <!-- S0499: dashboard entry. Visibility stays bound to the toggle above in
+                             GeneralSettingsViewSetupHelper (GONE while off).
+                             S0567: unified to SettingsSelectionRow (leading history icon + chevron). -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                             android:id="@+id/rowOpenStatistics"
-                            android:foreground="@drawable/focus_button_background"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
-                            android:clickable="true"
-                            android:focusable="true"
                             android:visibility="gone"
-                            app:cardCornerRadius="@dimen/card_corner_radius"
-                            app:cardElevation="2dp">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:minHeight="@dimen/settings_item_min_height"
-                                android:orientation="horizontal"
-                                android:padding="16dp">
-
-                                <ImageView
-                                    android:layout_width="@dimen/settings_help_icon_size"
-                                    android:layout_height="@dimen/settings_help_icon_size"
-                                    android:layout_marginEnd="@dimen/margin_medium"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_history"
-                                    app:tint="?attr/colorPrimary" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/settings_statistics_open"
-                                    android:textSize="@dimen/toggler_title_text_size" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_marginStart="@dimen/margin_small"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_chevron_right"
-                                    app:tint="?attr/colorPrimary" />
-
-                            </LinearLayout>
-
-                        </com.google.android.material.card.MaterialCardView>
+                            app:ssr_icon="@drawable/ic_history"
+                            app:ssr_title="@string/settings_statistics_open" />
 
                     </LinearLayout>
 

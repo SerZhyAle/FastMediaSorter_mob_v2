@@ -184,6 +184,7 @@
                 <!-- VerticalSeekBar behaves as standard horizontal SeekBar in landscape -->
                 <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                     android:id="@+id/seekVolume"
+                    style="@style/Widget.FMS.PlaybackSlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:focusable="true"
@@ -193,16 +194,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:gravity="end"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnMuteToggle"
                         style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:focusableInTouchMode="false"
-                        android:layout_weight="1"
                         android:minHeight="56dp"
                         android:text="@string/playback_control_mute"
                         app:strokeColor="@color/btn_mute_toggle_state"
@@ -211,23 +212,21 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnVolumeHalf"
                         style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:focusable="true"
                         android:focusableInTouchMode="false"
-                        android:layout_weight="1"
                         android:text="@string/volume_50_percent" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnVolumeMax"
                         style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:focusable="true"
                         android:focusableInTouchMode="false"
-                        android:layout_weight="1"
                         android:text="@string/volume_max" />
                 </LinearLayout>
             </LinearLayout>
@@ -481,6 +480,7 @@
 
                 <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                     android:id="@+id/seekHue"
+                    style="@style/Widget.FMS.PlaybackSlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:focusable="true"
@@ -515,6 +515,7 @@
 
                 <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                     android:id="@+id/seekBrightness"
+                    style="@style/Widget.FMS.PlaybackSlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:focusable="true"
@@ -549,6 +550,7 @@
 
                 <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                     android:id="@+id/seekSpeed"
+                    style="@style/Widget.FMS.PlaybackSlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:focusable="true"

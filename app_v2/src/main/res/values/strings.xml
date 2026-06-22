@@ -250,6 +250,12 @@
         <item>Auto (follow device)</item>
         <item>Light</item>
         <item>Dark</item>
+        <item>Dark Green</item>
+        <item>Dark Blue</item>
+        <item>Dark Red</item>
+        <item>Light Green</item>
+        <item>Light Blue</item>
+        <item>Light Red</item>
     </string-array>
     <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
@@ -735,7 +741,7 @@ Close the player and try again.</string>
     <string name="tooltip_destinations_title">Destinations</string>
     <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
-    <string name="hint_touch_zone_3zone">Command Panel Mode\n\nLeft 20%% - Previous file\nCenter 60%% - Select / Actions\nRight 20%% - Next file\n\nTap anywhere to dismiss</string>
+    <string name="hint_touch_zone_3zone" formatted="false">Command Panel Mode\n\nLeft 20% - Previous file\nCenter 60% - Select / Actions\nRight 20% - Next file\n\nTap anywhere to dismiss</string>
     <string name="hint_touch_zone_media">Media Playback Mode\n\nTouch zones active in upper area only.\nBottom part is reserved for player controls.\n\nTap anywhere to dismiss</string>
     <string name="tooltip_touch_zones_message">9 invisible zones (3×3 grid) for gesture control in fullscreen mode. Left/Center/Right and Top/Middle/Bottom combinations trigger different actions like navigation, file operations, and panel control.</string>
     <string name="tooltip_safe_mode_title">Safe Mode</string>
@@ -1907,7 +1913,7 @@ Close the player and try again.</string>
     <string name="background_audio_exit_always_stop">Always Stop</string>
     <string name="background_audio_exit_always_continue">Always Continue</string>
     <!-- Background audio exit behavior - Settings sub-row -->
-    <string name="background_audio_exit_behavior_title">When leaving player</string>
+    <string name="background_audio_exit_behavior_title">When leaving player or streams</string>
     <string name="background_audio_exit_behavior_summary">Choose what happens to background audio when you navigate back</string>
     <string name="background_audio_exit_behavior_ask">Ask every time (default)</string>
     <string name="background_audio_exit_behavior_always_stop">Always stop</string>
@@ -1930,7 +1936,6 @@ Close the player and try again.</string>
     <!-- Remember file list -->
     <string name="default_remember_file_list">Remember file lists (default for new resources)</string>
     <string name="remember_file_list">Remember file list for this resource</string>
-    <string name="help_remember_file_list">Help: Remember File List</string>
     <string name="remember_file_list_help_title">Remember File List</string>
     <string name="remember_file_list_help_message">When enabled, the app stores the resource file list in the database after scan. Next openings load from cache instantly. Use Refresh to pick up external file changes.</string>
 
@@ -2251,7 +2256,7 @@ Close the player and try again.</string>
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Camera capture</string>
-    <string name="tooltip_camera_capture_message">The camera button in the file browser lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
+    <string name="tooltip_camera_capture_message">The camera button in the file browser opens the in-app camera to take a photo or record video without leaving the app, with flash, zoom, lens switch and tap-to-focus. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
     <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
     <string name="tooltip_saved_authorizations_message">The in-app web sign-in screen saves the cookies and logins used when auto-downloading files from sites that require you to be signed in. Open this screen to review those saved authorizations and remove the ones you no longer need.</string>
 
@@ -2700,8 +2705,6 @@ Close the player and try again.</string>
     <string name="quick_voice_recording_dialog_title">Recording..</string>
     <string name="quick_voice_recording_stop">Stop and save</string>
     <string name="quick_voice_menu_label">Voice recording</string>
-    <string name="quick_video_menu_label">Record video</string>
-    <string name="quick_photo_menu_label">Take photo</string>
     <string name="quick_recorder_saved_to">Recording saved to %1$s</string>
     <string name="audio_background_handoff_failed">Couldn\'t keep this track playing in the background</string>
     <string name="download_by_link_menu_label">Download by link</string>
@@ -2709,4 +2712,72 @@ Close the player and try again.</string>
     <string name="download_by_link_dialog_hint">Paste or type a link</string>
     <string name="collapsible_section_state_expanded">Expanded</string>
     <string name="collapsible_section_state_collapsed">Collapsed</string>
+    <string name="camera_control_flash">Flash</string>
+    <string name="camera_control_switch_lens">Switch camera</string>
+    <string name="camera_control_zoom">Zoom</string>
+    <string name="camera_capture_microphone">Microphone</string>
+    <string name="camera_capture_record_start">Record</string>
+    <string name="camera_capture_record_stop">Stop</string>
+    <string name="camera_capture_microphone_muted">Recording without sound</string>
+    <string name="camera_mode_photo">Photo</string>
+    <string name="camera_mode_video">Video</string>
+    <string name="quick_camera_menu_label">Camera</string>
+    <string name="camera_control_pause">Pause</string>
+    <string name="camera_control_resume">Resume</string>
+    <string name="camera_gallery_preview">View last capture</string>
+    <string name="resource_type_stream">Stream</string>
+    <string name="streams_error_unsupported_in_build">This stream type is not supported in this app version.</string>
+    <string name="streams_title">Streams</string>
+    <string name="streams_add">Add stream</string>
+    <string name="streams_import">Import list</string>
+    <string name="streams_refresh">Refresh</string>
+    <string name="streams_pin_to_top">Pin to top</string>
+    <string name="streams_remove">Remove</string>
+    <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
+    <string name="streams_import_url_hint">Playlist URL (.m3u)</string>
+    <string name="streams_title_hint">Title (optional)</string>
+    <string name="streams_error_invalid_url">Enter a valid http, https or rtsp address.</string>
+    <string name="streams_error_network">Could not load the list. Check the connection and try again.</string>
+    <string name="streams_now_playing">Now playing</string>
+    <string name="streams_empty">No streams yet. Add a URL or import a list.</string>
+    <string name="streams_stop">Stop</string>
+    <string name="streams_import_done">Imported %1$d streams</string>
+    <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
+    <string name="crash_report_no_share_target">No app available to send the crash report. The report stays saved on this device.</string>
+    <string name="streams_import_choose_title">Import list</string>
+    <string name="streams_import_catalog">Update FastMediaSorter catalog</string>
+    <string name="streams_import_from_url">Import from URL</string>
+    <string name="streams_catalog_updated">Catalog: +%1$d new, %2$d updated, %3$d removed</string>
+    <string name="streams_catalog_empty">Catalog is empty or unavailable</string>
+    <string name="streams_search_hint">Search</string>
+    <string name="streams_filter">Filter</string>
+    <string name="streams_sort">Sort</string>
+    <string name="streams_sort_name">By name</string>
+    <string name="streams_sort_topic">By topic</string>
+    <string name="streams_sort_language">By language</string>
+    <string name="streams_sort_recent">Recently added</string>
+    <string name="streams_filter_all">All</string>
+    <string name="ext_section_streams">Streams</string>
+    <string name="ext_streams_title">Stream sources catalog</string>
+    <string name="ext_streams_desc">Download the catalog of available stream sources</string>
+    <string name="settings_streams_section">Streams</string>
+    <string name="settings_streams_toggle">Enable Streams</string>
+    <string name="settings_take_screenshot_now">Screenshot test</string>
+    <string name="streams_unavailable_title">Stream unavailable</string>
+    <string name="streams_unavailable_message">&quot;%1$s&quot; is not responding. Remove it from your list?</string>
+    <string name="background_audio_group_title">Background audio playback</string>
+    <string name="streams_filter_category">Category</string>
+    <string name="streams_filter_language">Language</string>
+    <string name="streams_filter_media_kind">Type</string>
+    <string name="streams_filter_media_audio">Audio</string>
+    <string name="streams_filter_media_video">Video</string>
+    <string name="streams_filter_clear">Clear filters</string>
+    <string name="streams_picker_search_hint">Type to search</string>
+    <string name="streams_picker_empty">Nothing found</string>
+    <string name="streams_filter_active">Filter active</string>
+    <string name="stream_status_ok">Verified online</string>
+    <string name="stream_status_failed">Last playback failed</string>
+    <string name="stream_status_unknown">Not played yet</string>
+    <string name="programs">Programs</string>
+    <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
 </resources>

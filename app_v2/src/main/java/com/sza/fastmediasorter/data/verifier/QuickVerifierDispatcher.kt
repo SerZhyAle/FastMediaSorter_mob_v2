@@ -80,6 +80,10 @@ class QuickVerifierDispatcher @Inject constructor(
                 return emptyList()
             }
             ResourceType.CLOUD -> cloud
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> {
+                Timber.d("QuickVerifierDispatcher: resource=%d type=%s - streams are not probed", resourceId, resource.type)
+                return emptyList()
+            }
         }
 
         val firstN = candidates.take(n).map { it.path }

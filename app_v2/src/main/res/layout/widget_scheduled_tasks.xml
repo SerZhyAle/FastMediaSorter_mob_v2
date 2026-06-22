@@ -49,13 +49,12 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="@dimen/margin_small"
-        android:gravity="center_vertical">
+        android:gravity="end|center_vertical">
 
         <Button
             android:id="@+id/widget_scheduled_run_all"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/widget_scheduled_run_all"
             android:contentDescription="@string/widget_scheduled_run_all"
             android:textColor="@color/white"
@@ -66,9 +65,8 @@
 
         <Button
             android:id="@+id/widget_scheduled_toggle_pause"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_small"
             android:text="@string/widget_scheduled_pause_all"
             android:contentDescription="@string/widget_scheduled_pause_all"

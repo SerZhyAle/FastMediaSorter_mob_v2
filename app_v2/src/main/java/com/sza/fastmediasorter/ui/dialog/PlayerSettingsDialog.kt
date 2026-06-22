@@ -3,9 +3,6 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlayerSettingsBinding
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -76,11 +73,10 @@ class PlayerSettingsDialog(
             // Just for tracking, actual value read on apply
         }
 
-        // Subtitles toggle listener - enable/disable language spinner
+        // Subtitles toggle listener - enable/disable language dropdown.
+        // S0567: SettingsDropdownRow.setEnabled handles its own title + dimming, so no separate alpha.
         binding.cbShowSubtitles.setOnCheckedChangeListener { isChecked ->
             binding.spinnerSubtitleLanguage.isEnabled = isChecked
-            binding.tvSubtitleLanguageLabel.alpha = if (isChecked) 1.0f else 0.5f
-            binding.spinnerSubtitleLanguage.alpha = if (isChecked) 1.0f else 0.5f
         }
 
         setupLanguageSpinner(binding.spinnerSubtitleLanguage)
@@ -105,11 +101,10 @@ class PlayerSettingsDialog(
         binding.radio3DOU?.isEnabled = false
     }
 
-    private fun setupLanguageSpinner(spinner: android.widget.Spinner) {
-        val languages = LanguageOption.entries.map { context.getString(it.displayNameResId) }
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, languages)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
+    // S0567: subtitle/audio dropdowns migrated from raw Spinner to SettingsDropdownRow (ADR-1).
+    private fun setupLanguageSpinner(row: com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow) {
+        val languages = LanguageOption.entries.map { context.getString(it.displayNameResId) as CharSequence }
+        row.setEntries(languages)
     }
 
     private fun loadCurrentSettings() {
@@ -128,9 +123,8 @@ class PlayerSettingsDialog(
         binding.cbRepeatVideo.isChecked = currentSettings.repeatVideo
 
         binding.cbShowSubtitles.isChecked = currentSettings.showSubtitles
+        // S0567: SettingsDropdownRow.setEnabled handles its own dimming.
         binding.spinnerSubtitleLanguage.isEnabled = currentSettings.showSubtitles
-        binding.tvSubtitleLanguageLabel.alpha = if (currentSettings.showSubtitles) 1.0f else 0.5f
-        binding.spinnerSubtitleLanguage.alpha = if (currentSettings.showSubtitles) 1.0f else 0.5f
         binding.spinnerSubtitleLanguage.setSelection(currentSettings.subtitleLanguage.ordinal)
 
         binding.spinnerAudioLanguage.setSelection(currentSettings.audioLanguage.ordinal)
@@ -159,11 +153,11 @@ class PlayerSettingsDialog(
         }
 
         val subtitleLanguage = LanguageOption.entries.getOrElse(
-            binding.spinnerSubtitleLanguage.selectedItemPosition
+            binding.spinnerSubtitleLanguage.getSelectedIndex()
         ) { LanguageOption.DEFAULT }
-        
+
         val audioLanguage = LanguageOption.entries.getOrElse(
-            binding.spinnerAudioLanguage.selectedItemPosition
+            binding.spinnerAudioLanguage.getSelectedIndex()
         ) { LanguageOption.DEFAULT }
 
         // Map selected radio button back to StereoMode enum

@@ -80,7 +80,6 @@ class PlayerNavigationManager(
                     // initUiCoordinators. Skip the UI sync until ready; the default inactive button state is
                     // rendered correctly once init completes and state observers fire.
                     if (activity.isDialogAndUiStateManagerInitialized) {
-                        Timber.d("S0550: onSlideshowStateChanged UI sync (active=$isActive paused=$isPaused)")
                         activity.dialogAndUiStateManager.updateSlideShowButton()
                     }
                     activity.updatePlayPauseButton()

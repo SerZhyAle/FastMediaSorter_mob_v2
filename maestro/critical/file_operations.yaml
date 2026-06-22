@@ -1,47 +1,133 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: File Operations (Resilient)
-# Description: Verify file-ops UI entry points without hardcoding specific folders/files
-# Duration: ~40 seconds
+# Test: Copy and move files from Ops/src to Ops/dst (S0551 Phase 03).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Ops/src + Ops/dst under /storage/emulated/0/Download. Required files:
+#   Ops/src/IMG_copy_01.png, Ops/src/IMG_move_01.png.
+# Oracle: copy leaves the source visible and creates the destination entry; move creates
+#   the destination entry and removes the source entry. Exact ids/text only.
 
 - launchApp
-- waitForAnimationToEnd
-
 - runFlow: ../_shared/permissions.yaml
-- waitForAnimationToEnd
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 
-# Try to enter local context (not all layouts expose this tab)
 - tapOn:
-    text: "(Local|Локально|Локальне)"
-    optional: true
-
-- waitForAnimationToEnd
-
-# Validate media list container if present
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
-    optional: true
-
-# Try selecting any first visible item and opening actions menu via long press
-- longPressOn:
-    text: ".*"
+    text: "Локальные"
     index: 0
-    optional: true
-
-- waitForAnimationToEnd
-
-# Accept either copy or move action if available
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
 - tapOn:
-    text: "(Copy|Копировать|Move|Переместить)"
-    optional: true
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
 
-- waitForAnimationToEnd
-
-# If destination/paste UI appears, complete it opportunistically
+# Copy: source stays in Ops/src, destination gains a copy.
 - tapOn:
-    text: "(Paste|Вставить|Confirm|Подтвердить|OK|ОК)"
-    optional: true
-
-- waitForAnimationToEnd
-
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+- inputText: "IMG_copy_01"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- extendedWaitUntil:
+    visible:
+      text: "IMG_copy_01.png"
+    timeout: 10000
+- longPressOn:
+    text: "IMG_copy_01.png"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnCopy"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnCopy"
+- extendedWaitUntil:
+    visible:
+      text: "Ops/dst"
+    timeout: 10000
+- tapOn:
+    text: "Ops/dst"
+- extendedWaitUntil:
+    visible:
+      text: "(Completed|Готово|Завершено|IMG_copy_01.png)"
+    timeout: 20000
 - back
+- scrollUntilVisible:
+    element:
+      text: "Ops/dst"
+    timeout: 10000
+- tapOn:
+    text: "Ops/dst"
+- extendedWaitUntil:
+    visible:
+      text: "IMG_copy_01.png"
+    timeout: 15000
+- assertVisible:
+    text: "IMG_copy_01.png"
+- back
+- scrollUntilVisible:
+    element:
+      text: "IMG_copy_01.png"
+    timeout: 10000
+- assertVisible:
+    text: "IMG_copy_01.png"
+
+# Move: destination gains the file and source listing no longer shows it.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnClearFilter"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+- inputText: "IMG_move_01"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- extendedWaitUntil:
+    visible:
+      text: "IMG_move_01.png"
+    timeout: 10000
+- longPressOn:
+    text: "IMG_move_01.png"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnMove"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnMove"
+- extendedWaitUntil:
+    visible:
+      text: "Ops/dst"
+    timeout: 10000
+- tapOn:
+    text: "Ops/dst"
+- extendedWaitUntil:
+    visible:
+      text: "(Completed|Готово|Завершено|IMG_move_01.png)"
+    timeout: 20000
+- back
+- scrollUntilVisible:
+    element:
+      text: "Ops/dst"
+    timeout: 10000
+- tapOn:
+    text: "Ops/dst"
+- extendedWaitUntil:
+    visible:
+      text: "IMG_move_01.png"
+    timeout: 15000
+- assertVisible:
+    text: "IMG_move_01.png"
+- back
+- assertNotVisible:
+    text: "IMG_move_01.png"

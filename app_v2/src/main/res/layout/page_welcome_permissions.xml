@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/welcome_description_margin_top"
             android:baselineAligned="false"
-            android:gravity="center_vertical"
+            android:gravity="end|center_vertical"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -70,9 +70,8 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGrantAll"
                 style="@style/Widget.FastMediaSorter.Button.Filled"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/perm_btn_grant_all"
                 android:visibility="gone" />
 

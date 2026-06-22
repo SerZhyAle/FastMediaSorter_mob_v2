@@ -1,0 +1,51 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Large-media edge case opens without crash (S0551 Phase 05, matrix 15).
+# Precondition: auto-injected (or OWNER_TRIGGER-imported) "Загрузки" LOCAL resource over the
+#   seeded tree, which includes DCIM/video_large.mp4 (~112 MB, ~3 min).
+# Oracle: a large (>100 MB) video opens into the player surface (playerView) and the crash prompt
+#   never appears - the S0550-class "big media must not crash" edge case. This is distinct from
+#   player_video, which exercises a tiny clip.
+# Device-only (excluded from the emulator default): two seeded edge inputs are not reliably
+#   testable on the standard AVD and are left for on-device runs -
+#   * Edge/file_without_extension: the local browse enumerates by recognized extension
+#     (MediaTypeUtils.getMediaType), so an extension-less file is never listed.
+#   * Edge/video_large_200mb.mkv (~258 MB): exhausts the emulator's memory/codec budget and the
+#     process is low-memory-killed before the player renders.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+# Large video edge case: opening a 100 MB+ video must render the player without crashing.
+- scrollUntilVisible:
+    element:
+      text: "video_large.mp4"
+    timeout: 30000
+- tapOn:
+    text: "video_large.mp4"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/playerView"
+    timeout: 25000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

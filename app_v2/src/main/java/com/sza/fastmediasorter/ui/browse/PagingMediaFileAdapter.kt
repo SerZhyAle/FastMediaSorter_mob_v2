@@ -15,7 +15,6 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
@@ -261,7 +260,6 @@ class PagingMediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(200, 200)
                                 .centerCrop()
-                                .transform(RoundedCorners(8))
                                 .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -276,7 +274,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -289,7 +286,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded (critical for GIF persistence)
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
@@ -308,7 +304,6 @@ class PagingMediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(200, 200)
                                 .centerCrop()
-                                .transform(RoundedCorners(8))
                                 .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -334,7 +329,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -347,7 +341,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.DATA)
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
@@ -532,7 +525,6 @@ class PagingMediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(200, 200)
                                 .centerCrop()
-                                .transform(RoundedCorners(8))
                                 .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -547,7 +539,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -560,7 +551,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.DATA)
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
@@ -579,7 +569,6 @@ class PagingMediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(200, 200)
                                 .centerCrop()
-                                .transform(RoundedCorners(8))
                                 .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -605,7 +594,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -618,7 +606,6 @@ class PagingMediaFileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.DATA)
                             .override(200, 200)
                             .centerCrop()
-                            .transform(RoundedCorners(8))
                             .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)

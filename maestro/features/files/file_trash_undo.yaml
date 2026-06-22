@@ -1,0 +1,67 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Soft-delete and undo on seeded Ops/src files (S0551 Phase 03).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource, trash is enabled,
+#   and Ops/src contains ops_delete_soft.png + ops_undo_me.png.
+# Oracle: delete hides the file and exposes btnUndo; undo restores the second file.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      text: "ops_delete_soft.png"
+    timeout: 10000
+- longPressOn:
+    text: "ops_delete_soft.png"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnDelete"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnDelete"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnUndo"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnUndo"
+- assertNotVisible:
+    text: "ops_delete_soft.png"
+
+- scrollUntilVisible:
+    element:
+      text: "ops_undo_me.png"
+    timeout: 10000
+- longPressOn:
+    text: "ops_undo_me.png"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnDelete"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnUndo"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnUndo"
+- extendedWaitUntil:
+    visible:
+      text: "ops_undo_me.png"
+    timeout: 10000
+- assertVisible:
+    text: "ops_undo_me.png"

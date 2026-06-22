@@ -4,7 +4,7 @@
 # Usage: .\run-maestro-smoke-tests.ps1
 
 param(
-    [ValidateSet("all", "app_launch", "local_browse", "media_play", "image_view", "file_operations", "settings", "help")]
+    [ValidateSet("all", "smoke", "critical", "features", "app_launch", "local_browse", "help")]
     [string]$Test = "all",
     
     [switch]$Debug,
@@ -24,8 +24,8 @@ USAGE:
 
 OPTIONS:
   -Test <test>           Which test to run (default: all)
-                         Values: all, app_launch, local_browse, media_play, 
-                                image_view, file_operations, settings
+                         Values: all, smoke, critical, features,
+                                app_launch, local_browse
   
   -Debug                 Show debug output during test execution
   
@@ -85,8 +85,8 @@ function Check-Prerequisites {
         Write-Host "✅ Maestro CLI: $maestroVersion"
     }
     catch {
-        Write-Host "❌ Maestro not installed. Install with:"
-        Write-Host "   npm install -g maestro-cli"
+        Write-Host "❌ Maestro not installed. Install from:"
+        Write-Host "   https://maestro.mobile.dev/getting-started/installing-maestro"
         exit 1
     }
     
@@ -124,7 +124,7 @@ function Build-And-Install-App {
 function Run-Test {
     param([string]$TestFile)
     
-    $testPath = "maestro/smoke/$TestFile.yaml"
+    $testPath = if ($TestFile -match '\.ya?ml$') { $TestFile } else { "maestro/smoke/$TestFile.yaml" }
     
     if (-not (Test-Path $testPath)) {
         Write-Host "❌ Test file not found: $testPath"
@@ -168,7 +168,7 @@ function Run-All-Tests {
     Write-Host "`n🧪 Running all smoke tests..."
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`n"
     
-    $tests = @("app_launch", "local_browse", "media_play", "image_view", "file_operations", "settings")
+    $tests = @("app_launch", "local_browse", "3d-video-sbs", "3d-video-switching")
     $results = @{}
     $totalTime = [System.Diagnostics.Stopwatch]::StartNew()
     
@@ -223,7 +223,12 @@ if ($Interactive) {
     Run-Interactive
 }
 elseif ($Test -eq "all") {
-    Run-All-Tests
+    pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -DebugMode:$Debug
+    exit $LASTEXITCODE
+}
+elseif ($Test -in @("smoke", "critical", "features")) {
+    pwsh -NoProfile -File maestro/run-tests.ps1 -Suite $Test -DebugMode:$Debug
+    exit $LASTEXITCODE
 }
 else {
     $result = Run-Test $Test

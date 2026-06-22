@@ -387,13 +387,17 @@ class PlayerMediaLoaderManager(
                 .encodedPath("/$share/$encodedPath")
                 .build()
         }
-        // sftp:// and ftp:// - the authority already carries host:port
+        // sftp:// and ftp:// - the authority already carries host:port. Set it via encodedAuthority
+        // so the host:port colon survives verbatim. Uri.Builder.authority() treats the value as
+        // decoded and percent-encodes the ':' to %3A; the rebuilt URI's getHost() then returns the
+        // whole "host:port" string and getPort() returns -1, so the background audio service hands
+        // JSch "host:port" as the hostname and SFTP/FTP streaming dies with UnknownHostException.
         val parsed = PathUtils.safeParseUri(path)
         val encodedPath = parsed.path?.split("/")
             ?.joinToString("/") { segment -> if (segment.isEmpty()) "" else Uri.encode(segment, "@") } ?: ""
         return Uri.Builder()
             .scheme(parsed.scheme)
-            .authority(parsed.authority)
+            .encodedAuthority(parsed.encodedAuthority)
             .encodedPath(encodedPath)
             .build()
     }
@@ -499,7 +503,8 @@ class PlayerMediaLoaderManager(
             destFile.delete()
             throw e
         } catch (e: Exception) {
-            Timber.e(e, "preCacheNetworkAudio: download failed for $path")
+            // Recoverable: prefetch/precache falls back to direct streaming, so this is not an error.
+            Timber.w(e, "preCacheNetworkAudio: download failed for $path")
             destFile.delete()
             null
         }
@@ -565,7 +570,7 @@ class PlayerMediaLoaderManager(
         return destFile.outputStream().use { out ->
             when (client.downloadFile(connInfo, remotePath, out)) {
                 is SmbResult.Success -> destFile
-                else -> { Timber.e("preCacheNetworkAudio: SMB download failed for $path"); null }
+                else -> { Timber.w("preCacheNetworkAudio: SMB download failed for $path"); null }
             }
         }
     }
@@ -592,7 +597,7 @@ class PlayerMediaLoaderManager(
         val connInfo = SftpClient.SftpConnectionInfo(host = host, port = port, username = creds.username, password = creds.password)
         return destFile.outputStream().use { out ->
             val result = client.downloadFile(connInfo, remotePath, out)
-            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: SFTP download failed for $path"); null }
+            if (result.isSuccess) destFile else { Timber.w("preCacheNetworkAudio: SFTP download failed for $path"); null }
         }
     }
 
@@ -618,7 +623,7 @@ class PlayerMediaLoaderManager(
         client.connect(host, port, creds.username, creds.password)
         return destFile.outputStream().use { out ->
             val result = client.downloadFile(remotePath, out)
-            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: FTP download failed for $path"); null }
+            if (result.isSuccess) destFile else { Timber.w("preCacheNetworkAudio: FTP download failed for $path"); null }
         }
     }
 
@@ -1035,8 +1040,25 @@ class PlayerMediaLoaderManager(
         currentFile: MediaFile?,
         resource: com.sza.fastmediasorter.domain.model.MediaResource?
     ) {
-        if (currentFile != null && 
-            (resourceType == ResourceType.SMB || resourceType == ResourceType.SFTP || 
+        // Internet streams carry no credentials and must keep their stream type so VideoPlayerManager
+        // routes them to playStreamVideo - the legacy else-branch forced LOCAL, which then failed
+        // File.exists() and aborted playback (the "Local file does not exist" stream regression).
+        if (resourceType == ResourceType.HTTP_STREAM || resourceType == ResourceType.RTSP_STREAM) {
+            videoPlayerManager.playVideo(
+                path = path,
+                resourceType = resourceType,
+                credentialsId = null,
+                playWhenReady = !viewModel.state.value.isPaused,
+                onComplete = {
+                    syncVideoPlaybackOrderMode()
+                    exoPlayerControlsManager.updatePlaybackOrderButtonState()
+                }
+            )
+            return
+        }
+
+        if (currentFile != null &&
+            (resourceType == ResourceType.SMB || resourceType == ResourceType.SFTP ||
              resourceType == ResourceType.FTP || resourceType == ResourceType.CLOUD)) {
             
             // For Favorites, get credentialsId from the file's original resource

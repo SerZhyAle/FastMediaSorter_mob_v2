@@ -45,6 +45,8 @@ class ComputeFileHashUseCase @Inject constructor(
                 ResourceType.SFTP -> sftpFileHasher
                 ResourceType.FTP -> ftpFileHasher
                 ResourceType.CLOUD -> cloudFileHasher
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                    throw IllegalArgumentException("Internet streams cannot be hashed: ${resource.type}")
             }
             val hash = hasher.computeHash(file, resource, maxBytes)
             // Persist to cache

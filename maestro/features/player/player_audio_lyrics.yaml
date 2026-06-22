@@ -1,0 +1,54 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Audio playback with lyrics viewer (S0551 Phase 04).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Audio/frank_sinatra_My_way.mp3 with a sibling .lrc file.
+# Oracle: audio controls render, lyrics command opens lyricsViewerContainer.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "frank_sinatra_My_way.mp3"
+    timeout: 30000
+- tapOn:
+    text: "frank_sinatra_My_way.mp3"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
+    timeout: 20000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnLyricsCmd"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnLyricsCmd"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/lyricsViewerContainer"
+    timeout: 20000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tvLyricsContent"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

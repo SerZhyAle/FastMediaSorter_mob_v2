@@ -31,7 +31,9 @@ maestro --version
 
 **Important**: DO NOT use `npm install -g maestro-cli` - that's a different, unrelated package!
 
-If still not found after installation, restart your terminal and try again.
+If still not found after installation, restart your terminal and try again. On Windows, also
+verify that `%USERPROFILE%\.maestro\bin` is on PATH. The suite runner checks PATH,
+`MAESTRO_HOME`, and the standard per-user `.maestro\bin` install location.
 
 ### 2. "No devices found"
 

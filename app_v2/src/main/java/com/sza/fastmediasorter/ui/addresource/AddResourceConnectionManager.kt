@@ -537,14 +537,6 @@ internal class AddResourceConnectionManager(
             .show()
     }
 
-    fun showRememberFileListHelpDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.remember_file_list_help_title)
-            .setMessage(R.string.remember_file_list_help_message)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
-    }
-
     fun showDetailedErrorDialog(titleRes: Int, details: String?) {
         // S0294: `details` may be either a curated human-facing message (e.g. the
         // `s0294_google_drive_browser_*` strings the unified auth manager hands us when GMS-less

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.core.theme
 
+import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 import java.util.Locale
 
@@ -14,7 +16,10 @@ import java.util.Locale
  * SharedPreferences file. The Settings selector writes here in addition to DataStore right before
  * prompting for an app restart.
  *
- * Raw values: "AUTO" (follow device night-mode, default), "LIGHT" (force light), "DARK" (force dark).
+ * Raw values: "AUTO" (follow device night-mode, default), "LIGHT" (force light), "DARK" (force dark),
+ * plus the six S0569 custom accent themes "DARK_GREEN" / "DARK_BLUE" / "DARK_RED" / "LIGHT_GREEN" /
+ * "LIGHT_BLUE" / "LIGHT_RED" - each pins a fixed night mode (dark/light) and is rendered by a
+ * ThemeOverlay applied per-Activity via [applyThemeOverlay].
  */
 object ColorThemePrefs {
     private const val FILE_NAME = "color_theme_prefs"
@@ -24,12 +29,18 @@ object ColorThemePrefs {
     fun normalizeValue(value: String?): String = when (value?.trim()?.uppercase(Locale.ROOT)) {
         "LIGHT" -> "LIGHT"
         "DARK" -> "DARK"
+        "DARK_GREEN" -> "DARK_GREEN"
+        "DARK_BLUE" -> "DARK_BLUE"
+        "DARK_RED" -> "DARK_RED"
+        "LIGHT_GREEN" -> "LIGHT_GREEN"
+        "LIGHT_BLUE" -> "LIGHT_BLUE"
+        "LIGHT_RED" -> "LIGHT_RED"
         else -> DEFAULT
     }
 
     fun toNightMode(value: String): Int = when (normalizeValue(value)) {
-        "LIGHT" -> AppCompatDelegate.MODE_NIGHT_NO
-        "DARK" -> AppCompatDelegate.MODE_NIGHT_YES
+        "LIGHT", "LIGHT_GREEN", "LIGHT_BLUE", "LIGHT_RED" -> AppCompatDelegate.MODE_NIGHT_NO
+        "DARK", "DARK_GREEN", "DARK_BLUE", "DARK_RED" -> AppCompatDelegate.MODE_NIGHT_YES
         else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
     }
 
@@ -59,6 +70,26 @@ object ColorThemePrefs {
      */
     fun applyMode(value: String) {
         AppCompatDelegate.setDefaultNightMode(toNightMode(normalizeValue(value)))
+    }
+
+    /**
+     * Layer the accent ThemeOverlay for the saved custom theme onto [activity]'s theme. Called from
+     * [com.sza.fastmediasorter.core.ui.BaseActivity.onCreate] before the content view inflates, at the
+     * same seam the compact-dialog overlay uses, so every view and dialog resolves the custom colors.
+     * The base AUTO/LIGHT/DARK themes carry no overlay - the DayNight base theme is already correct.
+     */
+    fun applyThemeOverlay(activity: Activity) {
+        val overlayResId = when (getMode(activity)) {
+            "DARK_GREEN" -> R.style.ThemeOverlay_FastMediaSorter_DarkGreen
+            "DARK_BLUE" -> R.style.ThemeOverlay_FastMediaSorter_DarkBlue
+            "DARK_RED" -> R.style.ThemeOverlay_FastMediaSorter_DarkRed
+            "LIGHT_GREEN" -> R.style.ThemeOverlay_FastMediaSorter_LightGreen
+            "LIGHT_BLUE" -> R.style.ThemeOverlay_FastMediaSorter_LightBlue
+            "LIGHT_RED" -> R.style.ThemeOverlay_FastMediaSorter_LightRed
+            else -> return
+        }
+        Timber.d("S0611: applying custom theme overlay '${getMode(activity)}' - verify themed (non-grey) dialog/menu surfaces, >=4.5:1 text and toolbar aesthetic")
+        activity.theme.applyStyle(overlayResId, true)
     }
 
     /**

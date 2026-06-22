@@ -27,7 +27,9 @@ import javax.inject.Singleton
  * and are skipped so this never fights ScreenRotationManager.
  *
  * Program flag ON  -> SCREEN_ORIENTATION_UNSPECIFIED (delegate to the OS auto-rotate setting).
- * Program flag OFF -> SCREEN_ORIENTATION_LOCKED (do not follow the OS).
+ * Program flag OFF -> SCREEN_ORIENTATION_SENSOR (follow the device sensor directly, ignoring the
+ *                     OS auto-rotate lock). Mirrors ScreenRotationManager's sensorEnabled branch so
+ *                     non-player windows behave like the player when it is on its own sensor control.
  * No accelerometer -> leave the manifest default untouched (matches the rotation UI being hidden).
  *
  * Registered as [Application.ActivityLifecycleCallbacks] from the Application's onCreate.
@@ -70,7 +72,8 @@ class AppOrientationManager @Inject constructor(
         val orientation = if (programFollowSystemRotation) {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         } else {
-            ActivityInfo.SCREEN_ORIENTATION_LOCKED
+            // Follow the physical sensor regardless of the OS auto-rotate lock (S0162 sensor parity).
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR
         }
         if (activity.requestedOrientation != orientation) {
             activity.requestedOrientation = orientation

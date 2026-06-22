@@ -45,6 +45,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             remoteSourceGate = activity.remoteSourceGate,
             // S0473: usage-statistics sink for the video-watched completion event.
             statsSink = activity.statsSink,
+            // S0565: flavor-gated stream-protocol support (RTSP isolated to streaming flavors).
+            streamProtocolSupport = activity.streamProtocolSupport,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }

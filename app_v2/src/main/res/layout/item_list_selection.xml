@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Item view for ListSelectionDialog (S0567, ADR-3).
+  A single full-width button styled by the project button taxonomy; the selected item
+  shows a leading check icon. No runtime-built buttons, no hardcoded colors.
+-->
+<com.google.android.material.button.MaterialButton
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_label"
+    style="@style/Widget.FastMediaSorter.Button.Outlined"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_tiny"
+    android:layout_marginBottom="@dimen/margin_tiny"
+    android:gravity="center_vertical|start"
+    android:minHeight="@dimen/destination_button_min_height"
+    android:textAlignment="viewStart"
+    android:textAllCaps="false" />

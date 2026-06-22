@@ -18,7 +18,10 @@ data class RawSettingsSearchEntry(
     val hintResId: Int? = null,
     val inlineTitle: String? = null,
     val inlineSubtitle: String? = null,
-    val inlineHint: String? = null
+    val inlineHint: String? = null,
+    // View-ids of the row's ancestor elements (parent cards/containers). Lets the availability
+    // filter gate a row by its parent card (e.g. groupScreenGestures) without a per-row id list.
+    val ancestorIds: List<Int> = emptyList()
 )
 
 /**
@@ -30,5 +33,26 @@ enum class EntryKind {
     SECTION_HEADER,
     BUTTON,
     TEXT_INPUT,
-    SPINNER
+    SPINNER,
+
+    /**
+     * `SettingsInputRow` compound widget (S0567). Carries its own label via `app:sir_title`
+     * instead of `android:hint`, so it needs dedicated extraction; without it the migrated
+     * input settings fall out of the search catalog (S0597 regression).
+     */
+    INPUT_ROW,
+
+    /**
+     * `SettingsDropdownRow` compound widget (S0567). Carries its label via `app:sdr_title`;
+     * without dedicated extraction its settings (Language, Color theme, ..) are invisible to
+     * search (S0598).
+     */
+    DROPDOWN_ROW,
+
+    /**
+     * `SettingsSelectionRow` compound widget (S0567). Carries its label via `app:ssr_title`
+     * plus an optional `app:ssr_subtitle`; without dedicated extraction its settings (Device
+     * profile, Saved authorizations, ..) are invisible to search (S0598).
+     */
+    SELECTION_ROW
 }

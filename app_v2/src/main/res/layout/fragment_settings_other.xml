@@ -97,6 +97,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/item_focus_selector"
+                    android:contentDescription="@string/translation_source_language"
                     android:clickable="true"
                     android:ellipsize="end"
                     android:focusable="true"
@@ -133,6 +134,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/item_focus_selector"
+                    android:contentDescription="@string/translation_target_language"
                     android:clickable="true"
                     android:ellipsize="end"
                     android:focusable="true"
@@ -254,6 +256,7 @@
                 android:id="@+id/spinnerOcrFontSize"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/ocr_font_size"
                 android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>
 
@@ -280,6 +283,7 @@
                 android:id="@+id/spinnerOcrFontFamily"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/ocr_font_family"
                 android:minWidth="@dimen/settings_spinner_min_width" />
         </LinearLayout>
 

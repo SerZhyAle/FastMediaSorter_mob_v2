@@ -171,7 +171,7 @@ Recommended next-step (one line, optional):
 - **Read-only on journal.** Never call `update.ps1`, `complete.ps1`, `archive.ps1`. The journal `updated` timestamp does **not** move for `/verify`.
 - **Read-only on specs.** Never touch `PLAN/Sxxxx_*.md`. `## Last Audit`, `## Revision History`, `[manual]` boxes owned by `/spec-test-device` / `/spec-check`.
 - **No dev log.** `/verify` is a diagnostic, not a change. `dev/CHANGELOG.md` stays untouched. Skill-internal exception: if `/verify` is invoked as the final step of `/skill-fix` or `/quick`, the parent skill writes its own dev log entry; `/verify` itself still does not.
-- **No commits.** `git status` / `git diff` may be inspected, but `git commit` is the user's call.
+- **No commits.** Committing is the user's call - `/verify` never commits, and does not lean on git history to read state (the live files + device are the truth).
 - **Outputs land in `temp/` only.** Screenshots, scenario, captured log - all under `temp/verify_*` and `temp/verify_screens/`. Never write to project root.
 - **Never run `gradlew.bat` directly.** Always go through `scripts/builders/build-*-device.ps1`.
 - **Never read full logcat into context** when > 2 MB - use `search-log.ps1`, quote line numbers.

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -103,7 +102,6 @@ object ScrollableTextDialog {
         val fullText = if (details != null) "$message\n\n$details" else message
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_error_detail, null)
-        Timber.d("S0544: error/detail dialog inflated - landscape action row pinned at top")
         val tvMessage = dialogView.findViewById<TextView>(R.id.tvErrorMessage)
         val tvDetailsToggle = dialogView.findViewById<TextView>(R.id.tvDetailsToggle)
         val scrollDetails = dialogView.findViewById<ScrollView>(R.id.scrollDetails)
@@ -242,14 +240,11 @@ object ScrollableTextDialog {
                 CoroutineScope(Dispatchers.IO).launch {
                     val zipUri = LogExportHelper.buildLogsZipUri(context)
                     withContext(Dispatchers.Main) {
-                        val emailIntent = SupportIntentFactory.buildCrashReportEmail(subject, body, zipUri)
-                        val chooser = Intent.createChooser(emailIntent, subject)
-                        if (context !is Activity) chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        try {
-                            context.startActivity(chooser)
-                        } catch (e: ActivityNotFoundException) {
-                            Timber.w(e, "ScrollableTextDialog: no email app to send crash report")
-                            Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_SHORT).show()
+                        // Email-first with share-sheet fallback; previously createChooser stripped the
+                        // mailto selector and silently dropped the recipient for non-email targets.
+                        val delivered = SupportIntentFactory.launchCrashReport(context, subject, body, zipUri)
+                        if (!delivered) {
+                            Toast.makeText(context, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
                         }
                     }
                 }

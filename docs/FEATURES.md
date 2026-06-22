@@ -1,10 +1,15 @@
+---
+layout: default
+title: "FastMediaSorter v2 - Complete Feature List"
+permalink: /docs/FEATURES.html
+---
 # FastMediaSorter v2 - Complete Feature List
 
 *Last updated: 2026-06-20*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
-**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features without cloud integrations. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
+**Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
 
@@ -111,3 +116,11 @@ This document is the curated showcase of standout user-facing features. The comp
 
 ## 18. Bonus Mini-Game
 - **Kryvavitsa and the Monster** `[Standard]`: A hidden, opt-in turn-based grid puzzle - enable it in Settings, then guide the monster to the exit past roaming enemies across levels with score and a turn counter. Launch it from the menu or a home-screen widget; plays with touch, keyboard, D-pad, or swipe.
+
+## 19. Internet Streams
+- **Internet Streams** `[Standard / Legacy / noLegal / VR / Lite (progressive-audio only)]`: Dedicated Streams screen for internet audio, video, and RTSP sources. Add a stream URL manually, import a remote `.m3u` playlist, or download a curated station catalog via Extensions.
+- **Inline audio playback & ICY metadata** `[Standard / Legacy / noLegal / VR / Lite]`: Play audio streams directly within the list. A sticky bottom mini-control surfaces Icecast/Shoutcast ICY now-playing metadata (station/track name) without leaving or hiding the streams list.
+- **Category & language filters** `[Standard / Legacy / noLegal / VR]`: Filter the streams list by category, language, and type (audio/video/RTSP) using searchable pickers. The language picker pins English, Russian, and Ukrainian to the top with flag icons.
+- **Background playback & exit prompts** `[Standard / Legacy / noLegal / VR]`: Manage streams using background audio settings. Leaving the streams list prompts to keep playing or stop the active stream when background playback is disabled.
+- **Local streams pinning** `[Standard / Legacy / noLegal / VR / Lite]`: Pin your favorite stream sources to the top of the list with a distinct icon for quick access.
+

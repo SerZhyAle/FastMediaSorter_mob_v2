@@ -1,3 +1,9 @@
+---
+layout: default
+title: "VR Immersive Controls"
+permalink: /docs/VR_CONTROLS.html
+---
+
 # VR Immersive Controls
 
 *Last updated: 2026-04-24*
@@ -134,6 +140,15 @@ the Android cursor; a 3D ray overlay is future work).
 4. Delete always shows a confirmation with the file name and size.
 5. Rename opens a simple text-entry dialog (requires the BT keyboard or the
    Quest passthrough on-screen keyboard).
+
+## 4a. Streams screen navigation
+
+The Streams screen is a 2D panel (not immersive) and is driven by the normal Android input surface - Touch controller ray-pointer, Bluetooth keyboard, or Bluetooth mouse cursor.
+
+- Open Streams from the main window dropdown or from Settings > Media > Streams.
+- Select a radio station to start inline audio playback; the sticky mini-player appears at the bottom of the list. The list stays scrollable and interactive while audio plays.
+- Select a video or RTSP stream to open the fullscreen player in Cinema mode. Press **B** (right controller), **Esc** (keyboard), or **Back** to return to the Streams list; scroll position and last-selected source are preserved.
+- Background audio playback behavior is the same as on the phone: with background playback OFF, leaving the Streams screen stops the radio.
 
 ## 5. HUD indicators
 

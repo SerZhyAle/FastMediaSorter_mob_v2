@@ -276,7 +276,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.imageTranslationManager = PlayerImageTranslationManager(activity = activity)
         activity.shareManager = PlayerShareManager(activity = activity)
-        activity.printManager = DocumentPrintManager(activity = activity, mediaCapabilities = activity.mediaCapabilities)
+        activity.printManager = DocumentPrintManager(host = activity, mediaCapabilities = activity.mediaCapabilities)
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
             fileOperationUseCase = activity.fileOperationUseCase,
@@ -797,7 +797,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
                     activity.viewModel.previousFile()
                 } else {
-                    Timber.d("S0549: audio track ended naturally -> app nextFile() auto-advance (order=${activity.viewModel.state.value.playbackOrderMode})")
                     activity.viewModel.nextFile()
                 }
                 if (wasAudio) {

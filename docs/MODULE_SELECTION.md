@@ -16,6 +16,16 @@ FastMediaSorter is a multi-module project with different build targets. The publ
 
 This guide explains how to select and configure which module runs by default.
 
+### Feature availability by flavor
+
+Some features are flavor-scoped. Key examples:
+
+- **Internet Streams** (internet radio, HLS/DASH/RTSP playback, curated catalog): full scope on `standard`, `legacy`, `noLegal`, and `vr`; progressive-audio only (no HLS/DASH/RTSP) on `lite`; absent on `photos`.
+- **VR / OpenXR rendering**: `vr` and `noLegal` flavors only.
+- **Wear OS companion**: all flavors except `vr`.
+
+See [ALL_FEATURES.jsonl](ALL_FEATURES.jsonl) for the full feature inventory.
+
 ## Quick Selection (Interactive)
 
 Run this script to interactively select your module:

@@ -188,6 +188,8 @@ object ConnectionErrorFormatter {
             ResourceType.SFTP -> "SFTP"
             ResourceType.FTP -> "FTP"
             ResourceType.CLOUD -> context.getString(R.string.resource_type_cloud)
+            ResourceType.HTTP_STREAM -> "HTTP"
+            ResourceType.RTSP_STREAM -> "RTSP"
         }
     }
     

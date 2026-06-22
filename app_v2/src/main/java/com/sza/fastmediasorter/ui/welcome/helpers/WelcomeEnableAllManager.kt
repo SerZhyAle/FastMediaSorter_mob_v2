@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyEnableAllSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,7 @@ class WelcomeEnableAllManager @Inject constructor(
     private val capabilityAvailability: CapabilityAvailability,
     private val installSource: InstallSourceProvider,
     private val downloadRunner: DeliverableDownloadRunner,
+    private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val settingsRepository: SettingsRepository,
     @param:ApplicationContext private val context: Context,
     @param:ApplicationScope private val appScope: CoroutineScope,
@@ -162,6 +164,15 @@ class WelcomeEnableAllManager @Inject constructor(
         }
         if (capabilityAvailability.isTranslationAvailable()) {
             enqueueAndEnableOnInstall(DeliverableSet.TRANSLATION) { it.copy(enableTranslation = true) }
+        }
+        if (capabilityAvailability.isStreamsAvailable()) {
+            // S0575: enable Streams and best-effort fetch the catalog. The flag is set unconditionally
+            // (not install-gated); a failed/empty import is a non-event - manual sources still work.
+            appScope.launch {
+                val current = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(current.copy(enableStreams = true))
+                importStreamCatalogUseCase()
+            }
         }
     }
 

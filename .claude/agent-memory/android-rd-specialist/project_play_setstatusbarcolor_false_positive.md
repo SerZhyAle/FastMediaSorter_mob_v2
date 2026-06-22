@@ -1,25 +1,25 @@
 ---
-name: play-setstatusbarcolor-false-positive
-description: Play Console "deprecated setStatusBarColor / edge-to-edge" warning from Material BottomSheet is an unfixable static-analysis false-positive
+name: play-edge-to-edge-warnings-status
+description: Play Console edge-to-edge warnings - #2 setStatusBarColor was FIXED by Material 1.14.0 (cleared on release 6200.317); #1 may-not-display is informational + app-side-complete
 metadata:
   type: project
 ---
 
-Google Play Console's release warning "Your app uses deprecated APIs for edge-to-edge .. android.view.Window.setStatusBarColor .. com.google.android.material.bottomsheet.d.onCreate" is a permanent, non-fixable static-analysis false-positive for this app. Do NOT spend effort trying to clear it.
+Two distinct Google Play Console "recommended actions" appear on FastMediaSorter releases targeting SDK 35. Status as of release `2.60.6200.317` (2026-06-20, Material 1.14.0):
 
-**Why:**
-- Play Console's deprecated-API report is STATIC bytecode analysis of the uploaded AAB, not a runtime crawler. It flags the literal `invokevirtual Window.setStatusBarColor` instruction without evaluating the surrounding `if (Build.VERSION.SDK_INT < 35)` guard.
-- Material `1.14.0` (pinned at app_v2/build.gradle.kts:1078) only GUARDS the call inside `EdgeToEdgeUtils.setStatusBarColor(Window,int)` - the invoke physically remains in the library `.aar` bytecode, so the scanner keeps reporting it. Verified by local javap disassembly of the cached 1.14.0 classes.jar.
-- `1.14.0-alpha01` once removed the call (commit 603f1ef) but it was REVERTED (aaa40dbc) for breaking pre-API-35 bar coloring. `1.14.0` (2026-05-13) is the FINAL stable Material *Views* release; the repo is in maintenance mode (Compose-first). So upstream will never remove it for the Views stack.
-- App's own code never calls raw `setStatusBarColor` (uses `WindowCompat.setDecorFitsSystemWindows`); the warning is 100% Material library bytecode. Theme.Material3 is the mandatory base theme, so the dependency cannot be dropped, and Play scans the whole shipped AAB regardless of reachability (dotnet/android #10304 confirms it is flagged even when fully absent from app source).
-- Candidate fixes that all FAIL: newer Material (none), R8 dead-branch strip (minSdk 26 straddles 35, R8 keeps the branch), migrating bottom sheets to Compose ModalBottomSheet (Material .aar bytecode still ships), ProGuard keep/theme attr tricks. None make Play respect the runtime guard.
-- Runtime impact on API 35+: zero - the guarded call never executes. Confirmed harmless (analogous Flutter warning called "a red herring .. will not impact users" by Android engineers, flutter/flutter #169810).
+**WARNING #2 - deprecated `Window.setStatusBarColor` from `com.google.android.material.bottomsheet.d.onCreate`: CLEARED / WAS FIXABLE.**
+- It DISAPPEARED on release `2.60.6200.317` once Material was bumped to 1.14.0 (commit 2606192155, Jun 19). On the prior release `2.60.6180.134` (Material 1.13.0) it was still present.
+- Material 1.14.0 wraps the call in `if (SDK_INT < 35)` (EdgeToEdgeUtils), and Play's scanner DOES honor that guard for this deprecation check - which is why Material guarded it instead of deleting it.
+- **CORRECTION of an earlier WRONG conclusion:** I previously concluded (from GitHub issues #4507 etc. + bytecode still containing the invoke) that #2 was a permanent unfixable static false-positive and that 1.14.0 would NOT help. That was WRONG - empirically the 1.14.0 guard cleared it. The "bytecode still contains the invokevirtual, so Play flags it statically" argument did not hold.
 
-**Recurrence (RECORDED INCIDENT):** Both warnings keep coming back release after release and the owner has been told before that they would clear. They were flagged on release `2.60.6180.134` (= 2026-06-18, the LATEST prod release, NOT an old build), which ALREADY contains every edge-to-edge fix: spec S0221 (May 16-21, "play-console-deprecated-window-color-apis", Verified+Archived), Material upgrade 1.12->1.13 on 2026-04-13 done explicitly "to fix deprecated setStatusBarColor", the X.15 edge-to-edge migration (March), and per-screen WindowInsets across ~15 activities. So #2 has been "fixed" at least twice and STILL appears - this is the proof that it is a non-fixable static false-positive. Do NOT promise either warning will clear "next release"; that prediction already failed.
+**WARNING #1 - "edge-to-edge may not display for all users": app-side COMPLETE, but warning is informational and persists.**
+- App code is complete: audit found 0 BaseActivity subclasses at risk; `enableEdgeToEdge()` default-on in BaseActivity + per-screen WindowInsets; themes have no `statusBarColor` / `windowTranslucentStatus` / `windowOptOutEdgeToEdgeEnforcement` (only `enforceStatusBarContrast=true` in values-night-v29, which is the safe scrim, not an opt-out).
+- It STILL appeared on the fully-fixed `2.60.6200.317`. Per Google/AndroidX + Flutter team (flutter/flutter #169810, answered by Android engineers): this one is informational, does NOT impact users, is partly internal-library/heuristic-driven, and "disappears naturally when Google/AndroidX update internal library code" - not reliably clearable by a specific app change.
+- Do NOT set `windowOptOutEdgeToEdgeEnforcement` to dodge it: that opts OUT of edge-to-edge and is deprecated + disabled for API 36.
+
+**Why (lesson):** I declared #2 "unfixable" with high confidence and the very next release disproved it. Do not pronounce a Play warning permanently unfixable from GitHub-issue reasoning + bytecode inspection alone - confirm empirically across an actual release first.
 
 **How to apply:**
-- When the owner pastes either warning again, lead with: these are NOT new, the latest release already has all the fixes, and they recur because of Play's static heuristics - not a regression. Do not re-research from scratch, do not open a spec ticket, do not promise a fix.
-- WARNING #2 (Material BottomSheet setStatusBarColor): library false-positive, runtime no-op, not clearable. Material 1.14.0 (bumped 2026-06-19) does NOT remove it either (disassembled - guarded invoke still in bytecode; Material Views is in maintenance mode). Safe to ignore / acknowledge in console.
-- WARNING #1 ("edge-to-edge may not display for all users"): app-side code is COMPLETE (audit of all BaseActivity subclasses = 0 screens at risk; BaseActivity.enableEdgeToEdge default-on + per-screen insets). It STILL appeared on the fully-fixed 2.60.6180.134, so it is largely a Play heuristic / informational signal (partly about Android < 15 backward-compat, per flutter/flutter #169810 - Android engineers call the analogue "a red herring .. will not impact users"). Treat as likely-permanent + non-blocking; do NOT predict it will clear. If the owner wants certainty there is no real bug, the right move is a visual on-device check on a real Android 15 device, not another release.
-- First version format clarification: `2.60.<M><DD><H>.<mmm>` is date-based (e.g. `6180` = Jun 18); release tags `release/v2.60.*` are the source of truth for "is this build before/after a fix" - never guess from the version string alone.
-- Sources: material-components-android issues #4507/#4626/#4732, commits c2051db/aaa40dbc/603f1ef; dotnet/android #10304; flutter/flutter #169810/#183372.
+- When the owner pastes these: #2 is FIXED (gone since Material 1.14.0 / release 6200.317) - if it reappears, first check the Material version didn't regress below 1.14.0. #1 is informational + app-side-complete; do NOT promise it clears next release, do NOT add opt-out flags; the only way to rule out a real visual bug behind #1 is an on-device Android 15 visual check.
+- Version format `2.60.<M><DD><H>.<mmm>` is date-based (`6180`=Jun 18, `6200`=Jun 20); use `release/v2.60.*` tags + the release worktree `P:/ANDROID/FastMediaSorter_release` as source of truth for what actually shipped - never infer "before/after a fix" from the version string alone.
+- Sources: flutter/flutter #169810 / #183372; developer.android.com edge-to-edge + behavior-changes-15/16; material-components-android #4507.

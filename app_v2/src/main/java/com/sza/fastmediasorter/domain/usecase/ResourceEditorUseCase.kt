@@ -442,6 +442,7 @@ class ResourceEditorUseCase @Inject constructor(
             )
 
             ResourceType.CLOUD -> formData.path
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> formData.path
         }
     }
 

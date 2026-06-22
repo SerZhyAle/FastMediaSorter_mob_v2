@@ -76,6 +76,109 @@ class ApplyProfilePresetUseCaseTest {
     }
 
     @Test
+    fun `applies newly-covered preset fields (bool, enum, string-set, string)`() = runTest {
+        every { dataSource.load() } returns mapOf(
+            DeviceProfileType.VR_HEADSET to linkedMapOf(
+                "smbEnabled" to "FALSE",
+                "googleDriveEnabled" to "FALSE",
+                "gestureOverlayEnabled" to "TRUE",
+                "playerFollowSystemRotation" to "TRUE",
+                "copyScreenshotToClipboard" to "TRUE",
+                "screenshotGestureActionDown" to "OPEN_IN_PLAYER",
+                "enabledShareTargets" to "email;telegram",
+                "disabledShareTargets" to "print",
+                "videoSnapshotFormat" to "PNG"
+            )
+        )
+        coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
+
+        val saved = slot<AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+
+        val result = useCase.apply(DeviceProfileType.VR_HEADSET, presetVersion = 1)
+
+        assertTrue(result.isSuccess)
+        assertEquals(false, saved.captured.smbEnabled)
+        assertEquals(false, saved.captured.googleDriveEnabled)
+        assertTrue(saved.captured.gestureOverlayEnabled)
+        assertTrue(saved.captured.playerFollowSystemRotation)
+        assertTrue(saved.captured.copyScreenshotToClipboard)
+        assertEquals(
+            com.sza.fastmediasorter.domain.model.ScreenshotGestureAction.OPEN_IN_PLAYER,
+            saved.captured.screenshotGestureActionDown
+        )
+        assertEquals(setOf("email", "telegram"), saved.captured.enabledShareTargets)
+        assertEquals(setOf("print"), saved.captured.disabledShareTargets)
+        assertEquals("PNG", saved.captured.videoSnapshotFormat)
+    }
+
+    @Test
+    fun `applies enableStreams per device profile (S0575)`() = runTest {
+        every { dataSource.load() } returns mapOf(
+            DeviceProfileType.TV_MEDIA_BOX to linkedMapOf("enableStreams" to "TRUE"),
+            DeviceProfileType.PHOTO_FRAME to linkedMapOf("enableStreams" to "FALSE")
+        )
+        coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
+
+        val savedTv = slot<AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(savedTv)) } returns Unit
+        assertTrue(useCase.apply(DeviceProfileType.TV_MEDIA_BOX, presetVersion = 1).isSuccess)
+        assertTrue(savedTv.captured.enableStreams)
+
+        val savedFrame = slot<AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(savedFrame)) } returns Unit
+        assertTrue(useCase.apply(DeviceProfileType.PHOTO_FRAME, presetVersion = 1).isSuccess)
+        assertEquals(false, savedFrame.captured.enableStreams)
+    }
+
+    @Test
+    fun `does not apply state or credential fields even when present in the csv`() = runTest {
+        // Defaults of these fields, to assert they survive a profile apply unchanged.
+        val defaults = AppSettings()
+        every { dataSource.load() } returns mapOf(
+            DeviceProfileType.HOME_TABLET to linkedMapOf(
+                "preventSleep" to "TRUE", // one real override so the use case persists
+                "defaultUser" to "should-not-apply",
+                "defaultPassword" to "should-not-apply",
+                "lastUsedResourceId" to "999",
+                "enableStatistics" to "TRUE"
+            )
+        )
+        coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
+
+        val saved = slot<AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+
+        val result = useCase.apply(DeviceProfileType.HOME_TABLET, presetVersion = 1)
+
+        assertTrue(result.isSuccess)
+        assertTrue(saved.captured.preventSleep)
+        assertEquals(defaults.defaultUser, saved.captured.defaultUser)
+        assertEquals(defaults.defaultPassword, saved.captured.defaultPassword)
+        assertEquals(defaults.lastUsedResourceId, saved.captured.lastUsedResourceId)
+        assertEquals(defaults.enableStatistics, saved.captured.enableStatistics)
+    }
+
+    @Test
+    fun `skips an unknown enum value and keeps the current field value`() = runTest {
+        val defaults = AppSettings()
+        every { dataSource.load() } returns mapOf(
+            DeviceProfileType.HOME_TABLET to linkedMapOf(
+                "screenshotGestureActionDown" to "NOT_A_REAL_ACTION"
+            )
+        )
+        coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
+
+        val saved = slot<AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+
+        val result = useCase.apply(DeviceProfileType.HOME_TABLET, presetVersion = 1)
+
+        assertTrue(result.isSuccess)
+        assertEquals(defaults.screenshotGestureActionDown, saved.captured.screenshotGestureActionDown)
+    }
+
+    @Test
     fun `skips settings application and preset marker when no overrides and vr sync is noop`() = runTest {
         every { dataSource.load() } returns mapOf(
             DeviceProfileType.OTHER to emptyMap()

@@ -674,6 +674,8 @@ class CloudFileOperationHandler @Inject constructor(
                     Timber.e("downloadFromCloudTo: Cannot download cloud to cloud, use copyCloudToCloud")
                     false
                 }
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                    throw IllegalArgumentException("Cannot download to an internet stream destination: $destType")
             }
         } finally {
             tempFile.delete()
@@ -913,6 +915,8 @@ class CloudFileOperationHandler @Inject constructor(
                     tempFile?.delete()
                     return null
                 }
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                    throw IllegalArgumentException("Cannot upload from an internet stream source: $sourceType")
             }
         } catch (e: Exception) {
             Timber.e(e, "uploadToCloudFromPath: Exception during read from $sourceType: ${e.message}")

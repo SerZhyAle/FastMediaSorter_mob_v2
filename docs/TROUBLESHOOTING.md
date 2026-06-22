@@ -231,7 +231,7 @@ Favorites are stored **locally**:
 Deleted files go to `.trash/` folder and stay there until manually emptied.
 
 **Solution:**
-1. Settings → Quick Sort → **"Clear Trash"**
+1. Settings → Operations → **File deletion and trash**
 2. Or manually delete `.trash/` folders
 
 ---
@@ -267,7 +267,7 @@ Include this information:
 
 **Solution:**
 1. Check internet connection.
-2. Go to **Settings** → **Documents**
+2. Go to **Settings** → **Media** → **Translation, OCR and Google Lens**
 3. Toggle "Enable Translation" OFF and ON again.
 4. Try switching **Source Language** to "Auto".
 
@@ -287,12 +287,47 @@ Include this information:
 
 ---
 
+## Internet Streams Issues
+
+### Stream does not start / plays for a second then stops
+
+**Possible causes:**
+1. The URL is dead or redirecting to a different protocol.
+2. The server requires authentication (not supported).
+3. Cleartext http:// blocked by a VPN or corporate network.
+
+**Solution:**
+- Tap **Retry** in the stream-unavailable dialog to try again.
+- Verify the URL in a browser.
+- Disable VPN temporarily to test.
+- If the stream redirects and still fails, tap **Remove** and re-add the corrected URL.
+
+### Catalog import spinner does not stop / hangs
+
+The app applies a fast timeout for catalog downloads. If the spinner hangs beyond ~15 seconds, the host is likely unreachable. Check your internet connection and try again. The dialog will dismiss automatically on timeout - it will not hang indefinitely.
+
+### HLS / DASH / RTSP shows 'unsupported' message
+
+The **Lite** flavor supports progressive http/https audio only. HLS, DASH, and RTSP require the **Standard**, **Legacy**, or **noLegal** build.
+
+### Streams option is not visible in the menu or settings
+
+- In **Standard / Legacy / noLegal**: go to **Settings > Media > Streams** and ensure **Enable Streams** is toggled on. The dropdown item appears only when Streams is enabled.
+- In **Photos**: Streams is not available in this flavor.
+- In **Lite**: Streams (progressive-audio only) is available but HLS/DASH/RTSP are not.
+
+### ICY now-playing metadata not showing
+
+ICY metadata requires an Icecast/Shoutcast stream that sends the `Icy-MetaData: 1` header. Plain http mp3 streams without ICY headers show no station/track info in the bottom mini-control. This is a server-side limitation.
+
+---
+
 ## Content Issues
 
 ### ❌ "Cannot see Text or PDF files"
 
 **Solution:**
-1. Check **Settings** → **General**
+1. Check **Settings** → **Media** → **Text, PDF and EPUB viewing**
 2. Ensure **"Support Text Files"** and **"Support PDF Files"** are enabled.
 3. Check **Filters** on main screen (funnel icon) to ensure they are selected.
 4. **Rescan** the folder (pull-to-refresh).

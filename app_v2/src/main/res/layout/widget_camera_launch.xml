@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0568: icon-only 1x1 camera launch widget. A tap opens the transparent trampoline which
+     launches the unified in-app camera (photo/video) and saves captures to the public folders. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_camera_launch_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:contentDescription="@string/widget_camera_launch_label"
+    android:padding="@dimen/padding_tiny"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/widget_camera_launch_icon"
+        android:layout_width="@dimen/widget_icon_size_large"
+        android:layout_height="@dimen/widget_icon_size_large"
+        android:src="@drawable/ic_widget_camera_launch_accent"
+        android:contentDescription="@string/widget_camera_launch_label" />
+
+</LinearLayout>

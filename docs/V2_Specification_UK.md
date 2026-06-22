@@ -21,5 +21,6 @@ permalink: /docs/V2_Specification_UK.html
 - Архітектурні межі (UI → Domain → Data)
 - Склад залежностей і мережевий стек
 - Процес збірки та перевірки
+- Підсистема Трансляцій: окремий екран для інтернет-аудіо, відео та RTSP-джерел; охоплення протоколів (progressive HTTP/ICY, HLS/DASH VOD, RTSP); матриця варіантів (standard/legacy/noLegal - повний набір; lite - лише progressive-audio; photos - функція відсутня); деталі щодо бібліотек - у [Tech Stack](TECH_STACK.md).
 
 Використовуйте цю сторінку як навігатор до канонічних технічних документів.

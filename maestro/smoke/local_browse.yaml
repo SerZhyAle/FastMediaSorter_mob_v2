@@ -1,49 +1,30 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: Local Browse (Resilient)
-# Description: Verify local file browsing functionality
-# Duration: ~30 seconds
+# Smoke: local browse opens a deterministic built-in resource (S0551).
+# Precondition: seeded images are indexed by MediaStore.
+# Oracle: All Images opens, rvMediaFiles renders, and a known seeded file is visible.
 
-# Start from app launch
 - launchApp
-- waitForAnimationToEnd
-
 - runFlow: ../_shared/permissions.yaml
-- waitForAnimationToEnd
-
-# Try to navigate to Local tab
-- tapOn:
-    text: "Local"
-    optional: true
-
-# Wait for file list to load
-- waitForAnimationToEnd
-
-# Verify any content is visible (flexible check)
+- runFlow: ../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 - assertVisible:
-    id: ".*recycler.*"
-    optional: true
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
 
-# Try scrolling - verifies UI is interactive
 - scroll
-
-# Scroll back
-- scroll
-    
-# Try to tap a list item
 - tapOn:
-    text: ".*"
+    text: "Локальные"
     index: 0
-    optional: true
-
-# Wait for content
-- waitForAnimationToEnd
-
-# Navigate back
-- back
-- waitForAnimationToEnd
-
-# Verify app is still responsive
+- scrollUntilVisible:
+    element:
+      text: "Все изображения"
+    timeout: 10000
 - tapOn:
-    point: "50%,50%"
-- waitForAnimationToEnd
+    text: "Все изображения"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- assertVisible:
+    text: "photo_001.jpg"

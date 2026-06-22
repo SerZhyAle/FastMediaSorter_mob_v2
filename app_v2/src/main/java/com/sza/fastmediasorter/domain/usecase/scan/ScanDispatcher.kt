@@ -79,6 +79,8 @@ class ScanDispatcher @Inject constructor(
         ResourceType.SMB,
         ResourceType.SFTP,
         ResourceType.FTP            -> networkSemaphore
-        ResourceType.CLOUD          -> cloudSemaphore
+        ResourceType.CLOUD,
+        ResourceType.HTTP_STREAM,
+        ResourceType.RTSP_STREAM    -> cloudSemaphore
     }
 }

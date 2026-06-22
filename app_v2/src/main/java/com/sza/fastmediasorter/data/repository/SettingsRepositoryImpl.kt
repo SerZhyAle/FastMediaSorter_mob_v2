@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.data.repository.settings.ScreenshotSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.StreamsSettingsStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -276,6 +277,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
+                val streams = StreamsSettingsStore.read(preferences)
 
                 AppSettings(
                     language = language,
@@ -346,6 +348,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     epubLineHeight = preferences[KEY_EPUB_LINE_HEIGHT] ?: 1.6f,
                     epubHorizontalMargin = preferences[KEY_EPUB_HORIZONTAL_MARGIN] ?: 16,
                     enableTranslation = textRec.enableTranslation,
+                    enableStreams = streams,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -578,6 +581,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
             preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
             TextRecognitionSettingsStore.write(preferences, settings)
+            StreamsSettingsStore.write(preferences, settings)
             preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
             SlideshowSettingsStore.write(preferences, settings)
             preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow

@@ -1,8 +1,18 @@
 {
-  "btnNotificationPermission": {
-    "en": "Opens the system screen where you can grant or revoke the app's notification permission.",
-    "ru": "Открывает системный экран для управления разрешением на отправку уведомлений.",
-    "uk": "Відкриває системний екран для керування дозволом на показ сповіщень."
+  "actvCacheSizeLimit": {
+    "en": "Sets the maximum disk space the app may use for its local cache.",
+    "ru": "Задаёт максимальный объём дискового пространства для локального кэша приложения.",
+    "uk": "Задає максимальний обсяг дискового простору для локального кешу застосунку."
+  },
+  "actvNetworkParallelism": {
+    "en": "Sets the number of simultaneous network connections used when accessing remote resources.",
+    "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
+    "uk": "Задає кількість одночасних мережевих підключень при доступі до віддалених ресурсів."
+  },
+  "etSlideshowInterval": {
+    "en": "Sets the default number of seconds each slide is shown during a slideshow.",
+    "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
+    "uk": "Задає кількість секунд за замовчуванням, протягом яких показується кожен слайд у слайдшоу."
   },
   "btnSelectPhotosSource": {
     "en": "Chooses the folder or resource used as the photo source during audio playback.",
@@ -63,11 +73,6 @@
     "en": "Restores all Management settings in this section to their factory defaults.",
     "ru": "Возвращает все настройки управления в этом разделе к заводским значениям.",
     "uk": "Повертає всі налаштування управління в цьому розділі до заводських значень."
-  },
-  "btnScheduledNotificationPermission": {
-    "en": "Opens the system prompt to allow or block notifications for scheduled operations.",
-    "ru": "Открывает системный запрос для разрешения или блокировки уведомлений о запланированных операциях.",
-    "uk": "Відкриває системний запит для дозволу або блокування сповіщень про заплановані операції."
   },
   "btnSelectCameraPhotosDest": {
     "en": "Selects the destination resource where camera photos are saved.",
@@ -240,9 +245,9 @@
     "uk": "Вмикає планувальник для автоматичного виконання налаштованих операцій у заданий час."
   },
   "rowFollowSystemRotation": {
-    "en": "Rotates the app's screen when the device auto-rotate setting changes.",
-    "ru": "Поворачивает экран приложения вместе с системным авто-поворотом устройства.",
-    "uk": "Повертає екран застосунку разом із системним авто-поворотом пристрою."
+    "en": "When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock.",
+    "ru": "Когда включено, все окна приложения, кроме плеера, следуют системному авто-повороту; когда выключено, они поворачиваются по датчику устройства независимо от блокировки ОС.",
+    "uk": "Коли увімкнено, усі вікна застосунку, крім плеєра, слідують системному авто-повороту; коли вимкнено, вони повертаються за датчиком пристрою незалежно від блокування ОС."
   },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",
@@ -354,16 +359,6 @@
     "ru": "Включает просмотр текстовых файлов (.txt, .md, .log, .json, .xml) во встроенном просмотрщике.",
     "uk": "Вмикає перегляд текстових файлів (.txt, .md, .log, .json, .xml) у вбудованому переглядачі."
   },
-  "actvCacheSizeLimit": {
-    "en": "Sets the maximum disk space the app may use for its local cache.",
-    "ru": "Задаёт максимальный объём дискового пространства для локального кэша приложения.",
-    "uk": "Задає максимальний обсяг дискового простору для локального кешу застосунку."
-  },
-  "actvNetworkParallelism": {
-    "en": "Sets the number of simultaneous network connections used when accessing remote resources.",
-    "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
-    "uk": "Задає кількість одночасних мережевих підключень при доступі до віддалених ресурсів."
-  },
   "btnAutoCalculateCache": {
     "en": "Automatically calculates and sets the recommended cache size based on available storage.",
     "ru": "Автоматически рассчитывает и задаёт рекомендуемый размер кэша на основе доступного хранилища.",
@@ -448,6 +443,21 @@
     "en": "Opens the permissions and access management screen where you can review and adjust what the app can access.",
     "ru": "Открывает экран управления разрешениями и доступом для просмотра и изменения прав приложения.",
     "uk": "Відкриває екран управління дозволами та доступом для перегляду і зміни прав застосунку."
+  },
+  "btnStreams": {
+    "en": "Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them.",
+    "ru": "Открывает экран Трансляции для интернет-аудио, видео и RTSP-источников, где можно добавить или импортировать трансляции и воспроизвести их.",
+    "uk": "Відкриває екран Трансляції для інтернет-аудіо, відео та RTSP-джерел, де можна додати або імпортувати трансляції та відтворити їх."
+  },
+  "rowEnableStreams": {
+    "en": "Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen.",
+    "ru": "Главный переключатель функции «Трансляции». Когда выключен, пункт «Трансляции» скрыт из главного меню и приветственного экрана.",
+    "uk": "Головний перемикач функції «Трансляції». Коли вимкнено, пункт «Трансляції» приховано з головного меню та вітального екрана."
+  },
+  "btnTakeScreenshotNow": {
+    "en": "Takes a screenshot of the app right away using the built-in capture flow.",
+    "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",
+    "uk": "Одразу робить знімок екрана застосунку через вбудований механізм захоплення."
   },
   "btnPrivacyPolicy": {
     "en": "Opens the app's privacy policy.",
@@ -704,6 +714,36 @@
     "ru": "Показывает результаты перевода в виде блоков поверх изображения вместо отдельной панели.",
     "uk": "Показує результати перекладу у вигляді блоків поверх зображення замість окремої панелі."
   },
+  "spinnerOcrEngineType": {
+    "en": "Selects which on-device text-recognition engine is used for OCR.",
+    "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
+    "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
+  },
+  "spinnerPaddleOcrModel": {
+    "en": "Selects which PaddleOCR model is used for text recognition.",
+    "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
+    "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
+  },
+  "spinnerOcrFontSize": {
+    "en": "Sets the font size used to display recognized OCR text.",
+    "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
+    "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
+  },
+  "spinnerOcrFontFamily": {
+    "en": "Sets the font family used to display recognized OCR text.",
+    "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
+    "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+  },
+  "spinnerTranslationSourceLanguage": {
+    "en": "Chooses the source language that recognized text is translated from.",
+    "ru": "Выбирает исходный язык, с которого переводится распознанный текст.",
+    "uk": "Вибирає вихідну мову, з якої перекладається розпізнаний текст."
+  },
+  "spinnerTranslationTargetLanguage": {
+    "en": "Chooses the target language that recognized text is translated into.",
+    "ru": "Выбирает язык, на который переводится распознанный текст.",
+    "uk": "Вибирає мову, якою перекладається розпізнаний текст."
+  },
   "btnResetPlaybackSection": {
     "en": "Restores all Player settings in this section to their factory defaults.",
     "ru": "Возвращает все настройки плеера в этом разделе к заводским значениям.",
@@ -714,15 +754,15 @@
     "ru": "Планирует показ подсказки по сенсорным зонам при следующем открытии плеера.",
     "uk": "Планує показ підказки по сенсорних зонах при наступному відкритті плеєра."
   },
-  "etSlideshowInterval": {
-    "en": "Sets the default number of seconds each slide is shown during a slideshow.",
-    "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
-    "uk": "Задає кількість секунд за замовчуванням, протягом яких показується кожен слайд у слайдшоу."
-  },
   "headerFileOperations": {
     "en": "Settings for deleting and renaming files while inside the player.",
     "ru": "Настройки удаления и переименования файлов при работе в плеере.",
     "uk": "Налаштування видалення й перейменування файлів під час роботи в плеєрі."
+  },
+  "headerBackgroundAudio": {
+    "en": "Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar.",
+    "ru": "Настройки фонового воспроизведения аудио - продолжение в фоне, поведение при выходе из плеера или трансляций и панель «сейчас играет».",
+    "uk": "Налаштування фонового відтворення аудіо - продовження у фоні, поведінка при виході з плеєра або трансляцій і панель «зараз грає»."
   },
   "headerPlayerUI": {
     "en": "Settings for the player's visual interface, control buttons, and command layout.",
@@ -780,9 +820,9 @@
     "uk": "Вмикає режим «Картинка в картинці», дозволяючи продовжити перегляд у плаваючому вікні при виході з плеєра."
   },
   "rowFollowSystemRotationPlayer": {
-    "en": "Rotates the player screen when the device auto-rotate setting changes.",
-    "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства.",
-    "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою."
+    "en": "Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle.",
+    "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
+    "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
   },
   "rowHideSystemUiInFullscreen": {
     "en": "Hides the status bar and navigation bar when the player is in fullscreen mode.",
@@ -853,5 +893,65 @@
     "en": "Automatically copies the captured video frame snapshot to the clipboard.",
     "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
     "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
+  },
+  "spinnerLanguage": {
+    "en": "Selects the language used for the app interface.",
+    "ru": "Выбирает язык интерфейса приложения.",
+    "uk": "Вибирає мову інтерфейсу застосунку."
+  },
+  "spinnerColorTheme": {
+    "en": "Selects the color theme applied across the app interface.",
+    "ru": "Выбирает цветовую тему интерфейса приложения.",
+    "uk": "Вибирає колірну тему інтерфейсу застосунку."
+  },
+  "actvPrefetchCache": {
+    "en": "Sets how much upcoming video is pre-cached during playback to reduce buffering.",
+    "ru": "Задаёт объём заранее кэшируемого видео при воспроизведении, чтобы уменьшить буферизацию.",
+    "uk": "Задає обсяг заздалегідь кешованого відео під час відтворення, щоб зменшити буферизацію."
+  },
+  "spinnerSortMode": {
+    "en": "Sets the default order in which files are sorted when a folder opens.",
+    "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
+    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
+  },
+  "rowDeviceProfile": {
+    "en": "Selects the device profile that adapts the interface and controls to your device type.",
+    "ru": "Выбирает профиль устройства, адаптирующий интерфейс и элементы управления под тип устройства.",
+    "uk": "Вибирає профіль пристрою, що адаптує інтерфейс та елементи керування під тип пристрою."
+  },
+  "row_saved_authorizations": {
+    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
+    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
+    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
+  },
+  "rowOpenStatistics": {
+    "en": "Opens the usage statistics screen.",
+    "ru": "Открывает экран статистики использования.",
+    "uk": "Відкриває екран статистики використання."
+  },
+  "row_link_autodownload_resource": {
+    "en": "Chooses the destination resource where files from incoming links are downloaded automatically.",
+    "ru": "Выбирает ресурс назначения, куда автоматически загружаются файлы из входящих ссылок.",
+    "uk": "Вибирає ресурс призначення, куди автоматично завантажуються файли з вхідних посилань."
+  },
+  "rowScreenshotGestureActionUp": {
+    "en": "Chooses the action triggered by the upward screen gesture.",
+    "ru": "Выбирает действие, вызываемое жестом вверх.",
+    "uk": "Вибирає дію, що викликається жестом угору."
+  },
+  "rowScreenshotGestureActionRight": {
+    "en": "Chooses the action triggered by the rightward screen gesture.",
+    "ru": "Выбирает действие, вызываемое жестом вправо.",
+    "uk": "Вибирає дію, що викликається жестом праворуч."
+  },
+  "rowScreenshotGestureActionDown": {
+    "en": "Chooses the action triggered by the downward screen gesture.",
+    "ru": "Выбирает действие, вызываемое жестом вниз.",
+    "uk": "Вибирає дію, що викликається жестом униз."
+  },
+  "rowScreenshotDestination": {
+    "en": "Chooses the folder or resource where captured screenshots are saved.",
+    "ru": "Выбирает папку или ресурс, куда сохраняются снятые скриншоты.",
+    "uk": "Вибирає теку або ресурс, куди зберігаються зроблені знімки екрана."
   }
 }

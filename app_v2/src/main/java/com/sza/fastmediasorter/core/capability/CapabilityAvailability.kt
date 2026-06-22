@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.capability
 
 import android.content.Context
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import javax.inject.Inject
 import javax.inject.Qualifier
@@ -42,7 +43,18 @@ class CapabilityAvailability @Inject constructor(
     fun isOcrAvailable(context: Context): Boolean =
         isOcrCompiledIn() && DeviceCapabilities.isOcrSupported(context)
 
-    fun isExtensionsScreenAvailable(): Boolean = isOcrCompiledIn() || isTranslationAvailable()
+    /** Whether the Streams feature surface is offered in this build (compile-time capability flag). */
+    fun isStreamsAvailable(): Boolean = BuildConfig.SUPPORT_STREAMS
+
+    /**
+     * Whether persistent (background) audio playback is compiled into this build. The flag is
+     * declared in every flavor block, so reading it here is variant-safe; this is the single
+     * source of truth behind the runtime gate in `PlaybackSettingsFragment` and the settings-search
+     * suppression of the background-audio rows (S0600).
+     */
+    fun isPersistentAudioPlaybackAvailable(): Boolean = BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+
+    fun isExtensionsScreenAvailable(): Boolean = isOcrCompiledIn() || isTranslationAvailable() || isStreamsAvailable()
 
     /**
      * Whether the build ships more than one OCR engine and therefore exposes the engine/model

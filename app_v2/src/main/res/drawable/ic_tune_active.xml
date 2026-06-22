@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Filter button glyph with an active-state dot: the dot's presence (a shape, not just color)
+     marks an active filter so it is distinguishable without relying on color alone. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_tune" />
+    <item
+        android:width="7dp"
+        android:height="7dp"
+        android:gravity="top|end"
+        android:top="1dp"
+        android:end="1dp">
+        <shape android:shape="oval">
+            <solid android:color="?attr/colorPrimary" />
+        </shape>
+    </item>
+</layer-list>

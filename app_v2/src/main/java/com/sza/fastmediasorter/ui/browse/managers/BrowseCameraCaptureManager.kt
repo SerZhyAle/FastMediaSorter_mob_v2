@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -20,7 +19,6 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
 import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -30,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -154,7 +153,12 @@ class BrowseCameraCaptureManager(
         Timber.i("launch FileProvider uri=%s", uri)
 
         // In-app photo capture removes the OEM confirmation step before returning to Browse.
-        val intent = CameraCaptureActivity.createIntent(activity, uri, tempFile.absolutePath)
+        val intent = CameraCaptureActivity.createIntent(
+            activity,
+            uri,
+            tempFile.absolutePath,
+            CameraCaptureMode.PHOTO,
+        )
         try {
             Timber.i("launch dispatching launcher.launch(intent) action=%s", action)
             launcher.launch(intent)
@@ -181,8 +185,8 @@ class BrowseCameraCaptureManager(
     }
 
     /**
-     * S0371: explicit "record video into this resource" entry point, independent of the resource's
-     * media-type auto-decision. Always takes the system [MediaStore.ACTION_VIDEO_CAPTURE] path with a
+     * S0545: explicit "record video into this resource" entry point, independent of the resource's
+     * media-type auto-decision. Records through the unified in-app capture host in VIDEO mode with a
      * `.mp4` temp in DIRECTORY_MOVIES and saves through the shared [CameraCaptureSaver]. The capture
      * outcome is routed to the video contract (no editor handoff; optional open-in-player).
      */
@@ -200,9 +204,8 @@ class BrowseCameraCaptureManager(
         pendingResource = resource
         pendingIsVideo = true
 
-        val handlers = activity.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
-        if (handlers.isEmpty()) {
-            Timber.w("VideoCapture: launchVideo ABORT - no Activity handles %s on this device", MediaStore.ACTION_VIDEO_CAPTURE)
+        if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            Timber.w("VideoCapture: launchVideo ABORT - no camera hardware for in-app video capture")
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             pendingResource = null
             pendingIsVideo = false
@@ -231,7 +234,13 @@ class BrowseCameraCaptureManager(
             return
         }
 
-        val intent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply { putExtra(MediaStore.EXTRA_OUTPUT, uri) }
+        // S0545: in-app video capture (unified host in VIDEO mode) replaces the external system intent.
+        val intent = CameraCaptureActivity.createIntent(
+            activity,
+            uri,
+            tempFile.absolutePath,
+            CameraCaptureMode.VIDEO,
+        )
         try {
             launcher.launch(intent)
             Timber.i("VideoCapture: launchVideo dispatched launcher.launch(intent) - awaiting result")
@@ -596,17 +605,17 @@ class BrowseCameraCaptureManager(
         }
 
         /**
-         * S0371: true if at least one Activity handles [MediaStore.ACTION_VIDEO_CAPTURE]. Independent
-         * of the resource's media-type auto-decision so the explicit record-video command can be
-         * shown for mixed resources too (where [hasCameraHandler] would check camera hardware for the
-         * photo path instead). Call before showing the video-capture command in a menu.
+         * S0545: true when the device has camera hardware able to back in-app video capture. The
+         * record-video command now uses the unified in-app host instead of an external handler, so
+         * availability is purely a camera-hardware question (like [hasCameraHandler]). Call before
+         * showing the video-capture command in a menu.
          */
         fun hasVideoCaptureHandler(context: Context): Boolean {
-            val handlers = context.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
-            if (handlers.isEmpty()) {
-                Timber.w("CameraCapture: no handlers, video-capture command hidden action=%s", MediaStore.ACTION_VIDEO_CAPTURE)
+            val hasCamera = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+            if (!hasCamera) {
+                Timber.w("CameraCapture: no camera hardware, video-capture command hidden")
             }
-            return handlers.isNotEmpty()
+            return hasCamera
         }
     }
 }

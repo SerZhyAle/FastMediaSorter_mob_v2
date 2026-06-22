@@ -12,6 +12,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
@@ -45,7 +46,13 @@ class WebViewAuthDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val view = inflater.inflate(R.layout.dialog_webview_auth, container, false)
+        // The dialog is launched from a transparent host. Inflate the custom layout against an explicit
+        // Material-themed context so the embedded buttons and text fields do not inherit the flattened
+        // transparent-host theme chain.
+        val themedInflater = inflater.cloneInContext(
+            ContextThemeWrapper(requireContext(), R.style.Theme_FastMediaSorter)
+        )
+        val view = themedInflater.inflate(R.layout.dialog_webview_auth, container, false)
         val targetUrl = arguments?.getString(ARG_TARGET_URL).orEmpty()
         harvestMode = arguments?.getBoolean(ARG_HARVEST_MODE, false) ?: false
         targetHost = Uri.parse(targetUrl).host.orEmpty()

@@ -292,7 +292,9 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             if (isPdf) add(PlayerCommand.PDF_THUMBNAILS)
             if (isEpub) add(PlayerCommand.EPUB_READER_SETTINGS)
             if (isEpub) add(PlayerCommand.EPUB_SEARCH_ALL)
-            if (isPdf || isText || isImage || isOffice) add(PlayerCommand.PRINT)
+            // S0459: Print is no longer a standalone panel command - it is a «Send to..» receiver
+            // (PrintShareTargetHandler, settings-gated). The SEND_TO entry above surfaces it, so emitting
+            // PRINT here too would duplicate «Печать» alongside «Send to.. → Печать».
             if (allowVrLaunch) add(PlayerCommand.OPEN_IN_VR)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)

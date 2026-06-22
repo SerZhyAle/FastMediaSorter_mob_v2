@@ -321,6 +321,9 @@ class ResourceRepositoryImpl @Inject constructor(
                 // Not yet implemented
                 Result.success("Connection test not yet implemented for ${resource.type}")
             }
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> {
+                Result.success("Stream resource - no connection test needed")
+            }
         }
     }
     

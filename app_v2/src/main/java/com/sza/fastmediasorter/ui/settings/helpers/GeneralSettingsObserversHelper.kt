@@ -31,9 +31,10 @@ class GeneralSettingsObserversHelper(
                 LocaleHelper.resolveSupportedLanguageCode(settings.language) == "uk" -> 3
                 else -> 1
             }
-            if (binding.spinnerLanguage.selectedItemPosition != languagePosition) {
+            // S0567: spinnerLanguage is now a SettingsDropdownRow (getSelectedIndex/setSelection).
+            if (binding.spinnerLanguage.getSelectedIndex() != languagePosition) {
                 setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languagePosition, false)
+                binding.spinnerLanguage.setSelection(languagePosition)
                 binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
             }
 
@@ -95,13 +96,14 @@ class GeneralSettingsObserversHelper(
 
             setIsUpdatingSpinner(false)
 
+            // S0567: SettingsInputRow exposes a `text` property (was AutoCompleteTextView.setText).
             val currentParallelism = binding.actvNetworkParallelism.text.toString().toIntOrNull()
             if (currentParallelism != settings.networkParallelism)
-                binding.actvNetworkParallelism.setText(fragment.getString(R.string.number_format, settings.networkParallelism), false)
+                binding.actvNetworkParallelism.text = fragment.getString(R.string.number_format, settings.networkParallelism)
 
             val currentCacheSize = binding.actvCacheSizeLimit.text.toString().toIntOrNull()
             if (currentCacheSize != settings.cacheSizeMb)
-                binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, settings.cacheSizeMb), false)
+                binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, settings.cacheSizeMb)
 
             val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
             if (currentIconSize != settings.defaultIconSize)

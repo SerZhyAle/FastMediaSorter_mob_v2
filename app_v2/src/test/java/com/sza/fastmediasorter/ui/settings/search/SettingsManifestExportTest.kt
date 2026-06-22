@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.LocaleList
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,6 +93,17 @@ class SettingsManifestExportTest {
     @Test
     fun `manifest scan yields entries`() {
         assertTrue("Settings scan produced no manifest entries", buildManifest().isNotEmpty())
+    }
+
+    /**
+     * Transient permission-prompt buttons are de-indexed at the source (S0604): they are GONE
+     * whenever the permission is already granted, so indexing them yields dead search results.
+     */
+    @Test
+    fun `transient permission-prompt buttons are not indexed`() {
+        val keys = buildManifest().map { it.key }.toSet()
+        assertFalse("btnNotificationPermission must be de-indexed (S0604)", "btnNotificationPermission" in keys)
+        assertFalse("btnScheduledNotificationPermission must be de-indexed (S0604)", "btnScheduledNotificationPermission" in keys)
     }
 
     /**

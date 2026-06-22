@@ -1,0 +1,60 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: File info dialog with audio metadata (S0551 Phase 05).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Audio/test_audio_flac.flac (a FLAC carrying artist/album metadata).
+# Oracle: info dialog exposes filename, size, and audio metadata section.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "test_audio_flac.flac"
+    timeout: 30000
+- tapOn:
+    text: "test_audio_flac.flac"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
+    timeout: 20000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnInfoCmd"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnInfoCmd"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/tvFileName"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tvFileSize"
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/sectionAudio"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/sectionAudio"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnClose"

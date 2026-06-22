@@ -1,3 +1,9 @@
+---
+layout: default
+title: "FastMediaSorter APK Downloads"
+permalink: /docs/DOWNLOADS_EN.html
+---
+
 # FastMediaSorter APK Downloads
 
 Compiled APKs are published as **GitHub Release assets** - they are not committed to the repository.

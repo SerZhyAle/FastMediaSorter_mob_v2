@@ -90,6 +90,12 @@
 
     </FrameLayout>
 
+    <!-- S0610: Copy/Move destination panels (shared with the in-app player). Each panel starts GONE;
+         DestinationButtonsManager populates the grids and reveals them once destinations are loaded. -->
+    <include
+        android:id="@+id/bottomPanelsContainer"
+        layout="@layout/player_bottom_panels_container_content" />
+
     <!-- S0410: draw overlay toolbar (root GONE by default; ImageDrawOverlayManager toggles it during draw mode) -->
     <include
         android:id="@+id/draw_overlay_toolbar_stub"

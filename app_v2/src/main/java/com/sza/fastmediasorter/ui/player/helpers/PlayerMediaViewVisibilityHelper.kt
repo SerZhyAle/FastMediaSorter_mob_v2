@@ -59,6 +59,11 @@ class PlayerMediaViewVisibilityHelper(
         path.startsWith("smb://") -> ResourceType.SMB
         path.startsWith("sftp://") -> ResourceType.SFTP
         path.startsWith("ftp://") -> ResourceType.FTP
+        // Internet streams: classified before the LOCAL fallback so playVideo() dispatches them to
+        // the stream helper instead of failing File.exists() (S0565). Player-local: only the playback
+        // path calls this, so resource browsing is unaffected.
+        path.startsWith("http://") || path.startsWith("https://") -> ResourceType.HTTP_STREAM
+        path.startsWith("rtsp://") -> ResourceType.RTSP_STREAM
         else -> defaultType ?: ResourceType.LOCAL
     }
 }

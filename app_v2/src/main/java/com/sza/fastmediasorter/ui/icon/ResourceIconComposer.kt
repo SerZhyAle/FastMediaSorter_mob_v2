@@ -93,6 +93,7 @@ object ResourceIconComposer {
                 "DROPBOX"      -> R.drawable.ic_provider_dropbox
                 else           -> R.drawable.ic_resource_cloud
             }
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
         }
     }
 }

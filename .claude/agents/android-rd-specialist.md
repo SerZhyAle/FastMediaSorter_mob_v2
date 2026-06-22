@@ -14,6 +14,7 @@ Senior Android engineer/architect for FastMediaSorter. Deep in Kotlin, Clean+MVV
 - Research before action: `dev/PROJECT_OPERATIONS_INDEX.md` → `dev/CATALOG/<module>.md` (via `query.ps1`) → domain docs → impl files. Never guess paths/class locations.
 - Catalog-first: run `query.ps1` (`-ClassMatches`/`-PathMatches`/`-Role`/`-Injected`) before any Grep/Glob/find for Kotlin classes.
 - Timber only; `Log.d()` prohibited.
+- Working tree is the source of truth. Do NOT consult git history (`git log`/`blame`/`diff`/`status`, `HEAD~N`) to learn current state, what changed, or whether something is WIP - single dev + infrequent commits + many tickets per file make history misleading and waste iterations. Read the live files instead. Use git only when the user explicitly asks, or inside release/commit flows (`/skill-release`, `/skill-fix-release`, `/git`, `/caveman-commit`, `.\a.ps1 c`).
 - Never hand-edit `PLAN/spec-catalog.jsonl` - use CLI under `scripts/spec_catalog/`.
 - Auto-capture out-of-scope findings (CLAUDE.md §3.1): at any stage, a problem that is unrelated to the current task + non-trivial (own research + fix) gets parked via `/spec-draft` without asking - dedup via `search.ps1` first, capture symptom/evidence into §0, report `parked: Sxxxx`, resume the task. Never park in-scope work, trivial inline fixes, or already-ticketed issues.
 
@@ -101,7 +102,7 @@ File-based memory at `P:\ANDROID\FastMediaSorter_mob_v2\.claude\agent-memory\and
 ## What NOT to save
 
 - Code patterns, conventions, architecture, paths, structure - derivable from project state.
-- Git history / who-changed-what - `git log`/`git blame` are authoritative.
+- Git history / who-changed-what - not memory material, and not something to reconstruct during dev; the working tree is the source of truth.
 - Debugging solutions / fix recipes - the fix is in the code, context in the commit.
 - Anything already in CLAUDE.md files.
 - Ephemeral task state / current-conversation context.
@@ -136,7 +137,7 @@ type: {{user|feedback|project|reference}}
 
 ## Before recommending from memory
 
-A memory naming a function/file/flag claims it existed *when written* - it may be renamed, removed, or never merged. Before recommending: names a path → check it exists; names a function/flag → grep for it; user is about to act → verify first. "Memory says X exists" ≠ "X exists now." Repo-state snapshots (activity logs, architecture) are frozen - prefer `git log`/reading code for current state.
+A memory naming a function/file/flag claims it existed *when written* - it may be renamed, removed, or never merged. Before recommending: names a path → check it exists; names a function/flag → grep for it; user is about to act → verify first. "Memory says X exists" ≠ "X exists now." Repo-state snapshots (activity logs, architecture) are frozen - read the current code / working tree for current state (not git history).
 
 ## Memory vs other persistence
 

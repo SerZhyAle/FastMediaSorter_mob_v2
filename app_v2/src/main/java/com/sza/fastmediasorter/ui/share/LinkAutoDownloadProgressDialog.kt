@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ContextThemeWrapper
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.sza.fastmediasorter.R
@@ -30,7 +31,11 @@ class LinkAutoDownloadProgressDialog(
 
     fun show() {
         if (dialog != null) return
-        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_link_autodownload_progress, null)
+        // The host runs under the translucent theme. Inflate the custom dialog view against the app
+        // Material3 theme directly so the progress dialog keeps the normal dialog palette and avoids
+        // relying on the flattened transparent host theme chain.
+        val themedContext = ContextThemeWrapper(activity, R.style.Theme_FastMediaSorter_App)
+        val view = LayoutInflater.from(themedContext).inflate(R.layout.dialog_link_autodownload_progress, null)
         titleView = view.findViewById(R.id.titleText)
         bytesView = view.findViewById(R.id.bytesText)
         progressBar = view.findViewById(R.id.progressBar)
@@ -40,7 +45,7 @@ class LinkAutoDownloadProgressDialog(
             onCancel()
             dismiss()
         }
-        dialog = AlertDialog.Builder(activity)
+        dialog = AlertDialog.Builder(themedContext)
             .setView(view)
             .setCancelable(true)
             .setOnCancelListener {

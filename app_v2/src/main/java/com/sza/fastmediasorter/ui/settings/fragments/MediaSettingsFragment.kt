@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -32,6 +33,8 @@ class MediaSettingsFragment : Fragment() {
     @Inject lateinit var vrMediaSection: VrMediaSectionContract
 
     @Inject lateinit var mediaCapabilities: MediaCapabilities
+
+    @Inject lateinit var capabilityAvailability: CapabilityAvailability
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
@@ -107,6 +110,8 @@ class MediaSettingsFragment : Fragment() {
                 if (mediaCapabilities.supportsDocuments) ({ DocumentsSettingsFragment() }) else null),
             MediaChildSection(binding.headerOther, binding.containerOther, "media__other", false, "media_other",
                 { OtherMediaSettingsFragment() }),
+            MediaChildSection(binding.headerStreams, binding.containerStreams, "media__streams", false, "media_streams",
+                if (capabilityAvailability.isStreamsAvailable()) ({ StreamsSettingsFragment() }) else null),
         )
     }
 

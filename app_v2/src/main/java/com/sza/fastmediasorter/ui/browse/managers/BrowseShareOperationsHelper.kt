@@ -68,6 +68,7 @@ internal class BrowseShareOperationsHelper(
                         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
                             downloadNetworkFileToCacheWithProgress(mediaFile, resource)
                         }
+                        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
                     }
 
                     if (fileToShare != null && fileToShare.exists()) {

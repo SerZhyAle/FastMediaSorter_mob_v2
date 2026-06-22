@@ -30,7 +30,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/close" />
@@ -47,35 +47,15 @@
             android:layout_marginBottom="@dimen/margin_xlarge" />
 
         <!-- Extract Frames Section -->
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.ActionHelpRow
+            android:id="@+id/rowExtractFrames"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/margin_large">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnExtractFrames"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="@dimen/dialog_field_spacing"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:text="@string/gif_edit_extract_frames" />
-
-            <ImageView
-                android:id="@+id/ivHelpExtractFrames"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/gif_edit_extract_help"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true" />
-
-        </LinearLayout>
+            android:layout_marginBottom="@dimen/margin_large"
+            app:ahr_buttonText="@string/gif_edit_extract_frames"
+            app:ahr_showHelp="true"
+            app:ahr_helpTitle="@string/help"
+            app:ahr_helpMessage="@string/gif_edit_extract_help" />
 
         <!-- Speed Control Section -->
         <TextView
@@ -129,36 +109,15 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.ActionHelpRow
             android:id="@+id/layoutSpeedApplyRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/margin_large">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnApplySpeed"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="@dimen/dialog_field_spacing"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:text="@string/gif_edit_apply_speed" />
-
-            <ImageView
-                android:id="@+id/ivHelpSpeed"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/gif_edit_speed_help"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true" />
-
-        </LinearLayout>
+            android:layout_marginBottom="@dimen/margin_large"
+            app:ahr_buttonText="@string/gif_edit_apply_speed"
+            app:ahr_showHelp="true"
+            app:ahr_helpTitle="@string/help"
+            app:ahr_helpMessage="@string/gif_edit_speed_help" />
 
         <!-- First Frame to Image Section -->
         <TextView
@@ -171,35 +130,14 @@
             android:layout_marginTop="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_small" />
 
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.ActionHelpRow
             android:id="@+id/layoutFirstFrameRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnFirstFrameToImage"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="@dimen/dialog_field_spacing"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:text="@string/gif_edit_save_first_frame" />
-
-            <ImageView
-                android:id="@+id/ivHelpFirstFrame"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/gif_edit_first_frame_help"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true" />
-
-        </LinearLayout>
+            app:ahr_buttonText="@string/gif_edit_save_first_frame"
+            app:ahr_showHelp="true"
+            app:ahr_helpTitle="@string/help"
+            app:ahr_helpMessage="@string/gif_edit_first_frame_help" />
 
     </LinearLayout>
 

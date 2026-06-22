@@ -1,3 +1,9 @@
+---
+layout: default
+title: "VR Sideloading Guide"
+permalink: /docs/VR_SIDELOAD.html
+---
+
 # VR Sideloading Guide
 
 How to install the FastMediaSorter VR APK on Meta Quest without using a store.

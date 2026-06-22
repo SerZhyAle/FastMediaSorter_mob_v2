@@ -6,14 +6,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Environment
-import android.provider.MediaStore
 import android.widget.EditText
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
 import com.sza.fastmediasorter.data.capture.CameraCaptureTarget
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -24,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -130,15 +129,9 @@ class CameraQuickCaptureLaunchManager(
     }
 
     private fun launchCaptureIntent() {
-        // S0371: video uses the system ACTION_VIDEO_CAPTURE (handler-probed); photo keeps the in-app
-        // CameraCaptureActivity path gated on camera hardware.
-        if (isVideoMode) {
-            val handlers = activity.packageManager.queryIntentActivitiesCompat(Intent(MediaStore.ACTION_VIDEO_CAPTURE))
-            if (handlers.isEmpty()) {
-                toastAndFinish(R.string.camera_capture_error_no_camera_app)
-                return
-            }
-        } else if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+        // S0545: photo and video both use the in-app CameraCaptureActivity host, so availability is a
+        // pure camera-hardware question for either mode.
+        if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             toastAndFinish(R.string.camera_capture_error_no_camera_app)
             return
         }
@@ -157,11 +150,12 @@ class CameraQuickCaptureLaunchManager(
             toastAndFinish(R.string.camera_capture_error_save_generic)
             return
         }
-        val intent = if (isVideoMode) {
-            Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply { putExtra(MediaStore.EXTRA_OUTPUT, uri) }
-        } else {
-            CameraCaptureActivity.createIntent(activity, uri, tempFile.absolutePath)
-        }
+        val intent = CameraCaptureActivity.createIntent(
+            activity,
+            uri,
+            tempFile.absolutePath,
+            if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
+        )
         launchCapture(intent)
     }
 

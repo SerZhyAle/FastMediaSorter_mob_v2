@@ -82,18 +82,58 @@
 
     </LinearLayout>
 
-    <!-- Dynamic Background Extension - help payload folded into the row -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowDynamicBackground"
+    <!-- Landscape pairs the two remaining solo toggles into one weighted row to reduce vertical scroll. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/pref_dynamic_background_title"
-        app:str_subtitle="@string/setting_dynamic_background_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/tooltip_dynamic_background_title"
-        app:str_helpMessage="@string/tooltip_dynamic_background_message" />
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        tools:ignore="NestedWeights">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Dynamic Background Extension - help payload folded into the row -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowDynamicBackground"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusRight="@id/rowSlideshowBackgroundMusic"
+                app:str_title="@string/pref_dynamic_background_title"
+                app:str_subtitle="@string/setting_dynamic_background_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_dynamic_background_title"
+                app:str_helpMessage="@string/tooltip_dynamic_background_message" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Slideshow Background Music - help payload folded into the row -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowSlideshowBackgroundMusic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusLeft="@id/rowDynamicBackground"
+                app:str_title="@string/enable_slideshow_background_music"
+                app:str_subtitle="@string/setting_slideshow_background_music_desc"
+                app:str_showHelp="true"
+                app:str_helpTitle="@string/tooltip_slideshow_music_title"
+                app:str_helpMessage="@string/tooltip_slideshow_music_message" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 
     <!-- Image size limit (for both static and GIF) -->
@@ -115,19 +155,6 @@
 
     </LinearLayout>
 
-    <!-- Slideshow Background Music - help payload folded into the row -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowSlideshowBackgroundMusic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/enable_slideshow_background_music"
-        app:str_subtitle="@string/setting_slideshow_background_music_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/tooltip_slideshow_music_title"
-        app:str_helpMessage="@string/tooltip_slideshow_music_message" />
-
     <!-- Select Music Source Resource -->
     <LinearLayout android:id="@+id/layoutMusicSourceSelector" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
@@ -135,7 +162,7 @@
 
         <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/no_music_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultImageViewer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_image_viewer" android:textAllCaps="false" />

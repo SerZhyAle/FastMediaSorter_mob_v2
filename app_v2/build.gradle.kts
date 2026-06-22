@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260619214
-val defaultAppVersionName = "2.60.6192.144"
+val defaultAppVersionCode = 260621154
+val defaultAppVersionName = "2.60.6211.547"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -297,6 +297,7 @@ android {
             // Full feature set: Videos, Audio, Images, Cloud, Documents, Animations
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
@@ -371,6 +372,7 @@ android {
             // devices see them disabled with the standard "device unsupported" hint.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
@@ -400,6 +402,7 @@ android {
             // Target: Users with limited storage/bandwidth, older devices
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "false")    // S0575: Streams feature UI hidden in lite (streamingDisabled pipeline unchanged)
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
@@ -427,6 +430,7 @@ android {
             // Target: Photo management, cloud photo backup/sync
             buildConfigField("boolean", "SUPPORT_VIDEO", "false")       // No video player
             buildConfigField("boolean", "SUPPORT_AUDIO", "false")       // No audio player
+            buildConfigField("boolean", "SUPPORT_STREAMS", "false")     // S0565: no Трансляции entry-point in photos
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
@@ -457,6 +461,7 @@ android {
             // Target: Users with older Android devices (API 23-25)
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
@@ -517,6 +522,7 @@ android {
             // shared runtime through the same player path as standard until the rewrite lands.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
@@ -561,9 +567,12 @@ android {
             // Without this mount, any @Inject of XrEnvironmentDetector / XrDetectionFacade /
             // XrEntryGateway in src/main/java/** would fail to resolve in this flavor.
             kotlin.directories.add("src/vrStub/java")
-            // S0423 release scope: the S0418 screencapture (overlay + MediaProjection FGS) stays
-            // noLegal-only for now - the SPECIAL_USE/SYSTEM_ALERT_WINDOW declarations are a Play
-            // review risk, so they are not mounted into the store flavor.
+            // S0559: the confirmable MediaProjection capture engine (ScreenCaptureConsentActivity +
+            // ScreenCaptureService) is now shared with the store flavor via a menu-triggered path.
+            // Only the engine moves here; the overlay-strip launcher + accessibility silent capture
+            // (SYSTEM_ALERT_WINDOW / specialUse / a11y) stay noLegal-only in src/noLegal.
+            kotlin.directories.add("src/screenCapture/java")
+            res.directories.add("src/screenCapture/res")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -929,6 +938,14 @@ androidComponents {
             variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
         }
 
+        // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
+        // service + FOREGROUND_SERVICE_MEDIA_PROJECTION) is injected into both the store flavor and
+        // noLegal. The src/screenCapture source set is mounted by directory only, which does not pull
+        // in its AndroidManifest automatically, so it is added explicitly here.
+        if (flavorName == "standard" || flavorName == "noLegal") {
+            variant.sources.manifests.addStaticManifestFile("src/screenCapture/AndroidManifest.xml")
+        }
+
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
         // would leave OCR/DTS in a half-migrated state.
@@ -1139,6 +1156,12 @@ dependencies {
     "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    // S0565: RTSP playback (rtsp:// internet streams) is wired only into streaming-capable flavors,
+    // matching the HLS/DASH flavor split; lite/photos stay RTSP-free to preserve their APK budget.
+    "standardImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    "noLegalImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    "legacyImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    "vrImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     // S0305: MIDI playback is available only in flavors that support audio.
     "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
     "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
@@ -1181,6 +1204,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.5.3")
     implementation("androidx.camera:camera-lifecycle:1.5.3")
     implementation("androidx.camera:camera-view:1.5.3")
+    // S0545: in-app video recording (unified capture host); replaces external ACTION_VIDEO_CAPTURE.
+    implementation("androidx.camera:camera-video:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
     // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)

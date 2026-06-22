@@ -22,5 +22,8 @@ data class SettingsSearchIndex(
     val keywords: List<String>,
     val sectionId: String,
     val destination: SettingsSearchDestination,
-    val viewId: Int
+    val viewId: Int,
+    // View-ids of the row's ancestor containers, carried through from the XML scan so the
+    // capability gate can suppress rows whose parent card is hidden at runtime (S0599).
+    val ancestorIds: List<Int> = emptyList()
 )

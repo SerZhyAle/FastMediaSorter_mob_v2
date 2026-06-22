@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogGifEditorBinding
 import com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
@@ -68,12 +67,10 @@ class GifEditorDialog(
             // Close button
             btnClose.setOnClickListener { dismiss() }
             
-            // Extract frames button + help
+            // Extract frames button + help (row owns the help TooltipDialog)
             val extractionSupported = extractFramesUseCase.isExtractionSupported(gifPath)
-            btnExtractFrames.visibility = if (extractionSupported) android.view.View.VISIBLE else android.view.View.GONE
-            ivHelpExtractFrames.visibility = if (extractionSupported) android.view.View.VISIBLE else android.view.View.GONE
-            btnExtractFrames.setOnClickListener { performExtractFrames() }
-            ivHelpExtractFrames.setOnClickListener { showHelpDialog(context.getString(R.string.gif_edit_extract_help)) }
+            rowExtractFrames.visibility = if (extractionSupported) android.view.View.VISIBLE else android.view.View.GONE
+            rowExtractFrames.setOnButtonClickListener { performExtractFrames() }
 
             // Speed and first-frame operations are GIF-only
             val gifOnlyVisibility = if (isGifInput) android.view.View.VISIBLE else android.view.View.GONE
@@ -108,12 +105,10 @@ class GifEditorDialog(
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {}
             })
             
-            btnApplySpeed.setOnClickListener { performChangeSpeed() }
-            ivHelpSpeed.setOnClickListener { showHelpDialog(context.getString(R.string.gif_edit_speed_help)) }
-            
-            // First frame button + help
-            btnFirstFrameToImage.setOnClickListener { performSaveFirstFrame() }
-            ivHelpFirstFrame.setOnClickListener { showHelpDialog(context.getString(R.string.gif_edit_first_frame_help)) }
+            layoutSpeedApplyRow.setOnButtonClickListener { performChangeSpeed() }
+
+            // First frame button + help (row owns the help TooltipDialog)
+            layoutFirstFrameRow.setOnButtonClickListener { performSaveFirstFrame() }
             
             updateSpeedLabel()
         }
@@ -126,15 +121,7 @@ class GifEditorDialog(
             context.getString(R.string.gif_edit_speed_value, currentSpeedMultiplier)
         }
     }
-    
-    private fun showHelpDialog(message: String) {
-        AlertDialog.Builder(context)
-            .setTitle(R.string.help)
-            .setMessage(message)
-            .setPositiveButton(R.string.ok, null)
-            .show()
-    }
-    
+
     private fun performExtractFrames() {
         if (!extractFramesUseCase.isExtractionSupported(gifPath)) {
             Toast.makeText(context, context.getString(R.string.msg_gif_extract_api_unavailable), Toast.LENGTH_LONG).show()
@@ -325,9 +312,9 @@ class GifEditorDialog(
     
     private fun setButtonsEnabled(enabled: Boolean) {
         binding.apply {
-            btnExtractFrames.isEnabled = enabled
-            btnApplySpeed.isEnabled = enabled
-            btnFirstFrameToImage.isEnabled = enabled
+            rowExtractFrames.setButtonEnabled(enabled)
+            layoutSpeedApplyRow.setButtonEnabled(enabled)
+            layoutFirstFrameRow.setButtonEnabled(enabled)
             seekSpeed.isEnabled = enabled
             btnClose.isEnabled = enabled
         }

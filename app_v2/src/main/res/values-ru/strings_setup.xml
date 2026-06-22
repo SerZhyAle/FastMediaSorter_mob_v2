@@ -162,4 +162,7 @@
     <!-- S0402 permissions page -->
     <string name="welcome_permissions_title">Несколько разрешений</string>
     <string name="welcome_permissions_subtitle">Дайте доступ, чтобы приложение показывало ваши медиа.</string>
+    <string name="welcome_func_streams">Трансляции</string>
+    <string name="welcome_streams_catalog_done">Каталог загружен</string>
+    <string name="welcome_streams_catalog_failed">Каталог не загружен - источники можно добавить вручную</string>
 </resources>

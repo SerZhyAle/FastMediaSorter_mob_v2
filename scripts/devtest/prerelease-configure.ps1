@@ -138,6 +138,14 @@ $adb = Get-Adb
 if (-not $adb) { Add-Stage 'configure' 'FAIL' 'adb not found'; Complete-Run 10 }
 $adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
 
+# Device API level. Per-app locale via `cmd locale set-app-locales` is API 33+ (Android 13);
+# below that the framework `locale` service does not exist ("Can't find service: locale") and
+# per-app language is in-app only (AppCompat storage, not adb-drivable). The locale step is
+# therefore skipped - not failed - on such devices so an emulator's API level never aborts the sweep.
+$deviceSdk = 0
+$sdkRaw = "$(& $adb @adbTarget shell getprop ro.build.version.sdk 2>$null)".Trim()
+if ($sdkRaw -match '^\d+$') { $deviceSdk = [int]$sdkRaw }
+
 # ---------- stage 2: adb-scriptable settings (step 02.4) ----------
 # Apply only Channel='adb' settings (language via cmd locale). Channel='ui' entries
 # (theme + DataStore toggles) are delegated to the skill UI scenario (Phase 05).
@@ -150,6 +158,11 @@ foreach ($name in $config.Settings.Keys) {
         continue
     }
     if ($s.Locale) {
+        if ($deviceSdk -gt 0 -and $deviceSdk -lt 33) {
+            $script:result.settings += [ordered]@{ name = $name; channel = 'adb'; status = 'SKIP' }
+            Add-Stage "set:$name" 'SKIP' "per-app locale needs API 33+ (device API $deviceSdk); language is in-app only below that"
+            continue
+        }
         & $adb @adbTarget shell cmd locale set-app-locales $DebugPackage --locales $s.Locale *> $null
         $loc = & $adb @adbTarget shell cmd locale get-app-locales $DebugPackage 2>$null
         $okLoc = ("$loc" -match [regex]::Escape($s.Locale))

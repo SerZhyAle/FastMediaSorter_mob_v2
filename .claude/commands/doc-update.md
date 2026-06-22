@@ -9,13 +9,13 @@ Review the current change and update all affected documentation files.
 ```
 
 - `/doc-update Chromecast cast integration`
-- `/doc-update` - infer scope from `git diff --name-only HEAD~1 HEAD`
+- `/doc-update` - infer scope from the files touched in this session / the active spec
 
 ---
 
 ## Process
 
-**1 - Determine scope.** Use `$ARGUMENTS` as the change description, or run `git diff --name-only HEAD~1 HEAD` and read changed files briefly.
+**1 - Determine scope.** Use `$ARGUMENTS` as the change description. If empty, infer scope from the files just edited in this session (or the active spec's changed files) and read them briefly. Do NOT reconstruct scope from git history (`git diff HEAD~1` mixes many unrelated tickets on this repo). If neither is available, ask the user what changed.
 
 **2 - Work the checklist below in order.** Decide per item *affected* / *not affected*. Apply every affected update; skip non-affected silently. If a required repo doc/helper script is broken or insufficient, fix the script first instead of working around it.
 

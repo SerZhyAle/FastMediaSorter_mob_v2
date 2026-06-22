@@ -42,7 +42,8 @@ class GeneralSettingsCacheHelper(
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 val currentCacheSize = viewModel.settings.value.cacheSizeMb
-                binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, currentCacheSize), false)
+                // S0567: SettingsInputRow exposes a `text` property (was AutoCompleteTextView.setText).
+                binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, currentCacheSize)
                 binding.actvCacheSizeLimit.post { dialog.dismiss() }
             }
             .setCancelable(false)

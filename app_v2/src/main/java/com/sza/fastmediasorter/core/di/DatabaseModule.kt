@@ -6,9 +6,13 @@ import androidx.room.Room
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
+import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
+import com.sza.fastmediasorter.data.local.db.MIGRATION_33_34
+import com.sza.fastmediasorter.data.local.db.MIGRATION_34_35
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -95,7 +99,10 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_28_29,
                 AppDatabase.MIGRATION_29_30,
                 AppDatabase.MIGRATION_30_31,
-                MIGRATION_31_32
+                MIGRATION_31_32,
+                MIGRATION_32_33,
+                MIGRATION_33_34,
+                MIGRATION_34_35
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -117,6 +124,12 @@ object DatabaseModule {
     @Singleton
     fun provideFavoritesDao(database: AppDatabase): FavoritesDao {
         return database.favoritesDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStreamSourceDao(database: AppDatabase): StreamSourceDao {
+        return database.streamSourceDao()
     }
     
     @Provides

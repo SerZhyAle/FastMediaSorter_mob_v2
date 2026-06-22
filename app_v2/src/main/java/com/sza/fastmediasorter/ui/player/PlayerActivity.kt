@@ -78,6 +78,7 @@ import android.view.ViewGroup
 import android.graphics.Bitmap
 import android.graphics.RectF
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
@@ -92,7 +93,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation,
-    com.sza.fastmediasorter.core.share.SharePrintHost {
+    com.sza.fastmediasorter.core.share.SharePrintHost, com.sza.fastmediasorter.ui.player.helpers.DocumentPrintHost {
     // S0438: a player host keeps the screen on when either the global or the dependent player setting is on.
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean =
         settings.preventSleep || settings.keepScreenOnPlayer
@@ -102,6 +103,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override fun printMediaFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): Boolean {
         printManager.printCurrentFile(mediaFile)
         return true
+    }
+
+    // S0613: DocumentPrintHost seam - lets DocumentPrintManager run host-agnostically across the
+    // in-app player and the standalone document/text players, sharing one print pipeline.
+    override val printHostActivity: AppCompatActivity get() = this
+    override val printNetworkFileManager get() = networkFileManager
+    override fun printOfficeDocument(): Boolean = officeDocumentViewerManager.print()
+    override fun showPrintMessage(message: String) {
+        Snackbar.make(activityBinding.root, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
@@ -369,6 +379,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // S0391: source-availability gate; threaded into VideoPlayerManager and PlayerMediaLoaderManager.
     @Inject lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
+    // S0565: flavor-gated stream-protocol support; threaded into VideoPlayerManager for RTSP isolation.
+    @Inject lateinit var streamProtocolSupport: com.sza.fastmediasorter.domain.player.StreamProtocolSupport
 
     // S0436: flavor-resolved capability layer; passed down to the player-manager cascade in place of BuildConfig.SUPPORT_* reads.
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities

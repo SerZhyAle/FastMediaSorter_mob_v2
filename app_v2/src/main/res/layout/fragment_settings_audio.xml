@@ -94,7 +94,7 @@
 
         <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_photos_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/select_photos_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <!-- Audio empty state animation mode -->
@@ -116,7 +116,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAudioEmptyStateMode"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/settings_dropdown_wide_width"
             android:layout_height="wrap_content"
             app:hintTextColor="@color/settings_textinput_hint">
 
@@ -129,95 +129,12 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <!-- Background audio playback -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowEnablePersistentAudioPlayback"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/margin_small"
-        app:str_title="@string/background_audio_setting_title"
-        app:str_subtitle="@string/background_audio_setting_summary" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnNotificationPermission"
-        style="@style/Widget.FastMediaSorter.SettingsButton.Text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/manage_notifications_permission"
-        android:visibility="gone" />
-
-    <!-- Sub-setting: behaviour when leaving player during audio playback -->
-    <!-- Shown only when rowEnablePersistentAudioPlayback is checked -->
-    <LinearLayout
-        android:id="@+id/layoutExitBehaviorSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="32dp"
-        android:paddingEnd="0dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp"
-        android:visibility="gone"
-        tools:visibility="visible">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/background_audio_exit_behavior_title"
-            android:textSize="@dimen/toggler_title_text_size"
-            android:paddingBottom="2dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/background_audio_exit_behavior_summary"
-            android:textSize="@dimen/toggler_desc_text_size"
-            android:textColor="@color/text_color_secondary"
-            android:paddingBottom="6dp" />
-
-        <RadioGroup
-            android:id="@+id/radioGroupExitBehavior"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/radioExitBehaviorAsk"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/background_audio_exit_behavior_ask"
-                android:checked="true" />
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/radioExitBehaviorAlwaysStop"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/background_audio_exit_behavior_always_stop" />
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/radioExitBehaviorAlwaysContinue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/background_audio_exit_behavior_always_continue" />
-
-        </RadioGroup>
-
-        <!-- Sub-setting: show mini now-playing bar when browsing non-audio/video files -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowShowNowPlayingPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            app:str_title="@string/show_now_playing_panel_title"
-            app:str_subtitle="@string/show_now_playing_panel_summary" />
-
-    </LinearLayout>
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetDefaultAudioPlayer"
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginTop="@dimen/margin_small"
         android:text="@string/settings_set_default_audio_player"
         android:textAllCaps="false" />

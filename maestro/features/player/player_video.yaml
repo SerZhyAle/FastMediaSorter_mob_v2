@@ -1,0 +1,53 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Open and control video playback (S0551 Phase 04).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   video_sample.mp4 under /storage/emulated/0/Download.
+# Oracle: playerView renders, the play/pause control (btnPlaybackControl) is available, and
+#   no crash prompt appears.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "video_sample.mp4"
+    timeout: 30000
+- tapOn:
+    text: "video_sample.mp4"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/playerView"
+    timeout: 20000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+# Reveal the Media3 controller overlay (custom_player_controls*); its play/pause button id is
+# btnPlaybackControl (the unified player has no btnPlayPause).
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/playerView"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

@@ -4,8 +4,26 @@
     S0423: ML Kit Translate is bundled in the standard base, so its AAR-merged MlKitInitProvider +
     MlKitComponentDiscoveryService run normally (no on-demand DFM, nothing to strip).
 
-    S0418 screencapture (edge-gesture overlay + MediaProjection FGS) is NOT declared here: the
-    SPECIAL_USE / SYSTEM_ALERT_WINDOW declarations are a Google Play review risk, so the feature
-    stays noLegal-only for now (the src/screenCapture* source sets are not mounted into this flavor).
+    S0621: the edge-gesture screenshot is enabled on standard via the Play-safe MediaProjection
+    consent path. This overlay declares the always-on strip host (SYSTEM_ALERT_WINDOW + SPECIAL_USE
+    FGS); the MediaProjection consent activity + capture service + FOREGROUND_SERVICE_MEDIA_PROJECTION
+    arrive from the shared src/screenCapture manifest. The accessibility silent-capture service is
+    deliberately NOT declared here - it stays a noLegal exclusive (Play-policy boundary).
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
+        </service>
+    </application>
+
+</manifest>

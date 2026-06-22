@@ -20,8 +20,10 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class ScheduledOperationDialog(
@@ -301,21 +303,11 @@ class ScheduledOperationDialog(
         val intervalHours = b.etIntervalHours.text.toString().toIntOrNull() ?: 0
         val intervalMinutes = b.etIntervalMinutes.text.toString().toIntOrNull() ?: 0
 
-        val now = Calendar.getInstance()
-        val next = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, startHour)
-            set(Calendar.MINUTE, startMinute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            if (before(now)) {
-                val intervalMs = (intervalHours * 3600L + intervalMinutes * 60L) * 1000L
-                val effectiveInterval = if (intervalMs < 15 * 60_000L) 15 * 60_000L else intervalMs
-                add(Calendar.MILLISECOND, effectiveInterval.toInt())
-                if (before(now)) add(Calendar.DATE, 1)
-            }
-        }
+        val nextRunAt = computeNextRunAt(
+            startHour, startMinute, intervalHours, intervalMinutes, System.currentTimeMillis()
+        )
         val label = context.getString(R.string.scheduled_ops_next_run)
-        b.tvNextRun.text = "$label ${nextRunFormat.format(next.time)}"
+        b.tvNextRun.text = "$label ${nextRunFormat.format(Date(nextRunAt))}"
         b.tvNextRun.visibility = View.VISIBLE
     }
 

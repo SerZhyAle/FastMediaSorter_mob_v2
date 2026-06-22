@@ -222,6 +222,11 @@ class SftpConnectionPool {
             val session = jsch.getSession(info.username, info.host, info.port)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
+            // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,
+            // unblocking a parked ls without waiting on external invalidation. Conservative
+            // interval/count keeps the cost negligible for healthy sessions.
+            session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
+            session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
             session.connect(CONNECTION_TIMEOUT)
 
             val pooled = PooledConnection(session = session, jsch = jsch)
@@ -419,6 +424,11 @@ class SftpConnectionPool {
             val session = jsch.getSession(info.username, info.host, info.port)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
+            // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,
+            // unblocking a parked ls without waiting on external invalidation. Conservative
+            // interval/count keeps the cost negligible for healthy sessions.
+            session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
+            session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
             session.connect(CONNECTION_TIMEOUT)
             val pooled = PooledConnection(session = session, jsch = jsch)
             pooledSessions[key] = pooled
@@ -540,6 +550,18 @@ class SftpConnectionPool {
         }
     }
 
+    /**
+     * Fire-and-forget force-reset for a network handover, reaching parity with
+     * SmbConnectionManager.handleNetworkReconnect. Runs on the pool's own IO scope so the
+     * ConnectivityManager callback thread is never blocked. Delegates to the unconditional
+     * [disconnectAll] (socket close) - never the borrow-deferring [invalidate] - because a scan
+     * parked in a blocking listing never reaches its finally until the socket is closed.
+     */
+    fun disconnectAllOnNetworkChange() {
+        Timber.d("S0624: SFTP pool force-reset on network change")
+        cleanupScope.launch { disconnectAll() }
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────────────────────────
 
     /** Thread-safe openChannel - serializes via [PooledConnection.openChannelLock] (Research #2). */
@@ -628,6 +650,10 @@ class SftpConnectionPool {
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
         private const val SOCKET_TIMEOUT = 30_000
+        // SSH keep-alive: ~30 s (interval x countMax) to drop a dead transport, comfortably under
+        // the SftpMediaScanner scan watchdog so this cleaner recovery fires first.
+        private const val SERVER_ALIVE_INTERVAL_MS = 15_000
+        private const val SERVER_ALIVE_COUNT_MAX = 2
         private const val MAX_CONCURRENT_CONNECTIONS = 15
         private const val MAX_CHANNELS_PER_SESSION = 5   // total across all purposes (Research #1)
         private const val MAX_PLAYBACK_CHANNELS = 1      // reserved for ExoPlayer streaming

@@ -54,7 +54,6 @@ class XrEntryGatewayImpl @Inject constructor(
     }
 
     override suspend fun enterDiagnosticImage(): XrEntryResult {
-        Timber.d("S0249: XrEntryGatewayImpl.enterDiagnosticImage - dispatching to DiagnosticXrActivity")
         val intent = createImmersiveIntent(
             VrLaunchInput(
                 launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST,

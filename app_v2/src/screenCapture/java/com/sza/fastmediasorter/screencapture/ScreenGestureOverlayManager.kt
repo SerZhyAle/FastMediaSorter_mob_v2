@@ -19,9 +19,11 @@ class ScreenGestureOverlayManager(
     private val overlayWindowType: Int,
     private val onGestureMatched: (direction: ScreenshotGestureDirection) -> Unit = {}
 ) {
-    // Use the provided context (service) directly, not the application context: a
-    // TYPE_ACCESSIBILITY_OVERLAY window must be added through the accessibility service's own
-    // WindowManager so the system associates the overlay token with that service.
+    // Shared by both overlay hosts: OverlayHostService (TYPE_APPLICATION_OVERLAY, standard + noLegal)
+    // and the noLegal accessibility service (TYPE_ACCESSIBILITY_OVERLAY). Use the provided context
+    // (service) directly, not the application context: a TYPE_ACCESSIBILITY_OVERLAY window must be
+    // added through the accessibility service's own WindowManager so the system associates the overlay
+    // token with that service.
     private val overlayContext = context
     private val windowManager = overlayContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0575: Media-tab Streams section body - the single feature master toggle. Landscape parity (S0609). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/margin_small"
+    android:paddingVertical="@dimen/margin_small">
+
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowEnableStreams"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        app:str_title="@string/settings_streams_toggle"
+        app:str_subtitle="@string/settings_streams_summary" />
+
+    <!-- Streams shortcut (relocated from Playback). Visibility follows the master toggle above
+         (StreamsSettingsFragment) so the feature is hidden everywhere while disabled. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStreams"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/streams_title"
+        app:icon="@drawable/ic_video"
+        app:iconGravity="start" />
+
+</LinearLayout>

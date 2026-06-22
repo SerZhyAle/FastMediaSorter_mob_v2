@@ -6,7 +6,6 @@ import android.transition.TransitionManager
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import timber.log.Timber
 
 /**
  * Single orchestrator for collapsible groups across the app.
@@ -47,7 +46,6 @@ class CollapsibleSectionsManager(
         header.setExpanded(expanded, notify = false)
         container.isVisible = expanded
         header.setOnExpandedChangeListener { isExpanded ->
-            Timber.d("S0535: unified section '$key' toggled expanded=$isExpanded")
             onExpandedChanged?.invoke(isExpanded)
             (container.parent as? ViewGroup)?.let { parent ->
                 TransitionManager.beginDelayedTransition(parent, buildBodyTransition())

@@ -160,6 +160,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             applyEdgeToEdgeInsets()
         }
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Timber.d("S0609: settings opened in landscape - verify multi-column rows, focus order and EN/RU/UK labels across fragments")
+        }
     }
 
     private fun maybeShowPendingCacheSizeToast() {
@@ -282,10 +285,16 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             override fun onTabReselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
         })
 
-        binding.tabLayout.post {
-            for (position in 0 until binding.tabLayout.tabCount) {
-                binding.tabLayout.getTabAt(position)?.let { tab ->
-                    syncConnectedTabState(tab, position == binding.tabLayout.selectedTabPosition)
+        // Capture tabLayout so the posted runnable never dereferences `binding`: on a launch/recreate
+        // race the activity can be torn down before this frame runs, and `binding` then throws
+        // IllegalStateException. The captured view stays valid to read; bail if already destroyed
+        // since the recreated instance re-runs setupConnectedTabs.
+        val tabLayout = binding.tabLayout
+        tabLayout.post {
+            if (isDestroyed) return@post
+            for (position in 0 until tabLayout.tabCount) {
+                tabLayout.getTabAt(position)?.let { tab ->
+                    syncConnectedTabState(tab, position == tabLayout.selectedTabPosition)
                 }
             }
         }

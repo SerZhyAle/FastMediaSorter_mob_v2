@@ -50,14 +50,16 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartScan"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
             android:nextFocusUp="@id/cgResources"
             android:text="@string/duplicate_scan_start"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

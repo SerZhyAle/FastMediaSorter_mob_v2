@@ -1,0 +1,50 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Copy conflict / overwrite guidance for Ops/src -> Ops/dst (S0551 Phase 03).
+# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+#   Ops/src/ops_overwrite_A.png plus Ops/dst/ops_overwrite_A.png.
+# Oracle: copying an existing destination filename surfaces the overwrite/conflict dialog.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      text: "ops_overwrite_A.png"
+    timeout: 10000
+- longPressOn:
+    text: "ops_overwrite_A.png"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnCopy"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnCopy"
+- extendedWaitUntil:
+    visible:
+      text: "Ops/dst"
+    timeout: 10000
+- tapOn:
+    text: "Ops/dst"
+- extendedWaitUntil:
+    visible:
+      text: "(already exists|Overwrite|Заменить|уже существует)"
+    timeout: 15000
+- assertVisible:
+    text: "(already exists|Overwrite|Заменить|уже существует)"

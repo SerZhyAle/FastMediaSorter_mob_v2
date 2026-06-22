@@ -49,5 +49,6 @@ class AppShortcutsManager @Inject constructor(
         ResourceType.SFTP -> R.drawable.ic_resource_sftp
         ResourceType.FTP -> R.drawable.ic_resource_ftp
         ResourceType.CLOUD -> R.drawable.ic_resource_cloud
+        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
     }
 }

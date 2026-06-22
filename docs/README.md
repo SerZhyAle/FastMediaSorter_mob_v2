@@ -1,9 +1,18 @@
+---
+layout: default
+title: "FastMediaSorter v2"
+permalink: /docs/README.html
+---
+
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
 **📖 Other Languages:** [🇷🇺 Русский](README_RU.md) | [🇺🇦 Українська](README_UK.md)
+
+**📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
 ## About the Project
 
@@ -120,6 +129,7 @@ Full-size images:
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
 - 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
+- 📻 **Internet Streams (Streams screen):** Play internet radio (http/https, Icecast/Shoutcast with ICY now-playing), HLS/DASH streams, and RTSP sources directly from a dedicated Streams screen. Add URLs manually, import a `.m3u` playlist, or download a curated FastMediaSorter catalog. Pin favourites to the top; filter by category and language. Inline audio: radio plays from the list via a sticky bottom mini-control while the list stays scrollable. Video and RTSP open in the fullscreen player. Available in Standard, Legacy, noLegal/VR; progressive-audio only in Lite; absent in Photos.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -206,6 +216,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
+With the **Streams** screen enabled, the same head unit also plays internet radio stations directly over mobile data or Wi-Fi - no separate TuneIn or RadioDroid app needed. Add any radio URL, or import a curated station catalog from the Extensions screen. The sticky mini-control shows the current ICY track name while the station list stays visible.
+
 ### 11. 📺 Media Center on an Android TV Box
 
 Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android box). Connect to a home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive - all from one app. Control the full flow with a remote or Bluetooth keyboard: the D-pad moves focus, **OK** opens items, **Back** returns to the previous level, and **Backspace** moves one folder up in the browser. The remote's colored buttons map to common file actions (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a fullscreen slideshow with background music on the TV, or switch to audio playback with album art and lyrics. No touchscreen is required.
@@ -280,7 +292,7 @@ Wear OS docs:
 - [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
 - [Wear OS Setup](WEAR_OS_SETUP.md)
 - [Wear OS Status](WEAR_OS_STATUS.md)
-- [Wear OS section in Features](FEATURES.md#20-wear-os-companion-app)
+- [Wear OS section in Features](FEATURES.md#16-settings--navigation)
 
 ## Build Instructions
 

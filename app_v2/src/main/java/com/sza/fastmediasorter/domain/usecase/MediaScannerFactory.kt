@@ -31,6 +31,8 @@ class MediaScannerFactory @Inject constructor(
             ResourceType.SFTP -> sftpMediaScanner
             ResourceType.FTP -> ftpMediaScanner
             ResourceType.CLOUD -> cloudMediaScanner
+            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                throw IllegalArgumentException("Internet streams are not scannable: $resourceType")
         }
     }
 }

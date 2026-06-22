@@ -6,6 +6,8 @@
   Brings a chosen emulator to a clean known state for the /spec-prerelease sweep:
     1. Device gate (delegates to the device-readiness pre-flight; aborts on its exit codes 1..3).
     2. Clean uninstall + install of the standard-debug build (added in step 01.2).
+    2.6 Grant ACCESS_LOCAL_NETWORK on API >= 37 so the onboarding bypass does not break
+        SMB/SFTP/FTP coverage (S0614).
     3. Seed test media when absent (added in step 01.3).
     4. Verify first launch from logs (added in step 01.4).
 
@@ -63,6 +65,18 @@ function Complete-Run {
             $(if ($Code -eq 0) { 'READY' } else { 'ABORT' }), $script:result.selectedDevice, $Code)
     }
     exit $Code
+}
+
+# Resolve adb (not on PATH on the dev machine), mirroring device-ready.ps1 / prerelease-configure.ps1.
+function Get-Adb {
+    foreach ($root in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
+        if ($root) { $c = Join-Path $root 'platform-tools\adb.exe'; if (Test-Path $c) { return $c } }
+    }
+    $onPath = Get-Command adb -ErrorAction SilentlyContinue
+    if ($onPath) { return $onPath.Source }
+    $known = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+    if (Test-Path $known) { return $known }
+    return $null
 }
 
 # ---------- stage 1: device gate ----------
@@ -129,6 +143,35 @@ $wcArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell',
 if ($DeviceId) { $wcArgs += @('-DeviceId', $DeviceId) }
 & pwsh @wcArgs *> $null
 Add-Stage 'onboarding-bypass' 'OK' 'welcome_completed=true (skip first-run onboarding)'
+
+# ---------- stage 2.6: local-network permission grant (S0614) ----------
+# On API >= 37 ACCESS_LOCAL_NETWORK is a runtime permission that gates every network scanner
+# and network Glide loader. The onboarding bypass above skips the in-app request flow, so without
+# an explicit grant any SMB/SFTP/FTP listing throws LocalNetworkPermissionDeniedException and the
+# network-coverage step fails spuriously on a clean install. Mirror the implicit storage grant:
+# detect the device API and grant only when the permission actually exists (declared minSdk 37);
+# below that hasLocalNetworkPermission() returns true unconditionally, so nothing to grant.
+$adb = Get-Adb
+if (-not $adb) {
+    Add-Stage 'local-network-grant' 'FAIL' 'adb not found'
+    Complete-Run 10
+}
+$adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
+$deviceSdk = 0
+$sdkRaw = "$(& $adb @adbTarget shell getprop ro.build.version.sdk 2>$null)".Trim()
+if ($sdkRaw -match '^\d+$') { $deviceSdk = [int]$sdkRaw }
+
+if ($deviceSdk -ge 37) {
+    & $adb @adbTarget shell pm grant $DebugPackage android.permission.ACCESS_LOCAL_NETWORK *> $null
+    $grantCode = $LASTEXITCODE
+    if ($grantCode -ne 0) {
+        Add-Stage 'local-network-grant' 'FAIL' "pm grant ACCESS_LOCAL_NETWORK exit $grantCode (device API $deviceSdk)"
+        Complete-Run 10
+    }
+    Add-Stage 'local-network-grant' 'OK' "granted ACCESS_LOCAL_NETWORK (device API $deviceSdk)"
+} else {
+    Add-Stage 'local-network-grant' 'SKIP' "runtime permission needs API 37+ (device API $deviceSdk); auto-granted below that"
+}
 
 # ---------- stage 3: seed media (step 01.3) ----------
 # Probe for the seeded media root; only seed when absent so re-runs are idempotent.

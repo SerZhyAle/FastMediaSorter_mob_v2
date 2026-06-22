@@ -71,6 +71,8 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 ResourceType.SFTP -> testSftpSpeed(resource)
                 ResourceType.FTP -> testFtpSpeed(resource)
                 ResourceType.CLOUD -> testCloudSpeed(resource)
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                    throw IllegalArgumentException("Speed test does not apply to internet streams: ${resource.type}")
             }
             
             emit(SpeedTestStatus.Progress(R.string.speed_test_saving))

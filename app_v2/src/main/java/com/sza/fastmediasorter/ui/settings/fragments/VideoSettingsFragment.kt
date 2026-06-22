@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class VideoSettingsFragment : BaseSettingsFragment() {
@@ -207,6 +208,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
                         val resource = viewModel.resourceRepository.getResourceById(settings.videoSnapshotResourceId)
                         binding.tvSelectedSnapshotResource.text = resource?.name
                             ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
+                        Timber.d("S0617: snapshot resource name bound, ellipsize check (name=${resource?.name})")
                     }
                     binding.btnClearSnapshotResource.visibility = android.view.View.VISIBLE
                 } else {

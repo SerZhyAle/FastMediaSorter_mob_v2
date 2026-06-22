@@ -113,7 +113,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Synchronized
     private fun getReusableDirectBuffer(size: Int): ByteBuffer {
         val current = reusableDirectBuffer
-        Timber.d("S0290: texture-copy direct buffer reuse=${current != null && current.capacity() >= size} size=$size (Phase 11 Step 11.5)")
         if (current != null && current.capacity() >= size) {
             current.clear()
             return current
@@ -248,7 +247,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun proceedWithInitialization() {
-        Timber.d("S0290: diagnostic session init / re-entry path (Phase 09)")
         // 1. Initialize VR HUD Canvas buffers and helpers (Step 03.2)
         hudRenderer = HudCanvasRenderer()
         hapticBridge = HudHapticBridge(runtime)
@@ -779,7 +777,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // when the pool-supplied inBitmap is incompatible with the actual decoded dimensions or
             // config (e.g. moraine_lake_flat_mono.jpg 7742x5327 after inSampleSize may require a
             // different stride). Retry without inBitmap so the decoder allocates a fresh buffer.
-            Timber.d("S0291: decodeFilePooled inBitmap incompatible for ${file.name} - retrying without pool reuse")
             Timber.w(iae, "decodeFilePooled: ${file.name} inBitmap incompatible; retry without pool reuse")
             opts.inBitmap = null
             try {
@@ -901,14 +898,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun navigateToNextMedia() {
-        Timber.d("S0290: input next navigation (Phase 10 edge-detection)")
         if (mediaPlaylist.isEmpty()) return
         currentPlaylistIndex = (currentPlaylistIndex + 1) % mediaPlaylist.size
         loadCurrentMediaItem()
     }
 
     private fun navigateToPrevMedia() {
-        Timber.d("S0290: input prev navigation (Phase 10 edge-detection)")
         if (mediaPlaylist.isEmpty()) return
         currentPlaylistIndex = if (currentPlaylistIndex - 1 < 0) {
             mediaPlaylist.size - 1
@@ -1058,7 +1053,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
-        Timber.d("S0290: diagnostic session exit / paired native shutdown (Phase 09)")
         // S0290 Phase 09 + owner round 3 (2026-05-22): order matters. Release ExoPlayer FIRST so it lets go of the Surface it received from runtime.getVideoSurface(); only then tear down the native side which destroys the underlying SurfaceTexture / GL texture. The reverse order caused VideoFrameReleaseHelper to call Surface.setFrameRate on an already-released Surface (logcat: "Surface has already been released") and MediaCodec.flush on a Released codec at every immersive exit.
         releasePlaybackResources()
         shutdownRenderThreadSync(PAUSE_SHUTDOWN_TIMEOUT_MS)

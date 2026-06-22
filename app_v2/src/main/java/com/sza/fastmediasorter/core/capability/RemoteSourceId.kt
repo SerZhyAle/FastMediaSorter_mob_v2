@@ -35,7 +35,7 @@ enum class RemoteSourceId {
             ResourceType.SMB -> SMB
             ResourceType.SFTP -> SFTP
             ResourceType.FTP -> FTP
-            ResourceType.LOCAL, ResourceType.CLOUD -> null
+            ResourceType.LOCAL, ResourceType.CLOUD, ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
         }
     }
 }

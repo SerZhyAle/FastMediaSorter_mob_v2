@@ -17,9 +17,9 @@ FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
-| **Standard** ⭐ | Everyone | Full features: videos, photos, audio, documents, cloud storage, translation |
-| **Lite** | Smaller downloads | Photos + videos only (no audio, cloud) |
-| **Photos** | Photo enthusiasts | Images only, optimized for photo work |
+| **Standard** ⭐ | Everyone | Full features: videos, photos, audio, documents, cloud storage, translation + internet radio / Streams |
+| **Lite** | Smaller downloads | Photos + videos only (no audio, cloud); Streams supports progressive audio streams only (no HLS/DASH/RTSP) |
+| **Photos** | Photo enthusiasts | Images only, optimized for photo work (no Streams) |
 | **Legacy** | Older Android (API 23+) | Full media + SMB/FTP/SFTP and cloud; built for older Android (API 23+) |
 | **VR / noLegal** | XR headset / sideload | OpenXR and sideload-only extras on supported hardware |
 
@@ -120,7 +120,7 @@ The screen is divided into 9 areas for quick actions:
 
 **Setup Quick Sort folders:**
 
-1. Go to **Settings** → **Quick Sort** tab
+1. Go to **Settings** → **Operations** → **Quick Sort destinations**
 2. Tap **"Add to Quick Sort"**
 3. Select folders where you want to sort files (e.g., "Best Photos", "Vacation")
 4. **Each folder gets a number** (0-9) and color
@@ -157,13 +157,13 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Auto-Translation
 
-- Enable in **Settings** → **Documents** → **Enable Translation**
+- Enable in **Settings** → **Media** → **Translation, OCR and Google Lens**
 - Tap **Translate** button (A→文) when viewing Images/PDF/Text
 - **Lens-style mode:** Enable "Lens-style overlay" in settings for Google Lens-like in-place translations
 
 ### EPUB E-Books
 
-- Enable in **Settings** → **Documents** → **Support EPUB**
+- Enable in **Settings** → **Media** → **Text, PDF and EPUB viewing**
 - Add folder with .epub files → Files will show "E" badge
 - **Chapter navigation:** Swipe left/right or use prev/next buttons
 - **Table of Contents:** Tap 📋 button for chapter list
@@ -193,6 +193,14 @@ Settings → Add Folder → **Cloud Storage**
 
 - In any browser or messenger, share an `http(s)` link to FastMediaSorter via the Android Share sheet
 - The app downloads the media file and saves it to your selected resource automatically
+
+### Internet Streams (Radio & IPTV)
+
+- Open **Streams** from the main window dropdown (or **Settings > Media > Streams** when it first appears).
+- Tap **+** to add a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import** to load a `.m3u` playlist.
+- Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
+- Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
+- **Not available in the Photos flavor. Lite supports progressive audio only (no HLS/DASH/RTSP).**
 
 ### Home Screen Widgets
 

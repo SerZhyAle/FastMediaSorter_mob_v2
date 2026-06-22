@@ -102,6 +102,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("PlaybackControlDialog: onViewCreated mediaType=$currentMediaType")
+        Timber.d("S0619: playback control dialog shown - wide slider style on volume/hue/brightness/speed seekbars")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {

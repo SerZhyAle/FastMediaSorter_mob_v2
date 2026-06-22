@@ -90,6 +90,9 @@ data class AppSettings(
     val pdfColorMode: String = "NORMAL", // PDF color mode: NORMAL, NIGHT, SEPIA
     val epubLineHeight: Float = 1.6f, // EPUB line height multiplier (1.0 - 3.0)
     val epubHorizontalMargin: Int = 16, // EPUB horizontal margin in px (0 - 48)
+
+    // S0575: Streams feature master switch (internet stream sources). Default OFF; the per-device-profile preset raises it for streaming-oriented devices.
+    val enableStreams: Boolean = false,
     
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
@@ -279,9 +282,9 @@ data class AppSettings(
     val allowSeparateWindow: Boolean = false,
 
     // S0162 / S0439: Screen rotation control
-    // Program-scope follow-OS flag (umbrella). true = delegate to OS auto-rotate across the whole app.
+    // Program-scope follow-OS flag. true = every app window EXCEPT the player follows OS auto-rotate.
     val programFollowSystemRotation: Boolean = true,
-    // S0439: Player-scope follow-OS flag. Consulted only when programFollowSystemRotation is false.
+    // Player-scope follow-OS flag, independent of the program-scope flag: governs the player family only.
     val playerFollowSystemRotation: Boolean = false,
     // Per-session sensor state (persisted; restored on next player launch).
     // Active only when the player is not following the OS.

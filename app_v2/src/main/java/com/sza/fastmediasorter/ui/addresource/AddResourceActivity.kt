@@ -326,10 +326,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnSmbProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = true) }
         binding.btnSftpProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = false) }
 
-        // Help buttons
-        binding.btnSmbHelpRememberFileList.setOnClickListener { connectionManager.showRememberFileListHelpDialog() }
-        binding.btnSftpHelpRememberFileList.setOnClickListener { connectionManager.showRememberFileListHelpDialog() }
-
         formManager.setupCheckboxInteractions()
         formManager.setupTextInputTapBridges()
         formManager.setupCollapsibleSections()

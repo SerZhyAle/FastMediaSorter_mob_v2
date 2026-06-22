@@ -192,6 +192,7 @@ class NetworkStateMonitor @Inject constructor(
         ResourceType.LOCAL -> true
         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> isLocalNetworkAvailable()
         ResourceType.CLOUD -> isInternetAvailable()
+        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> isInternetAvailable()
     }
 
     private fun activeCapabilities(): NetworkCapabilities? =

@@ -3,6 +3,7 @@
 ## 1. Communication & Style
 - **Chat**: RU. **Code/Docs/Logs/Commits**: EN. **Tone**: dry, concise. Ask if ambiguous.
 - **Ellipsis**: `..` (never `...`). **Dash**: plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`). **Russian Ё/ё**: mandatory in chat, UI, docs, Approved specs. Draft specs exempt.
+- **Timestamps**: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
 - **Caveman Mode**: Trigger via `/caveman` / `be brief`. Keep RU in chat, EN in code. Drop filler.
 - **Spec Writing**: Lists over tables (tables only for 3+ columns). No pseudographics. No self-evident links. One idea per bullet. No section summaries. Draft specs exempt.
 

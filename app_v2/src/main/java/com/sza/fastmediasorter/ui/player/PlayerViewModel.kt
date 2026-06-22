@@ -88,6 +88,12 @@ class PlayerViewModel @Inject constructor(
     // S0189: lookup for newly-created staged text notes (Downloads/FastMediaSorter/notes/)
     private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val isShareTargetEnabled: IsShareTargetEnabledUseCase,
+    // S0581: resolve/remove the saved stream behind a failing stream URL so the player can offer
+    // a friendly "stream unavailable" dialog with a remove-from-list action.
+    private val getStreamSourceByUrlUseCase: com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase,
+    private val removeStreamSourceUseCase: com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase,
+    // S0593: record a list stream's play outcome (OK on READY, FAIL on error) for the row status bullet.
+    private val recordStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -124,15 +130,14 @@ class PlayerViewModel @Inject constructor(
         val castDeviceName: String? = null,
         val showBlackScreenButton: Boolean = false,
         // S0162 / S0439: screen rotation control
-        val programFollowSystemRotation: Boolean = true,
         val playerFollowSystemRotation: Boolean = false,
         val playerRotationSensorEnabled: Boolean = true,
         val showRotationToggle: Boolean = false,  // true when the player is not following the OS && hasAccelerometer
         val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
         val shuffleIndices: List<Int> = emptyList()
     ) {
-        // S0439: the player follows the OS when either the program or the player flag is on.
-        val effectiveFollowSystemRotation: Boolean get() = programFollowSystemRotation || playerFollowSystemRotation
+        // Player rotation follows the OS solely via the player-scope flag, independent of the program flag.
+        val effectiveFollowSystemRotation: Boolean get() = playerFollowSystemRotation
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1
         val hasPrevious: Boolean get() = files.size > 1
@@ -161,6 +166,10 @@ class PlayerViewModel @Inject constructor(
         /** Standard flavor: 3D content detected, suggest VR edition. */
         data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
         object StopPlayback : PlayerEvent()
+        // S0581: a list stream failed to play; the Activity shows a retry / remove-from-list dialog.
+        data class ShowStreamUnavailable(
+            val source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+        ) : PlayerEvent()
         // S0162: fired when the player-level rotation sensor toggle is changed
         data class RotationSensorToggled(val sensorEnabled: Boolean) : PlayerEvent()
     }
@@ -231,6 +240,37 @@ class PlayerViewModel @Inject constructor(
 
     fun showMessage(message: String) {
         sendEvent(PlayerEvent.ShowMessage(message))
+    }
+
+    /**
+     * S0581: a stream URL failed to play. If it is a saved list entry, surface the friendly
+     * "stream unavailable" dialog (retry / remove); otherwise fall back to the generic error so the
+     * existing behavior is preserved for arbitrary http(s) media that is not a stored stream.
+     */
+    fun onStreamPlaybackFailed(url: String) {
+        viewModelScope.launch {
+            val source = getStreamSourceByUrlUseCase(url)
+            if (source != null) {
+                // S0593: a saved stream that failed to play here -> record the red status.
+                recordStreamPlayOutcomeUseCase(source.id, ok = false)
+                sendEvent(PlayerEvent.ShowStreamUnavailable(source))
+            } else {
+                sendEvent(PlayerEvent.ShowError(appContext.getString(R.string.error_playback_failed)))
+            }
+        }
+    }
+
+    /** S0581: remove a dead stream from the local list after the user confirms in the dialog. */
+    fun removeStreamSource(source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity) {
+        viewModelScope.launch { removeStreamSourceUseCase(source) }
+    }
+
+    /** S0593: a stream reached READY in the fullscreen player - record OK (green) for the row bullet. */
+    fun recordStreamPlayOk(url: String) {
+        viewModelScope.launch {
+            val source = getStreamSourceByUrlUseCase(url) ?: return@launch
+            recordStreamPlayOutcomeUseCase(source.id, ok = true)
+        }
     }
 
     /**
@@ -320,6 +360,7 @@ class PlayerViewModel @Inject constructor(
         setLoading = { loading -> setLoading(loading) },
         stereoCoordinator = stereoCoordinator,
         isShareTargetEnabled = isShareTargetEnabled,
+        getStreamSourceByUrlUseCase = getStreamSourceByUrlUseCase,
     )
 
     private fun loadSettings() = mediaFilesLoader.loadSettings()
@@ -643,10 +684,9 @@ class PlayerViewModel @Inject constructor(
             settingsRepository.getSettings().collect { s ->
                 updateState {
                     it.copy(
-                        programFollowSystemRotation = s.programFollowSystemRotation,
                         playerFollowSystemRotation = s.playerFollowSystemRotation,
                         playerRotationSensorEnabled = s.playerRotationSensorEnabled,
-                        showRotationToggle = !(s.programFollowSystemRotation || s.playerFollowSystemRotation) && hasAccelerometer
+                        showRotationToggle = !s.playerFollowSystemRotation && hasAccelerometer
                     )
                 }
             }

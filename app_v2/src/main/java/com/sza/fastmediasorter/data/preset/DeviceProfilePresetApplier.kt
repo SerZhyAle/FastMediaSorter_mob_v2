@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
@@ -42,6 +43,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
+            "enableStreams" -> settings.copy(enableStreams = raw.toBool())
             "allFiles" -> settings.copy(allFiles = raw.toBool())
             "showHiddenFiles" -> settings.copy(showHiddenFiles = raw.toBool())
             "showSubfoldersAsItems" -> settings.copy(showSubfoldersAsItems = raw.toBool())
@@ -136,7 +138,16 @@ class DeviceProfilePresetApplier @Inject constructor(
             "resumeOnNextLaunch" -> settings.copy(resumeOnNextLaunch = raw.toBool())
             "showBlackScreenButton" -> settings.copy(showBlackScreenButton = raw.toBool())
             "programFollowSystemRotation" -> settings.copy(programFollowSystemRotation = raw.toBool())
+            "playerFollowSystemRotation" -> settings.copy(playerFollowSystemRotation = raw.toBool())
             "playerRotationSensorEnabled" -> settings.copy(playerRotationSensorEnabled = raw.toBool())
+            "smbEnabled" -> settings.copy(smbEnabled = raw.toBool())
+            "sftpEnabled" -> settings.copy(sftpEnabled = raw.toBool())
+            "ftpEnabled" -> settings.copy(ftpEnabled = raw.toBool())
+            "googleDriveEnabled" -> settings.copy(googleDriveEnabled = raw.toBool())
+            "oneDriveEnabled" -> settings.copy(oneDriveEnabled = raw.toBool())
+            "dropboxEnabled" -> settings.copy(dropboxEnabled = raw.toBool())
+            "gestureOverlayEnabled" -> settings.copy(gestureOverlayEnabled = raw.toBool())
+            "copyScreenshotToClipboard" -> settings.copy(copyScreenshotToClipboard = raw.toBool())
 
             // ── Ints ──────────────────────────────────────────────────────
             "networkParallelism" -> raw.toIntOrSkip(field) { settings.copy(networkParallelism = it) } ?: settings
@@ -194,6 +205,19 @@ class DeviceProfilePresetApplier @Inject constructor(
             "backgroundAudioExitBehavior" ->
                 runCatching { BackgroundAudioExitBehavior.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(backgroundAudioExitBehavior = it) } ?: skip(field, raw, settings)
+            "screenshotGestureActionDown" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionDown = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureActionRight" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionRight = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureActionUp" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionUp = it) }
+                    ?: skip(field, raw, settings)
+
+            // ── String set fields (delimiter: comma, semicolon or pipe) ───
+            "enabledShareTargets" -> settings.copy(enabledShareTargets = raw.toStringSet())
+            "disabledShareTargets" -> settings.copy(disabledShareTargets = raw.toStringSet())
 
             // ── String fields stored verbatim ─────────────────────────────
             // colorTheme accepts AUTO/LIGHT/DARK; the CSV authored BLACK as the dark variant.
@@ -210,6 +234,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "language" -> settings.copy(language = raw.trim())
             "translationSourceLanguage" -> settings.copy(translationSourceLanguage = raw.trim())
             "translationTargetLanguage" -> settings.copy(translationTargetLanguage = raw.trim())
+            "videoSnapshotFormat" -> settings.copy(videoSnapshotFormat = raw.trim())
 
             // ── Special: multi-window capability gate ─────────────────────
             "allowSeparateWindow" -> {
@@ -221,7 +246,11 @@ class DeviceProfilePresetApplier @Inject constructor(
                 settings.copy(allowSeparateWindow = value)
             }
 
-            // ── Unknown field name ────────────────────────────────────────
+            // ── Unknown field name, or a state/credential/pointer field ───
+            // State/credential/pointer fields (defaultUser, defaultPassword, *ResourceId,
+            // slideshowMusicUri, lastUsedResourceId, lastSelectedLocalFolder, scheduledOperationsPaused,
+            // enableStatistics) intentionally have no branch: even with a non-empty CSV cell a profile
+            // apply must never overwrite credentials, session state, or silently enable data collection.
             else -> skip(field, raw, settings)
         }
     }
@@ -238,6 +267,14 @@ class DeviceProfilePresetApplier @Inject constructor(
     }
 
     private fun String.toBool(): Boolean = this.trim().equals("TRUE", ignoreCase = true)
+
+    /** Parses a [ScreenshotGestureAction] by exact enum name; null (→ skip) on an unknown value. */
+    private fun String.toScreenshotGestureActionOrNull(): ScreenshotGestureAction? =
+        runCatching { ScreenshotGestureAction.valueOf(this.trim()) }.getOrNull()
+
+    /** Splits a CSV-list cell into a set of non-empty trimmed tokens (comma, semicolon or pipe). */
+    private fun String.toStringSet(): Set<String> =
+        this.split(',', ';', '|').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
     private inline fun String.toIntOrSkip(field: String, set: (Int) -> AppSettings): AppSettings? {
         val parsed = this.trim().toIntOrNull()

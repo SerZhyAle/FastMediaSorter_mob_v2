@@ -299,6 +299,12 @@
         <item>Авто (за устройством)</item>
         <item>Светлая</item>
         <item>Тёмная</item>
+        <item>Тёмно-зелёная</item>
+        <item>Тёмно-синяя</item>
+        <item>Тёмно-красная</item>
+        <item>Светло-зелёная</item>
+        <item>Светло-синяя</item>
+        <item>Светло-красная</item>
     </string-array>
     <string name="backup_restore_settings">Резервное копирование</string>
     <string name="backup_info_description">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
@@ -695,7 +701,7 @@
     <string name="tooltip_destinations_title">Назначения</string>
     <string name="tooltip_destinations_message">Цели быстрой сортировки для эффективной организации файлов. Максимум 30 назначений. Каждое имеет номер и цвет для лёгкой идентификации.</string>
     <string name="tooltip_touch_zones_title">Сенсорные зоны</string>
-    <string name="hint_touch_zone_3zone">Режим командной панели\n\nЛевые 20%% - Предыдущий файл\nЦентр 60%% - Выбор / Действия\nПравые 20%% - Следующий файл\n\nНажмите в любом месте для закрытия</string>
+    <string name="hint_touch_zone_3zone" formatted="false">Режим командной панели\n\nЛевые 20% - Предыдущий файл\nЦентр 60% - Выбор / Действия\nПравые 20% - Следующий файл\n\nНажмите в любом месте для закрытия</string>
     <string name="hint_touch_zone_media">Режим воспроизведения медиа\n\nСенсорные зоны активны только в верхней части.\nНижняя часть зарезервирована для элементов управления проигрывателя.\n\nНажмите в любом месте для закрытия</string>
     <string name="tooltip_touch_zones_message">9 невидимых зон (сетка 3×3) для управления жестами в полноэкранном режиме. Комбинации Лево/Центр/Право и Верх/Середина/Низ вызывают различные действия: навигация, операции с файлами, управление панелями.</string>
     <string name="tooltip_safe_mode_title">Безопасный режим</string>
@@ -1578,7 +1584,6 @@
     <!-- Remember file list -->
     <string name="default_remember_file_list">Запоминать списки файлов (по умолчанию для новых ресурсов)</string>
     <string name="remember_file_list">Запоминать список файлов для этого ресурса</string>
-    <string name="help_remember_file_list">Справка: Запоминать список файлов</string>
     <string name="remember_file_list_help_title">Запоминать список файлов</string>
     <string name="remember_file_list_help_message">При включении приложение сохраняет список файлов ресурса в базе данных после сканирования. При следующих открытиях список загружается из кэша мгновенно. Для внешних изменений используйте кнопку «Обновить».</string>
 
@@ -1659,7 +1664,7 @@
     <string name="background_audio_exit_always_stop">Всегда останавливать</string>
     <string name="background_audio_exit_always_continue">Всегда продолжать</string>
     <!-- Background audio exit behavior - Settings sub-row -->
-    <string name="background_audio_exit_behavior_title">Поведение при выходе из плеера</string>
+    <string name="background_audio_exit_behavior_title">Поведение при выходе из плеера и трансляций</string>
     <string name="background_audio_exit_behavior_summary">Выберите, что произойдёт с фоновой музыкой при возврате</string>
     <string name="background_audio_exit_behavior_ask">Спросить каждый раз (по умолчанию)</string>
     <string name="background_audio_exit_behavior_always_stop">Всегда остановить</string>
@@ -2178,7 +2183,7 @@
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_camera_capture_title">Съёмка фотоаппаратом</string>
-    <string name="tooltip_camera_capture_message">Кнопка фотоаппарата в браузере файлов позволяет снять фото или видео не выходя из приложения. Снятый файл сохраняется в папку текущего ресурса.\n\nЕсли включён «Не спрашивать имя файла», файл автоматически получает имя по времени съёмки; иначе после каждой съёмки появляется диалог переименования.</string>
+    <string name="tooltip_camera_capture_message">Кнопка фотоаппарата в браузере файлов открывает встроенную камеру для съёмки фото или записи видео не выходя из приложения, со вспышкой, зумом, переключением камеры и фокусом по тапу. Снятый файл сохраняется в папку текущего ресурса.\n\nЕсли включён «Не спрашивать имя файла», файл автоматически получает имя по времени съёмки; иначе после каждой съёмки появляется диалог переименования.</string>
     <string name="tooltip_saved_authorizations_title">Сохранённые авторизации</string>
     <string name="tooltip_saved_authorizations_message">Экран веб-входа внутри приложения сохраняет cookie и логины, которые используются при автозагрузке файлов с сайтов, требующих входа. Откройте этот экран, чтобы просмотреть сохранённые авторизации и удалить ненужные.</string>
 
@@ -2653,8 +2658,6 @@
     <string name="quick_voice_recording_dialog_title">Запись..</string>
     <string name="quick_voice_recording_stop">Остановить и сохранить</string>
     <string name="quick_voice_menu_label">Запись с диктофона</string>
-    <string name="quick_video_menu_label">Запись видео</string>
-    <string name="quick_photo_menu_label">Сделать фото</string>
     <string name="quick_recorder_saved_to">Запись сохранена в %1$s</string>
     <string name="audio_background_handoff_failed">Не удалось продолжить воспроизведение в фоне</string>
     <string name="download_by_link_menu_label">Загрузить по ссылке</string>
@@ -2662,4 +2665,72 @@
     <string name="download_by_link_dialog_hint">Вставьте или введите ссылку</string>
     <string name="collapsible_section_state_expanded">Развёрнуто</string>
     <string name="collapsible_section_state_collapsed">Свёрнуто</string>
+    <string name="camera_control_flash">Вспышка</string>
+    <string name="camera_control_switch_lens">Сменить камеру</string>
+    <string name="camera_control_zoom">Масштаб</string>
+    <string name="camera_capture_microphone">Микрофон</string>
+    <string name="camera_capture_record_start">Запись</string>
+    <string name="camera_capture_record_stop">Остановить</string>
+    <string name="camera_capture_microphone_muted">Запись без звука</string>
+    <string name="camera_mode_photo">Фото</string>
+    <string name="camera_mode_video">Видео</string>
+    <string name="quick_camera_menu_label">Камера</string>
+    <string name="camera_control_pause">Пауза</string>
+    <string name="camera_control_resume">Продолжить</string>
+    <string name="camera_gallery_preview">Просмотр последнего снимка</string>
+    <string name="resource_type_stream">Трансляция</string>
+    <string name="streams_error_unsupported_in_build">Этот тип трансляции не поддерживается в этой версии приложения.</string>
+    <string name="streams_title">Трансляции</string>
+    <string name="streams_add">Добавить трансляцию</string>
+    <string name="streams_import">Импорт списка</string>
+    <string name="streams_refresh">Обновить</string>
+    <string name="streams_pin_to_top">Закрепить вверху</string>
+    <string name="streams_remove">Удалить</string>
+    <string name="streams_add_url_hint">URL трансляции (http, https, rtsp)</string>
+    <string name="streams_import_url_hint">URL плейлиста (.m3u)</string>
+    <string name="streams_title_hint">Название (необязательно)</string>
+    <string name="streams_error_invalid_url">Введите корректный адрес http, https или rtsp.</string>
+    <string name="streams_error_network">Не удалось загрузить список. Проверьте соединение и повторите.</string>
+    <string name="streams_now_playing">Сейчас играет</string>
+    <string name="streams_empty">Пока нет трансляций. Добавьте URL или импортируйте список.</string>
+    <string name="streams_stop">Остановить</string>
+    <string name="streams_import_done">Импортировано трансляций: %1$d</string>
+    <string name="settings_streams_summary">Открыть интернет-аудио, видео и RTSP-трансляции.</string>
+    <string name="crash_report_no_share_target">Нет приложения для отправки отчёта о сбое. Отчёт сохранён на устройстве.</string>
+    <string name="streams_import_choose_title">Импорт списка</string>
+    <string name="streams_import_catalog">Обновить каталог FastMediaSorter</string>
+    <string name="streams_import_from_url">Импорт по URL</string>
+    <string name="streams_catalog_updated">Каталог: +%1$d новых, %2$d обновлено, %3$d удалено</string>
+    <string name="streams_catalog_empty">Каталог пуст или недоступен</string>
+    <string name="streams_search_hint">Поиск</string>
+    <string name="streams_filter">Фильтр</string>
+    <string name="streams_sort">Сортировка</string>
+    <string name="streams_sort_name">По названию</string>
+    <string name="streams_sort_topic">По теме</string>
+    <string name="streams_sort_language">По языку</string>
+    <string name="streams_sort_recent">Недавно добавленные</string>
+    <string name="streams_filter_all">Все</string>
+    <string name="ext_section_streams">Трансляции</string>
+    <string name="ext_streams_title">Каталог источников трансляций</string>
+    <string name="ext_streams_desc">Скачать каталог доступных источников трансляций</string>
+    <string name="settings_streams_section">Трансляции</string>
+    <string name="settings_streams_toggle">Включить трансляции</string>
+    <string name="settings_take_screenshot_now">Тест скриншота (снимка экрана)</string>
+    <string name="streams_unavailable_title">Трансляция недоступна</string>
+    <string name="streams_unavailable_message">«%1$s» не отвечает. Удалить из вашего списка?</string>
+    <string name="background_audio_group_title">Фоновое воспроизведение аудио</string>
+    <string name="streams_filter_category">Категория</string>
+    <string name="streams_filter_language">Язык</string>
+    <string name="streams_filter_media_kind">Тип</string>
+    <string name="streams_filter_media_audio">Аудио</string>
+    <string name="streams_filter_media_video">Видео</string>
+    <string name="streams_filter_clear">Сбросить фильтры</string>
+    <string name="streams_picker_search_hint">Введите для поиска</string>
+    <string name="streams_picker_empty">Ничего не найдено</string>
+    <string name="streams_filter_active">Фильтр активен</string>
+    <string name="stream_status_ok">Проверено онлайн</string>
+    <string name="stream_status_failed">Последний запуск не удался</string>
+    <string name="stream_status_unknown">Ещё не проверялось</string>
+    <string name="programs">Программы</string>
+    <string name="error_scan_timeout">Папка загружается слишком долго. Проверьте сеть и повторите попытку.</string>
 </resources>

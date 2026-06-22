@@ -1,0 +1,23 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Scroll the open browse list back to the absolute top.
+#
+# rememberTheFileList persists each resource's scroll position, so a flow opening "Загрузки"
+# inherits wherever a previous flow left the list. scrollUntilVisible only scrolls down, so a
+# target above the restored position would never be reached. Re-applying the same sort does NOT
+# re-render the list (no scroll reset), so the reliable reset is the on-screen "scroll to top"
+# FAB. It only exists while the list is scrolled away from the top, so the tap is guarded - an
+# already-at-top list is left untouched.
+
+- runFlow:
+    when:
+      visible:
+        id: "com.sza.fastmediasorter.debug:id/fabScrollToTop"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/fabScrollToTop"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 8000

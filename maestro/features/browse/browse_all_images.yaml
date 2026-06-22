@@ -11,6 +11,7 @@ appId: com.sza.fastmediasorter.debug
 
 - launchApp
 - runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
 
 # Prior-crash guard: the crash-report prompt only appears on a launch following a crash.
 - assertNotVisible:

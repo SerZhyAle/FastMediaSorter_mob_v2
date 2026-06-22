@@ -63,8 +63,9 @@ object TranslationSettingsDialog {
             val targetLanguageView = dialogView.findViewById<TextView>(R.id.spinnerTargetLanguage)
             val btnSwapLanguages = dialogView.findViewById<android.widget.ImageButton>(R.id.btnSwapLanguages)
             val switchLensStyle = dialogView.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow>(R.id.switchLensStyle)
-            val spinnerFontSize = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontSize)
-            val spinnerFontFamily = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontFamily)
+            // S0567: font size/family dropdowns migrated from raw Spinner to SettingsDropdownRow (ADR-1).
+            val spinnerFontSize = dialogView.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow>(R.id.spinnerFontSize)
+            val spinnerFontFamily = dialogView.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow>(R.id.spinnerFontFamily)
             val btnOk = dialogView.findViewById<android.widget.Button>(R.id.btnOk)
             val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancel)
 
@@ -104,16 +105,12 @@ object TranslationSettingsDialog {
             }
 
             val fontSizeOptions = TranslationFontSize.values()
-            val fontSizeNames = fontSizeOptions.map { context.getString(it.stringResId) }.toTypedArray()
-            val fontSizeAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, fontSizeNames)
-            fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerFontSize.adapter = fontSizeAdapter
+            val fontSizeNames = fontSizeOptions.map { context.getString(it.stringResId) as CharSequence }
+            spinnerFontSize.setEntries(fontSizeNames)
 
             val fontFamilyOptions = TranslationFontFamily.values()
-            val fontFamilyNames = fontFamilyOptions.map { context.getString(it.stringResId) }.toTypedArray()
-            val fontFamilyAdapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, fontFamilyNames)
-            fontFamilyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerFontFamily.adapter = fontFamilyAdapter
+            val fontFamilyNames = fontFamilyOptions.map { context.getString(it.stringResId) as CharSequence }
+            spinnerFontFamily.setEntries(fontFamilyNames)
 
             updateLanguageViews()
             switchLensStyle.isChecked = settings.translationLensStyle
@@ -150,8 +147,8 @@ object TranslationSettingsDialog {
 
             btnOk.setOnClickListener {
                 val newLensStyle = switchLensStyle.isChecked
-                val newFontSize = fontSizeOptions[spinnerFontSize.selectedItemPosition]
-                val newFontFamily = fontFamilyOptions[spinnerFontFamily.selectedItemPosition]
+                val newFontSize = fontSizeOptions[spinnerFontSize.getSelectedIndex()]
+                val newFontFamily = fontFamilyOptions[spinnerFontFamily.getSelectedIndex()]
 
                 // Confirming these settings turns translation ON, so gate on the TRANSLATION
                 // deliverable being installed; on refusal close without enabling.

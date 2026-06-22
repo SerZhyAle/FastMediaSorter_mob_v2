@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
+            app:menu="@menu/menu_streams"
+            app:title="@string/streams_title"
+            app:titleTextColor="?attr/colorOnPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:id="@+id/streamControls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="4dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSearch"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:startIconDrawable="@drawable/ic_search"
+                app:startIconTint="?attr/colorControlNormal"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/streams_search_hint"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/toolbar"
+                    android:nextFocusRight="@id/btnFilter"
+                    android:nextFocusDown="@id/rvStreams" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <ImageButton
+                android:id="@+id/btnFilter"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_tune"
+                app:tint="?attr/colorControlNormal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:nextFocusLeft="@id/etSearch"
+                android:nextFocusRight="@id/btnSort"
+                android:nextFocusDown="@id/rvStreams"
+                android:contentDescription="@string/streams_filter" />
+
+            <ImageButton
+                android:id="@+id/btnSort"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_sort"
+                app:tint="?attr/colorControlNormal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:nextFocusLeft="@id/btnFilter"
+                android:nextFocusDown="@id/rvStreams"
+                android:contentDescription="@string/streams_sort" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStreams"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                android:scrollbars="vertical" />
+
+            <TextView
+                android:id="@+id/tvEmpty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="24dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                android:text="@string/streams_empty" />
+
+            <!-- S0587: scroll-navigation buttons split into top + bottom groups to mirror the file
+                 browser (activity_browse.xml) - top/page-up anchor to the list top, page-down/bottom
+                 to the list bottom, instead of one stack that overlaps the rows. -->
+            <LinearLayout
+                android:id="@+id/streamScrollButtonsTop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/browse_scroll_button_margin"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/fabStreamsScrollToTop"
+                    android:layout_width="@dimen/browse_scroll_button_size"
+                    android:layout_height="@dimen/browse_scroll_button_size"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:background="@drawable/bg_scroll_button"
+                    android:contentDescription="@string/scroll_to_top"
+                    android:focusable="true"
+                    android:padding="@dimen/browse_scroll_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_arrow_upward"
+                    android:visibility="gone"
+                    app:tint="@color/selector_player_button_tint" />
+
+                <ImageButton
+                    android:id="@+id/fabStreamsPageUp"
+                    android:layout_width="@dimen/browse_scroll_button_size"
+                    android:layout_height="@dimen/browse_scroll_button_size"
+                    android:background="@drawable/bg_scroll_button"
+                    android:contentDescription="@string/scroll_page_up"
+                    android:focusable="true"
+                    android:padding="@dimen/browse_scroll_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_double_arrow_up"
+                    android:visibility="gone"
+                    app:tint="@color/selector_player_button_tint" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/streamScrollButtonsBottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/browse_scroll_button_margin"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/fabStreamsPageDown"
+                    android:layout_width="@dimen/browse_scroll_button_size"
+                    android:layout_height="@dimen/browse_scroll_button_size"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:background="@drawable/bg_scroll_button"
+                    android:contentDescription="@string/scroll_page_down"
+                    android:focusable="true"
+                    android:padding="@dimen/browse_scroll_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_double_arrow_down"
+                    android:visibility="gone"
+                    app:tint="@color/selector_player_button_tint" />
+
+                <ImageButton
+                    android:id="@+id/fabStreamsScrollToBottom"
+                    android:layout_width="@dimen/browse_scroll_button_size"
+                    android:layout_height="@dimen/browse_scroll_button_size"
+                    android:background="@drawable/bg_scroll_button"
+                    android:contentDescription="@string/scroll_to_bottom"
+                    android:focusable="true"
+                    android:padding="@dimen/browse_scroll_button_padding"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_arrow_downward"
+                    android:visibility="gone"
+                    app:tint="@color/selector_player_button_tint" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/streamMiniControl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?attr/colorSurface"
+            android:elevation="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvMiniTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorOnSurface" />
+
+            <ImageButton
+                android:id="@+id/btnMiniPlayStop"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_stop"
+                app:tint="?attr/colorControlNormal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:contentDescription="@string/streams_stop" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

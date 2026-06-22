@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandaloneAudioBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -83,6 +84,29 @@ class AudioStandaloneActivity :
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
+    // S0612: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
+    // pending operation type decides whether the current file is copied or moved into it.
+    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
+    private val customPathPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        val op = pendingCustomPathOp
+        pendingCustomPathOp = null
+        if (uri == null || op == null) return@registerForActivityResult
+        contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
+            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
+        when (op) {
+            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
+                fileOperations.moveCurrentFileToPath(uri.toString(), label)
+            else ->
+                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+        }
+    }
+
     // Standalone opens local/content URIs far more often than network paths, so these heavy
     // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
     @Inject lateinit var smbClient: Lazy<SmbClient>
@@ -103,6 +127,9 @@ class AudioStandaloneActivity :
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    // S0612: global destination list (no resource context) for the Copy/Move bottom panels.
+    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 
     // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
     private lateinit var keyboardHandler: PlayerKeyboardHandler
@@ -158,7 +185,32 @@ class AudioStandaloneActivity :
             batchDeleteLauncher = batchDeleteLauncher,
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() }
+            getCurrentSettings = { settingsRepository.getSettings().first() },
+            fileOperationUseCase = fileOperationUseCase
+        )
+    }
+
+    // S0612: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
+    // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
+    private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
+        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+            root = binding.root,
+            settingsRepository = settingsRepository,
+            getDestinationsUseCase = getDestinationsUseCase,
+            lifecycleScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
+                override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
+                override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
+                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                    pendingCustomPathOp = operationType
+                    customPathPickerLauncher.launch(null)
+                }
+                override fun getCurrentResourceId(): Long = -1L
+                override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
+                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+            },
+            shouldNumberSlots = { false },
+            slotKeyGlyph = { null },
         )
     }
 
@@ -326,12 +378,15 @@ class AudioStandaloneActivity :
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
-        // Without bottom-inset padding the ExoPlayer button row is hidden behind the nav bar
-        // because setDecorFitsSystemWindows(false) makes the window draw behind it.
-        ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
-            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(0, 0, 0, nav.bottom)
-            insets
+        // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
+        // here. When the panels are GONE the 0-height container still reserves the nav gap, keeping the
+        // ExoPlayer button row above the nav bar; when visible, the destination grids clear it too.
+        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+            ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
+                val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+                view.setPadding(0, 0, 0, nav.bottom)
+                insets
+            }
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
@@ -459,6 +514,8 @@ class AudioStandaloneActivity :
             if (file.path != lastShownPath) {
                 viewManager.show(file, MediaType.AUDIO)
                 lastShownPath = file.path
+                destinationButtonsManager.populateDestinationButtons()
+                Timber.d("S0612: audio standalone copy/move panels populated for shown file")
             }
             folderPagingEnabled = state.supportsFolderPaging
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)

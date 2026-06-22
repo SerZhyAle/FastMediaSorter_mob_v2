@@ -48,13 +48,15 @@ import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -93,6 +95,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
+    private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
     private lateinit var cameraCaptureManager: MainCameraCaptureManager
     private lateinit var quickCaptureMenuManager: MainQuickCaptureMenuManager
@@ -107,6 +110,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isQuickVideoEnabled = false
     private var isQuickPhotoEnabled = false
     private var isLinkDownloadEnabled = false
+    private var isStreamsEnabled = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -147,7 +151,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
-    lateinit var cameraCaptureSaver: CameraCaptureSaver
+    lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
 
     @Inject
     lateinit var localDestinationClassifier: LocalDestinationClassifier
@@ -186,6 +190,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // S0564: restore the pending quick-capture target if the process was killed while the camera
+        // host was foreground. setupViews() (run inside super.onCreate) already constructed the manager,
+        // so this runs before the pending Activity result is dispatched (onStart) - mirrors BrowseActivity.
+        savedInstanceState?.let {
+            if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
+        }
 
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
         binding.root.post {
@@ -533,6 +544,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         lastPlayedResourceId?.let { outState.putLong(KEY_LAST_PLAYED_RESOURCE_ID, it) }
+        // S0564: persist the pending quick-capture target so a kill while the camera host is
+        // foreground does not abandon the captured file (restored in onCreate, see below).
+        if (::cameraCaptureManager.isInitialized) cameraCaptureManager.saveState(outState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -591,8 +605,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount() +
             quickCaptureMenuManager.itemCount(
                 isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-                isQuickVideoEnabled && mediaCapabilities.supportsVideo,
-                isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+                (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
+                    (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
             ) + linkDownloadMenuManager.itemCount(isLinkDownloadEnabled)
 
     private fun getMiniGameMenuItemCount(): Int = miniGameMenuManager.itemCount(isEmbeddedGameEnabled)
@@ -608,6 +622,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         popup.setForceShowIcon(true)
         popup.setOnMenuItemClickListener { item ->
             if (miniGameMenuManager.handleMenuItem(item.itemId) ||
+                streamsMenuManager.handleMenuItem(item.itemId) ||
                 quickCaptureMenuManager.handleMenuItem(item.itemId) ||
                 linkDownloadMenuManager.handleMenuItem(item.itemId)
             ) {
@@ -640,11 +655,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .setIcon(R.drawable.ic_camera_ocr_translate)
         }
         miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
+        // S0565: SUPPORT_STREAMS is a capability flag (not an IS_* flavor guard), so reading it in
+        // src/main is allowed; photos/lite have it false. S0575: also gate on the runtime master toggle
+        // so the main-menu entry appears only when the user enabled Streams (the Playback-settings
+        // shortcut stays SUPPORT_STREAMS-only as the way back).
+        Timber.d("S0575: main menu streams gate support=%b enabled=%b", BuildConfig.SUPPORT_STREAMS, isStreamsEnabled)
+        streamsMenuManager.populate(popup, BuildConfig.SUPPORT_STREAMS && isStreamsEnabled, 1)
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
             isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-            isQuickVideoEnabled && mediaCapabilities.supportsVideo,
-            isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+            (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
+                (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
             2,
         )
         linkDownloadMenuManager.populate(popup, isLinkDownloadEnabled, 2 + quickAdded)
@@ -673,6 +694,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         applyEdgeToEdgeInsets()
 
         miniGameMenuManager = MainMiniGameMenuManager(this)
+        streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
             this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
             requestRecordAudioPermission = {
@@ -680,12 +702,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
         )
         cameraCaptureManager = MainCameraCaptureManager(
-            this, lifecycleScope, cameraCaptureSaver, quickCaptureCameraLauncher,
+            this, lifecycleScope, saveCapturedMedia, quickCaptureCameraLauncher,
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },
-            onVideo = { cameraCaptureManager.captureVideo() },
-            onPhoto = { cameraCaptureManager.capturePhoto() },
+            onCamera = {
+                cameraCaptureManager.captureCamera(
+                    photoAvailable = isQuickPhotoEnabled && mediaCapabilities.supportsImages,
+                    videoAvailable = isQuickVideoEnabled && mediaCapabilities.supportsVideo,
+                )
+            },
         )
         linkDownloadManager = MainLinkDownloadManager(this)
         linkDownloadMenuManager = MainLinkDownloadMenuManager(
@@ -993,6 +1019,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isQuickVideoEnabled = !settings.disableVideoCapture
             isQuickPhotoEnabled = !settings.disableCameraCapture
             isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
+            isStreamsEnabled = settings.enableStreams
             binding.btnFavorites.visibility = if (settings.enableFavorites) {
                 View.VISIBLE
             } else {

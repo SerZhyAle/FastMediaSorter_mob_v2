@@ -1,97 +1,36 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: Settings Persistence (Resilient)
-# Description: Verify settings screen remains reachable and stable across app restart
-# Duration: ~35 seconds
+# Critical: settings screen survives relaunch (S0551).
+# Oracle: Settings title renders before and after stop/start, with no crash prompt.
 
-# Launch app
 - launchApp
-- waitForAnimationToEnd
-
 - runFlow: ../_shared/permissions.yaml
-- waitForAnimationToEnd
+- runFlow: ../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 
-# Open Settings screen
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSettings"
-    optional: true
-
-- tapOn:
-    text: "(Settings|Настройки|Налаштування)"
-    optional: true
-
-- waitForAnimationToEnd
-
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/titleText"
-    optional: true
 
-# Wait for settings screen to load
-- waitForAnimationToEnd
-
-# Verify settings screen is displayed
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/titleText"
-    optional: true
-
-# Toggle All Files
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/switchAllFiles"
-    optional: true
-
-# Wait for setting to update
-- waitForAnimationToEnd
-
-# Toggle Show Hidden Files
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/switchShowHiddenFiles"
-    optional: true
-
-# Wait for update
-- waitForAnimationToEnd
-
-# Scroll a bit to ensure settings list loads
 - scroll
-
-# Now test persistence by restarting app
-# Stop the app
 - stopApp
-
-# Wait for app to fully stop
 - waitForAnimationToEnd
-
-# Relaunch app
 - launchApp
-
-# Wait for app to load
-- waitForAnimationToEnd
-
-# Navigate back to Settings
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSettings"
-    optional: true
-
-- tapOn:
-    text: "(Settings|Настройки|Налаштування)"
-    optional: true
-
-# Wait for settings to load
-- waitForAnimationToEnd
-
-# Verify the setting we changed is still applied
-# This is verified by checking if the toggle state persisted
-# We can't directly check toggle state in Maestro, but we can
-# verify the settings screen loads without errors
-
-# Verify settings screen is still functional
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/titleText"
-    optional: true
-
-# Scroll through settings to ensure they loaded correctly
-- scroll
-
-# Navigate back
-- back
-
-# Test passed: Settings persist across restarts

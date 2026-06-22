@@ -14,13 +14,57 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.6200.317 (June 2026)
+## What FastMediaSorter Replaces 🧩
+
+FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. One app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+
+**Viewing & Playback**
+
+- **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
+- **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
+- **Internet radio / IPTV player** (TuneIn, RadioDroid, Online Radio Box, VLC network streams, IPTV players) - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / noLegal; progressive-audio only in Lite; absent in Photos)*
+- **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
+- **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
+- **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.
+- **TV media center** (Kodi, Nova Video Player) - D-pad, keyboard, mouse, gamepad, and TV-remote-friendly browsing and playback.
+- **VR media player** (Pigasus, Skybox VR) - stereo SBS/OU, VR180, 360°, virtual cinema screen. *(VR edition)*
+
+**Capture & Create**
+
+- **Camera** (stock camera) - photo and video straight to a chosen local, network, or cloud folder.
+- **Voice recorder** - voice notes plus a quick-record widget.
+- **Drawing editor** - canvas, brushes, shapes, text, custom brush color and size.
+- **Document / text scanner** (Google Lens, CamScanner) - on-device OCR from the camera with area crop.
+
+**File Management**
+
+- **File manager** (Total Commander, ES File Explorer, Files by Google) - local, network, and cloud files in one place.
+- **FTP/SFTP/SMB client** (AndFTP, Solid Explorer) - network sources with SSH keys and host-key pinning.
+- **Cloud clients** (Google Drive, Dropbox, OneDrive) - cloud drives as media sources.
+- **Duplicate finder** (Duplicate Files Fixer) - 3-phase Size -> Hash -> SHA-256 engine.
+- **Recycle bin** (Dumpster) - soft delete with one-tap restore.
+- **Archive extractor** (ZArchiver) - ZIP extraction, including password-protected. *(basic)*
+- **Download manager** (1DM, ADM) - paste a link and save directly to a chosen folder.
+- **Task scheduler** - scheduled file operations.
+
+**Text & Utilities**
+
+- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
+- **Translator** (Google Translate offline) - fully offline translation.
+- **Calculator** - built-in evaluation of expressions from selected text. *(basic)*
+- **Cast to TV** (Google Home) - Chromecast for both video and audio.
+- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
+- **Settings backup tool** - export and restore app setup, sources, favorites, schedules, passwords, and sign-ins. *(app setup only)*
+
+> *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
+
+## What's New in v2.60.6221.755 (June 2026)
 
 **New:**
-Quick capture menu, download by link, Chromecast video, new drawing canvas with custom brush color and size, drag to reorder resources, file details sheet, video player gestures, text viewer themes, fallback save, controller/keyboard/TV navigation, settings reference with collapsible groups, crash email prompt, mini-game.
+Internet Streams with live TV and radio channels, stream filters and per-channel status, background stream audio, streams setup with Welcome onboarding, in-app Samsung-style camera, custom color themes, screenshot capture from Operations or edge gesture, print and transfer from viewers, smarter settings search.
 
 **Fixed:**
-Player time statistic stuck at zero, vanishing PDF thumbnails, player controls behind navigation bar, missing landscape stop-scan button, camera capture crash, Camera OCR light theme, welcome carousel D-pad.
+Network folder scans no longer hang and now time out clearly, shared download link no longer crashes the share screen.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -45,6 +89,7 @@ Features include:
 
 ## Table of Contents
 
+- [What It Replaces](#what-fastmediasorter-replaces-)
 - [Download](#download-)
 - [Product Flavors](#product-flavors-)
 - [Key Features](#key-features)
@@ -137,6 +182,7 @@ Full-size images:
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
 - 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
+- 📻 **Internet Streams:** Dedicated Streams screen for internet audio and video sources - add URLs manually, import `.m3u` playlists, or download the curated FastMediaSorter station catalog. Inline audio: radio plays from the list via a sticky bottom mini-control showing ICY now-playing metadata; the list stays interactive. Video and RTSP open in the fullscreen player.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -219,6 +265,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 ### 10. 🚗 In-Car Music with Android Head Unit
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+
+With the **Streams** screen, the same head unit plays internet radio stations over Wi-Fi or mobile data - no separate radio app required. Add any station URL or import the curated catalog from Extensions. The sticky bottom mini-control shows the current track name while the full station list remains scrollable and interactive.
 
 ### 11. 📺 Media Centre on an Android TV Box
 

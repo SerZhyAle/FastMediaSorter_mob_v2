@@ -35,6 +35,7 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
                 ResourceType.SFTP -> canonicalizeNetwork(trimmed, SCHEME_SFTP)
                 ResourceType.FTP -> canonicalizeNetwork(trimmed, SCHEME_FTP)
                 ResourceType.CLOUD -> canonicalizeCloud(trimmed)
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> trimmed
             }
         } catch (t: Throwable) {
             Timber.w(t, "PathNormalizer: failed to canonicalize %s for %s", rawPath, resourceType)

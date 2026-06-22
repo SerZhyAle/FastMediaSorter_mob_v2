@@ -21,8 +21,13 @@ import android.view.View
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
 import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
@@ -52,7 +57,9 @@ class StandaloneFileOperationsHandler(
     private val batchDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val sendToMenuManager: SendToMenuManager,
-    private val getCurrentSettings: suspend () -> AppSettings
+    private val getCurrentSettings: suspend () -> AppSettings,
+    // S0610: only the image host wires the Copy/Move panels; other standalone hosts leave this null.
+    private val fileOperationUseCase: FileOperationUseCase? = null
 ) {
 
     private val safeViews = PlayerBindingSafeViews(root)
@@ -295,6 +302,63 @@ class StandaloneFileOperationsHandler(
         activity.startActivity(Intent(activity, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         })
+    }
+
+    // ── Copy / Move to destination (S0610) ─────────────────────────────────
+    // Standalone is single-file with no resource context: the operation runs through the shared
+    // FileOperationUseCase directly (no PlayerFileOperationQueue / list navigation). Copy keeps the
+    // viewer open; Move finishes it because the shown file no longer exists (mirrors delete).
+
+    fun copyCurrentFileTo(destination: MediaResource) =
+        transferCurrentFile(destination.path, destination.name, isMove = false)
+
+    fun moveCurrentFileTo(destination: MediaResource) =
+        transferCurrentFile(destination.path, destination.name, isMove = true)
+
+    /** Custom-path («..») copy to a SAF tree the user just picked. */
+    fun copyCurrentFileToPath(destinationPath: String, label: String) =
+        transferCurrentFile(destinationPath, label, isMove = false)
+
+    /** Custom-path («..») move to a SAF tree the user just picked. */
+    fun moveCurrentFileToPath(destinationPath: String, label: String) =
+        transferCurrentFile(destinationPath, label, isMove = true)
+
+    private fun transferCurrentFile(destinationPath: String, label: String, isMove: Boolean) {
+        val file = getCurrentMediaFile() ?: return
+        val useCase = fileOperationUseCase ?: run {
+            Timber.w("StandalonePlayer: copy/move requested but no FileOperationUseCase wired for this host")
+            return
+        }
+        Timber.d("S0610: standalone ${if (isMove) "move" else "copy"} to destination requested")
+        activity.lifecycleScope.launch {
+            val settings = getCurrentSettings()
+            val startedRes = if (isMove) R.string.msg_move_started else R.string.msg_copy_started
+            val failedRes = if (isMove) R.string.error_move_failed else R.string.error_copy_failed
+            Toast.makeText(activity, activity.getString(startedRes, label), Toast.LENGTH_LONG).show()
+            try {
+                val sources = listOf(createNetworkAwareFile(file.path, file.name))
+                val dest = createNetworkAwareFile(destinationPath, null)
+                val operation = if (isMove) {
+                    FileOperation.Move(sources, dest, overwrite = settings.overwriteOnMove)
+                } else {
+                    FileOperation.Copy(sources, dest, overwrite = settings.overwriteOnCopy)
+                }
+                when (useCase.execute(operation)) {
+                    is FileOperationResult.Success,
+                    is FileOperationResult.PartialSuccess -> {
+                        val successRes = if (isMove) R.string.msg_move_success else R.string.msg_copy_success
+                        Toast.makeText(activity, activity.getString(successRes, label), Toast.LENGTH_SHORT).show()
+                        // Move removes the shown file, so the single-file viewer has nothing left to show.
+                        if (isMove) activity.finish()
+                    }
+                    else ->
+                        Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "StandalonePlayer: ${if (isMove) "move" else "copy"} to $destinationPath failed")
+                Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     // ── Rename ────────────────────────────────────────────────────────────

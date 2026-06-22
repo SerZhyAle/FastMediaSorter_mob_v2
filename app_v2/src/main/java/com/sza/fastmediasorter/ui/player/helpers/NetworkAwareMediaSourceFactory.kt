@@ -82,14 +82,17 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
         val pass = extras?.getString(EXTRA_CRED_PASS).orEmpty()
         val domain = extras?.getString(EXTRA_CRED_DOMAIN)
         val extraPort = extras?.getInt(EXTRA_CRED_PORT, 0) ?: 0
-        val host = uri.host.orEmpty()
+        // Defense-in-depth: a URI rebuilt via Uri.Builder.authority("host:port") percent-encodes the
+        // ':' so uri.host can come back as the whole "host:port" with uri.port == -1. Split a numeric
+        // trailing port back out so JSch/FTP never receive a host that still carries the port.
+        val (host, embeddedPort) = splitHostPort(uri.host.orEmpty())
 
         return when (uri.scheme?.lowercase()) {
             "sftp" -> SftpDataSourceFactory(
-                sftpClient, host, port(uri, extraPort, DEFAULT_SFTP_PORT), user, pass, context
+                sftpClient, host, port(uri, embeddedPort ?: extraPort, DEFAULT_SFTP_PORT), user, pass, context
             )
             "ftp" -> FtpDataSourceFactory(
-                ftpClient, host, port(uri, extraPort, DEFAULT_FTP_PORT), user, pass, context
+                ftpClient, host, port(uri, embeddedPort ?: extraPort, DEFAULT_FTP_PORT), user, pass, context
             )
             "smb" -> {
                 val share = uri.pathSegments.firstOrNull().orEmpty()
@@ -110,12 +113,30 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
                     "dropbox" to dropboxClient
                 )
             )
+            // Internet radio/HLS played through the background service must use the same HTTP factory
+            // as the in-app player: cross-protocol redirects + Icy-MetaData. Without it an Icecast/
+            // Shoutcast 30x across http<->https surfaces as a fatal "Response code: 301" source error.
+            "http", "https" -> StreamDataSourceFactoryProvider.create(context)
             else -> null
         }
     }
 
     private fun port(uri: Uri, extraPort: Int, default: Int): Int =
         uri.port.takeIf { it > 0 } ?: extraPort.takeIf { it > 0 } ?: default
+
+    /**
+     * Split a possibly "host:port" string into (host, port). Only splits on a single trailing
+     * numeric port (IPv4/hostname); a multi-colon value (IPv6 literal) is returned untouched so it
+     * is not mis-parsed. Guards against a Uri.Builder.authority() round-trip that leaves the port
+     * fused into [Uri.getHost].
+     */
+    private fun splitHostPort(rawHost: String): Pair<String, Int?> {
+        val colon = rawHost.indexOf(':')
+        if (colon <= 0 || colon != rawHost.lastIndexOf(':')) return rawHost to null
+        val portPart = rawHost.substring(colon + 1).toIntOrNull()?.takeIf { it in 1..65535 }
+            ?: return rawHost to null
+        return rawHost.substring(0, colon) to portPart
+    }
 
     companion object {
         const val EXTRA_CRED_USER = "fms.cred_user"

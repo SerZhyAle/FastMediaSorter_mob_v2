@@ -1,0 +1,167 @@
+<#
+.SYNOPSIS
+  Pre-release sweep - detailed log audit (step 04.1).
+
+.DESCRIPTION
+  Deep, format-agnostic scan of the captured run log for app-level error surfaces the
+  coarse verdict aggregator (prerelease-verdict.ps1) does not enumerate. The verdict only
+  produces a single error COUNT and gates on crashes; it cannot tell the operator WHICH
+  errors fired, and it silently reads 0 when the log is captured in `-v time` format
+  (search-log.ps1 only parses `-v threadtime`). This audit closes that gap:
+
+    - parses both `-v time` and `-v threadtime` logcat formats,
+    - keeps only app-process lines (by tag/package heuristics),
+    - collapses Java/Kotlin stack-trace frames into their throwing cluster,
+    - clusters E/ (and optionally W/) lines by tag + normalized message head,
+    - classifies each cluster as BENIGN (known emulator/capability fallback) or ACTIONABLE,
+    - separately flags user-facing error surfaces (toast / snackbar / showError),
+
+  so red toasts seen on screen are never lost to a green machine verdict again. Each
+  ACTIONABLE cluster is a /spec-draft candidate.
+
+  This script is reporting/triage only - it adds no app runtime code and never mutates the
+  catalog. Exit code reflects whether anything needs operator attention; it does not gate
+  the release by itself (the verdict aggregator owns PASS/FAIL on crashes).
+
+  Exit codes:
+    0 - no actionable app-error clusters and no error toasts
+    1 - actionable clusters and/or error toasts found (operator triage / spec-draft)
+    2 - infrastructure abort (LogFile missing / unreadable)
+
+.PARAMETER LogFile
+  Captured logcat for the run window (`-v time` or `-v threadtime`).
+
+.PARAMETER IncludeWarnings
+  Also cluster W/ lines (off by default - E/ only).
+
+.PARAMETER Json
+  Emit a single JSON object instead of human-readable lines.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/run.log -Json
+#>
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$LogFile,
+    [switch]$IncludeWarnings,
+    [switch]$Json
+)
+
+$ErrorActionPreference = 'Stop'
+
+if (-not (Test-Path $LogFile)) {
+    if ($Json) { '{"ok":false,"exitCode":2,"error":"log file not found"}' } else { Write-Host 'log file not found' }
+    exit 2
+}
+
+# Known-benign clusters: expected emulator / device-capability fallbacks that legitimately
+# log at E/W on an emulator and must not be treated as release defects. Extend deliberately -
+# every entry suppresses a real red line, so keep each one specific and commented.
+$benignPatterns = @(
+    'WifiRequiredException', 'Wi-Fi required',                 # SMB/network gated off without Wi-Fi on emulator
+    'Cast SDK not available', 'ModuleUnavailableException',    # Play Services Cast module absent on emulator
+    'DynamiteModule', 'cast.framework.dynamite',               # same Cast/Dynamite family
+    'EGL_emulation', 'ro.sf.lcd_density',                      # emulator GPU / surfaceflinger noise
+    'OMXNodeInstance',                                          # emulator media codec node teardown noise
+    'ACodec.*DynamicANWBuffer', 'setPortMode on output to DynamicANWBuffer',  # emulator SW HEVC native-buffer fallback; video still renders
+    'StagefrightMetadataRetriever', 'Failed to instantiate a MediaExtractor',  # system metadata probe on non-media/invalid files; app falls back
+    'MediaScannerJNI',                                          # system MediaStore scanner errors on invalid/stub files, not the app
+    'dead thread',                                             # benign Handler-after-teardown race
+    'Bluetooth binder is null', 'BatteryExternalStats', 'KernelCpuSpeedReader',  # system services, not app
+    'OCR engines not installed', 'UnsatisfiedLinkError loading', # expected optional-native fallback
+    'NetworkReachabilityGate: no-(network|wifi)',              # offline gate, expected
+    'SpellCheckerSession'                                       # IME service noise
+) -join '|'
+
+# User-facing error-surface markers - lines that map to a visible red toast / snackbar.
+$toastPatterns = 'Toast|Snackbar|showError|showErrorMessage|notifyError|UiError|error_toast|ErrorEvent'
+
+# App-line heuristic. threadtime carries the package column explicitly; `-v time` does not,
+# so fall back to "not a known system/native tag". This keeps the audit working regardless of
+# how the sweep captured the log.
+$systemTagHint = '^(SurfaceFlinger|Bluetooth\w*|Battery\w*|Kernel\w*|libc|memtrack|gralloc|EGL_emulation|OMXNodeInstance|InputDispatcher|android\.os\.Debug|SELinux|cutils|audio_hw\w*|Parcel|app_process|chatty|linker\w*|Typeface|StrictMode|HwBinder|ProfileSaver|zygote\w*|SpellCheckerSession|ActivityManager|WindowManager|SurfaceControl)'
+
+# One parsed record per non-stack-trace E/(W) line.
+$lineRegexThreadtime = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+\d+\s+(?<lvl>[EW])\s+(?<tag>\S+?)\s*:\s*(?<msg>.*)$'
+$lineRegexTime       = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<lvl>[EW])/(?<tag>[^(]+?)\(\s*\d+\)\s*:\s*(?<msg>.*)$'
+
+$wantLevels = if ($IncludeWarnings) { @('E', 'W') } else { @('E') }
+
+$clusters    = @{}   # key -> [pscustomobject] cluster
+$toastHits   = @()
+
+function Test-StackFrame([string]$msg) {
+    return ($msg -match '^\s*at\s' -or $msg -match '^\s*Caused by:' -or $msg -match '^\s*\.\.\.\s+\d+\s+more' -or $msg -match '^\s*Suppressed:')
+}
+
+foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
+    $m = [regex]::Match($raw, $lineRegexThreadtime)
+    if (-not $m.Success) { $m = [regex]::Match($raw, $lineRegexTime) }
+    if (-not $m.Success) { continue }
+
+    $lvl = $m.Groups['lvl'].Value
+    if ($wantLevels -notcontains $lvl) { continue }
+
+    $tag = $m.Groups['tag'].Value.Trim()
+    $msg = $m.Groups['msg'].Value.Trim()
+
+    if (Test-StackFrame $msg) { continue }            # stack frames fold into their cluster head
+    if ($tag -match $systemTagHint) { continue }      # system/native noise, not the app
+
+    # Toast surface detection on tag or message.
+    if (("$tag $msg") -match $toastPatterns) {
+        $toastHits += [pscustomobject]@{ tag = $tag; msg = $msg }
+    }
+
+    $isBenign = (("$tag $msg") -match $benignPatterns)
+
+    # Normalize the message head: drop volatile path/number tails so identical errors cluster.
+    $head = ($msg -replace '\d+', '#') -replace '\s+', ' '
+    if ($head.Length -gt 80) { $head = $head.Substring(0, 80) }
+    $key = "$lvl|$tag|$head"
+
+    if ($clusters.ContainsKey($key)) {
+        $clusters[$key].count++
+    } else {
+        $clusters[$key] = [pscustomobject]@{
+            level   = $lvl
+            tag     = $tag
+            sample  = $msg
+            count   = 1
+            benign  = [bool]$isBenign
+        }
+    }
+}
+
+$all        = $clusters.Values | Sort-Object -Property @{ Expression = 'count'; Descending = $true }
+$actionable = @($all | Where-Object { -not $_.benign })
+$benign     = @($all | Where-Object { $_.benign })
+$toastUnique = @($toastHits | Sort-Object tag, msg -Unique)
+
+$exit = if ($actionable.Count -gt 0 -or $toastUnique.Count -gt 0) { 1 } else { 0 }
+
+if ($Json) {
+    [ordered]@{
+        ok             = $true
+        exitCode       = $exit
+        actionableCount= $actionable.Count
+        benignCount    = $benign.Count
+        toastCount     = $toastUnique.Count
+        actionable     = @($actionable | Select-Object level, tag, count, sample)
+        toasts         = @($toastUnique | Select-Object tag, msg)
+    } | ConvertTo-Json -Depth 5 -Compress
+} else {
+    Write-Host "Detailed log audit: $LogFile"
+    Write-Host ("  actionable clusters: {0}  |  benign: {1}  |  error toasts: {2}" -f $actionable.Count, $benign.Count, $toastUnique.Count)
+    if ($actionable.Count) {
+        Write-Host "`n  ACTIONABLE app-error clusters (spec-draft candidates):"
+        foreach ($c in $actionable) { Write-Host ("    [{0}] {1} x{2}  {3}" -f $c.level, $c.tag, $c.count, $c.sample) }
+    }
+    if ($toastUnique.Count) {
+        Write-Host "`n  USER-FACING error surfaces (red toasts/snackbars):"
+        foreach ($t in $toastUnique) { Write-Host ("    {0}: {1}" -f $t.tag, $t.msg) }
+    }
+    if (-not $actionable.Count -and -not $toastUnique.Count) { Write-Host "  clean - no actionable app errors or error toasts" }
+}
+
+exit $exit

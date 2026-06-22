@@ -136,6 +136,7 @@ class ExtensionsManagerFragment : Fragment() {
     private fun sectionTitleRes(section: ExtensionSection): Int = when (section) {
         ExtensionSection.OCR, ExtensionSection.TRANSLATION -> R.string.ext_section_ocr_translation
         ExtensionSection.MEDIA_PLAYBACK -> R.string.ext_section_media_playback
+        ExtensionSection.STREAMS -> R.string.ext_section_streams
     }
 
     // Explicit confirmation before deleting an installed extension (Phase 08 step 08.3). The delete

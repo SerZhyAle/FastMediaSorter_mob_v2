@@ -24,4 +24,12 @@ FastMediaSorter v2 використовує **Clean Architecture + MVVM + Hilt**
 - Data-шар відповідає за network/cloud/local providers
 - Складна логіка Activity делегується helper/manager класам
 
+### Підсистема Трансляцій
+
+- Окремий `StreamsActivity` / `StreamsViewModel` із власним `StreamsRepository` і `StreamDataSource`.
+- Вбудоване аудіовідтворення через `StreamInlineAudioManager`; міні-панель керування відображає ICY-метадані (станція/трек), не приховуючи список.
+- Відео/RTSP відкриваються у повноекранному плеєрі; кнопка «Назад» повертає до списку зі збереженням позиції прокрутки.
+- Імпорт каталогу: `ImportStreamCatalogUseCase` завантажує кураторський каталог із швидким тайм-аутом при недоступному хості.
+- Матриця варіантів: standard/legacy/noLegal - повний набір (HLS/DASH/RTSP + progressive); lite - лише progressive-audio; photos - функція відсутня.
+
 Повна архітектурна документація: [ARCHITECTURE.md](ARCHITECTURE.md).

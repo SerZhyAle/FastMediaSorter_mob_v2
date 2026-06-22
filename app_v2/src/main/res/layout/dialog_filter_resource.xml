@@ -19,22 +19,14 @@
             android:textStyle="bold"
             android:layout_marginBottom="@dimen/margin_large" />
 
-        <!-- Sort Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/sort_by"
-            android:textSize="@dimen/resource_card_title_text_size"
-            android:textStyle="bold"
-            android:layout_marginTop="@dimen/margin_small"
-            android:layout_marginBottom="@dimen/margin_small" />
-
-        <Spinner
+        <!-- Sort Section (S0567: raw Spinner -> SettingsDropdownRow; the row renders its own "Sort by" title). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/spinnerSort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="@dimen/button_height"
-            android:padding="@dimen/padding_small" />
+            android:layout_marginTop="@dimen/margin_small"
+            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/sort_by" />
 
         <!-- Divider -->
         <View

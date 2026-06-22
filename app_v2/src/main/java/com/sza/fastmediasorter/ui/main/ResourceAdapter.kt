@@ -490,6 +490,7 @@ class ResourceAdapter(
                     ResourceType.SFTP -> root.context.getString(R.string.resource_type_sftp)
                     ResourceType.FTP -> root.context.getString(R.string.resource_type_ftp)
                     ResourceType.CLOUD -> root.context.getString(R.string.resource_type_cloud)
+                    ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> root.context.getString(R.string.resource_type_stream)
                 }
 
                 val chipColorRes = when (resource.type) {
@@ -498,6 +499,7 @@ class ResourceAdapter(
                     ResourceType.SFTP -> R.color.chip_sftp_bg
                     ResourceType.FTP -> R.color.chip_ftp_bg
                     ResourceType.CLOUD -> R.color.chip_cloud_bg
+                    ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.color.chip_cloud_bg
                 }
                 val chipColor = ContextCompat.getColor(root.context, chipColorRes)
                 tvResourceType.backgroundTintList = ColorStateList.valueOf(chipColor)
