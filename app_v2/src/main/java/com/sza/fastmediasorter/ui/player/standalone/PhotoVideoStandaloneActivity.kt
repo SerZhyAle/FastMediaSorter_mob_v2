@@ -107,6 +107,30 @@ class PhotoVideoStandaloneActivity :
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
+    // S0610: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
+    // pending operation type decides whether the current file is copied or moved into it.
+    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
+    private val customPathPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        val op = pendingCustomPathOp
+        pendingCustomPathOp = null
+        if (uri == null || op == null) return@registerForActivityResult
+        Timber.d("S0610: standalone custom-path destination picked op=$op")
+        contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
+            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
+        when (op) {
+            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
+                fileOperations.moveCurrentFileToPath(uri.toString(), label)
+            else ->
+                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+        }
+    }
+
     // Standalone opens local/content URIs far more often than network paths, so these heavy
     // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
     @Inject lateinit var smbClient: Lazy<SmbClient>
@@ -128,6 +152,8 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+    // S0610: global destination list (no resource context) for the Copy/Move bottom panels.
+    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
     // S0393 wave-C: image edit dialog (rotate/flip/filters/adjust) use-cases.
     @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
     @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
@@ -286,6 +312,7 @@ class PhotoVideoStandaloneActivity :
     // print path; returns false when no rendered image is available so the menu gate / dispatch fails cleanly.
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
         val bitmap = binding.photoView.drawable?.toBitmap() ?: return false
+        Timber.d("S0610: standalone image print dispatched via Send-to receiver")
         androidx.print.PrintHelper(this).apply {
             scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
         }.printBitmap(mediaFile.name, bitmap)
@@ -390,7 +417,32 @@ class PhotoVideoStandaloneActivity :
             batchDeleteLauncher = batchDeleteLauncher,
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() }
+            getCurrentSettings = { settingsRepository.getSettings().first() },
+            fileOperationUseCase = fileOperationUseCase
+        )
+    }
+
+    // S0610: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
+    // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
+    private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
+        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+            root = binding.root,
+            settingsRepository = settingsRepository,
+            getDestinationsUseCase = getDestinationsUseCase,
+            lifecycleScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
+                override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
+                override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
+                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                    pendingCustomPathOp = operationType
+                    customPathPickerLauncher.launch(null)
+                }
+                override fun getCurrentResourceId(): Long = -1L
+                override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
+                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+            },
+            shouldNumberSlots = { false },
+            slotKeyGlyph = { null },
         )
     }
 
@@ -428,12 +480,15 @@ class PhotoVideoStandaloneActivity :
             view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
             insets
         }
-        // Without bottom-inset padding the ExoPlayer button row is hidden behind the nav bar
-        // because setDecorFitsSystemWindows(false) makes the window draw behind it.
-        ViewCompat.setOnApplyWindowInsetsListener(binding.mediaContentArea) { view, insets ->
-            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(0, 0, 0, nav.bottom)
-            insets
+        // S0610: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
+        // here. When the panels are GONE the 0-height container still reserves the nav gap, keeping the
+        // ExoPlayer button row above the nav bar; when visible, the destination grids clear it too.
+        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+            ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
+                val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+                view.setPadding(0, 0, 0, nav.bottom)
+                insets
+            }
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
     }
@@ -703,6 +758,10 @@ class PhotoVideoStandaloneActivity :
                 viewManager.show(file, type, onVideoReady)
                 lastShownPath = file.path
                 maybeRunAutoAction(type)
+                // S0610: build the Copy/Move destination grids for the shown file (runs in a coroutine
+                // inside the manager, so it does not delay first render).
+                Timber.d("S0610: standalone destination panels populated")
+                destinationButtonsManager.populateDestinationButtons()
             }
             folderPagingEnabled = state.supportsFolderPaging
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)

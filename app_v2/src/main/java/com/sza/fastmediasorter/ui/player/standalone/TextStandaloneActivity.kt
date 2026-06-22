@@ -88,6 +88,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
     // S0393 wave-C: enables in-place text editing (save) for writable local text files.
     private val textEditorSaveFlow by lazy {
@@ -112,7 +113,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>() {
             batchDeleteLauncher = batchDeleteLauncher,
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() }
+            getCurrentSettings = { settingsRepository.getSettings().first() },
+            fileOperationUseCase = fileOperationUseCase
         )
     }
 

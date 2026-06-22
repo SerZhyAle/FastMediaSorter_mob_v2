@@ -157,8 +157,9 @@ class StreamsViewModel @Inject constructor(
          * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
          * orders pinned-first followed by the chosen [SortMode]. Category, language and media-kind facets
          * are ANDed: each unset facet passes everything, so a separate ALL/ANY match-mode toggle is
-         * redundant (selecting "All" on a facet already disables it). A language-less row always passes the
-         * language predicate (strategic §6.4). The media-kind facet folds VIDEO and RTSP transports into a
+         * redundant (selecting "All" on a facet already disables it). An active language facet now keeps
+         * only rows whose language tokens explicitly contain that language, while rows without a language
+         * stay visible only under "All". The media-kind facet folds VIDEO and RTSP transports into a
          * single "video" bucket. The incoming list is already pinned-first from the DAO; re-sorting keeps
          * that invariant explicit and stable. `internal` so the pure filter logic is unit-testable without
          * the ViewModel's injected graph.
@@ -171,10 +172,7 @@ class StreamsViewModel @Inject constructor(
                     source.topic?.lowercase()?.contains(query) == true ||
                     source.language?.lowercase()?.contains(query) == true
                 val categoryHit = filter.category == null || source.category == filter.category
-                // Per strategic §6.4 a language-less row is never hidden by an active language filter,
-                // so the language predicate passes when the cell is null/blank.
                 val languageHit = filter.language == null ||
-                    source.language.isNullOrBlank() ||
                     source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
                 // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
                 val mediaHit = when (filter.mediaKind) {

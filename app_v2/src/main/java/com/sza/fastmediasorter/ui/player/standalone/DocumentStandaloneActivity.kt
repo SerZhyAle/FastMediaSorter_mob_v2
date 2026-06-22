@@ -108,6 +108,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
     // S0393 U4/U5: keyboard / D-pad handler (pdf/epub keys + paging).
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -170,7 +171,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             batchDeleteLauncher = batchDeleteLauncher,
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() }
+            getCurrentSettings = { settingsRepository.getSettings().first() },
+            fileOperationUseCase = fileOperationUseCase
         )
     }
 

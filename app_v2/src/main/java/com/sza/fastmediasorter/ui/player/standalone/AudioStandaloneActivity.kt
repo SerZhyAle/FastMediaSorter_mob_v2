@@ -103,6 +103,7 @@ class AudioStandaloneActivity :
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
     // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
     private lateinit var keyboardHandler: PlayerKeyboardHandler
@@ -158,7 +159,8 @@ class AudioStandaloneActivity :
             batchDeleteLauncher = batchDeleteLauncher,
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() }
+            getCurrentSettings = { settingsRepository.getSettings().first() },
+            fileOperationUseCase = fileOperationUseCase
         )
     }
 

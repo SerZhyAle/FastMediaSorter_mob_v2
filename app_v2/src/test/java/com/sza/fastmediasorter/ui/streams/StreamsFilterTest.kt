@@ -49,7 +49,7 @@ class StreamsFilterTest {
     }
 
     @Test
-    fun `null-language row stays visible under active language filter`() {
+    fun `null-language row is hidden under active language filter`() {
         val result = StreamsViewModel.applyFilter(
             listOf(
                 source("nolang", language = null),
@@ -58,7 +58,7 @@ class StreamsFilterTest {
             ),
             StreamsFilter(language = "ukrainian"),
         )
-        assertTrue("null-language row must remain visible", "nolang" in ids(result))
+        assertFalse("null-language row must be hidden", "nolang" in ids(result))
         assertTrue("matching-language row must remain", "ukr" in ids(result))
         assertFalse("non-matching-language row must drop", "rus" in ids(result))
     }
