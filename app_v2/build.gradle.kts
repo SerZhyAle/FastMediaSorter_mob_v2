@@ -162,6 +162,14 @@ val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
 val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+// S0630: Release-A gate. Drops the screen-capture features from the STANDARD build so a Play release
+// needs no new foreground-service declaration: menu screenshot -> FOREGROUND_SERVICE_MEDIA_PROJECTION
+// and edge-gesture overlay -> FOREGROUND_SERVICE_SPECIAL_USE both leave the standard merged manifest,
+// and their Hilt @IntoSet bindings are unmounted (empty sets -> the settings rows hide themselves).
+// Default on = full behavior; set fms.screenCapture=off (gradle.properties or -P) for a Play-fast
+// build. Standard-only - noLegal/photos/lite/legacy/vr are unaffected. Clean revert: drop the property.
+val screenCaptureStandardEnabled =
+    (providers.gradleProperty("fms.screenCapture").orNull ?: "on").lowercase() != "off"
 val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
     when {
         raw.equals("true", ignoreCase = true) -> true
@@ -571,8 +579,14 @@ android {
             // ScreenCaptureService) is now shared with the store flavor via a menu-triggered path.
             // Only the engine moves here; the overlay-strip launcher + accessibility silent capture
             // (SYSTEM_ALERT_WINDOW / specialUse / a11y) stay noLegal-only in src/noLegal.
-            kotlin.directories.add("src/screenCapture/java")
-            res.directories.add("src/screenCapture/res")
+            // S0630: gated so a Play-fast standard release can drop screen capture (no new FGS decl).
+            if (screenCaptureStandardEnabled) {
+                kotlin.directories.add("src/screenCapture/java")
+                res.directories.add("src/screenCapture/res")
+                // Standard-only edge-gesture overlay controller + its @IntoSet binding, relocated from
+                // src/standard so it unmounts together with the rest of capture (empty controller set).
+                kotlin.directories.add("src/standardScreenCapture/java")
+            }
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -942,8 +956,16 @@ androidComponents {
         // service + FOREGROUND_SERVICE_MEDIA_PROJECTION) is injected into both the store flavor and
         // noLegal. The src/screenCapture source set is mounted by directory only, which does not pull
         // in its AndroidManifest automatically, so it is added explicitly here.
-        if (flavorName == "standard" || flavorName == "noLegal") {
+        // S0630: standard injects the capture manifests only when screen capture is enabled; noLegal always does.
+        val injectSharedCaptureManifest =
+            flavorName == "noLegal" || (flavorName == "standard" && screenCaptureStandardEnabled)
+        if (injectSharedCaptureManifest) {
             variant.sources.manifests.addStaticManifestFile("src/screenCapture/AndroidManifest.xml")
+        }
+        if (flavorName == "standard" && screenCaptureStandardEnabled) {
+            // SPECIAL_USE overlay host, relocated from the auto-detected src/standard manifest so it
+            // can be suppressed for a Play-fast standard release (S0630).
+            variant.sources.manifests.addStaticManifestFile("src/standardScreenCapture/AndroidManifest.xml")
         }
 
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting

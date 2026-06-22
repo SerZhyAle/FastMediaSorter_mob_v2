@@ -4,26 +4,12 @@
     S0423: ML Kit Translate is bundled in the standard base, so its AAR-merged MlKitInitProvider +
     MlKitComponentDiscoveryService run normally (no on-demand DFM, nothing to strip).
 
-    S0621: the edge-gesture screenshot is enabled on standard via the Play-safe MediaProjection
-    consent path. This overlay declares the always-on strip host (SYSTEM_ALERT_WINDOW + SPECIAL_USE
-    FGS); the MediaProjection consent activity + capture service + FOREGROUND_SERVICE_MEDIA_PROJECTION
-    arrive from the shared src/screenCapture manifest. The accessibility silent-capture service is
-    deliberately NOT declared here - it stays a noLegal exclusive (Play-policy boundary).
+    S0630: the edge-gesture screenshot overlay host (SYSTEM_ALERT_WINDOW + SPECIAL_USE FGS) and the
+    shared MediaProjection capture engine (FOREGROUND_SERVICE_MEDIA_PROJECTION) are no longer declared
+    unconditionally here. They are injected via addStaticManifestFile (build.gradle.kts) only when
+    fms.screenCapture != off, so a Play-fast standard release can ship without the MEDIA_PROJECTION /
+    SPECIAL_USE declarations. The relocated SPECIAL_USE block lives in
+    src/standardScreenCapture/AndroidManifest.xml; the shared engine in src/screenCapture/AndroidManifest.xml.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-
-    <application>
-        <service
-            android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
-        </service>
-    </application>
-
 </manifest>
