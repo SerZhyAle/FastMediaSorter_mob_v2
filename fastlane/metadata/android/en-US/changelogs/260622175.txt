@@ -1,0 +1,6 @@
+• Internet Streams - browse, filter and play live TV and radio channels.
+• Stream playback polish - channel name in the title, per-channel status, and background audio with an exit choice.
+• Streams setup - enable streams per device profile with a Welcome introduction.
+• In-app camera - Samsung-style capture with an in-screen photo and video switch.
+• Custom color themes - build and apply your own color theme.
+..
