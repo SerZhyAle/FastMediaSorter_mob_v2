@@ -1,5 +1,7 @@
 # Memory Index
 
+- [Stream catalog: ship all live channels](feedback_stream_catalog_all_live_channels.md) - owner wants ALL live streams incl grey-area iptv-org Live TV in delivery/stream-catalog; never gate/hold publish on the README "legal scope"; S0627 rejected/archived, +1868 kept & uploaded
+
 - [VR immersive re-entry hotspot (S0607)](project_vr_immersive_reentry_hotspot.md) - 2nd/3rd immerse hangs in IDLE ("вечный полёт"); reused XrInstance bound to finish()-ed Activity -> null VolumetricWindowInfo; fix = recreate instance per entry + loader inited once with Application context (global ref); ~2-month battle, lineage S0249/S0290/S0291/S0382
 - [VR immersive logcat capture trap](reference_vr_immersive_logcat_capture_trap.md) - "package:mine" export drops the immersive session (native/dead-pid); drive raw `adb logcat -b all` during enter/exit/enter repro; watch orphaned adb file locks + headset-removed offline
 - [Quest 2D panel not introspectable](reference_quest_panel_not_introspectable.md) - uiautomator on Quest sees only com.oculus.vrshell, screencap is stereo; reproduce XR-gated UI on a phone emulator (force just the visibility gate, not full VR_QUEST) or use on-device Timber logging (S0606)
