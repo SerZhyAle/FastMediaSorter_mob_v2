@@ -2780,4 +2780,6 @@ Close the player and try again.</string>
     <string name="stream_status_unknown">Not played yet</string>
     <string name="programs">Programs</string>
     <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
+    <string name="cast_stream_unsupported_protocol">This stream can\'t be cast to Chromecast</string>
+    <string name="screenshot_gesture_action_open_app">Open the app</string>
 </resources>

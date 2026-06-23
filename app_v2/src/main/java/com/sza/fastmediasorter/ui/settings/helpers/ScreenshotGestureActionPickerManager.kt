@@ -48,6 +48,7 @@ class ScreenshotGestureActionPickerManager(
         ScreenshotGestureAction.OCR_TRANSLATE -> R.string.screenshot_gesture_action_ocr_translate
         ScreenshotGestureAction.SEND_TO_RECIPIENTS -> R.string.screenshot_gesture_action_send_to
         ScreenshotGestureAction.SHARE -> R.string.screenshot_gesture_action_share
+        ScreenshotGestureAction.OPEN_APP -> R.string.screenshot_gesture_action_open_app
         ScreenshotGestureAction.DO_NOT_USE -> R.string.screenshot_gesture_action_none
     }
 }

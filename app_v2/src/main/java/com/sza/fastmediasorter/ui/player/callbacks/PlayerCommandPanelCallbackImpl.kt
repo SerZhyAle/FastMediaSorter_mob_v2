@@ -71,6 +71,21 @@ class PlayerCommandPanelCallbackImpl(
     // FileProvider Uri could not be built (kept hidden, as before).
     private fun buildShareableContent(): ShareableContent? {
         val file = viewModel.state.value.currentFile ?: return null
+        // S0631: a live video stream is shared as a link, not a file. Carry the stream URL as plain
+        // text so text-capable receivers send it via ACTION_SEND/EXTRA_TEXT. sourcePath = null keeps
+        // requiresMaterialization false, so the dispatch layer never tries to download the live stream.
+        if (viewModel.state.value.isLiveVideoStream) {
+            Timber.d("S0631: building stream share payload as text/plain link")
+            return ShareableContent(
+                uris = emptyList(),
+                mime = "text/plain",
+                mediaType = file.type,
+                text = file.path,
+                displayName = file.name,
+                mediaFile = null,
+                sourcePath = null,
+            )
+        }
         val localUri = buildShareUri(file.path)
         val isRemote = localUri == null && (file.path.contains("://") || file.path.startsWith("cloud:/"))
         if (localUri == null && !isRemote) return null

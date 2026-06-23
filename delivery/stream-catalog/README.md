@@ -59,23 +59,27 @@ then `name`.
 | `notes` | Free-text remarks. |
 | `confidence` | `high` \| `medium` \| `low` - our confidence the URL is correct/stable. |
 
-## Legal scope
+## Inclusion policy
 
-Only streams that are clearly free and legal to access publicly:
+The catalog ships **every reachable live channel that actually carries signal**. There is no
+legal-scope / "grey-area" filter: community radio, official broadcaster feeds, vendor TEST streams,
+Creative-Commons / public-domain media, grey-area IPTV restreams and -/- channels are all kept,
+as long as the stream responds with real media bytes.
 
-- Public/community internet radio - the [radio-browser.info](https://www.radio-browser.info/) community
-  database, and [SomaFM](https://somafm.com/) listener-supported free radio.
-- Official broadcaster / government live feeds where the **broadcaster itself** publishes an open
-  HLS/DASH URL: NASA TV, DW, France 24, Al Jazeera, Euronews, NHK World-Japan, TRT World, Arirang,
-  RTVE 24h, Current Time (RFE/RL), Red Bull TV, etc.
-- Vendor TEST/sample streams (Apple, Mux, Unified Streaming, Bitmovin, DASH-IF, Akamai, Wowza demo).
-- Creative-Commons / public-domain media (Blender open movies, Big Buck Bunny, Tears of Steel, Sintel
-  via Blender / Internet Archive / Google sample bucket).
+The only entries dropped are ones that cannot actually play:
 
-Explicitly **excluded**: paywalled, DRM-protected, geo-locked premium, and grey-area IPTV-aggregator
-channels (re-streamed commercial TV). When the free/legal status of a candidate is uncertain, it is
-dropped. The legality audit removed e.g. CGTN (state-controlled, revoked Ofcom licence) and a third-party
-Amagi FAST mirror of DW (not the broadcaster's own feed).
+- defunct channels (`closed` in the iptv-org index),
+- header-gated streams that require a `referrer` / `User-Agent` the app cannot supply,
+- confirmed-dead URLs - DNS failure, connection refused, HTTP 404/410, or an HLS playlist that
+  serves no segment data (see the deep-signal probe below).
+
+Sources: [radio-browser.info](https://www.radio-browser.info/) community radio,
+[SomaFM](https://somafm.com/) listener-supported radio, official broadcaster / government live feeds
+(NASA TV, DW, France 24, Al Jazeera, Euronews, NHK World-Japan, TRT World, Arirang, RTVE 24h, Current
+Time (RFE/RL), Red Bull TV, ..), vendor TEST/sample streams (Apple, Mux, Unified Streaming, Bitmovin,
+DASH-IF, Akamai, Wowza demo), Creative-Commons / public-domain media (Blender open movies, Big Buck
+Bunny, Tears of Steel, Sintel via Blender / Internet Archive / Google sample bucket), and the iptv-org
+public Live TV index (incl. grey-area restreams and - channels).
 
 ## Maintenance: unified collector
 
@@ -97,6 +101,33 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 - rtsp: TCP connect probe (weak; never auto-dead on timeout).
 - Probes run from the maintainer's machine; geo-restricted streams may read dead/unknown locally yet
   work on a user's device. Only drop confirmed-dead (DNS/refused/404/410).
+
+### Deep-signal probe (`-DeepSignal`)
+
+The default header probe only reads the response status of the playlist/manifest URL, so an HLS master
+that returns `200` but serves no segments still reads `alive`. `-DeepSignal` (catalog-only) pulls a few
+KB of **real media body** to confirm the stream actually carries signal:
+
+- HLS: walks master -> media playlist -> first segment and reads bytes off the segment. Playlist `200`
+  but segment `404`/empty => `dead` (the "declared but not playing" case).
+- DASH: fetches the manifest and confirms it parses as `<MPD>`.
+- ICECAST / progressive / direct media: pulls body bytes straight off the stream (ICY non-HTTP replies
+  count as alive). RTSP: OPTIONS handshake over a raw socket.
+- Runs many concurrent runspaces (default `-Throttle 48`); each fetch is `CancellationToken`-bounded so
+  endless live bodies are never fully downloaded. `-SignalBytes` (default 16384) caps the pull,
+  `-SignalMinBytes` (default 2048) is the alive threshold, `-SignalTimeoutSec` (default 8) bounds each
+  fetch, `-Limit N` probes only the first N rows (for a quick sample; cannot combine with `-PruneDead`).
+
+```
+# Deep-signal report over the whole catalog (no writes):
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal
+
+# More threads for a faster full sweep:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 80
+
+# Apply the prune after reviewing the report:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead
+```
 - Default run appends only `alive` new rows to `delivery/stream-catalog/streams.csv` and writes a
   timestamped backup under `temp/` first.
 - Preview run writes `temp/stream-candidates.csv` + `temp/stream-candidates-report.csv` and does not

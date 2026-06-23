@@ -49,6 +49,8 @@
                 android:layout_weight="1"
                 app:startIconDrawable="@drawable/ic_search"
                 app:startIconTint="?attr/colorControlNormal"
+                app:endIconMode="clear_text"
+                app:endIconTint="?attr/colorControlNormal"
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText

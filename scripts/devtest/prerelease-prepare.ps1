@@ -100,14 +100,24 @@ if ($drCode -ne 0) {
 $script:result.selectedDevice = if ($dr) { $dr.selectedDevice } else { $DeviceId }
 Add-Stage 'device-gate' 'OK' "device=$($script:result.selectedDevice)"
 
+# Resolve a concrete device id for every downstream adb call. device-ready.ps1 already picked the
+# single ONLINE device even when -DeviceId was omitted (it ignores offline siblings); depending on
+# the raw -DeviceId here - as the original code did - left bare `adb shell` ambiguous whenever
+# phantom offline emulator-55xx entries were attached, silently zeroing the API probe and skipping
+# the required ACCESS_LOCAL_NETWORK grant (S0625). Pin everything to the resolved id instead.
+$TargetDevice = $script:result.selectedDevice
+if ([string]::IsNullOrWhiteSpace($TargetDevice)) {
+    Add-Stage 'device-resolve' 'FAIL' 'device-ready did not report a concrete device id; refusing to run unscoped adb'
+    Complete-Run 10
+}
+
 # ---------- stage 2: clean install (step 01.2) ----------
 # Pin adb-driven steps to the chosen device via ANDROID_SERIAL (belt-and-braces alongside
 # adb.ps1's own -DeviceId), so a stray second device cannot capture the install.
-if ($DeviceId) { $env:ANDROID_SERIAL = $DeviceId }
+$env:ANDROID_SERIAL = $TargetDevice
 
 # Uninstall the prior build if present; a missing package (adb.ps1 exit 4) is not an error.
-$unArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'uninstall')
-if ($DeviceId) { $unArgs += @('-DeviceId', $DeviceId) }
+$unArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'uninstall', '-DeviceId', $TargetDevice)
 & pwsh @unArgs *> $null
 Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 
@@ -122,8 +132,7 @@ if ($LASTEXITCODE -ne 0) {
     Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
     Complete-Run 10
 }
-$instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard')
-if ($DeviceId) { $instArgs += @('-DeviceId', $DeviceId) }
+$instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard', '-DeviceId', $TargetDevice)
 & pwsh @instArgs *> $null
 $installCode = $LASTEXITCODE
 if ($installCode -ne 0) {
@@ -139,8 +148,7 @@ Add-Stage 'install' 'OK' "standard-debug built + installed ($DebugPackage)"
 $wcXml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><map><boolean name="welcome_completed" value="true" /></map>'
 $wcB64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($wcXml))
 $wcCmd = "run-as $DebugPackage sh -c 'mkdir -p shared_prefs; echo $wcB64 | base64 -d > shared_prefs/welcome_prefs.xml'"
-$wcArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', $wcCmd)
-if ($DeviceId) { $wcArgs += @('-DeviceId', $DeviceId) }
+$wcArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', $wcCmd, '-DeviceId', $TargetDevice)
 & pwsh @wcArgs *> $null
 Add-Stage 'onboarding-bypass' 'OK' 'welcome_completed=true (skip first-run onboarding)'
 
@@ -156,10 +164,17 @@ if (-not $adb) {
     Add-Stage 'local-network-grant' 'FAIL' 'adb not found'
     Complete-Run 10
 }
-$adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
-$deviceSdk = 0
+# Always scope the API probe to the resolved device. An unscoped `adb shell` is ambiguous when more
+# than one entry (incl. offline emulator-55xx) is attached and returns empty, which previously zeroed
+# $deviceSdk and dropped into the SKIP branch - leaving a real API 37 device without the grant (S0625).
+$adbTarget = @('-s', $TargetDevice)
 $sdkRaw = "$(& $adb @adbTarget shell getprop ro.build.version.sdk 2>$null)".Trim()
-if ($sdkRaw -match '^\d+$') { $deviceSdk = [int]$sdkRaw }
+if ($sdkRaw -notmatch '^\d+$') {
+    # Fail loud rather than SKIP: a misdetected API must never silently skip a required runtime grant.
+    Add-Stage 'local-network-grant' 'FAIL' "could not read device API on $TargetDevice (getprop returned '$sdkRaw'); refusing to skip the ACCESS_LOCAL_NETWORK grant"
+    Complete-Run 10
+}
+$deviceSdk = [int]$sdkRaw
 
 if ($deviceSdk -ge 37) {
     & $adb @adbTarget shell pm grant $DebugPackage android.permission.ACCESS_LOCAL_NETWORK *> $null
@@ -176,8 +191,7 @@ if ($deviceSdk -ge 37) {
 # ---------- stage 3: seed media (step 01.3) ----------
 # Probe for the seeded media root; only seed when absent so re-runs are idempotent.
 $mediaRoot  = '/sdcard/Download/FastMediaSorter_Test'
-$probeArgs  = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', "ls -d $mediaRoot")
-if ($DeviceId) { $probeArgs += @('-DeviceId', $DeviceId) }
+$probeArgs  = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', "ls -d $mediaRoot", '-DeviceId', $TargetDevice)
 $probeOut = & pwsh @probeArgs 2>$null
 $mediaPresent = ($LASTEXITCODE -eq 0 -and "$probeOut" -match 'FastMediaSorter_Test')
 
@@ -196,8 +210,7 @@ if ($mediaPresent) {
 # ---------- stage 4: launch verify (step 01.4) ----------
 # Launch via "adb.ps1 launch" - on debug builds it starts the explicit MainActivity and
 # bypasses the LeakCanary launcher trap. Then scan the launch window for a crash/FATAL/ANR.
-$launchArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'launch')
-if ($DeviceId) { $launchArgs += @('-DeviceId', $DeviceId) }
+$launchArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'launch', '-DeviceId', $TargetDevice)
 & pwsh @launchArgs *> $null
 $launchCode = $LASTEXITCODE
 if ($launchCode -ne 0) {
@@ -208,8 +221,7 @@ if ($launchCode -ne 0) {
 # Allow the cold start to settle before reading the launch-window log.
 Start-Sleep -Seconds 3
 
-$logArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'log', '-Tail', '400', '-Grep', 'FATAL|beginning of crash|ANR in')
-if ($DeviceId) { $logArgs += @('-DeviceId', $DeviceId) }
+$logArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'log', '-Tail', '400', '-Grep', 'FATAL|beginning of crash|ANR in', '-DeviceId', $TargetDevice)
 $logOut = & pwsh @logArgs 2>$null
 if ("$logOut" -match 'FATAL|beginning of crash|ANR in') {
     Add-Stage 'launch-verify' 'FAIL' 'crash/FATAL/ANR detected in launch window'

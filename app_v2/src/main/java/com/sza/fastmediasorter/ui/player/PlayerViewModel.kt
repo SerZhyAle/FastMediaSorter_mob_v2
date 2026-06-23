@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.PrefetchPlan
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.ResumeState
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -151,6 +152,12 @@ class PlayerViewModel @Inject constructor(
         // isSlideShowActive for symmetry with intent-extra naming used to rebuild panels.
         val resourceId: Long get() = resource?.id ?: 0L
         val isSlideshowEnabled: Boolean get() = isSlideShowActive
+        // S0631: single source of truth for the live-video-stream control profile. A stream is launched
+        // into the player with the synthetic resource id STREAM (-200); scoping to MediaType.VIDEO keeps
+        // audio (radio) streams on their existing control set. Every visibility/share consumer branches
+        // on this instead of re-deriving the stream check from the path.
+        val isLiveVideoStream: Boolean
+            get() = resource?.id == SyntheticResourceIds.STREAM && currentFile?.type == MediaType.VIDEO
     }
 
     sealed class PlayerEvent {

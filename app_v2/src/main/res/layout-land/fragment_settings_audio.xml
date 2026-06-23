@@ -6,28 +6,42 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-    <!-- Support audio - help payload folded into the row -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowSupportAudio"
+    <!-- Support audio + Search covers online share one landscape row to cut vertical scroll (S0618 R2). -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/support_audio_description"
-        app:str_subtitle="@string/setting_support_audio_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/support_audio_description"
-        app:str_helpMessage="@string/supported_audio_formats"
-        app:str_checked="true" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <!-- Search audio covers online -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowSearchAudioCoversOnline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/search_audio_covers_online"
-        app:str_subtitle="@string/setting_search_audio_covers_online_desc" />
+        <!-- Support audio - help payload folded into the row -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSupportAudio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:nextFocusRight="@id/rowSearchAudioCoversOnline"
+            app:str_title="@string/support_audio_description"
+            app:str_subtitle="@string/setting_support_audio_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/support_audio_description"
+            app:str_helpMessage="@string/supported_audio_formats"
+            app:str_checked="true" />
+
+        <!-- Search audio covers online -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSearchAudioCoversOnline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
+            android:nextFocusLeft="@id/rowSupportAudio"
+            app:str_title="@string/search_audio_covers_online"
+            app:str_subtitle="@string/setting_search_audio_covers_online_desc" />
+
+    </LinearLayout>
 
     <!-- Cover-download sub-options (WiFi-only + local cache) on one row in landscape; each row's visibility is still toggled individually in fragment. -->
     <LinearLayout
@@ -98,9 +112,9 @@
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_margin_standard" android:text="@string/audio_background_photos_source_label" android:textColor="@color/text_color_primary" android:textSize="@dimen/toggler_title_text_size" />
 
-        <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="center" android:text="@string/no_photos_source_selected" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_title_text_size" />
+        <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="start" android:text="@string/no_photos_source_selected" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_title_text_size" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/select_photos_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectPhotosSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <!-- Audio empty state animation mode -->
@@ -114,7 +128,7 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />
 
 <!-- S0367: microphone-recording and camera-photos settings moved to Playback → "Camera, microphone and Other features". -->
 

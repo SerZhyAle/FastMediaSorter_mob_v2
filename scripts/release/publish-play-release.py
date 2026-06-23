@@ -41,6 +41,41 @@ def get_version_name():
         print(f"Warning: Could not read versionName from gradle files: {e}")
     return None
 
+def get_expected_version_code():
+    """Reads the release versionCode the build stamped into app_v2/build.gradle.kts.
+
+    The release build (a.ps1 r / build-release-spectrum.ps1) writes the resolved
+    code into `defaultAppVersionCode`, so the first `versionCode = <digits>` match
+    is the version of the AAB on disk. Used to pre-check the Play library without
+    uploading first. Returns the int code, or None if it cannot be resolved.
+    """
+    build_gradle = os.path.join(REPO_ROOT, 'app_v2', 'build.gradle.kts')
+    try:
+        with open(build_gradle, 'r', encoding='utf-8') as f:
+            content = f.read()
+            match = re.search(r'versionCode\s*=\s*(\d+)', content)
+            if match:
+                return int(match.group(1))
+    except Exception as e:
+        print(f"Warning: Could not read versionCode from gradle files: {e}")
+    return None
+
+def list_existing_bundle_codes(service, edit_id):
+    """Returns the set of versionCodes already present in the App Bundle Explorer.
+
+    A re-run after a rejected commit (e.g. the Foreground-service-permissions 403)
+    finds the previously uploaded bundle here, so we can attach it instead of
+    re-uploading a versionCode Play would refuse as a duplicate.
+    """
+    try:
+        response = service.edits().bundles().list(
+            packageName=PACKAGE_NAME, editId=edit_id
+        ).execute()
+        return {int(b['versionCode']) for b in response.get('bundles', [])}
+    except Exception as e:
+        print(f"Warning: Could not list existing bundles ({e}). Falling back to upload.")
+        return set()
+
 def get_release_notes(version_code):
     """Checks for fastlane changelogs for the given version_code."""
     notes = []
@@ -99,28 +134,42 @@ def main():
         edit_id = edit['id']
         print(f"Edit transaction created: {edit_id}")
 
-        # 3. Resumable Upload of AAB with Chunk Retries
-        print("\nUploading AAB (resumable with retry guard)...")
-        media = MediaFileUpload(AAB_PATH, mimetype='application/octet-stream', resumable=True)
-        request = service.edits().bundles().upload(packageName=PACKAGE_NAME, editId=edit_id, media_body=media)
-        
-        response = None
-        while response is None:
-            retries = 5
-            while retries > 0:
-                try:
-                    status_progress, response = request.next_chunk()
-                    if status_progress:
-                        print(f"  Uploaded: {status_progress.progress() * 100:.1f}%")
-                    break
-                except (socket.timeout, Exception) as chunk_error:
-                    retries -= 1
-                    print(f"  Warning: Chunk transfer error ({chunk_error}). Retrying block (attempts left: {retries})...")
-                    if retries == 0:
-                        raise chunk_error
-                
-        version_code = response['versionCode']
-        print(f"SUCCESS: AAB uploaded. Version Code: {version_code}")
+        # 3. Attach existing bundle or upload a fresh one.
+        # If the build's versionCode is already in the App Bundle Explorer (e.g. a
+        # prior run uploaded it but the commit was rejected by the FGS-permissions
+        # gate), skip the upload and attach that bundle to the track - Play refuses
+        # re-uploading a versionCode that already exists. Otherwise upload as usual.
+        expected_version_code = get_expected_version_code()
+        existing_codes = list_existing_bundle_codes(service, edit_id)
+        version_code = None
+
+        if expected_version_code is not None and expected_version_code in existing_codes:
+            version_code = expected_version_code
+            print(f"\nBundle {version_code} already in library - skipping upload, attaching existing bundle.")
+        else:
+            if expected_version_code is not None:
+                print(f"\nBundle {expected_version_code} not in library (have: {sorted(existing_codes) or 'none'}) - uploading.")
+            print("\nUploading AAB (resumable with retry guard)...")
+            media = MediaFileUpload(AAB_PATH, mimetype='application/octet-stream', resumable=True)
+            request = service.edits().bundles().upload(packageName=PACKAGE_NAME, editId=edit_id, media_body=media)
+
+            response = None
+            while response is None:
+                retries = 5
+                while retries > 0:
+                    try:
+                        status_progress, response = request.next_chunk()
+                        if status_progress:
+                            print(f"  Uploaded: {status_progress.progress() * 100:.1f}%")
+                        break
+                    except (socket.timeout, Exception) as chunk_error:
+                        retries -= 1
+                        print(f"  Warning: Chunk transfer error ({chunk_error}). Retrying block (attempts left: {retries})...")
+                        if retries == 0:
+                            raise chunk_error
+
+            version_code = response['versionCode']
+            print(f"SUCCESS: AAB uploaded. Version Code: {version_code}")
 
         # 4. Read release notes
         release_notes = get_release_notes(version_code)

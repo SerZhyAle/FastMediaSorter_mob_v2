@@ -2700,4 +2700,6 @@
     <string name="stream_status_unknown">Ще не перевірялось</string>
     <string name="programs">Програми</string>
     <string name="error_scan_timeout">Тека завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
+    <string name="cast_stream_unsupported_protocol">Цю трансляцію не можна транслювати на Chromecast</string>
+    <string name="screenshot_gesture_action_open_app">Відкрити програму</string>
 </resources>

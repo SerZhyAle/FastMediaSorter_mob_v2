@@ -10,7 +10,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 |--------|---------|
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
-| `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: upload bundle, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
+| `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
 | `extract-release-notes.ps1` | Helper used by `publish-github-release.ps1`. Emits the section from `docs/WHATS_NEW.md` for a given `-Version`. Exit 0 on match, 2 if not found. |
 | `expected-signing-fingerprint.txt` | (Phase 04) Pinned SHA-256 of the release signing key. Aborts the publisher on mismatch. |
 
@@ -99,12 +99,12 @@ pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 ## Order of Operations (publish-play-release.ps1)
 
 1. **Prerequisite Check** - verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
-2. **Version & Path Discovery** - retrieve current `versionName` from `app_v2/build.gradle.kts`. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
+2. **Version & Path Discovery** - retrieve current `versionName` and `versionCode` from `app_v2/build.gradle.kts` (the release build stamps both into `defaultAppVersionName`/`defaultAppVersionCode`). Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
 3. **Edit Transaction** - open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
-4. **Resumable Upload** - upload the 100 MB AAB file using resumable chunk transfers with automatic socket retry guards. Retrieve the uploaded `versionCode`.
+4. **Attach-or-Upload** - list bundles already in the App Bundle Explorer (`edits().bundles().list()`). If the build's `versionCode` is already present (e.g. a prior run uploaded it but the commit was rejected by the Foreground-service-permissions gate), skip the upload and attach that bundle - Play refuses re-uploading an existing `versionCode`. Otherwise upload the AAB via resumable chunk transfers with automatic socket retry guards and read the `versionCode` from the response. This makes a post-FGS re-run finish the release instead of failing on a duplicate.
 5. **Release Notes Discovery** - check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
-6. **Track Update** - apply the uploaded AAB, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
-7. **API Commit** - commit the edit transaction with `changesNotSentForReview=true` to comply with Google Play's review pipeline requirements, making it immediately live on the track.
+6. **Track Update** - apply the bundle, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
+7. **API Commit** - commit the edit transaction. `changesNotSentForReview` is deliberately omitted: Play rejects it (HTTP 400) for apps whose changes are auto-sent for review, so omitting it lets the release follow the standard automatic review flow.
 
 ---
 

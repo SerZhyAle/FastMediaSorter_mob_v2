@@ -6,31 +6,45 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-    <!-- Support video -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowSupportVideos"
+    <!-- Support video + Show thumbnails share one landscape row to cut vertical scroll (S0618 R2). -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/support_video_description"
-        app:str_subtitle="@string/setting_support_videos_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/support_video_description"
-        app:str_helpMessage="@string/supported_video_formats"
-        app:str_checked="true" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <!-- Show video thumbnails -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-        android:id="@+id/rowShowVideoThumbnails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
-        app:str_title="@string/show_video_thumbnails"
-        app:str_subtitle="@string/setting_show_video_thumbnails_desc"
-        app:str_showHelp="true"
-        app:str_helpTitle="@string/tooltip_video_thumbnails_title"
-        app:str_helpMessage="@string/tooltip_video_thumbnails_message" />
+        <!-- Support video -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSupportVideos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:nextFocusRight="@id/rowShowVideoThumbnails"
+            app:str_title="@string/support_video_description"
+            app:str_subtitle="@string/setting_support_videos_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/support_video_description"
+            app:str_helpMessage="@string/supported_video_formats"
+            app:str_checked="true" />
+
+        <!-- Show video thumbnails -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowShowVideoThumbnails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
+            android:nextFocusLeft="@id/rowSupportVideos"
+            app:str_title="@string/show_video_thumbnails"
+            app:str_subtitle="@string/setting_show_video_thumbnails_desc"
+            app:str_showHelp="true"
+            app:str_helpTitle="@string/tooltip_video_thumbnails_title"
+            app:str_helpMessage="@string/tooltip_video_thumbnails_message" />
+
+    </LinearLayout>
 
     <!-- Video size limit -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:gravity="center_vertical" android:orientation="horizontal">
@@ -53,7 +67,7 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultVideoPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_video_player" android:textAllCaps="false" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultVideoPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_video_player" android:textAllCaps="false" />
 
     <!-- Video frame snapshot destination resource -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_medium" android:orientation="vertical">

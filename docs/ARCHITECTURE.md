@@ -117,6 +117,10 @@ list-item row where the full toggle row would break the layout) MUST be a
 project `materialSwitchStyle` (`themes.xml`) so it matches the switch rendered
 inside the component.
 
+#### Selection/value row (`SettingsSelectionRow`)
+
+- The value (`app:ssr_value`) renders inline on the title line, right after the title/help, and the trailing chevron stays pinned to the row's right edge via the weighted text group - the value is never separated from its title by the full row width.
+
 ### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 
 ```xml

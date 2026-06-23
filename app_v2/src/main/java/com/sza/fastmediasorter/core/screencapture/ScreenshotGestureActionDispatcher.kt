@@ -24,7 +24,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private val capabilityAvailability: CapabilityAvailability
 ) {
 
-    /** Pre-capture gate: callers skip capture entirely when this returns [ScreenshotGestureAction.DO_NOT_USE]. */
+    /** Resolves the action configured for [direction]. Callers feed the result to [handlePreCaptureAction]. */
     suspend fun actionFor(direction: ScreenshotGestureDirection): ScreenshotGestureAction {
         val settings = settingsRepository.get().getSettings().first()
         return when (direction) {
@@ -34,10 +34,43 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         }
     }
 
+    /**
+     * Runs actions that need no screen capture and tells the caller whether to stop. Returns true when
+     * [action] was fully handled here, so the caller skips consent/capture entirely:
+     * [ScreenshotGestureAction.DO_NOT_USE] is a silent no-op; [ScreenshotGestureAction.OPEN_APP] brings
+     * the app to the foreground (existing task reordered to front, preserving its state, or cold start).
+     * Returns false for capture-backed actions, which proceed through the normal capture path.
+     */
+    fun handlePreCaptureAction(context: Context, action: ScreenshotGestureAction): Boolean = when (action) {
+        ScreenshotGestureAction.DO_NOT_USE -> true
+        ScreenshotGestureAction.OPEN_APP -> {
+            Timber.d("S0622: left-edge gesture OPEN_APP -> bring app to foreground")
+            launchApp(context)
+            true
+        }
+        else -> false
+    }
+
+    private fun launchApp(context: Context) {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        if (intent == null) {
+            Timber.w("ScreenshotGestureActionDispatcher: no launch intent for package")
+            return
+        }
+        // getLaunchIntentForPackage already adds NEW_TASK + RESET_TASK_IF_NEEDED, which reorders the
+        // existing task to the front (keeping its state) or cold-starts it; keep NEW_TASK explicit
+        // because the caller is a Service context with no activity task of its own.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch app") }
+    }
+
     /** Launches the route configured for [action]. No-op for silent/disabled; degrades to silent save when [savedUri] is null. */
     fun runPostSave(context: Context, action: ScreenshotGestureAction, savedUri: Uri?) {
         when (action) {
+            // OPEN_APP / DO_NOT_USE never reach here (handled pre-capture), kept for when-exhaustiveness.
             ScreenshotGestureAction.SILENT_SCREENSHOT,
+            ScreenshotGestureAction.OPEN_APP,
             ScreenshotGestureAction.DO_NOT_USE -> return
 
             ScreenshotGestureAction.OPEN_IN_PLAYER -> openInViewer(context, savedUri, autoAction = null)

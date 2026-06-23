@@ -152,8 +152,8 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         captureInProgress = true
         serviceScope.launch {
             val action = actionDispatcher.get().actionFor(direction)
-            if (action == ScreenshotGestureAction.DO_NOT_USE) {
-                // Gesture disabled for this direction: take no screenshot at all.
+            if (actionDispatcher.get().handlePreCaptureAction(this@ScreenshotAccessibilityService, action)) {
+                // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
                 captureInProgress = false
                 return@launch
             }

@@ -2733,4 +2733,6 @@
     <string name="stream_status_unknown">Ещё не проверялось</string>
     <string name="programs">Программы</string>
     <string name="error_scan_timeout">Папка загружается слишком долго. Проверьте сеть и повторите попытку.</string>
+    <string name="cast_stream_unsupported_protocol">Эту трансляцию нельзя транслировать на Chromecast</string>
+    <string name="screenshot_gesture_action_open_app">Открыть программу</string>
 </resources>

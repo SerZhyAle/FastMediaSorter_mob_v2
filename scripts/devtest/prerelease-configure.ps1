@@ -163,12 +163,20 @@ foreach ($name in $config.Settings.Keys) {
             Add-Stage "set:$name" 'SKIP' "per-app locale needs API 33+ (device API $deviceSdk); language is in-app only below that"
             continue
         }
-        & $adb @adbTarget shell cmd locale set-app-locales $DebugPackage --locales $s.Locale *> $null
-        $loc = & $adb @adbTarget shell cmd locale get-app-locales $DebugPackage 2>$null
+        # Per-app locale, the API 33+ supported path. --user current targets USER_CURRENT (user -2):
+        # without it set/get-app-locales operate on user 0, which reads back empty on a freshly
+        # installed app and previously failed the sweep (exit 10) for a locale that was in fact
+        # applied (S0626). Set and verify against the same user so a real apply is never misread.
+        & $adb @adbTarget shell cmd locale set-app-locales $DebugPackage --user current --locales $s.Locale *> $null
+        $loc = & $adb @adbTarget shell cmd locale get-app-locales $DebugPackage --user current 2>$null
         $okLoc = ("$loc" -match [regex]::Escape($s.Locale))
         $script:result.settings += [ordered]@{ name = $name; channel = 'adb'; status = $(if ($okLoc) { 'OK' } else { 'FAIL' }) }
         if (-not $okLoc) { Add-Stage "set:$name" 'FAIL' "locale not applied (got '$loc')"; Complete-Run 10 }
-        Add-Stage "set:$name" 'OK' "locale=$($s.Locale)"
+        # Relaunch so the running process picks up the new per-app locale. Explicit -n MainActivity
+        # avoids the debug build's LeakCanary LAUNCHER trap.
+        & $adb @adbTarget shell am force-stop $DebugPackage *> $null
+        & $adb @adbTarget shell am start -n "$DebugPackage/com.sza.fastmediasorter.ui.main.MainActivity" *> $null
+        Add-Stage "set:$name" 'OK' "locale=$($s.Locale) (per-app, relaunched)"
     } else {
         $script:result.settings += [ordered]@{ name = $name; channel = 'adb'; status = 'noop' }
         Add-Stage "set:$name" 'SKIP' 'no adb apply method for this key'

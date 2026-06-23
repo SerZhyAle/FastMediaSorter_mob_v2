@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,8 +51,9 @@ class OverlayHostService : Service() {
 
     private fun launchConsentActivity(direction: ScreenshotGestureDirection) {
         serviceScope.launch {
-            if (actionDispatcher.get().actionFor(direction) == ScreenshotGestureAction.DO_NOT_USE) {
-                // Gesture disabled for this direction: skip consent + capture entirely.
+            val action = actionDispatcher.get().actionFor(direction)
+            if (actionDispatcher.get().handlePreCaptureAction(this@OverlayHostService, action)) {
+                // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): skip consent + capture.
                 return@launch
             }
             val intent = Intent(this@OverlayHostService, ScreenCaptureConsentActivity::class.java).apply {

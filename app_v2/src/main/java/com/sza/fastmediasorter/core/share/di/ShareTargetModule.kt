@@ -47,6 +47,9 @@ abstract class ShareTargetModule {
             defaultEnabled = ShareTargetDefault.ALWAYS_ON,
             availability = ShareTargetAvailability.ALWAYS,
             batchCapable = true,
+            // S0631: the system chooser also carries a plain-text payload (EXTRA_TEXT), so it is the
+            // universal text receiver for a stream link (messenger / clipboard / SMS / email).
+            textCapable = true,
             subtitleRes = R.string.share_target_desc_system_share,
             helpMessageRes = R.string.share_target_help_system_share,
         )
@@ -109,6 +112,8 @@ abstract class ShareTargetModule {
             // Keep-text shares the loaded text payload (content.text), not the file - never needs a
             // downloaded local copy, so it stays available for remote text without materialization (S0493).
             requiresLocalFile = false,
+            // S0631: consumes content.text directly, so it survives the text-only «Send to..» filter.
+            textCapable = true,
             subtitleRes = R.string.share_target_desc_keep_text,
             helpMessageRes = R.string.share_target_help_keep_text,
         )

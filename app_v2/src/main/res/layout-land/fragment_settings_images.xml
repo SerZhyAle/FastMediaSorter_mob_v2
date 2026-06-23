@@ -160,9 +160,9 @@
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/music_resource_label" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/settings_item_margin_bottom" />
 
-        <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/no_music_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
+        <TextView android:id="@+id/tvSelectedMusicSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/no_music_source_selected" android:textSize="@dimen/toggler_title_text_size" android:gravity="start" android:textColor="@color/text_color_secondary" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/select_music_source" android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectMusicSource" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultImageViewer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/settings_set_default_image_viewer" android:textAllCaps="false" />
