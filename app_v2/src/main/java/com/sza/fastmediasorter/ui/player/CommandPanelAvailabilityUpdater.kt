@@ -77,7 +77,6 @@ internal class CommandPanelAvailabilityUpdater(
         // S0631: a live video stream has no slideshow - suppress it in portrait and big-buttons modes
         // (landscape is handled by the dedicated stream branch in applyLandscapeLayout).
         val isStreamVideo = state.isLiveVideoStream
-        if (isStreamVideo) Timber.d("S0631: applying stream control profile (panel visibility filter)")
         val showSlideshow = (isImage || isVideo) && !isStreamVideo
 
         binding.btnBack.isVisible = effectiveShowCommandPanel
@@ -136,10 +135,16 @@ internal class CommandPanelAvailabilityUpdater(
 
         val hasCopyButtons = safeViews.copyToButtonsGrid.childCount > 0
         val hasMoveButtons = safeViews.moveToButtonsGrid.childCount > 0
-        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons
-        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons && canWrite
+        // S0642: copy-to / move-to destination groups are file operations - inapplicable to a live
+        // video stream (it is not a managed file). They sit on their own panel, outside the command
+        // profile filter (S0631), so gate them here too.
+        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons &&
+            !state.isLiveVideoStream
+        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons &&
+            canWrite && !state.isLiveVideoStream
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
+        if (state.isLiveVideoStream) Timber.d("S0642: copy/move destination panels hidden for live video stream")
         logPanelGeometrySnapshot("decision")
 
         // Force layout recalc when panels appear - mediaContentArea weight=1 takes all space, LinearLayout doesn't recalc on its own (same fix as updateSystemBarsForPlayer post-exitFullscreen).

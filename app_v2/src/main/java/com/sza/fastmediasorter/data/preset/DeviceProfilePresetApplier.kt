@@ -89,6 +89,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "showDetailedErrors" -> settings.copy(showDetailedErrors = raw.toBool())
             "showPlayerHintOnFirstRun" -> settings.copy(showPlayerHintOnFirstRun = raw.toBool())
             "alwaysShowTouchZonesOverlay" -> settings.copy(alwaysShowTouchZonesOverlay = raw.toBool())
+            "nineZoneGridEnabled" -> settings.copy(nineZoneGridEnabled = raw.toBool())
             "showVideoThumbnails" -> settings.copy(showVideoThumbnails = raw.toBool())
             "enablePlayerWarmup" -> settings.copy(enablePlayerWarmup = raw.toBool())
             "rendererMigrationEnabled" -> settings.copy(rendererMigrationEnabled = raw.toBool())

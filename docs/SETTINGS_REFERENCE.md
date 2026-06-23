@@ -175,6 +175,7 @@ _Available in: Standard, Legacy_
 | Big Buttons Mode | Enlarges the player control buttons for easier tapping on large or touch-only screens. |
 | Confirm delete | Shows a confirmation dialog before deleting a file from inside the player. |
 | Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
+| Disable 9-zone tracking | Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area. |
 | Background Playback | Keeps audio playing when you leave the app or lock the screen. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player. |
 | Rotate player screen with OS auto-rotate | Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle. |

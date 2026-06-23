@@ -95,6 +95,8 @@ class PlayerViewModel @Inject constructor(
     private val removeStreamSourceUseCase: com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase,
     // S0593: record a list stream's play outcome (OK on READY, FAIL on error) for the row status bullet.
     private val recordStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase,
+    // S0640: snapshot the saved stream catalog so top-panel prev/next move between channels.
+    private val observeStreamSourcesUseCase: com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -368,6 +370,7 @@ class PlayerViewModel @Inject constructor(
         stereoCoordinator = stereoCoordinator,
         isShareTargetEnabled = isShareTargetEnabled,
         getStreamSourceByUrlUseCase = getStreamSourceByUrlUseCase,
+        observeStreamSourcesUseCase = observeStreamSourcesUseCase,
     )
 
     private fun loadSettings() = mediaFilesLoader.loadSettings()

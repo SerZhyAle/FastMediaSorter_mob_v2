@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.streams
 
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -27,6 +29,7 @@ class StreamSourceAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
     private val onPin: (StreamSourceEntity) -> Unit,
     private val onRemove: (StreamSourceEntity) -> Unit,
+    private val onAddShortcut: (StreamSourceEntity) -> Unit,
 ) : ListAdapter<StreamSourceEntity, StreamSourceAdapter.VH>(DIFF) {
 
     private var playingId: String? = null
@@ -76,6 +79,20 @@ class StreamSourceAdapter(
             binding.root.setOnClickListener { onPlay(source) }
             binding.root.setOnLongClickListener { onRemove(source); true }
             binding.btnPin.setOnClickListener { onPin(source) }
+            binding.btnOverflow.setOnClickListener { anchor ->
+                PopupMenu(anchor.context, anchor).apply {
+                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, 0, R.string.streams_add_to_home_screen)
+                    menu.add(Menu.NONE, ID_REMOVE, 1, R.string.streams_remove)
+                    setOnMenuItemClickListener { item ->
+                        when (item.itemId) {
+                            ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
+                            ID_REMOVE -> { onRemove(source); true }
+                            else -> false
+                        }
+                    }
+                    show()
+                }
+            }
         }
 
         /**
@@ -132,6 +149,9 @@ class StreamSourceAdapter(
     }
 
     private companion object {
+        const val ID_ADD_SHORTCUT = 1
+        const val ID_REMOVE = 2
+
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =
                 oldItem.id == newItem.id

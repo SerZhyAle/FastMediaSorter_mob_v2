@@ -77,6 +77,43 @@
         <intent>
             <action android:name="android.media.action.VIDEO_CAPTURE" />
         </intent>
+        <!-- S0623: app-launch panel - resolve installed launcher apps + default-candidate handlers
+             for the quick-launch grid and its app picker (API 30+ package visibility). -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_CALCULATOR" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_BROWSER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_GALLERY" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_MAPS" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_MARKET" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_MESSAGING" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_FILES" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.SETTINGS" />
+        </intent>
         <!-- S0200: Chrome Custom Tabs package resolution on API 30+ -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -163,7 +200,7 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 

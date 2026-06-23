@@ -632,6 +632,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         activity.videoPlayerManager.seekBackward(seconds)
                     }
                 }
+                override fun isLiveVideoStream() = activity.viewModel.state.value.isLiveVideoStream
             }
         )
 

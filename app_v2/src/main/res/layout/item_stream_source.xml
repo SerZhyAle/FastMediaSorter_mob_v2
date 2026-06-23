@@ -118,4 +118,14 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:focusable="true"
         android:contentDescription="@string/streams_pin_to_top" />
+
+    <ImageButton
+        android:id="@+id/btnOverflow"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_more_vert"
+        app:tint="?attr/colorControlNormal"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="true"
+        android:contentDescription="@string/streams_more_actions" />
 </LinearLayout>

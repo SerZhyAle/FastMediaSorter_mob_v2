@@ -236,6 +236,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         showDetailedErrors = data["showDetailedErrors"]?.toBoolean() ?: false,
                                         showPlayerHintOnFirstRun = data["showPlayerHintOnFirstRun"]?.toBoolean() ?: true,
                                         alwaysShowTouchZonesOverlay = data["alwaysShowTouchZonesOverlay"]?.toBoolean() ?: false,
+                                        nineZoneGridEnabled = data["nineZoneGridEnabled"]?.toBoolean() ?: true,
                                         showVideoThumbnails = data["showVideoThumbnails"]?.toBoolean() ?: false,
                                         enablePlayerWarmup = data["enablePlayerWarmup"]?.toBoolean() ?: false,
                                         rendererMigrationEnabled = data["rendererMigrationEnabled"]?.toBoolean() ?: false,

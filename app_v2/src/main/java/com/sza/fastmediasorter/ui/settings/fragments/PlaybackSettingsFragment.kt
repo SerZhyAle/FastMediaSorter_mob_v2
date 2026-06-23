@@ -212,6 +212,14 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(alwaysShowTouchZonesOverlay = isChecked))
         }
 
+        // S0620: the switch reads "Disable 9-zone tracking", so checked == grid OFF.
+        binding.rowDisableNineZone.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(nineZoneGridEnabled = !isChecked))
+            applyNineZoneVisibility(gridEnabled = !isChecked)
+        }
+
         // S0567: slideshow help folded into the SettingsInputRow (sir_showHelp); standalone icon removed.
         // Help for touch zones is now inline on rowAlwaysShowTouchZones (folded by SettingsToggleRow).
 
@@ -419,6 +427,11 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.rowAlwaysShowTouchZones.isChecked != settings.alwaysShowTouchZonesOverlay) {
                         binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
                     }
+                    // S0620: switch shows the inverse of the stored flag (checked == grid disabled).
+                    if (binding.rowDisableNineZone.isChecked != !settings.nineZoneGridEnabled) {
+                        binding.rowDisableNineZone.setCheckedSilently(!settings.nineZoneGridEnabled)
+                    }
+                    applyNineZoneVisibility(gridEnabled = settings.nineZoneGridEnabled)
 
                     // S0452: refresh dynamic send-command rows from effective enabled state.
                     sendCommandRows.forEach { (id, row) ->
@@ -448,6 +461,18 @@ class PlaybackSettingsFragment : Fragment() {
 
                     isUpdatingFromSettings = false
         }
+    }
+
+    /**
+     * S0620: when the 9-zone grid is disabled, hide every 9-zone-specific control in the block
+     * (the hint/overlay toggles, the scheme button, the grid map + legend) and show the short
+     * 3-zone explanation in their place. Re-show them when the grid is enabled.
+     */
+    private fun applyNineZoneVisibility(gridEnabled: Boolean) {
+        binding.groupTouchZoneToggles.isVisible = gridEnabled
+        binding.groupTouchZoneScheme.isVisible = gridEnabled
+        binding.groupTouchZoneLegend.isVisible = gridEnabled
+        binding.tvThreeZoneExplanation.isVisible = !gridEnabled
     }
 
     private fun setupCollapsibleSections() {

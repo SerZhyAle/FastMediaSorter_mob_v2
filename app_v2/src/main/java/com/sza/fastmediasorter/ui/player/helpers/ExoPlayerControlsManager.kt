@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.view.View
 import android.widget.ImageButton
+import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -41,6 +43,8 @@ class ExoPlayerControlsManager(
         fun showPlaybackControlDialog()
         fun onSeekForward(seconds: Int)
         fun onSeekBackward(seconds: Int)
+        // S0641: true while a live video stream plays - drives the trimmed on-player control set.
+        fun isLiveVideoStream(): Boolean
     }
     
     /**
@@ -96,6 +100,39 @@ class ExoPlayerControlsManager(
         
         // Initial playback-order button state
         updatePlaybackOrderButtonState()
+
+        // S0641: the PlayerView controller re-runs its own visibility pass each time it appears, which
+        // would re-show the playback-order toggle and seek bar. Re-apply the stream control profile on
+        // every controller-show so the trimmed live-stream set stays trimmed.
+        binding.playerView.setControllerVisibilityListener(
+            PlayerView.ControllerVisibilityListener { visibility ->
+                if (visibility == View.VISIBLE) applyStreamControlProfile()
+            }
+        )
+        applyStreamControlProfile()
+    }
+
+    /**
+     * S0641: a live video stream has no scrubbable timeline and no in-collection prev/next or
+     * rewind/forward on the player surface. Keep only play/pause, the Control-dialog entry, and PiP;
+     * hide the seek-bar row, the playback-order toggle, the file prev/next buttons, and the
+     * rewind/forward buttons. A normal file restores the full set. Operates by id so it covers both
+     * the compact and large control layouts.
+     */
+    fun applyStreamControlProfile() {
+        val isLiveStream = callback.isLiveVideoStream()
+        if (isLiveStream) Timber.d("S0641: trimmed on-player controls for live video stream")
+        val hiddenForStream = if (isLiveStream) View.GONE else View.VISIBLE
+        val pv = binding.playerView
+        // exo_position / exo_progress / exo_duration are Media3 library ids (referenced as @id, not @+id).
+        pv.findViewById<View>(androidx.media3.ui.R.id.exo_position)?.visibility = hiddenForStream
+        pv.findViewById<View>(androidx.media3.ui.R.id.exo_progress)?.visibility = hiddenForStream
+        pv.findViewById<View>(androidx.media3.ui.R.id.exo_duration)?.visibility = hiddenForStream
+        pv.findViewById<View>(R.id.exo_repeat)?.visibility = hiddenForStream
+        pv.findViewById<View>(R.id.exo_prev_file)?.visibility = hiddenForStream
+        pv.findViewById<View>(R.id.exo_next_file)?.visibility = hiddenForStream
+        pv.findViewById<View>(R.id.btnRewind10)?.visibility = hiddenForStream
+        pv.findViewById<View>(R.id.btnForward30)?.visibility = hiddenForStream
     }
     
     /**

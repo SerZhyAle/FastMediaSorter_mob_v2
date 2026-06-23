@@ -2782,4 +2782,11 @@ Close the player and try again.</string>
     <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
     <string name="cast_stream_unsupported_protocol">This stream can\'t be cast to Chromecast</string>
     <string name="screenshot_gesture_action_open_app">Open the app</string>
+    <string name="streams_shortcut_channel_missing">This stream is no longer in your list</string>
+    <string name="streams_add_to_home_screen">Add to home screen</string>
+    <string name="streams_shortcut_created">Shortcut added to home screen</string>
+    <string name="streams_shortcut_unsupported">Your launcher does not support home-screen shortcuts</string>
+    <string name="streams_more_actions">More actions</string>
+    <string name="disable_nine_zone_tracking">Disable 9-zone tracking</string>
+    <string name="three_zone_layout_explanation">With the 9-zone grid off, the player uses 3 zones: previous / zoom / next. Tap the left edge to open the command panel for file actions.</string>
 </resources>

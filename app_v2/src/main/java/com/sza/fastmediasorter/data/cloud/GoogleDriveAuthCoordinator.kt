@@ -238,8 +238,6 @@ class GoogleDriveAuthCoordinator(
     }
 
     companion object {
-        const val SCOPE_DRIVE = "https://www.googleapis.com/auth/drive"
-        const val SCOPE_DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
         private const val TOKEN_REFRESH_THRESHOLD_MS = 50 * 60 * 1000L  // 50 minutes
         private const val TOKEN_MAX_RETRY_ATTEMPTS = 3
         private const val TOKEN_RETRY_DELAY_MS = 2000L

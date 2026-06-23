@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -88,6 +89,8 @@ class PlayerMediaFilesLoader(
     private val stereoCoordinator: PlayerStereoModeCoordinator,
     private val isShareTargetEnabled: IsShareTargetEnabledUseCase,
     private val getStreamSourceByUrlUseCase: GetStreamSourceByUrlUseCase,
+    // S0640: snapshot the saved stream catalog so top-panel prev/next move between channels.
+    private val observeStreamSourcesUseCase: ObserveStreamSourcesUseCase,
 ) {
 
     private var loadingJob: Job? = null
@@ -275,20 +278,58 @@ class PlayerMediaFilesLoader(
                     val streamSource = getStreamSourceByUrlUseCase(streamPath)
                     val channelTitle = streamSource?.title?.takeIf { it.isNotBlank() }
                     val streamType = if (streamSource?.mediaKind == "AUDIO") MediaType.AUDIO else MediaType.VIDEO
-                    val streamFile = MediaFile(
+                    val now = System.currentTimeMillis()
+                    val launchStreamFile = MediaFile(
                         name = streamPath.substringAfterLast('/').substringBefore('?').ifBlank { streamPath },
                         path = streamPath,
                         type = streamType,
                         size = 0L,
-                        createdDate = System.currentTimeMillis(),
-                        lastModified = System.currentTimeMillis(),
+                        createdDate = now,
+                        lastModified = now,
                         resourceId = resource.id,
                         title = channelTitle,
                     )
+                    // S0640: the top-panel prev/next buttons navigate the saved stream catalog, not a single
+                    // item. Snapshot the video streams in list order (pinned, sortIndex, addedAt - the same
+                    // order the Трансляции screen shows by default) so prev/next move between channels. Audio
+                    // streams are excluded: they open inline, never in this fullscreen player. The currently
+                    // playing url fixes the start index - on a config-change reload it is the navigated-to
+                    // channel (stateFlow current file), otherwise the launch url. A launch url absent from the
+                    // catalog (home-screen shortcut to a removed channel, ad-hoc url) keeps the single item.
+                    val orderedVideoStreams = if (resource.id == SyntheticResourceIds.STREAM) {
+                        runCatching { observeStreamSourcesUseCase().first() }
+                            .getOrNull().orEmpty()
+                            .filter { it.mediaKind != "AUDIO" }
+                    } else {
+                        emptyList()
+                    }
+                    val catalogFiles = orderedVideoStreams.map { entity ->
+                        MediaFile(
+                            name = entity.url.substringAfterLast('/').substringBefore('?').ifBlank { entity.url },
+                            path = entity.url,
+                            type = MediaType.VIDEO,
+                            size = 0L,
+                            createdDate = now,
+                            lastModified = now,
+                            resourceId = resource.id,
+                            title = entity.title.takeIf { it.isNotBlank() },
+                        )
+                    }
+                    val targetUrl = currentFilePath?.takeIf {
+                        it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
+                    } ?: streamPath
+                    val targetIndex = catalogFiles.indexOfFirst { it.path == targetUrl }
+                    val (streamFiles, streamIndex) =
+                        if (targetIndex >= 0) catalogFiles to targetIndex
+                        else listOf(launchStreamFile) to 0
+                    Timber.d(
+                        "S0640: stream prev/next catalog size=%d startIndex=%d url=%s",
+                        streamFiles.size, streamIndex, targetUrl,
+                    )
                     updateState {
                         it.copy(
-                            files = listOf(streamFile),
-                            currentIndex = 0,
+                            files = streamFiles,
+                            currentIndex = streamIndex,
                             resource = resource,
                             isSlideShowActive = false,
                             isPaused = false,

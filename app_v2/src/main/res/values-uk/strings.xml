@@ -2702,4 +2702,11 @@
     <string name="error_scan_timeout">Тека завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
     <string name="cast_stream_unsupported_protocol">Цю трансляцію не можна транслювати на Chromecast</string>
     <string name="screenshot_gesture_action_open_app">Відкрити програму</string>
+    <string name="streams_shortcut_channel_missing">Цієї трансляції більше немає в списку</string>
+    <string name="streams_add_to_home_screen">На домашній екран</string>
+    <string name="streams_shortcut_created">Ярлик додано на домашній екран</string>
+    <string name="streams_shortcut_unsupported">Ваш лаунчер не підтримує ярлики на домашньому екрані</string>
+    <string name="streams_more_actions">Ще</string>
+    <string name="disable_nine_zone_tracking">Вимкнути відстеження 9 зон</string>
+    <string name="three_zone_layout_explanation">Коли 9-зонова сітка вимкнена, плеєр використовує 3 зони: попередній / зум / наступний. Торкніться лівого краю, щоб відкрити командну панель для операцій з файлами.</string>
 </resources>

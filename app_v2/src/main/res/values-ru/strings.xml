@@ -2735,4 +2735,11 @@
     <string name="error_scan_timeout">Папка загружается слишком долго. Проверьте сеть и повторите попытку.</string>
     <string name="cast_stream_unsupported_protocol">Эту трансляцию нельзя транслировать на Chromecast</string>
     <string name="screenshot_gesture_action_open_app">Открыть программу</string>
+    <string name="streams_shortcut_channel_missing">Этой трансляции больше нет в списке</string>
+    <string name="streams_add_to_home_screen">На домашний экран</string>
+    <string name="streams_shortcut_created">Ярлык добавлен на домашний экран</string>
+    <string name="streams_shortcut_unsupported">Ваш лаунчер не поддерживает ярлыки на домашнем экране</string>
+    <string name="streams_more_actions">Ещё</string>
+    <string name="disable_nine_zone_tracking">Отключить отслеживание 9 зон</string>
+    <string name="three_zone_layout_explanation">Когда 9-зоновая сетка выключена, плеер использует 3 зоны: предыдущий / зум / следующий. Коснитесь левого края, чтобы открыть командную панель для операций с файлами.</string>
 </resources>

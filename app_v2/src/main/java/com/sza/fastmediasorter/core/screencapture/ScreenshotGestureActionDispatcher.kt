@@ -57,9 +57,10 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             Timber.w("ScreenshotGestureActionDispatcher: no launch intent for package")
             return
         }
-        // getLaunchIntentForPackage already adds NEW_TASK + RESET_TASK_IF_NEEDED, which reorders the
-        // existing task to the front (keeping its state) or cold-starts it; keep NEW_TASK explicit
-        // because the caller is a Service context with no activity task of its own.
+        // getLaunchIntentForPackage returns a MAIN/LAUNCHER intent that already carries
+        // FLAG_ACTIVITY_NEW_TASK; re-adding it is explicit because the caller is a Service with no task
+        // of its own. Starting it reorders the app's existing default-affinity task to the front
+        // (preserving its state) or cold-starts the app when no task exists.
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
             .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch app") }

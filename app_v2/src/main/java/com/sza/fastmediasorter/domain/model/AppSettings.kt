@@ -134,6 +134,7 @@ data class AppSettings(
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
+    val nineZoneGridEnabled: Boolean = true, // When false, the fullscreen player uses the simpler 3-zone tap layout instead of the 9-zone grid (S0620)
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
     val rendererMigrationEnabled: Boolean = true, // Migration flag for new static image renderer pipeline (enabled as default)

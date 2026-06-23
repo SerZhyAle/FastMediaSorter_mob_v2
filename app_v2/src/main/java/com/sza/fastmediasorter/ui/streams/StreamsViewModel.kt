@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
@@ -51,6 +52,7 @@ class StreamsViewModel @Inject constructor(
     private val pinStreamSource: PinStreamSourceUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
+    private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
@@ -133,6 +135,16 @@ class StreamsViewModel @Inject constructor(
 
     fun onSort(mode: SortMode) {
         _filter.update { it.copy(sort = mode) }
+    }
+
+    /** S0637: resolve a home-screen shortcut URL to its source and ask the Activity to play it. */
+    fun playByUrl(url: String) = viewModelScope.launch {
+        val source = getStreamSourceByUrl(url)
+        if (source != null) {
+            _events.send(StreamsEvent.PlayRequested(source))
+        } else {
+            _events.send(StreamsEvent.Message(R.string.streams_shortcut_channel_missing))
+        }
     }
 
     fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
@@ -243,6 +255,7 @@ class StreamsViewModel @Inject constructor(
         data class Message(@StringRes val messageResId: Int) : StreamsEvent
         data class ImportFinished(val inserted: Int) : StreamsEvent
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
+        data class PlayRequested(val source: StreamSourceEntity) : StreamsEvent
     }
 }
 

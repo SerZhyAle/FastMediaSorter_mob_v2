@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.streams
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.view.View
 import android.widget.Toast
@@ -28,6 +30,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,6 +56,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onPlay = ::onPlay,
         onPin = { viewModel.onPin(it.id) },
         onRemove = ::confirmRemove,
+        onAddShortcut = ::onAddShortcut,
     )
 
     private lateinit var inlineAudio: StreamInlineAudioManager
@@ -114,6 +118,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.etSearch.doAfterTextChanged { viewModel.onQueryChanged(it?.toString().orEmpty()) }
         binding.btnFilter.setOnClickListener { showFilterDialog() }
         binding.btnSort.setOnClickListener { showSortDialog() }
+
+        // S0637: a home-screen shortcut may have launched this screen to play a specific stream.
+        handlePlayIntent(intent)
     }
 
     /**
@@ -164,8 +171,32 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
+                is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handlePlayIntent(intent)
+    }
+
+    /** S0637: resolve a home-screen shortcut's stream URL and play it; unknown URL shows a message. */
+    private fun handlePlayIntent(intent: Intent?) {
+        if (intent?.action != ACTION_PLAY_STREAM) return
+        val url = intent.getStringExtra(EXTRA_STREAM_URL)?.takeIf { it.isNotBlank() } ?: return
+        Timber.d("S0637: home-screen shortcut launched stream %s", url)
+        viewModel.playByUrl(url)
+    }
+
+    /** S0637: build a home-screen shortcut for the chosen channel; report if the launcher refuses. */
+    private fun onAddShortcut(source: StreamSourceEntity) {
+        Timber.d("S0637: add-to-home-screen tapped for stream %s", source.url)
+        val requested = StreamShortcutPinManager(this).requestPin(source)
+        val message =
+            if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     private fun onPlay(source: StreamSourceEntity) {
@@ -355,5 +386,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             else inlineAudio.release()
         }
         super.onDestroy()
+    }
+
+    companion object {
+        const val ACTION_PLAY_STREAM = "com.sza.fastmediasorter.action.PLAY_STREAM"
+        const val EXTRA_STREAM_URL = "extra_stream_url"
+
+        /** Intent a pinned home-screen shortcut (S0637) carries to play one stream by its URL. */
+        fun createPlayShortcutIntent(context: Context, url: String): Intent =
+            Intent(context, StreamsActivity::class.java).apply {
+                action = ACTION_PLAY_STREAM
+                putExtra(EXTRA_STREAM_URL, url)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
     }
 }

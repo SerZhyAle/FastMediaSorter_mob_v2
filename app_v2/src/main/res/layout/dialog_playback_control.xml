@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Portrait variant: vertical section rail on the left + content on the right (master-detail
+     pivot, S0638). The rail and content share a height-bounded MaxHeightLinearLayout so the
+     selector stays fully visible and only the bounded area scrolls. All IDs match the landscape
+     layout so ViewBinding works from layout/. VerticalSeekBar auto-detects portrait and renders
+     vertically. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -33,136 +38,161 @@
             android:text="@string/playback_control_done" />
     </LinearLayout>
 
-    <HorizontalScrollView
+    <com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout
+        android:id="@+id/playbackResizableArea"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:scrollbars="none">
+        android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/groupPlaybackSections"
+        <!-- Section rail: vertical toggle group, scrolls when sections overflow the height -->
+        <ScrollView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:selectionRequired="true"
-            app:singleSelection="true">
+            android:layout_height="match_parent"
+            android:fadingEdgeLength="24dp"
+            android:requiresFadingEdge="vertical"
+            android:scrollbars="none">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionVolume"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/groupPlaybackSections"
+                android:layout_width="96dp"
                 android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_volume"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_notification_audio"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                android:orientation="vertical"
+                app:selectionRequired="true"
+                app:singleSelection="true">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionAudio"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_audio"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_audio_track"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionVolume"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_volume"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_notification_audio"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionSubtitles"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_subtitles"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_closed_caption"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionAudio"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_audio"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_audio_track"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionStereo"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_settings_3d_tab"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_stereo_3d"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionSubtitles"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_subtitles"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_closed_caption"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionHue"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_hue"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_settings"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionStereo"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_settings_3d_tab"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_stereo_3d"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionBrightness"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_brightness"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_night_mode"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionHue"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_hue"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_settings"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSectionSpeed"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:minHeight="48dp"
-                android:paddingHorizontal="12dp"
-                android:text="@string/playback_control_tab_speed"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_speed"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-    </HorizontalScrollView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionBrightness"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_brightness"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_night_mode"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="12dp"
-        android:background="?attr/colorOutlineVariant" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSectionSpeed"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:maxLines="1"
+                    android:minHeight="56dp"
+                    android:text="@string/playback_control_tab_speed"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:icon="@drawable/ic_speed"
+                    app:iconGravity="top"
+                    app:iconPadding="2dp" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </ScrollView>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true">
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="10dp"
+            android:background="?attr/colorOutlineVariant" />
+
+        <!-- Content area - VerticalSeekBar renders vertically in portrait -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -550,5 +580,6 @@
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>
+    </com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout>
 
 </LinearLayout>

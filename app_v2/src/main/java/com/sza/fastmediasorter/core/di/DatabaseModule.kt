@@ -9,7 +9,9 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
 import com.sza.fastmediasorter.data.local.db.MIGRATION_33_34
 import com.sza.fastmediasorter.data.local.db.MIGRATION_34_35
+import com.sza.fastmediasorter.data.local.db.MIGRATION_35_36
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
+import com.sza.fastmediasorter.data.local.db.AppLaunchPanelTileDao
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
@@ -102,7 +104,8 @@ object DatabaseModule {
                 MIGRATION_31_32,
                 MIGRATION_32_33,
                 MIGRATION_33_34,
-                MIGRATION_34_35
+                MIGRATION_34_35,
+                MIGRATION_35_36
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -196,5 +199,11 @@ object DatabaseModule {
     @Singleton
     fun provideDeviceProfileDao(database: AppDatabase): DeviceProfileDao {
         return database.deviceProfileDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppLaunchPanelTileDao(database: AppDatabase): AppLaunchPanelTileDao {
+        return database.appLaunchPanelTileDao()
     }
 }

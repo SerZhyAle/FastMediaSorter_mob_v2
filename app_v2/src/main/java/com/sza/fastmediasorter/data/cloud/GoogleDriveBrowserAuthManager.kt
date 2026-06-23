@@ -314,12 +314,8 @@ class GoogleDriveBrowserAuthManager @Inject constructor(
         private val AUTHORIZATION_URI: Uri = Uri.parse("https://accounts.google.com/o/oauth2/v2/auth")
         private val TOKEN_URI: Uri = Uri.parse("https://oauth2.googleapis.com/token")
         private val AUTH_SERVICE_CONFIG = AuthorizationServiceConfiguration(AUTHORIZATION_URI, TOKEN_URI)
-        private val SCOPES = listOf(
-            GoogleDriveAuthCoordinator.SCOPE_DRIVE,
-            GoogleDriveAuthCoordinator.SCOPE_DRIVE_READONLY,
-            "openid",
-            "email",
-            "profile"
-        )
+        // Single source of truth (S0639): the browser/AppAuth sign-in must request the same
+        // scope set as the GMS path so the two paths cannot diverge.
+        private val SCOPES = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES.map { it.value }
     }
 }

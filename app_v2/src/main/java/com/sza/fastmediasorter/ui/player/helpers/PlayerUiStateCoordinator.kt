@@ -114,13 +114,17 @@ class PlayerUiStateCoordinator(
      */
     private fun determineTouchZoneHintType(
         showCommandPanel: Boolean,
-        currentFile: MediaFile?
+        currentFile: MediaFile?,
+        nineZoneGridEnabled: Boolean
     ): TouchZoneHintType? {
         if (currentFile == null) return null
         // Documents have touch zones disabled - no hint needed
         if (currentFile.type.isDocumentFile()) return null
         if (showCommandPanel) return TouchZoneHintType.COMMAND_PANEL_3ZONE
         val isMedia = currentFile.type in listOf(MediaType.VIDEO, MediaType.AUDIO)
+        // S0620: grid off -> fullscreen images use the 3-zone layout, so show the 3-zone hint
+        // instead of the 9-zone grid hint. Video/audio keep the bottom-reserved hint either way.
+        if (!nineZoneGridEnabled && !isMedia) return TouchZoneHintType.COMMAND_PANEL_3ZONE
         return if (isMedia) TouchZoneHintType.MEDIA_BOTTOM_RESERVED
                else TouchZoneHintType.FULLSCREEN_9ZONE
     }
@@ -181,24 +185,31 @@ class PlayerUiStateCoordinator(
         }
 
 
-        // Show context-aware touch zone hint if enabled and not shown yet for this mode
-        val hintType = determineTouchZoneHintType(state.showCommandPanel, state.currentFile)
-        if (hintType != null && !callback.hasShownHintType(hintType) && state.currentFile != null) {
+        // Show context-aware touch zone hint if enabled and not shown yet for this mode.
+        // S0620: the hint type depends on the nine-zone-grid flag, so resolve it after reading
+        // settings (the flag is only available there).
+        val hintFile = state.currentFile
+        if (hintFile != null && !hintFile.type.isDocumentFile()) {
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
-                val isFirstRun = settingsRepository.isPlayerFirstRun()
-                val alreadyShownPersistently = settingsRepository.isTouchZoneHintShown(hintType)
+                val hintType = determineTouchZoneHintType(
+                    state.showCommandPanel, hintFile, settings.nineZoneGridEnabled
+                )
+                if (hintType != null && !callback.hasShownHintType(hintType)) {
+                    val isFirstRun = settingsRepository.isPlayerFirstRun()
+                    val alreadyShownPersistently = settingsRepository.isTouchZoneHintShown(hintType)
 
-                if (settings.showPlayerHintOnFirstRun && isFirstRun && !alreadyShownPersistently) {
-                    Timber.d("PlayerUiStateCoordinator.updateUI: Showing touch zone hint overlay type=$hintType")
-                    delay(500)
-                    callback.showTouchZoneHintOverlay(hintType)
-                    settingsRepository.setTouchZoneHintShown(hintType, true)
-                    // Mark 9-zone first run as done when any hint is shown (backward compat)
-                    if (hintType == TouchZoneHintType.FULLSCREEN_9ZONE) {
-                        settingsRepository.setPlayerFirstRun(false)
+                    if (settings.showPlayerHintOnFirstRun && isFirstRun && !alreadyShownPersistently) {
+                        Timber.d("PlayerUiStateCoordinator.updateUI: Showing touch zone hint overlay type=$hintType")
+                        delay(500)
+                        callback.showTouchZoneHintOverlay(hintType)
+                        settingsRepository.setTouchZoneHintShown(hintType, true)
+                        // Mark 9-zone first run as done when any hint is shown (backward compat)
+                        if (hintType == TouchZoneHintType.FULLSCREEN_9ZONE) {
+                            settingsRepository.setPlayerFirstRun(false)
+                        }
+                        callback.markHintTypeShown(hintType)
                     }
-                    callback.markHintTypeShown(hintType)
                 }
             }
         }
@@ -322,8 +333,12 @@ class PlayerUiStateCoordinator(
 
     /**
      * Determine the current hint type based on latest state (for manual help button trigger).
+     * S0620: pass the live grid flag so the manual help overlay matches the active layout.
      */
-    fun getCurrentHintType(state: PlayerViewModel.PlayerState): TouchZoneHintType? {
-        return determineTouchZoneHintType(state.showCommandPanel, state.currentFile)
+    fun getCurrentHintType(
+        state: PlayerViewModel.PlayerState,
+        nineZoneGridEnabled: Boolean
+    ): TouchZoneHintType? {
+        return determineTouchZoneHintType(state.showCommandPanel, state.currentFile, nineZoneGridEnabled)
     }
 }

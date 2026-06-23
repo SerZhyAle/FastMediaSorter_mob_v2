@@ -1701,6 +1701,16 @@
       "titleUk": "Показувати детальні помилки"
     },
     {
+      "key": "rowDisableNineZone",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Disable 9-zone tracking",
+      "titleRu": "Отключить отслеживание 9 зон",
+      "titleUk": "Вимкнути відстеження 9 зон"
+    },
+    {
       "key": "rowEnablePersistentAudioPlayback",
       "sectionId": "playback",
       "destination": "PLAYBACK",

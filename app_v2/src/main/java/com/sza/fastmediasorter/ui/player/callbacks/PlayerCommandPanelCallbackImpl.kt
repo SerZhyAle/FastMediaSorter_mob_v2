@@ -75,7 +75,6 @@ class PlayerCommandPanelCallbackImpl(
         // text so text-capable receivers send it via ACTION_SEND/EXTRA_TEXT. sourcePath = null keeps
         // requiresMaterialization false, so the dispatch layer never tries to download the live stream.
         if (viewModel.state.value.isLiveVideoStream) {
-            Timber.d("S0631: building stream share payload as text/plain link")
             return ShareableContent(
                 uris = emptyList(),
                 mime = "text/plain",

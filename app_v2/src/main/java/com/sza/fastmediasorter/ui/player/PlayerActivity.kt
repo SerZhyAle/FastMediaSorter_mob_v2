@@ -313,6 +313,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
     internal var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
+    internal var nineZoneGridEnabled = true // S0620: false -> fullscreen uses the 3-zone fallback layout
     internal val shownHintTypes = mutableSetOf<TouchZoneHintType>() // Track per-type hints shown in this session
     internal var slideshowModeRequested = false // Auto-start slideshow when files are loaded
     internal var isExplicitFullscreenMode = false // User requested fullscreen via button
@@ -595,7 +596,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         touchZoneSetupManager.showHintOverlay(type)
 
     fun showTouchZonesHelpOverlay() {
-        val hintType = uiStateCoordinator.getCurrentHintType(viewModel.state.value)
+        val hintType = uiStateCoordinator.getCurrentHintType(viewModel.state.value, nineZoneGridEnabled)
             ?: TouchZoneHintType.FULLSCREEN_9ZONE
         touchZoneSetupManager.showHintOverlay(hintType)
     }
@@ -861,6 +862,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
                 viewModel.state.value.currentFile?.type == MediaType.AUDIO
         )
         exoPlayerControlsManager.updatePlaybackOrderButtonState()
+        // S0641: re-trim the on-player controls when a live video stream loads (covers the case where
+        // the controller is already visible, so no visibility-change callback fires).
+        exoPlayerControlsManager.applyStreamControlProfile()
     }
 
     internal fun prefetchNextAudio() {
