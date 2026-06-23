@@ -51,7 +51,7 @@ class BuildStatisticsReportUseCase @Inject constructor(
 
     private fun StringBuilder.appendSummary(snapshot: StatsSnapshot) {
         appendLine(string(R.string.statistics_report_section_summary))
-        appendValueLine(R.string.statistics_card_sorted, formatCount(snapshot.count(StatsKey.FILES_MOVED)))
+        appendValueLine(R.string.statistics_card_sorted, formatCount(snapshot.sortedFilesCount()))
         appendValueLine(R.string.statistics_card_freed, formatBytes(snapshot.count(StatsKey.BYTES_FREED)))
         val playerMs = snapshot.count(StatsKey.VIDEO_WATCH_MS) + snapshot.count(StatsKey.AUDIO_LISTEN_MS)
         appendValueLine(R.string.statistics_card_player_time, formatDuration(playerMs))

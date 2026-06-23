@@ -2789,4 +2789,15 @@ Close the player and try again.</string>
     <string name="streams_more_actions">More actions</string>
     <string name="disable_nine_zone_tracking">Disable 9-zone tracking</string>
     <string name="three_zone_layout_explanation">With the 9-zone grid off, the player uses 3 zones: previous / zoom / next. Tap the left edge to open the command panel for file actions.</string>
+    <string name="edit_app_launch_panel_title">Edit panel</string>
+    <string name="app_launch_panel_empty_slot">Empty - tap to add</string>
+    <string name="app_launch_panel_add_app">Add app</string>
+    <string name="app_launch_panel_action_move">Move</string>
+    <string name="app_launch_panel_action_replace">Replace</string>
+    <string name="app_launch_panel_action_remove">Remove</string>
+    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_picker_title">Choose an app</string>
+    <string name="app_launch_panel_title">Quick launch</string>
+    <string name="app_launch_panel_edit_action">Edit</string>
+    <string name="screenshot_gesture_action_open_panel">Open app panel</string>
 </resources>

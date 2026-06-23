@@ -2,7 +2,8 @@ package com.sza.fastmediasorter.domain.model
 
 /**
  * Action assignable to an edge gesture direction. Most actions capture the screen first and then run
- * a post-capture route; [OPEN_APP] and [DO_NOT_USE] are pre-capture actions that skip capture entirely.
+ * a post-capture route; [OPEN_APP], [OPEN_PANEL] and [DO_NOT_USE] are pre-capture actions that skip
+ * capture entirely.
  */
 enum class ScreenshotGestureAction {
     SILENT_SCREENSHOT,
@@ -12,6 +13,7 @@ enum class ScreenshotGestureAction {
     SEND_TO_RECIPIENTS,
     SHARE,
     OPEN_APP,
+    OPEN_PANEL,
     DO_NOT_USE;
 
     companion object {

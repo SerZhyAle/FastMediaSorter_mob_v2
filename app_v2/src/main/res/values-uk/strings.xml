@@ -2709,4 +2709,15 @@
     <string name="streams_more_actions">Ще</string>
     <string name="disable_nine_zone_tracking">Вимкнути відстеження 9 зон</string>
     <string name="three_zone_layout_explanation">Коли 9-зонова сітка вимкнена, плеєр використовує 3 зони: попередній / зум / наступний. Торкніться лівого краю, щоб відкрити командну панель для операцій з файлами.</string>
+    <string name="edit_app_launch_panel_title">Редагувати панель</string>
+    <string name="app_launch_panel_empty_slot">Порожньо - натисніть, щоб додати</string>
+    <string name="app_launch_panel_add_app">Додати програму</string>
+    <string name="app_launch_panel_action_move">Перемістити</string>
+    <string name="app_launch_panel_action_replace">Замінити</string>
+    <string name="app_launch_panel_action_remove">Видалити</string>
+    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_picker_title">Виберіть програму</string>
+    <string name="app_launch_panel_title">Швидкий запуск</string>
+    <string name="app_launch_panel_edit_action">Змінити</string>
+    <string name="screenshot_gesture_action_open_panel">Відкрити панель програм</string>
 </resources>

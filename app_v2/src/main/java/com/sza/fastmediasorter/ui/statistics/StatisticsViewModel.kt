@@ -130,7 +130,7 @@ class StatisticsViewModel @Inject constructor(
             id = "card_sorted",
             labelRes = R.string.statistics_card_sorted,
             iconRes = R.drawable.ic_move,
-            value = snapshot.count(StatsKey.FILES_MOVED),
+            value = snapshot.sortedFilesCount(),
             format = MetricFormat.COUNT,
         ),
         SummaryCard(

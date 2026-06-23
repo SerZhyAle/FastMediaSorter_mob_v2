@@ -92,6 +92,12 @@ data class StatsSnapshot(
 ) {
     fun count(key: StatsKey): Long = counters[key] ?: 0L
 
+    /**
+     * "Sorted" is the organizing headline: all files the user placed into destination folders via
+     * copy or move flows. Delete/archive/extract remain separate operation metrics.
+     */
+    fun sortedFilesCount(): Long = count(StatsKey.FILES_COPIED) + count(StatsKey.FILES_MOVED)
+
     /** True when no detailed activity has been recorded yet (only baseline present). */
     val hasNoDetailedActivity: Boolean
         get() = counters.values.all { it == 0L } && byType.isEmpty()

@@ -42,9 +42,11 @@ class StatisticsAdapter(
         is StatisticsListItem.PrivacyNote -> TYPE_PRIVACY
     }
 
-    /** Cards occupy one cell; all other rows span the full grid width. */
-    fun spanSizeFor(position: Int): Int =
-        if (getItemViewType(position) == TYPE_CARD) 1 else spanCount
+    /** Cards and metric rows occupy one cell; all other rows span the full grid width. */
+    fun spanSizeFor(position: Int): Int = when (getItemViewType(position)) {
+        TYPE_CARD, TYPE_ROW -> 1
+        else -> spanCount
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)

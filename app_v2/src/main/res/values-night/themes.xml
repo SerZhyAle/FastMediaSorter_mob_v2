@@ -26,8 +26,13 @@
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
     </style>
 
-    <!-- System bar transparency is applied programmatically via enableEdgeToEdge() in BaseActivity. -->
-    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App" />
+    <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips
+         Window.setStatusBarColor/setNavigationBarColor (Play Android-15 deprecated-API check), so
+         the theme must supply transparency. API 35 omits these (system-enforced) via values-night-v35. -->
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
 

@@ -31,9 +31,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -53,6 +55,10 @@ annotation class DefaultDispatcher
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ApplicationScope
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CloudTokenDispatcher
 
 
 @Module
@@ -83,6 +89,27 @@ object AppModule {
     @Singleton
     fun provideApplicationScope(@IoDispatcher ioDispatcher: CoroutineDispatcher): CoroutineScope =
         CoroutineScope(ioDispatcher + SupervisorJob())
+
+    /**
+     * Dedicated dispatcher for Google OAuth token issuance, isolated from the shared
+     * [Dispatchers.IO] pool.
+     *
+     * Token issuance (`GoogleAuthUtil.getToken`) is a short blocking auth call that cloud thumbnail
+     * Glide DataFetchers invoke through `runBlocking`. Running it on `Dispatchers.IO` let it queue
+     * behind a heavy media scan that saturates the elastic IO pool; in the worst case IO threads
+     * already parked in their own token `runBlocking` waits could not be served, deadlocking the
+     * pool and stalling cloud thumbnails indefinitely. A separate single-thread pool guarantees the
+     * token continuation always has a thread, regardless of IO saturation. Token issuance is
+     * serialised by a mutex upstream, so one thread suffices; the thread is a daemon so it never
+     * blocks JVM shutdown.
+     */
+    @CloudTokenDispatcher
+    @Provides
+    @Singleton
+    fun provideCloudTokenDispatcher(): CoroutineDispatcher =
+        Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "cloud-token-issuer").apply { isDaemon = true }
+        }.asCoroutineDispatcher()
 
     
     @Provides

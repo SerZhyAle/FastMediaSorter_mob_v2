@@ -217,6 +217,15 @@
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
+        <!-- S0623 Phase 04: standalone Edit-panel screen for the app-launch panel. Launched internally
+             from the panel dialog; recreated on rotation so the grid picks the portrait/landscape span. -->
+        <activity android:name=".ui.applaunchpanel.edit.EditAppLaunchPanelActivity" android:exported="false" android:label="@string/edit_app_launch_panel_title" />
+
+        <!-- S0623 Phase 05: transparent host that shows the quick-launch panel over the foreground app
+             when triggered by a left-edge gesture. excludeFromRecents + transparent theme keep it from
+             appearing as a normal task. -->
+        <activity android:name=".ui.applaunchpanel.AppLaunchPanelActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" android:launchMode="singleTask" />
+
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 

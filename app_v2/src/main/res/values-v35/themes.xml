@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Android 15 (API 35) enforces edge-to-edge at the system level.
-        Window.setStatusBarColor() / setNavigationBarColor() are deprecated and no-ops on
-        API 35+ - the OS manages system bar transparency automatically.
+        Android 15 (API 35) enforces edge-to-edge at the system level. Runtime system-bar
+        color setters are deprecated/no-op here, so this overlay avoids them.
 
-        Material 1.14.0 guards the internal BottomSheetDialog setStatusBarColor() call behind
-        an SDK_INT < 35 check (EdgeToEdgeUtils) and applies bottom-sheet edge-to-edge natively
-        on API 35, so no enableEdgeToEdge attribute is needed here (it is deprecated for bottom
-        sheets on API 35+). Only the system-window padding is retained so sheet content stays
-        clear of the navigation bar.
+        Material 1.14.0 handles bottom-sheet edge-to-edge natively on API 35, so no
+        enableEdgeToEdge attribute is needed here. Only the system-window padding is retained
+        so sheet content stays clear of the navigation bar.
     -->
     <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
         <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>

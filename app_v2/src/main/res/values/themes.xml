@@ -196,8 +196,13 @@
         <item name="colorOnSecondaryContainer">@color/theme_light_red_on_secondary_container</item>
     </style>
 
-    <!-- System bar transparency is applied programmatically via enableEdgeToEdge() in BaseActivity. -->
-    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App" />
+    <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips
+         Window.setStatusBarColor/setNavigationBarColor (Play Android-15 deprecated-API check), so
+         the theme must supply transparency. API 35 omits these (system-enforced) via values-v35. -->
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
 
@@ -219,6 +224,10 @@
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
     </style>
+
+    <!-- S0623: transparent host for AppLaunchPanelActivity. Reuses the shared translucent theme so the
+         panel dialog floats over the foreground app instead of showing an opaque activity window. -->
+    <style name="Theme.FMS.TransparentPanelHost" parent="Theme.FastMediaSorter.Transparent" />
 
     <!-- Text Appearance for helper text: 2sp smaller than normal (14sp) -->
     <style name="TextAppearance.FastMediaSorter.HelperText" parent="TextAppearance.Material3.BodySmall">

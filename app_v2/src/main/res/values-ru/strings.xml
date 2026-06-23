@@ -2742,4 +2742,15 @@
     <string name="streams_more_actions">Ещё</string>
     <string name="disable_nine_zone_tracking">Отключить отслеживание 9 зон</string>
     <string name="three_zone_layout_explanation">Когда 9-зоновая сетка выключена, плеер использует 3 зоны: предыдущий / зум / следующий. Коснитесь левого края, чтобы открыть командную панель для операций с файлами.</string>
+    <string name="edit_app_launch_panel_title">Редактировать панель</string>
+    <string name="app_launch_panel_empty_slot">Пусто - нажмите, чтобы добавить</string>
+    <string name="app_launch_panel_add_app">Добавить программу</string>
+    <string name="app_launch_panel_action_move">Переместить</string>
+    <string name="app_launch_panel_action_replace">Заменить</string>
+    <string name="app_launch_panel_action_remove">Удалить</string>
+    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_picker_title">Выберите программу</string>
+    <string name="app_launch_panel_title">Быстрый запуск</string>
+    <string name="app_launch_panel_edit_action">Изменить</string>
+    <string name="screenshot_gesture_action_open_panel">Открыть панель программ</string>
 </resources>

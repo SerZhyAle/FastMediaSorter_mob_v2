@@ -191,6 +191,21 @@
     public *** d(...);
 }
 
+# ===== Android 15 edge-to-edge: strip deprecated system-bar color setters =====
+# Google Play's Android-15 edge-to-edge check STATICALLY flags every invoke of the deprecated
+# android.view.Window.setStatusBarColor / setNavigationBarColor, even when the caller guards it
+# with if(SDK_INT<35). Confirmed: warning #2 is present on release 6222.158 (Material 1.14.0),
+# attributed to the R8-inlined Material bottom-sheet helpers (o43.b/q43.b). The runtime guard is
+# NOT enough for the static scanner, so the calls must be removed from release bytecode.
+# Framework-level (not EdgeToEdgeUtils-level) so the strip survives R8 inlining of the Material
+# wrappers and also covers androidx.activity.enableEdgeToEdge()'s own pre-29 setters.
+# The app never calls these setters itself (grep-verified); bars stay transparent via
+# android:statusBarColor/navigationBarColor in the app theme (pre-35 buckets).
+-assumenosideeffects class android.view.Window {
+    public void setStatusBarColor(int);
+    public void setNavigationBarColor(int);
+}
+
 # Apache HTTP Client (используется транзитивными зависимостями)
 -dontwarn javax.naming.**
 -dontwarn org.ietf.jgss.**

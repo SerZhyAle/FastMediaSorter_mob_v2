@@ -154,7 +154,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
         // Apply insets handling whenever the system draws content edge-to-edge:
         // either we opted in explicitly, or Android 15+ (API 35) forces it for
-        // targetSdk 35 regardless of enableEdgeToEdge(). Without this, the toolbar
+        // targetSdk 35 regardless of shared edge-to-edge setup. Without this, the toolbar
         // title slides under the status bar on Android 15+ (observed on Samsung S25FE).
         if (shouldEnableEdgeToEdge() ||
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {

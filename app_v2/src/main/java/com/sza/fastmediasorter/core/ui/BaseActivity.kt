@@ -109,14 +109,13 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     /**
-     * Override to disable edge-to-edge for activities that handle their own window insets 
-     * (e.g. PlayerActivity which has custom immersive mode).
+     * Override to disable shared edge-to-edge setup for activities that handle their own window
+     * insets (e.g. PlayerActivity which has custom immersive mode).
      */
     protected open fun shouldEnableEdgeToEdge(): Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Enable edge-to-edge rendering: content draws behind system bars.
-        // Each Activity applies its own WindowInsets padding via ViewCompat.setOnApplyWindowInsetsListener.
+        // Content draws behind system bars; each Activity applies its own WindowInsets padding.
         if (shouldEnableEdgeToEdge()) {
             enableEdgeToEdge()
         }

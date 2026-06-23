@@ -20,28 +20,37 @@
 
                 <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- S0567: Sort Mode + Slideshow Interval restructured into full-width compound rows.
-                         Stacking the previously-horizontal fields is expected (ADR-1). -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/spinnerSortMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        app:sdr_inline="true"
-                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-                        app:sdr_title="@string/default_sort_mode" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
-                        android:id="@+id/etSlideshowInterval"
+                    <!-- S0647: Sort Mode + Slideshow Interval share one horizontal row; the numeric
+                         slideshow field is width-capped so it no longer stretches full-width. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_small"
                         android:layout_marginBottom="@dimen/margin_small"
-                        app:sir_title="@string/slideshow_interval"
-                        app:sir_inputType="2"
-                        app:sir_showHelp="true"
-                        app:sir_helpTitle="@string/tooltip_slideshow_title"
-                        app:sir_helpMessage="@string/tooltip_slideshow_message" />
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/spinnerSortMode"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:sdr_inline="true"
+                            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                            app:sdr_title="@string/default_sort_mode" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                            android:id="@+id/etSlideshowInterval"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_small"
+                            app:sir_title="@string/slideshow_interval"
+                            app:sir_inputType="2"
+                            app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width"
+                            app:sir_showHelp="true"
+                            app:sir_helpTitle="@string/tooltip_slideshow_title"
+                            app:sir_helpMessage="@string/tooltip_slideshow_message" />
+                    </LinearLayout>
 
                     <!-- Play Video to End -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
