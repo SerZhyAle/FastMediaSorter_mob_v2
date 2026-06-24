@@ -6,7 +6,34 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6221.755** (June 2026)
+**Current release: 2.60.6242.232** (June 2026)
+
+> Changes since version 2.60.6222.158
+
+---
+
+## What's New
+
+- **Stream player controls** - trimmed, stream-tailored controls with channel navigation.
+- **Cast live streams** - send a live video stream to Chromecast.
+- **Stream shortcuts and actions** - home-screen shortcuts plus a per-card actions menu.
+- **Streams settings** - default sort and media-type filter, with TV-remote and mouse support.
+- **Screen-capture app panel** - OS shortcuts and the app's own features in one panel.
+- **Edge gestures** - open the app or its panel with an edge swipe.
+- **9-zone player grid** - optional touch grid mapping zones to playback actions.
+- **Smarter player layout** - auto-fullscreen on landscape; controls adapt to orientation.
+- **Statistics onboarding toggle** - Welcome offers a statistics switch, on by default.
+- **Welcome gesture setup** - enable edge gestures from the Welcome flow.
+- **Richer usage statistics** - more tracked metrics with a clearer headline.
+- **Cleaner settings rows** - unified value rows, consistent chevrons and arrows.
+
+## What's Fixed
+
+- Dropped live streams now auto-recover instead of prompting channel removal.
+
+---
+
+## Previous Release: 2.60.6221.755 (June 2026)
 
 > Changes since version 2.60.6200.317
 
