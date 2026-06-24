@@ -20,8 +20,9 @@
 
                 <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- S0647: Sort Mode + Slideshow Interval share one horizontal row; the numeric
-                         slideshow field is width-capped so it no longer stretches full-width. -->
+                    <!-- S0647: Sort Mode + Slideshow Interval share one horizontal row. The numeric field
+                         uses a FIXED width (not wrap_content): SettingsInputRow is internally match_parent,
+                         so wrap_content makes it greedily fill the row and starve the weighted dropdown to 0px. -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -41,10 +42,10 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
                             android:id="@+id/etSlideshowInterval"
-                            android:layout_width="wrap_content"
+                            android:layout_width="@dimen/settings_input_numeric_max_width"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/margin_small"
-                            app:sir_title="@string/slideshow_interval"
+                            app:sir_title="@string/slideshow_interval_inline"
                             app:sir_inputType="2"
                             app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width"
                             app:sir_showHelp="true"

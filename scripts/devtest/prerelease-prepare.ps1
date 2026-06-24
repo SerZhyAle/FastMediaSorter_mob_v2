@@ -145,12 +145,21 @@ Add-Stage 'install' 'OK' "standard-debug built + installed ($DebugPackage)"
 # Skip the first-run WelcomeActivity deterministically so the sweep lands on MainActivity.
 # UI taps on the onboarding buttons proved flaky; writing the completion pref is reliable.
 # base64 transport avoids the run-as quoting trap for the XML's embedded double-quotes.
-$wcXml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><map><boolean name="welcome_completed" value="true" /></map>'
+#
+# Write the COMPLETE welcome_prefs map (all four keys WelcomeViewModel owns), not just
+# welcome_completed. A single injected key is fragile: the running app later commits this
+# SharedPreferences file from its own in-memory map (e.g. setFirstRunCompleted() flips
+# first_run_after_welcome, or maybeSeedDefaultGestureBindings() writes gesture_defaults_seeded),
+# and that commit rewrites the file WITHOUT the externally-injected welcome_completed - the app
+# then reverts to WelcomeActivity mid-suite and every later flow cascade-fails on go_home. Pre-
+# seeding every flag the app would otherwise write leaves it no reason to commit welcome_prefs,
+# so the injected bypass survives the whole run (matches the 4-key map a genuine Finish produces).
+$wcXml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><map><boolean name="welcome_completed" value="true" /><boolean name="first_run_after_welcome" value="false" /><boolean name="onboarding_default_player_shown" value="true" /><boolean name="gesture_defaults_seeded" value="true" /></map>'
 $wcB64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($wcXml))
 $wcCmd = "run-as $DebugPackage sh -c 'mkdir -p shared_prefs; echo $wcB64 | base64 -d > shared_prefs/welcome_prefs.xml'"
 $wcArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'shell', '-Cmd', $wcCmd, '-DeviceId', $TargetDevice)
 & pwsh @wcArgs *> $null
-Add-Stage 'onboarding-bypass' 'OK' 'welcome_completed=true (skip first-run onboarding)'
+Add-Stage 'onboarding-bypass' 'OK' 'welcome_prefs seeded with full 4-key map (durable bypass; app never rewrites it)'
 
 # ---------- stage 2.6: local-network permission grant (S0614) ----------
 # On API >= 37 ACCESS_LOCAL_NETWORK is a runtime permission that gates every network scanner

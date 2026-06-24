@@ -246,7 +246,6 @@ class CastMediaManager(
                 return
             }
             is CastStreamDecision.Direct -> {
-                Timber.d("S0632: live stream cast entry - direct URL path, ${decision.contentType}")
                 withContext(Dispatchers.Main) {
                     loadStreamOnReceiver(file, file.path, decision.contentType)
                 }

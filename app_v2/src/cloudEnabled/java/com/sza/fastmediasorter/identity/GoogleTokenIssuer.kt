@@ -52,7 +52,6 @@ class GoogleTokenIssuer @Inject constructor(
         }
         val scopeString = "oauth2:" + scopes.joinToString(" ") { it.value }
         withContext(tokenDispatcher) {
-            Timber.d("S0643: token issuance on dedicated dispatcher thread=${Thread.currentThread().name}")
             runCatching {
                 val raw = GoogleAuthUtil.getToken(context, email, scopeString)
                 GoogleAccessToken(

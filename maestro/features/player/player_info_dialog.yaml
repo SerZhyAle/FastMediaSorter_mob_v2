@@ -26,12 +26,20 @@ appId: com.sza.fastmediasorter.debug
     timeout: 15000
 - runFlow: ../../_shared/downloads_sort_reset.yaml
 
+# Centre the row before the open tap: scrolled to the bottom edge the row is only partly on-screen
+# and the row-container tap can miss; centring places it mid-list so containsChild taps cleanly.
 - scrollUntilVisible:
     element:
       text: "test_audio_flac.flac"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
+# Open by tapping the row container (clear of the right-side operation buttons), matched by the exact
+# filename - a centred filename-text tap lands on a button (see player_image.yaml).
 - tapOn:
-    text: "test_audio_flac.flac"
+    containsChild:
+      text: "test_audio_flac.flac"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"

@@ -140,7 +140,11 @@ _Available in: Standard, Legacy_
 
 | Setting | What it does |
 |---|---|
+| Clear play marks | Clears the green and red play marks on all channels. The channels themselves stay. |
 | Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
+| Updating the channel list | Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi. |
+| Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
+| Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 
 ## Other
@@ -165,7 +169,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Reset Player settings | Restores all Player settings in this section to their factory defaults. |
 | Show Hint Next Time | Schedules the touch zones hint to appear the next time the player opens. |
-| Default slideshow (sec.) | Sets the default number of seconds each slide is shown during a slideshow. |
+| Slideshow (s) | Sets the default number of seconds each slide is shown during a slideshow. |
 | Background audio playback | Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar. |
 | Deletion and renaming in player | Settings for deleting and renaming files while inside the player. |
 | Player interface and commands | Settings for the player's visual interface, control buttons, and command layout. |
@@ -196,6 +200,7 @@ _Available in: Standard, Legacy_
 | Setting | What it does |
 |---|---|
 | + Add | Adds a new Quick Sort destination folder to the list. |
+| Edit app panel | Opens the editor for the app panel, where you choose and arrange the apps shown on it. |
 | Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |

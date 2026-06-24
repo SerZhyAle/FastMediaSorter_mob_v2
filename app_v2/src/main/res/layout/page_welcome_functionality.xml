@@ -224,6 +224,13 @@
                     app:str_title="@string/settings_statistics_collection_title"
                     app:str_subtitle="@string/settings_statistics_collection_summary" />
 
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowGestures"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:str_title="@string/welcome_func_gestures"
+                    app:str_subtitle="@string/welcome_func_gestures_summary" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnElements"
                     style="@style/Widget.Material3.Button.TonalButton"

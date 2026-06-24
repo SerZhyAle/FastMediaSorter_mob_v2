@@ -1,6 +1,6 @@
 ---
 name: avd-device-sweep-gotchas
-description: Infra traps when driving the app on the headless Pixel_4 AVD via mobile-mcp/adb (input wedge, ACCESS_LOCAL_NETWORK, logcat death, prepare deadlock)
+description: Infra traps when driving the app on the headless Pixel_4 AVD via mobile-mcp/adb (input wedge, ACCESS_LOCAL_NETWORK, logcat death, UiAutomationService a11y crash)
 type: feedback
 ---
 
@@ -18,3 +18,7 @@ Four recurring infra traps when running /spec-prerelease or /spec-test-device on
 **How to apply:** before running prerelease-verdict, check the capture PID is alive and the log's last timestamp is recent; if not, ring-dump to fill.
 
 4. **mobile-mcp `list_elements` coordinates are TOP-LEFT, not center.** Tap at `x+width/2, y+height/2`. And match rows by a UNIQUE field (e.g. `tvResourcePath`), never by a type label like `text="SFTP"` which also appears as `tvResourceType` on every SFTP row.
+
+5. **mobile-mcp a11y tree can wedge entirely - `list_elements` throws `Cannot read properties of undefined (reading 'node')` on every call.** Root cause shows in logcat as repeated `FATAL EXCEPTION: main / IllegalStateException: UiAutomationService ... already registered!` in the **mobile-mcp instrumentation** process (its own pid, NOT com.sza.fastmediasorter). The harness UiAutomator service fails to register, so no accessibility tree is ever built and only blind coordinate taps remain - which drift into content tiles under the toolbar and make multi-step scenarios undriveable. The app is fine (0 app crashes). Seen 2026-06-24 on S0660 device run.
+**Why:** a stale/duplicate UiAutomationService registration on the AVD; mobile-mcp cannot claim it.
+**How to apply:** if `list_elements` errors with `reading 'node'`, grep the run log for `UiAutomationService ... already registered` to confirm it is the harness (not the app). Don't burn taps blind-navigating - restart the emulator AND the mobile-mcp server to clear the registration, or fall back to a real device / manual test. For a feature already built + compiled, declare the device run INCONCLUSIVE (harness), keep `BlockNeedUserTest`, and do NOT chain `/spec-check` (it would strip the debug probes prematurely).

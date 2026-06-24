@@ -96,8 +96,8 @@ class GameViewModelTest {
         advanceUntilIdle()
 
         val ready = viewModel.state.value as GameUiState.Ready
-        assertEquals(10, ready.levelState.board.width)
-        assertEquals(10, ready.levelState.board.height)
+        assertEquals(8, ready.levelState.board.width)
+        assertEquals(8, ready.levelState.board.height)
         assertEquals(1, ready.levelState.enemies.count { it.type == GameEnemyType.SHADOW })
     }
 

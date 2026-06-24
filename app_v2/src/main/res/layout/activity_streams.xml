@@ -76,6 +76,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/etSearch"
                 android:nextFocusRight="@id/btnSort"
                 android:nextFocusDown="@id/rvStreams"
@@ -89,6 +90,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnFilter"
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_sort" />
@@ -228,6 +230,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/rvStreams"
                 android:contentDescription="@string/streams_stop" />
         </LinearLayout>
     </LinearLayout>

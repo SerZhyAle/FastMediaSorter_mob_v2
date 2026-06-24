@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generic panel internal-route picker: a rounded card with a title above a scrollable list of
+     selectable rows (feature / OS shortcut / resource). Shared by the three internal-route picker
+     dialogs (S0663); each supplies its own title and item list. Window is centred/sized in code. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardRoutePickerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="22dp"
+        android:paddingBottom="22dp">
+
+        <TextView
+            android:id="@+id/tvRoutePickerTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="@string/app_launch_panel_picker_feature_title" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRouteItems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_app_picker_row"
+            tools:itemCount="6" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

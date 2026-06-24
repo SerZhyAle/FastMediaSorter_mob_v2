@@ -41,6 +41,17 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/resetButton"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusLeft="@id/backButton"
+            android:text="@string/app_launch_panel_reset" />
+
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

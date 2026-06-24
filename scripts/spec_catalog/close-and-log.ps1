@@ -129,7 +129,12 @@ if (-not $SkipFuncLog -and $FuncOp -and $FuncDesc) {
         $slugParts = @($slug -split '-' | Where-Object { $_ })
         if ($slugParts.Count -gt 8) { $slugParts = $slugParts[0..7] }
         $slug = ($slugParts -join '-'); if (-not $slug) { $slug = 'item' }
-        $recId = if ($FeatId) { $FeatId } else { "$($Id.ToLowerInvariant()).$slug" }
+        # S0665: the record id prefix is the AREA slug, not the spec id. validate.ps1
+        # rejects 's####.' prefixes (a spec id is not an area). Mirror all_features/add.ps1's
+        # '<area>.<feature>' kebab contract by slugifying -FeatArea the same way as the feature.
+        $areaSlug = ($FeatArea.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
+        if (-not $areaSlug) { $areaSlug = 'general' }
+        $recId = if ($FeatId) { $FeatId } else { "$areaSlug.$slug" }
         $status = if ($FuncOp -eq 'DELETE') { 'removed' } else { 'active' }
         $addArgs = @{ Id = $recId; Area = $FeatArea; Name = $featName; Description = $FuncDesc; Flavors = $FeatFlavors; Spec = $Id; Status = $status; Quiet = $true }
         & $addScript @addArgs | Out-Null

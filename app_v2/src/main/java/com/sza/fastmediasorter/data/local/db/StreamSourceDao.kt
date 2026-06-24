@@ -42,12 +42,27 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE id = :id")
     suspend fun pin(id: String, newSortIndex: Int)
 
+    /**
+     * S0660: in-place edit of a user channel. Scoped to MANUAL rows so a CATALOG/IMPORTED row can
+     * never be mutated by an edit, even if the call is mis-routed; pin/sort/origin/outcome are left
+     * untouched because they are absent from the SET clause.
+     */
+    @Query(
+        "UPDATE stream_sources SET url = :url, title = :title, mediaKind = :mediaKind " +
+            "WHERE id = :id AND sourceOrigin = 'MANUAL'"
+    )
+    suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String)
+
     @Query("UPDATE stream_sources SET lastPlayedAt = :atMillis WHERE id = :id")
     suspend fun markPlayed(id: String, atMillis: Long)
 
     /** S0593: record the last local play outcome ("OK"/"FAIL") for the row status bullet. */
     @Query("UPDATE stream_sources SET lastPlayOutcome = :outcome, lastPlayOutcomeAt = :atMillis WHERE id = :id")
     suspend fun markPlayOutcome(id: String, outcome: String, atMillis: Long)
+
+    /** S0659: clear every channel's OK/FAIL status bullet. Channels themselves are untouched (no DELETE). */
+    @Query("UPDATE stream_sources SET lastPlayOutcome = NULL, lastPlayOutcomeAt = NULL")
+    suspend fun clearAllPlayOutcomes()
 
     /** S0570: snapshot of catalog-origin rows, used to compute the merge/prune delta. */
     @Query("SELECT * FROM stream_sources WHERE sourceOrigin = 'CATALOG'")

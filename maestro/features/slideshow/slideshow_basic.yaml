@@ -25,8 +25,11 @@ appId: com.sza.fastmediasorter.debug
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 15000
+# Open by tapping the row container (clear of the right-side operation buttons), matched by the exact
+# filename - a centred filename-text tap lands on a button (see player_image.yaml).
 - tapOn:
-    text: "photo_001.jpg"
+    containsChild:
+      text: "photo_001.jpg"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/photoView"

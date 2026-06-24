@@ -41,6 +41,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Download by link** `[Standard]`: Paste a URL into the Download-by-link dialog and the file downloads straight to your chosen folder, no browser needed.
 - **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
 - **Screen capture** `[Standard]`: Take a screenshot of the device screen from the Operations settings, or with an edge gesture, using Android's system capture consent, and save it to your chosen folder.
+- **App panel: system shortcuts and app features** `[Standard]`: The quick-launch panel can now hold not only other apps but also parts of the operating system and the app's own features and resources (calculator, mini-game, photo-OCR-translate, streams, a specific resource), and it arrives pre-filled with a useful set by default.
 - **Copy or move an opened file** `[Standard]`: When you open a file from another app, copy or move it straight to a configured destination folder from within the viewer.
 
 ## 4. Destination Management

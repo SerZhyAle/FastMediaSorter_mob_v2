@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.welcome.helpers
 
 import android.content.Context
+import android.content.Intent
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.databinding.PageWelcomeFunctionalityBinding
 import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
@@ -54,6 +57,7 @@ class WelcomeFunctionalityController @Inject constructor(
     private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val installSource: InstallSourceProvider,
     private val mediaCapabilities: MediaCapabilities,
+    private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
     @param:ApplicationScope private val appScope: CoroutineScope,
 ) {
 
@@ -61,6 +65,19 @@ class WelcomeFunctionalityController @Inject constructor(
     private var ocrProgressJob: Job? = null
     private var translationProgressJob: Job? = null
     private var streamsCatalogJob: Job? = null
+
+    // Host-owned launcher for the overlay-permission system screen; re-attached on each Activity
+    // recreation. The manager is rebuilt on every page bind, so the result callback routes through it.
+    private var gesturePermissionLauncher: ActivityResultLauncher<Intent>? = null
+    private var gesturesManager: WelcomeGesturesManager? = null
+
+    fun attachGesturePermissionLauncher(launcher: ActivityResultLauncher<Intent>) {
+        gesturePermissionLauncher = launcher
+    }
+
+    fun onGesturePermissionResult() {
+        gesturesManager?.onOverlayPermissionResult()
+    }
 
     fun bind(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
         ocrProgressJob?.cancel()
@@ -92,7 +109,32 @@ class WelcomeFunctionalityController @Inject constructor(
         bindTranslationRow(binding, owner, settings)
         bindStreamsRow(binding, owner, settings)
         bindStatisticsRow(binding.rowStatistics, settings)
+        bindGesturesRow(binding, owner, settings)
         bindElementsButton(binding, owner)
+    }
+
+    // Hidden when the host launcher is not attached, the owner is not an Activity, or the flavor has
+    // no screen-gesture capability (empty controller set - handled inside the manager). Enabling routes
+    // through the same permission flow as Settings; the per-direction bindings are seeded at first run.
+    private fun bindGesturesRow(
+        binding: PageWelcomeFunctionalityBinding,
+        owner: LifecycleOwner,
+        settings: AppSettings,
+    ) {
+        val activity = owner as? FragmentActivity
+        val launcher = gesturePermissionLauncher
+        if (activity == null || launcher == null) {
+            binding.rowGestures.visibility = View.GONE
+            return
+        }
+        gesturesManager = WelcomeGesturesManager(
+            row = binding.rowGestures,
+            screenGestureControllers = screenGestureControllers,
+            overlayPermissionLauncher = launcher,
+            activity = activity,
+            initialEnabled = settings.gestureOverlayEnabled,
+            persist = ::persist,
+        ).also { it.setup() }
     }
 
     private fun bindStatisticsRow(row: SettingsToggleRow, settings: AppSettings) {

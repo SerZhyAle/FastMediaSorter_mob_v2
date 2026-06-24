@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.input.TvNavAction
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
@@ -64,6 +65,13 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     /** Owns the "Enable all" sequence (S0409): profile + settings + permissions + default-player + finish. */
     @Inject
     lateinit var enableAllManager: WelcomeEnableAllManager
+
+    // Overlay-permission result for the Welcome gesture toggle. Registered at construction (before
+    // STARTED, as the API requires); the callback routes back into the functionality controller.
+    private val gestureOverlayPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            functionalityController.onGesturePermissionResult()
+        }
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private lateinit var pagesList: MutableList<WelcomePage>
@@ -255,6 +263,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
         // S0400: functionality page (index 3). Capability toggles + inline deliverable downloads;
         // WelcomeFunctionalityController owns all logic and binds via the page callback.
+        functionalityController.attachGesturePermissionLauncher(gestureOverlayPermissionLauncher)
         pagesList.add(
             WelcomePage(
                 isFunctionalityPage = true,

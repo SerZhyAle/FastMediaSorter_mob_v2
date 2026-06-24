@@ -165,4 +165,6 @@
     <string name="welcome_func_streams">Трансляции</string>
     <string name="welcome_streams_catalog_done">Каталог загружен</string>
     <string name="welcome_streams_catalog_failed">Каталог не загружен - источники можно добавить вручную</string>
+    <string name="welcome_func_gestures">Включить жесты</string>
+    <string name="welcome_func_gestures_summary">Свайпы от левого края: меню, скриншот, тихий скриншот</string>
 </resources>

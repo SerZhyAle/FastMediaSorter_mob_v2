@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
+import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
 import com.sza.fastmediasorter.domain.repository.AppLaunchPanelRepository
+import com.sza.fastmediasorter.domain.usecase.panel.ResetAppLaunchPanelUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolveAppLaunchPanelTilesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class EditAppLaunchPanelViewModel @Inject constructor(
     resolveTiles: ResolveAppLaunchPanelTilesUseCase,
     private val repository: AppLaunchPanelRepository,
+    private val resetPanelUseCase: ResetAppLaunchPanelUseCase,
 ) : ViewModel() {
 
     val tiles: StateFlow<List<AppLaunchPanelTileUi>> =
@@ -42,8 +45,42 @@ class EditAppLaunchPanelViewModel @Inject constructor(
         }
     }
 
+    /** Pins one of our own features as an INTERNAL_ROUTE tile in [slot] (`fn:<routeKey>`). */
+    fun addInternalFeatureToSlot(slot: Int, routeKey: String) {
+        persistRouteTile(slot, AppLaunchPanelRouteTarget.Feature(routeKey))
+    }
+
+    /** Pins a curated OS shortcut as an INTERNAL_ROUTE tile in [slot] (`os:<targetKey>`). */
+    fun addOsShortcutToSlot(slot: Int, targetKey: String) {
+        persistRouteTile(slot, AppLaunchPanelRouteTarget.OsShortcut(targetKey))
+    }
+
+    /** Pins a specific resource as an INTERNAL_ROUTE tile in [slot] (`resource:<id>`). */
+    fun addResourceToSlot(slot: Int, resourceId: Long) {
+        persistRouteTile(slot, AppLaunchPanelRouteTarget.Resource(resourceId))
+    }
+
+    private fun persistRouteTile(slot: Int, target: AppLaunchPanelRouteTarget) {
+        viewModelScope.launch {
+            repository.setTile(
+                AppLaunchPanelTile(
+                    slotIndex = slot,
+                    type = AppLaunchPanelTileType.INTERNAL_ROUTE,
+                    targetId = target.encode(),
+                    labelOverride = null,
+                    addedAt = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+
     fun removeTile(slot: Int) {
         viewModelScope.launch { repository.removeTile(slot) }
+    }
+
+    /** Clears every slot and re-applies the install-time default set (S0663). */
+    fun resetPanel() {
+        viewModelScope.launch { resetPanelUseCase() }
     }
 
     fun moveTile(from: Int, to: Int) {

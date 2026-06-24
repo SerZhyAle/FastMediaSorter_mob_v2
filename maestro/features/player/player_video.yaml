@@ -27,12 +27,24 @@ appId: com.sza.fastmediasorter.debug
     timeout: 15000
 - runFlow: ../../_shared/downloads_sort_reset.yaml
 
+# The Загрузки listing is a flat, name-sorted set of ~48 files, so videos sit at the very bottom;
+# the last row is partially clipped by the bottom bar/FAB and never reaches 100% visibility. Lower
+# the visibility threshold, let the RecyclerView settle between scrolls, and centre the found row so
+# the deep tail items are reliably reached (default speed avoids overshooting the last row).
 - scrollUntilVisible:
     element:
       text: "video_sample.mp4"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
+# Open by tapping the row container, not the filename text: tvFileName is constrained end-to-parent
+# so its node centre (x=675 on 1080px) sits over the right-side operation buttons (favorite/copy/..
+# start at x=607), and a centred text tap lands on a button. The row root is clickable, opens the
+# file, and its centre (x=540) is clear of the buttons; containsChild matches it by the exact filename.
 - tapOn:
-    text: "video_sample.mp4"
+    containsChild:
+      text: "video_sample.mp4"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/playerView"

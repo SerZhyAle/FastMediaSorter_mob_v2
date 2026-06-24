@@ -38,5 +38,7 @@ class AppLaunchPanelViewModel @Inject constructor(
     fun onTileSelected(tile: AppLaunchPanelTileUi): PanelResult =
         if (tile.isEmpty) PanelResult.EDIT else PanelResult.LAUNCH
 
-    fun launch(tile: AppLaunchPanelTileUi): Boolean = launchTile.launch(tile)
+    fun launch(tile: AppLaunchPanelTileUi) {
+        viewModelScope.launch { launchTile.launch(tile) }
+    }
 }

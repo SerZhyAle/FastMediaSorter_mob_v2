@@ -91,6 +91,16 @@
       "titleUk": "+ Додати"
     },
     {
+      "key": "btnEditAppPanel",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Edit app panel",
+      "titleRu": "Редакция панели программ",
+      "titleUk": "Редакція панелі програм"
+    },
+    {
       "key": "btnOpenAccessibilitySettings",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1626,9 +1636,9 @@
       "destination": "PLAYBACK",
       "layout": "fragment_settings_playback",
       "kind": "INPUT_ROW",
-      "titleEn": "Default slideshow (sec.)",
-      "titleRu": "Слайдшоу по умолч. (сек.)",
-      "titleUk": "Слайдшоу за замовч. (сек.)"
+      "titleEn": "Slideshow (s)",
+      "titleRu": "Слайдшоу (с)",
+      "titleUk": "Слайдшоу (с)"
     },
     {
       "key": "headerBackgroundAudio",
@@ -1871,6 +1881,16 @@
       "titleUk": "Режим сортування за замовчуванням"
     },
     {
+      "key": "btnClearPlayStatuses",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "BUTTON",
+      "titleEn": "Clear play marks",
+      "titleRu": "Очистить отметки воспроизведения",
+      "titleUk": "Очистити позначки відтворення"
+    },
+    {
       "key": "btnStreams",
       "sectionId": "streams",
       "destination": "MEDIA",
@@ -1879,6 +1899,36 @@
       "titleEn": "Streams",
       "titleRu": "Трансляции",
       "titleUk": "Трансляції"
+    },
+    {
+      "key": "rowCatalogRefresh",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Updating the channel list",
+      "titleRu": "Обновление списка каналов",
+      "titleUk": "Оновлення списку каналів"
+    },
+    {
+      "key": "rowDefaultMediaFilter",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Show by default",
+      "titleRu": "Что показывать сначала",
+      "titleUk": "Що показувати спочатку"
+    },
+    {
+      "key": "rowDefaultSort",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Default order",
+      "titleRu": "Порядок по умолчанию",
+      "titleUk": "Порядок за замовчуванням"
     },
     {
       "key": "rowEnableStreams",

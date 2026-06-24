@@ -93,7 +93,11 @@ data class AppSettings(
 
     // S0575: Streams feature master switch (internet stream sources). Default OFF; the per-device-profile preset raises it for streaming-oriented devices.
     val enableStreams: Boolean = false,
-    
+    // S0659: Streams default profile - seeds the list screen on first open / after a cleared session; remembered session state overrides these on later opens.
+    val streamsDefaultSort: StreamDefaultSort = StreamDefaultSort.NAME,
+    val streamsDefaultMediaFilter: StreamMediaTypeFilter = StreamMediaTypeFilter.ALL,
+    val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.ON_OPEN,
+
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
     val translationSourceLanguage: String = "auto", // Source language code (auto = auto-detect, en, ru, uk, etc.)

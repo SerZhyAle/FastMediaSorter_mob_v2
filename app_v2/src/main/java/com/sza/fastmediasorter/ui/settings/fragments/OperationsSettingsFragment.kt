@@ -384,7 +384,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Controls & Keybindings entry row.
         binding.rowControlsKeybindings.setOnRowClickListener {
-            Timber.d("S0645: Controls & keys nav-row tapped - opening keybinding remap")
             SettingsActivity.openKeybindingRemap(requireContext())
         }
 

@@ -27,9 +27,14 @@ appId: com.sza.fastmediasorter.debug
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 15000
 
-# Open the large image that crashed in S0550.
+# Open the large image that crashed in S0550. Tap the row container, not the filename text:
+# tvFileName is constrained end-to-parent so its node centre (x=675 on 1080px) falls behind the
+# right-side operation buttons (favorite/copy/.. start at x=607) and a centred text tap lands on a
+# button. The row root is clickable, opens the file, and its centre (x=540) is clear of the buttons;
+# containsChild matches that row by the exact filename (leftOf matched a wrong row's thumbnail).
 - tapOn:
-    text: "photo_001.jpg"
+    containsChild:
+      text: "photo_001.jpg"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/photoView"

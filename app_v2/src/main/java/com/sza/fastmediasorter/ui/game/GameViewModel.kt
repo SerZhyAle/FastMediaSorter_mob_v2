@@ -194,13 +194,10 @@ class GameViewModel @Inject constructor(
         )
     }
 
-    // Board grows in steps with the level; capped at 20x20 so cells stay readable on small screens.
+    // Board grows by one cell per level (level 1 -> 8x8), capped at 20x20 so cells stay readable.
     // Wall count stays proportional to the cell count inside the generator.
-    private fun boardSizeForLevel(levelNumber: Int): Int = when {
-        levelNumber <= LEVEL_THRESHOLD_SMALL -> BOARD_SIZE_SMALL
-        levelNumber <= LEVEL_THRESHOLD_MEDIUM -> BOARD_SIZE_MEDIUM
-        else -> BOARD_SIZE_LARGE
-    }
+    private fun boardSizeForLevel(levelNumber: Int): Int =
+        (levelNumber + BOARD_SIZE_LEVEL_OFFSET).coerceIn(BOARD_SIZE_MIN, BOARD_SIZE_MAX)
 
     private fun nextSeed(levelNumber: Int): Long {
         // The nonce prevents identical boards when several games start inside one clock tick.
@@ -239,11 +236,9 @@ class GameViewModel @Inject constructor(
     }
 
     companion object {
-        private const val LEVEL_THRESHOLD_SMALL = 5
-        private const val LEVEL_THRESHOLD_MEDIUM = 10
-        private const val BOARD_SIZE_SMALL = 10
-        private const val BOARD_SIZE_MEDIUM = 15
-        private const val BOARD_SIZE_LARGE = 20
+        private const val BOARD_SIZE_LEVEL_OFFSET = 7
+        private const val BOARD_SIZE_MIN = 8
+        private const val BOARD_SIZE_MAX = 20
         private const val LARGE_CUSTOM_BOARD_SIZE = 18
         private const val SEED_NONCE_STEP = 104729L
     }

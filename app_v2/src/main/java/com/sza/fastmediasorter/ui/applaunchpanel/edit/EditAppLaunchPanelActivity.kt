@@ -33,6 +33,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
 
     override fun setupViews() {
         binding.backButton.setOnClickListener { finish() }
+        binding.resetButton.setOnClickListener { showResetConfirm() }
 
         tileAdapter = EditAppLaunchPanelTileAdapter(
             onTileClick = ::onTileClicked,
@@ -52,6 +53,32 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 ?: return@setFragmentResultListener
             viewModel.addAppToSlot(slot, packageName)
         }
+
+        supportFragmentManager.setFragmentResultListener(
+            InternalRoutePickerDialogFragment.RESULT_KEY, this
+        ) { _, bundle ->
+            val slot = bundle.getInt(InternalRoutePickerDialogFragment.RESULT_SLOT)
+            val routeKey = bundle.getString(InternalRoutePickerDialogFragment.RESULT_ROUTE_KEY)
+                ?: return@setFragmentResultListener
+            viewModel.addInternalFeatureToSlot(slot, routeKey)
+        }
+
+        supportFragmentManager.setFragmentResultListener(
+            OsShortcutPickerDialogFragment.RESULT_KEY, this
+        ) { _, bundle ->
+            val slot = bundle.getInt(OsShortcutPickerDialogFragment.RESULT_SLOT)
+            val targetKey = bundle.getString(OsShortcutPickerDialogFragment.RESULT_TARGET_KEY)
+                ?: return@setFragmentResultListener
+            viewModel.addOsShortcutToSlot(slot, targetKey)
+        }
+
+        supportFragmentManager.setFragmentResultListener(
+            ResourcePickerDialogFragment.RESULT_KEY, this
+        ) { _, bundle ->
+            val slot = bundle.getInt(ResourcePickerDialogFragment.RESULT_SLOT)
+            val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
+            viewModel.addResourceToSlot(slot, resourceId)
+        }
     }
 
     override fun observeData() {
@@ -59,14 +86,59 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
     }
 
     private fun onTileClicked(tile: AppLaunchPanelTileUi) {
-        // Empty slot or filled tile tap both lead to the picker (filled tile tap == replace).
-        openAppPicker(tile.slotIndex)
+        // Empty slot or filled tile tap both lead to the add flow (filled tile tap == replace).
+        showAddPathChooser(tile.slotIndex)
+    }
+
+    /**
+     * Four-path pre-step (strategic S0663 §6.4): the user picks a category, then the matching picker
+     * opens for the same slot. FastMediaSorter feature and resource are distinct top-level paths, so
+     * no secondary feature/resource sub-choice is needed.
+     */
+    private fun showAddPathChooser(slot: Int) {
+        val paths = arrayOf(
+            getString(R.string.app_launch_panel_path_external_app),
+            getString(R.string.app_launch_panel_path_app_feature),
+            getString(R.string.app_launch_panel_path_app_resource),
+            getString(R.string.app_launch_panel_path_os_part),
+        )
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.app_launch_panel_add_chooser_title)
+            .setItems(paths) { dialog, which ->
+                when (which) {
+                    PATH_ANDROID_APP -> openAppPicker(slot)
+                    PATH_APP_FEATURE -> openInternalRoutePicker(slot)
+                    PATH_APP_RESOURCE -> openResourcePicker(slot)
+                    PATH_OS_PART -> openOsShortcutPicker(slot)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun openAppPicker(slot: Int) {
         if (supportFragmentManager.findFragmentByTag(AppPickerDialogFragment.TAG) != null) return
         AppPickerDialogFragment.newInstance(slot)
             .show(supportFragmentManager, AppPickerDialogFragment.TAG)
+    }
+
+    private fun openInternalRoutePicker(slot: Int) {
+        if (supportFragmentManager.findFragmentByTag(InternalRoutePickerDialogFragment.TAG) != null) return
+        InternalRoutePickerDialogFragment.newInstance(slot)
+            .show(supportFragmentManager, InternalRoutePickerDialogFragment.TAG)
+    }
+
+    private fun openOsShortcutPicker(slot: Int) {
+        if (supportFragmentManager.findFragmentByTag(OsShortcutPickerDialogFragment.TAG) != null) return
+        OsShortcutPickerDialogFragment.newInstance(slot)
+            .show(supportFragmentManager, OsShortcutPickerDialogFragment.TAG)
+    }
+
+    private fun openResourcePicker(slot: Int) {
+        if (supportFragmentManager.findFragmentByTag(ResourcePickerDialogFragment.TAG) != null) return
+        ResourcePickerDialogFragment.newInstance(slot)
+            .show(supportFragmentManager, ResourcePickerDialogFragment.TAG)
     }
 
     private fun showTileActionMenu(tile: AppLaunchPanelTileUi) {
@@ -80,9 +152,22 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
             .setItems(actions) { dialog, which ->
                 when (which) {
                     ACTION_MOVE -> showMoveTargetPicker(tile.slotIndex)
-                    ACTION_REPLACE -> openAppPicker(tile.slotIndex)
+                    ACTION_REPLACE -> showAddPathChooser(tile.slotIndex)
                     ACTION_REMOVE -> viewModel.removeTile(tile.slotIndex)
                 }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** Confirms before restoring the panel to its install-time default set (S0663). */
+    private fun showResetConfirm() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.app_launch_panel_reset_confirm_title)
+            .setMessage(R.string.app_launch_panel_reset_confirm_message)
+            .setPositiveButton(R.string.app_launch_panel_reset) { dialog, _ ->
+                viewModel.resetPanel()
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -107,5 +192,10 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
         private const val ACTION_MOVE = 0
         private const val ACTION_REPLACE = 1
         private const val ACTION_REMOVE = 2
+
+        private const val PATH_ANDROID_APP = 0
+        private const val PATH_APP_FEATURE = 1
+        private const val PATH_APP_RESOURCE = 2
+        private const val PATH_OS_PART = 3
     }
 }

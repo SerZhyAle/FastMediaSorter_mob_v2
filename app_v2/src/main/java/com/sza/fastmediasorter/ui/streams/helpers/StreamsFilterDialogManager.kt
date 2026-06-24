@@ -5,6 +5,7 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
 
@@ -88,6 +89,10 @@ class StreamsFilterDialogManager(
                 binding.toggleMediaKind.check(binding.btnMediaAll.id)
                 onApply(category, language, mediaKind)
             }
+        }
+        // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.show()
     }

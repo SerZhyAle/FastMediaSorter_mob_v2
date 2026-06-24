@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
+import com.sza.fastmediasorter.domain.usecase.SeedDefaultGestureBindingsUseCase
 import com.sza.fastmediasorter.ui.profile.DeviceProfileAvailability
 import com.sza.fastmediasorter.data.model.DeviceProfile
 import com.sza.fastmediasorter.data.model.DeviceProfileType
@@ -35,6 +36,7 @@ class WelcomeViewModel @Inject constructor(
     private val deviceProfileAvailability: DeviceProfileAvailability,
     private val profileImpliesAllFilesUseCase: ProfileImpliesAllFilesUseCase,
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
+    private val seedDefaultGestureBindingsUseCase: SeedDefaultGestureBindingsUseCase,
     @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
@@ -43,6 +45,7 @@ class WelcomeViewModel @Inject constructor(
         private const val KEY_WELCOME_COMPLETED = "welcome_completed"
         private const val KEY_FIRST_RUN_AFTER_WELCOME = "first_run_after_welcome"
         private const val KEY_DEFAULT_PLAYER_ONBOARDING_SHOWN = "onboarding_default_player_shown"
+        private const val KEY_GESTURE_DEFAULTS_SEEDED = "gesture_defaults_seeded"
         private const val APP_PREFS_NAME = "app_prefs"
         private const val KEY_MEDIA_PERMISSIONS_GRANTED = "media_permissions_granted"
     }
@@ -61,6 +64,7 @@ class WelcomeViewModel @Inject constructor(
 
     init {
         detectDeviceProfile()
+        maybeSeedDefaultGestureBindings()
     }
 
     private fun detectDeviceProfile() {
@@ -313,6 +317,35 @@ class WelcomeViewModel @Inject constructor(
             context.getSharedPreferences(APP_PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_MEDIA_PERMISSIONS_GRANTED, granted)
+                .apply()
+        }
+    }
+
+    /**
+     * First install only: seed the default left-edge gesture bindings once so enabling gestures from
+     * onboarding is immediately useful. Gated by welcome-completed (upgrade users skip onboarding and
+     * keep their own configuration) plus a one-shot marker (safe across config/process recreation).
+     */
+    private fun maybeSeedDefaultGestureBindings() {
+        if (isWelcomeCompleted() || isGestureDefaultsSeeded()) return
+        applicationScope.launch(exceptionHandler) {
+            seedDefaultGestureBindingsUseCase()
+            markGestureDefaultsSeeded()
+        }
+    }
+
+    private fun isGestureDefaultsSeeded(): Boolean {
+        return StrictModeHelper.allowDiskReads {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_GESTURE_DEFAULTS_SEEDED, false)
+        }
+    }
+
+    private fun markGestureDefaultsSeeded() {
+        StrictModeHelper.allowDiskWrites {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_GESTURE_DEFAULTS_SEEDED, true)
                 .apply()
         }
     }

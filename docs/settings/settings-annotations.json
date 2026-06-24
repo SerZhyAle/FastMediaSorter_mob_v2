@@ -464,6 +464,31 @@
     "ru": "Главный переключатель функции «Трансляции». Когда выключен, пункт «Трансляции» скрыт из главного меню и приветственного экрана.",
     "uk": "Головний перемикач функції «Трансляції». Коли вимкнено, пункт «Трансляції» приховано з головного меню та вітального екрана."
   },
+  "rowDefaultSort": {
+    "en": "Sets the order channels appear in when you open the Streams screen.",
+    "ru": "Задаёт порядок, в котором каналы показываются при открытии экрана «Трансляции».",
+    "uk": "Задає порядок, у якому канали показуються при відкритті екрана «Трансляції»."
+  },
+  "rowDefaultMediaFilter": {
+    "en": "Sets which channels the Streams screen shows by default - all of them, only audio, or only video.",
+    "ru": "Задаёт, какие каналы экран «Трансляции» показывает по умолчанию - все, только аудио или только видео.",
+    "uk": "Задає, які канали екран «Трансляції» показує за замовчуванням - усі, лише аудіо або лише відео."
+  },
+  "rowCatalogRefresh": {
+    "en": "Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi.",
+    "ru": "Выбирает, когда приложение обновляет список каналов - только по запросу, предлагая обновление при открытии «Трансляций», или автоматически по Wi-Fi.",
+    "uk": "Вибирає, коли застосунок оновлює список каналів - лише на запит, пропонуючи оновлення при відкритті «Трансляцій», або автоматично по Wi-Fi."
+  },
+  "btnClearPlayStatuses": {
+    "en": "Clears the green and red play marks on all channels. The channels themselves stay.",
+    "ru": "Очищает зелёные и красные отметки воспроизведения на всех каналах. Сами каналы остаются.",
+    "uk": "Очищає зелені та червоні позначки відтворення на всіх каналах. Самі канали залишаються."
+  },
+  "btnEditAppPanel": {
+    "en": "Opens the editor for the app panel, where you choose and arrange the apps shown on it.",
+    "ru": "Открывает редактор панели программ, где можно выбрать и расставить программы на ней.",
+    "uk": "Відкриває редактор панелі програм, де можна вибрати та розташувати програми на ній."
+  },
   "btnTakeScreenshotNow": {
     "en": "Takes a screenshot of the app right away using the built-in capture flow.",
     "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",

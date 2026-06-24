@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
@@ -71,7 +72,8 @@ class SettingsViewModel @Inject constructor(
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
     private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
     private val szaResourcesImporter: SzaResourcesImporter,
-    private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase
+    private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase,
+    private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -326,9 +328,29 @@ class SettingsViewModel @Inject constructor(
                 showVideoThumbnails = defaults.showVideoThumbnails,
                 videoSnapshotResourceId = defaults.videoSnapshotResourceId,
                 videoSnapshotFormat = defaults.videoSnapshotFormat,
-                videoFrameCopyToClipboard = defaults.videoFrameCopyToClipboard
+                videoFrameCopyToClipboard = defaults.videoFrameCopyToClipboard,
+                // S0659: Streams settings live in the Media section, so a Media reset must clear them too.
+                // enableStreams was previously omitted here - fixed so the master toggle resets as well.
+                enableStreams = defaults.enableStreams,
+                streamsDefaultSort = defaults.streamsDefaultSort,
+                streamsDefaultMediaFilter = defaults.streamsDefaultMediaFilter,
+                streamsCatalogRefreshPolicy = defaults.streamsCatalogRefreshPolicy
             )
         )
+    }
+
+    /**
+     * S0659: clear every stream channel's OK/FAIL play-status bullet (channels are kept). Invoked from
+     * the Streams settings group behind a confirmation dialog.
+     */
+    fun clearStreamPlayStatuses() {
+        viewModelScope.launch {
+            try {
+                clearStreamPlayOutcomesUseCase()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to clear stream play statuses")
+            }
+        }
     }
 
     fun resetPlaybackSection() {

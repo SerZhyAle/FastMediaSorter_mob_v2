@@ -200,7 +200,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         // OCR language models (Russian/Ukrainian) are managed in the Downloadable Extensions screen
         // (S0386 Phase 12.3) - the inline download UI was removed from this group to avoid duplication.
         binding.layoutExtensionsManager?.setOnRowClickListener {
-            Timber.d("S0645: Extensions/OCR nav-row tapped - opening ExtensionsManagerFragment")
             // This fragment lives inside the settings ViewPager, whose child FragmentManager does
             // not own android.R.id.content; use the activity FragmentManager so the full-screen
             // overlay attaches to a real container (else: "No view found for id android:id/content").

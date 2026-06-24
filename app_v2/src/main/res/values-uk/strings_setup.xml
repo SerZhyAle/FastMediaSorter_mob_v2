@@ -165,4 +165,6 @@
     <string name="welcome_func_streams">Трансляції</string>
     <string name="welcome_streams_catalog_done">Каталог завантажено</string>
     <string name="welcome_streams_catalog_failed">Каталог не завантажено - джерела можна додати вручну</string>
+    <string name="welcome_func_gestures">Увімкнути жести</string>
+    <string name="welcome_func_gestures_summary">Свайпи від лівого краю: меню, знімок, тихий знімок</string>
 </resources>

@@ -187,7 +187,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     fun setNavigationMode(enabled: Boolean) {
         if (enabled) {
-            Timber.d("S0645: navigation mode applied - trailing arrow, no-stretch content")
             chevronView.setImageResource(R.drawable.ic_arrow_forward)
             chevronView.visibility = View.VISIBLE
             applyInlineLayout()
@@ -268,7 +267,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
             // subtitle keep the full-width text group so the subtitle is not truncated, and navigation rows
             // collapse via setNavigationMode below regardless.
             if (subtitleView.visibility == View.GONE) {
-                Timber.d("S0644: value-row etalon applied - chevron after text, no full-width stretch")
                 collapseContentToLeft()
             }
             if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_inline, false)) {

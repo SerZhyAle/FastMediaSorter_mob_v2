@@ -284,7 +284,7 @@ class GameBoardGenerator @Inject constructor() {
     }
 
     companion object {
-        private const val MIN_BOARD_SIZE = 10
+        private const val MIN_BOARD_SIZE = 8
         private const val MAX_BOARD_SIZE = 100
         private const val MAX_GENERATION_ATTEMPTS = 1500
         private const val MAX_PLACEMENT_ATTEMPTS = 5000
