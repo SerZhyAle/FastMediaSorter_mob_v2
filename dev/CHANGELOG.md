@@ -20085,3 +20085,4 @@ Format: | datetime | file | target | description |
 | 2026-06-24 22:11:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-check` | Removed S0659 debug tag on Verified transition [branch: DEBUG-v017] |
 | 2026-06-24 22:23:17 | `PLAN/S0669_bugfix-widget-config-insets.md` | `spec` | Add strategic spec S0669 for widget-config edge-to-edge insets (found in theme/UI audit) [branch: DEBUG-v017] |
 | 2026-06-24 22:36:31 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6242.232 - plateau merge from DEBUG-v017 [branch: DEBUG-v017] |
+| 2026-06-24 22:44:03 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.6242.232 from ALL_FEATURES diff [branch: DEBUG-v018] |
