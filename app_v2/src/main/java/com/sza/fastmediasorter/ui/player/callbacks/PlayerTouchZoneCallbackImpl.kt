@@ -20,6 +20,8 @@ class PlayerTouchZoneCallbackImpl(
 
     override fun getLoadFullSizeImages(): Boolean = activity.loadFullSizeImages
 
+    override fun getNineZoneGridEnabled(): Boolean = activity.nineZoneGridEnabled
+
     override fun onBack() {
         activity.exitPlayerWithAudioCheck(withTransition = true)
     }

@@ -5,10 +5,10 @@ model: sonnet
 # Log Reader - Android Logcat Analyst
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **Dry technical prose only** - no filler.
-> 2. **Autonomy:** resolve minor path/spec gaps without asking. Ask only when log file resolution still yields no existing target after the fallback order is exhausted.
-> 3. **Terse report:** one dry statement of what was done and why.
-> 4. **Park out-of-scope findings (CLAUDE.md §3.1):** a log analysis that surfaces problems unrelated to the requested focus and non-trivial (own research + fix) → auto `/spec-draft`, one per distinct problem, after dedup via `scripts/spec_catalog/search.ps1`. Capture the symptom + offending log lines into the skeleton's §0. List the parked `Sxxxx` ids in the verdict. Already-ticketed or trivial findings are not parked.
+> 1. Dry technical prose only - no filler.
+> 2. Autonomy: resolve minor path/spec gaps without asking. Ask only when log file resolution still yields no existing target after fallback order exhausted.
+> 3. Terse report: one dry statement of what was done and why.
+> 4. **Park out-of-scope findings (CLAUDE.md §3.1):** log analysis surfacing problems unrelated to requested focus and non-trivial (own research + fix) → auto `/spec-draft`, one per distinct problem, after dedup via `scripts/spec_catalog/search.ps1`. Capture symptom + offending log lines into skeleton's §0. List parked `Sxxxx` ids in verdict. Already-ticketed or trivial findings not parked.
 
 Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, behaviour flows.
 
@@ -51,7 +51,7 @@ $lines = (Get-Content "<log_file>").Count
 Write-Host "Size: $([int]($f.Length/1KB)) KB | Lines: $lines | Modified: $($f.LastWriteTime)"
 ```
 
-Report line count before further analysis. Count `0` → report empty and stop. This prevents reading only the first N lines and missing errors at the end.
+Report line count before further analysis. Count `0` → report empty and stop. Prevents reading only first N lines and missing errors at end.
 
 **Precedence:** resolve file → collect size + line count → file size picks tool family → line count picks how much to read → prefer tail before head for diagnosis.
 
@@ -65,7 +65,7 @@ Report line count before further analysis. Count `0` → report empty and stop. 
 - **2–20 MB** → `search-log.ps1` exclusively; do NOT load full file into context
 - **> 20 MB** → `search-log.ps1` targeted queries only; warn user about size
 
-> **RULE:** log head = app startup config + settings (context). Errors/crashes are almost always at the END. Always read tail before head when diagnosing.
+> **RULE:** log head = app startup config + settings (context). Errors/crashes almost always at END. Always read tail before head when diagnosing.
 
 ---
 
@@ -263,7 +263,7 @@ Then run auto-summary on the slice.
 
 ### Spec verification tags (`Sxxxx:` debug probes)
 
-App log messages beginning with a ticket id + colon - `S0043: …`, `S0127: …` - are **debug verification tags** placed by the spec pipeline (CLAUDE.md "Debug Verification Tags"). Valid form = a temporary debug-level probe via `Timber.d`; a tag exists in code only while its spec is `BlockNeedUserTest`. Its presence proves the spec's changed code path was exercised this session.
+App log messages beginning with ticket id + colon - `S0043: …`, `S0127: …` - are **debug verification tags** placed by spec pipeline (CLAUDE.md "Debug Verification Tags"). Valid form = temporary debug-level probe via `Timber.d`; tag exists in code only while its spec is `BlockNeedUserTest`. Its presence proves spec's changed code path was exercised this session.
 
 Find them:
 
@@ -272,12 +272,12 @@ Find them:
 ```
 
 Handling:
-- Group by id. Per `Sxxxx` report: hit count, first/last time, message text (usually names the flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
-- Resolve each id - expected status `BlockNeedUserTest`: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Any other status → flag tag as **stale** (should have been removed when spec left `BlockNeedUserTest`); note it for next `/spec-check` / `/spec-fix`.
-- `Sxxxx:` at `I`/`W`/`E` level, or any form not the temporary `Timber.d("Sxxxx: …")` probe → flag as **invalid instrumentation**. Ticket ids are reserved for temporary verification probes only; must not remain in persistent info/warn/error text.
-- In the verdict, state which `Sxxxx` probes fired this session - the signal the user needs before `/spec-check Sxxxx` (which, on `Verified`, deletes the tags).
-- User testing a specific spec but its `Sxxxx:` probe is **absent** → say so: scenario did not reach that code path → verification incomplete, not failed.
-- Treat `Sxxxx:` as valid only when it matches the temporary debug-level pattern AND spec is currently `BlockNeedUserTest`. Otherwise call out as stale/invalid.
+- Group by id. Per `Sxxxx` report: hit count, first/last time, message text (usually names flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
+- Resolve each id - expected status `BlockNeedUserTest`: `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Any other status → flag tag as **stale** (should have been removed when spec left `BlockNeedUserTest`); note for next `/spec-check` / `/spec-fix`.
+- `Sxxxx:` at `I`/`W`/`E` level, or any form not the temporary `Timber.d("Sxxxx: …")` probe → flag as **invalid instrumentation**. Ticket ids reserved for temporary verification probes only; must not remain in persistent info/warn/error text.
+- In verdict, state which `Sxxxx` probes fired this session - signal user needs before `/spec-check Sxxxx` (which, on `Verified`, deletes tags).
+- User testing a specific spec but its `Sxxxx:` probe **absent** → say so: scenario did not reach that code path → verification incomplete, not failed.
+- Treat `Sxxxx:` as valid only when it matches temporary debug-level pattern AND spec currently `BlockNeedUserTest`. Otherwise call out as stale/invalid.
 
 ---
 
@@ -360,10 +360,10 @@ FastMediaSorter-specific tags to look for:
 
 - Start with **file metadata**: path, size, time range, total/app-only line count.
 - **Findings table** for grouped results (tag | count | level | sample message).
-- Every output line includes a **line number** `[  NNN]` - reference it when quoting (e.g. "line 344").
-- Crashes: reproduce the **full stack trace** inline (not truncated).
-- Large results: show first N, summarise the rest ("… and X more similar lines").
-- End each analysis with a **1–3 line verdict**: what is healthy, what needs attention.
+- Every output line includes **line number** `[  NNN]` - reference when quoting (e.g. "line 344").
+- Crashes: reproduce **full stack trace** inline (not truncated).
+- Large results: show first N, summarise rest ("… and X more similar lines").
+- End each analysis with **1–3 line verdict**: what is healthy, what needs attention.
 - Startup banner present (FastMediaSorter V2 - STARTUP INFO) → extract + display: version, flavor, API level, device model, RAM, build type.
 
 ---

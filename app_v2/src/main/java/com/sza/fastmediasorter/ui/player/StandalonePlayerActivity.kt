@@ -52,6 +52,8 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
+import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
+import com.sza.fastmediasorter.ui.player.helpers.PlayerOrientationModeManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFullscreenManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerLifecycleManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
@@ -166,6 +168,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
     private var searchControlsManager: SearchControlsManager? = null
+
+    // S0667: single decision point mapping device orientation to fullscreen/command-panel mode.
+    private val orientationModeManager = PlayerOrientationModeManager()
     /** Cached from settingsRepository; updated by observeTranslationSettings(). */
     private var cachedTranslationEnabled = true
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
@@ -462,6 +467,32 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         }
         // playerView re-measures itself via ExoPlayer's internal SurfaceView listener - no manual action needed
         updateEpubTranslatorVisibility()
+
+        val mediaType = currentMediaType()
+        val isVisualMedia = mediaType == MediaType.VIDEO ||
+            mediaType == MediaType.IMAGE ||
+            mediaType == MediaType.GIF
+        // Standalone has no app-level orientation lock - it follows the device by manifest.
+        val targetMode = orientationModeManager.resolve(
+            isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE,
+            followsDevice = true,
+            isVisualMedia = isVisualMedia
+        )
+        when (targetMode) {
+            PlayerDisplayMode.FULLSCREEN ->
+                if (binding.topCommandPanel.isVisible) {
+                    fullscreenManager?.enterFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                        updateFullscreenButtonState(isActive)
+                    }
+                }
+            PlayerDisplayMode.COMMAND_PANEL ->
+                if (!binding.topCommandPanel.isVisible) {
+                    fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
+                        updateFullscreenButtonState(isActive)
+                    }
+                }
+            null -> Unit
+        }
     }
 
     // Single-arg override kept for legacy minSdk 23: on API 24-25 the framework calls only this

@@ -33,7 +33,8 @@ import java.io.File
 /**
  * Manages Chromecast media output from the player.
  *
- * Supported media types: IMAGE, GIF, AUDIO, VIDEO (local or small network/cloud files).
+ * Supported media types: IMAGE, GIF, AUDIO, VIDEO (local or small network/cloud files), and live
+ * http(s) video streams (HLS / DASH / progressive).
  * Placement: tapped via overflow menu item - same UX as "Search in YouTube Music".
  *
  * Architecture:
@@ -41,6 +42,8 @@ import java.io.File
  * - On session start, [LocalCastProxyServer] is started and the current file is cast.
  * - For network/cloud sources, the file is downloaded to cacheDir first.
  * - VIDEO files > [MAX_VIDEO_CAST_BYTES] from network/cloud are refused with a Toast.
+ * - Live streams ([CastStreamResolver]): the URL is handed to the receiver directly as a live
+ *   stream, bypassing the temp download and proxy. RTSP is rejected (receiver cannot play it).
  */
 class CastMediaManager(
     private val context: Context,
@@ -66,6 +69,7 @@ class CastMediaManager(
     val castAvailableState = MutableStateFlow(false)
 
     private val proxyServer = LocalCastProxyServer(context)
+    private val castStreamResolver = CastStreamResolver()
     private var castContext: CastContext? = null
     private var currentSession: CastSession? = null
     private var downloadJob: Job? = null
@@ -232,6 +236,24 @@ class CastMediaManager(
     // ── Internal ─────────────────────────────────────────────────────────────
 
     private suspend fun resolveAndSend(file: MediaFile) {
+        // Live streams cannot be materialized to a temp file + proxy (unbounded). Hand the URL to
+        // the receiver directly; reject protocols the receiver cannot play (RTSP).
+        when (val decision = castStreamResolver.resolve(file.path)) {
+            is CastStreamDecision.UnsupportedProtocol -> {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.cast_stream_unsupported_protocol, Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+            is CastStreamDecision.Direct -> {
+                withContext(Dispatchers.Main) {
+                    loadStreamOnReceiver(file, file.path, decision.contentType)
+                }
+                return
+            }
+            CastStreamDecision.NotAStream -> Unit // fall through to local/network/cloud handling
+        }
+
         val isLocalFile = !file.path.startsWith("smb://") &&
             !file.path.startsWith("sftp://") &&
             !file.path.startsWith("ftp://") &&
@@ -277,6 +299,37 @@ class CastMediaManager(
         withContext(Dispatchers.Main) {
             loadMediaOnReceiver(file, castUrl)
         }
+    }
+
+    /**
+     * Casts a live [url] to the receiver directly as a live stream (no proxy, no download).
+     * [contentType] hints the protocol (HLS / DASH / progressive) so the receiver picks the right
+     * pipeline.
+     */
+    private fun loadStreamOnReceiver(file: MediaFile, url: String, contentType: String) {
+        val session = currentSession ?: return
+        val remoteClient = session.remoteMediaClient ?: return
+
+        val metadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE).apply {
+            putString(MediaMetadata.KEY_TITLE, file.name)
+        }
+        val mediaInfo = MediaInfo.Builder(url)
+            .setStreamType(MediaInfo.STREAM_TYPE_LIVE)
+            .setContentType(contentType)
+            .setMetadata(metadata)
+            .build()
+        val request = MediaLoadRequestData.Builder()
+            .setMediaInfo(mediaInfo)
+            .setAutoplay(true)
+            .build()
+        Timber.d("CastMediaManager: casting live stream ${file.name} ($contentType) via $url")
+        remoteClient.load(request)
+            .setResultCallback { result ->
+                if (!result.status.isSuccess) {
+                    Timber.w("CastMediaManager: live stream load failed - ${result.status.statusMessage}")
+                    Toast.makeText(context, R.string.cast_error_load, Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
     private fun loadMediaOnReceiver(file: MediaFile, url: String) {

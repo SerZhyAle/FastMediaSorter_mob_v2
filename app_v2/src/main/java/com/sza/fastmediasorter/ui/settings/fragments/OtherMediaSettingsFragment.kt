@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.R
@@ -16,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
@@ -94,8 +94,8 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     "isLowRamDevice=${support.isLowRamDevice}"
             )
 
-            binding.layoutOcrFontSize?.isVisible = false
-            binding.layoutOcrFontFamily?.isVisible = false
+            binding.rowOcrFontSize?.isVisible = false
+            binding.rowOcrFontFamily?.isVisible = false
         }
     }
 
@@ -115,8 +115,8 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             // Hide OCR row and summary
             binding.rowEnableOcr.isVisible = false
             binding.tvOcrSummary.isVisible = false
-            binding.layoutOcrFontSize?.isVisible = false
-            binding.layoutOcrFontFamily?.isVisible = false
+            binding.rowOcrFontSize?.isVisible = false
+            binding.rowOcrFontFamily?.isVisible = false
         } else {
             // Flavor supports OCR, but check device capability
             applyDeviceCapabilityRestrictions()
@@ -199,16 +199,14 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
         // OCR language models (Russian/Ukrainian) are managed in the Downloadable Extensions screen
         // (S0386 Phase 12.3) - the inline download UI was removed from this group to avoid duplication.
-        binding.layoutExtensionsManager?.let { layout ->
-            layout.setOnClickListener {
-                // This fragment lives inside the settings ViewPager, whose child FragmentManager does
-                // not own android.R.id.content; use the activity FragmentManager so the full-screen
-                // overlay attaches to a real container (else: "No view found for id android:id/content").
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
-                    .addToBackStack(null)
-                    .commit()
-            }
+        binding.layoutExtensionsManager?.setOnRowClickListener {
+            // This fragment lives inside the settings ViewPager, whose child FragmentManager does
+            // not own android.R.id.content; use the activity FragmentManager so the full-screen
+            // overlay attaches to a real container (else: "No view found for id android:id/content").
+            requireActivity().supportFragmentManager.beginTransaction()
+                .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
+                .addToBackStack(null)
+                .commit()
         }
     }
 
@@ -285,133 +283,145 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         binding.rowTranslationLensStyle.isVisible = enabled
     }
 
-    private fun setupOcrFontSpinners() {
-        // Font Size
-        val fontSizes = arrayOf(
-            getString(R.string.font_size_auto),
-            getString(R.string.font_size_minimum),
-            getString(R.string.font_size_small),
-            getString(R.string.font_size_medium),
-            getString(R.string.font_size_large),
-            getString(R.string.font_size_huge)
+    // Ordered option lists for the OCR trigger rows: key = persisted value, label = localized text.
+    private val ocrFontSizeOptions: List<SimpleValueChoiceDialog.Option> by lazy {
+        listOf(
+            SimpleValueChoiceDialog.Option("AUTO", getString(R.string.font_size_auto)),
+            SimpleValueChoiceDialog.Option("MINIMUM", getString(R.string.font_size_minimum)),
+            SimpleValueChoiceDialog.Option("SMALL", getString(R.string.font_size_small)),
+            SimpleValueChoiceDialog.Option("MEDIUM", getString(R.string.font_size_medium)),
+            SimpleValueChoiceDialog.Option("LARGE", getString(R.string.font_size_large)),
+            SimpleValueChoiceDialog.Option("HUGE", getString(R.string.font_size_huge))
         )
-        val fontSizeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontSizes)
-        fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerOcrFontSize?.adapter = fontSizeAdapter
+    }
 
-        binding.spinnerOcrFontSize?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val fontSizeValue = when (position) {
-                        0 -> "AUTO"
-                        1 -> "MINIMUM"
-                        2 -> "SMALL"
-                        3 -> "MEDIUM"
-                        4 -> "LARGE"
-                        5 -> "HUGE"
-                        else -> "AUTO"
+    private val ocrFontFamilyOptions: List<SimpleValueChoiceDialog.Option> by lazy {
+        listOf(
+            SimpleValueChoiceDialog.Option("DEFAULT", getString(R.string.font_family_default)),
+            SimpleValueChoiceDialog.Option("SERIF", getString(R.string.font_family_serif)),
+            SimpleValueChoiceDialog.Option("MONOSPACE", getString(R.string.font_family_monospace))
+        )
+    }
+
+    private val ocrEngineOptions: List<SimpleValueChoiceDialog.Option> by lazy {
+        listOf(
+            SimpleValueChoiceDialog.Option("TESSERACT", getString(R.string.ocr_engine_type_tesseract)),
+            SimpleValueChoiceDialog.Option("PADDLE_OCR", getString(R.string.ocr_engine_type_paddleocr))
+        )
+    }
+
+    private val paddleOcrModelOptions: List<SimpleValueChoiceDialog.Option> by lazy {
+        listOf(
+            SimpleValueChoiceDialog.Option("CYRILLIC", getString(R.string.paddle_ocr_model_cyrillic)),
+            SimpleValueChoiceDialog.Option("EAST_SLAVIC", getString(R.string.paddle_ocr_model_eslav))
+        )
+    }
+
+    private fun setupOcrFontSpinners() {
+        binding.rowOcrFontSize?.setOnRowClickListener {
+            Timber.d("S0646: OCR font-size row tapped, opening list-choice dialog")
+            val settings = viewModel.settings.value
+            SimpleValueChoiceDialog(
+                requireContext(),
+                viewLifecycleOwner,
+                title = getString(R.string.ocr_font_size),
+                options = ocrFontSizeOptions,
+                currentKey = settings.ocrDefaultFontSize,
+                onSelected = { key ->
+                    key?.let {
+                        viewModel.updateSettings(viewModel.settings.value.copy(ocrDefaultFontSize = it))
                     }
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(ocrDefaultFontSize = fontSizeValue))
                 }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            ).show()
         }
 
-        // Font Family
-        val fontFamilies = arrayOf(
-            getString(R.string.font_family_default),
-            getString(R.string.font_family_serif),
-            getString(R.string.font_family_monospace)
-        )
-        val fontFamilyAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontFamilies)
-        fontFamilyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerOcrFontFamily?.adapter = fontFamilyAdapter
-
-        binding.spinnerOcrFontFamily?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val fontFamilyValue = when (position) {
-                        0 -> "DEFAULT"
-                        1 -> "SERIF"
-                        2 -> "MONOSPACE"
-                        else -> "DEFAULT"
+        binding.rowOcrFontFamily?.setOnRowClickListener {
+            Timber.d("S0646: OCR font-family row tapped, opening list-choice dialog")
+            val settings = viewModel.settings.value
+            SimpleValueChoiceDialog(
+                requireContext(),
+                viewLifecycleOwner,
+                title = getString(R.string.ocr_font_family),
+                options = ocrFontFamilyOptions,
+                currentKey = settings.ocrDefaultFontFamily,
+                onSelected = { key ->
+                    key?.let {
+                        viewModel.updateSettings(viewModel.settings.value.copy(ocrDefaultFontFamily = it))
                     }
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(ocrDefaultFontFamily = fontFamilyValue))
                 }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            ).show()
         }
     }
 
     private fun setupOcrEngineSpinners() {
         if (!capabilityAvailability.isOcrEngineSelectionAvailable()) {
-            binding.layoutOcrEngineType?.isVisible = false
-            binding.layoutPaddleOcrModel?.isVisible = false
+            binding.rowOcrEngineType?.isVisible = false
+            binding.rowPaddleOcrModel?.isVisible = false
             return
         }
 
-        // OCR Engine Type Spinner
-        val ocrEngines = arrayOf(
-            getString(R.string.ocr_engine_type_tesseract),
-            getString(R.string.ocr_engine_type_paddleocr)
-        )
-        val ocrEngineAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ocrEngines)
-        ocrEngineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerOcrEngineType?.adapter = ocrEngineAdapter
-
-        binding.spinnerOcrEngineType?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val engineValue = when (position) {
-                        0 -> "TESSERACT"
-                        1 -> "PADDLE_OCR"
-                        else -> "TESSERACT"
+        binding.rowOcrEngineType?.setOnRowClickListener {
+            Timber.d("S0646: OCR engine-type row tapped, opening list-choice dialog")
+            val settings = viewModel.settings.value
+            SimpleValueChoiceDialog(
+                requireContext(),
+                viewLifecycleOwner,
+                title = getString(R.string.ocr_engine_type),
+                options = ocrEngineOptions,
+                currentKey = settings.ocrEngineType,
+                onSelected = { key ->
+                    key?.let {
+                        Timber.d("S0288: settings ocr engine selector picked engine=$it")
+                        val current = viewModel.settings.value
+                        viewModel.updateSettings(current.copy(ocrEngineType = it))
+                        refreshOcrRowValues(current.copy(ocrEngineType = it))
+                        // Preserve the engine -> model coupling: PaddleOCR model row is only relevant for PADDLE_OCR.
+                        binding.rowPaddleOcrModel?.isVisible = current.enableOcr && it == "PADDLE_OCR"
                     }
-                    Timber.d("S0288: settings ocr engine selector picked engine=$engineValue")
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(ocrEngineType = engineValue))
-                    
-                    // Dynamically toggle visibility of paddle ocr model layout
-                    binding.layoutPaddleOcrModel?.isVisible = current.enableOcr && engineValue == "PADDLE_OCR"
                 }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            ).show()
         }
 
-        // PaddleOCR Model Spinner
-        val paddleModels = arrayOf(
-            getString(R.string.paddle_ocr_model_cyrillic),
-            getString(R.string.paddle_ocr_model_eslav)
-        )
-        val paddleModelAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, paddleModels)
-        paddleModelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerPaddleOcrModel?.adapter = paddleModelAdapter
-
-        binding.spinnerPaddleOcrModel?.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings) {
-                    val modelValue = when (position) {
-                        0 -> "CYRILLIC"
-                        1 -> "EAST_SLAVIC"
-                        else -> "CYRILLIC"
+        binding.rowPaddleOcrModel?.setOnRowClickListener {
+            Timber.d("S0646: PaddleOCR-model row tapped, opening list-choice dialog")
+            val settings = viewModel.settings.value
+            SimpleValueChoiceDialog(
+                requireContext(),
+                viewLifecycleOwner,
+                title = getString(R.string.paddle_ocr_model),
+                options = paddleOcrModelOptions,
+                currentKey = settings.paddleOcrModel,
+                onSelected = { key ->
+                    key?.let {
+                        viewModel.updateSettings(viewModel.settings.value.copy(paddleOcrModel = it))
                     }
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(paddleOcrModel = modelValue))
                 }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            ).show()
         }
     }
 
+    /**
+     * Sets each OCR trigger row's value text to the label matching the persisted key.
+     */
+    private fun refreshOcrRowValues(settings: AppSettings) {
+        binding.rowOcrFontSize?.setValue(labelForKey(ocrFontSizeOptions, settings.ocrDefaultFontSize))
+        binding.rowOcrFontFamily?.setValue(labelForKey(ocrFontFamilyOptions, settings.ocrDefaultFontFamily))
+        binding.rowOcrEngineType?.setValue(labelForKey(ocrEngineOptions, settings.ocrEngineType))
+        binding.rowPaddleOcrModel?.setValue(labelForKey(paddleOcrModelOptions, settings.paddleOcrModel))
+    }
+
+    private fun labelForKey(options: List<SimpleValueChoiceDialog.Option>, key: String): String? =
+        options.firstOrNull { it.key == key }?.label
+
     private fun updateOcrVisibility(enabled: Boolean, ocrEngineType: String = viewModel.settings.value.ocrEngineType) {
-        binding.layoutOcrFontSize?.isVisible = enabled
-        binding.layoutOcrFontFamily?.isVisible = enabled
+        binding.rowOcrFontSize?.isVisible = enabled
+        binding.rowOcrFontFamily?.isVisible = enabled
 
         val showNoLegalOcr = enabled && capabilityAvailability.isOcrEngineSelectionAvailable()
-        binding.layoutOcrEngineType?.isVisible = showNoLegalOcr
-        binding.layoutPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
+        binding.rowOcrEngineType?.isVisible = showNoLegalOcr
+        binding.rowPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
+
+        refreshOcrRowValues(viewModel.settings.value)
     }
 
     private fun observeData() {
@@ -425,43 +435,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
                 updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
-
-                // OCR Engine settings (S0288)
-                if (capabilityAvailability.isOcrEngineSelectionAvailable()) {
-                    val ocrEnginePosition = when (settings.ocrEngineType) {
-                        "TESSERACT" -> 0
-                        "PADDLE_OCR" -> 1
-                        else -> 0
-                    }
-                    binding.spinnerOcrEngineType?.setSelection(ocrEnginePosition)
-
-                    val paddleOcrModelPosition = when (settings.paddleOcrModel) {
-                        "CYRILLIC" -> 0
-                        "EAST_SLAVIC" -> 1
-                        else -> 0
-                    }
-                    binding.spinnerPaddleOcrModel?.setSelection(paddleOcrModelPosition)
-                }
-
-                // OCR Font Settings
-                val fontSizePosition = when (settings.ocrDefaultFontSize) {
-                    "AUTO" -> 0
-                    "MINIMUM" -> 1
-                    "SMALL" -> 2
-                    "MEDIUM" -> 3
-                    "LARGE" -> 4
-                    "HUGE" -> 5
-                    else -> 0
-                }
-                binding.spinnerOcrFontSize?.setSelection(fontSizePosition)
-
-                val fontFamilyPosition = when (settings.ocrDefaultFontFamily) {
-                    "DEFAULT" -> 0
-                    "SERIF" -> 1
-                    "MONOSPACE" -> 2
-                    else -> 0 // Default to DEFAULT
-                }
-                binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
             }
         }
         collectOnLifecycle(viewModel.translationModelPrewarmStatus) { status ->

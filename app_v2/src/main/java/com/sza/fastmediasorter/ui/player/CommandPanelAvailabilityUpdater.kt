@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /** Computes per-state permissions + adaptive button visibility for [CommandPanelController]. Extracted from `CommandPanelController.updateCommandAvailability` to keep the host class under the 1000-LOC budget. */
 internal class CommandPanelAvailabilityUpdater(
@@ -73,7 +74,10 @@ internal class CommandPanelAvailabilityUpdater(
         val isText = currentFile.type == MediaType.TEXT
         val isEpub = currentFile.type == MediaType.EPUB
         val isAudio = currentFile.type == MediaType.AUDIO
-        val showSlideshow = isImage || isVideo
+        // S0631: a live video stream has no slideshow - suppress it in portrait and big-buttons modes
+        // (landscape is handled by the dedicated stream branch in applyLandscapeLayout).
+        val isStreamVideo = state.isLiveVideoStream
+        val showSlideshow = (isImage || isVideo) && !isStreamVideo
 
         binding.btnBack.isVisible = effectiveShowCommandPanel
         binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
@@ -87,7 +91,10 @@ internal class CommandPanelAvailabilityUpdater(
         if (effectiveShowCommandPanel) {
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
-                val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
+                // S0631: a live video stream is not a managed file - favorite never applies, so it must
+                // not re-appear via this async pass after the layout hid it.
+                val shouldShowFavorite =
+                    (settings.enableFavorites || state.resource?.id == -100L) && !state.isLiveVideoStream
                 val activity = binding.root.context as? Activity
                 val runtimeMultiWindow = activity?.let { MultiWindowCapabilityDetector.isMultiWindowActiveNow(it) } ?: false
                 val shouldAllowSeparateWindow = settings.allowSeparateWindow || runtimeMultiWindow
@@ -128,10 +135,16 @@ internal class CommandPanelAvailabilityUpdater(
 
         val hasCopyButtons = safeViews.copyToButtonsGrid.childCount > 0
         val hasMoveButtons = safeViews.moveToButtonsGrid.childCount > 0
-        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons
-        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons && canWrite
+        // S0642: copy-to / move-to destination groups are file operations - inapplicable to a live
+        // video stream (it is not a managed file). They sit on their own panel, outside the command
+        // profile filter (S0631), so gate them here too.
+        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons &&
+            !state.isLiveVideoStream
+        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons &&
+            canWrite && !state.isLiveVideoStream
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
+        if (state.isLiveVideoStream) Timber.d("S0642: copy/move destination panels hidden for live video stream")
         logPanelGeometrySnapshot("decision")
 
         // Force layout recalc when panels appear - mediaContentArea weight=1 takes all space, LinearLayout doesn't recalc on its own (same fix as updateSystemBarsForPlayer post-exitFullscreen).
@@ -178,7 +191,9 @@ internal class CommandPanelAvailabilityUpdater(
         getOverflowableButtons().forEach { it.isVisible = false }
         result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
         // S0293 (ADR-2): pin "Open in new window" inline in big-buttons mode (planner may keep it in overflow due to priority 610; inline override wins).
-        safeViews.btnOpenInSeparateWindowCmd.isVisible = getLastKnownAllowSeparateWindow()
+        // S0631: not part of the stream control set - keep it hidden for a live video stream.
+        safeViews.btnOpenInSeparateWindowCmd.isVisible =
+            getLastKnownAllowSeparateWindow() && !state.isLiveVideoStream
         safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
         safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
     }
@@ -207,7 +222,9 @@ internal class CommandPanelAvailabilityUpdater(
         setLatestOverflowCommands(result.overflowCommands)
         getOverflowableButtons().forEach { it.isVisible = false }
         result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
-        safeViews.btnOpenInSeparateWindowCmd.isVisible = getLastKnownAllowSeparateWindow()
+        // S0631: not part of the stream control set - keep it hidden for a live video stream.
+        safeViews.btnOpenInSeparateWindowCmd.isVisible =
+            getLastKnownAllowSeparateWindow() && !state.isLiveVideoStream
         safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
         safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
     }
@@ -227,6 +244,35 @@ internal class CommandPanelAvailabilityUpdater(
         currentFile: com.sza.fastmediasorter.domain.model.MediaFile,
     ) {
         setLatestBigButtonsBarCommands(emptyList())
+
+        // S0631: live video stream profile. Hide the entire non-stream control set, then re-enable only
+        // the owner-approved subset so portrait and landscape show the same controls (criterion §11.5).
+        // SEND_TO is overflow-only (barCapable=false) and surfaces via the ⋯ button as the share-link entry.
+        if (state.isLiveVideoStream) {
+            getOverflowableButtons().forEach { it.isVisible = false }
+            binding.btnSlideshowCmd.isVisible = false
+            binding.btnInfoCmd.isVisible = true
+            binding.btnFullscreenCmd.isVisible = true
+            safeViews.btnSaveFrameCmd.isVisible = true
+            safeViews.btnEditCmd.isVisible = true
+            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
+            safeViews.btnRotationToggleCmd.isVisible = state.showRotationToggle
+            safeViews.btnCastCmd.isVisible =
+                mediaCapabilities.supportsCast &&
+                (getCastMediaManager()?.isCastAvailable == true) &&
+                isWifiConnected(binding.root.context)
+            val streamOverflowCmds = planner.buildActiveCommands(
+                state, canWrite, canRead, isWifiConnected(binding.root.context),
+                showFavorite = getLastKnownFavoriteVisible(),
+                showRandom = showRandomNavigation,
+                allowSeparateWindow = getLastKnownAllowSeparateWindow(),
+                allowVrLaunch = getAllowVrLaunch(),
+            ).filter { !it.barCapable }
+            setLatestOverflowCommands(streamOverflowCmds)
+            safeViews.btnOverflowMenu.isVisible = streamOverflowCmds.isNotEmpty()
+            return
+        }
+
         binding.btnRandomCmd.isVisible = showRandomNavigation
         binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
         binding.btnFavorite.isVisible = getLastKnownFavoriteVisible()

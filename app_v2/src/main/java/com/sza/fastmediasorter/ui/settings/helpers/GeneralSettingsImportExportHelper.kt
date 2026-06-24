@@ -2,13 +2,13 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -87,12 +87,21 @@ class GeneralSettingsImportExportHelper(
     }
 
     private fun importSettings() {
-        AlertDialog.Builder(fragment.requireContext())
-            .setTitle(R.string.import_method_title)
-            .setItems(arrayOf(fragment.getString(R.string.import_auto), fragment.getString(R.string.import_browse))) { _, which ->
-                when (which) {
-                    0 -> importSettingsAuto()
-                    1 -> {
+        Timber.d("S0646: import-method picker opening list-choice dialog")
+        SimpleValueChoiceDialog(
+            context = fragment.requireContext(),
+            lifecycleOwner = fragment.viewLifecycleOwner,
+            title = fragment.getString(R.string.import_method_title),
+            options = listOf(
+                SimpleValueChoiceDialog.Option("auto", fragment.getString(R.string.import_auto)),
+                SimpleValueChoiceDialog.Option("browse", fragment.getString(R.string.import_browse)),
+            ),
+            currentKey = null,
+            allowClear = false,
+            onSelected = { key ->
+                when (key) {
+                    "auto" -> importSettingsAuto()
+                    "browse" -> {
                         try {
                             importSettingsFileLauncher.launch("*/*")
                         } catch (e: android.content.ActivityNotFoundException) {
@@ -101,9 +110,8 @@ class GeneralSettingsImportExportHelper(
                         }
                     }
                 }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            },
+        ).show()
     }
 
     private fun importSettingsAuto() {

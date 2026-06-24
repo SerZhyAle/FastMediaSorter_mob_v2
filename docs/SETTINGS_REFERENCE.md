@@ -15,6 +15,7 @@ _Generated from the app. Do not edit by hand._
 | Cache Size Limit | Sets the maximum disk space the app may use for its local cache. |
 | Network Parallelism | Sets the number of simultaneous network connections used when accessing remote resources. |
 | Video pre-cache size | Sets how much upcoming video is pre-cached during playback to reduce buffering. |
+| Sync interval (min) | Sets how often, in minutes, the app checks remote resources during background sync. |
 | Auto | Automatically calculates and sets the recommended cache size based on available storage. |
 | Backup settings to Google Drive | Backs up all app settings to your Google Drive account. |
 | Clear Cache | Deletes all locally cached thumbnails and metadata to free up storage. |
@@ -114,6 +115,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Select Photos Source | Chooses the folder or resource used as the photo source during audio playback. |
 | Set as default audio player | Registers this app as the default handler for audio files on the device. |
+| Visualizer when no cover art | Chooses what is shown in place of missing album cover art during audio playback. |
 | Show random photos during audio playback | Displays random photos from the selected source while audio is playing. |
 | Save downloaded media data locally | Caches downloaded track metadata and cover art on the device to avoid re-fetching. |
 | Search audio covers online | Fetches missing cover art from the internet when a local cover is not found. |
@@ -138,7 +140,11 @@ _Available in: Standard, Legacy_
 
 | Setting | What it does |
 |---|---|
+| Clear play marks | Clears the green and red play marks on all channels. The channels themselves stay. |
 | Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
+| Updating the channel list | Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi. |
+| Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
+| Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 
 ## Other
@@ -146,13 +152,14 @@ _Available in: Standard, Legacy_
 | Setting | What it does |
 |---|---|
 | Retry | Retries initializing the translation engine if the previous attempt failed. |
+| OCR & translation downloads | Manages downloadable OCR and translation components. |
 | Enable text recognition (OCR) | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
-| Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | OCR Engine | Selects which on-device text-recognition engine is used for OCR. |
 | OCR Font Family | Sets the font family used to display recognized OCR text. |
 | OCR Font Size | Sets the font size used to display recognized OCR text. |
 | PaddleOCR Model | Selects which PaddleOCR model is used for text recognition. |
+| Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
 
@@ -162,7 +169,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Reset Player settings | Restores all Player settings in this section to their factory defaults. |
 | Show Hint Next Time | Schedules the touch zones hint to appear the next time the player opens. |
-| Default slideshow (sec.) | Sets the default number of seconds each slide is shown during a slideshow. |
+| Slideshow (s) | Sets the default number of seconds each slide is shown during a slideshow. |
 | Background audio playback | Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar. |
 | Deletion and renaming in player | Settings for deleting and renaming files while inside the player. |
 | Player interface and commands | Settings for the player's visual interface, control buttons, and command layout. |
@@ -174,7 +181,7 @@ _Available in: Standard, Legacy_
 | Always show touch zones overlay | Keeps the touch zone grid permanently visible over the player instead of showing it only on tap. |
 | Big Buttons Mode | Enlarges the player control buttons for easier tapping on large or touch-only screens. |
 | Confirm delete | Shows a confirmation dialog before deleting a file from inside the player. |
-| Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
+| Disable 9-zone tracking | Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area. |
 | Background Playback | Keeps audio playing when you leave the app or lock the screen. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player. |
 | Rotate player screen with OS auto-rotate | Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle. |
@@ -193,10 +200,13 @@ _Available in: Standard, Legacy_
 | Setting | What it does |
 |---|---|
 | + Add | Adds a new Quick Sort destination folder to the list. |
+| Edit app panel | Opens the editor for the app panel, where you choose and arrange the apps shown on it. |
 | Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
+| Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
+| Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Default audio player | Sets which app opens audio files by default when tapped from outside this app. |
 | Default document viewer | Sets which app opens document files by default when tapped from outside this app. |
@@ -204,10 +214,11 @@ _Available in: Standard, Legacy_
 | Default video player | Sets which app opens video files by default when tapped from outside this app. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
+| Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
 | Copy, move and overwrite behavior | Settings that control what happens when files are copied, moved, or a name conflict occurs. |
 | Quick Sort destinations | Folders and resources used as Quick Sort targets when sorting files. |
-| Camera, microphone and Other features | Settings for the built-in camera, microphone, and other supplementary features. |
+| Photo, Video, Voice recorder | Settings for capturing photos and videos, recording voice notes, and other supplementary features. |
 | File deletion and trash | Settings that control how files are deleted and whether a trash folder is used. |
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
 | Left-edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
@@ -221,9 +232,10 @@ _Available in: Standard, Legacy_
 | Enable photo capture | Enables the built-in camera button so you can capture photos directly into the app. |
 | Confirm before delete | Shows a confirmation dialog before deleting a file from inside the player. |
 | Confirm before move | Shows a confirmation dialog before moving a file to a different destination. |
+| Controls & Keybindings | Opens the controls and key-binding configuration for navigation and playback. |
 | Save screenshots to clipboard | Automatically copies screenshots taken within the app to the clipboard. |
 | Remember file lists (default for new resources) | Pre-enables the "remember file list" option for newly added resources by default. |
-| Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
+| Show detailed errors | Shows technical error details (codes and context) alongside the human-readable message. |
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Allows files to be copied to Quick Sort destinations. |
@@ -243,11 +255,9 @@ _Available in: Standard, Legacy_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | System media handler | Registers this app as a system-level media handler so it receives media intents from other apps. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
-| Save screenshots to.. | Chooses the folder or resource where captured screenshots are saved. |
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |
 | Right gesture action | Chooses the action triggered by the rightward screen gesture. |
 | Up gesture action | Chooses the action triggered by the upward screen gesture. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
-| Download destination resource | Chooses the destination resource where files from incoming links are downloaded automatically. |

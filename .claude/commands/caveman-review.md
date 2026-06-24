@@ -1,10 +1,10 @@
 # Caveman Review
 
 > **LOCAL DIRECTIVES:**
-> 1. Keep the review in the current chat language unless the user explicitly asks for English or paste-ready English PR comments.
+> 1. Keep review in current chat language unless user explicitly asks for English or paste-ready English PR comments.
 > 2. `..` (two dots) - never `...`.
 > 3. Findings first. No throat-clearing, no praise padding.
-> 4. Repo safety rules win. Use fuller prose when a one-line comment would hide important security, architectural, or destructive-risk context.
+> 4. Repo safety rules win. Use fuller prose when one-line comment would hide important security, architectural, or destructive-risk context.
 
 Produce terse, actionable code review findings.
 
@@ -22,21 +22,21 @@ Examples:
 
 On invoke with `$ARGUMENTS`:
 
-1. Review with the normal repo code-review bar: bugs, risks, regressions, missing tests first.
+1. Review with normal repo code-review bar: bugs, risks, regressions, missing tests first.
 2. Output findings before any summary.
-3. Prefer one line per finding when clarity is preserved.
+3. Prefer one line per finding when clarity preserved.
 4. Finding format:
    - `<file>:L<line>: bug: <problem>. <fix>.`
    - `<file>:L<line>: risk: <problem>. <fix>.`
    - `<file>:L<line>: nit: <problem>. <fix>.`
    - `<file>:L<line>: q: <question>.`
-5. Keep exact symbols, file names, line numbers, commands, APIs, and error strings unchanged.
+5. Keep exact symbols, file names, line numbers, commands, APIs, error strings unchanged.
 6. No findings → say so explicitly; mention residual test or validation gaps briefly.
-7. Security-sensitive or architecturally non-trivial issue → switch to a short paragraph instead of forcing one-line compression.
+7. Security-sensitive or architecturally non-trivial issue → switch to short paragraph instead of forcing one-line compression.
 
 ## Output Rules
 
 - No filler.
 - No generic praise.
-- No vague advice like "consider refactoring" without a concrete direction.
+- No vague advice like "consider refactoring" without concrete direction.
 - Findings must stay actionable and technically exact.

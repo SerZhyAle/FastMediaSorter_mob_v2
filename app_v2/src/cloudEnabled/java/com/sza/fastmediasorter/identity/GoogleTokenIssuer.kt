@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.identity
 
 import android.content.Context
 import com.google.android.gms.auth.GoogleAuthUtil
+import com.sza.fastmediasorter.core.di.CloudTokenDispatcher
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -9,7 +10,7 @@ import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -33,7 +34,8 @@ import timber.log.Timber
  */
 @Singleton
 class GoogleTokenIssuer @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @CloudTokenDispatcher private val tokenDispatcher: CoroutineDispatcher
 ) {
     private val mutex = Mutex()
     private val cache = mutableMapOf<Set<GoogleScope>, GoogleAccessToken>()
@@ -49,7 +51,7 @@ class GoogleTokenIssuer @Inject constructor(
             return@withLock cached
         }
         val scopeString = "oauth2:" + scopes.joinToString(" ") { it.value }
-        withContext(Dispatchers.IO) {
+        withContext(tokenDispatcher) {
             runCatching {
                 val raw = GoogleAuthUtil.getToken(context, email, scopeString)
                 GoogleAccessToken(
@@ -66,7 +68,9 @@ class GoogleTokenIssuer @Inject constructor(
     /** Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`. */
     @Suppress("DEPRECATION") // GoogleAuthUtil.clearToken - same Credential Manager gap as [issue]; see KDoc.
     suspend fun invalidate(): Unit = mutex.withLock {
-        cache.values.forEach { runCatching { GoogleAuthUtil.clearToken(context, it.token) } }
+        withContext(tokenDispatcher) {
+            cache.values.forEach { runCatching { GoogleAuthUtil.clearToken(context, it.token) } }
+        }
         cache.clear()
     }
 

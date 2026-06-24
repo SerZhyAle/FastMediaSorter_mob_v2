@@ -43,6 +43,13 @@ data class ShareableContent(
         get() = uris.isEmpty() && sourcePath != null &&
             (sourcePath.contains("://") || sourcePath.startsWith("cloud:/"))
 
+    /**
+     * True when the payload is plain text only - no shareable Uri and no remote source to materialize,
+     * just [text] (e.g. a stream link or note body). Only text-capable receivers can send it (S0631).
+     */
+    val isTextOnly: Boolean
+        get() = uris.isEmpty() && sourcePath == null && text != null
+
     /** Content localized to a freshly downloaded [localUri]/[localPath], clearing the remote marker (S0493). */
     fun materializedTo(localUri: Uri, localPath: String): ShareableContent =
         copy(uris = listOf(localUri), mediaFile = mediaFile?.copy(path = localPath), sourcePath = null)

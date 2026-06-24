@@ -83,4 +83,12 @@ class ScreenRotationManager {
     fun reapply(activity: Activity, hasAccelerometer: Boolean) {
         apply(activity, currentFollowSystem, currentSensorEnabled, hasAccelerometer)
     }
+
+    /**
+     * Whether the player currently rotates with the device - either OS auto-rotate
+     * ([currentFollowSystem]) or the app's own sensor mode ([currentSensorEnabled]).
+     * Gates the S0667 auto mode-switch: a locked/forced orientation returns false so
+     * rotation must not drive fullscreen/command-panel switching.
+     */
+    fun followsDevice(): Boolean = currentFollowSystem || currentSensorEnabled
 }

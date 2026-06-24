@@ -111,6 +111,8 @@ class TouchZoneGestureManager(
         fun isOverlayBlocking(): Boolean
         fun getTouchZonesEnabled(): Boolean
         fun getLoadFullSizeImages(): Boolean
+        // S0620: false -> fullscreen uses the 3-zone fallback instead of the 9-zone grid
+        fun getNineZoneGridEnabled(): Boolean
         // Navigation
         fun onBack()
         fun onPrevious()
@@ -445,7 +447,11 @@ class TouchZoneGestureManager(
     fun handleImageFling(e1: MotionEvent?, @Suppress("UNUSED_PARAMETER") e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         val currentFile = viewModel.state.value.currentFile
         val isFullscreen = !viewModel.state.value.showCommandPanel
-        val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen)
+        // S0620: grid-off fullscreen resolves to REG-3100/REG-375, so a vertical swipe stays
+        // zoom (image) / seek (video) instead of the 9-zone BACK/COMMAND_PANEL swipe actions.
+        val zoneMap = TouchZoneConfig.getZoneMapForMediaType(
+            currentFile?.type, isFullscreen, callback.getNineZoneGridEnabled()
+        )
         val config = TouchZoneConfig.getConfiguration(zoneMap)
 
         // For REG-3100, ignore swipes that start in middle zone (PhotoView handles pan)
@@ -562,11 +568,32 @@ class TouchZoneGestureManager(
             return
         }
         
-        // Get correct zone map (REG-9100 or REG-975)
-        val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen = true)
-        
-        // Use new detection method
-        val action = touchZoneDetector.detectAction(x, y, screenWidth, screenHeight, zoneMap)
+        // Get correct zone map. Grid on -> REG-9100/REG-975 (9 zones).
+        // S0620: grid off -> REG-3100/REG-375 (3-zone fullscreen fallback).
+        val gridEnabled = callback.getNineZoneGridEnabled()
+        val zoneMap = TouchZoneConfig.getZoneMapForMediaType(
+            currentFile?.type, isFullscreen = true, nineZoneGridEnabled = gridEnabled
+        )
+
+        val isThreeZoneFallback = zoneMap == TouchZoneMap.REG_3100 || zoneMap == TouchZoneMap.REG_375
+        if (isThreeZoneFallback) {
+            Timber.d("S0620: fullscreen 3-zone fallback active (grid off) - left-edge command panel")
+        }
+        val action = if (isThreeZoneFallback) {
+            // S0620: fullscreen 3-zone fallback (grid off) - left-edge band opens the command
+            // panel so file operations stay reachable by touch. Respect the reserved bottom
+            // area for video (REG-375 = top 75%) the same way TouchZoneDetector does.
+            val config = TouchZoneConfig.getConfiguration(zoneMap)
+            val effectiveHeight = (screenHeight * config.heightPercent).toInt()
+            if (y > effectiveHeight) {
+                TouchZoneAction.NONE
+            } else {
+                val xFraction = (x / screenWidth).coerceIn(0f, 1f)
+                TouchZoneConfig.get3ZoneFullscreenTapAction(xFraction, zoneMap)
+            }
+        } else {
+            touchZoneDetector.detectAction(x, y, screenWidth, screenHeight, zoneMap)
+        }
         Timber.d("handleTouchZone: $zoneMap -> $action at ($x, $y)")
         
         // simple logging mapping
@@ -597,6 +624,8 @@ class TouchZoneGestureManager(
             TouchZoneAction.COMMAND_PANEL -> callback.onSwitchToCommandPanel()
             TouchZoneAction.DELETE -> callback.onDelete()
             TouchZoneAction.SLIDESHOW -> callback.onToggleSlideshow()
+            // S0620: grid-off fallback center on an image - PhotoView owns zoom gestures.
+            TouchZoneAction.PHOTOVIEW_GESTURE -> { /* No tap action; pinch / double-tap to zoom */ }
             TouchZoneAction.NONE -> { /* Do nothing */ }
             else -> { Timber.d("Action $action not handled in 9-zone mode") }
         }

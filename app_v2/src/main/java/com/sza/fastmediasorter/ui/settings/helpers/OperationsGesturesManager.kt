@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import timber.log.Timber
 
@@ -46,6 +47,11 @@ class OperationsGesturesManager(
         Timber.d("S0621: gestures settings group setup; supportsA11ySilent=$supportsA11ySilent (accessibility-shortcut rows ${if (supportsA11ySilent) "shown" else "hidden"})")
         binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
         binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
+        // S0663: edit the gesture-bound quick-launch panel; the panel rides the same left-edge gesture,
+        // so it belongs in this gesture group and inherits its capability visibility.
+        binding.btnEditAppPanel.setOnClickListener {
+            fragment.startActivity(Intent(fragment.requireContext(), EditAppLaunchPanelActivity::class.java))
+        }
         binding.rowGestureOverlayEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked) {
@@ -64,7 +70,8 @@ class OperationsGesturesManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
         }
-        binding.rowScreenshotDestination.setOnRowClickListener {
+        binding.btnSelectScreenshotDestination.setOnClickListener {
+            Timber.d("S0648: screenshot-destination selector (button-pattern) opening destination picker")
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
             ) { resource ->
@@ -75,6 +82,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionDown.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionDown
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionDown = picked))
@@ -83,6 +91,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionRight.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionRight
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionRight = picked))
@@ -91,6 +100,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionUp.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionUp
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionUp = picked))
@@ -129,7 +139,7 @@ class OperationsGesturesManager(
         refreshLabel(
             settings.screenshotDestinationResourceId,
             R.string.setting_screenshot_destination_default
-        ) { binding.rowScreenshotDestination.setValue(it) }
+        ) { binding.tvScreenshotDestination.text = it }
     }
 
     /** Re-applies the overlay state after returning from the system permission screen. */

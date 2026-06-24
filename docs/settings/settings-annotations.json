@@ -9,6 +9,11 @@
     "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
     "uk": "Задає кількість одночасних мережевих підключень при доступі до віддалених ресурсів."
   },
+  "actvSyncInterval": {
+    "en": "Sets how often, in minutes, the app checks remote resources during background sync.",
+    "ru": "Задаёт, как часто (в минутах) приложение проверяет удалённые ресурсы при фоновой синхронизации.",
+    "uk": "Задає, як часто (у хвилинах) застосунок перевіряє віддалені ресурси під час фонової синхронізації."
+  },
   "etSlideshowInterval": {
     "en": "Sets the default number of seconds each slide is shown during a slideshow.",
     "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
@@ -114,6 +119,11 @@
     "ru": "Задаёт максимальное количество получателей (1-30) при отправке файлов.",
     "uk": "Задає максимальну кількість отримувачів (1-30) при надсиланні файлів."
   },
+  "headerAdditionalPrograms": {
+    "en": "Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game.",
+    "ru": "Настройки дополнительных программ и сценариев: перевод текста с камеры, калькулятор и мини-игра.",
+    "uk": "Налаштування додаткових програм і сценаріїв: переклад тексту з камери, калькулятор та міні-гра."
+  },
   "headerBehaviour": {
     "en": "Settings that control how the app behaves and what operations are allowed.",
     "ru": "Настройки поведения приложения и разрешённых операций.",
@@ -130,9 +140,9 @@
     "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
   "headerOtherFeatures": {
-    "en": "Settings for the built-in camera, microphone, and other supplementary features.",
-    "ru": "Настройки встроенной камеры, микрофона и прочего дополнительного функционала.",
-    "uk": "Налаштування вбудованої камери, мікрофона та інших додаткових функцій."
+    "en": "Settings for capturing photos and videos, recording voice notes, and other supplementary features.",
+    "ru": "Настройки съёмки фото и видео, записи с диктофона и прочего дополнительного функционала.",
+    "uk": "Налаштування зйомки фото та відео, запису з диктофона та інших додаткових функцій."
   },
   "headerSafety": {
     "en": "Settings that control how files are deleted and whether a trash folder is used.",
@@ -454,6 +464,31 @@
     "ru": "Главный переключатель функции «Трансляции». Когда выключен, пункт «Трансляции» скрыт из главного меню и приветственного экрана.",
     "uk": "Головний перемикач функції «Трансляції». Коли вимкнено, пункт «Трансляції» приховано з головного меню та вітального екрана."
   },
+  "rowDefaultSort": {
+    "en": "Sets the order channels appear in when you open the Streams screen.",
+    "ru": "Задаёт порядок, в котором каналы показываются при открытии экрана «Трансляции».",
+    "uk": "Задає порядок, у якому канали показуються при відкритті екрана «Трансляції»."
+  },
+  "rowDefaultMediaFilter": {
+    "en": "Sets which channels the Streams screen shows by default - all of them, only audio, or only video.",
+    "ru": "Задаёт, какие каналы экран «Трансляции» показывает по умолчанию - все, только аудио или только видео.",
+    "uk": "Задає, які канали екран «Трансляції» показує за замовчуванням - усі, лише аудіо або лише відео."
+  },
+  "rowCatalogRefresh": {
+    "en": "Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi.",
+    "ru": "Выбирает, когда приложение обновляет список каналов - только по запросу, предлагая обновление при открытии «Трансляций», или автоматически по Wi-Fi.",
+    "uk": "Вибирає, коли застосунок оновлює список каналів - лише на запит, пропонуючи оновлення при відкритті «Трансляцій», або автоматично по Wi-Fi."
+  },
+  "btnClearPlayStatuses": {
+    "en": "Clears the green and red play marks on all channels. The channels themselves stay.",
+    "ru": "Очищает зелёные и красные отметки воспроизведения на всех каналах. Сами каналы остаются.",
+    "uk": "Очищає зелені та червоні позначки відтворення на всіх каналах. Самі канали залишаються."
+  },
+  "btnEditAppPanel": {
+    "en": "Opens the editor for the app panel, where you choose and arrange the apps shown on it.",
+    "ru": "Открывает редактор панели программ, где можно выбрать и расставить программы на ней.",
+    "uk": "Відкриває редактор панелі програм, де можна вибрати та розташувати програми на ній."
+  },
   "btnTakeScreenshotNow": {
     "en": "Takes a screenshot of the app right away using the built-in capture flow.",
     "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",
@@ -714,25 +749,40 @@
     "ru": "Показывает результаты перевода в виде блоков поверх изображения вместо отдельной панели.",
     "uk": "Показує результати перекладу у вигляді блоків поверх зображення замість окремої панелі."
   },
-  "spinnerOcrEngineType": {
+  "rowOcrEngineType": {
     "en": "Selects which on-device text-recognition engine is used for OCR.",
     "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
     "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
   },
-  "spinnerPaddleOcrModel": {
+  "rowPaddleOcrModel": {
     "en": "Selects which PaddleOCR model is used for text recognition.",
     "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
     "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
   },
-  "spinnerOcrFontSize": {
+  "rowOcrFontSize": {
     "en": "Sets the font size used to display recognized OCR text.",
     "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
     "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
   },
-  "spinnerOcrFontFamily": {
+  "rowOcrFontFamily": {
     "en": "Sets the font family used to display recognized OCR text.",
     "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
     "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+  },
+  "rowAudioEmptyStateMode": {
+    "en": "Chooses what is shown in place of missing album cover art during audio playback.",
+    "ru": "Выбирает, что показывать вместо отсутствующей обложки альбома при воспроизведении аудио.",
+    "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
+  },
+  "rowControlsKeybindings": {
+    "en": "Opens the controls and key-binding configuration for navigation and playback.",
+    "ru": "Открывает настройку управления и привязок клавиш для навигации и воспроизведения.",
+    "uk": "Відкриває налаштування керування та прив'язок клавіш для навігації та відтворення."
+  },
+  "layoutExtensionsManager": {
+    "en": "Manages downloadable OCR and translation components.",
+    "ru": "Управляет загружаемыми компонентами OCR и перевода.",
+    "uk": "Керує завантажуваними компонентами OCR та перекладу."
   },
   "spinnerTranslationSourceLanguage": {
     "en": "Chooses the source language that recognized text is translated from.",
@@ -809,10 +859,10 @@
     "ru": "Показывает диалог подтверждения перед удалением файла из плеера.",
     "uk": "Показує діалог підтвердження перед видаленням файлу з плеєра."
   },
-  "rowDetailedErrors": {
-    "en": "Shows technical error details alongside the human-readable message in the player.",
-    "ru": "Показывает технические подробности ошибок вместе с понятным описанием в плеере.",
-    "uk": "Показує технічні подробиці помилок разом із зрозумілим описом у плеєрі."
+  "rowDisableNineZone": {
+    "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
+    "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
+    "uk": "Вимикає 9-зонову сенсорну сітку; повноекранний плеєр переходить на спрощену розкладку з 3 зон (попередній / зум / наступний) з областю командної панелі біля лівого краю."
   },
   "rowEnablePip": {
     "en": "Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player.",
@@ -929,7 +979,7 @@
     "ru": "Открывает экран статистики использования.",
     "uk": "Відкриває екран статистики використання."
   },
-  "row_link_autodownload_resource": {
+  "btnSelectLinkAutodownloadResource": {
     "en": "Chooses the destination resource where files from incoming links are downloaded automatically.",
     "ru": "Выбирает ресурс назначения, куда автоматически загружаются файлы из входящих ссылок.",
     "uk": "Вибирає ресурс призначення, куди автоматично завантажуються файли з вхідних посилань."
@@ -949,7 +999,7 @@
     "ru": "Выбирает действие, вызываемое жестом вниз.",
     "uk": "Вибирає дію, що викликається жестом униз."
   },
-  "rowScreenshotDestination": {
+  "btnSelectScreenshotDestination": {
     "en": "Chooses the folder or resource where captured screenshots are saved.",
     "ru": "Выбирает папку или ресурс, куда сохраняются снятые скриншоты.",
     "uk": "Вибирає теку або ресурс, куди зберігаються зроблені знімки екрана."

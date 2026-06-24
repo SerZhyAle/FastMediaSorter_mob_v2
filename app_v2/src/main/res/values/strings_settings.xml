@@ -22,7 +22,7 @@
     <string name="settings_category_images">Images, GIFs and slideshow</string>
     <string name="settings_category_interface">General interface settings</string>
     <string name="settings_category_other">Translation, digitization (OCR)</string>
-    <string name="settings_category_other_features">Camera, microphone and Other features</string>
+    <string name="settings_category_other_features">Photo, Video, Voice recorder</string>
     <string name="settings_category_other_functionality">Other functionality</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
     <string name="settings_category_player_ui">Player interface and commands</string>
@@ -238,5 +238,6 @@
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Allow All Files mode</string>
     <string name="settings_statistics_collection_title">Statistics collection</string>
-    <string name="settings_statistics_collection_summary">Collected on your device. Off by default - nothing is sent automatically.</string>
+    <string name="settings_statistics_collection_summary">Collected on your device. Nothing is sent automatically.</string>
+    <string name="settings_category_additional_programs">Additional programs and scenarios</string>
 </resources>

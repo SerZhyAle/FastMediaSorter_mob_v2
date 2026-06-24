@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.testing.createMediaFile
 import com.sza.fastmediasorter.testing.fakes.FakeFavoritesRepository
+import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -29,7 +30,7 @@ class FavoritesUseCaseTest {
     @Before
     fun setup() {
         repo = FakeFavoritesRepository()
-        useCase = FavoritesUseCase(repo)
+        useCase = FavoritesUseCase(repo, mockk(relaxed = true))
     }
 
     @Test

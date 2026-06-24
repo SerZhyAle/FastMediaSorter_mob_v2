@@ -115,6 +115,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
         private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
         private val KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY = booleanPreferencesKey("always_show_touch_zones_overlay")
+        private val KEY_NINE_ZONE_GRID_ENABLED = booleanPreferencesKey("nine_zone_grid_enabled")
         private val KEY_SHOW_VIDEO_THUMBNAILS = booleanPreferencesKey("show_video_thumbnails")
         private val KEY_ENABLE_PLAYER_WARMUP = booleanPreferencesKey("enable_player_warmup")
         private val KEY_RENDERER_MIGRATION_ENABLED = booleanPreferencesKey("renderer_migration_enabled")
@@ -348,7 +349,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     epubLineHeight = preferences[KEY_EPUB_LINE_HEIGHT] ?: 1.6f,
                     epubHorizontalMargin = preferences[KEY_EPUB_HORIZONTAL_MARGIN] ?: 16,
                     enableTranslation = textRec.enableTranslation,
-                    enableStreams = streams,
+                    enableStreams = streams.enableStreams,
+                    streamsDefaultSort = streams.streamsDefaultSort,
+                    streamsDefaultMediaFilter = streams.streamsDefaultMediaFilter,
+                    streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -384,6 +388,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
                     alwaysShowTouchZonesOverlay = preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] ?: false,
+                    nineZoneGridEnabled = preferences[KEY_NINE_ZONE_GRID_ENABLED] ?: true,
                     showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: true,
                     enablePlayerWarmup = preferences[KEY_ENABLE_PLAYER_WARMUP] ?: false,
                     rendererMigrationEnabled = preferences[KEY_RENDERER_MIGRATION_ENABLED] ?: false,
@@ -600,6 +605,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
             preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
             preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
+            preferences[KEY_NINE_ZONE_GRID_ENABLED] = settings.nineZoneGridEnabled
             preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
             preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
             preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled

@@ -131,10 +131,10 @@ class SettingsSearchCapabilityGateTest {
 
         assertFalse(gate.isAvailable(entry(key = "spinnerTranslationSourceLanguage")))
         assertFalse(gate.isAvailable(entry(key = "spinnerTranslationTargetLanguage")))
-        assertFalse(gate.isAvailable(entry(key = "spinnerOcrEngineType")))
-        assertFalse(gate.isAvailable(entry(key = "spinnerPaddleOcrModel")))
-        assertFalse(gate.isAvailable(entry(key = "spinnerOcrFontSize")))
-        assertFalse(gate.isAvailable(entry(key = "spinnerOcrFontFamily")))
+        assertFalse(gate.isAvailable(entry(key = "rowOcrEngineType")))
+        assertFalse(gate.isAvailable(entry(key = "rowPaddleOcrModel")))
+        assertFalse(gate.isAvailable(entry(key = "rowOcrFontSize")))
+        assertFalse(gate.isAvailable(entry(key = "rowOcrFontFamily")))
     }
 
     @Test
@@ -143,7 +143,7 @@ class SettingsSearchCapabilityGateTest {
         val gate = gate(capability = capability)
 
         assertTrue(gate.isAvailable(entry(key = "spinnerTranslationSourceLanguage")))
-        assertTrue(gate.isAvailable(entry(key = "spinnerOcrFontFamily")))
+        assertTrue(gate.isAvailable(entry(key = "rowOcrFontFamily")))
     }
 
     @Test

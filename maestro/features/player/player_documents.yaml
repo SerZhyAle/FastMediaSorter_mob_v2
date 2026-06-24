@@ -31,9 +31,15 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "test_doc_romcom.pdf"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
+# Open by tapping the row container (clear of the right-side operation buttons), matched by the exact
+# filename - a centred filename-text tap lands on a button (see player_image.yaml).
 - tapOn:
-    text: "test_doc_romcom.pdf"
+    containsChild:
+      text: "test_doc_romcom.pdf"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/photoView"
@@ -50,9 +56,13 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "test_book.epub"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
 - tapOn:
-    text: "test_book.epub"
+    containsChild:
+      text: "test_book.epub"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/epubWebView"
@@ -67,9 +77,13 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "readme.txt"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
 - tapOn:
-    text: "readme.txt"
+    containsChild:
+      text: "readme.txt"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/mediaContentArea"

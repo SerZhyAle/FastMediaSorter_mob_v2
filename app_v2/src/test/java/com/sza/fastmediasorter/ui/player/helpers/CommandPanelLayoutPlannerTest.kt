@@ -1,6 +1,13 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.testutil.testMediaCapabilities
+import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -218,5 +225,121 @@ class CommandPanelLayoutPlannerTest {
         ))
         assertTrue("Overflow-only commands must remain in overflow", result.overflowCommands == listOf(CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_OFFICE))
         assertTrue("Overflow button should occupy the last slot when overflow-only items exist", result.showOverflowButton)
+    }
+
+    // ------------------------------------------------------------------
+    // S0631: live video stream control profile
+    // ------------------------------------------------------------------
+
+    private fun streamVideoState(showRotationToggle: Boolean = true) = PlayerViewModel.PlayerState(
+        files = listOf(
+            MediaFile(
+                name = "channel.m3u8",
+                path = "http://example.com/live/channel.m3u8",
+                type = MediaType.VIDEO,
+                size = 0L,
+                createdDate = 0L,
+            )
+        ),
+        currentIndex = 0,
+        resource = MediaResource(
+            id = SyntheticResourceIds.STREAM,
+            name = "Stream",
+            path = "Stream",
+            type = ResourceType.HTTP_STREAM,
+        ),
+        showRotationToggle = showRotationToggle,
+    )
+
+    private fun localVideoState() = PlayerViewModel.PlayerState(
+        files = listOf(
+            MediaFile(
+                name = "clip.mp4",
+                path = "/storage/emulated/0/clip.mp4",
+                type = MediaType.VIDEO,
+                size = 1_024L,
+                createdDate = 0L,
+            )
+        ),
+        currentIndex = 0,
+        resource = MediaResource(
+            id = 1L,
+            name = "Local",
+            path = "/storage/emulated/0",
+            type = ResourceType.LOCAL,
+            isWritable = true,
+        ),
+    )
+
+    @Test
+    fun `live video stream yields exactly the owner-approved control set`() {
+        val result = planner.buildActiveCommands(
+            state = streamVideoState(showRotationToggle = true),
+            canWrite = true,
+            canRead = true,
+            isWifiConnected = true,
+            showFavorite = true,
+            showRandom = true,
+            allowSeparateWindow = true,
+            allowVrLaunch = true,
+        )
+
+        // Sorted by priority: SEND_TO(25), FULLSCREEN(50), EDIT(210), CAST(230), SAVE_FRAME(235),
+        // ROTATION_TOGGLE(490), INFO(495). CAST present because testMediaCapabilities().supportsCast
+        // is true and Wi-Fi is connected; ROTATION_TOGGLE present because showRotationToggle is on.
+        val expected = listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.SEND_TO,
+            CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN,
+            CommandPanelLayoutPlanner.PlayerCommand.EDIT,
+            CommandPanelLayoutPlanner.PlayerCommand.CAST,
+            CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME,
+            CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE,
+            CommandPanelLayoutPlanner.PlayerCommand.INFO,
+        )
+        assertEquals("Stream profile must expose exactly the owner-approved set in priority order", expected, result)
+        // Inapplicable file/navigation commands must never appear for a live video stream.
+        assertFalse("DELETE must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.DELETE))
+        assertFalse("FAVORITE must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.FAVORITE))
+        assertFalse("SLEEP_TIMER must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
+        assertFalse("RANDOM must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.RANDOM))
+    }
+
+    @Test
+    fun `live video stream drops cast and rotation when unavailable`() {
+        val result = planner.buildActiveCommands(
+            state = streamVideoState(showRotationToggle = false),
+            canWrite = true,
+            canRead = true,
+            isWifiConnected = false,
+            showFavorite = true,
+            showRandom = true,
+        )
+
+        val expected = listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.SEND_TO,
+            CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN,
+            CommandPanelLayoutPlanner.PlayerCommand.EDIT,
+            CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME,
+            CommandPanelLayoutPlanner.PlayerCommand.INFO,
+        )
+        assertEquals("CAST drops without Wi-Fi, ROTATION_TOGGLE drops when the toggle is off", expected, result)
+    }
+
+    @Test
+    fun `non-stream video keeps the full managed-file control set`() {
+        val result = planner.buildActiveCommands(
+            state = localVideoState(),
+            canWrite = true,
+            canRead = true,
+            isWifiConnected = true,
+            showFavorite = true,
+            showRandom = false,
+        )
+
+        // Regression guard: the stream allowlist must not leak into ordinary files.
+        assertTrue("Ordinary video keeps DELETE", result.contains(CommandPanelLayoutPlanner.PlayerCommand.DELETE))
+        assertTrue("Ordinary video keeps FAVORITE", result.contains(CommandPanelLayoutPlanner.PlayerCommand.FAVORITE))
+        assertTrue("Ordinary video keeps SLEEP_TIMER", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
+        assertTrue("Ordinary video keeps SEND_TO", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SEND_TO))
     }
 }

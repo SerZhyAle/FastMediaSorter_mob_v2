@@ -1,6 +1,6 @@
 ---
 name: stream-catalog-all-live-channels
-description: Owner wants ALL live streams (incl. grey-area iptv-org Live TV) in the shipped catalog; do not gate publish on the README legal scope
+description: Owner wants EVERY reachable channel that carries signal (grey-area iptv-org + -/-) in the shipped catalog; legal-scope filter removed from code+README; only defunct/header-gated/dead dropped
 type: feedback
 ---
 
@@ -19,3 +19,18 @@ a "legal-scope regression". The owner rejected the premise outright ("мне н�
 (`gh release upload delivery-so-v1 temp/stream-catalog.zip --clobber`). Surface the `+N appended` count
 on the report line, but do NOT propose a legality hold or a "grey-area" gate. Pruning stays the only
 human-gated, conservative action (dead-from-here may be alive on a user's device).
+
+**Update 2026-06-22:** owner escalated the policy from "don't gate publish" to "remove the filter
+entirely" ("поменяй политику! все какие каналы существуют хочу"). The legal-scope filter is now gone
+from both the code and `delivery/stream-catalog/README.md` (was "## Legal scope" -> now "## Inclusion
+policy"): the catalog keeps **every reachable channel that carries signal**, and the owner explicitly
+opted -/- in too (the iptv-org `is_-` skip in `Get-IptvCandidates` was removed). Only three
+drops remain, all because the stream cannot play: `closed`/defunct, header-gated (referrer/User-Agent
+the app can't supply), and confirmed-dead. --in-a-Play-Store-downloaded-catalog is a content-rating
+exposure the owner accepted knowingly - do not re-raise it as a blocker.
+
+Liveness now has two depths in `collect-stream-candidates.ps1`: the default header probe (status of the
+playlist URL only) and `-CatalogOnly -DeepSignal`, which pulls a few KB of real media body (HLS
+master->media->first segment) so an HLS master that 200s but serves no segment is correctly `dead` -
+the "declared but not playing" case. Use `-DeepSignal` for accurate prune decisions; `-Throttle` 48+
+for the full 2300-row sweep.

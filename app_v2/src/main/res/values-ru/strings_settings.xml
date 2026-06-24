@@ -22,7 +22,7 @@
     <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
     <string name="settings_category_interface">Общие настройки интерфейса</string>
     <string name="settings_category_other">Перевод, оцифровка (OCR)</string>
-    <string name="settings_category_other_features">Камера, микрофон и прочий функционал</string>
+    <string name="settings_category_other_features">Фото, Видео, Диктофон</string>
     <string name="settings_category_other_functionality">Прочий функционал</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
     <string name="settings_category_player_ui">Интерфейс и команды плеера</string>
@@ -238,5 +238,6 @@
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Разрешить режим «Все файлы»</string>
     <string name="settings_statistics_collection_title">Сбор статистики</string>
-    <string name="settings_statistics_collection_summary">Собирается на вашем устройстве. По умолчанию выключено - ничего не отправляется автоматически.</string>
+    <string name="settings_statistics_collection_summary">Собирается на вашем устройстве. Ничего не отправляется автоматически.</string>
+    <string name="settings_category_additional_programs">Дополнительные программы и сценарии</string>
 </resources>

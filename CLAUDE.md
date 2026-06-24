@@ -1,5 +1,7 @@
 # CLAUDE.md - Rules for Claude Code
 
+> Parallel rule set for non-Claude agents: `AGENTS.md` (import order `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt; stricter wins). When changing shared rules, sync `AGENTS.md` too.
+
 ## 1. Communication & Style
 - **Chat**: RU. **Code/Docs/Logs/Commits**: EN. **Tone**: dry, concise. Ask if ambiguous.
 - **Ellipsis**: `..` (never `...`). **Dash**: plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`). **Russian Ё/ё**: mandatory in chat, UI, docs, Approved specs. Draft specs exempt.
@@ -65,6 +67,7 @@
 ## 6. Proactive Research & Parallelism
 - **Web Search**: Use developer.android.com, kotlinlang.org, GitHub issues, StackOverflow without asking.
 - **Parallel Subagents**: Concurrently run independent tasks (e.g. build + search).
+- **Background long jobs**: Run full/release builds, full test suites, device sweeps via `run_in_background` (harness re-invokes on completion) and continue other work meanwhile. Never foreground-wait a slow build. Still never run >1 gradle build at once.
 - **Initiative**: Do not ask permission for searches, builds, queries. Flag blockers at start.
 
 ## 7. PowerShell Efficiency
@@ -74,7 +77,7 @@
 - **Hot Rituals**: Use wrappers (e.g. `scripts/catalog_sync.ps1 -Module <app_v2|wear>` after `.kt` edits).
 
 ## 8. Project Structure & Tech Stack
-- **Modules**: `app_v2/` (main app), `wear/` (Wear OS), `dev/`, `docs/`, `scripts/`, `temp/`. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- **Modules**: `app_v2/` (main app) and `wear/` (Wear OS) are both active Gradle modules (`settings.gradle.kts`); pass `-Module wear` to `catalog_sync.ps1`/`post-change.ps1` when touching it. Support: `dev/`, `docs/`, `scripts/`, `temp/`. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - **Architecture**: UI -> ViewModel -> UseCase -> Repository -> DataSource. UI has zero business logic.
 - **Flavors**: standard, lite, photos, legacy. Gated via `BuildConfig` fields.
 - **Pins**:
@@ -93,7 +96,7 @@
 - **Logging**: Timber only.
 
 ## 9. Common Commands (a.ps1 launcher)
-- Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB via release worktree), `bf` (build failure structured digest).
+- Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB - builds in a dedicated git worktree, not the main checkout; driven by `/skill-release`), `bf` (build failure structured digest).
 - Checks: `.\a.ps1 fk` (Kotlin compile), `fr` (resources/manifest), `fc` (code + resources), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
 - Tests: `.\a.ps1 fu` (full unit suite) or `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
 - Device (ad-hoc, ~0 tokens): `scripts/devtest/adb.ps1 <verb>` or `.\a.ps1 adb <verb>` for quick chores against a connected emulator/device - `devices`, `props`, `current`, `launch`, `stop`, `clear`, `install`, `shot`, `log -Tail N -Grep <regex>`, `tap/text/key`, `prefs`, `shell -Cmd`. Auto-discovers adb (not on PATH); supports `-DeviceId`/`-Release`/`-Json` with stable exit codes. Shortcuts: `adb-devices/-shot/-log/-current/-launch/-clear`. Prefer over raw `adb` for one-off work; `mobile-mcp` stays for agent-driven UI walks, Maestro for repeatable flows.

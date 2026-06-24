@@ -125,6 +125,7 @@ data class BackupSettings(
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true,
     val alwaysShowTouchZonesOverlay: Boolean = false,
+    val nineZoneGridEnabled: Boolean = true,
     val showVideoThumbnails: Boolean = true,
     val enablePlayerWarmup: Boolean = false,
     val rendererMigrationEnabled: Boolean = false,

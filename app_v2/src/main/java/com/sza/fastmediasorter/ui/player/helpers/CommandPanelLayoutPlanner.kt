@@ -220,6 +220,24 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         allowVrLaunch: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
+
+        // S0631: live video stream profile. A stream is not a managed file, so delete/rename/edit-file/
+        // copy/move/slideshow/favorite/sleep-timer etc. are inapplicable and hidden. Return only the
+        // owner-approved subset, regardless of nominal writability. EDIT routes to the video control
+        // dialog (PlayerCommandPanelCallbackImpl.onEditClicked VIDEO); SEND_TO shares the stream link
+        // (Phase 03). PiP is a separate overlay button, not a command-panel item.
+        if (state.isLiveVideoStream) {
+            return buildList {
+                add(PlayerCommand.SEND_TO)
+                add(PlayerCommand.FULLSCREEN)
+                add(PlayerCommand.EDIT)
+                add(PlayerCommand.SAVE_FRAME)
+                add(PlayerCommand.INFO)
+                if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
+                if (mediaCapabilities.supportsCast && isWifiConnected) add(PlayerCommand.CAST)
+            }.sortedBy { it.priority }
+        }
+
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
         val isVideo = file.type == MediaType.VIDEO || file.type == MediaType.AUDIO
         val isAudio = file.type == MediaType.AUDIO

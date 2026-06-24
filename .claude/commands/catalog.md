@@ -5,9 +5,9 @@ model: sonnet
 # Catalog Guide - File/Class Database
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **Dry technical prose only** - no filler.
-> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
-> 3. **Terse report:** one dry statement of what was done and why.
+> 1. Dry technical prose only - no filler.
+> 2. Autonomy: silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. Terse report: one dry statement of what was done and why.
 
 Fast index of every Kotlin class. Locate functionality before grepping; keep class metadata fresh after changes.
 
@@ -33,7 +33,7 @@ Examples:
 
 ## When to invoke (mandatory triggers)
 
-Query the catalogue **before ANY code change or analysis** - faster than grepping 750+ files, already carries semantic context (role, status, side effects, DI graph). Fall back to `Grep` only when it yields nothing.
+Query catalogue **before ANY code change or analysis** - faster than grepping 750+ files, carries semantic context (role, status, side effects, DI graph). Fall back to `Grep` only when it yields nothing.
 
 Invoke **before**:
 
@@ -57,7 +57,7 @@ Invoke **after** (each handled by `scan.ps1`):
 | Changed `@Inject constructor` params | Refreshes `injected`. |
 | Moved between layers (`ui`→`domain`, etc.) | Updates `layer`. |
 
-After bulk edits use `scripts/catalog_sync.ps1 -Module <m>` (scan + render, single process). Commit `.jsonl` + `.md` together with the code change.
+After bulk edits use `scripts/catalog_sync.ps1 -Module <m>` (scan + render, single process). Commit `.jsonl` + `.md` together with code change.
 
 ---
 
@@ -83,7 +83,7 @@ On `$ARGUMENTS`:
 3. For every **new** record, prompt for `role` + `status`, or propose from class body.
 4. Re-render, report updated file paths.
 
-**Step 4 - Commit pairing.** If user is about to commit code, remind: `dev/CATALOG/<module>.jsonl` + `<module>.md` go in the same commit as the structural change.
+**Step 4 - Commit pairing.** If user about to commit code, remind: `dev/CATALOG/<module>.jsonl` + `<module>.md` go in same commit as structural change.
 
 ---
 
@@ -164,7 +164,7 @@ pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" 
 pwsh -NoProfile -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
 ```
 
-Scan auto-removes records whose source is gone - use `remove.ps1` only for cleaning up mistakes.
+Scan auto-removes records whose source is gone - use `remove.ps1` only to clean up mistakes.
 
 ---
 
@@ -172,10 +172,10 @@ Scan auto-removes records whose source is gone - use `remove.ps1` only for clean
 
 Full table: `dev/CATALOG/README.md`. Manual fields you fill with `set.ps1`:
 
-- **`role`** - 1-line statement of what the class does in the system.
+- **`role`** - 1-line statement of what class does in system.
 - **`status`** - `new` / `tested` / `legacy` / `todo` / `unknown`.
-- **`noFlavors`** - flavors where this class is irrelevant (empty = all).
-- **`functions[].description`** - 1-line per public method, only where the name alone doesn't explain behaviour.
+- **`noFlavors`** - flavors where class is irrelevant (empty = all).
+- **`functions[].description`** - 1-line per public method, only where name alone doesn't explain behaviour.
 
 Auto-fields (read, never edit): `path`, `class`, `layer`, `loc`, `lastTouched`, `injected`, `hasTests`, `coroutines`, `usesTimber`, `sideEffects`, `userFeedback`, `functions[].name`, `functions[].signature`.
 
@@ -189,6 +189,7 @@ Per CLAUDE.md author-style rules:
 - `..` (two dots), never `...`.
 - One line, one clause; no "this class ..".
 - State what it *does*, not what it *is*.
+
 
 **Good:** "Refreshes recent-resource app shortcuts on Android launcher."
 **Bad:** "This is a manager class that is responsible for..."

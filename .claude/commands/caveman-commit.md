@@ -6,7 +6,7 @@
 > 3. Generate the message only. Do NOT run `git commit`, stage files, or amend history.
 > 4. Repo safety rules win. For breaking changes, security fixes, data migrations, or reverts, include enough context even if it costs more words.
 
-Generate a terse Conventional Commit message with minimal noise and exact intent.
+Generate terse Conventional Commit message, minimal noise, exact intent.
 
 ## Usage
 
@@ -22,8 +22,8 @@ Examples:
 
 On invoke with `$ARGUMENTS`:
 
-1. User already described the change → use that description.
-2. User did not describe → inspect current git diff/status as needed to infer the message.
+1. User already described change → use that description.
+2. User did not describe → inspect current git diff/status as needed to infer message.
 3. Subject in Conventional Commits format:
    - `<type>(<scope>): <imperative summary>`
    - `<scope>` optional
@@ -32,13 +32,13 @@ On invoke with `$ARGUMENTS`:
    - target `<= 50` chars when practical
    - hard cap `72` chars
    - no trailing period
-5. Add a body only when the why is not obvious from the subject.
-6. Always add a body for: breaking changes, security fixes, data migrations, reverts.
+5. Add body only when why is not obvious from subject.
+6. Always add body for: breaking changes, security fixes, data migrations, reverts.
 7. Body lines concise, wrap near 72 chars.
 8. Never include AI attribution or filler phrases.
 
 ## Output Rules
 
-- Output the commit message as a fenced code block ready to paste.
-- Do not explain the obvious diff.
-- Keep the message exact, terse, and technically complete.
+- Output commit message as fenced code block ready to paste.
+- Do not explain obvious diff.
+- Keep message exact, terse, technically complete.

@@ -4,15 +4,12 @@
         Night mode needs its own API 35 override because values-night outranks values-v35
         during Android resource resolution.
 
-        Android 15 (API 35) enforces edge-to-edge at the system level.
-        Window.setStatusBarColor() / setNavigationBarColor() are deprecated and no-ops on
-        API 35+ - the OS manages system bar transparency automatically.
+        Android 15 (API 35) enforces edge-to-edge at the system level. Runtime system-bar
+        color setters are deprecated/no-op here, so this overlay avoids them.
 
-        Material 1.14.0 guards the internal BottomSheetDialog setStatusBarColor() call behind
-        an SDK_INT < 35 check (EdgeToEdgeUtils) and applies bottom-sheet edge-to-edge natively
-        on API 35, so no enableEdgeToEdge attribute is needed here (it is deprecated for bottom
-        sheets on API 35+). Only the system-window padding is retained so sheet content stays
-        clear of the navigation bar.
+        Material 1.14.0 handles bottom-sheet edge-to-edge natively on API 35, so no
+        enableEdgeToEdge attribute is needed here. Only the system-window padding is retained
+        so sheet content stays clear of the navigation bar.
     -->
     <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
         <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>
@@ -25,8 +22,20 @@
         <item name="paddingRightSystemWindowInsets">true</item>
     </style>
 
-    <!-- Edge-to-edge is handled programmatically via enableEdgeToEdge() in BaseActivity. -->
-    <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
+    <!--
+        S0655: do NOT redefine Theme.FastMediaSorter here. An empty redefinition shadows the values-night-v31
+        definition on API 35 (resource resolution picks one best-match bucket per style name, no merge),
+        silently dropping the Android-12 splash items (windowSplashScreenBackground / windowSplashScreenAnimatedIcon
+        / windowSplashScreenAnimationDuration). Falling back to values-night-v31 restores the curated splash; the
+        parent chain still resolves Base->App per device config, so the night-v35 bottomSheet/edge-to-edge override
+        above is preserved. Edge-to-edge itself is handled programmatically via enableEdgeToEdge() in BaseActivity.
+    -->
 
-    <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter" />
+    <!--
+        S0653: do NOT redefine Theme.FastMediaSorter.FullScreen here. An empty redefinition shadows the
+        values-night/ definition on API 35 (resource resolution picks one best-match bucket per style name,
+        no merge), silently dropping windowActionBar/windowNoTitle/android:windowFullscreen. Falling back to
+        values-night/ keeps those window items; the parent chain still resolves Base->App per device config,
+        so the night-v35 bottomSheet/edge-to-edge override above is preserved.
+    -->
 </resources>

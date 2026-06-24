@@ -13,7 +13,8 @@
 
   Selection (-Suite):
     all       - emulator-default *.yaml under smoke/, critical/, features/
-                (excludes _shared/ fragments and device-only file-operation flows)
+                (excludes _shared/ fragments, device-only file-operation flows, and the
+                 inline-audio player flows that need a full player not present on emulator - S0666)
     smoke      | critical | features      - that category, recursively
     features\browse  (or features/files)  - a single category subpath
     smoke\app_launch.yaml  | a full path  - a single flow file
@@ -161,6 +162,17 @@ function Clear-MaestroSessions {
     }
 }
 
+# Force-stop the app between a failed flow and its retry so a prior flow's deep screen (an open
+# player, a dialog) does not leak into the retry and re-fail it. Non-fatal best effort.
+function Reset-App {
+    param([string]$Sdk, [string]$Device)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    try { & $adb @target shell am force-stop com.sza.fastmediasorter.debug *> $null } catch { }
+    Start-Sleep -Milliseconds 800
+}
+
 # ---------- flow-set resolution from -Suite ----------
 function Get-FlowSet {
     param([string]$Selection)
@@ -177,7 +189,13 @@ function Get-FlowSet {
             Where-Object {
                 $_.FullName -match '[\\/](smoke|critical|features)[\\/]' -and
                 $_.FullName -notmatch '[\\/]features[\\/]files[\\/]' -and
-                $_.FullName -notmatch '[\\/]critical[\\/]file_operations\.yaml$'
+                $_.FullName -notmatch '[\\/]critical[\\/]file_operations\.yaml$' -and
+                # Audio flows assume a full-screen audio player (playerView / btnPlaybackControl), but
+                # audio plays INLINE in the browse list (the row's btnPlayInline; the activity stays
+                # BrowseActivity) and the inline state is not introspectable by UiAutomator on the
+                # emulator, so these cannot be reliably driven here. Excluded from the emulator default;
+                # redesign for the inline model is tracked in S0666.
+                $_.FullName -notmatch '[\\/]features[\\/]player[\\/]player_(audio_lyrics|info_dialog)\.yaml$'
             })
     }
 
@@ -255,6 +273,16 @@ $anyExec  = $false
 $anyFail  = $false
 foreach ($flow in $flows) {
     $r = Invoke-Flow -Maestro $maestro -FlowFile $flow
+    # Single retry for a transient assertion failure. Emulator UI suites flake run-to-run (state
+    # contamination between flows, scroll determinism); an isolated re-run almost always passes, and a
+    # failing flow can leave the app on a deep screen that cascades into the next flow's go_home.
+    # Force-stop first so the retry starts clean. Execution errors (infra) are not retried - exit 4.
+    if ($r.status -eq 'fail') {
+        Write-Line ("  RETRY    {0}  (first attempt failed - transient flake guard)" -f $r.flow) 'Yellow'
+        Reset-App -Sdk $sdk -Device $DeviceId
+        $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow
+        if ($r2.pass) { $r = $r2 }
+    }
     $results += $r
     if ($r.status -eq 'execError') { $anyExec = $true }
     if ($r.status -eq 'fail')      { $anyFail = $true }

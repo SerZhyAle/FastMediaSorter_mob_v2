@@ -194,18 +194,26 @@ object TouchZoneConfig {
     
     /**
      * Determine which zone map to use based on media type and screen mode.
-     * 
+     *
      * @param mediaType The type of media being displayed
      * @param isFullscreen True if in fullscreen mode, false if command panel is visible
+     * @param nineZoneGridEnabled S0620: when false, fullscreen falls back to the 3-zone map
+     *        (the same map the command-panel mode uses), so the 9-zone grid is never selected.
      * @return The appropriate TouchZoneMap for the combination
      */
-    fun getZoneMapForMediaType(mediaType: MediaType?, isFullscreen: Boolean): TouchZoneMap {
+    fun getZoneMapForMediaType(
+        mediaType: MediaType?,
+        isFullscreen: Boolean,
+        nineZoneGridEnabled: Boolean = true
+    ): TouchZoneMap {
+        // S0620: grid-off fullscreen reuses the 3-zone command-panel maps.
+        val useNineZone = isFullscreen && nineZoneGridEnabled
         return when (mediaType) {
             MediaType.IMAGE, MediaType.GIF -> {
-                if (isFullscreen) TouchZoneMap.REG_9100 else TouchZoneMap.REG_3100
+                if (useNineZone) TouchZoneMap.REG_9100 else TouchZoneMap.REG_3100
             }
             MediaType.VIDEO, MediaType.AUDIO -> {
-                if (isFullscreen) TouchZoneMap.REG_975 else TouchZoneMap.REG_375
+                if (useNineZone) TouchZoneMap.REG_975 else TouchZoneMap.REG_375
             }
             MediaType.PDF, MediaType.EPUB, MediaType.TEXT, MediaType.OFFICE_DOCUMENT -> {
                 // S0301 Phase 05: Office documents share the read-only document touch-zone map.
@@ -213,7 +221,7 @@ object TouchZoneConfig {
             }
             else -> {
                 // Default to 9-zone for unknown types
-                if (isFullscreen) TouchZoneMap.REG_9100 else TouchZoneMap.REG_3100
+                if (useNineZone) TouchZoneMap.REG_9100 else TouchZoneMap.REG_3100
             }
         }
     }
@@ -288,8 +296,43 @@ object TouchZoneConfig {
     }
     
     /**
+     * S0620: tap resolver for the grid-off fullscreen 3-zone fallback (REG-3100 / REG-375).
+     *
+     * Splits the previous left zone so file operations stay reachable by touch when the
+     * 9-zone grid is disabled: the leftmost edge band opens the command panel (the slot the
+     * 9-zone layout used for COMMAND_PANEL), the remainder of the left zone keeps PREVIOUS.
+     * Center keeps the per-media gesture (PhotoView zoom for images, pause/resume for video),
+     * right keeps NEXT. The command-panel-mode 3-zone resolvers above are left untouched.
+     *
+     * @param xFraction Horizontal touch position as a fraction of screen width (0..1)
+     * @param zoneMap The active fallback map (REG-3100 or REG-375)
+     */
+    fun get3ZoneFullscreenTapAction(xFraction: Float, zoneMap: TouchZoneMap): TouchZoneAction {
+        val config = getConfiguration(zoneMap)
+        // Reuse the map's own left/right column boundaries (0.25 / 0.75) so the center
+        // gesture zone matches the command-panel layout exactly.
+        val leftBoundary = config.widthRatios.getOrElse(0) { 0.25f }
+        val rightBoundary = leftBoundary + config.widthRatios.getOrElse(1) { 0.50f }
+        return when {
+            xFraction < COMMAND_PANEL_EDGE_FRACTION -> TouchZoneAction.COMMAND_PANEL
+            xFraction < leftBoundary -> TouchZoneAction.PREVIOUS
+            xFraction < rightBoundary ->
+                if (zoneMap == TouchZoneMap.REG_375) TouchZoneAction.PAUSE_RESUME
+                else TouchZoneAction.PHOTOVIEW_GESTURE
+            else -> TouchZoneAction.NEXT
+        }
+    }
+
+    /**
+     * S0620: width of the left-edge command-panel band in the grid-off 3-zone fallback,
+     * as a fraction of screen width. Pinned by Quiz 2026-06-23; device-test confirms it does
+     * not steal too much of the PREVIOUS target.
+     */
+    const val COMMAND_PANEL_EDGE_FRACTION = 0.08f
+
+    /**
      * Get swipe action for a specific zone map and direction.
-     * 
+     *
      * @param map The zone map in use
      * @param direction The swipe direction
      * @return The action for that swipe

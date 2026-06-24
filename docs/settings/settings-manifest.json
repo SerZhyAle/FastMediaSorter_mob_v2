@@ -21,6 +21,16 @@
       "titleUk": "Призначити аудіоплеєром за замовчуванням"
     },
     {
+      "key": "rowAudioEmptyStateMode",
+      "sectionId": "audio",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_audio",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Visualizer when no cover art",
+      "titleRu": "Визуализатор при отсутствии обложки",
+      "titleUk": "Візуалізатор при відсутності обкладинки"
+    },
+    {
       "key": "rowEnablePhotosDuringAudio",
       "sectionId": "audio",
       "destination": "MEDIA",
@@ -81,6 +91,16 @@
       "titleUk": "+ Додати"
     },
     {
+      "key": "btnEditAppPanel",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Edit app panel",
+      "titleRu": "Редакция панели программ",
+      "titleUk": "Редакція панелі програм"
+    },
+    {
       "key": "btnOpenAccessibilitySettings",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -111,7 +131,27 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
+      "key": "btnSelectLinkAutodownloadResource",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
       "key": "btnSelectMicRecordingDest",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
+      "key": "btnSelectScreenshotDestination",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
@@ -191,6 +231,16 @@
       "titleUk": "Макс. отримувачів (1-30)"
     },
     {
+      "key": "headerAdditionalPrograms",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Additional programs and scenarios",
+      "titleRu": "Дополнительные программы и сценарии",
+      "titleUk": "Додаткові програми та сценарії"
+    },
+    {
       "key": "headerBehaviour",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -226,9 +276,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SECTION_HEADER",
-      "titleEn": "Camera, microphone and Other features",
-      "titleRu": "Камера, микрофон и прочий функционал",
-      "titleUk": "Камера, мікрофон та інші функції"
+      "titleEn": "Photo, Video, Voice recorder",
+      "titleRu": "Фото, Видео, Диктофон",
+      "titleUk": "Фото, Відео, Диктофон"
     },
     {
       "key": "headerSafety",
@@ -359,6 +409,16 @@
       "titleEn": "Confirm before move",
       "titleRu": "Подтверждать перемещение",
       "titleUk": "Підтверджувати переміщення"
+    },
+    {
+      "key": "rowControlsKeybindings",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Controls & Keybindings",
+      "titleRu": "Управление и клавиши",
+      "titleUk": "Керування та клавіші"
     },
     {
       "key": "rowCopyScreenshotToClipboard",
@@ -581,16 +641,6 @@
       "titleUk": "Продовжувати відтворення при наступному запуску"
     },
     {
-      "key": "rowScreenshotDestination",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Save screenshots to..",
-      "titleRu": "Загружать скриншоты в..",
-      "titleUk": "Завантажувати знімки до.."
-    },
-    {
       "key": "rowScreenshotGestureActionDown",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -649,16 +699,6 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
-    },
-    {
-      "key": "row_link_autodownload_resource",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Download destination resource",
-      "titleRu": "Ресурс для закачки",
-      "titleUk": "Ресурс для завантаження"
     },
     {
       "key": "btnSetDefaultDocsViewer",
@@ -759,6 +799,16 @@
       "titleEn": "Video pre-cache size",
       "titleRu": "Размер предварительного кэша видео",
       "titleUk": "Розмір попереднього кешу відео"
+    },
+    {
+      "key": "actvSyncInterval",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SPINNER",
+      "titleEn": "Sync interval (min)",
+      "titleRu": "Интервал синхронизации (мин)",
+      "titleUk": "Інтервал синхронізації (хв)"
     },
     {
       "key": "btnAutoCalculateCache",
@@ -1461,6 +1511,16 @@
       "titleUk": "Повторити"
     },
     {
+      "key": "layoutExtensionsManager",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR & translation downloads",
+      "titleRu": "Загрузки OCR и перевода",
+      "titleUk": "Завантаження OCR та перекладу"
+    },
+    {
       "key": "rowEnableOcr",
       "sectionId": "other",
       "destination": "MEDIA",
@@ -1481,6 +1541,46 @@
       "titleUk": "Увімкнути переклад"
     },
     {
+      "key": "rowOcrEngineType",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Engine",
+      "titleRu": "Движок OCR",
+      "titleUk": "Двигун OCR"
+    },
+    {
+      "key": "rowOcrFontFamily",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Font Family",
+      "titleRu": "Шрифт для OCR",
+      "titleUk": "Шрифт для OCR"
+    },
+    {
+      "key": "rowOcrFontSize",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Font Size",
+      "titleRu": "Размер шрифта для OCR",
+      "titleUk": "Розмір шрифту для OCR"
+    },
+    {
+      "key": "rowPaddleOcrModel",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "PaddleOCR Model",
+      "titleRu": "Модель PaddleOCR",
+      "titleUk": "Модель PaddleOCR"
+    },
+    {
       "key": "rowTranslationLensStyle",
       "sectionId": "other",
       "destination": "MEDIA",
@@ -1489,46 +1589,6 @@
       "titleEn": "Translation result in blocks",
       "titleRu": "Результат перевода в блоках",
       "titleUk": "Результат перекладу в блоках"
-    },
-    {
-      "key": "spinnerOcrEngineType",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Engine",
-      "titleRu": "Движок OCR",
-      "titleUk": "Двигун OCR"
-    },
-    {
-      "key": "spinnerOcrFontFamily",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Font Family",
-      "titleRu": "Шрифт для OCR",
-      "titleUk": "Шрифт для OCR"
-    },
-    {
-      "key": "spinnerOcrFontSize",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Font Size",
-      "titleRu": "Размер шрифта для OCR",
-      "titleUk": "Розмір шрифту для OCR"
-    },
-    {
-      "key": "spinnerPaddleOcrModel",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "PaddleOCR Model",
-      "titleRu": "Модель PaddleOCR",
-      "titleUk": "Модель PaddleOCR"
     },
     {
       "key": "spinnerTranslationSourceLanguage",
@@ -1576,9 +1636,9 @@
       "destination": "PLAYBACK",
       "layout": "fragment_settings_playback",
       "kind": "INPUT_ROW",
-      "titleEn": "Default slideshow (sec.)",
-      "titleRu": "Слайдшоу по умолч. (сек.)",
-      "titleUk": "Слайдшоу за замовч. (сек.)"
+      "titleEn": "Slideshow (s)",
+      "titleRu": "Слайдшоу (с)",
+      "titleUk": "Слайдшоу (с)"
     },
     {
       "key": "headerBackgroundAudio",
@@ -1691,14 +1751,14 @@
       "titleUk": "Підтверджувати видалення"
     },
     {
-      "key": "rowDetailedErrors",
+      "key": "rowDisableNineZone",
       "sectionId": "playback",
       "destination": "PLAYBACK",
       "layout": "fragment_settings_playback",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Show detailed errors",
-      "titleRu": "Показывать детальные ошибки",
-      "titleUk": "Показувати детальні помилки"
+      "titleEn": "Disable 9-zone tracking",
+      "titleRu": "Отключить отслеживание 9 зон",
+      "titleUk": "Вимкнути відстеження 9 зон"
     },
     {
       "key": "rowEnablePersistentAudioPlayback",
@@ -1821,6 +1881,16 @@
       "titleUk": "Режим сортування за замовчуванням"
     },
     {
+      "key": "btnClearPlayStatuses",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "BUTTON",
+      "titleEn": "Clear play marks",
+      "titleRu": "Очистить отметки воспроизведения",
+      "titleUk": "Очистити позначки відтворення"
+    },
+    {
       "key": "btnStreams",
       "sectionId": "streams",
       "destination": "MEDIA",
@@ -1829,6 +1899,36 @@
       "titleEn": "Streams",
       "titleRu": "Трансляции",
       "titleUk": "Трансляції"
+    },
+    {
+      "key": "rowCatalogRefresh",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Updating the channel list",
+      "titleRu": "Обновление списка каналов",
+      "titleUk": "Оновлення списку каналів"
+    },
+    {
+      "key": "rowDefaultMediaFilter",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Show by default",
+      "titleRu": "Что показывать сначала",
+      "titleUk": "Що показувати спочатку"
+    },
+    {
+      "key": "rowDefaultSort",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Default order",
+      "titleRu": "Порядок по умолчанию",
+      "titleUk": "Порядок за замовчуванням"
     },
     {
       "key": "rowEnableStreams",

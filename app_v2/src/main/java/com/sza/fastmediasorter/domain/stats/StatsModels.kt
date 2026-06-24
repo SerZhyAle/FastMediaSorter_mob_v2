@@ -33,7 +33,16 @@ enum class StatsKey {
     FRAMES_EXPORTED,
     IMAGE_EDITS, DRAWINGS, NOTES,
     SOURCES_CONNECTED,
-    SESSIONS, ACTIVE_MS
+    SESSIONS, ACTIVE_MS,
+    // Expanded coverage (S0654) - append-only; folded in StatsSinkImpl, rendered by the dashboard/report.
+    FILES_RENAMED,
+    FAVORITES_ADDED, FAVORITES_REMOVED,
+    SLIDESHOW_SESSIONS, SLIDESHOW_IMAGES_SHOWN,
+    SCHEDULED_TASKS_RUN, SCHEDULED_TASK_FILES_PROCESSED,
+    STREAMS_AUDIO_PLAYED, STREAMS_VIDEO_PLAYED,
+    STREAMS_ADDED, PLAYLISTS_IMPORTED,
+    GIF_FRAMES_SAVED,
+    UNDO_OPERATIONS, OCR_SCANS
 }
 
 /** Per-media-type processing counts for the action x type matrix. */
@@ -91,6 +100,12 @@ data class StatsSnapshot(
     val byType: Map<StatsMediaType, MediaActionCounts>
 ) {
     fun count(key: StatsKey): Long = counters[key] ?: 0L
+
+    /**
+     * "Sorted" is the organizing headline: all files the user placed into destination folders via
+     * copy or move flows. Delete/archive/extract remain separate operation metrics.
+     */
+    fun sortedFilesCount(): Long = count(StatsKey.FILES_COPIED) + count(StatsKey.FILES_MOVED)
 
     /** True when no detailed activity has been recorded yet (only baseline present). */
     val hasNoDetailedActivity: Boolean

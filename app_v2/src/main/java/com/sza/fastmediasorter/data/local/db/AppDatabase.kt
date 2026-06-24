@@ -26,9 +26,10 @@ import timber.log.Timber
         StreamingCacheEntry::class,
         InputBindingEntity::class,
         DeviceProfileEntity::class,
-        StreamSourceEntity::class
+        StreamSourceEntity::class,
+        AppLaunchPanelTileEntity::class
     ],
-    version = 35,
+    version = 36,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -48,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun inputBindingDao(): InputBindingDao
     abstract fun deviceProfileDao(): DeviceProfileDao
     abstract fun streamSourceDao(): StreamSourceDao
+    abstract fun appLaunchPanelTileDao(): AppLaunchPanelTileDao
 
     companion object {
         /**

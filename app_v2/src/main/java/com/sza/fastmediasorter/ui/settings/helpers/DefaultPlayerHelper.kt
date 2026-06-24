@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
+import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -155,16 +156,20 @@ object DefaultPlayerHelper {
             return
         }
 
-        // AlertDialog suppresses the item list when a message is also set, so the type list must be the
-        // dialog's only content - the title alone carries the prompt.
-        val labels = options.map { context.getString(it.first) }.toTypedArray()
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.settings_default_document_type_title)
-            .setItems(labels) { _, which ->
-                showSetDefaultDialogForType(fragment, options[which].second)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        Timber.d("S0646: default-document-type picker opening list-choice dialog")
+        SimpleValueChoiceDialog(
+            context = context,
+            lifecycleOwner = fragment.viewLifecycleOwner,
+            title = context.getString(R.string.settings_default_document_type_title),
+            options = options.map { (labelRes, mimeType) ->
+                SimpleValueChoiceDialog.Option(mimeType, context.getString(labelRes))
+            },
+            currentKey = null,
+            allowClear = false,
+            onSelected = { key ->
+                key?.let { showSetDefaultDialogForType(fragment, it) }
+            },
+        ).show()
     }
 
     // Keep overload without mimeType for legacy callers

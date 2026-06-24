@@ -170,3 +170,7 @@
 "copyScreenshotToClipboard","","","","","","","","","","",""
 "enableStatistics","","","","","","","","","","",""
 "cameraCaptureCopyToClipboard","","","","","","","","","","",""
+"streamsDefaultSort","","","","","","","","","","",""
+"streamsDefaultMediaFilter","","","","","","","","","","",""
+"streamsCatalogRefreshPolicy","","","","","","","","","","",""
+"nineZoneGridEnabled","","","","","","","","","","",""

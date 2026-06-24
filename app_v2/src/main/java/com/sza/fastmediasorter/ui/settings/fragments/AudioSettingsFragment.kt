@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +15,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -148,37 +148,35 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             )
         }
 
-        // Audio empty state dropdown
-        val emptyStateModeLabels = listOf(
-            getString(R.string.audio_empty_state_none),
-            getString(R.string.audio_empty_state_avd_pulse),
-            getString(R.string.audio_empty_state_canvas_bars),
-            getString(R.string.audio_empty_state_canvas_waves),
-            getString(R.string.audio_empty_state_visualization)
-        )
-        val emptyStateAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            emptyStateModeLabels
-        )
-        binding.actvAudioEmptyStateMode.setAdapter(emptyStateAdapter)
-        binding.actvAudioEmptyStateMode.setOnItemClickListener { _, _, position, _ ->
-            if (!isUpdatingFromSettings) {
-                val selectedKey = emptyStateModeKeys.getOrElse(position) { MODE_NONE }
-                val current = viewModel.settings.value
-                if (selectedKey == MODE_VISUALIZATION) {
-                    // Video background ships via on-demand delivery (Set C); offer the download when the
-                    // set is not installed, and keep the prior mode selected if the user refuses.
-                    deliveryEnableInterceptor.requireInstalled(
-                        this@AudioSettingsFragment,
-                        com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
-                        onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
-                        onUnavailable = { revertEmptyStateModeSelection() }
-                    )
-                } else {
-                    viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
-                }
+        // Audio empty state mode - trigger row opening a single-choice dialog (S0646)
+        binding.rowAudioEmptyStateMode.setOnRowClickListener {
+            Timber.d("S0646: audio empty-state visualizer row tapped, opening list-choice dialog")
+            val options = emptyStateModeKeys.zip(emptyStateModeLabels()) { key, label ->
+                com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog.Option(key, label)
             }
+            val current = viewModel.settings.value
+            com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog(
+                requireContext(),
+                viewLifecycleOwner,
+                title = getString(R.string.audio_empty_state_label),
+                options = options,
+                currentKey = normalizeEmptyStateMode(current.audioEmptyStateMode),
+                onSelected = { key ->
+                    val selectedKey = key ?: return@SimpleValueChoiceDialog
+                    if (selectedKey == MODE_VISUALIZATION) {
+                        // Video background ships via on-demand delivery (Set C); offer the download when the
+                        // set is not installed, and leave the prior mode persisted if the user refuses.
+                        deliveryEnableInterceptor.requireInstalled(
+                            this@AudioSettingsFragment,
+                            com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
+                            onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
+                            onUnavailable = { /* no settings write; row stays on persisted mode */ }
+                        )
+                    } else {
+                        viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                    }
+                }
+            ).show()
         }
 
         // Default player button
@@ -186,21 +184,18 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         // S0367: microphone-recording and camera-photos sections moved to PlaybackSettingsFragment.
     }
 
-    // Re-sync the dropdown text to the currently persisted mode after a refused download, so the UI
-    // never shows VISUALIZATION while a non-video mode is actually in effect.
-    private fun revertEmptyStateModeSelection() {
-        val persisted = viewModel.settings.value.audioEmptyStateMode
-        val normalized = if (persisted == MODE_GIF_LOOP) MODE_VISUALIZATION else persisted
-        val index = emptyStateModeKeys.indexOf(normalized).takeIf { it >= 0 } ?: 0
-        val labels = listOf(
-            getString(R.string.audio_empty_state_none),
-            getString(R.string.audio_empty_state_avd_pulse),
-            getString(R.string.audio_empty_state_canvas_bars),
-            getString(R.string.audio_empty_state_canvas_waves),
-            getString(R.string.audio_empty_state_visualization)
-        )
-        binding.actvAudioEmptyStateMode.setText(labels[index], false)
-    }
+    // Ordered labels index-aligned with [emptyStateModeKeys].
+    private fun emptyStateModeLabels(): List<String> = listOf(
+        getString(R.string.audio_empty_state_none),
+        getString(R.string.audio_empty_state_avd_pulse),
+        getString(R.string.audio_empty_state_canvas_bars),
+        getString(R.string.audio_empty_state_canvas_waves),
+        getString(R.string.audio_empty_state_visualization)
+    )
+
+    // Map the legacy "GIF_LOOP" DataStore value onto the current VISUALIZATION key for UI display.
+    private fun normalizeEmptyStateMode(mode: String): String =
+        if (mode == MODE_GIF_LOOP) MODE_VISUALIZATION else mode
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
@@ -247,18 +242,11 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                     binding.etAudioSizeMax.setText(maxMb.toString())
                 }
 
-                // Audio empty state dropdown
-                // Normalize legacy "GIF_LOOP" → "VISUALIZATION" for index lookup
-                val normalizedMode = if (settings.audioEmptyStateMode == MODE_GIF_LOOP) MODE_VISUALIZATION else settings.audioEmptyStateMode
-                val modeIndex = emptyStateModeKeys.indexOf(normalizedMode).takeIf { it >= 0 } ?: 0
-                val emptyStateModeLabels = listOf(
-                    getString(R.string.audio_empty_state_none),
-                    getString(R.string.audio_empty_state_avd_pulse),
-                    getString(R.string.audio_empty_state_canvas_bars),
-                    getString(R.string.audio_empty_state_canvas_waves),
-                    getString(R.string.audio_empty_state_visualization)
-                )
-                binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
+                // Audio empty state mode row - reflect the persisted mode (legacy GIF_LOOP shown as
+                // VISUALIZATION) so a refused on-demand download leaves the row on the prior mode.
+                val modeIndex = emptyStateModeKeys.indexOf(normalizeEmptyStateMode(settings.audioEmptyStateMode))
+                    .takeIf { it >= 0 } ?: 0
+                binding.rowAudioEmptyStateMode.setValue(emptyStateModeLabels()[modeIndex])
 
                 // S0367: microphone-recording and camera-photos state sync moved to PlaybackSettingsFragment.
             }

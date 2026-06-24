@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-FastMediaSorter's existing photo capture is deliberately permission-free: both `BrowseCameraCaptureManager` (S0022, capture-to-resource) and `CameraOcrFlowManager` (camera-OCR-translate) delegate to the device camera via `MediaStore.ACTION_IMAGE_CAPTURE`, and the app does **not** declare `android.permission.CAMERA`.
+History: capture USED to be permission-free - `BrowseCameraCaptureManager` (S0022) + `CameraOcrFlowManager` delegated to the device camera via `MediaStore.ACTION_IMAGE_CAPTURE` with NO `android.permission.CAMERA` declared. S0359 (Variant 1, shipped) replaced that with in-app CameraX, so the manifest NOW declares `CAMERA` and the permission-free system-camera path is gone. This memory survives to stop anyone re-proposing the impossible "permission-free fallback".
 
 **Why:** Android rule (confirmed on developer.android.com, enforced since API 23): if an app *declares* `CAMERA` in the manifest but it isn't granted at runtime, `ACTION_IMAGE_CAPTURE` throws `SecurityException`. So an app that only delegates to the system camera should NOT declare CAMERA - and FastMediaSorter doesn't, which is why capture works with zero permission prompts today.
 

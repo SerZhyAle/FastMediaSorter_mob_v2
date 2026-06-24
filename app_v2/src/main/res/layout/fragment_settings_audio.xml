@@ -106,27 +106,11 @@
         android:layout_marginBottom="@dimen/margin_small"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowAudioEmptyStateMode"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/audio_empty_state_label"
-            android:textSize="@dimen/toggler_title_text_size"
-            android:layout_marginBottom="@dimen/margin_small" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilAudioEmptyStateMode"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="@dimen/settings_dropdown_wide_width"
-            android:layout_height="wrap_content"
-            app:hintTextColor="@color/settings_textinput_hint">
-
-            <AutoCompleteTextView
-                android:id="@+id/actvAudioEmptyStateMode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textColor="@color/text_color_primary" />
-        </com.google.android.material.textfield.TextInputLayout>
+            app:ssr_title="@string/audio_empty_state_label" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -134,7 +118,7 @@
         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_gravity="start"
         android:layout_marginTop="@dimen/margin_small"
         android:text="@string/settings_set_default_audio_player"
         android:textAllCaps="false" />

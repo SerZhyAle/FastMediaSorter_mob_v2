@@ -52,6 +52,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
@@ -313,6 +314,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
     internal var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
+    internal var nineZoneGridEnabled = true // S0620: false -> fullscreen uses the 3-zone fallback layout
     internal val shownHintTypes = mutableSetOf<TouchZoneHintType>() // Track per-type hints shown in this session
     internal var slideshowModeRequested = false // Auto-start slideshow when files are loaded
     internal var isExplicitFullscreenMode = false // User requested fullscreen via button
@@ -334,6 +336,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0162: screen rotation manager + accelerometer availability (lazy: deferred until first use)
     internal val screenRotationManager = com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager()
     internal val hasAccelerometer: Boolean by lazy { screenRotationManager.isAccelerometerPresent(this) }
+
+    // S0667: single decision point mapping device orientation to fullscreen/command-panel mode.
+    private val orientationModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerOrientationModeManager()
 
     // Session-scoped translation settings (reset when exiting Browse/Resource)
     internal var translationSessionSettings = com.sza.fastmediasorter.domain.models.TranslationSessionSettings()
@@ -551,6 +556,20 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         // Hardware keyboard attach/detach arrives as a configuration change - re-evaluate slot number badges.
         if (::destinationButtonsManager.isInitialized) destinationButtonsManager.refreshSlotBadges()
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+        val mediaType = viewModel.state.value.currentFile?.type
+        val isVisualMedia = mediaType == MediaType.VIDEO ||
+            mediaType == MediaType.IMAGE ||
+            mediaType == MediaType.GIF
+        val targetMode = orientationModeManager.resolve(
+            isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE,
+            followsDevice = screenRotationManager.followsDevice(),
+            isVisualMedia = isVisualMedia
+        )
+        when (targetMode) {
+            PlayerDisplayMode.FULLSCREEN -> viewModel.enterFullscreenMode()
+            PlayerDisplayMode.COMMAND_PANEL -> viewModel.enterCommandPanelMode()
+            null -> Unit
+        }
         binding.root.post {
             val currentFile = viewModel.state.value.currentFile ?: return@post
             if (currentFile.type != MediaType.IMAGE && currentFile.type != MediaType.GIF) return@post
@@ -595,7 +614,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         touchZoneSetupManager.showHintOverlay(type)
 
     fun showTouchZonesHelpOverlay() {
-        val hintType = uiStateCoordinator.getCurrentHintType(viewModel.state.value)
+        val hintType = uiStateCoordinator.getCurrentHintType(viewModel.state.value, nineZoneGridEnabled)
             ?: TouchZoneHintType.FULLSCREEN_9ZONE
         touchZoneSetupManager.showHintOverlay(hintType)
     }
@@ -861,6 +880,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
                 viewModel.state.value.currentFile?.type == MediaType.AUDIO
         )
         exoPlayerControlsManager.updatePlaybackOrderButtonState()
+        // S0641: re-trim the on-player controls when a live video stream loads (covers the case where
+        // the controller is already visible, so no visibility-change callback fires).
+        exoPlayerControlsManager.applyStreamControlProfile()
     }
 
     internal fun prefetchNextAudio() {

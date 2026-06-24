@@ -6,6 +6,7 @@ import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 
 abstract class BaseSettingsFragment : Fragment() {
@@ -93,6 +94,29 @@ abstract class BaseSettingsFragment : Fragment() {
             } else {
                 spinner.setSelection(position)
             }
+        }
+    }
+
+    /**
+     * [SettingsDropdownRow] analogue of [bindSpinner]. Forwards only user-initiated selections
+     * (suppressed while [withSettingsUpdate] is active) so reflecting the current settings value back
+     * into the row never loops back as a fake user change.
+     */
+    protected fun bindDropdown(row: SettingsDropdownRow, onUserSelected: (position: Int) -> Unit) {
+        row.setOnItemSelectedListener { position ->
+            if (!isUpdatingFromSettings) {
+                onUserSelected(position)
+            }
+        }
+    }
+
+    /**
+     * [SettingsDropdownRow] analogue of [setSpinnerSelection]. Re-selects only on an actual change;
+     * [SettingsDropdownRow.setSelection] already suppresses the listener, so no extra guard is needed.
+     */
+    protected fun setDropdownSelection(row: SettingsDropdownRow, index: Int) {
+        if (row.getSelectedIndex() != index) {
+            row.setSelection(index)
         }
     }
 

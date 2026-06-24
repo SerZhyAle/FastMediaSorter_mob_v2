@@ -20,27 +20,37 @@
 
                 <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- S0567: Sort Mode + Slideshow Interval restructured into full-width compound rows.
-                         Stacking the previously-horizontal fields is expected (ADR-1). -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/spinnerSortMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-                        app:sdr_title="@string/default_sort_mode" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
-                        android:id="@+id/etSlideshowInterval"
+                    <!-- S0647: Sort Mode + Slideshow Interval share one horizontal row. The numeric field
+                         uses a FIXED width (not wrap_content): SettingsInputRow is internally match_parent,
+                         so wrap_content makes it greedily fill the row and starve the weighted dropdown to 0px. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_small"
                         android:layout_marginBottom="@dimen/margin_small"
-                        app:sir_title="@string/slideshow_interval"
-                        app:sir_inputType="2"
-                        app:sir_showHelp="true"
-                        app:sir_helpTitle="@string/tooltip_slideshow_title"
-                        app:sir_helpMessage="@string/tooltip_slideshow_message" />
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/spinnerSortMode"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                            app:sdr_title="@string/default_sort_mode" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                            android:id="@+id/etSlideshowInterval"
+                            android:layout_width="@dimen/settings_input_numeric_max_width"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_small"
+                            app:sir_title="@string/slideshow_interval_inline"
+                            app:sir_inputType="2"
+                            app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width"
+                            app:sir_showHelp="true"
+                            app:sir_helpTitle="@string/tooltip_slideshow_title"
+                            app:sir_helpMessage="@string/tooltip_slideshow_message" />
+                    </LinearLayout>
 
                     <!-- Play Video to End -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -144,31 +154,16 @@
 
                     </LinearLayout>
 
-                    <!-- Command Panel + Detailed Errors (One Row) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowShowCommandPanel"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/margin_small"
-                            app:str_title="@string/show_command_panel_by_default"
-                            app:str_subtitle="@string/setting_show_command_panel_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_command_panel_title"
-                            app:str_helpMessage="@string/tooltip_command_panel_message" />
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDetailedErrors"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/margin_small"
-                            app:str_title="@string/show_detailed_errors"
-                            app:str_subtitle="@string/setting_detailed_errors_desc" />
-
-                    </LinearLayout>
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowShowCommandPanel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/show_command_panel_by_default"
+                        app:str_subtitle="@string/setting_show_command_panel_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_command_panel_title"
+                        app:str_helpMessage="@string/tooltip_command_panel_message" />
 
                     <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -244,8 +239,29 @@
 
                 <LinearLayout android:id="@+id/containerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
+                    <!-- S0620: master toggle - disable the 9-zone grid; pinned to the top of the block -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDisableNineZone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:str_title="@string/disable_nine_zone_tracking" />
+
+                    <!-- S0620: 3-zone explanation, shown only when the 9-zone grid is disabled -->
+                    <TextView
+                        android:id="@+id/tvThreeZoneExplanation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:text="@string/three_zone_layout_explanation"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="@dimen/text_size_small"
+                        android:lineSpacingMultiplier="1.2"
+                        android:visibility="gone" />
+
                     <!-- Player Hint + Touch Zones (stacked, one per row in portrait) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/groupTouchZoneToggles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:orientation="vertical">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowShowPlayerHint"
@@ -270,7 +286,7 @@
 
 
                     <!-- Touch Zones Scheme Header and Button -->
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/groupTouchZoneScheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/touch_zones_scheme" android:textColor="?attr/colorPrimary" android:textSize="@dimen/toggler_title_text_size" android:textStyle="bold" />
 
@@ -279,7 +295,7 @@
                     </LinearLayout>
 
                     <!-- Horizontal layout: Map (50%) + Legend (50%) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_small">
+                    <LinearLayout android:id="@+id/groupTouchZoneLegend" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_small">
 
                         <ImageView android:layout_width="0dp" android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height" android:layout_weight="1" android:contentDescription="@string/touch_zones_scheme" android:scaleType="fitCenter" android:src="@drawable/touch_zones_scheme" android:layout_marginEnd="@dimen/margin_small"/>
 

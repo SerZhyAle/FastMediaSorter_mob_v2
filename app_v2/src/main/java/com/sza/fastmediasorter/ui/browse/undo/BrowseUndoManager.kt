@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +22,8 @@ import java.io.File
  */
 class BrowseUndoManager(
     private val context: Context,
-    private val callbacks: UndoCallbacks
+    private val callbacks: UndoCallbacks,
+    private val statsSink: StatsSink,
 ) {
     
     private val _undoState = MutableStateFlow(UndoState())
@@ -94,6 +97,7 @@ class BrowseUndoManager(
             
             // Clear undo operation after successful execution
             _undoState.value = UndoState()
+            statsSink.record(StatsEvent.UndoPerformed)
             return true
             
         } catch (e: Exception) {

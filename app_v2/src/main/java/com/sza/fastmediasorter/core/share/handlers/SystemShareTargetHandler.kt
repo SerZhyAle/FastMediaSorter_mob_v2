@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
+import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
@@ -14,13 +15,23 @@ class SystemShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean =
-        SystemShareInvoker.invokeFiles(
+    override fun send(activity: Activity, content: ShareableContent): Boolean {
+        // S0631: a text-only payload (e.g. a stream link) has no Uri - share it as plain text via the
+        // chooser (EXTRA_TEXT) so messengers / clipboard / SMS / email all receive the link.
+        if (content.isTextOnly) {
+            return SystemShareInvoker.invoke(
+                context = activity,
+                payload = SharePayload.Text(content.text!!),
+                chooserTitle = content.displayName,
+            )
+        }
+        return SystemShareInvoker.invokeFiles(
             context = activity,
             uris = content.uris,
             mime = content.mime,
             chooserTitle = content.displayName,
         )
+    }
 
     companion object {
         const val ID = "system_share"

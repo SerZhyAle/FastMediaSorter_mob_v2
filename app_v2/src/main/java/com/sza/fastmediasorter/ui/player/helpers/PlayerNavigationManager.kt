@@ -40,6 +40,7 @@ class PlayerNavigationManager(
     private fun initializeSlideshowController(lifecycle: Lifecycle) {
         slideshowController = SlideshowController(
             lifecycle = lifecycle,
+            statsSink = activity.statsSink,
             slideshowCallback = object : SlideshowController.SlideshowCallback {
                 override fun onSlideAdvance(): Boolean {
                     val currentFile = viewModel.state.value.currentFile

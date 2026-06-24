@@ -47,16 +47,16 @@ class SettingsSearchDeviceFeatureGateTest {
 
     @Test
     fun `suppresses in-app ocr picker rows when OCR unsupported on device`() {
-        assertFalse(decide("spinnerOcrEngineType", supportsOcr = false))
-        assertFalse(decide("spinnerPaddleOcrModel", supportsOcr = false))
-        assertFalse(decide("spinnerOcrFontSize", supportsOcr = false))
-        assertFalse(decide("spinnerOcrFontFamily", supportsOcr = false))
+        assertFalse(decide("rowOcrEngineType", supportsOcr = false))
+        assertFalse(decide("rowPaddleOcrModel", supportsOcr = false))
+        assertFalse(decide("rowOcrFontSize", supportsOcr = false))
+        assertFalse(decide("rowOcrFontFamily", supportsOcr = false))
     }
 
     @Test
     fun `keeps in-app ocr picker rows when OCR supported on device`() {
-        assertTrue(decide("spinnerOcrEngineType", supportsOcr = true))
-        assertTrue(decide("spinnerOcrFontFamily", supportsOcr = true))
+        assertTrue(decide("rowOcrEngineType", supportsOcr = true))
+        assertTrue(decide("rowOcrFontFamily", supportsOcr = true))
     }
 
     @Test

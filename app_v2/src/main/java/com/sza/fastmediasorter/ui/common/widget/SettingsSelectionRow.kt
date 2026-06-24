@@ -29,6 +29,10 @@ import timber.log.Timber
  * help payload is configured; it is hidden otherwise without breaking the layout. Hosts
  * supply a row-click listener instead of wiring nested click handlers.
  *
+ * Navigation mode (`ssr_navMode`) swaps the trailing chevron for a real forward arrow and
+ * collapses the content to hug the left, for rows that open another screen/activity/dialog;
+ * value rows keep the chevron.
+ *
  * Public XML attributes use the `ssr_` prefix (see `attrs.xml`).
  *
  * @see docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
@@ -176,6 +180,22 @@ class SettingsSelectionRow @JvmOverloads constructor(
     }
 
     /**
+     * Switches the trailing glyph between value mode (default chevron) and navigation mode
+     * (real forward arrow). Navigation mode also collapses the content to the left so the arrow
+     * sits right after the text; the row itself stays a full-width click target. Intended for
+     * inflate-time configuration of rows that open another screen/activity/dialog.
+     */
+    fun setNavigationMode(enabled: Boolean) {
+        if (enabled) {
+            chevronView.setImageResource(R.drawable.ic_arrow_forward)
+            chevronView.visibility = View.VISIBLE
+            applyInlineLayout()
+        } else {
+            chevronView.setImageResource(R.drawable.ic_chevron_right)
+        }
+    }
+
+    /**
      * Registers the listener invoked when the row is clicked. Replaces any previous listener.
      */
     fun setOnRowClickListener(listener: ((View) -> Unit)?) {
@@ -242,8 +262,18 @@ class SettingsSelectionRow @JvmOverloads constructor(
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
             val showChevron = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showChevron, true)
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
+            // S0644: value-row etalon - the trailing chevron sits right after the text instead of being
+            // pushed to the screen edge. Applied by default to single-line rows (no subtitle); rows with a
+            // subtitle keep the full-width text group so the subtitle is not truncated, and navigation rows
+            // collapse via setNavigationMode below regardless.
+            if (subtitleView.visibility == View.GONE) {
+                collapseContentToLeft()
+            }
             if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_inline, false)) {
                 applyInlineLayout()
+            }
+            if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_navMode, false)) {
+                setNavigationMode(true)
             }
         }
     }
@@ -255,6 +285,16 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     private fun applyInlineLayout() {
         minimumHeight = 0
+        collapseContentToLeft()
+    }
+
+    /**
+     * S0644: pins the trailing chevron right after the text by collapsing the text group so it stops
+     * stretching to the full row width. Kept separate from [applyInlineLayout] so the value-row
+     * etalon can hug content to the left without also dropping the tall touch-target band that
+     * [applyInlineLayout] removes for dense landscape / navigation rows.
+     */
+    private fun collapseContentToLeft() {
         (findViewById<LinearLayout>(R.id.ssr_textGroup)).updateLayoutParams<LayoutParams> {
             width = LayoutParams.WRAP_CONTENT
             weight = 0f

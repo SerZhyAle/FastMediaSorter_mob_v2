@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
+import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
+import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
@@ -48,17 +50,31 @@ class GeneralSettingsWidgetHelper(
 
     private fun showPickerDialog(entries: List<HomeWidgetEntry>) {
         val context = fragment.requireContext()
-        val labels = entries.map { context.getString(it.labelRes) }.toTypedArray()
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.widget_picker_dialog_title)
-            .setItems(labels) { _, which ->
-                val entry = entries[which]
-                val requested = pinner.requestPin(entry.component(context), null)
-                if (!requested) {
-                    Toast.makeText(context, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        Timber.d("S0646: widget-type picker opening list-choice dialog")
+        ListSelectionDialog<HomeWidgetEntry>(
+            context,
+            ListSelectionConfig(
+                title = context.getString(R.string.widget_picker_dialog_title),
+                lifecycleOwner = fragment.viewLifecycleOwner,
+                loader = { entries },
+                formatter = object : ListSelectionAdapter.ItemFormatter<HomeWidgetEntry> {
+                    override fun getDisplayName(item: HomeWidgetEntry): String =
+                        context.getString(item.labelRes)
+                },
+                hasSelection = false,
+                isSelected = { false },
+                allowClear = false,
+                emptyMessageRes = R.string.widget_pin_not_supported,
+                errorMessageRes = R.string.widget_pin_not_supported,
+                onSelected = { entry ->
+                    entry?.let {
+                        val requested = pinner.requestPin(it.component(context), null)
+                        if (!requested) {
+                            Toast.makeText(context, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
+            ),
+        ).show()
     }
 }

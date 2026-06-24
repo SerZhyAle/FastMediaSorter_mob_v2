@@ -70,6 +70,7 @@ internal class PlayerObserverManager(
                     ) { settings, state ->
                         activity.currentSettings = settings
                         activity.loadFullSizeImages = settings.loadFullSizeImages
+                        activity.nineZoneGridEnabled = settings.nineZoneGridEnabled
 
                         activity.imageLoadingManager.setDynamicBackgroundEnabled(settings.dynamicBackgroundExtension)
                         // currentFile may be null at resource-switch time; updateUI() will correct

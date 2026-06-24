@@ -1,10 +1,10 @@
 # Skill Fix
 
 > **GLOBAL DIRECTIVES (FAST PATCH MODE):**
-> 1. Patch first - find the nearest owning code path, form one local hypothesis, make the smallest plausible fix.
+> 1. Patch first - find nearest owning code path, form one local hypothesis, make smallest plausible fix.
 > 2. No bureaucracy - no specs, doc updates, dev/functionality logs, `post-change.ps1`, git history/status inspection, or project build.
-> 3. Narrow validation only - after the first substantive edit, run the cheapest focused check for the touched slice. No full builds.
-> 4. Terse reporting - end with a short technical summary of changed files + local validation result.
+> 3. Narrow validation only - after first substantive edit, run cheapest focused check for touched slice. No full builds.
+> 4. Terse reporting - end with short technical summary of changed files + local validation result.
 
 Быстрый путь для исправления **существующей** ошибки, регрессии, краша или локальной UI/logic-проблемы, закрываемой узким патчем. Код и UI. Не для новой функциональности и широких архитектурных изменений.
 
@@ -45,45 +45,45 @@ Examples:
 
 ## Process
 
-**Step 1 - Take the nearest concrete anchor.**
-- Start from the file, stack trace, log tag, screen, symbol, or failing behaviour in `$ARGUMENTS`.
+**Step 1 - Take nearest concrete anchor.**
+- Start from file, stack trace, log tag, screen, symbol, or failing behaviour in `$ARGUMENTS`.
 - Kotlin class lookup → `dev/CATALOG/scripts/query.ps1` first; broad-grep only if class/path still unknown after that one hop.
 - Read only enough nearby code to name one falsifiable local hypothesis + one cheap disproving check.
 - Still diffuse after one routing hop → stop: `/skill-fix не подходит - нужен более широкий разбор.`
 
-**Step 2 - Make the smallest grounded edit.**
-- Read inline comments / KDoc in the touched area first; treat as requirements.
-- New logic comment only if genuinely needed: English-only, WHY-focused (non-obvious business logic, handled edge-case, workaround) - never restate what the code does.
-- Patch the narrowest code path that directly controls the bug.
+**Step 2 - Make smallest grounded edit.**
+- Read inline comments / KDoc in touched area first; treat as requirements.
+- New logic comment only if genuinely needed: English-only, WHY-focused (non-obvious business logic, handled edge-case, workaround) - never restate what code does.
+- Patch narrowest code path that directly controls bug.
 - Preserve existing architecture and style; no opportunistic refactor of adjacent code.
 - Editing `res/layout/*.xml` → immediately check `res/layout-land/*.xml` counterpart, patch it too when it exists.
 - Touching user-visible Russian text → preserve author style manually: `..`, `ё`/`Ё`.
 
 **Step 3 - Validate locally, not bureaucratically.**
-- Immediately after the first substantive edit, run one focused validation step for the touched slice.
-- Allowed: `get_errors` on touched files, a narrow unit test, a targeted feature-specific script/test, another cheap behaviour-scoped check.
-- Forbidden: full app build, release scripts, git status/diff/history as a validation substitute.
+- Immediately after first substantive edit, run one focused validation step for touched slice.
+- Allowed: `get_errors` on touched files, narrow unit test, targeted feature-specific script/test, another cheap behaviour-scoped check.
+- Forbidden: full app build, release scripts, git status/diff/history as validation substitute.
 
 **Step 4 - Iterate once if needed.**
-- Focused validation exposes a local defect in the same slice → patch, rerun the same check.
-- Bug controlled one hop away → step to that nearest owner, continue narrowly.
-- Task expands beyond a fast patch → stop, redirect to `/spec`, `/spec-all`, or `/ui-clarify`.
+- Focused validation exposes local defect in same slice → patch, rerun same check.
+- Bug controlled one hop away → step to nearest owner, continue narrowly.
+- Task expands beyond fast patch → stop, redirect to `/spec`, `/spec-all`, or `/ui-clarify`.
 
 **Step 4a - Optional on-device verification (only when `--verify-device`).** After Step 3 PASSes:
-1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → log reason in chat, skip device verification (do not block the fix). Common: no device online, mobile-mcp missing, package mismatch.
+1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → log reason in chat, skip device verification (do not block fix). Common: no device online, mobile-mcp missing, package mismatch.
 2. Decide build need:
-   - Kotlin/Java/manifest/build-config edit → device must run new code → `/verify --build` (underlying skill picks the right `build-*-device.ps1`).
-   - Pure XML/resource edit the running APK won't pick up without reinstall → `/verify --build`.
+   - Kotlin/Java/manifest/build-config edit → device must run new code → `/verify --build` (underlying skill picks right `build-*-device.ps1`).
+   - Pure XML/resource edit running APK won't pick up without reinstall → `/verify --build`.
    - Otherwise (debug-only assertion, log-level change, dead-code removal) → `/verify` without `--build`.
-3. Read the `/verify` verdict line. PASS, zero errors → append to closeout. FAIL or crash → name the failing step in the closeout; do not auto-rollback - the user decides.
+3. Read `/verify` verdict line. PASS, zero errors → append to closeout. FAIL or crash → name failing step in closeout; do not auto-rollback - user decides.
 
-Only place `/skill-fix` touches the device. No dev log, feature inventory, or spec/journal field - all stay skipped per Step 5.
+Only place `/skill-fix` touches device. No dev log, feature inventory, or spec/journal field - all stay skipped per Step 5.
 
 **Step 5 - Skip bureaucracy explicitly.**
 - Do **not** create or update `PLAN/` specs.
 - Do **not** update `docs/FEATURES*`, other docs, `dev/CHANGELOG.md`, or `docs/ALL_FEATURES.jsonl`.
 - Do **not** run `scripts/post-change.ps1`, `scripts/add_to_dev_log.ps1`, `scripts/all_features/add.ps1`, or spec-catalog scripts.
-- Do **not** inspect git history/status/diff unless the user explicitly asks.
+- Do **not** inspect git history/status/diff unless user explicitly asks.
 - Do **not** run `/build` or any full compile pipeline.
 
 **Step 6 - Report.** Short technical closeout: what was fixed, where, which focused local validation passed/failed. No plan sections, no process recap, no changelog prose.
@@ -95,5 +95,5 @@ Only place `/skill-fix` touches the device. No dev log, feature inventory, or sp
 - Read-only zones (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) remain forbidden.
 - No destructive git commands.
 - No new flavor-gating in `src/main/java/**`; respect `dev/FLAVOR_DEVELOPMENT_RULES.md`.
-- No broad search drift once a local hypothesis + cheap check exist.
-- Neuroslop avoidance (CLAUDE.md Rule 20): even a fast patch must not introduce AI-slop - no trivial restating comments, no empty/broad swallowing `catch`, no hardcoded `="#hex"` in `res/layout*`, no bare `lifecycleScope.launch { flow.collect { } }` on view-bound Flows (use `collectOnLifecycle`).
+- No broad search drift once local hypothesis + cheap check exist.
+- Neuroslop avoidance (CLAUDE.md Rule 20): even fast patch must not introduce AI-slop - no trivial restating comments, no empty/broad swallowing `catch`, no hardcoded `="#hex"` in `res/layout*`, no bare `lifecycleScope.launch { flow.collect { } }` on view-bound Flows (use `collectOnLifecycle`).

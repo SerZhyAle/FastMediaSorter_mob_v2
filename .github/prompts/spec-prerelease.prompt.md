@@ -132,13 +132,10 @@ import is delegated to the UI scenario below):
 pwsh -NoProfile -File scripts/devtest/prerelease-configure.ps1 -DeviceId $dev -Json
 ```
 
-Its `set:Language` stage FAILs on API 33+ (`cmd locale` returns empty → configure exits 10); that one
-stage is expected and non-blocking (S0626). Apply the language with the supported **per-app** locale
-path instead, then relaunch the app:
-
-```powershell
-& $adb -s $dev shell cmd locale set-app-locales com.sza.fastmediasorter.debug --user current --locales ru
-```
+Its `set:Language` stage now applies the language itself via the supported **per-app** locale path
+(`cmd locale set-app-locales <pkg> --user current --locales ru`), verifies it against the current
+user, and relaunches the app - no manual locale step is needed (S0626). On API < 33 the stage SKIPs
+(per-app locale unavailable); a genuine apply failure still exits 10.
 
 The run config is `scripts/devtest/prerelease.config.psd1` (resource picks + reachability class +
 setting channels). Then drive the UI via mobile-mcp for the parts adb cannot do (resolve every

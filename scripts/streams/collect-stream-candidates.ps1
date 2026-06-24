@@ -14,26 +14,38 @@
   Catalog-only mode replaces the old standalone liveness checker: probe the current catalog,
   write a maintenance report, and optionally prune confirmed-dead rows.
 
-  Probe behavior:
+  Probe behavior (header liveness, default):
     - Uses .NET HttpClient with ResponseHeadersRead, so endless live bodies are NOT downloaded.
     - HEAD first, then GET fallback for media servers that reject HEAD.
     - Shows console progress with done/total, elapsed time, and ETA.
 
+  Deep-signal probe (-DeepSignal, catalog-only): pulls a few KB of REAL media body instead of trusting
+  a 2xx on the playlist. For HLS it walks master -> media playlist -> first segment and reads bytes off
+  the segment, so a channel that advertises a live playlist but serves no segments is reported 'dead'.
+  This catches "declared but not playing" streams that the header probe marks alive. Runs many more
+  concurrent runspaces (default -Throttle 48); each fetch is CancellationToken-bounded.
+
   Sources by axis:
-    livetv : iptv-org public index (VIDEO / Live TV), official-leaning, NSFW + referrer/UA-gated dropped.
+    livetv : iptv-org public index (VIDEO / Live TV); header-gated (referrer/UA) streams dropped.
     genres : radio-browser community DB by exact tag (AUDIO), top by clickcount.
     geo    : radio-browser by country + iptv-org by country (under-represented regions).
     webcam : curated seed list of public 24/7 HLS feeds (NASA etc.), liveness-filtered.
 
-  Legal boundary: standard catalog = free, publicly published streams only. Pirate "mega IPTV"
-  lists and YouTube-live rips do NOT belong here (those are noLegal / yt-dlp territory).
+  Inclusion policy: keep every reachable live channel that actually carries signal - including
+  grey-area restreams and -/- channels. Only defunct ('closed') and header-gated streams
+  (referrer/user_agent the app cannot supply) are dropped, since those cannot play.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PreviewOnly
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -Axis genres,geo -PerQuery 30
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
-  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 80
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Limit 50
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish   # just (re)upload current streams.csv
 #>
 [CmdletBinding()]
 param(
@@ -47,6 +59,19 @@ param(
     [switch]$PreviewOnly,
     [switch]$CatalogOnly,
     [switch]$PruneDead,
+
+    # Zip streams.csv and upload it as the delivery-so-v1 'stream-catalog.zip' release asset after the
+    # run mutates (or, in catalog mode, after maintenance over) the catalog on disk.
+    [switch]$Publish,
+    [string]$PublishTag = 'delivery-so-v1',
+
+    # Deep-signal catalog probe: pull a few KB of real media body (HLS -> first segment) instead of
+    # trusting a 2xx on the playlist/manifest. Catches "declared but not playing" streams.
+    [switch]$DeepSignal,
+    [int]$Limit = 0,
+    [int]$SignalBytes = 16384,
+    [int]$SignalMinBytes = 2048,
+    [int]$SignalTimeoutSec = 8,
 
     [string]$ExistingCsv = 'delivery/stream-catalog/streams.csv',
     [string]$OutDir = 'temp',
@@ -72,6 +97,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ua = 'FastMediaSorter-catalog/1.0 (+stream-candidate-collector)'
+
+# Deep-signal probing pulls media bytes, so it benefits from many more concurrent runspaces than the
+# header-only liveness probe. Bump the default only when the caller did not pin -Throttle explicitly.
+if ($DeepSignal -and -not $PSBoundParameters.ContainsKey('Throttle')) { $Throttle = 48 }
 
 $Schema = @(
     'category', 'topic', 'name', 'url', 'media_kind', 'protocol', 'format', 'bitrate',
@@ -315,6 +344,225 @@ function Invoke-LivenessProbe {
     return @(Receive-Job -Job $probeJob -Wait -AutoRemoveJob)
 }
 
+# Deep-signal probe: instead of trusting a 2xx on the playlist/manifest, pull a few KB of REAL media
+# body. For HLS it walks master -> media playlist -> first segment and reads bytes off that segment, so
+# a stream that advertises a live playlist but serves no segments is correctly classified 'dead'. Each
+# fetch is bounded by a CancellationToken so endless live bodies are never fully downloaded.
+function Invoke-SignalProbe {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [string]$Activity = 'Signal probe'
+    )
+
+    if (-not $Rows -or $Rows.Count -eq 0) { return @() }
+
+    Write-Host ("{0} {1} URLs (throttle {2}, timeout {3}s, pull up to {4} KB) .." -f `
+            $Activity, $Rows.Count, $Throttle, $SignalTimeoutSec, [int]($SignalBytes / 1024)) -ForegroundColor Yellow
+
+    $probeJob = $Rows | ForEach-Object -ThrottleLimit $Throttle -Parallel {
+        $row      = $_
+        $timeout  = $using:SignalTimeoutSec
+        $maxBytes = $using:SignalBytes
+        $minBytes = $using:SignalMinBytes
+        $ua2      = $using:ua
+        $url      = ([string]$row.url).Trim()
+        $fmt      = ([string]$row.format).ToLowerInvariant()
+        $proto    = ([string]$row.protocol).ToUpperInvariant()
+
+        $status   = 'unknown'
+        $httpCode = ''
+        $note     = ''
+        $gotBytes = 0
+
+        if ($url -like 'rtsp://*') {
+            # RTSP: OPTIONS handshake over a raw socket; a valid RTSP reply line proves a live server.
+            try {
+                $u = [Uri]$url
+                $port = if ($u.Port -gt 0) { $u.Port } else { 554 }
+                $tcp = [System.Net.Sockets.TcpClient]::new()
+                $iar = $tcp.BeginConnect($u.Host, $port, $null, $null)
+                if ($iar.AsyncWaitHandle.WaitOne([TimeSpan]::FromSeconds($timeout))) {
+                    $tcp.EndConnect($iar)
+                    $tcp.ReceiveTimeout = [int]($timeout * 1000)
+                    $tcp.SendTimeout = [int]($timeout * 1000)
+                    $ns = $tcp.GetStream()
+                    $req = "OPTIONS $url RTSP/1.0`r`nCSeq: 1`r`nUser-Agent: $ua2`r`n`r`n"
+                    $reqBytes = [System.Text.Encoding]::ASCII.GetBytes($req)
+                    $ns.Write($reqBytes, 0, $reqBytes.Length)
+                    $buf = [byte[]]::new(1024)
+                    $n = $ns.Read($buf, 0, $buf.Length)
+                    $resp = if ($n -gt 0) { [System.Text.Encoding]::ASCII.GetString($buf, 0, $n) } else { '' }
+                    $ns.Dispose()
+                    if ($resp -match 'RTSP/1\.0\s+200') { $status = 'alive'; $gotBytes = $n; $note = 'rtsp options 200' }
+                    elseif ($resp -match 'RTSP/1\.0\s+(\d+)') { $httpCode = $Matches[1]; $status = 'unknown'; $note = "rtsp $($Matches[1])" }
+                    else { $status = 'unknown'; $note = 'rtsp connect, no rtsp reply' }
+                }
+                else { $status = 'unknown'; $note = 'rtsp tcp-timeout' }
+                $tcp.Close()
+            }
+            catch {
+                $m = $_.Exception.Message
+                if ($m -match 'refused|actively refused') { $status = 'dead'; $note = 'rtsp conn-refused' }
+                else { $status = 'unknown'; $note = ('rtsp ' + ($m -replace '\s+', ' ').Trim()) }
+            }
+        }
+        else {
+            $handler = [System.Net.Http.HttpClientHandler]::new()
+            $handler.AllowAutoRedirect = $true
+            $handler.MaxAutomaticRedirections = 6
+            try { $handler.AutomaticDecompression = [System.Net.DecompressionMethods]::All } catch {}
+            $client = [System.Net.Http.HttpClient]::new($handler)
+            $client.Timeout = [TimeSpan]::FromSeconds([Math]::Max(30, $timeout + 5))
+            $client.DefaultRequestHeaders.TryAddWithoutValidation('User-Agent', $ua2) | Out-Null
+            $client.DefaultRequestHeaders.TryAddWithoutValidation('Icy-MetaData', '1') | Out-Null
+            $headersOnly = [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead
+
+            # Pull up to $cap body bytes within the timeout. Returns @{ Code; Bytes; Text }.
+            $fetch = {
+                param([string]$u, [int]$cap, [bool]$asText)
+                $cts = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds($timeout))
+                $req = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Get, $u)
+                $count = 0
+                $code = 0
+                $sb = if ($asText) { [System.Text.StringBuilder]::new() } else { $null }
+                try {
+                    $resp = $client.SendAsync($req, $headersOnly, $cts.Token).GetAwaiter().GetResult()
+                    $code = [int]$resp.StatusCode
+                    if ($code -ge 200 -and $code -lt 300) {
+                        $bodyStream = $resp.Content.ReadAsStream()
+                        $rbuf = [byte[]]::new(16384)
+                        while ($count -lt $cap) {
+                            $want = [Math]::Min($rbuf.Length, $cap - $count)
+                            $read = $bodyStream.ReadAsync($rbuf, 0, $want, $cts.Token).GetAwaiter().GetResult()
+                            if ($read -le 0) { break }
+                            $count += $read
+                            if ($asText) { [void]$sb.Append([System.Text.Encoding]::UTF8.GetString($rbuf, 0, $read)) }
+                        }
+                        $bodyStream.Dispose()
+                    }
+                    $resp.Dispose()
+                }
+                finally {
+                    $req.Dispose(); $cts.Dispose()
+                }
+                [pscustomobject]@{ Code = $code; Bytes = $count; Text = $(if ($asText) { $sb.ToString() } else { '' }) }
+            }
+
+            # Resolve a possibly-relative playlist/segment reference against its base URL.
+            $resolve = {
+                param([string]$base, [string]$rel)
+                if ($rel -match '^[a-zA-Z][a-zA-Z0-9+.-]*://') { return $rel }
+                try { return [Uri]::new([Uri]$base, $rel).AbsoluteUri } catch { return $rel }
+            }
+
+            $isHls = ($fmt -eq 'm3u8') -or ($proto -eq 'HLS') -or ($url -match '\.m3u8(\?|$)')
+            $isDash = ($fmt -eq 'mpd') -or ($proto -eq 'DASH') -or ($url -match '\.mpd(\?|$)')
+
+            try {
+                if ($isHls) {
+                    $pl = & $fetch $url 262144 $true
+                    $httpCode = [string]$pl.Code
+                    if ($pl.Code -in 404, 410) { $status = 'dead'; $note = "playlist http $($pl.Code)" }
+                    elseif ($pl.Code -lt 200 -or $pl.Code -ge 400) { $status = 'unknown'; $note = "playlist http $($pl.Code)" }
+                    elseif ([string]::IsNullOrWhiteSpace($pl.Text)) { $status = 'dead'; $note = 'empty playlist' }
+                    else {
+                        $plUrl = $url
+                        $lines = $pl.Text -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+                        $masterIdx = -1
+                        for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -like '#EXT-X-STREAM-INF*') { $masterIdx = $i; break } }
+                        if ($masterIdx -ge 0) {
+                            $variant = $null
+                            for ($i = $masterIdx + 1; $i -lt $lines.Count; $i++) { if ($lines[$i] -notlike '#*') { $variant = $lines[$i]; break } }
+                            if ($variant) {
+                                $variantUrl = & $resolve $plUrl $variant
+                                $media = & $fetch $variantUrl 262144 $true
+                                if ($media.Code -ge 200 -and $media.Code -lt 300 -and -not [string]::IsNullOrWhiteSpace($media.Text)) {
+                                    $plUrl = $variantUrl
+                                    $lines = $media.Text -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+                                }
+                            }
+                        }
+                        $seg = $null
+                        foreach ($ln in $lines) { if ($ln -like '#EXT-X-MAP*' -and $ln -match 'URI="([^"]+)"') { $seg = $Matches[1]; break } }
+                        if (-not $seg) { foreach ($ln in $lines) { if ($ln -notlike '#*') { $seg = $ln; break } } }
+                        if (-not $seg) { $status = 'dead'; $note = 'playlist has no segments' }
+                        else {
+                            $segUrl = & $resolve $plUrl $seg
+                            $sg = & $fetch $segUrl $maxBytes $false
+                            $gotBytes = $sg.Bytes
+                            if ($sg.Bytes -ge $minBytes) { $status = 'alive'; $note = "hls segment $($sg.Bytes)B" }
+                            elseif ($sg.Code -in 404, 410) { $status = 'dead'; $note = "segment http $($sg.Code)" }
+                            elseif ($sg.Bytes -gt 0) { $status = 'alive'; $note = "hls segment small $($sg.Bytes)B" }
+                            else { $status = 'dead'; $note = "segment no data (http $($sg.Code))" }
+                        }
+                    }
+                }
+                elseif ($isDash) {
+                    $mf = & $fetch $url 262144 $true
+                    $httpCode = [string]$mf.Code
+                    $gotBytes = $mf.Bytes
+                    if ($mf.Code -in 404, 410) { $status = 'dead'; $note = "manifest http $($mf.Code)" }
+                    elseif ($mf.Code -ge 200 -and $mf.Code -lt 300 -and $mf.Text -match '<MPD') { $status = 'alive'; $note = 'dash manifest ok' }
+                    elseif ($mf.Code -ge 200 -and $mf.Code -lt 300) { $status = 'unknown'; $note = '200 but not an mpd' }
+                    else { $status = 'unknown'; $note = "manifest http $($mf.Code)" }
+                }
+                else {
+                    # ICECAST / progressive / direct media: pull real body bytes off the stream.
+                    $bd = & $fetch $url $maxBytes $false
+                    $httpCode = [string]$bd.Code
+                    $gotBytes = $bd.Bytes
+                    if ($bd.Bytes -ge $minBytes) { $status = 'alive'; $note = "body $($bd.Bytes)B" }
+                    elseif ($bd.Code -in 404, 410) { $status = 'dead'; $note = "http $($bd.Code)" }
+                    elseif ($bd.Bytes -gt 0) { $status = 'alive'; $note = "body small $($bd.Bytes)B" }
+                    elseif ($bd.Code -ge 200 -and $bd.Code -lt 400) { $status = 'unknown'; $note = "http $($bd.Code) no body" }
+                    else { $status = 'unknown'; $note = "http $($bd.Code)" }
+                }
+            }
+            catch {
+                $message = $_.Exception.Message
+                $inner = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { '' }
+                $full = ("$message $inner" -replace '\s+', ' ').Trim()
+                if ($full -match 'ICY|status line|invalid response|unrecognized|ended prematurely') { $status = 'alive'; $note = 'icy/non-http' }
+                elseif ($full -match 'No such host|not known|name resolution|NameResolution|known host') { $status = 'dead'; $note = 'dns-fail' }
+                elseif ($full -match 'refused|actively refused') { $status = 'dead'; $note = 'conn-refused' }
+                elseif ($full -match 'canceled|cancelled|timed out|timeout|task was canceled') { $status = 'unknown'; $note = 'timeout' }
+                else { $status = 'unknown'; $note = $full }
+            }
+            finally {
+                $client.Dispose(); $handler.Dispose()
+            }
+        }
+
+        Add-Member -InputObject $row -NotePropertyName 'liveness_status' -NotePropertyValue $status -Force
+        Add-Member -InputObject $row -NotePropertyName 'http_code' -NotePropertyValue $httpCode -Force
+        Add-Member -InputObject $row -NotePropertyName 'liveness_note' -NotePropertyValue $note -Force
+        Add-Member -InputObject $row -NotePropertyName 'signal_bytes' -NotePropertyValue $gotBytes -Force
+        $row
+    } -AsJob
+
+    $total = $Rows.Count
+    $progressWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($probeJob.State -in @('NotStarted', 'Running')) {
+        $done = @($probeJob.ChildJobs | Where-Object { $_.State -in @('Completed', 'Failed', 'Stopped') }).Count
+        $percent = if ($total -gt 0) { [int][Math]::Floor(($done / $total) * 100) } else { 100 }
+        $elapsedText = Format-DurationShort $progressWatch.Elapsed
+        $statusText = "{0}/{1} done | elapsed {2} | ETA estimating.." -f $done, $total, $elapsedText
+        if ($done -gt 0 -and $done -lt $total) {
+            $avgSeconds = $progressWatch.Elapsed.TotalSeconds / $done
+            $eta = [TimeSpan]::FromSeconds($avgSeconds * ($total - $done))
+            $statusText = "{0}/{1} done | elapsed {2} | ETA {3}" -f $done, $total, $elapsedText, (Format-DurationShort $eta)
+        }
+        elseif ($done -ge $total) {
+            $statusText = "{0}/{1} done | elapsed {2} | finishing results.." -f $done, $total, $elapsedText
+        }
+        Write-Progress -Activity $Activity -Status $statusText -PercentComplete $percent
+        Start-Sleep -Milliseconds 500
+    }
+    Write-Progress -Activity $Activity -Completed
+
+    return @(Receive-Job -Job $probeJob -Wait -AutoRemoveJob)
+}
+
 $rbServers = @(
     'https://de1.api.radio-browser.info',
     'https://de2.api.radio-browser.info',
@@ -432,7 +680,9 @@ function Get-IptvCandidates {
         if ($seenChannel.ContainsKey($cid)) { continue }
         $c = $script:IptvChannels[$cid]
         if ($null -eq $c) { continue }
-        if ($c.is_nsfw -eq $true) { continue }
+        # Inclusion policy: keep every reachable live channel, including -/- and grey-area
+        # restreams. Only 'closed' (defunct) and header-gated streams (referrer/user_agent, filtered
+        # above) are dropped, since those cannot actually play in the app.
         if ($c.closed) { continue }
 
         $cats = @($c.categories)
@@ -476,16 +726,27 @@ function Get-WebcamSeeds {
 
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
-    $rows = @(Import-Csv -Path $ExistingCsv)
-    if (-not $rows -or $rows.Count -eq 0) { throw "No rows in $ExistingCsv" }
+    $allRows = @(Import-Csv -Path $ExistingCsv)
+    if (-not $allRows -or $allRows.Count -eq 0) { throw "No rows in $ExistingCsv" }
+    if ($Limit -gt 0 -and $PruneDead) { throw '-Limit cannot be combined with -PruneDead (pruning needs a full-catalog probe).' }
 
-    Write-Host ("Catalog maintenance mode for {0} rows" -f $rows.Count) -ForegroundColor Cyan
-    $probed = if ($SkipLiveness) { $rows } else { Invoke-LivenessProbe -Rows $rows -Activity 'Catalog liveness' }
+    $rows = $allRows
+    if ($Limit -gt 0 -and $allRows.Count -gt $Limit) {
+        Write-Host ("Probing only first {0} of {1} rows (-Limit)" -f $Limit, $allRows.Count) -ForegroundColor DarkYellow
+        $rows = @($allRows[0..($Limit - 1)])
+    }
+
+    $mode = if ($DeepSignal) { 'deep signal' } else { 'header liveness' }
+    Write-Host ("Catalog maintenance mode ({0}) for {1} rows" -f $mode, $rows.Count) -ForegroundColor Cyan
+    $probed = if ($SkipLiveness) { $rows }
+    elseif ($DeepSignal) { Invoke-SignalProbe -Rows $rows -Activity 'Catalog signal' }
+    else { Invoke-LivenessProbe -Rows $rows -Activity 'Catalog liveness' }
 
     $reportRows = $probed | ForEach-Object {
         [pscustomobject]@{
             status     = $_.liveness_status
             http       = $_.http_code
+            bytes      = $_.signal_bytes
             note       = $_.liveness_note
             media_kind = $_.media_kind
             category   = $_.category
@@ -497,7 +758,7 @@ function Invoke-CatalogMaintenance {
         }
     }
     Write-CsvUtf8 -Rows ($reportRows | Sort-Object status, category, topic, name) -Path $CatalogLivenessReport `
-        -Columns @('status', 'http', 'note', 'media_kind', 'category', 'topic', 'name', 'url', 'country', 'homepage')
+        -Columns @('status', 'http', 'bytes', 'note', 'media_kind', 'category', 'topic', 'name', 'url', 'country', 'homepage')
     Show-LivenessSummary -Rows $probed -Title '=== Catalog liveness summary ==='
     Write-Host ''
     Write-Host ("Report written: {0}" -f $CatalogLivenessReport) -ForegroundColor Green
@@ -520,13 +781,34 @@ function Invoke-CatalogMaintenance {
     }
 
     $backup = Backup-IfExists -Path $ExistingCsv
-    $survivors = $rows | Where-Object { -not $pruneSet.Contains([string]$_.url) }
+    $survivors = $allRows | Where-Object { -not $pruneSet.Contains([string]$_.url) }
     Write-CsvUtf8 -Rows $survivors -Path $ExistingCsv -Columns $Schema
     Write-Host "`nPruned $pruneCount row(s); backup: $backup; catalog now $($survivors.Count) row(s)." -ForegroundColor Green
 }
 
+# Zip the catalog CSV and (re-)upload it as the GitHub Release asset users fetch on "Import list".
+# Uploads whatever streams.csv is on disk at call time (already pruned/appended by the run).
+function Invoke-PublishCatalog {
+    param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag)
+    if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
+    $gh = Get-Command gh -ErrorAction SilentlyContinue
+    if (-not $gh) { throw 'gh CLI not found on PATH - cannot upload the release asset (install GitHub CLI or upload temp/stream-catalog.zip manually).' }
+    if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
+    $zip = 'temp/stream-catalog.zip'
+    $rowCount = (Import-Csv $CsvPath).Count
+    Write-Host ''
+    Write-Host ("Publishing catalog ({0} rows): zipping {1} -> {2} .." -f $rowCount, $CsvPath, $zip) -ForegroundColor Cyan
+    Compress-Archive -Path $CsvPath -DestinationPath $zip -Force
+    $zipKb = (Get-Item $zip).Length / 1KB
+    Write-Host ("  zip {0:N1} KB; uploading to release {1} (--clobber) .." -f $zipKb, $Tag) -ForegroundColor Cyan
+    & gh release upload $Tag $zip --clobber
+    if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
+    Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB)." -f $Tag, $rowCount, $zipKb) -ForegroundColor Green
+}
+
 if ($CatalogOnly) {
     Invoke-CatalogMaintenance
+    if ($Publish) { Invoke-PublishCatalog }
     return
 }
 
@@ -649,3 +931,5 @@ if ($backup) {
 else {
     Write-Host ("Created catalog: {0} row(s) -> {1}" -f $mergedRows.Count, $ExistingCsv) -ForegroundColor Green
 }
+
+if ($Publish) { Invoke-PublishCatalog }

@@ -49,6 +49,8 @@
                 android:layout_weight="1"
                 app:startIconDrawable="@drawable/ic_search"
                 app:startIconTint="?attr/colorControlNormal"
+                app:endIconMode="clear_text"
+                app:endIconTint="?attr/colorControlNormal"
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -74,6 +76,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/etSearch"
                 android:nextFocusRight="@id/btnSort"
                 android:nextFocusDown="@id/rvStreams"
@@ -87,6 +90,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnFilter"
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_sort" />
@@ -228,6 +232,7 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:nextFocusUp="@id/rvStreams"
                 android:contentDescription="@string/streams_stop" />
         </LinearLayout>
     </LinearLayout>

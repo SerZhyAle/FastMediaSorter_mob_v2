@@ -8,6 +8,7 @@ import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -27,10 +28,12 @@ import timber.log.Timber
  * Extension function on [VideoPlayerManager] - kept out of the orchestrator file to stay clear of
  * the per-file CFG/LOC ceiling, mirroring the other `play*Video` helpers.
  *
- * The streaming buffer is tuned larger than local playback and prioritises time over size so a relay
- * with variable throughput keeps a steady backlog; a transient network drop is retried once before
- * the error surfaces. RTSP on a flavor without the module surfaces an explicit message instead of
- * silently failing.
+ * For live HLS/DASH the buffer is kept modest and the player carries a [MediaItem.LiveConfiguration]
+ * so it tracks the live edge: an oversized backlog only pins the playhead next to the expiring segment
+ * and provokes more `BehindLiveWindow` drops. Recoverable failures - a routine live-edge desync
+ * (`BehindLiveWindow`) or a transient network drop - are healed silently by re-anchoring to the live
+ * edge and re-preparing within a bounded retry budget, instead of surfacing the "channel unavailable"
+ * dialog. RTSP on a flavor without the module surfaces an explicit message instead of silently failing.
  */
 @UnstableApi
 internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
@@ -48,8 +51,11 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         return
     }
 
+    // Modest live-friendly buffer: a 60s backlog is comparable to a whole IPTV live window, which keeps
+    // the playhead near the expiring segment and triggers BehindLiveWindow more often, not less. Shared
+    // with VOD/radio on this branch - split into a live-only LoadControl if VOD start latency regresses.
     val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(30_000, 60_000, 2_500, 5_000)
+        .setBufferDurationsMs(15_000, 30_000, 2_500, 5_000)
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
 
@@ -74,7 +80,21 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     if (isRtsp) {
         player.setMediaSource(rtspSource!!)
     } else {
-        player.setMediaItem(MediaItem.fromUri(uri))
+        // LiveConfiguration is honoured only when the content is actually live (ignored for VOD/radio),
+        // so it is safe to attach unconditionally on the auto-detected http(s) branch. Targeting ~10s
+        // off the live edge with a small catch-up speed (not pinned to 1.0) lets the player ride the
+        // sliding window without sticking to its expiring tail.
+        val liveConfiguration = MediaItem.LiveConfiguration.Builder()
+            .setTargetOffsetMs(10_000)
+            .setMinOffsetMs(4_000)
+            .setMaxOffsetMs(20_000)
+            .setMaxPlaybackSpeed(1.02f)
+            .build()
+        val mediaItem = MediaItem.Builder()
+            .setUri(uri)
+            .setLiveConfiguration(liveConfiguration)
+            .build()
+        player.setMediaItem(mediaItem)
     }
     player.prepare()
     player.playWhenReady = playWhenReady
@@ -83,21 +103,27 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
 
 /**
  * Lean listener for the stream player: forwards buffering/ready to the UI, reads ICY radio metadata,
- * and retries a single transient network drop before surfacing the error. Deliberately does NOT reuse
- * the full video listener (poster extraction, watch clock, decoder-failure tracking) - none of it
+ * and heals recoverable failures (live-edge desync + transient network drops) by re-anchoring to the
+ * live edge and re-preparing within a bounded budget before the error surfaces. Deliberately does NOT
+ * reuse the full video listener (poster extraction, watch clock, decoder-failure tracking) - none of it
  * applies to a live stream and the file-poster path is wrong for a network URL.
  */
 @UnstableApi
 private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.Listener =
     object : Player.Listener {
-        private var transientRetryDone = false
+        private val isRtsp = path.startsWith("rtsp://")
+        private var behindLiveRecoveries = 0
+        private var transientRetries = 0
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) return
             when (playbackState) {
                 Player.STATE_BUFFERING -> playerCallback.onBuffering(true)
                 Player.STATE_READY -> {
-                    transientRetryDone = false
+                    // Reset the recovery budgets only on a confirmed READY, never on BUFFERING: a stream
+                    // that flaps buffering<->error must not silently refill its quota and spin forever.
+                    behindLiveRecoveries = 0
+                    transientRetries = 0
                     playerCallback.onBuffering(false)
                     playerCallback.onPlaybackReady()
                 }
@@ -126,13 +152,33 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            val transient = error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
-                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
-            if (transient && !transientRetryDone) {
-                transientRetryDone = true
-                Timber.w(error, "Stream transient network error - retrying once in 3s: %s", path)
+            // P0 - routine live-edge desync: the manifest's sliding window moved past the playhead. This
+            // is NOT a dead channel. A bare prepare() re-prepares at the same expired position and fails
+            // again, so seek to the live edge first, then prepare. RTSP has no sliding window, so the seek
+            // is gated off it. Budget bounds a genuinely dead window; backoff is linear and short.
+            if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW && !isRtsp) {
+                if (behindLiveRecoveries < STREAM_MAX_BEHIND_LIVE_RECOVERIES) {
+                    behindLiveRecoveries++
+                    val backoffMs = (behindLiveRecoveries * 1_000L).coerceAtMost(5_000L)
+                    Timber.d("S0634: behind-live-window recovery - re-anchor to live edge attempt %d/%d %s", behindLiveRecoveries, STREAM_MAX_BEHIND_LIVE_RECOVERIES, path)
+                    Timber.w(error, "Stream behind live window - re-anchoring to live edge (attempt %d): %s", behindLiveRecoveries, path)
+                    managerScope.launch {
+                        delay(backoffMs)
+                        exoPlayer?.seekToDefaultPosition()
+                        exoPlayer?.prepare()
+                    }
+                    return
+                }
+            } else if (isRecoverableStreamError(error) && transientRetries < STREAM_MAX_TRANSIENT_RETRIES) {
+                // P1 - transient/HTTP-5xx error: bounded retry with exponential backoff. On a live stream
+                // re-anchor before re-preparing (a stale live position just fails again); radio/VOD do not.
+                transientRetries++
+                val backoffMs = STREAM_TRANSIENT_BASE_DELAY_MS shl (transientRetries - 1)
+                Timber.d("S0634: transient stream error recovery attempt %d/%d backoff=%dms %s", transientRetries, STREAM_MAX_TRANSIENT_RETRIES, backoffMs, path)
+                Timber.w(error, "Stream transient error - retrying in %dms (attempt %d): %s", backoffMs, transientRetries, path)
                 managerScope.launch {
-                    delay(STREAM_RETRY_DELAY_MS)
+                    delay(backoffMs)
+                    if (!isRtsp && exoPlayer?.isCurrentMediaItemLive == true) exoPlayer?.seekToDefaultPosition()
                     exoPlayer?.prepare()
                 }
                 return
@@ -142,6 +188,35 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
             playerCallback.onPlaybackError(error)
         }
     }
+
+/**
+ * Classifies a stream [PlaybackException] as silently recoverable (bounded retry) vs hard-fail (surface
+ * the "channel unavailable" dialog at once). `BehindLiveWindow` is handled by its own path and is not
+ * routed here. A bad HTTP status is recoverable only for 429/5xx (server-side, retryable); a 4xx is a
+ * permanent client error and surfaces immediately.
+ */
+@UnstableApi
+private fun isRecoverableStreamError(error: PlaybackException): Boolean = when (error.errorCode) {
+    PlaybackException.ERROR_CODE_TIMEOUT,
+    PlaybackException.ERROR_CODE_IO_UNSPECIFIED,
+    PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+    PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> true
+    PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> isRetryableHttpStatus(error)
+    else -> false
+}
+
+/** True only when a bad-HTTP-status error carries a retryable response code (429 or any 5xx). */
+private fun isRetryableHttpStatus(error: PlaybackException): Boolean {
+    var cause: Throwable? = error.cause
+    while (cause != null) {
+        if (cause is HttpDataSource.InvalidResponseCodeException) {
+            val code = cause.responseCode
+            return code == 429 || code in 500..599
+        }
+        cause = cause.cause
+    }
+    return false
+}
 
 /**
  * Pushes the ICY now-playing title into the current item's MediaMetadata without re-buffering:
@@ -167,4 +242,6 @@ private fun VideoPlayerManager.updateNowPlayingTitle(title: String) {
     }
 }
 
-private const val STREAM_RETRY_DELAY_MS = 3_000L
+private const val STREAM_MAX_BEHIND_LIVE_RECOVERIES = 3
+private const val STREAM_MAX_TRANSIENT_RETRIES = 4
+private const val STREAM_TRANSIENT_BASE_DELAY_MS = 2_000L

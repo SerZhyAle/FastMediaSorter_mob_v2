@@ -165,4 +165,6 @@
     <string name="welcome_func_streams">Streams</string>
     <string name="welcome_streams_catalog_done">Catalog downloaded</string>
     <string name="welcome_streams_catalog_failed">Catalog not downloaded - you can add streams manually</string>
+    <string name="welcome_func_gestures">Enable gestures</string>
+    <string name="welcome_func_gestures_summary">Swipe from the left edge: menu, screenshot, silent screenshot</string>
 </resources>

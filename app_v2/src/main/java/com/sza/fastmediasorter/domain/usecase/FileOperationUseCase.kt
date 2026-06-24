@@ -473,10 +473,11 @@ class FileOperationUseCase @Inject constructor(
     }
     
     /**
-     * S0473: emit a per-type [StatsEvent.FileOp] for a completed Copy/Move/Delete. Files are
+     * S0473: emit a per-type [StatsEvent.FileOp] for a completed Copy/Move/Delete/Rename. Files are
      * bucketed by [StatsMediaType] so the dashboard can break operations down by media kind; one
-     * event is emitted per bucket. Rename/network-only results without a processed count are not
-     * counted (no FileOpAction maps to Rename). The sink no-ops when collection is disabled.
+     * event is emitted per bucket. Rename (S0654) carries a plain count - the fold ignores its bytes
+     * and matrix. Network-only results without a processed count are not counted. The sink no-ops
+     * when collection is disabled.
      */
     private fun recordFileOpStats(
         operation: FileOperation,
@@ -496,7 +497,7 @@ class FileOperationUseCase @Inject constructor(
             is FileOperation.Copy -> { action = FileOpAction.COPY; files = operation.sources }
             is FileOperation.Move -> { action = FileOpAction.MOVE; files = operation.sources }
             is FileOperation.Delete -> { action = FileOpAction.DELETE; files = operation.files }
-            is FileOperation.Rename -> return
+            is FileOperation.Rename -> { action = FileOpAction.RENAME; files = listOf(operation.file) }
         }
 
         // Bucket processed files by media type. Bytes: Copy/Move sum live source sizes; Delete uses
@@ -547,8 +548,8 @@ class FileOperationUseCase @Inject constructor(
     
     suspend fun undo(): FileOperationResult? = withContext(Dispatchers.IO) {
         val history = lastOperation ?: return@withContext null
-        
-        when (val op = history.operation) {
+
+        val undoResult = when (val op = history.operation) {
             is FileOperation.Copy -> {
                 val filesToDelete = op.sources.map { File(op.destination, it.name) }
                 execute(FileOperation.Delete(filesToDelete))
@@ -595,8 +596,12 @@ class FileOperationUseCase @Inject constructor(
                 }
             }
         }
+        // Count a completed player-side undo. The reverse op above records its own FileOp stats;
+        // this is the separate "undo happened" counter (S0654).
+        if (undoResult != null) statsSink.record(StatsEvent.UndoPerformed)
+        undoResult
     }
-    
+
     /**
      * Custom exception to indicate batch delete permission is required.
      * Contains PendingIntent to show system permission dialog.

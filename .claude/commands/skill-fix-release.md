@@ -1,11 +1,11 @@
 # /skill-fix-release Sxxxx - Fix-Release Pipeline
 
 > **GLOBAL DIRECTIVES:**
-> 1. Fully autonomous - execute all steps without confirmation unless a hard blocker hits.
+> 1. Fully autonomous - execute all steps without confirmation unless hard blocker hits.
 > 2. Strictly technical language - dry prose in all outputs and commits.
 > 3. Hard blockers only - stop and report only for: no commits/files found for spec, cherry-pick conflict, dirty working tree, not on DEBUG branch, release worktree missing.
 
-Finds commits tied to spec `Sxxxx`, cherry-picks only those to `main`, tags a fix-release version, updates `WHATS_NEW.md`, builds, rebases the current DEBUG branch.
+Finds commits tied to spec `Sxxxx`, cherry-picks only those to `main`, tags fix-release version, updates `WHATS_NEW.md`, builds, rebases current DEBUG branch.
 
 ## Usage
 
@@ -74,9 +74,9 @@ Merge with `$GREP_COMMITS` (dedup by hash) → `$CANDIDATE_COMMITS`.
 #### Phase C - fallback: spec-declared files
 If `$CANDIDATE_COMMITS` empty:
 1. Read `$SPEC_FILE` in full.
-2. Search for file paths in these patterns:
+2. Search file paths in these patterns:
    - Lines containing `app_v2/src/...` or `wear/src/...`
-   - Markdown code blocks that look like Kotlin file paths (`.kt`, `.xml`)
+   - Markdown code blocks resembling Kotlin file paths (`.kt`, `.xml`)
    - Any path under `### Implementation`, `## Files`, `## Changed`, `## Affected` headings
 3. Collect unique paths as `$SPEC_FILES`.
 4. For each path, check if it differs from `origin/main`:
@@ -116,7 +116,7 @@ git tag --list "release/*" --sort=-version:refname | head -1
 ```
 Record `$PREV_TAG`, extract `$PREV_VERSION`.
 
-Fix description for release notes: use `$SPEC_NAME`. If spec file has `## Summary` or a first `## ` paragraph, extract first 1–2 sentences (max 20 words). Record `$FIX_SUMMARY`.
+Fix description for release notes: use `$SPEC_NAME`. If spec file has `## Summary` or first `## ` paragraph, extract first 1–2 sentences (max 20 words). Record `$FIX_SUMMARY`.
 
 ---
 
@@ -156,7 +156,7 @@ Current top of file:
 ## Previous Release: ...
 ```
 
-**Transform** - insert new "current" block at top; old current block becomes "Previous Release":
+**Transform** - insert new "current" block at top; old current block → "Previous Release":
 
 ```markdown
 **Current release: $NEW_VERSION** ($MONTH_YEAR) - Fix Release
@@ -192,7 +192,7 @@ Current top of file:
 
 ### Step 8 - Update `README.md` in release worktree
 
-Find `## What's New in v2.XX.XXXX.XXX (…)`. Replace heading and content:
+Find `## What's New in v2.XX.XXXX.XXX (…)`. Replace heading + content:
 
 ```markdown
 ## What's New in v2.$NEW_VERSION ($MONTH_YEAR) - Fix Release
@@ -240,7 +240,7 @@ VR/Meta builds, if applicable, separately:
 .\a.ps1 vr
 ```
 
-`a.ps1` copies required gitignored files (`local.properties`, signing keys, OAuth config, `sza_resources.xml`) from dev dir to release worktree automatically before building.
+`a.ps1` copies required gitignored files (`local.properties`, signing keys, OAuth config, `sza_resources.xml`) from dev dir to release worktree automatically before build.
 
 ---
 
@@ -252,7 +252,7 @@ git fetch origin main
 git rebase origin/main
 ```
 
-Rebase conflicts → report and stop. Cherry-picked content is already in main; git should recognize equivalent changes and skip them (rerere). If not, instruct: resolve conflicts, `git rebase --continue`.
+Rebase conflicts → report and stop. Cherry-picked content already in main; git should recognize equivalent changes and skip them (rerere). If not, instruct: resolve conflicts, `git rebase --continue`.
 
 Push rebased branch:
 ```bash
@@ -272,15 +272,15 @@ git push --force-with-lease origin $CURRENT_DEBUG
 
 ### Step 13a - Feature inventory
 
-`dev/FUNCTIONALITY.log` was retired (S0489); shipped capabilities now live in `docs/ALL_FEATURES.jsonl`, written via `scripts/all_features/add.ps1`. The inventory tracks capabilities (status `active`/`removed`), not per-event fixes - there is no `FIX` op.
+`dev/FUNCTIONALITY.log` retired (S0489); shipped capabilities now live in `docs/ALL_FEATURES.jsonl`, written via `scripts/all_features/add.ps1`. Inventory tracks capabilities (status `active`/`removed`), not per-event fixes - no `FIX` op.
 
-A pure under-the-hood fix needs no inventory write: it is already captured by the Step 13 dev changelog + git history. Only when the fix-release changes a shipped capability's user-visible behaviour or description, upsert that capability's record (keeps it `active`):
+Pure under-the-hood fix needs no inventory write: already captured by Step 13 dev changelog + git history. Only when fix-release changes a shipped capability's user-visible behaviour or description, upsert that capability's record (keeps it `active`):
 
 ```powershell
 .\scripts\all_features\add.ps1 -Id "<area>.<feature>" -Area "<Area>" -Name "<Name>" -Description "$FIX_SUMMARY" -Flavors "<flavors>" -Spec $SPEC_ID
 ```
 
-`$FIX_SUMMARY` empty (very short spec without §2 Goals) → fall back to `$SPEC_NAME` verbatim. No matching capability touched → skip this step.
+`$FIX_SUMMARY` empty (very short spec without §2 Goals) → fall back to `$SPEC_NAME` verbatim. No matching capability touched → skip step.
 
 ---
 
@@ -315,4 +315,4 @@ Fix-release pipeline complete.
 
 ## Important Constraint
 
-Applies **only to the specific fix described by `$SPEC_ID`**. Other uncommitted feature work on the DEBUG branch stays on DEBUG and is NOT included; only the cherry-picked commits go to `main`. The DEBUG branch is rebased after the fact so its history reflects the fix now in `main`.
+Applies **only to the specific fix described by `$SPEC_ID`**. Other uncommitted feature work on DEBUG branch stays on DEBUG and is NOT included; only cherry-picked commits go to `main`. DEBUG branch rebased after the fact so its history reflects the fix now in `main`.

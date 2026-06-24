@@ -365,7 +365,7 @@
                             android:id="@+id/tvNoResourcesMessage"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center"
+                            android:gravity="start"
                             android:layout_marginBottom="@dimen/margin_small"
                             android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
                             android:text="@string/add_resources_first_message"
@@ -432,7 +432,6 @@
                             style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center"
                             android:layout_marginTop="@dimen/margin_tiny"
                             android:text="@string/grant_notifications_permission"
                             android:textSize="@dimen/toggler_title_text_size"
@@ -490,7 +489,7 @@
                                 android:id="@+id/tvNoScheduledOps"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
+                                android:gravity="start"
                                 android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
                                 android:text="@string/scheduled_ops_no_destinations"
                                 android:textColor="?attr/colorError"
@@ -609,28 +608,7 @@
 
                 <LinearLayout android:id="@+id/containerOtherFeatures" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Camera OCR Translation rows (S0320) -->
-                    <LinearLayout android:id="@+id/layoutCameraOcrGroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowCameraOcrTranslationEnabled"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/margin_small"
-                            app:str_title="@string/setting_camera_ocr_translation_title"
-                            app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
-
-                        <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_small" android:orientation="vertical">
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowCameraOcrOnly"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/setting_camera_ocr_only_title"
-                                app:str_subtitle="@string/setting_camera_ocr_only_desc" />
-                        </LinearLayout>
-
-                    </LinearLayout>
+                    <!-- S0649: Camera OCR translation rows moved to the Additional-programs group below. -->
 
                     <!-- S0367: Camera Photos block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -796,6 +774,7 @@
                     </LinearLayout>
 
                     <!-- S0367: Microphone recording block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
+                    <!-- S0651: parent "Enable microphone recording" + child "Ask file name" share one row here, which conveys subordination in landscape (portrait uses an indent instead). -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -864,15 +843,59 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Calculator + Embedded game (moved here from the General tab "Other functionality" group) -->
-                    <LinearLayout android:id="@+id/layoutCalculatorGameGroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                    <!-- S0649: Calculator + Embedded game moved to the Additional-programs group below. -->
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two equal-weight columns (strategic S0649 §6.2). Left = Fast camera translation + nested Recognition only (kept together); right = Calculator + Mini-game. When OCR/translation is unavailable, the left column hides via applyFlavorRestrictions() and the right column keeps Calculator + Mini-game. -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAdditionalPrograms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_category_additional_programs" />
+
+                <LinearLayout android:id="@+id/containerAdditionalPrograms" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="horizontal" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- Left column: Fast camera translation + nested Recognition only (S0320). -->
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraOcrTranslationEnabled"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:nextFocusRight="@id/rowEnableCalculator"
+                            app:str_title="@string/setting_camera_ocr_translation_title"
+                            app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
+
+                        <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowCameraOcrOnly"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                app:str_title="@string/setting_camera_ocr_only_title"
+                                app:str_subtitle="@string/setting_camera_ocr_only_desc" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Right column: Calculator + Mini-game. -->
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_small" android:orientation="vertical">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableCalculator"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/margin_small"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:nextFocusLeft="@id/rowCameraOcrTranslationEnabled"
                             app:str_title="@string/calculator_title"
                             app:str_subtitle="@string/setting_calculator_desc"
                             app:str_showHelp="true"
@@ -881,10 +904,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEmbeddedGame"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/margin_small"
                             app:str_title="@string/game_settings_toggle_title"
                             app:str_subtitle="@string/game_settings_toggle_subtitle"
                             app:str_showHelp="true"
@@ -1018,28 +1039,59 @@
                             app:str_title="@string/link_autodownload_master_label"
                             app:str_subtitle="@string/link_autodownload_master_summary" />
 
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+                        <!-- S0648: button-pattern destination selector (label + value + Select) to match the camera/video folder rows; full-width block, open-in-player toggle stacked below (Rule 11 parity). -->
+                        <LinearLayout
+                            android:id="@+id/layoutLinkAutodownloadResourceSelector"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:layout_marginBottom="@dimen/margin_small">
 
-                            <!-- S0567: unified to SettingsSelectionRow; weighted 0dp slot preserved for the side-by-side land layout (Rule 11). -->
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                                android:id="@+id/row_link_autodownload_resource"
-                                android:layout_width="0dp"
+                            <TextView
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="@dimen/margin_small"
-                                app:ssr_title="@string/link_autodownload_resource_label"
-                                app:ssr_value="@string/link_autodownload_resource_not_set" />
+                                android:text="@string/link_autodownload_resource_label"
+                                android:textColor="@color/text_color_primary"
+                                android:textSize="@dimen/toggler_title_text_size"
+                                android:layout_marginBottom="@dimen/margin_small" />
 
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowLinkAutodownloadOpenInPlayer"
-                                android:layout_width="0dp"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="@dimen/margin_small"
-                                app:str_title="@string/link_autodownload_open_in_player_label"
-                                app:str_subtitle="@string/link_autodownload_open_in_player_summary" />
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
+                                <TextView
+                                    android:id="@+id/tvLinkAutodownloadResource"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/link_autodownload_resource_not_set"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnSelectLinkAutodownloadResource"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
                         </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowLinkAutodownloadOpenInPlayer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:str_title="@string/link_autodownload_open_in_player_label"
+                            app:str_subtitle="@string/link_autodownload_open_in_player_summary" />
 
                     </LinearLayout>
 
@@ -1104,25 +1156,91 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
 
-                    <!-- S0559 menu-screenshot test action, moved here from the standalone groupMenuScreenshot card so it sits right after the gesture actions. Wired + shown by OperationsCaptureManager only when a MenuScreenshotLauncher is bound. -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnTakeScreenshotNow"
-                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/settings_take_screenshot_now" />
-
-                    <!-- Screenshot destination (tap opens the destination picker) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowScreenshotDestination"
+                    <!-- S0559 menu-screenshot test + S0663 edit-app-panel share one row. Both use 0dp+weight so the
+                         long RU/UK captions split the row evenly and never push a button off-screen (no horizontal
+                         scroll here). btnTakeScreenshotNow is wired/shown by OperationsCaptureManager (only when a
+                         MenuScreenshotLauncher is bound); btnEditAppPanel is wired by OperationsGesturesManager. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
-                        app:ssr_title="@string/setting_screenshot_destination_title"
-                        app:ssr_value="@string/setting_screenshot_destination_default" />
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTakeScreenshotNow"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:ellipsize="end"
+                            android:focusable="true"
+                            android:maxLines="2"
+                            android:textAllCaps="false"
+                            android:text="@string/settings_take_screenshot_now" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnEditAppPanel"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/margin_small"
+                            android:clickable="true"
+                            android:ellipsize="end"
+                            android:focusable="true"
+                            android:maxLines="2"
+                            android:textAllCaps="false"
+                            android:text="@string/app_launch_panel_settings_edit_button" />
+
+                    </LinearLayout>
+
+                    <!-- S0648: button-pattern destination selector (label + value + Select) to match the camera/video folder rows. -->
+                    <LinearLayout
+                        android:id="@+id/layoutScreenshotDestinationSelector"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_small">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_screenshot_destination_title"
+                            android:textColor="@color/text_color_primary"
+                            android:textSize="@dimen/toggler_title_text_size"
+                            android:layout_marginBottom="@dimen/margin_small" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvScreenshotDestination"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="@dimen/margin_small"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/setting_screenshot_destination_default"
+                                android:textColor="@color/text_color_secondary"
+                                android:textSize="@dimen/toggler_title_text_size" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSelectScreenshotDestination"
+                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_select_destination"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowCopyScreenshotToClipboard"
@@ -1164,46 +1282,15 @@
             app:cardElevation="2dp"
             app:contentPadding="0dp">
 
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowControlsKeybindings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="56dp"
-                android:orientation="horizontal"
                 android:paddingStart="@dimen/margin_small"
-                android:paddingEnd="@dimen/margin_small">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_controls_keybindings_title"
-                        android:textSize="@dimen/toggler_title_text_size" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_controls_keybindings_desc"
-                        android:textColor="@color/text_color_secondary"
-                        android:textSize="@dimen/toggler_desc_text_size" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:importantForAccessibility="no" />
-
-            </LinearLayout>
+                android:paddingEnd="@dimen/margin_small"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/settings_controls_keybindings_title"
+                app:ssr_subtitle="@string/settings_controls_keybindings_desc" />
 
         </com.google.android.material.card.MaterialCardView>
 

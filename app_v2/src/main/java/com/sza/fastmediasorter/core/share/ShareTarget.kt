@@ -43,6 +43,13 @@ data class ShareTarget(
      */
     val requiresLocalFile: Boolean = true,
     /**
+     * Whether this receiver can send a plain-text payload ([ShareableContent.text]) with no file
+     * attachment. `false` (default) = file-only receiver. `true` = the handler can dispatch a text-only
+     * payload (e.g. a stream link or note text). Used to filter the «Send to..» menu for text-only
+     * content (uris empty, no sourcePath) so file-only receivers are not offered as dead entries (S0631).
+     */
+    val textCapable: Boolean = false,
+    /**
      * Brief description shown as a subtitle under the toggle label in the settings group (S0463).
      * Null targets render no subtitle when available (only "Not installed" when unavailable).
      */

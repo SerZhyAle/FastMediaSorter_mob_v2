@@ -4,17 +4,24 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.StreamDefaultSort
+import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
+import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +37,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -46,12 +52,18 @@ import javax.inject.Inject
 class StreamsViewModel @Inject constructor(
     observeStreamSources: ObserveStreamSourcesUseCase,
     private val addStreamSource: AddStreamSourceUseCase,
+    private val updateStreamSource: UpdateStreamSourceUseCase,
     private val importStreamPlaylist: ImportStreamPlaylistUseCase,
     private val importStreamCatalog: ImportStreamCatalogUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
+    private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
     private val settingsRepository: SettingsRepository,
+    private val sessionStore: StreamsSessionStore,
+    // S0659: same synchronous Wi-Fi/unmetered check that backs searchAudioCoversOnlyOnWifi -
+    // injected so the PERIODIC_WIFI policy never touches ConnectivityManager from the ViewModel.
+    private val networkContextAnalyzer: NetworkContextAnalyzer,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -64,10 +76,24 @@ class StreamsViewModel @Inject constructor(
 
     private val _filter = MutableStateFlow(StreamsFilter())
 
+    // S0659: guards the one-shot session/defaults seed in init against clobbering an early user change.
+    @Volatile
+    private var initialFilterApplied = false
+
+    // S0659: the catalog-refresh policy must run once per logical screen open, not once per Activity
+    // instance - the ViewModel survives config-change recreation, so guarding here keeps a rotation from
+    // re-suggesting / re-fetching.
+    @Volatile
+    private var catalogPolicyApplied = false
+
     private val _events = Channel<StreamsEvent>(Channel.BUFFERED)
     val events: Flow<StreamsEvent> = _events.receiveAsFlow()
 
     init {
+        // S0659: restore the last session before the combine renders, falling back to the user defaults.
+        // Applied once so a fast user interaction during the async DataStore read is never clobbered.
+        viewModelScope.launch { seedInitialFilter() }
+
         combine(observeStreamSources(), _filter) { sources, filter ->
             StreamsUiState(
                 sources = applyFilter(sources, filter),
@@ -80,11 +106,57 @@ class StreamsViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * S0659: seed [_filter] from the persisted last session, else from the user defaults. Only sort,
+     * media-kind and query carry over; the catalog-derived facets (category/topic/language) stay at
+     * defaults. Skips if the user already changed the filter while the read was in flight.
+     */
+    private suspend fun seedInitialFilter() {
+        if (initialFilterApplied) return
+        val session = sessionStore.read()
+        // A user intent during the async read flips the flag and persists its own state; do not clobber it.
+        if (initialFilterApplied) return
+        val defaults = settings.value
+        _filter.value = _filter.value.copy(
+            sort = session.lastSort?.toSortMode() ?: defaults.streamsDefaultSort.toSortMode(),
+            mediaKind = session.lastMediaFilter?.toMediaKind() ?: defaults.streamsDefaultMediaFilter.toMediaKind(),
+            query = session.lastQuery ?: "",
+        )
+        initialFilterApplied = true
+    }
+
+    /**
+     * S0659: apply the catalog-refresh policy once per screen open. MANUAL does nothing; ON_OPEN offers a
+     * throttled, dismissible suggestion; PERIODIC_WIFI auto-refreshes when on Wi-Fi/unmetered and the daily
+     * throttle has elapsed. Throttling reads the last-refresh timestamp from the session store - opportunistic
+     * on-open only, no WorkManager job (strategic §3.2 "no heavy background work by default").
+     */
+    fun onScreenOpened() = viewModelScope.launch {
+        if (catalogPolicyApplied) return@launch
+        catalogPolicyApplied = true
+        val now = System.currentTimeMillis()
+        val lastRefreshAt = sessionStore.read().lastCatalogRefreshAt
+        when (settings.value.streamsCatalogRefreshPolicy) {
+            StreamsCatalogRefreshPolicy.MANUAL -> Unit
+            StreamsCatalogRefreshPolicy.ON_OPEN ->
+                if (now - lastRefreshAt > ON_OPEN_THROTTLE_MS) _events.send(StreamsEvent.SuggestCatalogRefresh)
+            StreamsCatalogRefreshPolicy.PERIODIC_WIFI ->
+                if (networkContextAnalyzer.hasWifi() && now - lastRefreshAt > PERIODIC_THROTTLE_MS) onImportCatalog()
+        }
+    }
+
     fun onAdd(url: String, title: String?) = viewModelScope.launch {
         when (addStreamSource(url, title)) {
             AddStreamSourceUseCase.AddResult.InvalidUrl ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
             else -> Unit
+        }
+    }
+
+    /** S0660: persist an in-place edit of a manual channel; only the invalid-url case surfaces a message. */
+    fun onEdit(source: StreamSourceEntity, url: String, title: String?) = viewModelScope.launch {
+        if (updateStreamSource(source, url, title) == UpdateStreamSourceUseCase.UpdateResult.InvalidUrl) {
+            _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
         }
     }
 
@@ -109,10 +181,15 @@ class StreamsViewModel @Inject constructor(
         try {
             when (val result = importStreamCatalog()) {
                 is ImportStreamCatalogUseCase.CatalogImportResult.Success -> {
+                    // S0659: advance the refresh throttle on a completed sync so the policy back-offs apply.
+                    sessionStore.writeCatalogRefreshAt(System.currentTimeMillis())
                     _events.send(StreamsEvent.CatalogUpdated(result.added, result.updated, result.removed))
                 }
-                ImportStreamCatalogUseCase.CatalogImportResult.Empty ->
+                ImportStreamCatalogUseCase.CatalogImportResult.Empty -> {
+                    // A reachable-but-empty catalog still counts as a refresh; advance the throttle too.
+                    sessionStore.writeCatalogRefreshAt(System.currentTimeMillis())
                     _events.send(StreamsEvent.Message(R.string.streams_catalog_empty))
+                }
                 is ImportStreamCatalogUseCase.CatalogImportResult.Failure ->
                     _events.send(StreamsEvent.Message(R.string.streams_error_network))
             }
@@ -121,18 +198,74 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
-    fun onQueryChanged(query: String) = _filter.update { it.copy(query = query) }
+    fun onQueryChanged(query: String) {
+        _filter.update { it.copy(query = query) }
+        persistSession()
+    }
 
     fun onFilter(
         category: String? = null,
         language: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
-    ) = _filter.update {
-        it.copy(category = category, language = language, mediaKind = mediaKind)
+    ) {
+        _filter.update { it.copy(category = category, language = language, mediaKind = mediaKind) }
+        persistSession()
     }
 
     fun onSort(mode: SortMode) {
         _filter.update { it.copy(sort = mode) }
+        persistSession()
+    }
+
+    /**
+     * S0659: persist the user-chosen sort/media-filter/query so the next open restores them. Marks the
+     * seed as applied so the async init seed can never overwrite a change the user just made. Only the
+     * three remembered fields are written; facets are session-scoped and intentionally not persisted.
+     */
+    private fun persistSession() {
+        initialFilterApplied = true
+        val filter = _filter.value
+        viewModelScope.launch {
+            sessionStore.writeFilterState(
+                sort = filter.sort.name,
+                mediaFilter = filter.mediaKind.name,
+                query = filter.query,
+            )
+        }
+    }
+
+    // S0659: bridge the persisted domain enums (StreamDefaultSort / StreamMediaTypeFilter) to the UI
+    // enums the filter uses. Constant names are kept identical across the two enum families, but the
+    // mapping is explicit (not name-based) so a future divergence is a compile error, not silent drift.
+
+    private fun StreamDefaultSort.toSortMode(): SortMode = when (this) {
+        StreamDefaultSort.NAME -> SortMode.NAME
+        StreamDefaultSort.TOPIC -> SortMode.TOPIC
+        StreamDefaultSort.LANGUAGE -> SortMode.LANGUAGE
+        StreamDefaultSort.RECENT -> SortMode.RECENT
+    }
+
+    private fun StreamMediaTypeFilter.toMediaKind(): MediaKindFilter = when (this) {
+        StreamMediaTypeFilter.ALL -> MediaKindFilter.ALL
+        StreamMediaTypeFilter.AUDIO -> MediaKindFilter.AUDIO
+        StreamMediaTypeFilter.VIDEO -> MediaKindFilter.VIDEO
+    }
+
+    // Decode a persisted last-session enum name back to the UI enum; unknown/legacy names fall through
+    // to the caller's default via the null result.
+    private fun String.toSortMode(): SortMode? = SortMode.values().firstOrNull { it.name == this }
+
+    private fun String.toMediaKind(): MediaKindFilter? =
+        MediaKindFilter.values().firstOrNull { it.name == this }
+
+    /** S0637: resolve a home-screen shortcut URL to its source and ask the Activity to play it. */
+    fun playByUrl(url: String) = viewModelScope.launch {
+        val source = getStreamSourceByUrl(url)
+        if (source != null) {
+            _events.send(StreamsEvent.PlayRequested(source))
+        } else {
+            _events.send(StreamsEvent.Message(R.string.streams_shortcut_channel_missing))
+        }
     }
 
     fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
@@ -150,6 +283,11 @@ class StreamsViewModel @Inject constructor(
     }
 
     companion object {
+        // S0659: catalog-refresh throttles. ON_OPEN re-suggests at most every 6h; PERIODIC_WIFI
+        // opportunistically auto-refreshes at most once a day (no WorkManager periodic job).
+        private const val ON_OPEN_THROTTLE_MS = 6 * 60 * 60 * 1000L
+        private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
+
         /**
          * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
          * orders pinned-first followed by the chosen [SortMode]. Category, language and media-kind facets
@@ -243,6 +381,10 @@ class StreamsViewModel @Inject constructor(
         data class Message(@StringRes val messageResId: Int) : StreamsEvent
         data class ImportFinished(val inserted: Int) : StreamsEvent
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
+        data class PlayRequested(val source: StreamSourceEntity) : StreamsEvent
+
+        /** S0659: ON_OPEN policy asks the Activity to surface a dismissible catalog-refresh suggestion. */
+        data object SuggestCatalogRefresh : StreamsEvent
     }
 }
 

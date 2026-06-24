@@ -14,8 +14,64 @@
         android:layout_height="wrap_content"
         android:focusable="true"
         android:clickable="true"
+        android:nextFocusDown="@id/rowDefaultSort"
         app:str_title="@string/settings_streams_toggle"
         app:str_subtitle="@string/settings_streams_summary" />
+
+    <!-- S0659: Streams default profile + maintenance. Visibility follows the master toggle above
+         (StreamsSettingsFragment), mirroring btnStreams, so the section stays compact when off. -->
+    <LinearLayout
+        android:id="@+id/streamsDefaultsGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultSort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusUp="@id/rowEnableStreams"
+            android:nextFocusDown="@id/rowDefaultMediaFilter"
+            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/settings_streams_default_sort" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultMediaFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusUp="@id/rowDefaultSort"
+            android:nextFocusDown="@id/rowCatalogRefresh"
+            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/settings_streams_default_filter" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowCatalogRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusUp="@id/rowDefaultMediaFilter"
+            android:nextFocusDown="@id/btnClearPlayStatuses"
+            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/settings_streams_catalog_refresh" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearPlayStatuses"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusUp="@id/rowCatalogRefresh"
+            android:nextFocusDown="@id/btnStreams"
+            android:text="@string/settings_streams_clear_statuses" />
+
+    </LinearLayout>
 
     <!-- Streams shortcut (relocated from Playback). Visibility follows the master toggle above
          (StreamsSettingsFragment) so the feature is hidden everywhere while disabled. -->
@@ -25,6 +81,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@id/btnClearPlayStatuses"
         android:text="@string/streams_title"
         app:icon="@drawable/ic_video"
         app:iconGravity="start" />

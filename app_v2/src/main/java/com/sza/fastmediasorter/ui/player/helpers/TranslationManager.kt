@@ -20,6 +20,7 @@ interface TranslationOcrEntryPoint {
     fun deliverableCapabilityRepository(): DeliverableCapabilityRepository
     fun textTranslationFacadeFactory(): TextTranslationFacadeFactory
     fun deliveredNativeLibraryLoader(): DeliveredNativeLibraryLoader
+    fun statsSink(): com.sza.fastmediasorter.domain.stats.StatsSink
 }
 
 /**
@@ -61,7 +62,8 @@ class TranslationManager(
             offlineOcrEngineProvider,
             translationBackend,
             capabilityRepository,
-            deliveryEntryPoint.deliveredNativeLibraryLoader()
+            deliveryEntryPoint.deliveredNativeLibraryLoader(),
+            deliveryEntryPoint.statsSink()
         )
     }
 

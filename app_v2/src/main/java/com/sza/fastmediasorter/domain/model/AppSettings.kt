@@ -93,7 +93,11 @@ data class AppSettings(
 
     // S0575: Streams feature master switch (internet stream sources). Default OFF; the per-device-profile preset raises it for streaming-oriented devices.
     val enableStreams: Boolean = false,
-    
+    // S0659: Streams default profile - seeds the list screen on first open / after a cleared session; remembered session state overrides these on later opens.
+    val streamsDefaultSort: StreamDefaultSort = StreamDefaultSort.NAME,
+    val streamsDefaultMediaFilter: StreamMediaTypeFilter = StreamMediaTypeFilter.ALL,
+    val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.ON_OPEN,
+
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
     val translationSourceLanguage: String = "auto", // Source language code (auto = auto-detect, en, ru, uk, etc.)
@@ -134,6 +138,7 @@ data class AppSettings(
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
+    val nineZoneGridEnabled: Boolean = true, // When false, the fullscreen player uses the simpler 3-zone tap layout instead of the 9-zone grid (S0620)
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
     val rendererMigrationEnabled: Boolean = true, // Migration flag for new static image renderer pipeline (enabled as default)
@@ -291,10 +296,12 @@ data class AppSettings(
     // true = screen follows physical rotation; false = screen locked to current orientation
     val playerRotationSensorEnabled: Boolean = true,
 
-    // S0473: opt-in local usage statistics. Default OFF (privacy). Gates the detailed StatsSink
-    // write path; the always-on baseline launch record is independent of this flag. Never applied
-    // by a device profile (empty CSV row), so a profile cannot silently enable data collection.
-    val enableStatistics: Boolean = false
+    // S0656: local usage statistics, ON by default. Data is collected only on-device and is
+    // anonymous; nothing is transmitted without an explicit user action (S0473 introduced the flag
+    // OFF, S0656 flips the default ON now that the privacy concern is resolved). Gates the detailed
+    // StatsSink write path; the always-on baseline launch record is independent of this flag. Never
+    // applied by a device profile (empty CSV row), so a profile cannot silently change collection.
+    val enableStatistics: Boolean = true
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

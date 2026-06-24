@@ -29,34 +29,41 @@
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Language (S0567: raw Spinner -> SettingsDropdownRow; entries are built in code by GeneralSettingsViewSetupHelper). -->
+                    <!-- Language (S0567: raw Spinner -> SettingsDropdownRow; entries are built in code by GeneralSettingsViewSetupHelper).
+                         Inline single line: title left of a compact field. fieldMaxWidth (not a fixed width) caps the
+                         field at the compact width on wide screens yet lets it shrink so the long trilingual label still
+                         fits beside it on narrow portrait phones. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/spinnerLanguage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_inline="true"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/language" />
 
-                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow). -->
+                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow). Inline single line (parity with Language). -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/spinnerColorTheme"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_inline="true"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/color_theme"
                         app:sdr_entries="@array/color_theme_options" />
 
-                    <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow) -->
+                    <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow).
+                         Inline: chevron right after the value, no tall touch band - single compact line (parity with landscape). -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                         android:id="@+id/rowDeviceProfile"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
-                        android:layout_marginBottom="@dimen/margin_small"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_inline="true"
                         app:ssr_title="@string/settings_profile_title"
                         app:ssr_value="@string/welcome_profile_other_title" />
 
@@ -312,7 +319,8 @@
                         app:ssr_subtitle="@string/setting_saved_authorizations_summary"
                         app:ssr_showHelp="true"
                         app:ssr_helpTitle="@string/tooltip_saved_authorizations_title"
-                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message" />
+                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message"
+                        app:ssr_navMode="true" />
 
                     <!-- Default User and Password -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
@@ -557,6 +565,13 @@
                         <!-- Sync Interval + Sync Now Button -->
                         <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
+                            <!-- Sync interval dropdown. Orientation parity with landscape (S0616). -->
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
+
+                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" />
 
                         </LinearLayout>
@@ -629,7 +644,8 @@
                             android:layout_marginTop="@dimen/margin_small"
                             android:visibility="gone"
                             app:ssr_icon="@drawable/ic_history"
-                            app:ssr_title="@string/settings_statistics_open" />
+                            app:ssr_title="@string/settings_statistics_open"
+                            app:ssr_navMode="true" />
 
                     </LinearLayout>
 

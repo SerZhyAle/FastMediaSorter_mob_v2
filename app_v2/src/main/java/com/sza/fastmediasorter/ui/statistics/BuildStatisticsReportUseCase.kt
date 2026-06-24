@@ -51,7 +51,7 @@ class BuildStatisticsReportUseCase @Inject constructor(
 
     private fun StringBuilder.appendSummary(snapshot: StatsSnapshot) {
         appendLine(string(R.string.statistics_report_section_summary))
-        appendValueLine(R.string.statistics_card_sorted, formatCount(snapshot.count(StatsKey.FILES_MOVED)))
+        appendValueLine(R.string.statistics_card_sorted, formatCount(snapshot.sortedFilesCount()))
         appendValueLine(R.string.statistics_card_freed, formatBytes(snapshot.count(StatsKey.BYTES_FREED)))
         val playerMs = snapshot.count(StatsKey.VIDEO_WATCH_MS) + snapshot.count(StatsKey.AUDIO_LISTEN_MS)
         appendValueLine(R.string.statistics_card_player_time, formatDuration(playerMs))
@@ -98,6 +98,12 @@ class BuildStatisticsReportUseCase @Inject constructor(
             countLine(R.string.statistics_metric_folders_created, snapshot, StatsKey.FOLDERS_CREATED),
             countLine(R.string.statistics_metric_duplicate_scans, snapshot, StatsKey.DUPLICATE_SCANS),
             countLine(R.string.statistics_metric_duplicates_removed, snapshot, StatsKey.DUPLICATES_REMOVED, StatsKey.DUPLICATE_BYTES_FREED, MetricUnit.BYTES),
+            countLine(R.string.statistics_metric_files_renamed, snapshot, StatsKey.FILES_RENAMED),
+            countLine(R.string.statistics_metric_favorites_added, snapshot, StatsKey.FAVORITES_ADDED),
+            countLine(R.string.statistics_metric_favorites_removed, snapshot, StatsKey.FAVORITES_REMOVED),
+            countLine(R.string.statistics_metric_scheduled_runs, snapshot, StatsKey.SCHEDULED_TASKS_RUN),
+            countLine(R.string.statistics_metric_scheduled_files, snapshot, StatsKey.SCHEDULED_TASK_FILES_PROCESSED),
+            countLine(R.string.statistics_metric_undo, snapshot, StatsKey.UNDO_OPERATIONS),
         )
 
         StatsCategory.CAPTURE -> listOfNotNull(
@@ -113,6 +119,12 @@ class BuildStatisticsReportUseCase @Inject constructor(
             countLine(R.string.statistics_metric_audio_played, snapshot, StatsKey.AUDIO_PLAYED, StatsKey.AUDIO_LISTEN_MS, MetricUnit.DURATION),
             countLine(R.string.statistics_metric_documents_opened, snapshot, StatsKey.DOCUMENTS_OPENED, StatsKey.DOCUMENT_PAGES, MetricUnit.COUNT),
             countLine(R.string.statistics_metric_frames_exported, snapshot, StatsKey.FRAMES_EXPORTED),
+            countLine(R.string.statistics_metric_slideshow_sessions, snapshot, StatsKey.SLIDESHOW_SESSIONS),
+            countLine(R.string.statistics_metric_slideshow_images, snapshot, StatsKey.SLIDESHOW_IMAGES_SHOWN),
+            countLine(R.string.statistics_metric_gif_frames_saved, snapshot, StatsKey.GIF_FRAMES_SAVED),
+            countLine(R.string.statistics_metric_streams_audio_played, snapshot, StatsKey.STREAMS_AUDIO_PLAYED),
+            countLine(R.string.statistics_metric_streams_video_played, snapshot, StatsKey.STREAMS_VIDEO_PLAYED),
+            countLine(R.string.statistics_metric_ocr_scans, snapshot, StatsKey.OCR_SCANS),
         )
 
         StatsCategory.EDITING -> listOfNotNull(
@@ -123,6 +135,8 @@ class BuildStatisticsReportUseCase @Inject constructor(
 
         StatsCategory.SOURCES -> listOfNotNull(
             countLine(R.string.statistics_metric_sources_connected, snapshot, StatsKey.SOURCES_CONNECTED),
+            countLine(R.string.statistics_metric_streams_added, snapshot, StatsKey.STREAMS_ADDED),
+            countLine(R.string.statistics_metric_playlists_imported, snapshot, StatsKey.PLAYLISTS_IMPORTED),
         )
 
         // USAGE rows are emitted by appendBaseline so the always-on markers always show.

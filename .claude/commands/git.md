@@ -1,9 +1,9 @@
 # Git Guide
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **Dry technical prose only** - no filler.
-> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
-> 3. **Terse report:** one dry statement of what was done and why.
+> 1. Dry technical prose only - no filler.
+> 2. Autonomy: silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. Terse report: one dry statement of what was done and why.
 
 Git workflow for FastMediaSorter v2 - branching, staging, committing, pushing, fix-release, diff research.
 
@@ -35,7 +35,7 @@ On `$ARGUMENTS`:
   4. Identify files that should NOT be committed (exclusion list below).
   5. Suggest 2-4 logical commit groups + proposed messages.
   6. Show exact `git add` commands per group.
-- **Step 3 - Answer from the reference below** using exact commands - never guess.
+- **Step 3 - Answer from reference below** using exact commands - never guess.
 
 ---
 
@@ -45,6 +45,7 @@ Two-tier model. Know it before touching git.
 
 ### Branch roles
 
+
 | Branch | Purpose | Who commits here |
 |--------|---------|-----------------|
 | `main` | Release-stable only. All published builds come from here. | Fix-release commits only (see below). Never direct development. |
@@ -53,10 +54,10 @@ Two-tier model. Know it before touching git.
 ### Rules
 
 - **Before any task:** `git branch --show-current` - confirm expected branch.
-- **Development goes to the current DEBUG branch, never `main` directly.**
+- **Development goes to current DEBUG branch, never `main` directly.**
 - `main` accepts only: merges from `DEBUG-v00N` after plateau verification; fix-release commits (fixes for previously working features, no new behavior).
 - Keep at most **2 live DEBUG branches**: current (next-release candidate) + optional "future".
-- "Future" DEBUG branch is born from the current DEBUG branch, not from `main`.
+- "Future" DEBUG branch born from current DEBUG branch, not from `main`.
 
 ### Worktrees
 
@@ -67,7 +68,7 @@ Two permanent working directories coexist:
 | `P:/ANDROID/FastMediaSorter_mob_v2` | `DEBUG-v001` (or current) | Development |
 | `P:/ANDROID/FastMediaSorter_release` | `main` | Release builds only |
 
-Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from the release worktree - no manual switching.
+Release builds (`.\a r`, `.\a vr`, `.\a nl`) run automatically from release worktree - no manual switching.
 
 ```bash
 # One-time worktree setup (already done - reference only)
@@ -104,7 +105,7 @@ git push origin DEBUG-v001
 
 ## Fix-Release Flow
 
-Publishes fixes for previously working features with **zero new behavior**. Commits directly to `main` (the only legitimate reason outside a DEBUG merge cycle). After publishing, rebase all live DEBUG branches.
+Publishes fixes for previously working features with **zero new behavior**. Commits directly to `main` (only legitimate reason outside a DEBUG merge cycle). After publishing, rebase all live DEBUG branches.
 
 ```bash
 # 1. Move to release worktree (main)
@@ -133,7 +134,7 @@ git fetch origin main
 git rebase origin/main          # or: git rebase main (if local main is up to date)
 ```
 
-**Rule:** fix-release = only regression fixes. Adding a new string resource, menu item, or UI → stop. That belongs in DEBUG.
+**Rule:** fix-release = only regression fixes. Adding new string resource, menu item, or UI → stop. That belongs in DEBUG.
 
 ---
 
@@ -171,7 +172,7 @@ cd P:/ANDROID/FastMediaSorter_release
 
 ## Cherry-pick Hotfix to DEBUG
 
-After a fix-release commit lands on `main`, bring it into current DEBUG:
+After fix-release commit lands on `main`, bring it into current DEBUG:
 
 ```bash
 # Find the fix commit hash
@@ -352,6 +353,7 @@ Always commit:
 ## Typical Commit Grouping
 
 Multiple features in progress → split into logical commits:
+
 
 **Group 1 - Feature work**
 ```bash

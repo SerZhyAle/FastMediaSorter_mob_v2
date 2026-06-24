@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -36,7 +38,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val appendToScheduledLogUseCase: AppendToScheduledLogUseCase
+    private val appendToScheduledLogUseCase: AppendToScheduledLogUseCase,
+    private val statsSink: StatsSink,
 ) {
     private val logDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
@@ -162,7 +165,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                     val targetDir = File(targetResource!!.path)
                     filtered.forEach { file ->
                         val result = fileOperationUseCase.execute(
-                            FileOperation.Copy(
+                            FileOperation.Move(
                                 sources = listOf(File(file.path)),
                                 destination = targetDir,
                                 overwrite = operation.overwrite,
@@ -175,12 +178,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                     logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
                                     Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
                                 } else {
-                                    fileOperationUseCase.execute(
-                                        FileOperation.Delete(
-                                            files = listOf(File(file.path)),
-                                            softDelete = false
-                                        )
-                                    )
                                     successCount++
                                     logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
                                     Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
@@ -191,12 +188,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                     logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
                                     Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
                                 } else {
-                                    fileOperationUseCase.execute(
-                                        FileOperation.Delete(
-                                            files = listOf(File(file.path)),
-                                            softDelete = false
-                                        )
-                                    )
                                     successCount++
                                     logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
                                     Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
@@ -250,6 +241,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // Summary line
             val statusStr = if (errors.isEmpty()) "OK ($successCount files)" else "ERROR: ${errors.first()}"
             logOp(ts, opName, srcLabel, dstLabel, statusStr)
+            // Count one run once the work loop executed; config-failure early returns above and the
+            // exception path below are not runs. filesProcessed carries the successfully handled count.
+            statsSink.record(StatsEvent.ScheduledRun(filesProcessed = successCount.toLong()))
             ScheduledExecutionResult(operationId, successCount, errors)
 
         } catch (e: CancellationException) {

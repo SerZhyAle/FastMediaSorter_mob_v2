@@ -6,7 +6,7 @@ model: sonnet
 
 Audit a spec against actual repository state. Auto-detects strategic vs tactical scope.
 
-> **No audit file is written.** Findings go in a compact `## Last Audit` block at the bottom of the strategic spec. The block is **overwritten** on each run - only the most recent audit is kept. The journal `updated` timestamp moves on every audit. Old audit history is intentionally discarded.
+> **No audit file written.** Findings go in compact `## Last Audit` block at bottom of strategic spec. Block **overwritten** each run - only most recent audit kept. Journal `updated` timestamp moves on every audit. Old audit history intentionally discarded.
 
 ## Usage
 
@@ -37,7 +37,7 @@ Audit a spec against actual repository state. Auto-detects strategic vs tactical
 
 ## Process
 
-> **Out-of-scope discoveries (CLAUDE.md §3.1):** an audit that surfaces a real problem outside this spec's contract and non-trivial (own research + fix) is not a finding against this spec - park it via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), one per distinct problem, and list the parked `Sxxxx` ids alongside the audit verdict. Findings within this spec's contract stay in `## Last Audit` as usual.
+> **Out-of-scope discoveries (CLAUDE.md §3.1):** audit surfaces a real problem outside this spec's contract and non-trivial (own research + fix) → not a finding against this spec - park via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), one per distinct problem, and list parked `Sxxxx` ids alongside audit verdict. Findings within this spec's contract stay in `## Last Audit` as usual.
 
 **1 - Parse arguments, locate spec.**
 
@@ -63,13 +63,13 @@ Verification mechanics:
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |
-| Dead-weight introduced (CLAUDE.md Rule 21) | `Grep` for remnants the change should have removed: orphaned/superseded classes, `-keep` rules naming a deleted class, a dependency added to a flavor that never references it, assets/resources no longer referenced. WARN per remnant that would still ship in the target variant. Cross-check `PLAN/` before treating a zero-ref artifact as dead - it may be active-ticket scaffolding |
-| FEATURES trilingual | Read strategic §8 first. If §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs - PASS only if all three hit |
+| Dead-weight introduced (CLAUDE.md Rule 21) | `Grep` for remnants the change should have removed: orphaned/superseded classes, `-keep` rules naming a deleted class, a dependency added to a flavor that never references it, assets/resources no longer referenced. WARN per remnant that would still ship in target variant. Cross-check `PLAN/` before treating a zero-ref artifact as dead - may be active-ticket scaffolding |
+| FEATURES trilingual | Read strategic §8 first. §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs - PASS only if all three hit |
 | File size vs budget | `Read` file, count lines, compare to step budget |
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |
 | Phase status consistency | INDEX row status == phase `Status:` header |
-| Debug-tag invariant | If current journal status is `BlockNeedUserTest`: `Grep` for `Timber.d("<Sxxxx>:` across `.kt` - PASS iff ≥1 hit, FAIL if none (spec lost its device-test probe). For any other status: PASS iff zero hits - surviving tags are stale (WARN, list them; the verdict flip in step 6 will delete them). |
+| Debug-tag invariant | Current journal status `BlockNeedUserTest`: `Grep` for `Timber.d("<Sxxxx>:` across `.kt` - PASS iff ≥1 hit, FAIL if none (spec lost its device-test probe). Any other status: PASS iff zero hits - surviving tags stale (WARN, list them; verdict flip in step 6 deletes them). |
 
 **4 - Score.**
 
@@ -77,19 +77,19 @@ Verification mechanics:
 - `Partial` - zero FAIL, ≥1 WARN. Collapses to `Broken` under `--strict`.
 - `Broken` - ≥1 FAIL.
 
-**5 - Write `## Last Audit` block** at the bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). Use the compact template below - keep under ~40 lines, PASS counts + FAIL/WARN action items only. No verbose tables. Action items are the input `/spec-fix` consumes.
+**5 - Write `## Last Audit` block** at bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). Use compact template below - keep under ~40 lines, PASS counts + FAIL/WARN action items only. No verbose tables. Action items are input `/spec-fix` consumes.
 
 **6 - Update `Status:` fields.**
 
 Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch journal status via `update.ps1`.
 
-Whenever the verdict flips the journal/strategic status (full or strategic mode), enforce the debug-tag invariant: the spec is no longer `BlockNeedUserTest`, so it must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run a dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". This is the only `.kt` mutation `/spec-check` performs.
+Whenever verdict flips journal/strategic status (full or strategic mode), enforce debug-tag invariant: spec no longer `BlockNeedUserTest`, so must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". Only `.kt` mutation `/spec-check` performs.
 
 Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers. Do not touch strategic `Status:`. Do not touch debug tags.
 
 **7 - Run dev log + finalize (batched).**
 
-Use `close-and-log.ps1` for Step 6 (status flip) + this step + Step 7a (functionality log) + post-change catalog scan in a single pwsh invocation:
+Use `close-and-log.ps1` for Step 6 (status flip) + this step + Step 7a (functionality log) + post-change catalog scan in single pwsh invocation:
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
@@ -103,18 +103,18 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -CatalogModule app_v2
 ```
 
-Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) when the spec is purely internal or the verdict is `Partial`/`Broken`. Pass `-SkipCatalogSync` when no `.kt` file was touched by the debug-tag removal step.
+Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) when spec purely internal or verdict `Partial`/`Broken`. Pass `-SkipCatalogSync` when no `.kt` file touched by debug-tag removal step.
 
-The wrapped sequence still applies the same rules:
+Wrapped sequence still applies same rules:
 
-- Feature inventory: record into `docs/ALL_FEATURES.jsonl` (via `scripts/all_features/add.ps1`) only on `Verified` flip, only when no record for this capability exists yet, only for user-visible changes (apply §2 heuristics). `docs/FEATURES*` is the curated public showcase, populated only by `/skill-release` from the inventory diff - never edited per-spec here.
-- For tactical-only audits or `Partial`/`Broken` verdicts the inventory block is silently skipped.
+- Feature inventory: record into `docs/ALL_FEATURES.jsonl` (via `scripts/all_features/add.ps1`) only on `Verified` flip, only when no record for this capability exists yet, only for user-visible changes (apply §2 heuristics). `docs/FEATURES*` is curated public showcase, populated only by `/skill-release` from inventory diff - never edited per-spec here.
+- For tactical-only audits or `Partial`/`Broken` verdicts inventory block silently skipped.
 
-Falling back to individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `scripts/all_features/add.ps1` + `scan.ps1` + `render.ps1`) is allowed when `close-and-log.ps1` is unavailable, but each call is a separate pwsh process and the lifecycle invariants must be reproduced manually.
+Falling back to individual scripts (`close.ps1` + `add_to_dev_log.ps1` × N + `scripts/all_features/add.ps1` + `scan.ps1` + `render.ps1`) allowed when `close-and-log.ps1` unavailable, but each call is a separate pwsh process and lifecycle invariants must be reproduced manually.
 
 **8 - Auto-chain to `/spec-fix`.**
 
-If outcome is `Partial` or `Broken` - immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If `Verified` - no further action.
+Outcome `Partial` or `Broken` - immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If `Verified` - no further action.
 
 **Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Debug tags removed: N. Top issues: [list]. → Running /spec-fix…` (or `→ All checks passed. Debug tags removed: N.` on Verified)
 
@@ -145,21 +145,21 @@ If outcome is `Partial` or `Broken` - immediately invoke `/spec-fix <Sxxxx>` to 
 <If `Verified`: drop the "Action items" section, keep "Manual / on-device" only.>
 ```
 
-The block replaces the previous `## Last Audit` block in full. The rest of the strategic spec (§1..§12) is untouched.
+Block replaces previous `## Last Audit` block in full. Rest of strategic spec (§1..§12) untouched.
 
 ---
 
 ## Constraints
 
-- Never mutate spec content beyond `Status:`, `**Priority:**` (only when explicitly recomputed), and the `## Last Audit` block.
-- **Debug-tag removal exception:** when the verdict flips the journal/strategic status, delete every `Timber.d("<Sxxxx>:` line from `.kt` (CLAUDE.md "Debug Verification Tags"). This is the only `.kt` mutation this skill performs. Never delete tags in tactical-only / `--quick`-without-status-flip runs. Never delete a tag while the journal status is staying at `BlockNeedUserTest`.
-- **Never write `PLAN/Sxxxx_<slug>__audit_*.md` or any other file in `PLAN/` to record audit findings.** All findings live inline in the spec.
-- Strategic audit is qualitative (keyword overlap for goal coverage). Tactical audit is strict (static predicates).
-- A grep miss is FAIL. Hit-count mismatch (expected 1, found 3) is WARN with all hits listed.
+- Never mutate spec content beyond `Status:`, `**Priority:**` (only when explicitly recomputed), and `## Last Audit` block.
+- **Debug-tag removal exception:** when verdict flips journal/strategic status, delete every `Timber.d("<Sxxxx>:` line from `.kt` (CLAUDE.md "Debug Verification Tags"). Only `.kt` mutation this skill performs. Never delete tags in tactical-only / `--quick`-without-status-flip runs. Never delete a tag while journal status staying at `BlockNeedUserTest`.
+- **Never write `PLAN/Sxxxx_<slug>__audit_*.md` or any other file in `PLAN/` to record audit findings.** All findings live inline in spec.
+- Strategic audit qualitative (keyword overlap for goal coverage). Tactical audit strict (static predicates).
+- Grep miss is FAIL. Hit-count mismatch (expected 1, found 3) is WARN with all hits listed.
 - Never run `./gradlew` or build commands - static analysis only.
 - Read-only zones ignored: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- `--quick` skips grep-heavy invariants (forbidden-call checks, trilingual greps) - annotates the block.
-- Never approve `Verified` if any tactical phase is Broken.
+- `--quick` skips grep-heavy invariants (forbidden-call checks, trilingual greps) - annotates block.
+- Never approve `Verified` if any tactical phase Broken.
 - Grep hits on declaration lines only - not comments or string literals.
 
 ---
@@ -167,10 +167,10 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
-- **Status transition** (after the audit verdict is final):
-  - Verdict `Verified` → `pwsh -NoProfile -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
+- **Status transition** (after audit verdict final):
+  - Verdict `Verified` → `pwsh -NoProfile -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on record.)
   - Verdict `Partial`  → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
   - Verdict `Broken`   → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
-- **Debug tags.** Every verdict that flips the journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires the grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). Holds in `--quick` mode too.
-- **Read-only mode (`--quick`):** still emits the status transition and debug-tag removal above; the difference is in scope of audit checks, not journal effect.
-- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.
+- **Debug tags.** Every verdict that flips journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). Holds in `--quick` mode too.
+- **Read-only mode (`--quick`):** still emits status transition and debug-tag removal above; difference is in scope of audit checks, not journal effect.
+- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change verdict. Never create audit files in `PLAN/`.

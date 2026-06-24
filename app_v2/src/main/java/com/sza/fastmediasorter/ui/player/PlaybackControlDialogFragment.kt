@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.SeekBar
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
@@ -103,6 +104,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("PlaybackControlDialog: onViewCreated mediaType=$currentMediaType")
         Timber.d("S0619: playback control dialog shown - wide slider style on volume/hue/brightness/speed seekbars")
+        Timber.d("S0638: playback control dialog shown - adaptive pivot selector (rail portrait / strip landscape), height-bounded")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {
@@ -120,10 +122,23 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        val displayMetrics = resources.displayMetrics
         dialog?.window?.setLayout(
-            (resources.displayMetrics.widthPixels * 0.95f).roundToInt(),
+            (displayMetrics.widthPixels * 0.95f).roundToInt(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        // Bound the dialog to the screen: cap the resizable area so the section selector stays
+        // fully visible and only the bounded region scrolls instead of pushing the dialog
+        // off-screen. The pre-draw pass subtracts the static chrome (title + selector strip) so
+        // the cap is exact; maxHeightPx no-ops when unchanged, so it settles in one reflow.
+        val maxDialogHeight = (displayMetrics.heightPixels * 0.95f).roundToInt()
+        val minResizableHeight = (160 * displayMetrics.density).roundToInt()
+        binding.playbackResizableArea.maxHeightPx = maxDialogHeight
+        binding.root.doOnPreDraw {
+            val chrome = binding.root.height - binding.playbackResizableArea.height
+            binding.playbackResizableArea.maxHeightPx =
+                (maxDialogHeight - chrome).coerceAtLeast(minResizableHeight)
+        }
         // Controls apply immediately, so there is no positive action - no-op confirm keeps
         // Esc-dismiss and focus traversal without a false Enter-confirm. Initial focus is left to
         // the section navigation, which checks a section button on open.

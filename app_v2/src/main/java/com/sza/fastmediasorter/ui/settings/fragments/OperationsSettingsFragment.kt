@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
@@ -22,6 +21,9 @@ import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
+import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
+import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -38,6 +40,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPicker
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -120,6 +123,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Timber.d("S0651: Operations settings opened - mic-recording ask-filename shown as child of enable-recording")
         setupViews()
         setupCollapsibleSections()
         scheduledManager.setup()
@@ -144,6 +148,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         register(binding.headerBehaviour, binding.containerBehaviour, "operations__behaviour")
         register(binding.headerOtherFeatures, binding.containerOtherFeatures, "operations__other_features")
+        register(binding.headerAdditionalPrograms, binding.containerAdditionalPrograms, "operations__additional_programs")
         register(binding.headerSystemApps, binding.containerSystemApps, "operations__system_apps")
         register(binding.headerScreenGestures, binding.containerScreenGestures, "operations__screen_gestures")
     }
@@ -367,7 +372,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
-        binding.rowLinkAutodownloadResource.setOnRowClickListener {
+        binding.btnSelectLinkAutodownloadResource.setOnClickListener {
+            Timber.d("S0648: download-resource selector (button-pattern) opening destination picker")
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
             ) { resource ->
@@ -377,7 +383,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
 
         // Controls & Keybindings entry row.
-        binding.rowControlsKeybindings.setOnClickListener {
+        binding.rowControlsKeybindings.setOnRowClickListener {
             SettingsActivity.openKeybindingRemap(requireContext())
         }
 
@@ -483,11 +489,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
                             // Disable child controls when master link-download toggle is off.
                             binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
-                            binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
+                            binding.btnSelectLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
+                            binding.tvLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
                             refreshDestinationLabel(
                                 resourceId = settings.linkAutoDownloadResourceId?.toString(),
                                 fallbackRes = R.string.link_autodownload_resource_not_set,
-                            ) { binding.rowLinkAutodownloadResource.setValue(it) }
+                            ) { binding.tvLinkAutodownloadResource.text = it }
 
                             gesturesManager.render(settings)
                         }
@@ -558,33 +565,31 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     /**
      * Single-choice picker over recipient resources usable as a capture target. Restricted to
-     * resources that are also destinations (a real folder). Includes an explicit "(clear)" entry
-     * that resolves the setting back to its documented fallback.
+     * resources that are also destinations (a real folder). The Clear action resolves the setting
+     * back to its documented fallback.
      */
     private fun showDestinationPicker(
         currentResourceId: Long?,
         onPicked: (MediaResource?) -> Unit
     ) {
-        val targets = destinationsManager.currentDestinations
-        if (targets.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.no_resources_available, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val clearLabel = getString(R.string.clear_selection)
-        val labels = (listOf(clearLabel) + targets.map { it.name }).toTypedArray()
-        val checkedIndex = currentResourceId
-            ?.let { id -> targets.indexOfFirst { it.id == id } }
-            ?.takeIf { it >= 0 }
-            ?.let { it + 1 } // offset by the leading clear entry
-            ?: 0
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.setting_select_destination)
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
-                onPicked(if (which == 0) null else targets[which - 1])
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        Timber.d("S0646: operations destination picker opening list-choice dialog")
+        ListSelectionDialog<MediaResource>(
+            requireContext(),
+            ListSelectionConfig(
+                title = getString(R.string.setting_select_destination),
+                lifecycleOwner = viewLifecycleOwner,
+                loader = { destinationsManager.currentDestinations },
+                formatter = object : ListSelectionAdapter.ItemFormatter<MediaResource> {
+                    override fun getDisplayName(item: MediaResource): String = item.name
+                },
+                hasSelection = currentResourceId != null,
+                isSelected = { it.id == currentResourceId },
+                allowClear = true,
+                emptyMessageRes = R.string.no_resources_available,
+                errorMessageRes = R.string.no_resources_available,
+                onSelected = onPicked,
+            ),
+        ).show()
     }
 
     /**

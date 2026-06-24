@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.6221.755 (June 2026)
+## What's New in v2.60.6242.232 (June 2026)
 
 **New:**
-Internet Streams with live TV and radio channels, stream filters and per-channel status, background stream audio, streams setup with Welcome onboarding, in-app Samsung-style camera, custom color themes, screenshot capture from Operations or edge gesture, print and transfer from viewers, smarter settings search.
+Stream player controls, live stream casting to Chromecast, stream home-screen shortcuts and card actions menu, stream default sort and filter with TV-remote and mouse parity, screen-capture app panel, edge gestures to open the app or panel, optional 9-zone player grid, auto-fullscreen on landscape, Welcome statistics toggle and gesture setup, richer usage statistics, cleaner settings rows.
 
 **Fixed:**
-Network folder scans no longer hang and now time out clearly, shared download link no longer crashes the share screen.
+Dropped live streams now auto-recover instead of prompting channel removal.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

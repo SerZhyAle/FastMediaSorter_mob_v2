@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import dagger.Lazy
 import kotlinx.coroutines.flow.first
@@ -24,7 +25,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private val capabilityAvailability: CapabilityAvailability
 ) {
 
-    /** Pre-capture gate: callers skip capture entirely when this returns [ScreenshotGestureAction.DO_NOT_USE]. */
+    /** Resolves the action configured for [direction]. Callers feed the result to [handlePreCaptureAction]. */
     suspend fun actionFor(direction: ScreenshotGestureDirection): ScreenshotGestureAction {
         val settings = settingsRepository.get().getSettings().first()
         return when (direction) {
@@ -34,10 +35,60 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         }
     }
 
+    /**
+     * Runs actions that need no screen capture and tells the caller whether to stop. Returns true when
+     * [action] was fully handled here, so the caller skips consent/capture entirely:
+     * [ScreenshotGestureAction.DO_NOT_USE] is a silent no-op; [ScreenshotGestureAction.OPEN_APP] brings
+     * the app to the foreground (existing task reordered to front, preserving its state, or cold start).
+     * Returns false for capture-backed actions, which proceed through the normal capture path.
+     */
+    fun handlePreCaptureAction(context: Context, action: ScreenshotGestureAction): Boolean = when (action) {
+        ScreenshotGestureAction.DO_NOT_USE -> true
+        ScreenshotGestureAction.OPEN_APP -> {
+            Timber.d("S0622: left-edge gesture OPEN_APP -> bring app to foreground")
+            launchApp(context)
+            true
+        }
+        ScreenshotGestureAction.OPEN_PANEL -> {
+            Timber.d("S0623: left-edge gesture OPEN_PANEL -> show app launch panel")
+            launchPanel(context)
+            true
+        }
+        else -> false
+    }
+
+    private fun launchApp(context: Context) {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        if (intent == null) {
+            Timber.w("ScreenshotGestureActionDispatcher: no launch intent for package")
+            return
+        }
+        // getLaunchIntentForPackage returns a MAIN/LAUNCHER intent that already carries
+        // FLAG_ACTIVITY_NEW_TASK; re-adding it is explicit because the caller is a Service with no task
+        // of its own. Starting it reorders the app's existing default-affinity task to the front
+        // (preserving its state) or cold-starts the app when no task exists.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch app") }
+    }
+
+    private fun launchPanel(context: Context) {
+        // The dispatcher runs in a Service with no task of its own, so the transparent panel host needs
+        // FLAG_ACTIVITY_NEW_TASK. AppLaunchPanelActivity is singleTask + excludeFromRecents, so it floats
+        // over the foreground app and does not linger as a separate recents entry.
+        val intent = Intent(context, AppLaunchPanelActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to open app launch panel") }
+    }
+
     /** Launches the route configured for [action]. No-op for silent/disabled; degrades to silent save when [savedUri] is null. */
     fun runPostSave(context: Context, action: ScreenshotGestureAction, savedUri: Uri?) {
         when (action) {
+            // OPEN_APP / OPEN_PANEL / DO_NOT_USE never reach here (handled pre-capture), kept for when-exhaustiveness.
             ScreenshotGestureAction.SILENT_SCREENSHOT,
+            ScreenshotGestureAction.OPEN_APP,
+            ScreenshotGestureAction.OPEN_PANEL,
             ScreenshotGestureAction.DO_NOT_USE -> return
 
             ScreenshotGestureAction.OPEN_IN_PLAYER -> openInViewer(context, savedUri, autoAction = null)

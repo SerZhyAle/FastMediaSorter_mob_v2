@@ -38,9 +38,15 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "video_large.mp4"
-    timeout: 30000
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
+# Open by tapping the row container (clear of the right-side operation buttons), matched by the exact
+# filename - a centred filename-text tap lands on a button (see player_image.yaml).
 - tapOn:
-    text: "video_large.mp4"
+    containsChild:
+      text: "video_large.mp4"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/playerView"

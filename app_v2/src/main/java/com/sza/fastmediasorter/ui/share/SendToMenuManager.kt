@@ -52,6 +52,10 @@ class SendToMenuManager @Inject constructor(
     ): List<ShareTarget> =
         buildReceiverList(content, settings)
             .filter { handlers[it.id]?.isSupportedBy(activity) != false }
+            // S0631: a text-only payload (uris empty, no sourcePath, text present - e.g. a stream link)
+            // can only be sent by text-capable receivers. Filtering them out keeps file-only receivers
+            // from appearing as dead entries that would silently no-op on a text payload.
+            .filter { !content.isTextOnly || it.textCapable }
 
     /**
      * Show the send-to UI for a bar press or programmatic invocation.

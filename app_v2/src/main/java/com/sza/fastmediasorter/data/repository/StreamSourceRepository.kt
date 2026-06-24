@@ -36,6 +36,10 @@ class StreamSourceRepository @Inject constructor(
 
     suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
 
+    /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
+    suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
+        dao.updateUserFields(id, url, title, mediaKind)
+
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
 
@@ -44,6 +48,12 @@ class StreamSourceRepository @Inject constructor(
     /** S0593: persist the last local play outcome ("OK"/"FAIL") for the streams-list status bullet. */
     suspend fun recordPlayOutcome(id: String, outcome: String) =
         dao.markPlayOutcome(id, outcome, System.currentTimeMillis())
+
+    /** S0659: clear all OK/FAIL status bullets without removing any channel. */
+    suspend fun clearPlayOutcomes() = dao.clearAllPlayOutcomes()
+
+    /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
+    suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)
 
     /**
      * S0570: synchronize the curated catalog into stream_sources. New catalog rows are inserted,
