@@ -834,11 +834,6 @@
     "ru": "Показывает диалог подтверждения перед удалением файла из плеера.",
     "uk": "Показує діалог підтвердження перед видаленням файлу з плеєра."
   },
-  "rowDetailedErrors": {
-    "en": "Shows technical error details alongside the human-readable message in the player.",
-    "ru": "Показывает технические подробности ошибок вместе с понятным описанием в плеере.",
-    "uk": "Показує технічні подробиці помилок разом із зрозумілим описом у плеєрі."
-  },
   "rowDisableNineZone": {
     "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
     "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",

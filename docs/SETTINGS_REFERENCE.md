@@ -230,7 +230,7 @@ _Available in: Standard, Legacy_
 | Controls & Keybindings | Opens the controls and key-binding configuration for navigation and playback. |
 | Save screenshots to clipboard | Automatically copies screenshots taken within the app to the clipboard. |
 | Remember file lists (default for new resources) | Pre-enables the "remember file list" option for newly added resources by default. |
-| Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
+| Show detailed errors | Shows technical error details (codes and context) alongside the human-readable message. |
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Allows files to be copied to Quick Sort destinations. |

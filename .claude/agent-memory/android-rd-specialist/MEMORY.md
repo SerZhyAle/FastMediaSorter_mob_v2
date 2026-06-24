@@ -1,6 +1,8 @@
 # Memory Index
 
 - [Incremental build phantom unresolved-ref cascade](project_incremental_build_phantom_unresolved.md) - a.ps1 dq after cross-cutting multi-file edits throws phantom "unresolved reference" only in edited files though symbols exist; deterministic on retry; fix = clean build a.ps1 cd (cost 2 builds on S0646)
+- [fms.screenCapture gates gesture capability out of standard APK](project_screencapture_gates_gesture_capability.md) - default fms.screenCapture=off unmounts standardScreenCapture; S0621/S0622/S0623 device tests need -P fms.screenCapture=on or UI is compiled out (INCONCLUSIVE, not FAIL)
+- [close.ps1 two-step unblock for Verified](project_close_ps1_two_step_unblock.md) - close.ps1/close-and-log refuse direct BlockNeedUserTest->Verified ("Unblock first"); update to Implemented then Verified, dev-log separately
 
 - [Stream catalog: ship all live channels](feedback_stream_catalog_all_live_channels.md) - owner wants EVERY reachable channel w/ signal incl grey-area + -; legal-scope filter REMOVED from code+README (2026-06-22); only defunct/header-gated/dead dropped; -DeepSignal probe pulls real bytes
 

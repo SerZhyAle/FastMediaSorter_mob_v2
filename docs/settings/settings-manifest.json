@@ -121,7 +121,27 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
+      "key": "btnSelectLinkAutodownloadResource",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
       "key": "btnSelectMicRecordingDest",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
+      "key": "btnSelectScreenshotDestination",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
@@ -611,16 +631,6 @@
       "titleUk": "Продовжувати відтворення при наступному запуску"
     },
     {
-      "key": "rowScreenshotDestination",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Save screenshots to..",
-      "titleRu": "Загружать скриншоты в..",
-      "titleUk": "Завантажувати знімки до.."
-    },
-    {
       "key": "rowScreenshotGestureActionDown",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -679,16 +689,6 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
-    },
-    {
-      "key": "row_link_autodownload_resource",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Download destination resource",
-      "titleRu": "Ресурс для закачки",
-      "titleUk": "Ресурс для завантаження"
     },
     {
       "key": "btnSetDefaultDocsViewer",
@@ -1739,16 +1739,6 @@
       "titleEn": "Confirm delete",
       "titleRu": "Подтверждать удаление",
       "titleUk": "Підтверджувати видалення"
-    },
-    {
-      "key": "rowDetailedErrors",
-      "sectionId": "playback",
-      "destination": "PLAYBACK",
-      "layout": "fragment_settings_playback",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show detailed errors",
-      "titleRu": "Показывать детальные ошибки",
-      "titleUk": "Показувати детальні помилки"
     },
     {
       "key": "rowDisableNineZone",

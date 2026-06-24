@@ -123,7 +123,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S0650: Operations settings opened - capture group renamed to Photo/Video/Voice recorder")
         Timber.d("S0651: Operations settings opened - mic-recording ask-filename shown as child of enable-recording")
         setupViews()
         setupCollapsibleSections()
