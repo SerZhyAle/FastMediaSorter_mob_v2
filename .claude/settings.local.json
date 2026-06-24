@@ -1,20 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.scriptsadd_to_dev_log.ps1 \"app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt\" \"StandalonePlayerActivity\" \"Fix High: handle errorMessage state - show toast + finish; Fix Medium: replace hardcoded unsupported-type string with R.string.unsupported_format_use_external_player\")",
-      "Bash(powershell.exe -File scripts/add_to_dev_log.ps1 \"app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt\" \"StandalonePlayerActivity\" \"Fix High: handle errorMessage state - show toast + finish; Fix Medium: replace hardcoded unsupported-type string with R.string\")",
-      "Bash(powershell.exe -Command \"& { . ''./scripts/add_to_dev_log.ps1'' -FilePath ''app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt'' -Target ''StandalonePlayerActivity'' -Description ''Fix High: handle errorMessage state - show toast + finish. Fix Medium: replace hardcoded unsupported-type string with R.string.unsupported_format_use_external_player'' }\")",
-      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"scripts/add_to_dev_log.ps1 ''app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt'' ''StandalonePlayerActivity'' ''Fix High: handle errorMessage in state - show toast and finish. Fix Medium: use R.string.unsupported_format_use_external_player instead of hardcoded string''\")",
-      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& ''scripts/add_to_dev_log.ps1'' -FilePath ''app_v2/.../StandalonePlayerActivity.kt'' -Target ''StandalonePlayerActivity'' -Description ''Fix error state handler and localization''\")",
-      "Bash(powershell.exe -NonInteractive -Command \"& { . ''''./scripts/add_to_dev_log.ps1'''' -RelativePath ''''app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt'''' -Target ''''DefaultPlayerHelper'''' -Description ''''Add RoleManager.ROLE_MEDIA_PLAYER check \\(API31+\\) isAlreadyDefaultPlayer + applyButtonState helper'''' }\")",
-      "Bash(powershell.exe -NonInteractive -Command \"Get-Help ''''./scripts/add_to_dev_log.ps1''''\")",
-      "Bash(powershell.exe -NonInteractive -Command \"& ''./scripts/add_to_dev_log.ps1'' ''app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt'' ''DefaultPlayerHelper'' ''Add RoleManager ROLE_MEDIA_PLAYER check API31+ isAlreadyDefaultPlayer and applyButtonState helper''\")",
       "Bash(git config:*)",
       "Read(//tmp/**)",
       "Bash(javap -p com/dropbox/core/android/Auth.class)",
       "Skill(update-config)",
       "Bash(/c/Program Files/PowerShell/7/pwsh.exe *)",
-      "Bash(\"/c/Program Files/PowerShell/7/pwsh.exe\" -File \"P:/ANDROID/FastMediaSorter_mob_v2/dev/CATALOG/scripts/query.ps1\" -PathMatches \"*image*\" -Module app_v2)",
       "Bash(C:/Program Files/PowerShell/7/pwsh.exe *)",
       "PowerShell(npm install *)",
       "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json)",

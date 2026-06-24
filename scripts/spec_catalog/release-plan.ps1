@@ -47,7 +47,10 @@ param(
     [ValidateSet('text', 'json')]
     [string]$Format = 'text',
     # Flavor scope passed through to the /skill-release line (informational only).
-    [string]$Flavors = ''
+    [string]$Flavors = '',
+    # Read an alternate JSONL instead of the live active catalog. Read-only test
+    # hook (regression scenarios); never used by /spec-next, which omits it.
+    [string]$CatalogFile = ''
 )
 
 trap {
@@ -84,7 +87,8 @@ function Get-CommandsForStatus {
 }
 
 # --- read + partition ---------------------------------------------------------
-$all = Read-Catalog                       # active journal only (Archived excluded)
+# Live active journal (Archived excluded), or an alternate file for the test hook.
+$all = if ($CatalogFile) { @(Read-JsonlFile -Path $CatalogFile) } else { Read-Catalog }
 $implSet = @($all | Where-Object { $implStatuses -contains $_.status })
 $verifyImpl = @($all | Where-Object { $_.status -eq 'Implemented' })
 $deviceTest = @($all | Where-Object { $_.status -eq 'BlockNeedUserTest' })
@@ -286,11 +290,14 @@ foreach ($it in $itemsA) {
 }
 $out.Add('')
 
-$out.Add('# -- Phase B: dependency chains (run after each blocker reaches BlockNeedUserTest/Verified) --')
+$out.Add('# -- Phase B: dependency chains (each item runs after its blocker; BlockByOtherTask rows need an unblock first) --')
 if ($itemsB.Count -eq 0) { $out.Add('#   (none)') }
 foreach ($it in $itemsB) {
     $after = if ($it.after.Count -gt 0) { ' (after ' + ($it.after -join ', ') + ')' } else { '' }
     $tag = "$($it.status) p$($it.priority)${after}: $($it.name)"
+    if ($it.unblock) {
+        $out.Add("#   $($it.id): unblock first - $($it.unblock) - then (/spec-tech only if it never reached Tactical):")
+    }
     $first = $true
     foreach ($cmd in $it.commands) {
         $out.Add((Format-CmdLine $cmd ($(if ($first) { $tag } else { '' }))))
@@ -304,6 +311,9 @@ if ($deviceIds.Count -gt 0) {
     $out.Add((Format-CmdLine '/spec-sweep' "batch-test $($deviceIds.Count) BlockNeedUserTest tickets"))
 } else {
     $out.Add('#   (no BlockNeedUserTest backlog)')
+}
+if ($itemsImpl.Count -gt 0) {
+    $out.Add('#   Implemented tickets: /spec-test-device needs a device online; with none, skip to /spec-check (static audit)')
 }
 foreach ($it in $itemsImpl) {
     $tag = "Implemented p$($it.priority): $($it.name)"

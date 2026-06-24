@@ -92,6 +92,40 @@ Size interpretation:
 
 At the time of this refresh, no local Wear APK output or local AAB output was present under `build/outputs`.
 
+## Approximate Project Scale
+Snapshot date for the metrics below: `2026-06-24`.
+
+Code volume:
+- Production Kotlin/Java files: `1,749`
+- Production Kotlin/Java lines: `246,348`
+- Test Kotlin/Java files: `377`
+- Test Kotlin/Java lines: `34,696`
+- Combined Kotlin/Java files: `2,126`
+- Combined Kotlin/Java lines: `281,044`
+- XML resource files: `837`
+- XML resource lines: `54,849`
+- Layout XML files only: `292`
+
+Model and state surface:
+- Files in explicit `model/` or `models/` directories: about `62`
+- Of those, domain-model files: about `56`
+- Data-model files: about `2`
+- UI-model files: about `4`
+- Room entity files: `17`
+
+Screen surface:
+- Activity files: `43`
+- Fragment files: `29`
+- Compose `*Screen.kt` files: `12`
+- Dialog / dialog-fragment files: `42`
+- ViewModel files: `39`
+- Practical user-visible screen estimate: roughly `80-120` surfaces, depending on whether dialogs, modal flows, and orientation-specific hosts are counted as separate screens
+
+Engineering effort estimate:
+- Rough engineering-only estimate for the current codebase shape: about `6,000-9,000` person-hours
+- Broader delivery estimate including architecture churn, integration debugging, regression handling, release plumbing, and polish: about `8,000-12,000` person-hours
+- This is an inference, not a historical log. The estimate is driven by the size of the production code, `20` application variants across `app_v2` + `wear`, multiple network/cloud/media integrations, and the custom build/release automation around them
+
 ## Dependency Highlights
 - DI and persistence: Hilt `2.59`, Room `2.7.0`, WorkManager `2.9.0`, DataStore `1.0.0`
 - UI: Jetpack Compose BOM `2024.02.00`, Material 3, Activity `1.10.1`, Lifecycle `2.7.0`, ConstraintLayout `2.1.4`

@@ -21,6 +21,16 @@
       "titleUk": "Призначити аудіоплеєром за замовчуванням"
     },
     {
+      "key": "rowAudioEmptyStateMode",
+      "sectionId": "audio",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_audio",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Visualizer when no cover art",
+      "titleRu": "Визуализатор при отсутствии обложки",
+      "titleUk": "Візуалізатор при відсутності обкладинки"
+    },
+    {
       "key": "rowEnablePhotosDuringAudio",
       "sectionId": "audio",
       "destination": "MEDIA",
@@ -369,6 +379,16 @@
       "titleEn": "Confirm before move",
       "titleRu": "Подтверждать перемещение",
       "titleUk": "Підтверджувати переміщення"
+    },
+    {
+      "key": "rowControlsKeybindings",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Controls & Keybindings",
+      "titleRu": "Управление и клавиши",
+      "titleUk": "Керування та клавіші"
     },
     {
       "key": "rowCopyScreenshotToClipboard",
@@ -1481,6 +1501,16 @@
       "titleUk": "Повторити"
     },
     {
+      "key": "layoutExtensionsManager",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR & translation downloads",
+      "titleRu": "Загрузки OCR и перевода",
+      "titleUk": "Завантаження OCR та перекладу"
+    },
+    {
       "key": "rowEnableOcr",
       "sectionId": "other",
       "destination": "MEDIA",
@@ -1501,6 +1531,46 @@
       "titleUk": "Увімкнути переклад"
     },
     {
+      "key": "rowOcrEngineType",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Engine",
+      "titleRu": "Движок OCR",
+      "titleUk": "Двигун OCR"
+    },
+    {
+      "key": "rowOcrFontFamily",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Font Family",
+      "titleRu": "Шрифт для OCR",
+      "titleUk": "Шрифт для OCR"
+    },
+    {
+      "key": "rowOcrFontSize",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "OCR Font Size",
+      "titleRu": "Размер шрифта для OCR",
+      "titleUk": "Розмір шрифту для OCR"
+    },
+    {
+      "key": "rowPaddleOcrModel",
+      "sectionId": "other",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_other",
+      "kind": "SELECTION_ROW",
+      "titleEn": "PaddleOCR Model",
+      "titleRu": "Модель PaddleOCR",
+      "titleUk": "Модель PaddleOCR"
+    },
+    {
       "key": "rowTranslationLensStyle",
       "sectionId": "other",
       "destination": "MEDIA",
@@ -1509,46 +1579,6 @@
       "titleEn": "Translation result in blocks",
       "titleRu": "Результат перевода в блоках",
       "titleUk": "Результат перекладу в блоках"
-    },
-    {
-      "key": "spinnerOcrEngineType",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Engine",
-      "titleRu": "Движок OCR",
-      "titleUk": "Двигун OCR"
-    },
-    {
-      "key": "spinnerOcrFontFamily",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Font Family",
-      "titleRu": "Шрифт для OCR",
-      "titleUk": "Шрифт для OCR"
-    },
-    {
-      "key": "spinnerOcrFontSize",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "OCR Font Size",
-      "titleRu": "Размер шрифта для OCR",
-      "titleUk": "Розмір шрифту для OCR"
-    },
-    {
-      "key": "spinnerPaddleOcrModel",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SPINNER",
-      "titleEn": "PaddleOCR Model",
-      "titleRu": "Модель PaddleOCR",
-      "titleUk": "Модель PaddleOCR"
     },
     {
       "key": "spinnerTranslationSourceLanguage",

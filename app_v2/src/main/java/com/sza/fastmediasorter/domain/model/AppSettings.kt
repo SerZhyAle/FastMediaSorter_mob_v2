@@ -292,10 +292,12 @@ data class AppSettings(
     // true = screen follows physical rotation; false = screen locked to current orientation
     val playerRotationSensorEnabled: Boolean = true,
 
-    // S0473: opt-in local usage statistics. Default OFF (privacy). Gates the detailed StatsSink
-    // write path; the always-on baseline launch record is independent of this flag. Never applied
-    // by a device profile (empty CSV row), so a profile cannot silently enable data collection.
-    val enableStatistics: Boolean = false
+    // S0656: local usage statistics, ON by default. Data is collected only on-device and is
+    // anonymous; nothing is transmitted without an explicit user action (S0473 introduced the flag
+    // OFF, S0656 flips the default ON now that the privacy concern is resolved). Gates the detailed
+    // StatsSink write path; the always-on baseline launch record is independent of this flag. Never
+    // applied by a device profile (empty CSV row), so a profile cannot silently change collection.
+    val enableStatistics: Boolean = true
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

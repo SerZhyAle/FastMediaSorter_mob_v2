@@ -1,6 +1,6 @@
 # Strategic Specification Writer
 
-Write a strategic spec: product-level *what*/*why*, in Russian. No class names, file paths, line budgets, Hilt/Room details (those go in `/spec-tech`).
+Write strategic spec: product-level *what*/*why*, in Russian. No class names, file paths, line budgets, Hilt/Room details (those go in `/spec-tech`).
 
 ## Usage
 
@@ -12,14 +12,14 @@ Three accepted forms - all valid, all proceed to spec writing:
 /spec <free-form feature description>            # permissive: any text describing the feature
 ```
 
-Permissive form is the default for natural-language requests. Never refuse input recognizable as a feature description - see Process step 1 for normalization.
+Permissive form = default for natural-language requests. Never refuse input recognizable as feature description - see Process step 1 for normalization.
 
-**Only refuse** when input is genuinely unusable:
+**Only refuse** when input genuinely unusable:
 
 - Empty (no args) - print short usage hint, stop.
-- Single token that is neither a known roadmap id nor slug-shaped AND carries no descriptive content (e.g. `/spec ?`, `/spec help`) - print short usage hint, stop.
+- Single token neither a known roadmap id nor slug-shaped AND carrying no descriptive content (e.g. `/spec ?`, `/spec help`) - print short usage hint, stop.
 
-Do not reject merely for not matching strict `<roadmap-id> <short-name>`. Reword it (step 1), confirm inferred slug in final output, proceed. Do not ask the user to choose between candidate slugs - pick one deterministically. No bureaucratic preflight prompts.
+Do not reject merely for not matching strict `<roadmap-id> <short-name>`. Reword it (step 1), confirm inferred slug in final output, proceed. Do not ask user to choose between candidate slugs - pick one deterministically. No bureaucratic preflight prompts.
 
 Examples - all valid:
 
@@ -41,7 +41,7 @@ Output file: `PLAN/Sxxxx_<short-name>.md` (`Sxxxx` allocated by `scripts/spec_ca
 
 Apply rules in order, take first match:
 
-1. **Strict roadmap** - token1 matches `^([0-9]+|[IVX]+)(\.[0-9]+)*$` (e.g. `X.11`, `III.12`, `4.7`) AND token2 is kebab-case slug `^[a-z0-9][a-z0-9-]*$`. Set `roadmapId=<token1>`, `shortName=<token2>`. No `freeformDescription`.
+1. **Strict roadmap** - token1 matches `^([0-9]+|[IVX]+)(\.[0-9]+)*$` (e.g. `X.11`, `III.12`, `4.7`) AND token2 kebab-case slug `^[a-z0-9][a-z0-9-]*$`. Set `roadmapId=<token1>`, `shortName=<token2>`. No `freeformDescription`.
 2. **Strict ad-hoc** - token1 literally `ad-hoc` AND token2 kebab-case slug. Set `roadmapId="ad-hoc"`, `shortName=<token2>`. No `freeformDescription`.
 3. **Single slug** - exactly one token, kebab-case slug. Set `roadmapId="ad-hoc"`, `shortName=<token1>`. No `freeformDescription`.
 4. **Free-form** - anything else not a refusal case. Treat entire raw input as feature description:
@@ -72,7 +72,7 @@ After normalization, auto-derive priority from `shortName` if `--priority` not s
 
 `--priority N` overrides (0..100).
 
-**When `freeformDescription` is set:** carry into step 5 - §1 (Problem) must paraphrase the user's original wording as the primary problem statement (translate EN→RU). Do not discard user phrasing for a reinterpreted version; user's words are the requirement.
+**When `freeformDescription` is set:** carry into step 5 - §1 (Problem) must paraphrase user's original wording as primary problem statement (translate EN→RU). Do not discard user phrasing for reinterpreted version; user's words are the requirement.
 
 **2 - Read context.**
 
@@ -102,7 +102,7 @@ After normalization, auto-derive priority from `shortName` if `--priority` not s
    - `## Approach` - bullet list: one bullet per file → what changes.
    - `## Done criteria` - one observable check per changed file.
 3. Implement changes directly in source.
-4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", ticket is about to enter `BlockNeedUserTest`, so tags must be present. One tag per flow entry, not per modified line. The `Sxxxx:` prefix is reserved for these temporary probes; never reuse in `Timber.i/w/e` or any message meant to persist.
+4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", ticket about to enter `BlockNeedUserTest`, so tags must be present. One tag per flow entry, not per modified line. `Sxxxx:` prefix reserved for these temporary probes; never reuse in `Timber.i/w/e` or any persistent message.
 5. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
 6. Advance to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. Step-4 tags stay until ticket leaves this status (removed by `/spec-check` on `Verified`, or `/spec-update` on re-open).
 7. Chat output: `<Sxxxx> - Primitive. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
@@ -121,7 +121,7 @@ After normalization, auto-derive priority from `shortName` if `--priority` not s
 | TIER 3 | `3 - Moderate` |
 | TIER 4 | `4 - Strategic` |
 
-Ad-hoc: evaluate scope by affected modules and user impact, assign closest tier label, note "ad-hoc" alongside.
+Ad-hoc: evaluate scope by affected modules + user impact, assign closest tier label, note "ad-hoc" alongside.
 
 **4 - Allocate ticket id.** Before any file write:
 
@@ -135,13 +135,13 @@ $ticketId = (& pwsh -NoProfile -File scripts/spec_catalog/insert.ps1 `
 # $ticketId -> e.g. "S0042"
 ```
 
-Journal `name` field is the **bare slug** - no `spec_` prefix. Placeholder `-File` is harmless (step 5 overwrites via `update.ps1`). After allocation, build real path: `PLAN/$ticketId\_<short-name>.md`.
+Journal `name` field = **bare slug** - no `spec_` prefix. Placeholder `-File` harmless (step 5 overwrites via `update.ps1`). After allocation, build real path: `PLAN/$ticketId\_<short-name>.md`.
 
-**5 - Write the strategic file** at `PLAN/<Sxxxx>_<short-name>.md` using the template. `**Ticket:** Sxxxx` and `**Priority:** N` go in frontmatter. Then patch journal `file`:
+**5 - Write the strategic file** at `PLAN/<Sxxxx>_<short-name>.md` using template. `**Ticket:** Sxxxx` and `**Priority:** N` go in frontmatter. Then patch journal `file`:
 
-> **Communication policy note:** if scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), add a §3.2 constraint requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference the tone checklist (§6 of the policy) as a mandatory gate before string integration.
+> **Communication policy note:** if scope touches user-visible strings (toasts, errors, dialogs, empty states, CTAs), add §3.2 constraint requiring compliance with `docs/COMMUNICATION_POLICY.md`. Reference tone checklist (§6 of policy) as mandatory gate before string integration.
 
-> **Research artifact rule:** any §6 item resolved through actually performed research (codebase digging, web search, experiments) persists its findings to `PLAN/<Sxxxx>_<short-name>/research/<NN>__<topic-slug>.md` (`NN` = §6 item number; create the folder - `/spec-tech` adds `INDEX.md` beside it later). The §6 item links the artifact via `**Артефакт:**`. Findings that shaped §5 decisions must not live only in chat or `temp/` - `/spec-tech` re-reads these files when ordering phases.
+> **Research artifact rule:** any §6 item resolved through actually performed research (codebase digging, web search, experiments) persists findings to `PLAN/<Sxxxx>_<short-name>/research/<NN>__<topic-slug>.md` (`NN` = §6 item number; create folder - `/spec-tech` adds `INDEX.md` beside it later). §6 item links artifact via `**Артефакт:**`. Findings that shaped §5 decisions must not live only in chat or `temp/` - `/spec-tech` re-reads these files when ordering phases.
 
 ```powershell
 & pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
@@ -149,7 +149,7 @@ Journal `name` field is the **bare slug** - no `spec_` prefix. Placeholder `-Fil
 
 **5.1 - Detect spec character and emit §3.3 (Approval-gate inputs).**
 
-Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gate)` with bullets matching the spec's *actual* scope. The gate (`scripts/spec_catalog/check-owner-inputs.ps1`) validates only what is present in §3.3 - it does not require fields irrelevant to detected character. Authoring 12 `n/a` lines on an infra spec is forbidden bureaucracy theater.
+Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gate)` with bullets matching spec's *actual* scope. Gate (`scripts/spec_catalog/check-owner-inputs.ps1`) validates only what is present in §3.3 - does not require fields irrelevant to detected character. Authoring 12 `n/a` lines on infra spec = forbidden bureaucracy theater.
 
 **Detection inputs:** combine three text sources case-insensitively: `shortName` slug, §1 Проблема body, §3.2 Жёсткие ограничения bullets. Scan once per tag.
 
@@ -166,13 +166,13 @@ Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gat
 
 **Conditional closure bullets:** if *any* tag matched, additionally emit **Validation level** and **Owner sign-off**. If no tag matched (pure doc/refactor spec), skip both.
 
-**Universal bullet:** always emit **Related tickets**, even on tag-empty specs - the only field non-negotiable per the Approval gate.
+**Universal bullet:** always emit **Related tickets**, even on tag-empty specs - only field non-negotiable per Approval gate.
 
 **Emission rules.**
 
-- Each emitted bullet carries a concrete value drawn from research in §1/§3.2/§4/§10/§11. Fill values - no bracketed placeholders.
-- If a value genuinely does not apply within the emitted bullet's scope (e.g. flavor-aware spec with one flavor), write `<concrete value> - <one-clause reason>` rather than `n/a` alone.
-- Do NOT emit irrelevant bullets to look thorough. Gate accepts 1-bullet §3.3 (`Related tickets: none`) on a pure-doc spec.
+- Each emitted bullet carries concrete value drawn from research in §1/§3.2/§4/§10/§11. Fill values - no bracketed placeholders.
+- If value genuinely does not apply within emitted bullet's scope (e.g. flavor-aware spec with one flavor), write `<concrete value> - <one-clause reason>` rather than `n/a` alone.
+- Do NOT emit irrelevant bullets to look thorough. Gate accepts 1-bullet §3.3 (`Related tickets: none`) on pure-doc spec.
 
 **Examples.**
 
@@ -183,7 +183,7 @@ Before step 6 flips Draft → Approved, fill `### 3.3 Owner inputs (Approval gat
 
 **6 - Auto-approve and run dev log.**
 
-Immediately after writing the file, advance `Status: Draft` → `Approved` in spec file and journal:
+Immediately after writing file, advance `Status: Draft` → `Approved` in spec file and journal:
 
 ```powershell
 # patch Status line in spec file
@@ -202,7 +202,7 @@ Then record dev log:
 
 **7 - Auto-chain to `/spec-tech`.** *(COMPLEX path only - skip if PRIMITIVE in step 2.5.)*
 
-Without waiting, immediately invoke `/spec-tech <Sxxxx>` to break the approved spec into phases. Only exception: if any §6 Research item is `Status: Open` with a note that human research is required before implementation - list those items and ask whether to proceed. Otherwise proceed automatically.
+Without waiting, immediately invoke `/spec-tech <Sxxxx>` to break approved spec into phases. Only exception: if any §6 Research item is `Status: Open` with note that human research required before implementation - list those items and ask whether to proceed. Otherwise proceed automatically.
 
 **Chat output:** `<Sxxxx> <short-name> - Tier N, Priority P. Status: Approved. → Running /spec-tech…`
 
@@ -376,21 +376,21 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** If first arg matches `^S\d{4}$`, treat as ticket id; resolve state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as short-name slug and allocate a new id (step 4).
+- **Argument resolution.** If first arg matches `^S\d{4}$`, treat as ticket id; resolve state via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as short-name slug and allocate new id (step 4).
 - **Mutations performed by this skill:**
-  - New spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (step 4). `insert.ps1` allocates the next id internally; use `next-id.ps1` when only the id token is needed (outputs `S####` only, no journal write).
+  - New spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (step 4). `insert.ps1` allocates next id internally; use `next-id.ps1` when only id token needed (outputs `S####` only, no journal write).
   - After file on disk: `update.ps1 -Id <Sxxxx> -File "PLAN/<Sxxxx>_<short-name>.md"` (step 5).
-- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never produce a strategic file at `PLAN/spec_<short-name>.md` or `PLAN/<Sxxxx>_spec_<short-name>.md` - the `_spec_` segment is forbidden.
+- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never produce strategic file at `PLAN/spec_<short-name>.md` or `PLAN/<Sxxxx>_spec_<short-name>.md` - `_spec_` segment forbidden.
 
 ---
 
 ## Constraints
 
-- Language/format: body Russian. Frontmatter, code identifiers, file paths English. Use `..` not `...`; always use `ё`/`Ё`. These two rules plus Spec Writing Style sanitation (lists over tables, no pseudographics, one idea per bullet, no section summaries) are an enforced gate only at the `Draft` -> `Approved` flip (step 6). A `Draft` spec may keep rough phrasing, `...`, missing `ё`, or tables; clean as part of approval, never as a standalone draft sweep.
+- Language/format: body Russian. Frontmatter, code identifiers, file paths English. Use `..` not `...`; always use `ё`/`Ё`. These two rules plus Spec Writing Style sanitation (lists over tables, no pseudographics, one idea per bullet, no section summaries) are enforced gate only at `Draft` -> `Approved` flip (step 6). A `Draft` spec may keep rough phrasing, `...`, missing `ё`, or tables; clean as part of approval, never as standalone draft sweep.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only.
 - §11: observable outcomes only, no internal architecture claims.
 - Required sections: §6 and §7 mandatory even if trivial - write explicit "нет" rather than skip. §10 and §11 must not be omitted - write "No changes" if N/A.
 - Output hygiene: do not duplicate existing `docs/FEATURES.md` entries.
 - Repo boundaries: never reference read-only zones `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Conditional notes: new dependency wiring → mention need in §5.3 at architectural-role level only, defer concrete Hilt module/file details to `/spec-tech`. `BuildConfig`-gated behavior → note product constraint or flavor gate in §3.2, defer concrete flag/file details to `/spec-tech`.
-- **Flavor scope (mandatory for non-`standard` work).** If the feature targets any non-`standard` flavor (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or explicitly excludes one - §3.2 MUST name target flavors AND state the implementation will follow `dev/FLAVOR_DEVELOPMENT_RULES.md` (interface in `src/main/` + impl in `src/<flavor>/java/` + flavor-specific Hilt module). §5.3 MUST list the abstraction interface introduced or extended. Never plan a flavor feature as "add `BuildConfig.SUPPORT_*` check inside main" - forbidden by CLAUDE.md Rule 15. Spec stays role-level (no file paths), but the source-set discipline statement is non-negotiable.
+- **Flavor scope (mandatory for non-`standard` work).** If feature targets any non-`standard` flavor (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or explicitly excludes one - §3.2 MUST name target flavors AND state implementation will follow `dev/FLAVOR_DEVELOPMENT_RULES.md` (interface in `src/main/` + impl in `src/<flavor>/java/` + flavor-specific Hilt module). §5.3 MUST list abstraction interface introduced or extended. Never plan flavor feature as "add `BuildConfig.SUPPORT_*` check inside main" - forbidden by CLAUDE.md Rule 15. Spec stays role-level (no file paths), but source-set discipline statement is non-negotiable.

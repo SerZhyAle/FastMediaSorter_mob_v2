@@ -1,0 +1,41 @@
+# Claude Code context exclusions
+# Keep Claude focused on actual source code, not build artifacts or large binary dirs
+
+# Build artifacts (Gradle)
+**/build/
+.gradle/
+build_output.txt
+
+# Large binary / output dirs
+DOWNLOADS/
+store_assets/
+play/
+fastlane/
+
+# Legacy / read-only archives
+V1/
+v2_6/
+spec_v2/
+dev/archive/
+
+# Temp working files
+temp/
+logs/
+
+# IDE / tooling internals
+.idea/
+.kotlin/
+.venv/
+node_modules/
+__pycache__/
+
+# Large binary assets
+*.apk
+*.aab
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+native-debug-symbols.zip

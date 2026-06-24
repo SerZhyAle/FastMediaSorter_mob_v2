@@ -115,6 +115,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Select Photos Source | Chooses the folder or resource used as the photo source during audio playback. |
 | Set as default audio player | Registers this app as the default handler for audio files on the device. |
+| Visualizer when no cover art | Chooses what is shown in place of missing album cover art during audio playback. |
 | Show random photos during audio playback | Displays random photos from the selected source while audio is playing. |
 | Save downloaded media data locally | Caches downloaded track metadata and cover art on the device to avoid re-fetching. |
 | Search audio covers online | Fetches missing cover art from the internet when a local cover is not found. |
@@ -147,13 +148,14 @@ _Available in: Standard, Legacy_
 | Setting | What it does |
 |---|---|
 | Retry | Retries initializing the translation engine if the previous attempt failed. |
+| OCR & translation downloads | Manages downloadable OCR and translation components. |
 | Enable text recognition (OCR) | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
-| Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | OCR Engine | Selects which on-device text-recognition engine is used for OCR. |
 | OCR Font Family | Sets the font family used to display recognized OCR text. |
 | OCR Font Size | Sets the font size used to display recognized OCR text. |
 | PaddleOCR Model | Selects which PaddleOCR model is used for text recognition. |
+| Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
 
@@ -175,7 +177,6 @@ _Available in: Standard, Legacy_
 | Always show touch zones overlay | Keeps the touch zone grid permanently visible over the player instead of showing it only on tap. |
 | Big Buttons Mode | Enlarges the player control buttons for easier tapping on large or touch-only screens. |
 | Confirm delete | Shows a confirmation dialog before deleting a file from inside the player. |
-| Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
 | Disable 9-zone tracking | Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area. |
 | Background Playback | Keeps audio playing when you leave the app or lock the screen. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player. |
@@ -198,7 +199,9 @@ _Available in: Standard, Legacy_
 | Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
+| Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
+| Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Default audio player | Sets which app opens audio files by default when tapped from outside this app. |
 | Default document viewer | Sets which app opens document files by default when tapped from outside this app. |
@@ -224,6 +227,7 @@ _Available in: Standard, Legacy_
 | Enable photo capture | Enables the built-in camera button so you can capture photos directly into the app. |
 | Confirm before delete | Shows a confirmation dialog before deleting a file from inside the player. |
 | Confirm before move | Shows a confirmation dialog before moving a file to a different destination. |
+| Controls & Keybindings | Opens the controls and key-binding configuration for navigation and playback. |
 | Save screenshots to clipboard | Automatically copies screenshots taken within the app to the clipboard. |
 | Remember file lists (default for new resources) | Pre-enables the "remember file list" option for newly added resources by default. |
 | Show detailed errors | Shows technical error details alongside the human-readable message in the player. |
@@ -246,11 +250,9 @@ _Available in: Standard, Legacy_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | System media handler | Registers this app as a system-level media handler so it receives media intents from other apps. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
-| Save screenshots to.. | Chooses the folder or resource where captured screenshots are saved. |
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |
 | Right gesture action | Chooses the action triggered by the rightward screen gesture. |
 | Up gesture action | Chooses the action triggered by the upward screen gesture. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
-| Download destination resource | Chooses the destination resource where files from incoming links are downloaded automatically. |

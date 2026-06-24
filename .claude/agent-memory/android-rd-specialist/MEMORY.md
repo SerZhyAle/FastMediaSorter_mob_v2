@@ -1,5 +1,7 @@
 # Memory Index
 
+- [Incremental build phantom unresolved-ref cascade](project_incremental_build_phantom_unresolved.md) - a.ps1 dq after cross-cutting multi-file edits throws phantom "unresolved reference" only in edited files though symbols exist; deterministic on retry; fix = clean build a.ps1 cd (cost 2 builds on S0646)
+
 - [Stream catalog: ship all live channels](feedback_stream_catalog_all_live_channels.md) - owner wants EVERY reachable channel w/ signal incl grey-area + -; legal-scope filter REMOVED from code+README (2026-06-22); only defunct/header-gated/dead dropped; -DeepSignal probe pulls real bytes
 
 - [VR immersive re-entry hotspot (S0607)](project_vr_immersive_reentry_hotspot.md) - 2nd/3rd immerse hangs in IDLE ("вечный полёт"); reused XrInstance bound to finish()-ed Activity -> null VolumetricWindowInfo; fix = recreate instance per entry + loader inited once with Application context (global ref); ~2-month battle, lineage S0249/S0290/S0291/S0382
@@ -15,7 +17,7 @@
 - [Flavor matrix: legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - persona's flavor table is stale; legacy=full set incl cloud/docs/translation, photos has cloud+network (no docs/video/audio), lite is the only no-cloud flavor; verify SUPPORT_*/ENABLE_* in build.gradle.kts
 - [Play edge-to-edge warnings status](project_play_setstatusbarcolor_false_positive.md) - #2 setStatusBarColor was FIXED by Material 1.14.0 (cleared on release 6200.317; my earlier "unfixable" call was WRONG); #1 may-not-display is informational + app-side-complete, not reliably clearable
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP release if supported countries / age ratings / device reach (minSdk, ABI, uses-feature, flavor) shrink vs prior build
-- [screenCapture split standard vs noLegal](project_screencapture_nolegal_only.md) - since S0559 src/screenCapture + MenuScreenshotLauncher are standard+noLegal (menu MediaProjection capture ships on standard); only edge-overlay controller + accessibility silent path stay noLegal-only; S0621 = bring gesture group to standard
+- [screenCapture split standard vs noLegal](project_screencapture_nolegal_only.md) - since S0559 src/screenCapture + MenuScreenshotLauncher are standard+noLegal (menu MediaProjection capture ships on standard); Play-safe gesture controller now in src/standardScreenCapture (S0630 Verified); only always-on edge strip + accessibility silent path stay noLegal-only; S0621 = device-test the standard wiring
 - [Settings-search gate axes (S0597-S0604)](project_settings_search_gate_axes.md) - 3 ANDed gates: section / flavor-DI-compile (CapabilityGate) / device-OS (DeviceFeatureGate); camera-OCR rows span two; runtime-state rows = S0604
 
 - [Working tree is truth - don't read git history for state](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff/status to learn what changed/WIP/yesterday's version; single dev, many tickets per file = history misleads; git only on explicit ask or release/commit flows
@@ -26,7 +28,6 @@
 - [No concurrent gradle invocations](feedback_no_concurrent_gradle_invocations.md) - never run >1 gradle build at once (multi Kotlin-daemon OOM); post-change.ps1 is static (no compile), safe to run anytime
 - [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick ad-hoc device chores; prefer over raw adb; ~0 tokens
 - [activity_welcome.xml has 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id must go in all three or ViewBinding field is nullable (no layout-land)
-- [translationMlKit shared with :translate_feature DFM (no Hilt)](project_translationmlkit_shared_with_dfm.md) - translation DI contributors go in translationDynamicFeature, never translationMlKit
 - [spec-tech plan quality discipline](feedback_spec_tech_plan_quality.md) - owner: misordered phases + doc-shuffling steps are dominant plan defects; keep 3.1-3.4/5.5 + research/ convention intact
 - [Permanent-log ticket-id gate](reference_ticket_log_gate.md) - scripts/quality/assert-no-ticket-logs.ps1 + fail-closed post-change step (Kotlin/Mixed); never embed Sxxxx in Timber.i/w/e (S0381 Phase 01)
 - [photos/lite OCR build break - RESOLVED 2026-06-10](project_photos_flavor_ocr_break.md) - Tesseract moved to src/ocrEnabled bucket, NoOp default in src/ocrDisabled for photos/lite; new Tesseract code must go in ocrEnabled, never src/main

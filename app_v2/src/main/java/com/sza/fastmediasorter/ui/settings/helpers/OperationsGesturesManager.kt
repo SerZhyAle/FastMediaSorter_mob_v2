@@ -64,7 +64,8 @@ class OperationsGesturesManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
         }
-        binding.rowScreenshotDestination.setOnRowClickListener {
+        binding.btnSelectScreenshotDestination.setOnClickListener {
+            Timber.d("S0648: screenshot-destination selector (button-pattern) opening destination picker")
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
             ) { resource ->
@@ -132,7 +133,7 @@ class OperationsGesturesManager(
         refreshLabel(
             settings.screenshotDestinationResourceId,
             R.string.setting_screenshot_destination_default
-        ) { binding.rowScreenshotDestination.setValue(it) }
+        ) { binding.tvScreenshotDestination.text = it }
     }
 
     /** Re-applies the overlay state after returning from the system permission screen. */

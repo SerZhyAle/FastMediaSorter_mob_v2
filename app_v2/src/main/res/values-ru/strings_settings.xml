@@ -238,6 +238,6 @@
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Разрешить режим «Все файлы»</string>
     <string name="settings_statistics_collection_title">Сбор статистики</string>
-    <string name="settings_statistics_collection_summary">Собирается на вашем устройстве. По умолчанию выключено - ничего не отправляется автоматически.</string>
+    <string name="settings_statistics_collection_summary">Собирается на вашем устройстве. Ничего не отправляется автоматически.</string>
     <string name="settings_category_additional_programs">Дополнительные программы и сценарии</string>
 </resources>

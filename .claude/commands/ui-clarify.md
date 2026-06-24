@@ -1,6 +1,6 @@
 # UI Clarification Gate
 
-Block implementation until all important UI/UX decisions are explicit.
+Block implementation until all important UI/UX decisions explicit.
 
 ## Usage
 
@@ -17,17 +17,17 @@ Examples:
 
 ## Goal
 
-Before design or implementation, identify every meaningful UI ambiguity that could change behavior, placement, discoverability, or user expectations.
+Before design/impl, identify every meaningful UI ambiguity affecting behavior, placement, discoverability, or user expectations.
 
-If the task touches user-visible wording, labels, help text, errors, empty states, confirmations, or CTAs, treat `docs/COMMUNICATION_POLICY.md` as a mandatory source for tone and message-structure decisions.
+Task touches user-visible wording / labels / help text / errors / empty states / confirmations / CTAs → `docs/COMMUNICATION_POLICY.md` mandatory source for tone + message-structure.
 
-Do NOT implement while any important item below is unresolved.
+Do NOT implement while any important item below unresolved.
 
 ---
 
 ## Required Checklist
 
-Inspect the spec/request and current code, then produce one decision table in four passes:
+Inspect spec/request + current code, produce one decision table in four passes:
 
 1. Placement and presentation.
    - exact placement in portrait
@@ -36,13 +36,13 @@ Inspect the spec/request and current code, then produce one decision table in fo
    - direct button in command bar, overflow menu item, top app bar / toolbar item, or settings row / dialog / bottom sheet
 
 2. Visibility and priority.
-   - which media or file types show it
+   - which media/file types show it
    - feature flags / flavors
    - permissions / read-only / destination availability
    - hidden vs disabled behavior
-   - what happens when there is not enough space
+   - behavior when not enough space
    - which actions outrank it
-   - whether it may spill to overflow
+   - may spill to overflow?
 
 3. Interaction and wording.
    - label
@@ -50,9 +50,9 @@ Inspect the spec/request and current code, then produce one decision table in fo
    - tooltip / help text
    - click behavior
    - long-click behavior if applicable
-   - if wording changes, apply the message-type formula from `docs/COMMUNICATION_POLICY.md` §2, the next-step rule from §3, and the tone checklist from §6
+   - wording changes → apply message-type formula `docs/COMMUNICATION_POLICY.md` §2, next-step rule §3, tone checklist §6
 
-4. State, failure UX, and accessibility.
+4. State, failure UX, accessibility.
    - empty state
    - loading state
    - error state
@@ -69,23 +69,23 @@ Inspect the spec/request and current code, then produce one decision table in fo
 On invocation:
 
 **Step 1 - Read context.**
-- Read the user request / spec.
+- Read user request / spec.
 - Read relevant layouts, controllers, planners, adapters, strings.
-- Read `docs/ARCHITECTURE.md` if the task affects canonical UI patterns.
-- Read `docs/COMMUNICATION_POLICY.md` if the task affects any user-visible copy.
+- Read `docs/ARCHITECTURE.md` if task affects canonical UI patterns.
+- Read `docs/COMMUNICATION_POLICY.md` if task affects user-visible copy.
 
-**Step 2 - Build the ambiguity list.**
+**Step 2 - Build ambiguity list.**
 - Separate explicit decisions from implicit assumptions.
-- Mark every unresolved item as blocking.
+- Mark every unresolved item blocking.
 
 **Step 3 - Ask targeted questions or propose bounded options.**
-- Ask only the questions needed to unblock implementation.
-- If a decision can be delegated, present 2-3 concrete options with tradeoffs.
+- Ask only questions needed to unblock impl.
+- Delegable decision → present 2-3 concrete options with tradeoffs.
 
 **Step 4 - Produce one of two outcomes.**
 
 ### Outcome A - BLOCKED
-Use when any important UI decision remains unresolved.
+Use when any important UI decision unresolved.
 
 ```markdown
 ## UI Clarification Status
@@ -103,7 +103,7 @@ Status: BLOCKED
 ```
 
 ### Outcome B - READY
-Use only when every important UI decision is explicit or explicitly delegated.
+Use only when every important UI decision explicit or explicitly delegated.
 
 ```markdown
 ## UI Clarification Status
@@ -124,4 +124,4 @@ Status: READY
 
 ## Hard Rule
 
-If the request/spec uses non-committal wording about two or more UI options, treat that item as unresolved unless one option is explicitly approved or the user explicitly delegates the choice to the agent. Do NOT infer implementation freedom when the choice changes discoverability, placement, or behavior under a different orientation or screen constraint.
+Request/spec uses non-committal wording about 2+ UI options → treat item as unresolved unless one option explicitly approved or user explicitly delegates choice to agent. Do NOT infer implementation freedom when choice changes discoverability, placement, or behavior under different orientation / screen constraint.

@@ -724,25 +724,40 @@
     "ru": "Показывает результаты перевода в виде блоков поверх изображения вместо отдельной панели.",
     "uk": "Показує результати перекладу у вигляді блоків поверх зображення замість окремої панелі."
   },
-  "spinnerOcrEngineType": {
+  "rowOcrEngineType": {
     "en": "Selects which on-device text-recognition engine is used for OCR.",
     "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
     "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
   },
-  "spinnerPaddleOcrModel": {
+  "rowPaddleOcrModel": {
     "en": "Selects which PaddleOCR model is used for text recognition.",
     "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
     "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
   },
-  "spinnerOcrFontSize": {
+  "rowOcrFontSize": {
     "en": "Sets the font size used to display recognized OCR text.",
     "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
     "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
   },
-  "spinnerOcrFontFamily": {
+  "rowOcrFontFamily": {
     "en": "Sets the font family used to display recognized OCR text.",
     "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
     "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+  },
+  "rowAudioEmptyStateMode": {
+    "en": "Chooses what is shown in place of missing album cover art during audio playback.",
+    "ru": "Выбирает, что показывать вместо отсутствующей обложки альбома при воспроизведении аудио.",
+    "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
+  },
+  "rowControlsKeybindings": {
+    "en": "Opens the controls and key-binding configuration for navigation and playback.",
+    "ru": "Открывает настройку управления и привязок клавиш для навигации и воспроизведения.",
+    "uk": "Відкриває налаштування керування та прив'язок клавіш для навігації та відтворення."
+  },
+  "layoutExtensionsManager": {
+    "en": "Manages downloadable OCR and translation components.",
+    "ru": "Управляет загружаемыми компонентами OCR и перевода.",
+    "uk": "Керує завантажуваними компонентами OCR та перекладу."
   },
   "spinnerTranslationSourceLanguage": {
     "en": "Chooses the source language that recognized text is translated from.",
@@ -944,7 +959,7 @@
     "ru": "Открывает экран статистики использования.",
     "uk": "Відкриває екран статистики використання."
   },
-  "row_link_autodownload_resource": {
+  "btnSelectLinkAutodownloadResource": {
     "en": "Chooses the destination resource where files from incoming links are downloaded automatically.",
     "ru": "Выбирает ресурс назначения, куда автоматически загружаются файлы из входящих ссылок.",
     "uk": "Вибирає ресурс призначення, куди автоматично завантажуються файли з вхідних посилань."
@@ -964,7 +979,7 @@
     "ru": "Выбирает действие, вызываемое жестом вниз.",
     "uk": "Вибирає дію, що викликається жестом униз."
   },
-  "rowScreenshotDestination": {
+  "btnSelectScreenshotDestination": {
     "en": "Chooses the folder or resource where captured screenshots are saved.",
     "ru": "Выбирает папку или ресурс, куда сохраняются снятые скриншоты.",
     "uk": "Вибирає теку або ресурс, куди зберігаються зроблені знімки екрана."

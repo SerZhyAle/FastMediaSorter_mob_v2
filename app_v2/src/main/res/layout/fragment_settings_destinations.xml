@@ -808,14 +808,51 @@
                             app:str_title="@string/link_autodownload_master_label"
                             app:str_subtitle="@string/link_autodownload_master_summary" />
 
-                        <!-- S0567: unified to SettingsSelectionRow; resolved label written via setValue(). -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                            android:id="@+id/row_link_autodownload_resource"
+                        <!-- S0648: button-pattern destination selector (label + value + Select) to match the camera/video folder rows. -->
+                        <LinearLayout
+                            android:id="@+id/layoutLinkAutodownloadResourceSelector"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:ssr_title="@string/link_autodownload_resource_label"
-                            app:ssr_value="@string/link_autodownload_resource_not_set" />
+                            android:orientation="vertical"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:layout_marginBottom="@dimen/margin_small">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/link_autodownload_resource_label"
+                                android:textColor="@color/text_color_primary"
+                                android:textSize="@dimen/toggler_title_text_size"
+                                android:layout_marginBottom="@dimen/margin_small" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvLinkAutodownloadResource"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="@dimen/margin_small"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="@string/link_autodownload_resource_not_set"
+                                    android:textColor="@color/text_color_secondary"
+                                    android:textSize="@dimen/toggler_title_text_size" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnSelectLinkAutodownloadResource"
+                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/setting_select_destination"
+                                    android:textAllCaps="false" />
+                            </LinearLayout>
+                        </LinearLayout>
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowLinkAutodownloadOpenInPlayer"
@@ -899,14 +936,51 @@
                         android:focusable="true"
                         android:text="@string/settings_take_screenshot_now" />
 
-                    <!-- Screenshot destination (tap opens the destination picker) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowScreenshotDestination"
+                    <!-- S0648: button-pattern destination selector (label + value + Select) to match the camera/video folder rows. -->
+                    <LinearLayout
+                        android:id="@+id/layoutScreenshotDestinationSelector"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:ssr_title="@string/setting_screenshot_destination_title"
-                        app:ssr_value="@string/setting_screenshot_destination_default" />
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_small">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/setting_screenshot_destination_title"
+                            android:textColor="@color/text_color_primary"
+                            android:textSize="@dimen/toggler_title_text_size"
+                            android:layout_marginBottom="@dimen/margin_small" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvScreenshotDestination"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="@dimen/margin_small"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/setting_screenshot_destination_default"
+                                android:textColor="@color/text_color_secondary"
+                                android:textSize="@dimen/toggler_title_text_size" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSelectScreenshotDestination"
+                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/setting_select_destination"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowCopyScreenshotToClipboard"

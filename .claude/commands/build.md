@@ -1,11 +1,11 @@
 # Build Guide
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
-> 1. **Dry technical prose only** - no filler.
-> 2. **Autonomy:** silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
-> 3. **Terse report:** one dry statement of what was done and why.
+> 1. Dry technical prose only - no filler.
+> 2. Autonomy: silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
+> 3. Terse report: one dry statement of what was done and why.
 
-Answer questions about the build system, scripts, versioning, flavors, deployment for FastMediaSorter v2.
+Answer questions on build system, scripts, versioning, flavors, deployment for FastMediaSorter v2.
 
 ## Usage
 
@@ -24,8 +24,8 @@ Examples:
 ## Process
 
 On `$ARGUMENTS`:
-- **Step 1 - Parse.** If provided, focus on that topic; else output the full reference below.
-- **Step 2 - Answer from the reference below** (authoritative for build/script/versioning). Don't search the codebase unless the question requires it.
+- Step 1 - Parse. If topic provided, focus it; else output full reference below.
+- Step 2 - Answer from reference below (authoritative for build/script/versioning). Don't search codebase unless question requires it.
 
 ---
 
@@ -47,14 +47,14 @@ On `$ARGUMENTS`:
 | Lint | `.\gradlew.bat lintStandardDebug` |
 | Wear OS debug | `.\gradlew.bat :wear:assembleDebug` |
 
-**Quiet mode (`dq` / `-Quiet`).** `scripts/builders/build-debug.PS1` accepts `-Quiet` (mapped via `a.ps1 dq`). Captures full Gradle output for retry-detection (Gradle cache pack, kapt incrementalData lock) but prints only lines NOT in the known-noise list:
+**Quiet mode (`dq` / `-Quiet`).** `scripts/builders/build-debug.PS1` accepts `-Quiet` (mapped via `a.ps1 dq`). Captures full Gradle output for retry-detection (Gradle cache pack, kapt incrementalData lock) but prints only lines NOT in known-noise list:
 
 - `> Task :app_v2:X UP-TO-DATE / NO-SOURCE / SKIPPED / FROM-CACHE`
 - Three AGP DSL deprecation warnings (`builtInKotlin`, `newDsl`, `applicationVariants`/`testVariants`/`unitTestVariants`)
 - Known-acceptable Kotlin warnings (`PlayerActivity.kt` `'open' has no effect on a final class` lines 678/686/689/1122)
 - `Note: [1] Wrote GeneratedAppGlideModule`, kapt processor-option notes, `Using the build cache is enabled`
 
-Errors, FAIL/SUCCESS verdict lines, final task list, and any unknown warning are always printed. Total suppression count reported at end - nothing hidden silently. Update the pattern list in `scripts/builders/build-debug.PS1` when adding intentional warnings; never use it to mask real failures.
+Errors, FAIL/SUCCESS verdict lines, final task list, any unknown warning: always printed. Total suppression count reported at end - nothing hidden silently. Update pattern list in `scripts/builders/build-debug.PS1` when adding intentional warnings; never use it to mask real failures.
 
 ---
 
@@ -70,11 +70,11 @@ Errors, FAIL/SUCCESS verdict lines, final task list, and any unknown warning are
 | `vrUnlicensed` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | ADB sideload only (same appId as `vr`) |
 | `noLegal` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | Sideload only (gitignored docs) |
 
-Capability flags gated via `BuildConfig` fields in `app_v2/build.gradle.kts` (source of truth for flavor config). Use them only inside flavor source sets - never inside `src/main/java/`.
+Capability flags gated via `BuildConfig` fields in `app_v2/build.gradle.kts` (source of truth for flavor config). Use only inside flavor source sets - never inside `src/main/java/`.
 
 ### Flavor Source Set Discipline
 
-Each flavor has its own source set: `app_v2/src/<flavor>/java/`, `.../res/`, `AndroidManifest.xml`. Flavor-only code goes there, NOT into `src/main/java/`.
+Each flavor has own source set: `app_v2/src/<flavor>/java/`, `.../res/`, `AndroidManifest.xml`. Flavor-only code goes there, NOT into `src/main/java/`.
 
 | Layout | Purpose | Where to place new code |
 |--------|---------|-------------------------|
@@ -86,17 +86,17 @@ Each flavor has its own source set: `app_v2/src/<flavor>/java/`, `.../res/`, `An
 | `src/streamingEnabled/java/` | Shared by flavors with HLS/DASH (`standard`, `noLegal`, `legacy`, `vr`, `vrUnlicensed`) | Streaming download pipeline |
 | `src/streamingDisabled/java/` | Shared by flavors without streaming (`lite`, `photos`) | No-Op streaming pipeline |
 
-Rules: `dev/FLAVOR_DEVELOPMENT_RULES.md` + CLAUDE.md Rule 15. Recipe for a new flavor-specific feature:
+Rules: `dev/FLAVOR_DEVELOPMENT_RULES.md` + CLAUDE.md Rule 15. New flavor-specific feature recipe:
 
 1. `src/main/java/.../FeatureX.kt` - `interface FeatureX { ... }` + `class NoOpFeatureX : FeatureX` + `@Module class FeatureXMainModule { @Binds fun bind(noOp: NoOpFeatureX): FeatureX }`.
 2. `src/<flavor>/java/.../RealFeatureX.kt` - real impl.
-3. `src/<flavor>/java/.../di/FeatureXFlavorModule.kt` - `@Module class FeatureXFlavorModule { @Binds fun bind(real: RealFeatureX): FeatureX }` + `@TestInstallIn` or replace-strategy as the flavor's main module.
+3. `src/<flavor>/java/.../di/FeatureXFlavorModule.kt` - `@Module class FeatureXFlavorModule { @Binds fun bind(real: RealFeatureX): FeatureX }` + `@TestInstallIn` or replace-strategy as flavor's main module.
 4. Never write `if (BuildConfig.SUPPORT_VR_PLAYER) { startVr() } else { ... }` inside `src/main/java/`.
 
 Troubleshooting:
-- `unresolved reference: SomeClass` building flavor X but not Y → `src/main/java/` references a class living only in `src/<Y>/java/`. Move the reference behind an interface in main.
+- `unresolved reference: SomeClass` building flavor X not Y → `src/main/java/` references class living only in `src/<Y>/java/`. Move reference behind interface in main.
 - "leaks GPL code to standard build" warning during compliance audit → check `src/main/java/` for imports from `com.sza.fastmediasorter.noLegal.*` (must be zero).
-- VR build compiles for non-arm64 ABI → check `cmake.abiFilters = arm64-v8a` in the flavor's `externalNativeBuild` block.
+- VR build compiles for non-arm64 ABI → check `cmake.abiFilters = arm64-v8a` in flavor's `externalNativeBuild` block.
 
 **Gradle flavor targets:**
 ```powershell
@@ -139,7 +139,7 @@ Example: `2.63.2281.432` = 2026/03/28 14:32
 **versionCode format:** `YYMMDDHHm` (9 digits, first digit of minutes only - to stay within Int32.MaxValue). Example: `260328143` = 2026/03/28 14:3x
 
 **How applied:**
-- `.\dev\build-with-version.ps1` - generates version from datetime, patches `app_v2/build.gradle.kts`, builds, restores on failure.
+- `.\dev\build-with-version.ps1` - generate version from datetime, patch `app_v2/build.gradle.kts`, build, restore on failure.
 - `.\build-debug.PS1` - fast build, does NOT bump version.
 - Manual: edit `versionCode` + `versionName` in `app_v2/build.gradle.kts` directly.
 
@@ -194,6 +194,7 @@ app_v2/build/outputs/apk/standard/release/
 
 Extracted logs land in `temp/` (never project root).
 
+
 ---
 
 ### Testing
@@ -221,13 +222,13 @@ Extracted logs land in `temp/` (never project root).
 .\scripts\utils\run-stress.ps1
 ```
 
-Maestro flows live in `maestro/smoke/` and `maestro/critical/`. Do NOT use `npm install -g maestro-cli`.
+Maestro flows in `maestro/smoke/` and `maestro/critical/`. Do NOT use `npm install -g maestro-cli`.
 
 ---
 
 ### KAPT Stall Recovery
 
-If `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes during a targeted validation command (`:app_v2:compileStandardDebugKotlin`, `:app_v2:testStandardDebugUnitTest`, per-class test run), the build is not failing - it stalls silently, so `build-debug.PS1` cannot auto-retry. Abort the stalled invocation and use targeted recovery:
+If `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes during targeted validation command (`:app_v2:compileStandardDebugKotlin`, `:app_v2:testStandardDebugUnitTest`, per-class test run), build is not failing - stalls silently, so `build-debug.PS1` cannot auto-retry. Abort stalled invocation, use targeted recovery:
 
 ```powershell
 # Stop daemons, clear only kapt/kotlin/executionHistory volatile state, retry once with --no-daemon
@@ -241,7 +242,7 @@ pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 .\scripts\builders\clean-gradle-caches.ps1
 ```
 
-`recover-kapt-stall.ps1` removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory` only - does NOT wipe `.gradle/` or `app_v2/build/`. Reach for `clean-gradle-caches.ps1` only when the targeted path fails twice.
+`recover-kapt-stall.ps1` removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, `.gradle/<ver>/executionHistory` only - does NOT wipe `.gradle/` or `app_v2/build/`. Use `clean-gradle-caches.ps1` only when targeted path fails twice.
 
 ---
 
@@ -257,7 +258,7 @@ Example:
 .\scripts\add_to_dev_log.ps1 "app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt" "PlayerActivity" "Add Chromecast button to overflow menu"
 ```
 
-Appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` directly.
+Appends timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` directly.
 
 ---
 
@@ -265,7 +266,7 @@ Appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` direc
 
 - Version catalog: `gradle/libs.versions.toml` - check here first before adding any dependency.
 - Library absent from catalog → add it there before referencing in `build.gradle.kts`.
-- Room schema version: increment on every entity/schema change in `app_v2/build.gradle.kts` AND add a migration in `AppDatabase.kt`.
+- Room schema version: increment on every entity/schema change in `app_v2/build.gradle.kts` AND add migration in `AppDatabase.kt`.
 
 ---
 
@@ -284,6 +285,6 @@ Appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` direc
 ### Quality Rules
 
 - Temp artifacts, APK copies, backups → `temp/`, never project root.
-- File size limit 1500 lines. Files >500 lines need a timestamped backup in `temp/` before modification.
+- File size limit 1500 lines. Files >500 lines need timestamped backup in `temp/` before modification.
 - Never `Log.d()` - use `Timber` only.
 - Activity/Fragment logic delegated to `helpers/*Manager.kt`.

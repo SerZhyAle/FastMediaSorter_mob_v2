@@ -238,6 +238,6 @@
     <string name="settings_default_document_type_epub">EPUB</string>
     <string name="setting_all_files_allow_title">Allow All Files mode</string>
     <string name="settings_statistics_collection_title">Statistics collection</string>
-    <string name="settings_statistics_collection_summary">Collected on your device. Off by default - nothing is sent automatically.</string>
+    <string name="settings_statistics_collection_summary">Collected on your device. Nothing is sent automatically.</string>
     <string name="settings_category_additional_programs">Additional programs and scenarios</string>
 </resources>

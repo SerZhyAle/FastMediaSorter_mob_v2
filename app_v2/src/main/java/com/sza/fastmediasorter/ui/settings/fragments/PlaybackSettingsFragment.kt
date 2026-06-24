@@ -194,12 +194,6 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
         }
 
-        binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
-        }
-
         binding.rowShowPlayerHint.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -406,9 +400,6 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                         binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
-                    }
-                    if (binding.rowDetailedErrors.isChecked != settings.showDetailedErrors) {
-                        binding.rowDetailedErrors.setCheckedSilently(settings.showDetailedErrors)
                     }
                     if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
                         binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)

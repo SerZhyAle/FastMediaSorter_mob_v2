@@ -4,9 +4,9 @@ model: sonnet
 
 # Arc - Archive Tickets
 
-Alias for `/spec-arc`. Identical semantics: accepts one or several ids, loops `archive.ps1` per id, emits a single batch summary.
+Alias for `/spec-arc`. Same semantics: accept 1+ ids, loop `archive.ps1` per id, emit single batch summary.
 
-See [.claude/commands/spec-arc.md](.claude/commands/spec-arc.md) for the full process.
+Full process: [.claude/commands/spec-arc.md](.claude/commands/spec-arc.md).
 
 ## Usage
 

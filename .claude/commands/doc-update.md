@@ -1,6 +1,6 @@
 # Documentation Update
 
-Review the current change and update all affected documentation files.
+Review current change, update all affected documentation files.
 
 ## Usage
 
@@ -9,15 +9,15 @@ Review the current change and update all affected documentation files.
 ```
 
 - `/doc-update Chromecast cast integration`
-- `/doc-update` - infer scope from the files touched in this session / the active spec
+- `/doc-update` - infer scope from files touched this session / active spec
 
 ---
 
 ## Process
 
-**1 - Determine scope.** Use `$ARGUMENTS` as the change description. If empty, infer scope from the files just edited in this session (or the active spec's changed files) and read them briefly. Do NOT reconstruct scope from git history (`git diff HEAD~1` mixes many unrelated tickets on this repo). If neither is available, ask the user what changed.
+**1 - Determine scope.** Use `$ARGUMENTS` as change description. If empty, infer scope from files just edited this session (or active spec's changed files), read briefly. Do NOT reconstruct scope from git history (`git diff HEAD~1` mixes many unrelated tickets on this repo). If neither available, ask user what changed.
 
-**2 - Work the checklist below in order.** Decide per item *affected* / *not affected*. Apply every affected update; skip non-affected silently. If a required repo doc/helper script is broken or insufficient, fix the script first instead of working around it.
+**2 - Work checklist below in order.** Decide per item *affected* / *not affected*. Apply every affected update; skip non-affected silently. If required repo doc/helper script broken or insufficient, fix script first instead of working around it.
 
 **3 - Run dev log for every file modified** (mandatory):
 
@@ -36,7 +36,7 @@ Review the current change and update all affected documentation files.
 #### A1. `dev/CHANGELOG.md`
 
 **When:** after every code or config change - no exceptions.
-**How:** run the script once per modified file. Never edit directly.
+**How:** run script once per modified file. Never edit directly.
 
 ```powershell
 .\scripts\add_to_dev_log.ps1 "<relative_path>" "<ClassName or target>" "<one-line description>"
@@ -46,21 +46,21 @@ Review the current change and update all affected documentation files.
 
 ### B - User-Facing Features
 
-"User-facing" = adds, removes, or materially alters something the end user can see or do.
+"User-facing" = adds, removes, or materially alters something end user can see or do.
 
-**Two artifacts, two roles (S0489):** `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every implemented capability (one record per capability, written via `scripts/all_features/add.ps1`); `docs/FEATURES*` is the curated public showcase published to the site. Record every shipped capability in `ALL_FEATURES`. Do NOT add per-feature bullets to `FEATURES*` ad hoc - that showcase is populated only by `/skill-release` from the inventory diff since the previous release. The B1-B3 steps below apply when `/skill-release` (or an explicit owner request) promotes a standout capability into the showcase.
+**Two artifacts, two roles (S0489):** `docs/ALL_FEATURES.jsonl` = EN-only developer inventory of every implemented capability (one record per capability, written via `scripts/all_features/add.ps1`); `docs/FEATURES*` = curated public showcase published to site. Record every shipped capability in `ALL_FEATURES`. Do NOT add per-feature bullets to `FEATURES*` ad hoc - showcase populated only by `/skill-release` from inventory diff since previous release. B1-B3 steps below apply when `/skill-release` (or explicit owner request) promotes a standout capability into showcase.
 
-**noLegal exception:** `noLegal`-exclusive features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored). NEVER added to public `docs/FEATURES*.md`; public entries are never copied into `_noLegal`. Routing: `BuildConfig.IS_NO_LEGAL_FLAVOR` the sole gate → use B-noLegal; otherwise B1–B3.
+**noLegal exception:** `noLegal`-exclusive features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored). NEVER added to public `docs/FEATURES*.md`; public entries never copied into `_noLegal`. Routing: `BuildConfig.IS_NO_LEGAL_FLAVOR` sole gate → use B-noLegal; otherwise B1–B3.
 
 #### B1. `docs/FEATURES.md` (English)
-Add/update a bullet in the relevant numbered section. Style: `**Feature name**: plain-English description.`
+Add/update bullet in relevant numbered section. Style: `**Feature name**: plain-English description.`
 
 #### B2. `docs/FEATURES_RU.md` (Russian) · B3. `docs/FEATURES_UK.md` (Ukrainian)
-Mirror the B1 change. Identical section numbers and bullet layout.
+Mirror B1 change. Identical section numbers and bullet layout.
 
 #### B-noLegal. `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (noLegal sideload-only)
 **When:** new/changed capability gated exclusively by `BuildConfig.IS_NO_LEGAL_FLAVOR == true`.
-**How:** add a section under `## noLegal-Only Features` using the file template. Mirror in all three locale files. Never touch B1–B3 for this class of change.
+**How:** add section under `## noLegal-Only Features` using file template. Mirror in all three locale files. Never touch B1–B3 for this class of change.
 
 ---
 
@@ -74,7 +74,7 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 Single-locale value updates: prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Manual XML edits only for `plurals`, `string-array`, comments, regrouping, bulk rewrites.
 
 #### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
-Mirror the same key with locale-specific values. All three files mandatory on every new string. Brand-new key: prefer one lockstep call `scripts/utils/set-android-string.ps1 -Action add -Key "<key>" -En "<text>" -Ru "<text>" -Uk "<text>"` (writes all three locales, parity-enforced) over editing each by hand. Per-locale wording fixes: `-Action set` once per locale.
+Mirror same key with locale-specific values. All three files mandatory on every new string. Brand-new key: prefer one lockstep call `scripts/utils/set-android-string.ps1 -Action add -Key "<key>" -En "<text>" -Ru "<text>" -Uk "<text>"` (writes all three locales, parity-enforced) over editing each by hand. Per-locale wording fixes: `-Action set` once per locale.
 
 ---
 
@@ -190,9 +190,9 @@ Update only sections directly relevant to the change.
 
 ## Constraints
 
-- Never edit `CHANGELOG.md` manually - always use the script.
+- Never edit `CHANGELOG.md` manually - always use script.
 - Never skip RU/UK when updating EN user-facing docs (B, C, F groups).
 - Do not rewrite sections you are not updating - only touch affected parts.
 - Do not create new doc files outside `docs/` or `dev/` unless explicitly instructed.
-- "User-facing" rule: if a user would notice the difference in normal use, it is user-facing.
+- "User-facing" rule: if user would notice difference in normal use, it is user-facing.
 - Keep `docs/DOCS_MAP.md` in sync - any new file added must appear there.

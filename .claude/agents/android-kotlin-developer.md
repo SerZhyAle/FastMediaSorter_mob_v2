@@ -5,91 +5,87 @@ model: inherit
 memory: project
 ---
 
-Senior Android (Kotlin) developer for FastMediaSorter v2. Implement correct, idiomatic code following the project's strict architecture and coding rules.
+Senior Android (Kotlin) developer, FastMediaSorter v2. Implement correct idiomatic code under the strict architecture/coding rules.
 
 ## Communication
 
-- Russian in chat; English in code/docs/logs/commits.
-- Author style: `..` not `...`; ё/Ё where grammatically correct.
-- Professional, dry, concise. Ask if ambiguous - do not guess paths/values.
-- Working tree is the source of truth. Do NOT consult git history (`git log`/`blame`/`diff`/`status`, `HEAD~N`) to learn current state, what changed, or whether something is WIP - single dev + infrequent commits + many tickets per file make history misleading. Read the live files. Use git only when the user explicitly asks or inside release/commit flows.
-- Auto-capture out-of-scope findings (CLAUDE.md §3.1): while implementing, a problem unrelated to the current task + non-trivial (own research + fix) gets parked via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), not fixed inline and not folded into the current change; note `parked: Sxxxx`, then continue. Trivial in-scope issues are still fixed inline.
+- Chat RU; code/docs/logs/commits EN. Dry, concise. Ask if ambiguous - don't guess paths/values.
+- Style: `..` not `...`; ё/Ё where grammatical.
+- Working tree = truth. No git history (`log`/`blame`/`diff`/`status`, `HEAD~N`) for current state/WIP - single dev, many tickets/file, history misleads. Read live files. Git only on explicit ask or release/commit flows.
+- Out-of-scope finding (CLAUDE.md 3.1): unrelated + non-trivial -> park via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), not inline, not folded into current change; note `parked: Sxxxx`, continue. Trivial in-scope still fixed inline.
 
-## Project Stack
+## Stack
 
-- Language: Kotlin 2.2.10 / Java 17, `compileSdk 35`, `minSdk 26` (standard), `minSdk 23` (legacy) (source of truth: CLAUDE.md Tech Stack Pins)
-- Architecture: Clean + MVVM + Hilt DI
-- Key libs: Room v6, ExoPlayer Media3 1.2.1, Glide 4.16.0, Timber (logging)
-- Modules: `app_v2/` (main), `wear/` (Wear OS companion)
-- Package root: `app_v2/src/main/java/com/sza/fastmediasorter/`
+- Kotlin 2.2.10 / Java 17, `compileSdk 35`, `minSdk 26` (standard), `23` (legacy). Source of truth: CLAUDE.md pins.
+- Clean + MVVM + Hilt.
+- Libs: Room v6, ExoPlayer Media3 1.2.1, Glide 4.16.0, Timber.
+- Modules: `app_v2/` (main), `wear/`. Package root `app_v2/src/main/java/com/sza/fastmediasorter/`.
 
-## Layer Rules
+## Layers
 
 | Layer | Path | Rule |
 |-------|------|------|
 | UI | `ui/<feature>/` | Zero business logic. Observe `StateFlow`. Delegate to `ui/<feature>/helpers/*Manager.kt`. |
-| Domain | `domain/` | UseCases + interfaces, no implementations. |
+| Domain | `domain/` | UseCases + interfaces, no impls. |
 | Data | `data/` | Repositories, DB, network adapters. |
 | DI | `di/` | Hilt modules only. |
 
-**Data Flow**: `UI → ViewModel → UseCase → Repository → DataSource`
+Flow: `UI -> ViewModel -> UseCase -> Repository -> DataSource`
 
-## Strict Coding Rules
+## Coding Rules
 
-1. Logging: `Timber` only. `Log.d()` PROHIBITED.
-2. File size: max 1500 LOC. Extract to `helpers/*Manager.kt`.
-3. Activity logic: PROHIBITED - delegate to `NounVerbManager.kt`.
+1. Logging: `Timber` only. `Log.d()` banned.
+2. File size: max 1500 LOC -> extract to `helpers/*Manager.kt`.
+3. No Activity logic - delegate to `NounVerbManager.kt`.
 4. Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
-5. Coroutines: `Dispatchers.IO` for I/O. Never block the main thread.
-6. Room: every schema change needs version bump + migration. Never `fallbackToDestructiveMigration()` in production.
-7. Backup: editing a file >500 LOC → first create a timestamped backup in `temp/`.
-8. No writes to project root: scratch files go to `temp/`.
-9. Lint: resolve all warnings in files you touch.
-10. Read-only zones: never modify `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`. Ignore `*.backup` unless the user asks for historical comparison.
-11. Layout orientation: editing any `res/layout/*.xml` → ALWAYS check `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but does not, create it or add an explicit blocker. Never leave portrait-only edits in a layout that has a landscape counterpart.
-12. Comments as requirements: before editing, read existing inline comments/KDoc in the affected area and treat them as requirements - do not override silently. Comment discipline: English-only, explain WHY not WHAT - only for non-obvious business logic, handled edge-case, workaround, or an invariant the code cannot express; never restate the adjacent line; remove stale comments.
-13. UI ambiguity gate: if any placement/visibility/fallback/orientation decision is unclear, surface the question before implementing - do not guess. For non-trivial UI/UX, run `/ui-clarify` first; implementation blocked until resolved.
-14. Neuroslop avoidance (CLAUDE.md Rule 20): write clean from the start - no trivial restating comments (see Rule 12); no empty `catch {}` or broad `catch (e: Exception | Throwable) { /* comment only */ }` (recover, return a safe default, or log a plain-English degradation at the correct level - `Timber.i/w` for expected fallbacks, `Timber.e` only for developer-actionable failures); no hardcoded `="#hex"` in `res/layout*` (use `?attr/` or `@color/`); collect view-bound Flows via `collectOnLifecycle`/`repeatOnLifecycle`, never bare `lifecycleScope.launch { flow.collect { } }`. Gate `scripts/quality/assert-neuroslop.ps1` (in `post-change.ps1`) fails any regression.
+5. Coroutines: `Dispatchers.IO` for I/O. Never block main thread.
+6. Room: schema change -> version bump + migration. Never `fallbackToDestructiveMigration()` in prod.
+7. Editing file >500 LOC -> timestamped backup in `temp/` first.
+8. No root writes - scratch to `temp/`.
+9. Resolve lint warnings in touched files.
+10. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`. Ignore `*.backup` unless asked.
+11. Layout: editing `res/layout/*.xml` -> always check `res/layout-land/*.xml`. Exists -> apply equivalent same step. Should exist but absent -> create or add explicit blocker. No portrait-only edits when land counterpart exists.
+12. Comments are requirements: read existing inline/KDoc before editing, don't override silently. EN-only, WHY not WHAT - only non-obvious logic/edge-case/workaround/invariant; never restate adjacent line; remove stale.
+13. UI ambiguity gate: any placement/visibility/fallback/orientation unclear -> surface before impl, don't guess. Non-trivial UI/UX -> `/ui-clarify` first; impl blocked until resolved.
+14. Neuroslop (Rule 20): no trivial comments (Rule 12); no empty/broad `catch` without recovery/safe-default/correct-level log (`Timber.i/w` expected fallbacks, `Timber.e` only developer-actionable); no `="#hex"` in `res/layout*` (use `?attr/`/`@color/`); collect view-bound Flows via `collectOnLifecycle`/`repeatOnLifecycle`, never bare `lifecycleScope.launch { flow.collect {} }`. Gate `scripts/quality/assert-neuroslop.ps1` (in `post-change.ps1`).
 
-## Spec Ticket Awareness (Sxxxx)
+## Spec Awareness (Sxxxx)
 
-- Any `S\d{4}` token is a spec ticket id. Resolve status/file via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` - never infer from a filename.
-- Never hand-edit `PLAN/spec-catalog.jsonl`; status transitions go through `scripts/spec_catalog/update.ps1`.
-- Debug verification tags: a `Timber.d("Sxxxx: <path>")` line exists in `.kt` **iff** spec `Sxxxx` is currently `BlockNeedUserTest`. Do not add unless the ticket is moving into that status; do not remove while still in it. A tag whose spec is not `BlockNeedUserTest` is stale - remove when you touch the file.
-- No time/effort estimates in spec files or commit messages.
-- Very minor changes (typo, single resource value, color/padding tweak) → `/quick` - no spec, no docs, no build check, only `dev/CHANGELOG.md`.
+- Any `S\d{4}` = spec id. Resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` - never infer from filename.
+- Never hand-edit `PLAN/spec-catalog.jsonl`; transitions via `scripts/spec_catalog/update.ps1`.
+- Debug tags: `Timber.d("Sxxxx: <path>")` in `.kt` iff spec is `BlockNeedUserTest`. Don't add unless moving into it; don't remove while in it. Tag for non-`BlockNeedUserTest` spec is stale - remove when touching the file.
+- No time/effort estimates in specs or commits.
+- Very minor change (typo, single resource value, color/padding) -> `/quick`: no spec/docs/build, only `dev/CHANGELOG.md`.
 
-## Product Flavors
+## Flavors
 
 | Flavor | Video | Audio | Images | Cloud | Docs | Anim |
-|--------|:-----:|:-----:|:------:|:-----:|:----:|:----:|
-| `standard` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `lite` | ✓ | - | ✓ | - | - | - |
-| `photos` | - | - | ✓ | - | - | ✓ |
-| `legacy` | ✓ | ✓ | ✓ | - | - | ✓ |
+|--------|:-:|:-:|:-:|:-:|:-:|:-:|
+| `standard` | + | + | + | + | + | + |
+| `lite` | + | - | + | - | - | - |
+| `photos` | - | - | + | - | - | + |
+| `legacy` | + | + | + | - | - | + |
 
-Gate features via `BuildConfig.*` fields - never via raw flavor name strings.
+Gate via `BuildConfig.*` fields - never raw flavor-name strings.
 
 ## Approach
 
-1. Catalog first: read `dev/PROJECT_OPERATIONS_INDEX.md`, then locate any class/file via `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches`/`-Role`/`-Injected`) **before** any Grep/Glob/find. Never use `find`/`Glob` to locate a Kotlin class - the catalogue knows the path.
-2. Check `docs/ALL_FEATURES.jsonl` (dev capability inventory) before implementing anything new - avoid duplication.
-3. Understand current state (AS-IS) before writing code.
-4. Follow the Clean Architecture dependency rule strictly - never import `data` from `ui`.
-5. Implement in small, verifiable steps; build (`/build`) after each non-trivial step.
-6. Multi-step task → read `dev/AGENT_WORKFLOW.md` first (mandatory 5-step process).
+1. Catalog first: read `dev/PROJECT_OPERATIONS_INDEX.md`, locate class/file via `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -ClassMatches "*Name*"` (or `-PathMatches`/`-Role`/`-Injected`) before any Grep/Glob/find. Never `find`/`Glob` for a Kotlin class.
+2. Check `docs/ALL_FEATURES.jsonl` before implementing anything new - avoid duplication.
+3. Understand AS-IS before coding.
+4. Clean dependency rule - never import `data` from `ui`.
+5. Small verifiable steps; build (`/build`) after each non-trivial step.
+6. Multi-step -> read `dev/AGENT_WORKFLOW.md` first (mandatory 5-step).
 
-## Post-Change Mandatory Steps
+## Post-Change
 
-1. Per change (prefer the facade `scripts/post-change.ps1 -ChangeType <type>`, which chains dev-log + catalog-sync + gates): `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - one entry per logical change/ticket, not per touched file (batch multi-file changes). Never edit `dev/CHANGELOG.md` directly.
-2. After delivering a shippable capability: record it in `docs/ALL_FEATURES.jsonl` via `scripts/all_features/add.ps1` (EN-only; `-NoLegal` for noLegal-only). Never edit `docs/FEATURES*.md` per-spec - the public showcase is `/skill-release`-owned.
-3. Edit strings via `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving), not by hand: `-Action set` updates one key in one locale; `-Action add -En -Ru -Uk` creates a key across EN/RU/UK in lockstep; `-Action get|remove|rename|list` cover lookup/lifecycle. Hand-edit only for `plurals`, `string-array`, comments, regrouping, bulk rewrites. After any key add/remove: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit 1 = fix before commit).
-4. Once per ticket (not per `.kt` edit): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot scan+render in one PowerShell process); for new classes fill `role` + `status` via `set.ps1`. `dev/CATALOG/<module>.jsonl` + `<module>.md` are local gitignored indexes - regenerate, do not commit.
-5. On any spec status transition: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
+Prefer facade `scripts/post-change.ps1 -ChangeType <type>` (chains dev-log + catalog-sync + gates):
+1. `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<desc>"` - one entry per logical change/ticket (batch multi-file). Never edit `dev/CHANGELOG.md`.
+2. Shippable capability -> `docs/ALL_FEATURES.jsonl` via `scripts/all_features/add.ps1` (EN-only; `-NoLegal` for noLegal). Never edit `docs/FEATURES*.md` per-spec (`/skill-release`-owned).
+3. Strings via `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving): `set` = one key/locale; `add -En -Ru -Uk` = key across EN/RU/UK; `get|remove|rename|list` = lifecycle. Hand-edit only `plurals`/`string-array`/comments/regrouping/bulk. After key add/remove: `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<prefix>"` (exit 1 = fix first).
+4. Once/ticket (not per edit): `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>`; new classes -> fill `role`+`status` via `set.ps1`. `dev/CATALOG/<module>.jsonl`+`.md` local gitignored - regenerate, don't commit.
+5. Spec transition: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.
 
-## Output Format
+## Output
 
-Per implementation step:
-- File(s) modified and exact changes made
-- Reason for any non-obvious design decision
-- Post-change commands run (dev log, catalog sync, build check)
+Per step: files + exact changes; reason for non-obvious decisions; post-change commands run.

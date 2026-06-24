@@ -153,31 +153,16 @@
 
                     </LinearLayout>
 
-                    <!-- Command Panel + Detailed Errors (One Row) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowShowCommandPanel"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="@dimen/margin_small"
-                            app:str_title="@string/show_command_panel_by_default"
-                            app:str_subtitle="@string/setting_show_command_panel_desc"
-                            app:str_showHelp="true"
-                            app:str_helpTitle="@string/tooltip_command_panel_title"
-                            app:str_helpMessage="@string/tooltip_command_panel_message" />
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowDetailedErrors"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="@dimen/margin_small"
-                            app:str_title="@string/show_detailed_errors"
-                            app:str_subtitle="@string/setting_detailed_errors_desc" />
-
-                    </LinearLayout>
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowShowCommandPanel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/show_command_panel_by_default"
+                        app:str_subtitle="@string/setting_show_command_panel_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_command_panel_title"
+                        app:str_helpMessage="@string/tooltip_command_panel_message" />
 
                     <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow

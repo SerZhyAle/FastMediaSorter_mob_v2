@@ -29,7 +29,7 @@ Targets:
 
 - Strategic body: Russian. Tactical body: English. No mixed sentences.
 - `..` not `...`; `ё`/`Ё` in Russian where grammatically correct.
-- Style timing: `..`/`ё` and Spec Writing Style sanitation are an enforced gate only at `Draft` -> `Approved`. Target in `Draft` -> do not raise ellipsis / `ё` / table-vs-list / section-summary findings (drafting may stay rough); apply this hygiene as part of an explicit promotion to `Approved`, never a standalone draft sweep. Language correctness for `Approved`+ specs enforced as before.
+- Style timing: `..`/`ё` and Spec Writing Style sanitation are enforced gate only at `Draft` -> `Approved`. Target in `Draft` -> do not raise ellipsis / `ё` / table-vs-list / section-summary findings (drafting may stay rough); apply this hygiene as part of explicit promotion to `Approved`, never a standalone draft sweep. Language correctness for `Approved`+ specs enforced as before.
 
 ### 2. `structure`
 
@@ -57,10 +57,10 @@ Targets:
 
 - Every strategic §2 Goal maps to >=1 tactical phase (or marked deferred).
 - Every open §6 Research item appears in INDEX "Pre-Implementation Blockers".
-- Every Resolved §6 item resolved by performed research carries an `**Артефакт:**` link to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md`, and the file exists.
+- Every Resolved §6 item resolved by performed research carries `**Артефакт:**` link to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md`, and file exists.
 - INDEX `Research inputs:` lists every file under `research/` (or "none"). Absent line on pre-convention tactical plans is a finding, not an error.
 - Every §9 ADR applied somewhere in tactical.
-- Resolving a §6 item during this skill follows the same artifact rule: persist findings to `research/`, link via `**Артефакт:**`.
+- Resolving a §6 item during this skill follows same artifact rule: persist findings to `research/`, link via `**Артефакт:**`.
 
 ### 6. `style`
 
@@ -88,16 +88,16 @@ Resolve `Sxxxx` and slug via `select.ps1`. Resolve target file(s) from flags. Ab
 
 Locked -> abort. Offer: (1) new spec `/spec <id> <name>-v2`, (2) wait until closed. `--force-locked` overrides - record override reason in Revision History.
 
-**1b - Re-open `BlockNeedUserTest`.** If journal status is `BlockNeedUserTest` and this is **not** `--review-only`, refining implies re-opening - do before the review pass:
+**1b - Re-open `BlockNeedUserTest`.** If journal status is `BlockNeedUserTest` and this is **not** `--review-only`, refining implies re-opening - do before review pass:
 
 - `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line. Debug-tag invariant (CLAUDE.md "Debug Verification Tags"): tags exist iff status `BlockNeedUserTest`, so leaving the status requires removing them. Run a dev log line per `.kt` file that lost a tag.
-- Flip status to prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if strategic spec exists, else `Draft`. Patch the `**Status:**` line in the spec file and run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
+- Flip status to prior working stage: `Tactical` if `PLAN/Sxxxx_<slug>/INDEX.md` exists, else `Approved` if strategic spec exists, else `Draft`. Patch `**Status:**` line in spec file and run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status <new>`.
 - Append Revision History line: `Re-opened from BlockNeedUserTest -> <new>; debug tags removed: N.`
 - This is the **only** status change `/spec-update` performs. With `--review-only`, skip 1b entirely (no writes).
 
 **1c - Readability gate.**
 
-If any resolved target file cannot be read or parsed as markdown, abort that target with `Unreadable target: <path>`. Do not write or dev-log that file. Suggest restoring from history and rerunning `/spec-update`.
+Any resolved target file cannot be read or parsed as markdown → abort that target with `Unreadable target: <path>`. Do not write or dev-log that file. Suggest restoring from history and rerunning `/spec-update`.
 
 **2 - Review pass.**
 
@@ -157,7 +157,7 @@ Proposals never removed. Accept -> flip `Status: Accepted` and apply. Reject -> 
 
 **5 - Cross-file checks.**
 
-If strategic target and tactical folder both exist: run `consistency` focus between them. Edits to the other file are DISCUSS only. `Status:` mismatches remain findings or DISCUSS items - never auto-edit them from this skill.
+If strategic target and tactical folder both exist: run `consistency` focus between them. Edits to other file are DISCUSS only. `Status:` mismatches remain findings or DISCUSS items - never auto-edit them from this skill.
 
 **6 - Run dev log.**
 

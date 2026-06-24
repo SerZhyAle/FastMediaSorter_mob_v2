@@ -263,6 +263,14 @@ class SettingsSelectionRow @JvmOverloads constructor(
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
             val showChevron = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showChevron, true)
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
+            // S0644: value-row etalon - the trailing chevron sits right after the text instead of being
+            // pushed to the screen edge. Applied by default to single-line rows (no subtitle); rows with a
+            // subtitle keep the full-width text group so the subtitle is not truncated, and navigation rows
+            // collapse via setNavigationMode below regardless.
+            if (subtitleView.visibility == View.GONE) {
+                Timber.d("S0644: value-row etalon applied - chevron after text, no full-width stretch")
+                collapseContentToLeft()
+            }
             if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_inline, false)) {
                 applyInlineLayout()
             }
@@ -279,6 +287,16 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     private fun applyInlineLayout() {
         minimumHeight = 0
+        collapseContentToLeft()
+    }
+
+    /**
+     * S0644: pins the trailing chevron right after the text by collapsing the text group so it stops
+     * stretching to the full row width. Kept separate from [applyInlineLayout] so the value-row
+     * etalon can hug content to the left without also dropping the tall touch-target band that
+     * [applyInlineLayout] removes for dense landscape / navigation rows.
+     */
+    private fun collapseContentToLeft() {
         (findViewById<LinearLayout>(R.id.ssr_textGroup)).updateLayoutParams<LayoutParams> {
             width = LayoutParams.WRAP_CONTENT
             weight = 0f

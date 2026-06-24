@@ -91,7 +91,16 @@ class WelcomeFunctionalityController @Inject constructor(
         bindOcrRow(binding, owner, settings)
         bindTranslationRow(binding, owner, settings)
         bindStreamsRow(binding, owner, settings)
+        bindStatisticsRow(binding.rowStatistics, settings)
         bindElementsButton(binding, owner)
+    }
+
+    private fun bindStatisticsRow(row: SettingsToggleRow, settings: AppSettings) {
+        Timber.d("S0656: welcome functionality page wiring statistics toggle, current=${settings.enableStatistics}")
+        row.setCheckedSilently(settings.enableStatistics)
+        row.setOnCheckedChangeListener { isChecked ->
+            persist { it.copy(enableStatistics = isChecked) }
+        }
     }
 
     private fun bindFileManagerRow(row: SettingsToggleRow, settings: AppSettings) {

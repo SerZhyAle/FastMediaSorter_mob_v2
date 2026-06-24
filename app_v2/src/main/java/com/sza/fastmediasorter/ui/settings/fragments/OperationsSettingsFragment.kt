@@ -373,7 +373,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
-        binding.rowLinkAutodownloadResource.setOnRowClickListener {
+        binding.btnSelectLinkAutodownloadResource.setOnClickListener {
+            Timber.d("S0648: download-resource selector (button-pattern) opening destination picker")
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
             ) { resource ->
@@ -490,11 +491,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
                             // Disable child controls when master link-download toggle is off.
                             binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
-                            binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
+                            binding.btnSelectLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
+                            binding.tvLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
                             refreshDestinationLabel(
                                 resourceId = settings.linkAutoDownloadResourceId?.toString(),
                                 fallbackRes = R.string.link_autodownload_resource_not_set,
-                            ) { binding.rowLinkAutodownloadResource.setValue(it) }
+                            ) { binding.tvLinkAutodownloadResource.text = it }
 
                             gesturesManager.render(settings)
                         }

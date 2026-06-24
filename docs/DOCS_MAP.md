@@ -73,6 +73,7 @@ Resources for developers, QA, and contributors.
 ### Testing & QA
 | Document | Description | Last Updated |
 |---|---|---|
+| [Build & Test Fast Path](BUILD_TEST_FAST_PATH.md) | Developer playbook for choosing the cheapest safe local validation path by change type. | 2026-06-24 |
 | [Test Scenarios](TEST_SCENARIOS.md) | Comprehensive test cases. | 2025-11-19 |
 | [Warnings Analysis](WARNINGS_ANALYSIS.md) | Static analysis reports. | 2026-02-02 |
 | [Warnings Summary](WARNINGS_SUMMARY.md) | Summary of codebase warnings. | 2026-02-02 |
@@ -110,5 +111,4 @@ Resources for developers, QA, and contributors.
 
 ---
 *Note: The public landing pages now point at the current Markdown docs in this repository. Use this map as the canonical index for the shared EN/RU/UK user documentation set.*
-
 
