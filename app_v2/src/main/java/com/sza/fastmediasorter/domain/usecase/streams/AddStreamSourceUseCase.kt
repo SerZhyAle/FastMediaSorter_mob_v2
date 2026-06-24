@@ -2,12 +2,15 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import java.util.UUID
 import javax.inject.Inject
 
 class AddStreamSourceUseCase @Inject constructor(
     private val repository: StreamSourceRepository,
-    private val classifier: StreamMediaKindClassifier
+    private val classifier: StreamMediaKindClassifier,
+    private val statsSink: StatsSink,
 ) {
     suspend operator fun invoke(url: String, title: String?): AddResult {
         val trimmedUrl = url.trim()
@@ -25,6 +28,7 @@ class AddStreamSourceUseCase @Inject constructor(
             addedAt = System.currentTimeMillis()
         )
         repository.add(entity)
+        statsSink.record(StatsEvent.StreamAdded)
         return AddResult.Success
     }
 

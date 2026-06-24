@@ -2576,7 +2576,7 @@
     <string name="screenshot_gesture_action_send_to">Отправить получателям</string>
     <string name="statistics_title">Статистика</string>
     <string name="settings_statistics_open">Статистика</string>
-    <string name="statistics_card_sorted">Отсортировано</string>
+    <string name="statistics_card_sorted">Отсортировано (копир. + перемещ.)</string>
     <string name="statistics_card_freed">Освобождено</string>
     <string name="statistics_card_player_time">Время в плеере</string>
     <string name="statistics_distribution_title">По типам</string>
@@ -2753,4 +2753,18 @@
     <string name="app_launch_panel_title">Быстрый запуск</string>
     <string name="app_launch_panel_edit_action">Изменить</string>
     <string name="screenshot_gesture_action_open_panel">Открыть панель программ</string>
+    <string name="statistics_metric_files_renamed">Переименовано</string>
+    <string name="statistics_metric_favorites_added">Добавлено в избранное</string>
+    <string name="statistics_metric_favorites_removed">Убрано из избранного</string>
+    <string name="statistics_metric_scheduled_runs">Запусков по расписанию</string>
+    <string name="statistics_metric_scheduled_files">Обработано по расписанию</string>
+    <string name="statistics_metric_undo">Отменено операций</string>
+    <string name="statistics_metric_slideshow_sessions">Запусков слайдшоу</string>
+    <string name="statistics_metric_slideshow_images">Показано слайдов</string>
+    <string name="statistics_metric_gif_frames_saved">Сохранено кадров GIF</string>
+    <string name="statistics_metric_streams_audio_played">Прослушано аудиостримов</string>
+    <string name="statistics_metric_streams_video_played">Просмотрено видеостримов</string>
+    <string name="statistics_metric_streams_added">Добавлено стримов</string>
+    <string name="statistics_metric_playlists_imported">Импортировано из плейлистов</string>
+    <string name="statistics_metric_ocr_scans">Распознано текстов</string>
 </resources>

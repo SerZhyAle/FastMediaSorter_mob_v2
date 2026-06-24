@@ -9,6 +9,11 @@
     "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
     "uk": "Задає кількість одночасних мережевих підключень при доступі до віддалених ресурсів."
   },
+  "actvSyncInterval": {
+    "en": "Sets how often, in minutes, the app checks remote resources during background sync.",
+    "ru": "Задаёт, как часто (в минутах) приложение проверяет удалённые ресурсы при фоновой синхронизации.",
+    "uk": "Задає, як часто (у хвилинах) застосунок перевіряє віддалені ресурси під час фонової синхронізації."
+  },
   "etSlideshowInterval": {
     "en": "Sets the default number of seconds each slide is shown during a slideshow.",
     "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
@@ -114,6 +119,11 @@
     "ru": "Задаёт максимальное количество получателей (1-30) при отправке файлов.",
     "uk": "Задає максимальну кількість отримувачів (1-30) при надсиланні файлів."
   },
+  "headerAdditionalPrograms": {
+    "en": "Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game.",
+    "ru": "Настройки дополнительных программ и сценариев: перевод текста с камеры, калькулятор и мини-игра.",
+    "uk": "Налаштування додаткових програм і сценаріїв: переклад тексту з камери, калькулятор та міні-гра."
+  },
   "headerBehaviour": {
     "en": "Settings that control how the app behaves and what operations are allowed.",
     "ru": "Настройки поведения приложения и разрешённых операций.",
@@ -130,9 +140,9 @@
     "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
   "headerOtherFeatures": {
-    "en": "Settings for the built-in camera, microphone, and other supplementary features.",
-    "ru": "Настройки встроенной камеры, микрофона и прочего дополнительного функционала.",
-    "uk": "Налаштування вбудованої камери, мікрофона та інших додаткових функцій."
+    "en": "Settings for capturing photos and videos, recording voice notes, and other supplementary features.",
+    "ru": "Настройки съёмки фото и видео, записи с диктофона и прочего дополнительного функционала.",
+    "uk": "Налаштування зйомки фото та відео, запису з диктофона та інших додаткових функцій."
   },
   "headerSafety": {
     "en": "Settings that control how files are deleted and whether a trash folder is used.",

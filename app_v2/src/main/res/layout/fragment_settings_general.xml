@@ -312,7 +312,8 @@
                         app:ssr_subtitle="@string/setting_saved_authorizations_summary"
                         app:ssr_showHelp="true"
                         app:ssr_helpTitle="@string/tooltip_saved_authorizations_title"
-                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message" />
+                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message"
+                        app:ssr_navMode="true" />
 
                     <!-- Default User and Password -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
@@ -557,6 +558,13 @@
                         <!-- Sync Interval + Sync Now Button -->
                         <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
+                            <!-- Sync interval dropdown. Orientation parity with landscape (S0616). -->
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
+
+                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_refresh" />
 
                         </LinearLayout>
@@ -629,7 +637,8 @@
                             android:layout_marginTop="@dimen/margin_small"
                             android:visibility="gone"
                             app:ssr_icon="@drawable/ic_history"
-                            app:ssr_title="@string/settings_statistics_open" />
+                            app:ssr_title="@string/settings_statistics_open"
+                            app:ssr_navMode="true" />
 
                     </LinearLayout>
 

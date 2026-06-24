@@ -77,10 +77,10 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "rowCameraOcrOnly",
         "spinnerTranslationSourceLanguage",
         "spinnerTranslationTargetLanguage",
-        "spinnerOcrEngineType",
-        "spinnerPaddleOcrModel",
-        "spinnerOcrFontSize",
-        "spinnerOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
+        "rowOcrEngineType",
+        "rowPaddleOcrModel",
+        "rowOcrFontSize",
+        "rowOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
         // Downloadable extensions - GeneralSettingsFragment.
         "btnDownloadableExtensions" -> capabilityAvailability.isExtensionsScreenAvailable()
         // S0621: accessibility-shortcut button lives in the gestures group, which is now visible on

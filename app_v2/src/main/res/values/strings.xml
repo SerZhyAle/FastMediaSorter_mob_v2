@@ -2623,7 +2623,7 @@ Close the player and try again.</string>
     <string name="settings_statistics_open">Statistics</string>
     <!-- Author contact for "Send to author"; an address, not localizable copy (S0473 §5.1). -->
     <string name="statistics_author_email" translatable="false">serzhyale@gmail.com</string>
-    <string name="statistics_card_sorted">Sorted</string>
+    <string name="statistics_card_sorted">Sorted (copied + moved)</string>
     <string name="statistics_card_freed">Freed space</string>
     <string name="statistics_card_player_time">Player time</string>
     <string name="statistics_distribution_title">By type</string>
@@ -2800,4 +2800,18 @@ Close the player and try again.</string>
     <string name="app_launch_panel_title">Quick launch</string>
     <string name="app_launch_panel_edit_action">Edit</string>
     <string name="screenshot_gesture_action_open_panel">Open app panel</string>
+    <string name="statistics_metric_files_renamed">Renamed</string>
+    <string name="statistics_metric_favorites_added">Added to favorites</string>
+    <string name="statistics_metric_favorites_removed">Removed from favorites</string>
+    <string name="statistics_metric_scheduled_runs">Scheduled runs</string>
+    <string name="statistics_metric_scheduled_files">Files processed on schedule</string>
+    <string name="statistics_metric_undo">Operations undone</string>
+    <string name="statistics_metric_slideshow_sessions">Slideshows started</string>
+    <string name="statistics_metric_slideshow_images">Slides shown</string>
+    <string name="statistics_metric_gif_frames_saved">GIF frames saved</string>
+    <string name="statistics_metric_streams_audio_played">Audio streams played</string>
+    <string name="statistics_metric_streams_video_played">Video streams played</string>
+    <string name="statistics_metric_streams_added">Streams added</string>
+    <string name="statistics_metric_playlists_imported">Imported from playlists</string>
+    <string name="statistics_metric_ocr_scans">Text recognized</string>
 </resources>

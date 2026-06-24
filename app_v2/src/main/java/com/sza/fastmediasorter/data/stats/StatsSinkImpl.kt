@@ -58,6 +58,7 @@ class StatsSinkImpl @Inject constructor(
         if (!enabled) return
         val delta = event.toDelta()
         if (delta.isEmpty) return
+        Timber.d("S0654: stats event recorded -> ${event::class.simpleName}")
         synchronized(lock) { pending += delta }
         scheduleFlush()
     }
@@ -118,6 +119,25 @@ class StatsSinkImpl @Inject constructor(
         )
         is StatsEvent.SourceConnected -> counters(StatsKey.SOURCES_CONNECTED to 1L)
         is StatsEvent.Session -> counters(StatsKey.SESSIONS to 1L, StatsKey.ACTIVE_MS to activeMs)
+        is StatsEvent.Favorite -> counters(
+            (if (added) StatsKey.FAVORITES_ADDED else StatsKey.FAVORITES_REMOVED) to 1L
+        )
+        StatsEvent.SlideshowStarted -> counters(StatsKey.SLIDESHOW_SESSIONS to 1L)
+        StatsEvent.SlideAdvanced -> counters(StatsKey.SLIDESHOW_IMAGES_SHOWN to 1L)
+        is StatsEvent.ScheduledRun -> counters(
+            StatsKey.SCHEDULED_TASKS_RUN to 1L,
+            StatsKey.SCHEDULED_TASK_FILES_PROCESSED to filesProcessed
+        )
+        is StatsEvent.StreamPlayed -> when (kind) {
+            ViewKind.VIDEO -> counters(StatsKey.STREAMS_VIDEO_PLAYED to 1L)
+            ViewKind.AUDIO -> counters(StatsKey.STREAMS_AUDIO_PLAYED to 1L)
+            else -> StatsAggregateDelta()
+        }
+        StatsEvent.StreamAdded -> counters(StatsKey.STREAMS_ADDED to 1L)
+        is StatsEvent.PlaylistImported -> counters(StatsKey.PLAYLISTS_IMPORTED to count)
+        StatsEvent.GifFrameSaved -> counters(StatsKey.GIF_FRAMES_SAVED to 1L)
+        StatsEvent.UndoPerformed -> counters(StatsKey.UNDO_OPERATIONS to 1L)
+        StatsEvent.OcrScan -> counters(StatsKey.OCR_SCANS to 1L)
     }
 
     private fun fileOpDelta(op: StatsEvent.FileOp): StatsAggregateDelta {
@@ -142,6 +162,8 @@ class StatsSinkImpl @Inject constructor(
             FileOpAction.ARCHIVE -> counters[StatsKey.FILES_ARCHIVED] = op.count
             FileOpAction.EXTRACT -> counters[StatsKey.FILES_EXTRACTED] = op.count
             FileOpAction.CREATE_FOLDER -> counters[StatsKey.FOLDERS_CREATED] = op.count
+            // Rename has no byte payload and no copied/moved/deleted matrix slot, so it stays a plain count.
+            FileOpAction.RENAME -> counters[StatsKey.FILES_RENAMED] = op.count
         }
         return StatsAggregateDelta(counters = counters, byType = byType)
     }

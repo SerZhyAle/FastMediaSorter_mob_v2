@@ -65,9 +65,42 @@ sealed interface StatsEvent {
 
     /** A foreground session ended after [activeMs] of active time. */
     data class Session(val activeMs: Long) : StatsEvent
+
+    // S0654 expanded-coverage markers. Each carries scalar/enum payload only - no path, name or
+    // content - so the report's privacy invariant holds (strategic §5.4).
+
+    /** A favorite was toggled on ([added] = true) or off ([added] = false). */
+    data class Favorite(val added: Boolean) : StatsEvent
+
+    /** A slideshow transitioned from inactive to active (not emitted on resume of a running one). */
+    data object SlideshowStarted : StatsEvent
+
+    /** One slide was advanced within a running slideshow. */
+    data object SlideAdvanced : StatsEvent
+
+    /** A scheduled-operation run completed, processing [filesProcessed] files. */
+    data class ScheduledRun(val filesProcessed: Long) : StatsEvent
+
+    /** A stream finished playing; [kind] is the stream media kind (VIDEO/AUDIO). */
+    data class StreamPlayed(val kind: ViewKind) : StatsEvent
+
+    /** A stream source was added. */
+    data object StreamAdded : StatsEvent
+
+    /** A stream playlist import added [count] sources. */
+    data class PlaylistImported(val count: Long) : StatsEvent
+
+    /** A GIF first frame was saved as an image. */
+    data object GifFrameSaved : StatsEvent
+
+    /** A file-operation undo completed successfully. */
+    data object UndoPerformed : StatsEvent
+
+    /** A text-recognition (OCR) scan completed with a result. */
+    data object OcrScan : StatsEvent
 }
 
-enum class FileOpAction { COPY, MOVE, DELETE, ARCHIVE, EXTRACT, CREATE_FOLDER }
+enum class FileOpAction { COPY, MOVE, DELETE, ARCHIVE, EXTRACT, CREATE_FOLDER, RENAME }
 
 enum class CaptureKind { PHOTO, VIDEO, VOICE, SCREENSHOT }
 

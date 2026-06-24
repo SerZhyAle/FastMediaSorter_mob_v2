@@ -10,6 +10,8 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
@@ -25,7 +27,8 @@ class RecognitionBackend(
     private val offlineOcrEngineProvider: OfflineOcrEngineProvider,
     private val translation: TextTranslationFacade,
     private val capabilityRepository: DeliverableCapabilityRepository,
-    private val libraryLoader: DeliveredNativeLibraryLoader
+    private val libraryLoader: DeliveredNativeLibraryLoader,
+    private val statsSink: StatsSink,
 ) : TextRecognizationFacade {
 
     // Languages that use Cyrillic script.
@@ -108,6 +111,7 @@ class RecognitionBackend(
         val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(settings, bitmap, sourceLangCode, tessLang, ocrEngine)
         if (!ocrResult.isNullOrBlank()) {
             val cleanedText = cleanOcrText(ocrResult)
+            statsSink.record(StatsEvent.OcrScan)
             return cleanedText
         }
         return null
@@ -183,6 +187,7 @@ class RecognitionBackend(
                 }
             }
             if (translatedBlocks.isNotEmpty()) {
+                statsSink.record(StatsEvent.OcrScan)
                 return translatedBlocks
             }
         }

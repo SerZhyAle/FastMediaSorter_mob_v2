@@ -33,7 +33,16 @@ enum class StatsKey {
     FRAMES_EXPORTED,
     IMAGE_EDITS, DRAWINGS, NOTES,
     SOURCES_CONNECTED,
-    SESSIONS, ACTIVE_MS
+    SESSIONS, ACTIVE_MS,
+    // Expanded coverage (S0654) - append-only; folded in StatsSinkImpl, rendered by the dashboard/report.
+    FILES_RENAMED,
+    FAVORITES_ADDED, FAVORITES_REMOVED,
+    SLIDESHOW_SESSIONS, SLIDESHOW_IMAGES_SHOWN,
+    SCHEDULED_TASKS_RUN, SCHEDULED_TASK_FILES_PROCESSED,
+    STREAMS_AUDIO_PLAYED, STREAMS_VIDEO_PLAYED,
+    STREAMS_ADDED, PLAYLISTS_IMPORTED,
+    GIF_FRAMES_SAVED,
+    UNDO_OPERATIONS, OCR_SCANS
 }
 
 /** Per-media-type processing counts for the action x type matrix. */

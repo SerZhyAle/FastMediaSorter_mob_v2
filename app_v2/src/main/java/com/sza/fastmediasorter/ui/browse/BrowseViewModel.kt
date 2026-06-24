@@ -68,6 +68,7 @@ class BrowseViewModel @Inject constructor(
     private val dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>,
     private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
+    private val statsSink: com.sza.fastmediasorter.domain.stats.StatsSink,
     private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
@@ -122,6 +123,7 @@ class BrowseViewModel @Inject constructor(
     // Undo management
     private val undoManager = com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager(
         context = context,
+        statsSink = statsSink,
         callbacks = object : com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager.UndoCallbacks {
             override suspend fun addFilesToList(files: List<MediaFile>) {
                 addFiles(files)

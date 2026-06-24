@@ -2,12 +2,18 @@
 
 Pick the highest-priority eligible spec from the catalog, hand it to `/spec-all`, then loop until no eligible spec remains. Zero-input automation for "just keep working on whatever is most important next."
 
+Two output shapes:
+- **Loop / `--once`** - *execution*: advance one spec at a time via `/spec-all`.
+- **`--plan`** - *planning*: print the full ordered release command-sequence covering every open ticket (incl. every `Draft`/`Approved`), ending in the release tail. Executes nothing. See [`--plan` mode](#--plan-mode-release-command-sequence).
+
 ## Usage
 
 ```text
 /spec-next                 # loop: pick top-priority eligible, run /spec-all, repeat until none left
 /spec-next --once          # pick top, run /spec-all once, stop
 /spec-next --dry           # print ranked candidate list and chosen spec, do NOT execute
+/spec-next --plan          # print the full ordered release command-sequence (all open tickets), do NOT execute
+/spec-next --plan --flavors "<f1,f2>"   # same, threading flavor scope into the /skill-release line
 /spec-next --reset-skips   # clear temp/spec-next-skip-cache.json before running
 ```
 
@@ -166,6 +172,32 @@ Use `ranked[]`, `auto_skipped[]`, and `selected` straight from the preflight JSO
 
 ---
 
+## `--plan` mode (release command-sequence)
+
+Emit the full ordered command-sequence that drives **every** open ticket to a releasable state, ending in the release tail. The loop advances ONE top-priority spec per `/spec-all` delegation and never reaches the release step; `--plan` instead enumerates the **whole active catalog** - including every `Draft` and `Approved` present - into a phased, dependency-ordered, copy-pasteable command block. Read-only: prints, executes nothing, mutates nothing.
+
+One call does the whole job - the generator owns ranking, the status→command map, dependency ordering, and the phase grouping:
+
+```powershell
+pwsh -NoProfile -File scripts/spec_catalog/release-plan.ps1
+# -Format json            # structured plan for programmatic use
+# -Flavors "standard,vr"  # thread flavor scope into the trailing /skill-release line
+```
+
+Thread any flavor argument the operator passed (`/spec-next --plan --flavors "..."`) into `-Flavors`. Present the script's text output **verbatim** - it is the deterministic artifact. Do NOT re-derive, re-sort, or hand-edit the sequence; do NOT drop heavy `Draft`/`Approved` items (the point of `--plan` is full coverage - the generator annotates epics/owner-gates instead of silently deferring them).
+
+Phases the generator produces (status → command map is fixed):
+
+- **A - Implementation** (`Draft`→`/spec-all`; `Approved`→`/spec-tech`+`/spec-dev`; `Tactical`/`In Progress`→`/spec-dev`; `Partial`/`Broken`→`/spec-fix`+`/spec-check`). Priority-ordered.
+- **B - Dependency chains** (`BlockByOtherTask`→`/spec-tech`+`/spec-dev`). Each item ordered after the blocker named in its `statusNote`, annotated `(after Sxxxx)`.
+- **C - Verification** (`BlockNeedUserTest` collapsed into ONE `/spec-sweep`; each `Implemented`→`/spec-test-device`+`/spec-check`).
+- **D - Release** (`/spec-prerelease` → `/skill-release`). Run from a `DEBUG-v00N` branch.
+- **Deferred** (`BlockExternal`/`BlockQuestions`) - listed as comments, no command: cannot be driven from the catalog (external / human gate).
+
+Skip Stages 1..6 entirely in this mode - no preflight, no skip-cache, no loop, no dev-log. The only action is running the generator and presenting its block. If the operator then wants to *execute* the plan, they run the listed commands (or `/spec-next` to auto-drive the loop-eligible subset of Phase A/B).
+
+---
+
 ## Hard rules
 
 - **Never edit `PLAN/spec-catalog.jsonl` directly** - only via `update.ps1`, `select.ps1`, `search.ps1`, `spec-next-preflight.ps1` (read-only).
@@ -180,7 +212,7 @@ Use `ranked[]`, `auto_skipped[]`, and `selected` straight from the preflight JSO
 
 ## Spec Catalog hooks
 
-- **Reads:** `spec-next-preflight.ps1` (the single Stage 1 selection call: rank + skip-cache consume + per-candidate preview + drift, read-only), `select.ps1` (post-`/spec-all` status check in Stage 5).
+- **Reads:** `spec-next-preflight.ps1` (the single Stage 1 selection call: rank + skip-cache consume + per-candidate preview + drift, read-only), `select.ps1` (post-`/spec-all` status check in Stage 5), `release-plan.ps1` (the single `--plan` call: whole-catalog phased release sequence, read-only).
 - **Writes:** `skip-cache.ps1 -Action add` for each `auto_skipped[]` entry and on `drift-needs-review`; `update.ps1 -Status` only when the preflight reports `status_mismatch`; `skip-cache.ps1 -Action reset` on `--reset-skips`.
 - **Indirect writes:** all status transitions during execution come from `/spec-all` and its sub-skills (`/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`). This skill never sets `Implemented`, `Verified`, `Partial`, `Broken`, or any `Block*` directly.
 - **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; writing to `temp/spec-next-skip-cache.json` directly (use `skip-cache.ps1`); renaming spec files; creating audit / fix files in `PLAN/`.
@@ -204,4 +236,13 @@ Use `ranked[]`, `auto_skipped[]`, and `selected` straight from the preflight JSO
 # Preview without execution
 /spec-next --dry
 # -> prints ranked list + auto-skips + chosen, no mutations.
+
+# Full release command-sequence (planning, no execution)
+/spec-next --plan
+# -> runs release-plan.ps1, prints phased command block:
+#    Phase A (impl, every Draft/Approved) -> B (dependency chains) ->
+#    C (/spec-sweep + Implemented verify) -> D (/spec-prerelease -> /skill-release),
+#    plus a Deferred (BlockExternal/BlockQuestions) comment list. No mutations.
+/spec-next --plan --flavors "standard,vr"
+# -> same, with the trailing release line rendered as `/skill-release standard,vr`.
 ```

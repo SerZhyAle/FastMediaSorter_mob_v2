@@ -45,6 +45,7 @@ class ExecuteScheduledOperationUseCaseTest {
         targetDir = tempFolder.newFolder("dest")
         useCase = ExecuteScheduledOperationUseCase(
             scheduledRepo, resourceRepo, getMediaFiles, fileOperationUseCase, appendLog,
+            mockk(relaxed = true),
         )
     }
 
@@ -181,7 +182,7 @@ class ExecuteScheduledOperationUseCaseTest {
     }
 
     @Test
-    fun `move deletes source after successful copy`() = runTest {
+    fun `move executes native move operation`() = runTest {
         scheduledRepo.setOperations(
             listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.MOVE, fileTypeMask = FileTypeFlags.IMAGES))
         )
@@ -192,16 +193,21 @@ class ExecuteScheduledOperationUseCaseTest {
             )
         )
         stubFiles(listOf(createMediaFile(name = "a.jpg", path = "/src/a.jpg", type = MediaType.IMAGE)))
-        coEvery { fileOperationUseCase.execute(any<FileOperation.Copy>()) } returns
-            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
-        coEvery { fileOperationUseCase.execute(any<FileOperation.Delete>()) } returns
-            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
+        coEvery { fileOperationUseCase.execute(any<FileOperation.Move>()) } returns
+            FileOperationResult.Success(1, FileOperation.Move(emptyList(), targetDir, overwrite = false))
 
         val result = useCase(1L)
 
         assertTrue(result.isSuccess)
         assertEquals(1, result.filesProcessed)
-        coVerify { fileOperationUseCase.execute(any<FileOperation.Delete>()) }
+        coVerify(exactly = 1) {
+            fileOperationUseCase.execute(match<FileOperation.Move> {
+                it.sources.single().path.replace('\\', '/').endsWith("/src/a.jpg") &&
+                    it.destination == targetDir &&
+                    !it.overwrite
+            })
+        }
+        coVerify(exactly = 0) { fileOperationUseCase.execute(any<FileOperation.Delete>()) }
     }
 
     @Test

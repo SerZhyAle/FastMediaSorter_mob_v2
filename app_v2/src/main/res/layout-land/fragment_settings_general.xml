@@ -74,6 +74,18 @@
                         app:ssr_title="@string/settings_profile_title"
                         app:ssr_value="@string/welcome_profile_other_title" />
 
+                    <!-- Global scaling (compact elements). Orientation parity with portrait (S0616). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCompactElements"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_title="@string/compact_elements"
+                        app:str_subtitle="@string/setting_compact_elements_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_compact_elements_title"
+                        app:str_helpMessage="@string/tooltip_compact_elements_message" />
+
                     <!-- Row: Allow new windows (S0028) | Enable Favorites | Resource ops overflow (S0160).
                          Three compact toggles share one landscape row to cut vertical scroll (S0618 R2). -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
@@ -345,7 +357,8 @@
                         app:ssr_subtitle="@string/setting_saved_authorizations_summary"
                         app:ssr_showHelp="true"
                         app:ssr_helpTitle="@string/tooltip_saved_authorizations_title"
-                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message" />
+                        app:ssr_helpMessage="@string/tooltip_saved_authorizations_message"
+                        app:ssr_navMode="true" />
 
                     <!-- Default User and Password (landscape: packed to the left edge instead of spread across the wide row). -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
@@ -651,7 +664,8 @@
                             android:layout_marginTop="@dimen/margin_small"
                             android:visibility="gone"
                             app:ssr_icon="@drawable/ic_history"
-                            app:ssr_title="@string/settings_statistics_open" />
+                            app:ssr_title="@string/settings_statistics_open"
+                            app:ssr_navMode="true" />
 
                     </LinearLayout>
 

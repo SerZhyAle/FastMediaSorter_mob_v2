@@ -29,6 +29,10 @@ import timber.log.Timber
  * help payload is configured; it is hidden otherwise without breaking the layout. Hosts
  * supply a row-click listener instead of wiring nested click handlers.
  *
+ * Navigation mode (`ssr_navMode`) swaps the trailing chevron for a real forward arrow and
+ * collapses the content to hug the left, for rows that open another screen/activity/dialog;
+ * value rows keep the chevron.
+ *
  * Public XML attributes use the `ssr_` prefix (see `attrs.xml`).
  *
  * @see docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
@@ -176,6 +180,23 @@ class SettingsSelectionRow @JvmOverloads constructor(
     }
 
     /**
+     * Switches the trailing glyph between value mode (default chevron) and navigation mode
+     * (real forward arrow). Navigation mode also collapses the content to the left so the arrow
+     * sits right after the text; the row itself stays a full-width click target. Intended for
+     * inflate-time configuration of rows that open another screen/activity/dialog.
+     */
+    fun setNavigationMode(enabled: Boolean) {
+        if (enabled) {
+            Timber.d("S0645: navigation mode applied - trailing arrow, no-stretch content")
+            chevronView.setImageResource(R.drawable.ic_arrow_forward)
+            chevronView.visibility = View.VISIBLE
+            applyInlineLayout()
+        } else {
+            chevronView.setImageResource(R.drawable.ic_chevron_right)
+        }
+    }
+
+    /**
      * Registers the listener invoked when the row is clicked. Replaces any previous listener.
      */
     fun setOnRowClickListener(listener: ((View) -> Unit)?) {
@@ -244,6 +265,9 @@ class SettingsSelectionRow @JvmOverloads constructor(
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
             if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_inline, false)) {
                 applyInlineLayout()
+            }
+            if (typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_navMode, false)) {
+                setNavigationMode(true)
             }
         }
     }

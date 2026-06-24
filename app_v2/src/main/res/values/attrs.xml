@@ -56,6 +56,8 @@
         <attr name="ssr_showChevron" format="boolean" />
         <!-- Packs the chevron right after the value (text group hugs content) and drops the tall touch-target band, for dense landscape rows. Default false. -->
         <attr name="ssr_inline" format="boolean" />
+        <!-- Navigation mode: trailing glyph becomes a real forward arrow instead of the value chevron and the content collapses to hug the left (arrow right after the text). For rows that open another screen/activity/dialog. Default false. -->
+        <attr name="ssr_navMode" format="boolean" />
     </declare-styleable>
 
     <!-- Consumed by SettingsDropdownRow.kt. All public attrs use the sdr_ prefix. -->

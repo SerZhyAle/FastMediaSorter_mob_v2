@@ -32,6 +32,10 @@ interface StreamSourceDao {
     @Query("SELECT * FROM stream_sources WHERE url = :url LIMIT 1")
     suspend fun getByUrl(url: String): StreamSourceEntity?
 
+    /** S0654: resolve just the stored media kind (RTSP/VIDEO/AUDIO) for the stream-played metric. */
+    @Query("SELECT mediaKind FROM stream_sources WHERE id = :id LIMIT 1")
+    suspend fun getMediaKindById(id: String): String?
+
     @Query("SELECT MIN(sortIndex) FROM stream_sources")
     suspend fun minSortIndex(): Int?
 

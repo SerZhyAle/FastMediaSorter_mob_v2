@@ -75,6 +75,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionDown.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionDown
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionDown = picked))
@@ -83,6 +84,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionRight.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionRight
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionRight = picked))
@@ -91,6 +93,7 @@ class OperationsGesturesManager(
         binding.rowScreenshotGestureActionUp.setOnRowClickListener {
             gestureActionPickerManager.showPicker(
                 fragment.requireContext(),
+                fragment.viewLifecycleOwner,
                 viewModel.settings.value.screenshotGestureActionUp
             ) { picked ->
                 viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureActionUp = picked))

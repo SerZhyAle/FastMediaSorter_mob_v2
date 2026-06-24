@@ -10,6 +10,8 @@ import com.bumptech.glide.gifdecoder.StandardGifDecoder
 import com.bumptech.glide.load.resource.gif.GifBitmapProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +31,8 @@ import javax.inject.Inject
 class SaveGifFirstFrameUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter
+    private val destinationWriter: LocalDestinationWriter,
+    private val statsSink: StatsSink,
 ) {
 
     /**
@@ -100,6 +103,7 @@ class SaveGifFirstFrameUseCase @Inject constructor(
                 MediaStoreNotifier.notifyFile(context, savedPath, "save-frame")
             }
 
+            statsSink.record(StatsEvent.GifFrameSaved)
             Result.success(savedPath)
 
         } catch (e: Exception) {

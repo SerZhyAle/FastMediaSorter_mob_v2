@@ -45,6 +45,9 @@ class StreamSourceRepository @Inject constructor(
     suspend fun recordPlayOutcome(id: String, outcome: String) =
         dao.markPlayOutcome(id, outcome, System.currentTimeMillis())
 
+    /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
+    suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)
+
     /**
      * S0570: synchronize the curated catalog into stream_sources. New catalog rows are inserted,
      * existing catalog rows have their metadata refreshed in place (sortIndex/pinned preserved), and

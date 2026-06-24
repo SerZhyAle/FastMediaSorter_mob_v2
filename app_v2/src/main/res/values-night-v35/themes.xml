@@ -22,8 +22,20 @@
         <item name="paddingRightSystemWindowInsets">true</item>
     </style>
 
-    <!-- Edge-to-edge is handled programmatically via enableEdgeToEdge() in BaseActivity. -->
-    <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
+    <!--
+        S0655: do NOT redefine Theme.FastMediaSorter here. An empty redefinition shadows the values-night-v31
+        definition on API 35 (resource resolution picks one best-match bucket per style name, no merge),
+        silently dropping the Android-12 splash items (windowSplashScreenBackground / windowSplashScreenAnimatedIcon
+        / windowSplashScreenAnimationDuration). Falling back to values-night-v31 restores the curated splash; the
+        parent chain still resolves Base->App per device config, so the night-v35 bottomSheet/edge-to-edge override
+        above is preserved. Edge-to-edge itself is handled programmatically via enableEdgeToEdge() in BaseActivity.
+    -->
 
-    <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter" />
+    <!--
+        S0653: do NOT redefine Theme.FastMediaSorter.FullScreen here. An empty redefinition shadows the
+        values-night/ definition on API 35 (resource resolution picks one best-match bucket per style name,
+        no merge), silently dropping windowActionBar/windowNoTitle/android:windowFullscreen. Falling back to
+        values-night/ keeps those window items; the parent chain still resolves Base->App per device config,
+        so the night-v35 bottomSheet/edge-to-edge override above is preserved.
+    -->
 </resources>

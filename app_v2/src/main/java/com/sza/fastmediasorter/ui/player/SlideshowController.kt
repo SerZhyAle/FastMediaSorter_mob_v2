@@ -7,6 +7,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.core.constants.AppConstants
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import timber.log.Timber
 
 /**
@@ -22,7 +24,8 @@ import timber.log.Timber
  */
 class SlideshowController(
     private val lifecycle: Lifecycle,
-    private val slideshowCallback: SlideshowCallback
+    private val slideshowCallback: SlideshowCallback,
+    private val statsSink: StatsSink,
 ) : DefaultLifecycleObserver {
     
     /**
@@ -95,6 +98,7 @@ class SlideshowController(
             slideshowCallback.onCountdownTick(0) // Signal to clear countdown
             
             val shouldSchedule = slideshowCallback.onSlideAdvance()
+            statsSink.record(StatsEvent.SlideAdvanced)
 
             // S0120: checkpoint every transition; CYCLE_END every 25 for delta analysis
             enduranceTransitions++
@@ -145,10 +149,13 @@ class SlideshowController(
     fun startSlideshow(intervalSeconds: Int) {
         Timber.d("SlideshowController: Starting slideshow with interval ${intervalSeconds}s")
 
+        val wasActive = isActive
         intervalMs = intervalSeconds * 1000L
         isActive = true
         isPaused = false
         enduranceTransitions = 0
+        // Count one session only on a real inactive -> active transition, not on interval restarts.
+        if (!wasActive) statsSink.record(StatsEvent.SlideshowStarted)
         MemoryEnduranceTracker.startScenario("IMG-slideshow")
         
         // D.8: Force screen-on during slideshow

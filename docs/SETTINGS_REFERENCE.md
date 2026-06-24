@@ -15,6 +15,7 @@ _Generated from the app. Do not edit by hand._
 | Cache Size Limit | Sets the maximum disk space the app may use for its local cache. |
 | Network Parallelism | Sets the number of simultaneous network connections used when accessing remote resources. |
 | Video pre-cache size | Sets how much upcoming video is pre-cached during playback to reduce buffering. |
+| Sync interval (min) | Sets how often, in minutes, the app checks remote resources during background sync. |
 | Auto | Automatically calculates and sets the recommended cache size based on available storage. |
 | Backup settings to Google Drive | Backs up all app settings to your Google Drive account. |
 | Clear Cache | Deletes all locally cached thumbnails and metadata to free up storage. |
@@ -205,10 +206,11 @@ _Available in: Standard, Legacy_
 | Default video player | Sets which app opens video files by default when tapped from outside this app. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
+| Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
 | Copy, move and overwrite behavior | Settings that control what happens when files are copied, moved, or a name conflict occurs. |
 | Quick Sort destinations | Folders and resources used as Quick Sort targets when sorting files. |
-| Camera, microphone and Other features | Settings for the built-in camera, microphone, and other supplementary features. |
+| Photo, Video, Voice recorder | Settings for capturing photos and videos, recording voice notes, and other supplementary features. |
 | File deletion and trash | Settings that control how files are deleted and whether a trash folder is used. |
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
 | Left-edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |

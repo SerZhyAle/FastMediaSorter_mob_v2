@@ -5,53 +5,15 @@
     android:orientation="vertical"
     android:padding="@dimen/settings_padding">
 
-        <!-- Extensions Manager Entrance -->
-        <LinearLayout
+        <!-- Extensions Manager Entrance (S0645: navigation-row etalon - title + hint + real arrow, no-stretch). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
             android:id="@+id/layoutExtensionsManager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/item_focus_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:minHeight="@dimen/settings_item_min_height"
-            android:padding="8dp"
-            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ext_shortcut_packs_title"
-                    android:textSize="@dimen/toggler_title_text_size"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ext_shortcut_packs_desc"
-                    android:textSize="@dimen/toggler_desc_text_size"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.7"
-                    android:layout_marginTop="2dp" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_arrow_forward"
-                app:tint="?attr/colorOnSurface"
-                android:alpha="0.6"
-                android:contentDescription="@null" />
-
-        </LinearLayout>
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
+            app:ssr_navMode="true"
+            app:ssr_title="@string/ext_shortcut_packs_title"
+            app:ssr_subtitle="@string/ext_shortcut_packs_desc" />
 
         <!-- Translation Section - help payload folded into the row -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -179,113 +141,41 @@
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
-        <!-- OCR Engine Type (S0288) -->
-        <LinearLayout
-            android:id="@+id/layoutOcrEngineType"
+        <!-- OCR Engine Type (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowOcrEngineType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+            app:ssr_title="@string/ocr_engine_type" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/ocr_engine_type"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerOcrEngineType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="@dimen/settings_spinner_min_width"
-                android:contentDescription="@string/ocr_engine_type" />
-        </LinearLayout>
-
-        <!-- PaddleOCR Model Selection (S0288) -->
-        <LinearLayout
-            android:id="@+id/layoutPaddleOcrModel"
+        <!-- PaddleOCR Model Selection (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowPaddleOcrModel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+            app:ssr_title="@string/paddle_ocr_model" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/paddle_ocr_model"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerPaddleOcrModel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="@dimen/settings_spinner_min_width"
-                android:contentDescription="@string/paddle_ocr_model" />
-        </LinearLayout>
-
-        <!-- OCR Font Size -->
-        <LinearLayout
-            android:id="@+id/layoutOcrFontSize"
+        <!-- OCR Font Size - trigger row opens SimpleValueChoiceDialog (S0646). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowOcrFontSize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+            app:ssr_title="@string/ocr_font_size" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/ocr_font_size"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerOcrFontSize"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/ocr_font_size"
-                android:minWidth="@dimen/settings_spinner_min_width" />
-        </LinearLayout>
-
-        <!-- OCR Font Family -->
-        <LinearLayout
-            android:id="@+id/layoutOcrFontFamily"
+        <!-- OCR Font Family - trigger row opens SimpleValueChoiceDialog (S0646). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowOcrFontFamily"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/ocr_font_family"
-                android:textSize="@dimen/toggler_title_text_size" />
-
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerOcrFontFamily"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/ocr_font_family"
-                android:minWidth="@dimen/settings_spinner_min_width" />
-        </LinearLayout>
+            app:ssr_title="@string/ocr_font_family" />
 
 
 </LinearLayout>

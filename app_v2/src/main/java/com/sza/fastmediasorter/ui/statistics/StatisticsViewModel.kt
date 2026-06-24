@@ -179,6 +179,18 @@ class StatisticsViewModel @Inject constructor(
                 snapshot, StatsKey.DUPLICATE_SCANS),
             countRow(category, "op_dup_removed", R.drawable.ic_delete_sweep, R.string.statistics_metric_duplicates_removed,
                 snapshot, StatsKey.DUPLICATES_REMOVED, secondary = StatsKey.DUPLICATE_BYTES_FREED, secondaryFormat = MetricFormat.BYTES),
+            countRow(category, "op_renamed", R.drawable.ic_rename, R.string.statistics_metric_files_renamed,
+                snapshot, StatsKey.FILES_RENAMED),
+            countRow(category, "op_fav_added", R.drawable.ic_star_filled, R.string.statistics_metric_favorites_added,
+                snapshot, StatsKey.FAVORITES_ADDED),
+            countRow(category, "op_fav_removed", R.drawable.ic_star_outline, R.string.statistics_metric_favorites_removed,
+                snapshot, StatsKey.FAVORITES_REMOVED),
+            countRow(category, "op_scheduled_runs", R.drawable.ic_schedule, R.string.statistics_metric_scheduled_runs,
+                snapshot, StatsKey.SCHEDULED_TASKS_RUN),
+            countRow(category, "op_scheduled_files", R.drawable.ic_schedule, R.string.statistics_metric_scheduled_files,
+                snapshot, StatsKey.SCHEDULED_TASK_FILES_PROCESSED),
+            countRow(category, "op_undo", R.drawable.ic_undo, R.string.statistics_metric_undo,
+                snapshot, StatsKey.UNDO_OPERATIONS),
         )
 
         StatsCategory.CAPTURE -> listOfNotNull(
@@ -203,6 +215,18 @@ class StatisticsViewModel @Inject constructor(
                 snapshot, StatsKey.DOCUMENTS_OPENED, secondary = StatsKey.DOCUMENT_PAGES, secondaryFormat = MetricFormat.COUNT),
             countRow(category, "view_frames", R.drawable.ic_video, R.string.statistics_metric_frames_exported,
                 snapshot, StatsKey.FRAMES_EXPORTED),
+            countRow(category, "view_slideshow_sessions", R.drawable.ic_slideshow, R.string.statistics_metric_slideshow_sessions,
+                snapshot, StatsKey.SLIDESHOW_SESSIONS),
+            countRow(category, "view_slideshow_images", R.drawable.ic_slideshow, R.string.statistics_metric_slideshow_images,
+                snapshot, StatsKey.SLIDESHOW_IMAGES_SHOWN),
+            countRow(category, "view_gif_frames", R.drawable.ic_gif, R.string.statistics_metric_gif_frames_saved,
+                snapshot, StatsKey.GIF_FRAMES_SAVED),
+            countRow(category, "view_streams_audio", R.drawable.ic_audio_track, R.string.statistics_metric_streams_audio_played,
+                snapshot, StatsKey.STREAMS_AUDIO_PLAYED),
+            countRow(category, "view_streams_video", R.drawable.ic_video, R.string.statistics_metric_streams_video_played,
+                snapshot, StatsKey.STREAMS_VIDEO_PLAYED),
+            countRow(category, "view_ocr", R.drawable.ic_translate, R.string.statistics_metric_ocr_scans,
+                snapshot, StatsKey.OCR_SCANS),
         )
 
         StatsCategory.EDITING -> listOfNotNull(
@@ -217,6 +241,10 @@ class StatisticsViewModel @Inject constructor(
         StatsCategory.SOURCES -> listOfNotNull(
             countRow(category, "src_connected", R.drawable.ic_cloud_download, R.string.statistics_metric_sources_connected,
                 snapshot, StatsKey.SOURCES_CONNECTED),
+            countRow(category, "src_streams_added", R.drawable.ic_cloud_download, R.string.statistics_metric_streams_added,
+                snapshot, StatsKey.STREAMS_ADDED),
+            countRow(category, "src_playlists_imported", R.drawable.ic_cloud_download, R.string.statistics_metric_playlists_imported,
+                snapshot, StatsKey.PLAYLISTS_IMPORTED),
         )
 
         StatsCategory.USAGE -> buildUsageRows(snapshot)

@@ -191,6 +191,16 @@
       "titleUk": "Макс. отримувачів (1-30)"
     },
     {
+      "key": "headerAdditionalPrograms",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Additional programs and scenarios",
+      "titleRu": "Дополнительные программы и сценарии",
+      "titleUk": "Додаткові програми та сценарії"
+    },
+    {
       "key": "headerBehaviour",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -226,9 +236,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SECTION_HEADER",
-      "titleEn": "Camera, microphone and Other features",
-      "titleRu": "Камера, микрофон и прочий функционал",
-      "titleUk": "Камера, мікрофон та інші функції"
+      "titleEn": "Photo, Video, Voice recorder",
+      "titleRu": "Фото, Видео, Диктофон",
+      "titleUk": "Фото, Відео, Диктофон"
     },
     {
       "key": "headerSafety",
@@ -759,6 +769,16 @@
       "titleEn": "Video pre-cache size",
       "titleRu": "Размер предварительного кэша видео",
       "titleUk": "Розмір попереднього кешу відео"
+    },
+    {
+      "key": "actvSyncInterval",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SPINNER",
+      "titleEn": "Sync interval (min)",
+      "titleRu": "Интервал синхронизации (мин)",
+      "titleUk": "Інтервал синхронізації (хв)"
     },
     {
       "key": "btnAutoCalculateCache",

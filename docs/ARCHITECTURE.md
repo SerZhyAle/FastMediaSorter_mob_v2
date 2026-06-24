@@ -120,6 +120,7 @@ inside the component.
 #### Selection/value row (`SettingsSelectionRow`)
 
 - The value (`app:ssr_value`) renders inline on the title line, right after the title/help, and the trailing chevron stays pinned to the row's right edge via the weighted text group - the value is never separated from its title by the full row width.
+- Navigation mode (`app:ssr_navMode="true"`): the trailing glyph becomes a real forward arrow (`@drawable/ic_arrow_forward`) instead of the value chevron and the content collapses to hug the left so the arrow sits right after the text (the row stays a full-width click target). Use it for rows that open another screen/activity/dialog; value-selection rows keep the chevron. Cross-batch glyph rule shared with S0644: arrow `->` = navigation, chevron `>` = value.
 
 ### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 

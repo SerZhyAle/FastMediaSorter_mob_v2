@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.M3uPlaylistParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -15,7 +17,8 @@ class ImportStreamPlaylistUseCase @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val parser: M3uPlaylistParser,
     private val classifier: StreamMediaKindClassifier,
-    private val repository: StreamSourceRepository
+    private val repository: StreamSourceRepository,
+    private val statsSink: StatsSink,
 ) {
     suspend operator fun invoke(listUrl: String): ImportResult = withContext(Dispatchers.IO) {
         val body = try {
@@ -47,6 +50,8 @@ class ImportStreamPlaylistUseCase @Inject constructor(
             )
         }
         val inserted = repository.addAllIgnoringDuplicates(sources)
+        // Counts the sources this import actually added (duplicates ignored), accumulated all-time.
+        statsSink.record(StatsEvent.PlaylistImported(count = inserted.toLong()))
         ImportResult.Success(inserted)
     }
 

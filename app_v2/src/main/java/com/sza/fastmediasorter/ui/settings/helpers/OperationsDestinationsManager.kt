@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -16,10 +15,12 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.databinding.ItemDestinationBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
+import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
+import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
+import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -80,34 +81,34 @@ class OperationsDestinationsManager(
     }
 
     private fun showAddDestinationDialog() {
-        fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val availableResources = viewModel.getWritableNonDestinationResources()
-
-            if (availableResources.isEmpty()) {
-                Toast.makeText(
-                    fragment.requireContext(),
-                    R.string.no_writable_resources_destinations,
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@launch
-            }
-
-            val items = availableResources.map { "${it.name} (${it.path})" }.toTypedArray()
-
-            androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
-                .setTitle(R.string.select_destination_title)
-                .setItems(items) { _, which ->
-                    val selectedResource = availableResources[which]
-                    viewModel.addDestination(selectedResource)
-                    Toast.makeText(
-                        fragment.requireContext(),
-                        fragment.getString(R.string.destination_added, selectedResource.name),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
+        Timber.d("S0646: add-destination picker opening list-choice dialog")
+        ListSelectionDialog<MediaResource>(
+            fragment.requireContext(),
+            ListSelectionConfig(
+                title = fragment.getString(R.string.select_destination_title),
+                lifecycleOwner = fragment.viewLifecycleOwner,
+                loader = { viewModel.getWritableNonDestinationResources() },
+                formatter = object : ListSelectionAdapter.ItemFormatter<MediaResource> {
+                    override fun getDisplayName(item: MediaResource): String =
+                        "${item.name} (${item.path})"
+                },
+                hasSelection = false,
+                isSelected = { false },
+                allowClear = false,
+                emptyMessageRes = R.string.no_writable_resources_destinations,
+                errorMessageRes = R.string.no_writable_resources_destinations,
+                onSelected = { selected ->
+                    selected?.let { res ->
+                        viewModel.addDestination(res)
+                        Toast.makeText(
+                            fragment.requireContext(),
+                            fragment.getString(R.string.destination_added, res.name),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+            ),
+        ).show()
     }
 
     private fun showColorPicker(resource: MediaResource) {

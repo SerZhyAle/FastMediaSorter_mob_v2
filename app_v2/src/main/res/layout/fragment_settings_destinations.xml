@@ -403,24 +403,7 @@
 
                 <LinearLayout android:id="@+id/containerOtherFeatures" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Camera OCR Translation rows (S0320) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowCameraOcrTranslationEnabled"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/setting_camera_ocr_translation_title"
-                        app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
-
-                    <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowCameraOcrOnly"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:str_title="@string/setting_camera_ocr_only_title"
-                            app:str_subtitle="@string/setting_camera_ocr_only_desc" />
-                    </LinearLayout>
+                    <!-- S0649: Camera OCR translation rows moved to the Additional-programs group below. -->
 
                     <!-- S0367: Camera Photos block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -585,13 +568,22 @@
                         app:str_title="@string/settings_mic_recording_enable_title"
                         app:str_subtitle="@string/settings_mic_recording_enable_desc" />
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowMicRecordingAskFilename"
+                    <!-- S0651: "Ask file name" is a child of "Enable microphone recording"; indented in portrait to show subordination (landscape pairs both on one row instead). Row visibility is still toggled directly by OperationsCaptureManager. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        app:str_title="@string/settings_mic_recording_ask_filename_title"
-                        app:str_subtitle="@string/settings_mic_recording_ask_filename_desc" />
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_nested_margin_start">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowMicRecordingAskFilename"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            app:str_title="@string/settings_mic_recording_ask_filename_title"
+                            app:str_subtitle="@string/settings_mic_recording_ask_filename_desc" />
+
+                    </LinearLayout>
 
                     <!-- S0367: Microphone recordings destination selector. Empty = public Downloads. -->
                     <LinearLayout
@@ -637,6 +629,45 @@
                                 android:text="@string/setting_select_destination"
                                 android:textAllCaps="false" />
                         </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- S0649: Calculator + Embedded game moved to the Additional-programs group below. -->
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features: camera OCR translation (+ nested recognition only), calculator, mini-game. Portrait: single column. -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerAdditionalPrograms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_category_additional_programs" />
+
+                <LinearLayout android:id="@+id/containerAdditionalPrograms" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- Camera OCR Translation rows (S0320) -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowCameraOcrTranslationEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_camera_ocr_translation_title"
+                        app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
+
+                    <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowCameraOcrOnly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_title="@string/setting_camera_ocr_only_title"
+                            app:str_subtitle="@string/setting_camera_ocr_only_desc" />
                     </LinearLayout>
 
                     <!-- Calculator + Embedded game (moved here from the General tab "Other functionality" group) -->
@@ -917,46 +948,15 @@
             app:cardElevation="2dp"
             app:contentPadding="0dp">
 
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowControlsKeybindings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="56dp"
-                android:orientation="horizontal"
                 android:paddingStart="@dimen/margin_small"
-                android:paddingEnd="@dimen/margin_small">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_controls_keybindings_title"
-                        android:textSize="@dimen/toggler_title_text_size" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_controls_keybindings_desc"
-                        android:textColor="@color/text_color_secondary"
-                        android:textSize="@dimen/toggler_desc_text_size" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:importantForAccessibility="no" />
-
-            </LinearLayout>
+                android:paddingEnd="@dimen/margin_small"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/settings_controls_keybindings_title"
+                app:ssr_subtitle="@string/settings_controls_keybindings_desc" />
 
         </com.google.android.material.card.MaterialCardView>
 
