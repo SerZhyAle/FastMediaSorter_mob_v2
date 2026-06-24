@@ -1,0 +1,7 @@
+• Stream player controls - trimmed, stream-tailored controls with channel navigation.
+• Cast live streams - send a live video stream to Chromecast.
+• Stream shortcuts and actions - home-screen shortcuts plus a per-card actions menu.
+• Streams settings - default sort and media-type filter, with TV-remote and mouse support.
+• Screen-capture app panel - OS shortcuts and the app's own features in one panel.
+• Edge gestures - open the app or its panel with an edge swipe.
+..
