@@ -124,6 +124,9 @@ class PlayerCropDelegate(
 
         override fun onCropModeExited() {
             hideCropOverlay()
+            // Engine fires this only on cancel/exit (success path uses onSuccess), so it signals a
+            // dismissed crop - hosts chaining a post-crop action drop it here.
+            host.onCropFlowCancelled()
         }
 
         override fun onSuccess(savedPath: String, mode: ImageCropManager.CropMode) {

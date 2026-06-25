@@ -9,8 +9,10 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 
 /**
@@ -44,6 +46,7 @@ class CropOverlayView @JvmOverloads constructor(
     private val cornerHandleRadiusPx = dp(12f)
     private val edgeHandleHalfPx = dp(8f)
     private val minCropPx = dp(40f)
+    private val keyStepPx = dp(16f)
 
     // ── Paints ──────────────────────────────────────────────────────────────
 
@@ -81,6 +84,16 @@ class CropOverlayView @JvmOverloads constructor(
     private var dragTarget = DragTarget.NONE
     private var lastTouchX = 0f
     private var lastTouchY = 0f
+
+    // D-pad / keyboard adjustment (Strict Rule 16/17): arrows move the frame, or resize the
+    // bottom-right corner once toggled with D-pad center.
+    private var keyResizeMode = false
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        contentDescription = context.getString(R.string.draw_crop_frame_desc)
+    }
 
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -222,6 +235,29 @@ class CropOverlayView @JvmOverloads constructor(
             DragTarget.RIGHT -> cropRect.right = (cropRect.right + dx).coerceIn(cropRect.left + minCropPx, vw)
             else -> {}
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                keyResizeMode = !keyResizeMode
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> { nudge(-keyStepPx, 0f); return true }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> { nudge(keyStepPx, 0f); return true }
+            KeyEvent.KEYCODE_DPAD_UP -> { nudge(0f, -keyStepPx); return true }
+            KeyEvent.KEYCODE_DPAD_DOWN -> { nudge(0f, keyStepPx); return true }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun nudge(dx: Float, dy: Float) {
+        // Resize mode drives the bottom-right corner; otherwise the whole frame moves.
+        dragTarget = if (keyResizeMode) DragTarget.BOTTOM_RIGHT else DragTarget.MOVE
+        applyDrag(dx, dy)
+        dragTarget = DragTarget.NONE
+        invalidate()
+        notifyListener()
     }
 
     // ── Public API ───────────────────────────────────────────────────────────

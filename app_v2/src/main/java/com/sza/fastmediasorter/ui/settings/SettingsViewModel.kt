@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.util.DestinationColors
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -192,6 +193,7 @@ class SettingsViewModel @Inject constructor(
                     applyScheduledOperationsToggle(settings.enableScheduledOperations)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error updating settings")
             }
         }
@@ -208,6 +210,7 @@ class SettingsViewModel @Inject constructor(
                     Timber.i("SettingsViewModel: Scheduled operations disabled - cancelled all workers")
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "SettingsViewModel: applyScheduledOperationsToggle failed")
             }
         }
@@ -229,6 +232,7 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.resetToDefaults()
                 // Settings reset
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error resetting settings")
             }
         }
@@ -250,6 +254,7 @@ class SettingsViewModel @Inject constructor(
             try {
                 setStatisticsCollectionEnabledUseCase(enabled)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error updating statistics collection flag")
             }
         }
@@ -348,6 +353,7 @@ class SettingsViewModel @Inject constructor(
             try {
                 clearStreamPlayOutcomesUseCase()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to clear stream play statuses")
             }
         }
@@ -379,6 +385,7 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.setPlayerFirstRun(true)
                 settingsRepository.resetAllTouchZoneHints()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error resetting touch zone hints during playback section reset")
             }
         }
@@ -444,6 +451,7 @@ class SettingsViewModel @Inject constructor(
                 settingsRepository.setPlayerFirstRun(true)
                 settingsRepository.resetAllTouchZoneHints()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error resetting player first-run flag")
             }
         }
@@ -460,6 +468,7 @@ class SettingsViewModel @Inject constructor(
                         // Manual clear must reuse the same contract + legacy migration path as the worker.
                         cleanupTrashFoldersUseCase.cleanup(java.io.File(resource.path), maxAgeMs = 0L)
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.w(e, "SettingsViewModel: Failed to clear trash for ${resource.path}")
                         0
                     }
@@ -495,6 +504,7 @@ class SettingsViewModel @Inject constructor(
                     Timber.e("Error moving destination: result1=${result1.exceptionOrNull()}, result2=${result2.exceptionOrNull()}")
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error moving destination")
             }
         }
@@ -509,6 +519,7 @@ class SettingsViewModel @Inject constructor(
                 ))
                 Timber.d("Destination removed successfully")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error removing destination")
             }
         }
@@ -522,6 +533,7 @@ class SettingsViewModel @Inject constructor(
             }
             allResources.filter { it.isWritable && !it.isDestination }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error getting writable resources")
             emptyList()
         }
@@ -543,6 +555,7 @@ class SettingsViewModel @Inject constructor(
                     .maxOrNull()
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error getting last sync timestamp")
             null
         }
@@ -571,6 +584,7 @@ class SettingsViewModel @Inject constructor(
                 ))
                 Timber.d("Destination added successfully with order $nextOrder and color $color")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error adding destination")
             }
         }
@@ -647,6 +661,7 @@ class SettingsViewModel @Inject constructor(
                 updateResourceUseCase(resource.copy(destinationColor = color))
                 Timber.d("Destination color updated successfully")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error updating destination color")
             }
         }
@@ -659,6 +674,7 @@ class SettingsViewModel @Inject constructor(
                 credentialsRepository.insert(credentials)
                 Timber.d("Added credentials: ${credentials.username}@${credentials.server}")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error adding credentials")
             }
         }
@@ -672,6 +688,7 @@ class SettingsViewModel @Inject constructor(
                 resourceRepository.addResource(resource)
                 Timber.d("Added resource: ${resource.name}")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error adding resource")
             }
         }

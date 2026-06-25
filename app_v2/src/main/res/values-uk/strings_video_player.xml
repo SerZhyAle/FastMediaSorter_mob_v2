@@ -10,7 +10,7 @@
     <string name="playback_control_no_audio_tracks">Аудіодоріжки недоступні</string>
     <string name="playback_control_no_subtitles">Субтитри недоступні</string>
     <string name="playback_control_speed_value">Швидкість: %1$.2fx</string>
-    <string name="playback_control_tab_audio">Аудіо</string>
+    <string name="playback_control_tab_audio">Аудіодоріжка</string>
     <string name="playback_control_tab_brightness">Світло</string>
     <string name="playback_control_tab_hue">HUE</string>
     <string name="playback_control_tab_speed">Швидкість</string>
@@ -95,4 +95,7 @@
     <string name="video_snapshot_resource_label">Ресурс для збереження кадрів</string>
     <string name="video_snapshot_resource_not_set">Не вибрано (зберігається в Downloads)</string>
     <string name="videos_v">Videos (V)</string>
+    <string name="playback_control_speed_0_5x">0.5x</string>
+    <string name="playback_control_speed_1_5x">1.5x</string>
+    <string name="playback_control_speed_2x">2x</string>
 </resources>

@@ -147,7 +147,12 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
             getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            onPickCustomFolderForCopy = {
+                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                customPathPickerLauncher.launch(null)
+            },
         )
     }
 
@@ -520,7 +525,6 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
                 textViewerManager.displayText(file, isWritable = writable)
                 binding.btnEditTextCmd.isVisible = writable
                 destinationButtonsManager.populateDestinationButtons()
-                Timber.d("S0612: text standalone copy/move panels populated for shown file")
                 lastShownPath = file.path
             }
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)

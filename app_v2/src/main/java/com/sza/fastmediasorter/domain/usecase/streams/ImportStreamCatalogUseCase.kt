@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -22,29 +23,44 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val parser: StreamCatalogCsvParser,
     private val classifier: StreamMediaKindClassifier,
-    private val repository: StreamSourceRepository
+    private val repository: StreamSourceRepository,
+    // S0668: persists the favicon sprite-atlas + url->index sidecar extracted from the same zip.
+    private val faviconAtlasStore: FaviconAtlasStore
 ) {
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
-        val csvText = try {
-            downloadCsv()
+        val payload = try {
+            downloadCatalog()
         } catch (e: Exception) {
             Timber.w(e, "Stream catalog import failed: %s", "download/unzip")
             return@withContext CatalogImportResult.Failure(e.message ?: "download error")
         }
 
-        if (csvText == null) {
+        if (payload == null) {
             Timber.w("Stream catalog import: no streams.csv entry found in archive")
             return@withContext CatalogImportResult.Empty
         }
 
         val entries = try {
-            parser.parse(csvText)
+            parser.parse(payload.csv)
         } catch (e: Exception) {
             Timber.w(e, "Stream catalog import failed: %s", "parse")
             return@withContext CatalogImportResult.Failure(e.message ?: "parse error")
         }
 
         if (entries.isEmpty()) return@withContext CatalogImportResult.Empty
+
+        // S0668: persist the favicon atlas + url->index sidecar before merging the rows. Keyed by url
+        // (stable unique index) not the per-import random id. A sidecar write failure must NOT fail the
+        // import - the rows still merge; favicons just stay absent until the next import.
+        try {
+            val coords = entries
+                .filter { it.faviconIndex != null }
+                .associate { it.url to it.faviconIndex!! }
+            faviconAtlasStore.write(payload.atlasPng, coords)
+            Timber.d("S0668: catalog atlas persisted (atlas=%b, coords=%d)", payload.atlasPng != null, coords.size)
+        } catch (e: Exception) {
+            Timber.w(e, "Stream catalog import: favicon sidecar write failed (rows still merge)")
+        }
 
         val now = System.currentTimeMillis()
         val sources = entries.map { entry ->
@@ -78,11 +94,11 @@ class ImportStreamCatalogUseCase @Inject constructor(
     }
 
     /**
-     * Downloads the catalog zip and returns the first CSV entry decoded as UTF-8, or null when the
-     * archive has no usable CSV. Per-entry reads are capped to guard against a malformed/oversized
-     * zip; entries above the cap are skipped rather than buffered.
+     * Downloads the catalog zip and returns its [CatalogPayload] (CSV text + optional atlas PNG), or
+     * null when the archive has no usable CSV. The zip is consumed in a SINGLE pass capturing both
+     * entries; per-entry reads are capped to guard against a malformed/oversized zip.
      */
-    private fun downloadCsv(): String? {
+    private fun downloadCatalog(): CatalogPayload? {
         val request = Request.Builder().url(CATALOG_URL).build()
         // Derive a client that keeps the shared pool/dispatcher and 10s connect/read/write timeouts
         // but adds the overall call deadline the shared client lacks, so a slow-trickle host (one that
@@ -93,28 +109,58 @@ class ImportStreamCatalogUseCase @Inject constructor(
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) error("HTTP ${response.code}")
             val stream = response.body?.byteStream() ?: error("empty response body")
-            ZipInputStream(stream).use { zip ->
-                var fallback: String? = null
-                var entry = zip.nextEntry
-                while (entry != null) {
-                    val name = entry.name.lowercase()
-                    if (!entry.isDirectory && name.endsWith(".csv")) {
+            return extractCatalog(stream)
+        }
+    }
+
+    /**
+     * S0668: walks the catalog zip ONCE, capturing the CSV text AND the atlas PNG bytes. The
+     * PNG-extraction branch is ADDITIVE (compat invariant): every non-matched entry is still skipped via
+     * `closeEntry()`, the CSV is still read via [readCappedUtf8], and an OLD catalog with no atlas entry
+     * yields `atlasPng == null` with the CSV intact. Because the publish step packs the CSV FIRST, the
+     * walk does NOT early-return on the CSV match (that would skip a later PNG entry) - both locals are
+     * captured and the payload is built after the walk. `internal` so the extraction is unit-testable
+     * from an in-memory zip without the network.
+     */
+    internal fun extractCatalog(stream: java.io.InputStream): CatalogPayload? {
+        ZipInputStream(stream).use { zip ->
+            var streamsCsv: String? = null
+            var fallbackCsv: String? = null
+            var atlasPng: ByteArray? = null
+            var entry = zip.nextEntry
+            while (entry != null) {
+                val name = entry.name.lowercase()
+                when {
+                    entry.isDirectory -> Unit
+                    name.endsWith(".csv") -> {
                         val text = readCappedUtf8(zip)
                         if (text != null) {
-                            if (name.endsWith("streams.csv")) return text
-                            if (fallback == null) fallback = text
+                            if (name.endsWith("streams.csv")) streamsCsv = text
+                            else if (fallbackCsv == null) fallbackCsv = text
                         }
                     }
-                    zip.closeEntry()
-                    entry = zip.nextEntry
+                    name.endsWith("favicon-atlas.png") -> {
+                        // Over-cap atlas -> drop the atlas, KEEP the CSV (favicons just stay absent).
+                        atlasPng = readCappedBytes(zip, MAX_ATLAS_BYTES)
+                    }
+                    // Any other entry is skipped, exactly as today (skip-unknown preserved).
                 }
-                return fallback
+                zip.closeEntry()
+                entry = zip.nextEntry
             }
+            val csv = streamsCsv ?: fallbackCsv ?: return null
+            return CatalogPayload(csv = csv, atlasPng = atlasPng)
         }
     }
 
     /** Reads the current zip entry as UTF-8, returning null if it exceeds [MAX_CSV_BYTES]. */
     private fun readCappedUtf8(zip: ZipInputStream): String? {
+        val bytes = readCappedBytes(zip, MAX_CSV_BYTES) ?: return null
+        return String(bytes, Charsets.UTF_8)
+    }
+
+    /** Reads the current zip entry's bytes, returning null if they exceed [cap]. */
+    private fun readCappedBytes(zip: ZipInputStream, cap: Int): ByteArray? {
         val buffer = ByteArray(8 * 1024)
         val out = java.io.ByteArrayOutputStream()
         var total = 0
@@ -122,11 +168,14 @@ class ImportStreamCatalogUseCase @Inject constructor(
             val read = zip.read(buffer)
             if (read == -1) break
             total += read
-            if (total > MAX_CSV_BYTES) return null
+            if (total > cap) return null
             out.write(buffer, 0, read)
         }
-        return out.toString(Charsets.UTF_8.name())
+        return out.toByteArray()
     }
+
+    /** S0668: the two things extracted from the catalog zip - the CSV text and an optional atlas PNG. */
+    internal data class CatalogPayload(val csv: String, val atlasPng: ByteArray?)
 
     sealed interface CatalogImportResult {
         data class Success(val added: Int, val updated: Int, val removed: Int) : CatalogImportResult
@@ -138,6 +187,10 @@ class ImportStreamCatalogUseCase @Inject constructor(
         const val CATALOG_URL =
             "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip"
         const val MAX_CSV_BYTES = 8 * 1024 * 1024
+
+        // S0668: atlas cap, separate from the CSV cap. A 16-col grid of 32 px tiles for a partial-coverage
+        // catalog compresses well under this; over-cap drops the atlas but keeps the CSV.
+        const val MAX_ATLAS_BYTES = 4 * 1024 * 1024
 
         // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). Mirrors the
         // download-client callTimeout in di/LinkDownloadModule.kt; generous for a small catalog zip.

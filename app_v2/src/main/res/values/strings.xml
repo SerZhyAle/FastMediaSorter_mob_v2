@@ -2832,11 +2832,11 @@ Close the player and try again.</string>
     <string name="app_launch_panel_os_datetime">Date and time</string>
     <string name="app_launch_panel_add_chooser_title">Add to panel</string>
     <string name="app_launch_panel_path_external_app">Android app</string>
-    <string name="app_launch_panel_path_os_part">System shortcut</string>
+    <string name="app_launch_panel_path_os_part">Android OS settings</string>
     <string name="app_launch_panel_path_app_feature">FastMediaSorter feature</string>
     <string name="app_launch_panel_path_app_resource">FastMediaSorter resource</string>
     <string name="app_launch_panel_picker_feature_title">Choose a feature</string>
-    <string name="app_launch_panel_picker_os_title">Choose a system shortcut</string>
+    <string name="app_launch_panel_picker_os_title">Choose Android OS setting</string>
     <string name="app_launch_panel_picker_resource_title">Choose a resource</string>
     <string name="app_launch_panel_route_disabled_hint">Off - tap to turn on</string>
     <string name="app_launch_panel_sub_feature">App feature</string>
@@ -2860,4 +2860,17 @@ Close the player and try again.</string>
     <string name="settings_streams_clear_statuses">Clear play marks</string>
     <string name="settings_streams_clear_statuses_confirm">Clear the green and red marks on all channels? The channels themselves stay.</string>
     <string name="settings_streams_clear_statuses_done">Marks cleared.</string>
+    <string name="screen_capture_disclosure_message">The app can capture the current device screen, including other apps, only after you confirm the Android system prompt. Screen content may contain personal data. Screenshots stay on this device unless you choose to copy, edit, translate, or send them. They are saved to your selected screenshot folder or fallback device folders.</string>
+    <string name="screen_capture_disclosure_title">Screen capture needs your permission</string>
+    <string name="screen_capture_disclosure_accept">Continue</string>
+    <string name="streams_favicon">Channel logo</string>
+    <string name="streams_grid_cell_cd">%1$s - current frame</string>
+    <string name="streams_grid_no_frame_cd">%1$s - no preview</string>
+    <string name="streams_view_grid">Grid view</string>
+    <string name="streams_view_list">List view</string>
+    <string name="screenshot_gesture_action_crop_and_share">Crop screenshot and share</string>
+    <string name="share_to_pick_resource">Select resource..</string>
+    <string name="draw_tool_crop">Crop</string>
+    <string name="draw_crop_frame_desc">Crop selection frame</string>
+    <string name="draw_crop_failed">Couldn\'t crop the image</string>
 </resources>

@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * Owns the destinations list embedded in the Operations tab: the RecyclerView + adapter, add/remove/
@@ -81,7 +80,6 @@ class OperationsDestinationsManager(
     }
 
     private fun showAddDestinationDialog() {
-        Timber.d("S0646: add-destination picker opening list-choice dialog")
         ListSelectionDialog<MediaResource>(
             fragment.requireContext(),
             ListSelectionConfig(

@@ -109,7 +109,7 @@ APK в DOWNLOADS, изменения зафиксированы на DEBUG-ве�
 cd P:/ANDROID/FastMediaSorter_release
 # редактируешь конфликты
 git cherry-pick --continue
-# дальше шаги 6–10 вручную по инструкции в .claude/commands/skill-fix-release.md
+# дальше шаги 6-10 вручную по инструкции в .claude/commands/skill-fix-release.md
 ```
 
 ### Итог
@@ -142,30 +142,34 @@ git cherry-pick --continue
 ### Предусловия
 
 - Ты на `DEBUG-v00N` (не на `main`).
-- Рабочее дерево чистое (`git status` показывает nothing to commit).
 - `P:/ANDROID/FastMediaSorter_release` существует (`git worktree list` должен показать оба дерева).
 - Standard production readiness gate пройден: `docs/RELEASE_READINESS_STANDARD.md` (вердикт `scripts/release/standard-release-gate.ps1` -> PASS или WAIVED).
 
-### Шаги
+Грязное рабочее дерево **не** блокер: пайплайн сам коммитит и пушит WIP через `.\a c` (`commit-push.ps1`) перед мёрджем. Жёсткие блокеры - только: запуск с `main` вместо DEBUG-ветки, отсутствие release-worktree, провал commit/push, конфликт мёрджа.
 
-**Один вызов:**
+### Запуск
+
 ```
-/skill-release
+/skill-release                 # только standard (Google Play AAB + канонический GitHub-asset)
+/skill-release vr noLegal      # standard + перечисленные редакции на GitHub
+/skill-release all             # весь спектр: standard, vr, lite, photos, legacy, noLegal, wear
 ```
 
-Скилл выполняет полный пайплайн автономно:
+Без аргумента собирается и публикуется только `standard`. Аргументы расширяют **только** спектр GitHub-релиза; Google Play AAB (standard) собирается всегда, независимо от аргументов.
 
-1. Pre-flight: проверяет ветку, чистоту дерева, наличие worktree.
-2. Генерирует версию по формату `Y.YM.MDDH.Hmm`.
-3. Анализирует `git log <prev-tag>..HEAD` - разбивает коммиты на «What's New» (`feat:`) и «What's Fixed» (`fix:`).
-4. Обновляет `docs/WHATS_NEW.md` - старый «Current release» становится «Previous Release», сверху вставляется новый блок.
-5. Обновляет `README.md` (и зеркала `README_RU.md`, `README_UK.md`) - раздел «What's New» с новой версией.
-6. Коммитит документы на DEBUG-ветке, пушит.
-7. Мёрджит DEBUG → main в release worktree (`--no-ff`), ставит тег, пушит `main` и тег.
-8. Переходит на следующий DEBUG-бранч:
-   - Если `DEBUG-v002` уже существует (был «future»-бранчем) → `git checkout DEBUG-v002`.
-   - Если нет → создаёт `DEBUG-v002` от свежего `main`, пушит с трекингом.
-9. Запускает `.\a r` - релизный билд AAB в worktree, артефакты в `DOWNLOADS/`.
+### Что делает скилл автономно
+
+1. Pre-flight: ветка, наличие worktree. Грязный tree -> авто-коммит + push через `.\a c`.
+2. Версия и versionCode из одного timestamp по формату `Y.YM.MDDH.Hmm` / `YYMMDDHHm`. Оба значения **ПИНятся** в билд (`-VersionName -VersionCode`), чтобы тег = заголовок `WHATS_NEW` = AAB = APK без расхождений.
+3. Анализ изменений по **диффу инвентаря возможностей**, а не по git-логу: `scripts/all_features/diff.ps1 -From <prev-tag>`. Коммиты неконвенциональны (голые числа/таймстемпы), `PLAN/` в gitignore, поэтому `feat:`/`fix:` из лога не вытащить. Записи `[ADD]`/`[CHANGE]` раскладываются на «Что нового» и «Что исправлено».
+4. Обновляет `docs/WHATS_NEW.md` + **обязательно** зеркала `WHATS_NEW_RU.md` и `WHATS_NEW_UK.md`. Из них генерятся локализованные fastlane-changelog'и; если зеркала не обновить - в Play/IzzyOnDroid уедут заметки прошлого релиза.
+5. Обновляет `README.md` (+ `README_RU.md`/`README_UK.md`, если там есть блок версии).
+6. Dev-log + коммит документов на DEBUG-ветке, push.
+7. Мёрджит DEBUG -> main в release worktree (`--no-ff`), ставит тег `release/v<version>`, пушит `main` и тег.
+8. Переходит на следующий DEBUG-бранч: берёт существующий `DEBUG-v0NN+1` (был «future»-бранчем) или создаёт его от свежего `main` и пушит с трекингом.
+9. Сборка: `.\a r -VersionName <v> -VersionCode <c>` - standard AAB (Google Play) + APK + зеркало в Google Drive (запароленный ZIP) + fastlane-changelog'и. Доп. редакции из `$FLAVORS` собираются `build-release-spectrum.ps1 -ReuseVersion` на той же версии (без расхождений с Play-AAB).
+10. Публикация по каналам (см. ниже): GitHub Release (`publish-github-release.ps1`, сперва `-DryRun`), Google Play (`publish-play-release.ps1`, трек `production`, статус `completed`). Затем коммит сгенерированных fastlane-changelog'ов в `main` и сброс version-stamp в `build.gradle.kts` (иначе следующий релиз упрётся в грязный tree при мёрдже).
+11. Showcase: из диффа `ALL_FEATURES` яркие возможности добавляются в `docs/FEATURES.md` (+ RU/UK в lockstep), коммит на новом DEBUG-бранче (на сайт попадёт при следующем мёрдже в `main`).
 
 ### Что делать при конфликте мёрджа
 
@@ -186,13 +190,27 @@ git push origin release/v$NEW_VERSION
 
 | Что | Результат |
 |-----|-----------|
-| `main` | содержит всё из DEBUG-v00N |
-| Тег | `release/v$NEW_VERSION` в истории git |
-| Документы | `WHATS_NEW.md`, `README.md` обновлены и закоммичены |
-| Dev-директория | переключена на `DEBUG-v002` (следующий цикл) |
-| Артефакт | AAB в `DOWNLOADS/` - готов к публикации в Google Play |
+| `main` | содержит всё из DEBUG-v00N + fastlane-changelog'и релиза |
+| Тег | `release/v$NEW_VERSION` запушен |
+| Документы | `WHATS_NEW.md` (+ RU/UK), `README.md` обновлены до мёрджа; `FEATURES.md` (+ RU/UK) обновлён на новом DEBUG |
+| Dev-директория | переключена на следующий `DEBUG-v0NN+1` |
+| Google Play | standard AAB опубликован на `production` (статус `completed`) - автоматически |
+| GitHub Release | assets `$FLAVORS` опубликованы под тегом `v$NEW_VERSION` - автоматически |
+| Google Drive | запароленный ZIP standard синхронизирован внутри `.\a r` |
 
-Публикуешь AAB из `DOWNLOADS/` вручную в Google Play Console. Для VR после этого запускаешь `.\a vr` отдельно.
+Публикация в Google Play и GitHub - **автоматическая** внутри пайплайна. Ручная публикация AAB больше не нужна.
+
+### Каналы дистрибуции
+
+Полный релиз доходит до пяти каналов:
+
+1. **Google Play** (standard AAB) - автоматически (`publish-play-release.ps1`). Разовый гейт, блокирующий commit: декларация **Foreground service permissions** в Play Console -> App content. При появлении нового типа `FOREGROUND_SERVICE_*` (например, при добавлении записи через микрофон или захвата экрана) AAB заливается, но commit возвращает HTTP 403, пока декларация не сохранена владельцем. Это **не** жёсткий блокер пайплайна - фиксируется в отчёте как `[PLAY FGS]`, дальше владелец дозаявляет в Console и добавляет бандл из библиотеки.
+2. **GitHub Release / Store** (`$FLAVORS`) - автоматически (`build-release-spectrum.ps1` + `publish-github-release.ps1`). Кнопки загрузки на сайте и `docs/DOWNLOADS_*` тянут assets через GitHub API. Редакция, не собранная в этом релизе, остаётся на прошлом asset'е - расширяй `$FLAVORS`, когда нужно обновить не-standard.
+3. **Google Drive** - автоматически внутри `.\a r`: standard AAB+APK + запароленный ZIP (пароль `1`) в синхронизируемую папку.
+4. **4pda** (форум, RU) - **вручную**. Накапливай «Что нового»/«Что исправлено» с момента ПОСЛЕДНЕГО поста на 4pda (не с прошлого релиза - на 4pda постят реже), три спойлера: что нового, что исправлено, noLegal. Вложения: `FastMediaSorter_standard_release.apk` + свежий `FastMediaSorter_nolegal_debug.apk` (`.\a nd`). noLegal-пункты - из `docs/FEATURES_noLegal*` / `docs/ALL_FEATURES_noLegal.jsonl`, никогда из публичных файлов.
+5. **IzzyOnDroid** (standard APK) - разовый RFP (только владелец, нужен аккаунт Codeberg). После принятия IzzyOnDroid сам тянет standard APK из каждого GitHub-релиза - отдельных действий на релиз нет.
+
+> Важно про скрин-захват и краевые жесты: в поставляемом standard Play-билде они **отсутствуют** (committed `gradle.properties` задаёт `fms.screenCapture=off`, гейт S0630). В заметках/showcase/посте на 4pda эти возможности относи к noLegal-сборке, даже если в `ALL_FEATURES.jsonl` у них флавор `standard` (инвентарь отражает возможность при флаге=on, а не поставляемую сборку).
 
 ---
 
@@ -202,11 +220,14 @@ git push origin release/v$NEW_VERSION
 |--------|---------|
 | Debug APK | `.\a d` |
 | Debug APK без zip | `.\a db` |
-| Clean + debug APK | `.\a dc` |
+| Clean + debug APK | `.\a cd` (или `.\a dc`) |
+| Коммит + push WIP | `.\a c "сообщение"` |
 | AAB для Google Play (release) | `.\a r` |
 | APK для VR/Meta (release) | `.\a vr` |
-| APK noLegal (release) | `.\a nl` |
-| Плановый релиз (всё автоматом) | `/skill-release` |
+| APK noLegal release / debug | `.\a nl` / `.\a nd` |
+| Плановый релиз (только standard) | `/skill-release` |
+| Плановый релиз (весь спектр) | `/skill-release all` |
+| Дифф возможностей с тега | `pwsh -NoProfile -File scripts/all_features/diff.ps1 -From <tag>` |
 | Текущая ветка | `git branch --show-current` |
 | Все рабочие деревья | `git worktree list` |
 | Последние теги релизов | `git tag --list "release/*" --sort=-version:refname` |
@@ -218,4 +239,6 @@ git push origin release/v$NEW_VERSION
 - [`.claude/commands/git.md`](../.claude/commands/git.md) - полный git-справочник: ветки, worktree, fix-release, push
 - [`.claude/commands/skill-release.md`](../.claude/commands/skill-release.md) - детальный алгоритм `/skill-release`
 - [`scripts/release-worktree-sync.txt`](../scripts/release-worktree-sync.txt) - список gitignored-файлов, синхронизируемых в worktree перед каждым release-билдом
-- [`docs/WHATS_NEW.md`](WHATS_NEW.md) - история релизов
+- [`docs/WHATS_NEW.md`](WHATS_NEW.md) - история релизов (источник fastlane-changelog'ов; RU/UK зеркала рядом)
+- [`docs/ALL_FEATURES.jsonl`](ALL_FEATURES.jsonl) - инвентарь возможностей, из его диффа строятся заметки релиза и showcase
+- [`docs/FEATURES.md`](FEATURES.md) - публичный showcase (EN/RU/UK), правится только `/skill-release`

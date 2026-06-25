@@ -49,7 +49,10 @@ class StreamCatalogCsvParser @Inject constructor() {
                 sourceKind = cell(fields, "source_kind"),
                 licenseNote = cell(fields, "license_note"),
                 notes = cell(fields, "notes"),
-                confidence = cell(fields, "confidence")
+                confidence = cell(fields, "confidence"),
+                // S0668: additive favicon column. Blank/non-numeric/negative -> null (no favicon); an
+                // older catalog lacking the column resolves to "" via cell() and so decodes to null too.
+                faviconIndex = cell(fields, "favicon_index").toIntOrNull()?.takeIf { it >= 0 }
             )
         }
         return result
@@ -148,5 +151,8 @@ data class ParsedCatalogEntry(
     val sourceKind: String,
     val licenseNote: String,
     val notes: String,
-    val confidence: String
+    val confidence: String,
+    // S0668: zero-based tile ordinal into the favicon sprite-atlas (32 px / 16-col grid). null = no
+    // favicon for this row (blank cell, non-numeric, negative, or an older catalog without the column).
+    val faviconIndex: Int?
 )

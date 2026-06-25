@@ -20,13 +20,16 @@ import com.sza.fastmediasorter.R
 import android.view.View
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
 import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -59,7 +62,12 @@ class StandaloneFileOperationsHandler(
     private val sendToMenuManager: SendToMenuManager,
     private val getCurrentSettings: suspend () -> AppSettings,
     // S0610: only the image host wires the Copy/Move panels; other standalone hosts leave this null.
-    private val fileOperationUseCase: FileOperationUseCase? = null
+    private val fileOperationUseCase: FileOperationUseCase? = null,
+    // S0681: copy-to-resource dialog dependencies. getDestinationsUseCase populates the recipient
+    // list; onPickCustomFolderForCopy launches the host's SAF tree picker for the «..» entry. Hosts
+    // that do not wire both leave the pinned «Select resource..» entry hidden.
+    private val getDestinationsUseCase: GetDestinationsUseCase? = null,
+    private val onPickCustomFolderForCopy: () -> Unit = {},
 ) {
 
     private val safeViews = PlayerBindingSafeViews(root)
@@ -251,6 +259,75 @@ class StandaloneFileOperationsHandler(
         } else {
             uri
         }
+
+        activity.lifecycleScope.launch {
+            val settings = getCurrentSettings()
+            val content = ShareableContent(
+                uris = listOf(shareUri),
+                mime = mimeType,
+                mediaType = file.type,
+                displayName = file.name,
+                mediaFile = file,
+            )
+            // S0681: the pinned «Select resource..» entry appears only when this host wired both the
+            // file-operation and destination use-cases (the unified copy-to-resource path).
+            val onPickResource: (() -> Unit)? =
+                if (fileOperationUseCase != null && getDestinationsUseCase != null) {
+                    { showCopyDialog() }
+                } else {
+                    null
+                }
+            sendToMenuManager.show(activity, content, settings, onPickResource = onPickResource)
+        }
+    }
+
+    /**
+     * S0681: open the recipient picker (copy-to-resource) for the current standalone file - the same
+     * dialog the file browser's «Copy to» uses. Standalone has no resource context, so the source
+     * resource id is -1 (full recipient list); the «..» entry routes to the host's SAF tree picker.
+     */
+    fun showCopyDialog() {
+        Timber.d("S0681: standalone Select-resource copy dialog requested")
+        val file = getCurrentMediaFile() ?: return
+        val useCase = fileOperationUseCase ?: return
+        val destinationsUseCase = getDestinationsUseCase ?: return
+        activity.lifecycleScope.launch {
+            val settings = getCurrentSettings()
+            val parentPath = file.path.substringBeforeLast('/', "")
+            val folderName = parentPath.substringAfterLast('/').ifBlank { file.name }
+            FileOperationDestinationDialog(
+                context = activity,
+                operationType = FileOperationType.COPY,
+                sourceFiles = listOf(createNetworkAwareFile(file.path, file.name)),
+                sourceFolderName = folderName,
+                currentResourceId = -1L,
+                currentBrowsePath = if (parentPath.isNotBlank()) "$parentPath/" else null,
+                sourceCredentialsId = null,
+                fileOperationUseCase = useCase,
+                getDestinationsUseCase = destinationsUseCase,
+                overwriteFiles = settings.overwriteOnCopy,
+                showDetailedErrors = settings.showDetailedErrors,
+                // Copy keeps the standalone viewer open - no navigation side effect.
+                onComplete = { },
+                onSelectFolderClicked = { _, _, _ -> onPickCustomFolderForCopy() },
+            ).show()
+        }
+    }
+
+    /**
+     * Open the «Send to..» menu for an explicit local image copy (S0680 crop-and-share). Builds the
+     * share URI from [file]'s local path, NOT its contentUri: after an in-place crop of a MediaStore
+     * screenshot the cropped bytes live only in the local writable copy, while contentUri still points
+     * at the un-cropped original.
+     */
+    fun shareLocalCopy(file: MediaFile) {
+        val shareUri = try {
+            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(file.path))
+        } catch (e: Exception) {
+            Timber.w(e, "StandalonePlayer: FileProvider failed for cropped copy, using file uri")
+            file.path.toUri()
+        }
+        val mimeType = activity.contentResolver.getType(shareUri) ?: "image/*"
 
         activity.lifecycleScope.launch {
             val settings = getCurrentSettings()

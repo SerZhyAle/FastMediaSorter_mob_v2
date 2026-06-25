@@ -5,18 +5,22 @@
 - [Play Console state: read-only via androidpublisher API](reference_play_console_api_access.md) - can read track/bundle states (temp/play_status.py); CANNOT see review verdicts (ask for screenshot)
 
 - [SettingsInputRow greedy width starves siblings](feedback_settingsinputrow_greedy_width.md) - internally match_parent; use fixed width in weighted rows; layout-not-showing -> aapt2 the installed APK
+- [Canonical settings value-pickers](feedback_canonical_settings_value_pickers.md) - reuse ListSelectionDialog<T>+SettingsSelectionRow (S0567); destination rows = camera-folder visual (S0644); don't reinvent or touch complex/graphical dialogs
+- [No wrapper focus on compound rows](feedback_compound_row_no_wrapper_focus.md) - SettingsDropdownRow wrapper takes NO focusable/clickable/nextFocus (inner field is the D-pad stop); trips focus-highlight gate; ToggleRow is the exception (S0674)
 
 - [Incremental build phantom unresolved-ref cascade](project_incremental_build_phantom_unresolved.md) - dq after multi-file edits throws phantom unresolved-ref; fix = clean build (cd)
 - [fms.screenCapture gates gesture capability out of standard APK](project_screencapture_gates_gesture_capability.md) - default off unmounts standardScreenCapture; device tests need -P fms.screenCapture=on
 - [close.ps1 two-step unblock for Verified](project_close_ps1_two_step_unblock.md) - refuses direct BlockNeedUserTest->Verified; go via Implemented
 
 - [Stream catalog: ship all live channels](feedback_stream_catalog_all_live_channels.md) - owner wants EVERY reachable channel w/ signal; legal-scope filter removed (2026-06-22); only dead dropped
+- [Stream catalog publish](reference_stream_catalog_publish.md) - refresh+favicon-atlas+publish via collect-stream-candidates.ps1 -WithFavicons -Publish; gh in pwsh (not bash); validate before --clobber
 
 - [VR immersive re-entry hotspot (S0607)](project_vr_immersive_reentry_hotspot.md) - 2nd immerse hangs IDLE; reused XrInstance bound to finish()-ed Activity; recreate per entry, loader once w/ App ctx
 - [VR immersive logcat capture trap](reference_vr_immersive_logcat_capture_trap.md) - "package:mine" drops immersive session; use raw adb logcat -b all; watch orphaned adb locks
 - [Quest 2D panel not introspectable](reference_quest_panel_not_introspectable.md) - uiautomator sees only vrshell, screencap stereo; repro XR-gated UI on phone emulator or on-device Timber
 - [No edge-to-edge UI elements](feedback_no_edge_to_edge_ui_elements.md) - nothing stretches full-bleed; bounded W+H; dropdowns sdr_fieldWidth 240/280; row-triggers exempt
 - [No full-width buttons in landscape (S0605)](feedback_no_fullwidth_buttons_landscape.md) - landscape buttons wrap_content+gravity; keypad grids, nav rails, full-row items exempt
+- [Landscape multi-column settings (S0609)](feedback_landscape_multicolumn_settings.md) - weighted horizontal LinearLayout in layout-land only; toggles 2-up, buttons 3-4+ via Flow, dropdowns 1-up bounded; S0605 invariant held
 - [IDE-open Draft spec may finalize mid-task](feedback_ide_open_spec_may_finalize_midtask.md) - /spec-all can rewrite Draft to Tactical while coding; re-read before committing to a design
 - [Emulator verifies MediaProjection screenshot](reference_emulator_mediaprojection_capture.md) - standard non-VR AVD verifies menu-screenshot end-to-end (consent+capture+PNG save)
 - [Switch color theme on device for tests](feedback_color_theme_device_switch.md) - pref-file swap doesn't stick (DataStore re-syncs); change via Settings UI+restart; adb push needs MSYS_NO_PATHCONV=1
@@ -25,7 +29,7 @@
 - [Flavor matrix: legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - persona table stale; legacy=full set, photos=cloud+network, lite=only no-cloud; verify in build.gradle.kts
 - [Play edge-to-edge warnings status](project_play_setstatusbarcolor_false_positive.md) - #2 setStatusBarColor FIXED by Material 1.14.0; #1 may-not-display informational + app-side-complete
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP release if countries/age ratings/device reach (minSdk, ABI, uses-feature, flavor) shrink
-- [screenCapture split standard vs noLegal](project_screencapture_nolegal_only.md) - src/screenCapture+MenuScreenshotLauncher standard+noLegal; gesture in standardScreenCapture (S0630); edge strip+a11y stay noLegal
+- [screenCapture split standard vs noLegal](project_screencapture_nolegal_only.md) - two flags: screenCapture=on (menu-capture ships in standard), edgeGestureOverlay=off (left-edge gesture actions stay noLegal-only in shipped builds); inventory 'standard' != shipped
 - [Settings-search gate axes (S0597-S0604)](project_settings_search_gate_axes.md) - 3 ANDed gates: section / flavor-DI (CapabilityGate) / device-OS (DeviceFeatureGate); runtime-state = S0604
 
 - [Working tree is truth - don't read git history for state](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff/status for WIP; single dev, many tickets/file; git only on explicit ask
@@ -73,6 +77,8 @@
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are standard/VR; noLegal docs live in gitignored docs/FEATURES_noLegal.md
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS]
 - [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - flavor code in src/<flavor>/java/; no BuildConfig flavor guards in src/main (Rule 15)
+- [Push new features to lowest flavor level](feedback_push_features_to_lowest_flavor.md) - in specs, don't default to noLegal; place at broadest legal flavor; if level unclear, ask owner
+- [Third-party branding not a licensing blocker](feedback_third_party_branding_not_a_blocker.md) - favicons/logos shown next to that producer's own content = NOT a legal blocker; don't gate/ask
 - [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal srcFile drops src/noLegal/AndroidManifest.xml; use addStaticManifestFile in onVariants
 - [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); capabilities now docs/ALL_FEATURES.jsonl via all_features/add.ps1
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash command-substitutes `text` even quoted; descriptions with backticks lose words
@@ -88,11 +94,13 @@
 - [Don't infer architecture from BuildConfig names](feedback_dont_infer_from_buildconfig_names.md) - grep usage before treating as gate; PLAYER_ACTIVITY_CLASS is a dead field
 - [Build output pipe truncation](feedback_build_output_pipe_truncation.md) - never tail -N to investigate gradle failures; FAILURE block sits in the middle
 - [VR inclusion hierarchy: standard subset vr subset noLegal](project_vr_inclusion_hierarchy.md) - S0240; noLegal is all-inclusive sideload-VR; vrUnlicensed archived (S0250)
+- [supportsVrPlayer is noLegal-only](project_supportsvrplayer_nolegal_only.md) - vr=false (S0241); gate "vr+noLegal" on VrMediaSectionContract.isAvailable / supportsVrMediaControls, NOT supportsVrPlayer
 - [Reserve Timber.e for real errors only](feedback_log_levels.md) - expected device-capability fallbacks log at Timber.i; ERROR is for things the dev must act on
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if headline behavior isn't working, don't mark phases Done or invite device-test
 - [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - .bind(root) unchecked downcasts; Button vs MaterialButton crashes silently
 - [Strategic spec Draft -> Approved owner gate](feedback_strategic_spec_owner_gate.md) - §3.3 Owner inputs relevance-driven; check-owner-inputs.ps1 validates + always requires Related tickets
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash -Command, \$LASTEXITCODE collapses to empty + silent parse fail in & {}; use single-quoted bash
+- [pwsh param/local case-collision](feedback_pwsh_param_local_case_collision.md) - lowercase loop-local same name as a typed param silently corrupts it (search-log.ps1 $tag/$Tag dropped all output); use distinct names
 - [Verify spec id before announcing /spec-* pipeline](feedback_verify_spec_id_before_pipeline.md) - run select.ps1 first; match IDE-open Sxxxx; never narrate "Stage 0" on unresolved id
 - [Persistent log lines must not contain Sxxxx](feedback_persistent_logs_no_ticket_id.md) - ticket id in Timber.* is reserved for BlockNeedUserTest probes; permanent logs use plain English
 - [Welcome process consolidation](feedback_welcome_process_consolidation.md) - owner wants ceremony cut, authorizes editing CLAUDE.md/agent-defs/skills; keep read-only vs mutation boundaries

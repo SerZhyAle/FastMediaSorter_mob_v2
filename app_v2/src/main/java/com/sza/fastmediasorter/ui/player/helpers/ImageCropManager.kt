@@ -155,6 +155,36 @@ class ImageCropManager(
         )
     }
 
+    // ── In-memory region decode (draw-editor crop) ──────────────────────────
+
+    /**
+     * Decodes the cropped region as an in-memory bitmap at full source resolution, writing no
+     * file. Reuses the file-crop pipeline: local-source materialisation, EXIF-aware coordinate
+     * mapping, region decode, and display-orientation rotation. The draw-editor crop compositor
+     * calls this for the full-resolution base layer and catches failures to fall back to the
+     * working composite. [screenRect] is normalised (0..1) over the displayed image.
+     */
+    suspend fun decodeCroppedRegionBitmap(
+        screenRect: RectF,
+        viewWidth: Int,
+        viewHeight: Int,
+        currentFile: MediaFile,
+        currentResource: MediaResource?
+    ): Bitmap = withContext(Dispatchers.IO) {
+        val timestamp = System.currentTimeMillis()
+        val ext = currentFile.name.substringAfterLast('.', "jpg")
+        var srcTemp: File? = null
+        try {
+            val srcFile = ensureLocalSource(currentFile, currentResource, timestamp, ext)
+                .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
+            val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, srcFile.path)
+            val raw = decodeRegion(srcFile.path, mappedRect)
+            rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
+        } finally {
+            srcTemp?.let { runCatching { it.delete() } }
+        }
+    }
+
     // ── Crop (overwrite original) ───────────────────────────────────────────
 
     suspend fun performCrop(

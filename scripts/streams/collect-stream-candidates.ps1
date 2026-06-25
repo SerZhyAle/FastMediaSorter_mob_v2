@@ -65,6 +65,21 @@ param(
     [switch]$Publish,
     [string]$PublishTag = 'delivery-so-v1',
 
+    # Favicon sprite-atlas build (S0668). When set, fetch each catalog row's favicon from its
+    # homepage, pack tiles into one grid PNG, and write the per-row tile ordinal into favicon_index.
+    # Default OFF so routine catalog maintenance/collection runs are unchanged.
+    [switch]$WithFavicons,
+    # The Google s2 favicon endpoint is a third-party fallback; ON by default but the owner can
+    # disable it to keep the fetch entirely first-party (homepage favicon.ico + parsed <link>).
+    [switch]$FaviconS2Fallback = $true,
+    [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
+    [int]$FaviconTimeoutSec = 8,
+    [int]$FaviconThrottle = 16,
+    # Atlas size ceiling enforced before publish. 3 MB keeps the whole stream-catalog.zip comfortably
+    # inside the app's 30 s import callTimeout budget (S0583) so already-shipped apps still download
+    # the larger zip in time. Over the cap -> publish CSV-only (atlas skipped), never an oversized zip.
+    [int]$MaxAtlasBytes = 3145728,
+
     # Deep-signal catalog probe: pull a few KB of real media body (HLS -> first segment) instead of
     # trusting a 2xx on the playlist/manifest. Catches "declared but not playing" streams.
     [switch]$DeepSignal,
@@ -102,10 +117,13 @@ $ua = 'FastMediaSorter-catalog/1.0 (+stream-candidate-collector)'
 # header-only liveness probe. Bump the default only when the caller did not pin -Throttle explicitly.
 if ($DeepSignal -and -not $PSBoundParameters.ContainsKey('Throttle')) { $Throttle = 48 }
 
+# favicon_index is appended at the END of the schema (column 18). Existing columns are NEVER
+# reordered: the app's StreamCatalogCsvParser resolves cells by header NAME, so a trailing column
+# is forward/backward-compatible (old apps ignore it, new apps reading an old catalog get blank).
 $Schema = @(
     'category', 'topic', 'name', 'url', 'media_kind', 'protocol', 'format', 'bitrate',
     'is_live', 'https', 'language', 'country', 'homepage', 'source_kind',
-    'license_note', 'notes', 'confidence'
+    'license_note', 'notes', 'confidence', 'favicon_index'
 )
 
 function Get-Host2([string]$url) {
@@ -609,6 +627,7 @@ function New-Candidate {
         license_note  = $licenseNote
         notes         = $notes
         confidence    = $confidence
+        favicon_index = ''
         axis          = $axis
         score         = $score
         liveness_status = ''
@@ -724,11 +743,215 @@ function Get-WebcamSeeds {
     return $out
 }
 
+# --- S0668 favicon sprite-atlas (offline tooling) -----------------------------------------------
+# Geometry is a SHARED CONTRACT with the app's atlas slicer (PHASE_01 / strategic spec). The app
+# reconstructs each tile rect as col = index % 16, row = index / 16, rect = (col*32, row*32, 32, 32).
+# These two constants MUST match the app side and must not be changed independently.
+$script:FaviconTile = 32   # PHASE_01 contract: tile = 32x32 px
+$script:FaviconCols = 16   # PHASE_01 contract: 16 columns per atlas row
+
+# Fetch raw favicon image bytes for one homepage, or $null when none can be found.
+# Fallback chain: (1) <scheme>://<host>/favicon.ico; (2) <link rel="icon"|"shortcut icon"> href from
+# the homepage HTML; (3) if -FaviconS2Fallback, the Google s2 favicons endpoint at sz=32 (matches the
+# tile size). Per-host failures are swallowed - a missing favicon is normal. Empty homepage -> $null.
+function Get-FaviconBytes {
+    param([string]$homepage)
+    if ([string]::IsNullOrWhiteSpace($homepage)) { return $null }
+
+    $uri = $null
+    try { $uri = [uri]$homepage } catch { return $null }
+    if (-not $uri.IsAbsoluteUri -or [string]::IsNullOrWhiteSpace($uri.Host)) { return $null }
+    $host2 = $uri.Host.ToLowerInvariant()
+    $scheme = if ($uri.Scheme -in 'http', 'https') { $uri.Scheme } else { 'https' }
+
+    # Try to GET a URL and return its non-empty raw body bytes, or $null on any failure.
+    $tryGet = {
+        param([string]$u)
+        try {
+            $resp = Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec $FaviconTimeoutSec `
+                -Headers @{ 'User-Agent' = $ua } -MaximumRedirection 6 -ErrorAction Stop
+            $bytes = $resp.Content
+            if ($bytes -is [string]) { $bytes = [System.Text.Encoding]::UTF8.GetBytes($bytes) }
+            if ($bytes -and $bytes.Length -gt 0) { return [byte[]]$bytes }
+        }
+        catch { }
+        return $null
+    }
+
+    # (1) Conventional /favicon.ico at the site root.
+    $ico = & $tryGet ("{0}://{1}/favicon.ico" -f $scheme, $host2)
+    if ($ico) { return $ico }
+
+    # (2) Parse the homepage HTML for a declared icon link.
+    try {
+        $page = Invoke-WebRequest -Uri $homepage -UseBasicParsing -TimeoutSec $FaviconTimeoutSec `
+            -Headers @{ 'User-Agent' = $ua } -MaximumRedirection 6 -ErrorAction Stop
+        $html = [string]$page.Content
+        if (-not [string]::IsNullOrWhiteSpace($html)) {
+            # <link rel="icon" ..> or <link rel="shortcut icon" ..> in any attribute order.
+            $linkMatches = [regex]::Matches($html, '<link\b[^>]*>', 'IgnoreCase')
+            foreach ($m in $linkMatches) {
+                $tag = $m.Value
+                if ($tag -notmatch 'rel\s*=\s*["'']?\s*(shortcut\s+icon|icon|apple-touch-icon)\b') { continue }
+                $hrefMatch = [regex]::Match($tag, 'href\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase')
+                if (-not $hrefMatch.Success) { continue }
+                $href = $hrefMatch.Groups[1].Value.Trim()
+                if ([string]::IsNullOrWhiteSpace($href)) { continue }
+                $iconUrl = $href
+                if ($href -notmatch '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
+                    try { $iconUrl = [Uri]::new($uri, $href).AbsoluteUri } catch { $iconUrl = $href }
+                }
+                $linkBytes = & $tryGet $iconUrl
+                if ($linkBytes) { return $linkBytes }
+            }
+        }
+    }
+    catch { }
+
+    # (3) Third-party Google s2 fallback (gated). sz=32 to match the atlas tile size.
+    if ($FaviconS2Fallback) {
+        $s2 = & $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=32" -f $host2)
+        if ($s2) { return $s2 }
+    }
+
+    return $null
+}
+
+# Fetch favicons for every distinct non-empty homepage (throttled; deduped so a repeated homepage is
+# fetched once), pack the decoded tiles into one grid PNG atlas (16 cols x ceil(n/16) rows, each cell
+# 32x32), save it to $AtlasPath,
+# and return a hashtable mapping each packed row's url -> zero-based tile ordinal. Rows whose favicon
+# could not be fetched/decoded are absent from the map (their favicon_index stays blank). System.Drawing
+# (GDI+) handles decode (.ico/.png/.gif/.jpg via Image.FromStream), scaling, and PNG save.
+function Build-FaviconAtlas {
+    param([Parameter(Mandatory = $true)][object[]]$Rows, [Parameter(Mandatory = $true)][string]$AtlasPath)
+
+    Add-Type -AssemblyName System.Drawing
+
+    $tile = $script:FaviconTile   # 32 - PHASE_01 contract
+    $cols = $script:FaviconCols   # 16 - PHASE_01 contract
+
+    # Distinct non-blank homepages to fetch (dedup so a repeated homepage is fetched only once).
+    $homepages = @($Rows | ForEach-Object { [string]$_.homepage } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+
+    Write-Host ("Favicons: fetching for {0} unique homepage(s) (throttle {1}, timeout {2}s) .." -f `
+            $homepages.Count, $FaviconThrottle, $FaviconTimeoutSec) -ForegroundColor Yellow
+
+    # Parallel fetch -> host -> bytes map. GDI+ packing stays single-threaded below.
+    $faviconFn = ${function:Get-FaviconBytes}.ToString()
+    $fetched = @{}
+    if ($homepages.Count -gt 0) {
+        $results = $homepages | ForEach-Object -ThrottleLimit $FaviconThrottle -Parallel {
+            $hp = $_
+            $ua = $using:ua
+            $FaviconTimeoutSec = $using:FaviconTimeoutSec
+            $FaviconS2Fallback = $using:FaviconS2Fallback
+            ${function:Get-FaviconBytes} = $using:faviconFn
+            $bytes = $null
+            try { $bytes = Get-FaviconBytes -homepage $hp } catch { $bytes = $null }
+            [pscustomobject]@{ Homepage = $hp; Bytes = $bytes }
+        }
+        foreach ($r in $results) { if ($r.Bytes) { $fetched[$r.Homepage] = [byte[]]$r.Bytes } }
+    }
+    Write-Host ("Favicons: {0}/{1} homepage(s) returned image bytes." -f $fetched.Count, $homepages.Count) -ForegroundColor DarkGray
+
+    # Decode in row order; rows that decode successfully get the next sequential ordinal.
+    $packable = [System.Collections.Generic.List[object]]::new()
+    foreach ($row in $Rows) {
+        $hp = [string]$row.homepage
+        if ([string]::IsNullOrWhiteSpace($hp)) { continue }
+        if (-not $fetched.ContainsKey($hp)) { continue }
+        $bytes = $fetched[$hp]
+        $bmp = $null
+        try {
+            $ms = [System.IO.MemoryStream]::new($bytes)
+            $img = [System.Drawing.Image]::FromStream($ms)
+            # Copy into an owned 32-bit bitmap so we can dispose the source stream immediately.
+            $bmp = [System.Drawing.Bitmap]::new($img, $img.Width, $img.Height)
+            $img.Dispose()
+            $ms.Dispose()
+        }
+        catch {
+            if ($bmp) { $bmp.Dispose() }
+            $bmp = $null
+        }
+        if ($bmp) { $packable.Add([pscustomobject]@{ Url = [string]$row.url; Bitmap = $bmp }) }
+    }
+
+    $map = @{}
+    if ($packable.Count -eq 0) {
+        Write-Warning 'Favicons: no images decoded; atlas not written (all favicon_index will be blank).'
+        return $map
+    }
+
+    $rowsNeeded = [int][Math]::Ceiling($packable.Count / [double]$cols)
+    $atlasW = $cols * $tile
+    $atlasH = $rowsNeeded * $tile
+
+    $atlas = [System.Drawing.Bitmap]::new($atlasW, $atlasH)
+    $g = [System.Drawing.Graphics]::FromImage($atlas)
+    try {
+        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $g.Clear([System.Drawing.Color]::Transparent)
+        for ($i = 0; $i -lt $packable.Count; $i++) {
+            $col = $i % $cols
+            $rr = [int][Math]::Floor($i / $cols)
+            $destRect = [System.Drawing.Rectangle]::new($col * $tile, $rr * $tile, $tile, $tile)
+            $g.DrawImage($packable[$i].Bitmap, $destRect)
+            $map[$packable[$i].Url] = $i   # zero-based tile ordinal
+        }
+    }
+    finally {
+        $g.Dispose()
+        foreach ($p in $packable) { $p.Bitmap.Dispose() }
+    }
+
+    $parent = Split-Path -Parent $AtlasPath
+    if ($parent -and -not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    Backup-IfExists -Path $AtlasPath | Out-Null
+    $atlas.Save($AtlasPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $atlas.Dispose()
+
+    $sizeKb = (Get-Item $AtlasPath).Length / 1KB
+    Write-Host ("Favicons: packed {0} tile(s) into {1}x{2} atlas -> {3} ({4:N1} KB)." -f `
+            $packable.Count, $atlasW, $atlasH, $AtlasPath, $sizeKb) -ForegroundColor Green
+    return $map
+}
+
+# Build the atlas for $Rows and write each row's favicon_index property in place (blank when the row
+# has no packed favicon), so a subsequent Write-CsvUtf8 -Columns $Schema persists indices that match
+# the atlas just written. Mutates the row objects; the atlas PNG lands at $AtlasPath.
+function Set-FaviconIndices {
+    param([Parameter(Mandatory = $true)][object[]]$Rows, [string]$AtlasFile = $AtlasPath)
+    $map = Build-FaviconAtlas -Rows $Rows -AtlasPath $AtlasFile
+    foreach ($row in $Rows) {
+        $url = [string]$row.url
+        $idx = if ($map.ContainsKey($url)) { [string]$map[$url] } else { '' }
+        if ($row.PSObject.Properties['favicon_index']) { $row.favicon_index = $idx }
+        else { Add-Member -InputObject $row -NotePropertyName 'favicon_index' -NotePropertyValue $idx -Force }
+    }
+    return $map.Count
+}
+
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $allRows = @(Import-Csv -Path $ExistingCsv)
     if (-not $allRows -or $allRows.Count -eq 0) { throw "No rows in $ExistingCsv" }
     if ($Limit -gt 0 -and $PruneDead) { throw '-Limit cannot be combined with -PruneDead (pruning needs a full-catalog probe).' }
+
+    # S0668: build the favicon atlas over the FULL catalog and stamp favicon_index on every row before
+    # any CSV write. Indices are set on $allRows, so the prune path's $survivors (same objects) keep
+    # them. When not pruning, persist the stamped catalog immediately since maintenance returns early.
+    if ($WithFavicons) {
+        Set-FaviconIndices -Rows $allRows -AtlasFile $AtlasPath | Out-Null
+        if (-not $PruneDead) {
+            $backup = Backup-IfExists -Path $ExistingCsv
+            Write-CsvUtf8 -Rows $allRows -Path $ExistingCsv -Columns $Schema
+            Write-Host ("Favicons: wrote favicon_index into {0} ({1} rows); backup -> {2}" -f $ExistingCsv, $allRows.Count, $backup) -ForegroundColor Green
+        }
+    }
 
     $rows = $allRows
     if ($Limit -gt 0 -and $allRows.Count -gt $Limit) {
@@ -786,10 +1009,19 @@ function Invoke-CatalogMaintenance {
     Write-Host "`nPruned $pruneCount row(s); backup: $backup; catalog now $($survivors.Count) row(s)." -ForegroundColor Green
 }
 
-# Zip the catalog CSV and (re-)upload it as the GitHub Release asset users fetch on "Import list".
-# Uploads whatever streams.csv is on disk at call time (already pruned/appended by the run).
+# Zip the catalog CSV (+ favicon atlas when present) and (re-)upload it as the GitHub Release asset
+# users fetch on "Import list". Uploads whatever streams.csv is on disk at call time (already
+# pruned/appended by the run).
+#
+# Compat invariant (S0668 strategic 3.2 / 11 #6): the zip MUST always contain a streams.csv entry,
+# packed FIRST (entry 0), so an already-shipped app reaches the CSV via ZipInputStream without first
+# streaming the whole atlas. Compress-Archive does NOT order entries by -Path, so the CSV is written
+# with -Force (creating the zip with the CSV as the sole/first entry) and the atlas is appended in a
+# separate -Update pass. The atlas is bundled only when it exists AND is within $MaxAtlasBytes - over
+# the cap it is skipped (CSV-only publish) so the larger zip never breaks an old app's 30 s import
+# callTimeout (S0583), rather than shipping an oversized zip.
 function Invoke-PublishCatalog {
-    param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag)
+    param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag, [string]$AtlasFile = $AtlasPath)
     if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
     $gh = Get-Command gh -ErrorAction SilentlyContinue
     if (-not $gh) { throw 'gh CLI not found on PATH - cannot upload the release asset (install GitHub CLI or upload temp/stream-catalog.zip manually).' }
@@ -798,12 +1030,48 @@ function Invoke-PublishCatalog {
     $rowCount = (Import-Csv $CsvPath).Count
     Write-Host ''
     Write-Host ("Publishing catalog ({0} rows): zipping {1} -> {2} .." -f $rowCount, $CsvPath, $zip) -ForegroundColor Cyan
+
+    # CSV first (entry 0) - always present.
     Compress-Archive -Path $CsvPath -DestinationPath $zip -Force
+    Write-Host ("  + {0} ({1:N1} KB) [entry 0]" -f (Split-Path -Leaf $CsvPath), ((Get-Item $CsvPath).Length / 1KB)) -ForegroundColor DarkGray
+
+    # Atlas appended after the CSV, only if it exists and fits the size budget.
+    $bundledAtlas = $false
+    if (Test-Path $AtlasFile) {
+        $atlasBytes = (Get-Item $AtlasFile).Length
+        if ($atlasBytes -le $MaxAtlasBytes) {
+            Compress-Archive -Path $AtlasFile -DestinationPath $zip -Update
+            $bundledAtlas = $true
+            Write-Host ("  + {0} ({1:N1} KB) [appended]" -f (Split-Path -Leaf $AtlasFile), ($atlasBytes / 1KB)) -ForegroundColor DarkGray
+        }
+        else {
+            Write-Warning ("Favicon atlas {0} is {1:N1} KB > cap {2:N1} KB (30s import callTimeout budget, S0583); publishing CSV-only." -f `
+                    (Split-Path -Leaf $AtlasFile), ($atlasBytes / 1KB), ($MaxAtlasBytes / 1KB))
+        }
+    }
+
+    # Assert the compat invariant: a streams.csv-bearing entry exists and is entry 0.
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip).Path)
+    try {
+        $entryNames = @($archive.Entries | ForEach-Object { $_.FullName })
+        $first = if ($entryNames.Count -gt 0) { $entryNames[0] } else { '' }
+        if (-not ($first -like '*streams.csv')) {
+            throw "Compat invariant violated: zip entry 0 is '$first', expected a streams.csv entry first."
+        }
+        if (-not ($entryNames | Where-Object { $_ -like '*streams.csv' })) {
+            throw 'Compat invariant violated: zip has no streams.csv entry.'
+        }
+        Write-Host ("  zip entries: {0}" -f ($entryNames -join ', ')) -ForegroundColor DarkGray
+    }
+    finally { $archive.Dispose() }
+
     $zipKb = (Get-Item $zip).Length / 1KB
-    Write-Host ("  zip {0:N1} KB; uploading to release {1} (--clobber) .." -f $zipKb, $Tag) -ForegroundColor Cyan
+    $bundleNote = if ($bundledAtlas) { 'csv + atlas' } else { 'csv-only' }
+    Write-Host ("  zip {0:N1} KB ({1}); uploading to release {2} (--clobber) .." -f $zipKb, $bundleNote, $Tag) -ForegroundColor Cyan
     & gh release upload $Tag $zip --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
-    Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB)." -f $Tag, $rowCount, $zipKb) -ForegroundColor Green
+    Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }
 
 if ($CatalogOnly) {
@@ -922,6 +1190,9 @@ if ($rowsToAppend.Count -eq 0) {
 
 $backup = Backup-IfExists -Path $ExistingCsv
 $mergedRows = @($existing) + $rowsToAppend
+# S0668: stamp favicon_index on the full merged catalog (and write the atlas) before persisting, so
+# the saved streams.csv matches the atlas just built. Default OFF -> behaviour unchanged.
+if ($WithFavicons) { Set-FaviconIndices -Rows $mergedRows -AtlasFile $AtlasPath | Out-Null }
 Write-CsvUtf8 -Rows $mergedRows -Path $ExistingCsv -Columns $Schema
 
 Write-Host ''

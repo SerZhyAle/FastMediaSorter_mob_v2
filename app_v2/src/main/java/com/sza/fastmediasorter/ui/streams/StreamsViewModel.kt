@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -102,7 +104,7 @@ class StreamsViewModel @Inject constructor(
                 isLoading = false,
             )
         }
-            .onEach { newState -> _state.update { newState.copy(isImporting = it.isImporting) } }
+            .onEach { newState -> _state.update { newState.copy(isImporting = it.isImporting, displayMode = it.displayMode) } }
             .launchIn(viewModelScope)
     }
 
@@ -122,6 +124,8 @@ class StreamsViewModel @Inject constructor(
             mediaKind = session.lastMediaFilter?.toMediaKind() ?: defaults.streamsDefaultMediaFilter.toMediaKind(),
             query = session.lastQuery ?: "",
         )
+        val restoredMode = session.lastDisplayMode?.toDisplayMode() ?: DisplayMode.LIST
+        _state.update { it.copy(displayMode = restoredMode) }
         initialFilterApplied = true
     }
 
@@ -217,6 +221,14 @@ class StreamsViewModel @Inject constructor(
         persistSession()
     }
 
+    /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */
+    fun onToggleDisplayMode() {
+        val newMode = if (_state.value.displayMode == DisplayMode.GRID) DisplayMode.LIST else DisplayMode.GRID
+        Timber.d("S0675: display-mode toggled to %s", newMode.name)
+        _state.update { it.copy(displayMode = newMode) }
+        viewModelScope.launch { sessionStore.writeDisplayMode(newMode.name) }
+    }
+
     /**
      * S0659: persist the user-chosen sort/media-filter/query so the next open restores them. Marks the
      * seed as applied so the async init seed can never overwrite a change the user just made. Only the
@@ -257,6 +269,10 @@ class StreamsViewModel @Inject constructor(
 
     private fun String.toMediaKind(): MediaKindFilter? =
         MediaKindFilter.values().firstOrNull { it.name == this }
+
+    // Decode a persisted DisplayMode name; an unknown/legacy name yields null so the caller falls back to LIST.
+    private fun String.toDisplayMode(): DisplayMode? =
+        DisplayMode.values().firstOrNull { it.name == this }
 
     /** S0637: resolve a home-screen shortcut URL to its source and ask the Activity to play it. */
     fun playByUrl(url: String) = viewModelScope.launch {
@@ -352,6 +368,7 @@ class StreamsViewModel @Inject constructor(
         val facets: StreamsFacets = StreamsFacets(),
         val isLoading: Boolean = true,
         val isImporting: Boolean = false,
+        val displayMode: DisplayMode = DisplayMode.LIST,
     ) {
         val isEmpty: Boolean get() = !isLoading && sources.isEmpty()
     }

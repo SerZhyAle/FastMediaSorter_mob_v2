@@ -186,7 +186,12 @@ class AudioStandaloneActivity :
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
             getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            onPickCustomFolderForCopy = {
+                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                customPathPickerLauncher.launch(null)
+            },
         )
     }
 
@@ -515,7 +520,6 @@ class AudioStandaloneActivity :
                 viewManager.show(file, MediaType.AUDIO)
                 lastShownPath = file.path
                 destinationButtonsManager.populateDestinationButtons()
-                Timber.d("S0612: audio standalone copy/move panels populated for shown file")
             }
             folderPagingEnabled = state.supportsFolderPaging
             pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)

@@ -45,12 +45,10 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     fun handlePreCaptureAction(context: Context, action: ScreenshotGestureAction): Boolean = when (action) {
         ScreenshotGestureAction.DO_NOT_USE -> true
         ScreenshotGestureAction.OPEN_APP -> {
-            Timber.d("S0622: left-edge gesture OPEN_APP -> bring app to foreground")
             launchApp(context)
             true
         }
         ScreenshotGestureAction.OPEN_PANEL -> {
-            Timber.d("S0623: left-edge gesture OPEN_PANEL -> show app launch panel")
             launchPanel(context)
             true
         }
@@ -107,6 +105,10 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
 
             ScreenshotGestureAction.SEND_TO_RECIPIENTS -> {
                 openInViewer(context, savedUri, autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
+            }
+
+            ScreenshotGestureAction.CROP_AND_SHARE -> {
+                openInViewer(context, savedUri, autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_CROP_AND_SHARE)
             }
 
             ScreenshotGestureAction.SHARE -> {

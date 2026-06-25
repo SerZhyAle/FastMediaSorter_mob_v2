@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -63,6 +64,7 @@ class GeneralSettingsImportExportHelper(
                     )
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Import settings from URI failed")
                 Toast.makeText(fragment.requireContext(), getImportFailureMessage(e.message), Toast.LENGTH_LONG).show()
             }
@@ -80,6 +82,7 @@ class GeneralSettingsImportExportHelper(
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed), Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Export settings failed")
                 Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed), Toast.LENGTH_LONG).show()
             }
@@ -87,7 +90,6 @@ class GeneralSettingsImportExportHelper(
     }
 
     private fun importSettings() {
-        Timber.d("S0646: import-method picker opening list-choice dialog")
         SimpleValueChoiceDialog(
             context = fragment.requireContext(),
             lifecycleOwner = fragment.viewLifecycleOwner,
@@ -130,6 +132,7 @@ class GeneralSettingsImportExportHelper(
                     )
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Import settings failed")
                 Toast.makeText(fragment.requireContext(), getImportFailureMessage(e.message), Toast.LENGTH_LONG).show()
             }

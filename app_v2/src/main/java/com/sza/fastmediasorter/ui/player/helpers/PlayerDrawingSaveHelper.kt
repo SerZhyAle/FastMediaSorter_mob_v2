@@ -224,6 +224,71 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
         }
     }
 
+    // S0679 - wire the draw-editor crop tool to the compositor + working-image swap.
+    fun setupDrawCropCallback() {
+        val compositor = DrawCropCompositor(activity.imageCropManager, activity.mergeDrawOverlayUseCase)
+        imageDrawOverlayManager.cropApplyCallback = { normalizedRect, viewW, viewH ->
+            applyDrawCrop(compositor, normalizedRect, viewW, viewH)
+        }
+    }
+
+    private fun applyDrawCrop(
+        compositor: DrawCropCompositor,
+        normalizedRect: RectF,
+        viewW: Int,
+        viewH: Int,
+    ) {
+        Timber.d("S0679: draw-editor crop apply (in-app player)")
+        val baseBitmap = activity.viewModel.currentDisplayedBitmap ?: run {
+            Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val currentFile = activity.actionCurrentFile ?: run {
+            Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val currentResource = activity.actionCurrentResource
+        val overlay = imageDrawOverlayManager.getOverlayBitmap()
+        val displayRect = activity.activityBinding.photoView.displayRect
+            ?: RectF(0f, 0f, viewW.toFloat(), viewH.toFloat())
+        // The overlay rect is normalised over the overlay view; lift it into canvas/selection coords.
+        val selectionRect = RectF(
+            normalizedRect.left * viewW,
+            normalizedRect.top * viewH,
+            normalizedRect.right * viewW,
+            normalizedRect.bottom * viewH,
+        )
+        activity.lifecycleScope.launch {
+            val cropped = try {
+                compositor.composeCroppedWorkingImage(
+                    baseBitmap = baseBitmap,
+                    overlayBitmap = overlay,
+                    displayRect = displayRect,
+                    selectionRect = selectionRect,
+                    canvasWidth = viewW,
+                    canvasHeight = viewH,
+                    currentFile = currentFile,
+                    currentResource = currentResource,
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "draw crop compose failed")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                val previousBase = baseBitmap
+                activity.activityBinding.photoView.setImageBitmap(cropped)
+                activity.viewModel.currentDisplayedBitmap = cropped
+                imageDrawOverlayManager.beginCropUndo {
+                    activity.activityBinding.photoView.setImageBitmap(previousBase)
+                    activity.viewModel.currentDisplayedBitmap = previousBase
+                }
+            }
+        }
+    }
+
     private suspend fun buildMergedDrawingBytes(
         overlayBitmap: Bitmap,
         currentFile: MediaFile,

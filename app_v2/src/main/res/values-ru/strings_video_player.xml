@@ -10,7 +10,7 @@
     <string name="playback_control_no_audio_tracks">Аудиодорожки недоступны</string>
     <string name="playback_control_no_subtitles">Субтитры недоступны</string>
     <string name="playback_control_speed_value">Скорость: %1$.2fx</string>
-    <string name="playback_control_tab_audio">Аудио</string>
+    <string name="playback_control_tab_audio">Аудиодорожка</string>
     <string name="playback_control_tab_brightness">Свет</string>
     <string name="playback_control_tab_hue">HUE</string>
     <string name="playback_control_tab_speed">Скорость</string>
@@ -95,4 +95,7 @@
     <string name="video_snapshot_resource_label">Ресурс для сохранения кадров</string>
     <string name="video_snapshot_resource_not_set">Не выбран (сохраняется в Downloads)</string>
     <string name="videos_v">Videos (V)</string>
+    <string name="playback_control_speed_0_5x">0.5x</string>
+    <string name="playback_control_speed_1_5x">1.5x</string>
+    <string name="playback_control_speed_2x">2x</string>
 </resources>

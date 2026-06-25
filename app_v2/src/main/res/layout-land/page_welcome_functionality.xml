@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0400 functionality onboarding page (landscape). Same ids and centred header as the portrait
-     variant (layout/page_welcome_functionality.xml), but the toggle stack is laid out in TWO columns
-     to use the wide landscape canvas, and every row carries an inline description (str_subtitle) that
-     portrait omits. Left column: file manager / audio / video. Right column: documents / OCR (+inline
-     download progress) / translation (+inline download progress). The "All downloadable (optional)
-     elements" button is centred below both columns with wrap-content width. Rows are hidden by
+     variant (layout/page_welcome_functionality.xml), with the toggle stack laid out in TWO columns
+     and every row carrying an inline description (str_subtitle). Left column: file manager / audio /
+     video. Right column: documents / OCR (+inline download progress) / translation (+inline download
+     progress). The "All downloadable (optional) elements" button is centred below both columns with
+     wrap-content width. Rows are hidden by
      WelcomeFunctionalityController per the
      S0396 availability contract; a hidden row just collapses its column slot. All ids must stay in sync
      with the portrait variant and the generated binding name PageWelcomeFunctionalityBinding. -->
@@ -216,6 +216,7 @@
                             android:id="@+id/rowStreams"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_subtitle="@string/welcome_func_streams_desc"
                             app:str_title="@string/welcome_func_streams" />
 
                         <!-- S0575: inline stream-catalog download progress; optional, hidden until a download starts -->

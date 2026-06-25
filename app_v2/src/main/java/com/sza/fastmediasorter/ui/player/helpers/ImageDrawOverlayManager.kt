@@ -29,7 +29,7 @@ class ImageDrawOverlayManager(
     private val keepExportHelper: DrawKeepExportHelper
 ) {
 
-    enum class DrawTool { BRUSH, RECTANGLE, OVAL, ERASER, TEXT }
+    enum class DrawTool { BRUSH, RECTANGLE, OVAL, ERASER, TEXT, CROP }
 
     // S0192 Phase 05 - DrawColor enum dropped (old toolbar bindings removed).
     // Live state is the ARGB Int `selectedColorArgb`.
@@ -114,6 +114,9 @@ class ImageDrawOverlayManager(
     var saveCallback: DrawOverlaySaveCallback? = null
     var inPlaceSaveCallback: DrawOverlayInPlaceSaveCallback? = null
     var actionCallback: DrawOverlayActionCallback? = null
+
+    // S0679 - draw-editor crop apply seam; the host (player / standalone) wires this to the compositor.
+    var cropApplyCallback: ((normalizedRect: android.graphics.RectF, viewW: Int, viewH: Int) -> Unit)? = null
     var editModeCallback: ((com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit)? = null
 
     /**
@@ -124,6 +127,7 @@ class ImageDrawOverlayManager(
     var baseBitmapProvider: () -> Bitmap? = { null }
 
     private var drawCanvasView: DrawCanvasView? = null
+    private var drawCropOverlayController: DrawCropOverlayController? = null
     private var toolbarRoot: View? = null
     private val cleanToolbarColor = 0xCC000000.toInt()
     private val dirtyToolbarColor = 0xCC6B2C00.toInt()
@@ -148,6 +152,8 @@ class ImageDrawOverlayManager(
         ))
 
         imageContainer.requestDisallowInterceptTouchEvent(true)
+
+        drawCropOverlayController = DrawCropOverlayController(activity, imageContainer)
 
         // ADR-4: no rotation inside Draw Mode.
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
@@ -201,6 +207,8 @@ class ImageDrawOverlayManager(
     }
 
     private fun cleanupCanvas() {
+        drawCropOverlayController?.hide()
+        drawCropOverlayController = null
         drawCanvasView?.let { imageContainer.removeView(it) }
         drawCanvasView = null
         imageContainer.requestDisallowInterceptTouchEvent(false)
@@ -216,6 +224,12 @@ class ImageDrawOverlayManager(
 
     fun getOverlayBitmap(): Bitmap? = drawCanvasView?.getBitmap()
 
+    // S0679 - host calls this after swapping to the cropped base so the crop stays undoable (ADR-4)
+    // until the next annotation. [restoreBase] reverts the host's displayed image on undo.
+    fun beginCropUndo(restoreBase: () -> Unit) {
+        drawCanvasView?.beginCropUndo(restoreBase)
+    }
+
     // ── Back press ─────────────────────────────────────────────────────────
 
     /**
@@ -224,6 +238,14 @@ class ImageDrawOverlayManager(
      */
     fun handleBackPress(): Boolean {
         if (!isDrawModeActive) return false
+        if (drawCropOverlayController?.isShown == true) {
+            drawCropOverlayController?.hide()
+            if (selectedTool == DrawTool.CROP) {
+                selectedTool = DrawTool.BRUSH
+                toolbarRoot?.let { updateToolbarSelection(it) }
+            }
+            return true
+        }
         actionCallback?.onCancelRequested() ?: exitDrawMode(save = false)
         return true
     }
@@ -265,10 +287,29 @@ class ImageDrawOverlayManager(
                         com.sza.fastmediasorter.R.id.draw_tool_oval -> DrawTool.OVAL
                         com.sza.fastmediasorter.R.id.draw_tool_eraser -> DrawTool.ERASER
                         com.sza.fastmediasorter.R.id.draw_tool_text -> DrawTool.TEXT
+                        com.sza.fastmediasorter.R.id.draw_tool_crop -> DrawTool.CROP
                         else -> return@setOnMenuItemClickListener false
                     }
+                    val previousTool = selectedTool
                     selectedTool = tool
                     selectorBtn.setImageResource(iconForTool(tool))
+                    if (tool == DrawTool.CROP) {
+                        drawCropOverlayController?.show(
+                            onConfirm = { rect, viewW, viewH ->
+                                cropApplyCallback?.invoke(rect, viewW, viewH)
+                                // Resume drawing on the cropped result with the prior tool.
+                                selectedTool = if (previousTool == DrawTool.CROP) DrawTool.BRUSH else previousTool
+                                selectorBtn.setImageResource(iconForTool(selectedTool))
+                            },
+                            onCancel = {
+                                // Cancelled crop restores the tool active before crop was picked.
+                                selectedTool = if (previousTool == DrawTool.CROP) DrawTool.BRUSH else previousTool
+                                selectorBtn.setImageResource(iconForTool(selectedTool))
+                            }
+                        )
+                    } else {
+                        drawCropOverlayController?.hide()
+                    }
                     true
                 }
                 show()
@@ -445,6 +486,7 @@ class ImageDrawOverlayManager(
         DrawTool.OVAL -> com.sza.fastmediasorter.R.drawable.ic_draw_oval
         DrawTool.ERASER -> com.sza.fastmediasorter.R.drawable.ic_eraser
         DrawTool.TEXT -> com.sza.fastmediasorter.R.drawable.ic_draw_text
+        DrawTool.CROP -> com.sza.fastmediasorter.R.drawable.ic_crop
     }
 
     private fun updateToolbarSelection(root: View) {
@@ -495,6 +537,11 @@ class ImageDrawOverlayManager(
         private val actions = mutableListOf<DrawAction>()
         private var revision: Int = 0
         private var cleanRevision: Int = 0
+
+        // S0679 ADR-4: a crop is reversible until the first new annotation. While undoable, this holds
+        // the pre-crop annotation snapshot and the host's base-image restore hook.
+        private var pendingCropRestore: (() -> Unit)? = null
+        private var preCropActions: List<DrawAction>? = null
 
         // Tracking for rectangle preview during drag
         private var startX: Float = 0f
@@ -705,6 +752,8 @@ class ImageDrawOverlayManager(
                         DrawTool.TEXT -> {
                             promptTextEntry(x, y)
                         }
+                        // CROP is inert on the canvas - the crop selection overlay drives it.
+                        DrawTool.CROP -> Unit
                     }
                     invalidate()
                 }
@@ -713,6 +762,10 @@ class ImageDrawOverlayManager(
         }
 
         fun undoLast() {
+            if (actions.isEmpty() && pendingCropRestore != null) {
+                restoreCrop()
+                return
+            }
             if (actions.removeLastOrNull() != null) {
                 noteMutation()
                 invalidate()
@@ -720,11 +773,41 @@ class ImageDrawOverlayManager(
         }
 
         fun undoAll() {
+            if (actions.isEmpty() && pendingCropRestore != null) {
+                restoreCrop()
+                return
+            }
             if (actions.isNotEmpty()) {
                 actions.clear()
                 noteMutation()
                 invalidate()
             }
+        }
+
+        // S0679 ADR-4: snapshot the annotations baked into the new crop for a single-level undo. The
+        // host swaps the base image separately; the snapshot lets undo restore both base and overlay.
+        fun beginCropUndo(restoreBase: () -> Unit) {
+            preCropActions = ArrayList(actions)
+            actions.clear()
+            pendingCropRestore = restoreBase
+            // Mark dirty directly, not via noteMutation() - that path commits (clears) the crop.
+            revision += 1
+            this@ImageDrawOverlayManager.updateToolbarDirtyState()
+            invalidate()
+        }
+
+        private fun restoreCrop() {
+            val restore = pendingCropRestore
+            val snapshot = preCropActions
+            pendingCropRestore = null
+            preCropActions = null
+            if (snapshot != null) {
+                actions.clear()
+                actions.addAll(snapshot)
+            }
+            restore?.invoke()
+            noteMutation()
+            invalidate()
         }
 
         fun hasActions(): Boolean = actions.isNotEmpty()
@@ -774,6 +857,9 @@ class ImageDrawOverlayManager(
 
         private fun noteMutation() {
             revision += 1
+            // S0679 ADR-4: the first annotation after a crop fixes it - no longer reversible.
+            pendingCropRestore = null
+            preCropActions = null
             this@ImageDrawOverlayManager.updateToolbarDirtyState()
         }
 

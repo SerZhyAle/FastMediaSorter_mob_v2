@@ -204,7 +204,12 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
             getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            onPickCustomFolderForCopy = {
+                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                customPathPickerLauncher.launch(null)
+            },
         )
     }
 
@@ -665,7 +670,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 resolvedType = type
                 displayDocument(file, type)
                 destinationButtonsManager.populateDestinationButtons()
-                Timber.d("S0612: document standalone copy/move panels populated for shown file")
                 lastShownPath = file.path
             }
             updateEpubTranslatorVisibility() // S0393 U7/U8: re-eval after the viewer changes

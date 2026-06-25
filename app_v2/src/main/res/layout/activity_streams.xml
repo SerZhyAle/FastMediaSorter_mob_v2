@@ -101,25 +101,72 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvStreams"
+            <!-- S0675: rvStreams wrapped in SwipeRefreshLayout for grid-mode pull-to-refresh; the manager
+                 enables the swipe gesture only in GRID (disabled in LIST so list scroll is unaffected). -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeStreams"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="8dp"
-                android:scrollbars="vertical" />
+                android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/tvEmpty"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvStreams"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="8dp"
+                    android:scrollbars="vertical" />
+
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+            <!-- S0673: empty state pairs the message with an icon + primary "add" and secondary
+                 "import" actions so the recovery path is one tap, not a hunt for unlabeled toolbar
+                 glyphs. Buttons reuse the toolbar handlers (showSourceDialog / showImportChooser). -->
+            <LinearLayout
+                android:id="@+id/emptyStateView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:padding="24dp"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textAppearance="?attr/textAppearanceBody2"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:visibility="gone"
-                android:text="@string/streams_empty" />
+                android:padding="@dimen/empty_state_padding"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="@dimen/empty_state_icon_size"
+                    android:layout_height="@dimen/empty_state_icon_size"
+                    android:src="@drawable/ic_cast"
+                    android:importantForAccessibility="no"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:id="@+id/tvEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/empty_state_text_margin_top"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:text="@string/streams_empty" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEmptyAddUrl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/empty_state_text_margin_top"
+                    android:text="@string/streams_add"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/etSearch"
+                    android:nextFocusDown="@id/btnEmptyImport" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEmptyImport"
+                    style="@style/Widget.FastMediaSorter.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/streams_import"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/btnEmptyAddUrl" />
+            </LinearLayout>
 
             <!-- S0587: scroll-navigation buttons split into top + bottom groups to mirror the file
                  browser (activity_browse.xml) - top/page-up anchor to the list top, page-down/bottom

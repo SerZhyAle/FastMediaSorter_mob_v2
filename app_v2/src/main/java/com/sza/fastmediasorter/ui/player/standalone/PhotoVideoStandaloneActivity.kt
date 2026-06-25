@@ -181,12 +181,40 @@ class PhotoVideoStandaloneActivity :
             hasAccelerometer = hasAccelerometer,
             keepExportHelper = drawKeepExportHelper,
             mergeDrawOverlayUseCase = mergeDrawOverlayUseCase,
+            imageCropManager = ImageCropManager(this, lifecycleScope, fileOperationUseCase),
             lifecycleScope = lifecycleScope,
             getCurrentFile = { viewModel.state.value.mediaFile },
             getDisplayedBitmap = { binding.photoView.drawable?.toBitmap() },
             getImageDisplayRect = { binding.photoView.displayRect },
+            setDisplayedBitmap = { binding.photoView.setImageBitmap(it) },
             onDelete = { fileOperations.deleteCurrentFile() },
+            onDrawModeChanged = { drawing -> setBottomPanelsHiddenForDraw(drawing) },
         ).also { drawSaveHelper = it }
+
+    /**
+     * S0676: the draw editor mounts over the image, so the self-managed Copy/Move destination panels
+     * must step aside while it is active (mirrors the in-app PlayerImmersiveModeManager). On enter the
+     * current panel visibility is captured and both panels hidden; on exit it is restored verbatim, so a
+     * read-only source that never showed the Move panel does not gain it back.
+     */
+    private fun setBottomPanelsHiddenForDraw(drawing: Boolean) {
+        Timber.d("S0676: standalone draw mode changed drawing=$drawing")
+        val copyPanel = binding.root.findViewById<View>(R.id.copyToPanel)
+        val movePanel = binding.root.findViewById<View>(R.id.moveToPanel)
+        if (drawing) {
+            copyPanelVisibleBeforeDraw = copyPanel?.isVisible == true
+            movePanelVisibleBeforeDraw = movePanel?.isVisible == true
+            copyPanel?.isVisible = false
+            movePanel?.isVisible = false
+        } else {
+            copyPanel?.isVisible = copyPanelVisibleBeforeDraw
+            movePanel?.isVisible = movePanelVisibleBeforeDraw
+        }
+    }
+
+    // S0676: remembers Copy/Move panel visibility across a draw session so exit restores the exact state.
+    private var copyPanelVisibleBeforeDraw = false
+    private var movePanelVisibleBeforeDraw = false
 
     // S0393: Group A image editing reuses the shared seam-based PlayerCropDelegate (replaces the
     // standalone-only StandaloneImageEditController). The PlayerActionHost members below supply the
@@ -403,6 +431,9 @@ class PhotoVideoStandaloneActivity :
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
 
+    /** Set by the crop-and-share auto-action; consumed on crop success, cleared on crop cancel. */
+    private var pendingShareAfterCrop = false
+
     /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
     private var folderPagingEnabled = false
 
@@ -418,7 +449,12 @@ class PhotoVideoStandaloneActivity :
             recoverableDeleteLauncher = recoverableDeleteLauncher,
             sendToMenuManager = sendToMenuManager,
             getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            onPickCustomFolderForCopy = {
+                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                customPathPickerLauncher.launch(null)
+            },
         )
     }
 
@@ -691,6 +727,12 @@ class PhotoVideoStandaloneActivity :
             AUTO_ACTION_SEND_TO -> {
                 autoActionConsumed = true
                 fileOperations.shareCurrentFile()
+            }
+            AUTO_ACTION_CROP_AND_SHARE -> {
+                autoActionConsumed = true
+                pendingShareAfterCrop = true
+                Timber.d("S0680: crop-and-share gesture auto-action entered")
+                cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
             }
         }
     }
@@ -976,6 +1018,15 @@ class PhotoVideoStandaloneActivity :
 
     override fun reloadCurrentImageInPlace() {
         viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) }
+        if (pendingShareAfterCrop) {
+            // Crop success path: share the cropped local copy, not the original (possibly content://) file.
+            pendingShareAfterCrop = false
+            viewModel.editableImageFile.value?.let { fileOperations.shareLocalCopy(it) }
+        }
+    }
+
+    override fun onCropFlowCancelled() {
+        pendingShareAfterCrop = false
     }
 
     override fun onFileSavedInFolder(savedPath: String) {
@@ -1033,5 +1084,6 @@ class PhotoVideoStandaloneActivity :
         const val AUTO_ACTION_DRAW = "draw"
         const val AUTO_ACTION_TRANSLATE = "translate"
         const val AUTO_ACTION_SEND_TO = "send_to"
+        const val AUTO_ACTION_CROP_AND_SHARE = "crop_and_share"
     }
 }

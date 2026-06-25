@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
-import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker dialog and maps actions to labels.
@@ -33,7 +32,6 @@ class ScreenshotGestureActionPickerManager(
         current: ScreenshotGestureAction,
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
-        Timber.d("S0646: screenshot-gesture action picker opening list-choice dialog")
         ListSelectionDialog<ScreenshotGestureAction>(
             context,
             ListSelectionConfig(
@@ -61,6 +59,7 @@ class ScreenshotGestureActionPickerManager(
         ScreenshotGestureAction.OCR_TRANSLATE -> R.string.screenshot_gesture_action_ocr_translate
         ScreenshotGestureAction.SEND_TO_RECIPIENTS -> R.string.screenshot_gesture_action_send_to
         ScreenshotGestureAction.SHARE -> R.string.screenshot_gesture_action_share
+        ScreenshotGestureAction.CROP_AND_SHARE -> R.string.screenshot_gesture_action_crop_and_share
         ScreenshotGestureAction.OPEN_APP -> R.string.screenshot_gesture_action_open_app
         ScreenshotGestureAction.OPEN_PANEL -> R.string.screenshot_gesture_action_open_panel
         ScreenshotGestureAction.DO_NOT_USE -> R.string.screenshot_gesture_action_none

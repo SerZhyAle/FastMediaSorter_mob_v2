@@ -26,7 +26,15 @@ interface ThumbnailCacheRepository {
      * Delete thumbnail from cache.
      */
     suspend fun deleteThumbnail(filePath: String)
-    
+
+    // S0677: synchronous variants for the Glide decode thread (ResourceDecoder.decode runs on a
+    // Glide pool thread, never the main thread). They let NetworkVideoFrameDecoder drop runBlocking.
+    fun getCachedThumbnailBlocking(filePath: String): File?
+
+    fun saveThumbnailBlocking(filePath: String, thumbnailFile: File)
+
+    fun deleteThumbnailBlocking(filePath: String)
+
     /**
      * Clean up old thumbnails not accessed for specified days.
      * @param days Number of days of inactivity before deletion

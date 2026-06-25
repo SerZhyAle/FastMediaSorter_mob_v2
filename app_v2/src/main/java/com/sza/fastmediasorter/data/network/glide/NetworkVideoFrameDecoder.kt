@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.utils.GlideCacheStats
 import com.sza.fastmediasorter.utils.VideoFrameDarknessEvaluator
 import com.sza.fastmediasorter.utils.VideoFrameExtractionPolicy
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -181,16 +180,14 @@ class NetworkVideoFrameDecoder(
                 // ADR-4: skip caching dark frames - next request will re-extract with retry logic.
                 if (!VideoFrameDarknessEvaluator.isDark(outcome.bitmap)) {
                     // Save to cache BEFORE completing the future so secondary waiters can read immediately
-                    runBlocking {
-                        try {
-                            val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
-                            if (cachedFile != null) {
-                                thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
-                                Timber.v("Saved thumbnail to cache: $fileName")
-                            }
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to save thumbnail to cache: $fileName")
+                    try {
+                        val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
+                        if (cachedFile != null) {
+                            thumbnailCacheRepository.saveThumbnailBlocking(source.path, cachedFile)
+                            Timber.v("Saved thumbnail to cache: $fileName")
                         }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to save thumbnail to cache: $fileName")
                     }
                 } else {
                     Timber.d("all candidates dark - not caching, returning best-effort frame: $fileName")
@@ -217,9 +214,9 @@ class NetworkVideoFrameDecoder(
                 if (isTransient) {
                     NetworkFileDataFetcher.markVideoAsTransientlyFailed(source.path)
                 } else {
-                    val cacheCheck = runBlocking {
-                        try { thumbnailCacheRepository.getCachedThumbnail(source.path) } catch (e: Exception) { null }
-                    }
+                    val cacheCheck = try {
+                        thumbnailCacheRepository.getCachedThumbnailBlocking(source.path)
+                    } catch (e: Exception) { null }
                     if (cacheCheck == null || !cacheCheck.exists()) {
                         NetworkFileDataFetcher.markVideoAsFailed(source.path)
                     } else {
@@ -240,13 +237,11 @@ class NetworkVideoFrameDecoder(
     }
 
     private fun loadFromThumbnailCache(path: String, fileName: String): Resource<Drawable>? {
-        val cached = runBlocking {
-            try {
-                thumbnailCacheRepository.getCachedThumbnail(path)
-            } catch (e: Exception) {
-                Timber.e(e, "Error checking thumbnail cache for: $path")
-                null
-            }
+        val cached = try {
+            thumbnailCacheRepository.getCachedThumbnailBlocking(path)
+        } catch (e: Exception) {
+            Timber.e(e, "Error checking thumbnail cache for: $path")
+            null
         }
         if (cached == null || !cached.exists()) return null
         Timber.v("Using CACHED thumbnail for: $fileName")
@@ -256,7 +251,7 @@ class NetworkVideoFrameDecoder(
                 // ADR-4: lazy eviction - discard already-cached dark thumbnails on first access.
                 if (VideoFrameDarknessEvaluator.isDark(bitmap)) {
                     Timber.d("cached thumbnail is dark - evicting and re-extracting: $fileName")
-                    runBlocking { thumbnailCacheRepository.deleteThumbnail(path) }
+                    thumbnailCacheRepository.deleteThumbnailBlocking(path)
                     bitmap.recycle()
                     return null
                 }

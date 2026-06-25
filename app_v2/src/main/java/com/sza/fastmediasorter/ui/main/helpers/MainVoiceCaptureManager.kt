@@ -72,7 +72,6 @@ class MainVoiceCaptureManager(
 
     fun start() {
         if (isRecorderStarted) return
-        Timber.d("S0523: quick voice capture started from main menu")
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
             == PackageManager.PERMISSION_GRANTED
         ) {

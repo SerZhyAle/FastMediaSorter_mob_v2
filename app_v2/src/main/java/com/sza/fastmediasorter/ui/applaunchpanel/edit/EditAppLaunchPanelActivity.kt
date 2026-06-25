@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * Standalone Edit-panel screen: the user fills the fixed 15-slot grid by adding external apps and
@@ -96,6 +97,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
      * no secondary feature/resource sub-choice is needed.
      */
     private fun showAddPathChooser(slot: Int) {
+        Timber.d("S0682: add-tile chooser opened for slot $slot")
         val paths = arrayOf(
             getString(R.string.app_launch_panel_path_external_app),
             getString(R.string.app_launch_panel_path_app_feature),

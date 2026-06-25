@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
+import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -49,12 +50,12 @@ import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
@@ -151,6 +152,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
     lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
 
     @Inject
@@ -183,6 +187,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // S0391: single availability node for remote sources; drives the resource-type tab strip.
     @Inject
     lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+
+    @Inject
+    lateinit var resourceLaunchWidgetPinManager: ResourceLaunchWidgetPinManager
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -655,12 +662,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .setIcon(R.drawable.ic_camera_ocr_translate)
         }
         miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
-        // S0565: SUPPORT_STREAMS is a capability flag (not an IS_* flavor guard), so reading it in
-        // src/main is allowed; photos/lite have it false. S0575: also gate on the runtime master toggle
-        // so the main-menu entry appears only when the user enabled Streams (the Playback-settings
-        // shortcut stays SUPPORT_STREAMS-only as the way back).
-        Timber.d("S0575: main menu streams gate support=%b enabled=%b", BuildConfig.SUPPORT_STREAMS, isStreamsEnabled)
-        streamsMenuManager.populate(popup, BuildConfig.SUPPORT_STREAMS && isStreamsEnabled, 1)
+        // S0678: route the compile-time Streams gate through the CapabilityAvailability contract
+        // instead of reading BuildConfig.SUPPORT_STREAMS directly here (the contract is the single
+        // surface, same as OCR/translation/VR/persistent-audio). S0575: also gate on the runtime
+        // master toggle so the main-menu entry appears only when the user enabled Streams.
+        val streamsAvailable = capabilityAvailability.isStreamsAvailable()
+        Timber.d("S0575: main menu streams gate support=%b enabled=%b", streamsAvailable, isStreamsEnabled)
+        streamsMenuManager.populate(popup, streamsAvailable && isStreamsEnabled, 1)
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
             isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
@@ -776,6 +784,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
+            },
+            onAddToHomeScreenClick = { resource ->
+                pinResourceLaunchWidget(resource)
             },
             // S0293 Phase 08: visible only when multi-window is effectively available (preference OR runtime)
             isOpenInNewWindowVisible = mainAllowSeparateWindow,
@@ -1224,6 +1235,33 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             stopService(serviceIntent)
         } catch (e: Exception) {
             Timber.w(e, "MainActivity: Failed to stop AudioPlaybackService before exit")
+        }
+    }
+
+    private fun pinResourceLaunchWidget(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
+        when (
+            resourceLaunchWidgetPinManager.requestPin(
+                resourceId = resource.id,
+                resourceName = resource.name,
+                resourcePath = resource.path,
+                resourceType = resource.type,
+            )
+        ) {
+            ResourceLaunchWidgetPinManager.PinResult.Requested -> {
+                Timber.d("S0661: requested home-screen widget pin for resourceId=%s", resource.id)
+            }
+            ResourceLaunchWidgetPinManager.PinResult.Unsupported -> {
+                Toast.makeText(this, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
+            }
+            ResourceLaunchWidgetPinManager.PinResult.KeyguardLocked -> {
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.widget_unlock_screen_prompt)
+                    .setPositiveButton(R.string.ok, null)
+                    .show()
+            }
+            ResourceLaunchWidgetPinManager.PinResult.AlreadyExists -> {
+                Toast.makeText(this, R.string.widget_already_added, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

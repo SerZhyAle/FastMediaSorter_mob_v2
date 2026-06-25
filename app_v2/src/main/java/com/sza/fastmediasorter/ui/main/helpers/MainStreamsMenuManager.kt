@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 /**
  * Adds the "Трансляции" entry to the main-window dropdown menu and opens [StreamsActivity].
  * Mirrors [MainMiniGameMenuManager]; visibility is owned by the caller, which passes
- * `enabled = BuildConfig.SUPPORT_STREAMS` so the entry is absent in photos.
+ * `enabled = capabilityAvailability.isStreamsAvailable()` (S0678) so the entry is absent in photos.
  */
 class MainStreamsMenuManager(
     private val context: Context

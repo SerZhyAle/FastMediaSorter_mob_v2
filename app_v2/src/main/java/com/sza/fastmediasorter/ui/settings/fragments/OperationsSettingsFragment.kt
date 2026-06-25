@@ -373,7 +373,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
         binding.btnSelectLinkAutodownloadResource.setOnClickListener {
-            Timber.d("S0648: download-resource selector (button-pattern) opening destination picker")
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
             ) { resource ->
@@ -572,7 +571,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         currentResourceId: Long?,
         onPicked: (MediaResource?) -> Unit
     ) {
-        Timber.d("S0646: operations destination picker opening list-choice dialog")
         ListSelectionDialog<MediaResource>(
             requireContext(),
             ListSelectionConfig(

@@ -13,7 +13,9 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
+import com.sza.fastmediasorter.ui.player.helpers.DrawCropCompositor
 import com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
+import com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
 import com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.ImageEditorFileNamer
 import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
@@ -36,11 +38,17 @@ class StandaloneDrawSaveHelper(
     hasAccelerometer: Boolean,
     keepExportHelper: DrawKeepExportHelper,
     private val mergeDrawOverlayUseCase: MergeDrawOverlayUseCase,
+    private val imageCropManager: ImageCropManager,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val getCurrentFile: () -> MediaFile?,
     private val getDisplayedBitmap: () -> Bitmap?,
     private val getImageDisplayRect: () -> RectF,
+    // S0679 - swap the standalone image view to the cropped working composite.
+    private val setDisplayedBitmap: (Bitmap) -> Unit,
     private val onDelete: () -> Unit,
+    // S0676: notify the host when draw mode enters (true) / leaves (false) so it can hide / restore the
+    // Copy/Move bottom panels, mirroring the in-app PlayerImmersiveModeManager. No-op by default.
+    private val onDrawModeChanged: (Boolean) -> Unit = {},
 ) {
     private val manager = ImageDrawOverlayManager(
         activity = activity,
@@ -53,6 +61,9 @@ class StandaloneDrawSaveHelper(
     init {
         manager.baseBitmapProvider = getDisplayedBitmap
         manager.bindToolbar(toolbarRoot)
+        manager.editModeCallback = { mode ->
+            onDrawModeChanged(mode == com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)
+        }
         manager.actionCallback = object : ImageDrawOverlayManager.DrawOverlayActionCallback {
             override fun onSaveRequested(overlayBitmap: Bitmap) = save(overlayBitmap, null, close = false)
             override fun onSaveAndCloseRequested(overlayBitmap: Bitmap) = save(overlayBitmap, null, close = true)
@@ -70,6 +81,11 @@ class StandaloneDrawSaveHelper(
         manager.saveCallback = object : ImageDrawOverlayManager.DrawOverlaySaveCallback {
             override fun onSaveRequested(overlayBitmap: Bitmap, filename: String) =
                 save(overlayBitmap, filename, close = false)
+        }
+        // S0679 - draw-editor crop tool (mirrors the in-app PlayerDrawingSaveHelper wiring).
+        val cropCompositor = DrawCropCompositor(imageCropManager, mergeDrawOverlayUseCase)
+        manager.cropApplyCallback = { normalizedRect, viewW, viewH ->
+            applyCrop(cropCompositor, normalizedRect, viewW, viewH)
         }
     }
 
@@ -132,6 +148,59 @@ class StandaloneDrawSaveHelper(
                 Toast.LENGTH_SHORT
             ).show()
             if (saved && close) activity.finish()
+        }
+    }
+
+    // S0679 - apply the draw-editor crop: compose the cropped working image and swap it in, keeping
+    // the crop undoable (ADR-4). No resource context in standalone, so currentResource is null.
+    private fun applyCrop(
+        compositor: DrawCropCompositor,
+        normalizedRect: RectF,
+        viewW: Int,
+        viewH: Int,
+    ) {
+        Timber.d("S0679: draw-editor crop apply (standalone)")
+        val base = getDisplayedBitmap() ?: run {
+            Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val current = getCurrentFile() ?: run {
+            Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val overlay = manager.getOverlayBitmap()
+        val displayRect = getImageDisplayRect()
+        val selectionRect = RectF(
+            normalizedRect.left * viewW,
+            normalizedRect.top * viewH,
+            normalizedRect.right * viewW,
+            normalizedRect.bottom * viewH,
+        )
+        lifecycleScope.launch {
+            val cropped = try {
+                compositor.composeCroppedWorkingImage(
+                    baseBitmap = base,
+                    overlayBitmap = overlay,
+                    displayRect = displayRect,
+                    selectionRect = selectionRect,
+                    canvasWidth = viewW,
+                    canvasHeight = viewH,
+                    currentFile = current,
+                    currentResource = null,
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Standalone draw crop failed")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                setDisplayedBitmap(cropped)
+                manager.beginCropUndo {
+                    setDisplayedBitmap(base)
+                }
+            }
         }
     }
 

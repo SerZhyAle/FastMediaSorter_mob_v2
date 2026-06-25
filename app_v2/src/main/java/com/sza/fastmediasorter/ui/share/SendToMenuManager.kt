@@ -62,17 +62,26 @@ class SendToMenuManager @Inject constructor(
      *
      * Single applicable receiver → invoke directly (ADR-8). Multiple receivers → bottom sheet.
      */
-    fun show(activity: FragmentActivity, content: ShareableContent, settings: AppSettings) {
+    fun show(
+        activity: FragmentActivity,
+        content: ShareableContent,
+        settings: AppSettings,
+        onPickResource: (() -> Unit)? = null,
+    ) {
         val receivers = receiversFor(activity, content, settings)
-        if (receivers.isEmpty()) {
-            Timber.i("SendToMenuManager: no applicable receivers for %s", content.mediaType)
-            return
+        // S0681: with a pinned «Select resource..» action the sheet must always open so the row is
+        // reachable - skip the empty-return and single-receiver direct-dispatch shortcuts.
+        if (onPickResource == null) {
+            if (receivers.isEmpty()) {
+                Timber.i("SendToMenuManager: no applicable receivers for %s", content.mediaType)
+                return
+            }
+            if (receivers.size == 1) {
+                dispatch(activity, receivers[0], content)
+                return
+            }
         }
-        if (receivers.size == 1) {
-            dispatch(activity, receivers[0], content)
-            return
-        }
-        SendToBottomSheet.newInstance(content, settings)
+        SendToBottomSheet.newInstance(content, settings, onPickResource)
             .show(activity.supportFragmentManager, TAG)
     }
 
@@ -89,9 +98,11 @@ class SendToMenuManager @Inject constructor(
         content: ShareableContent,
         settings: AppSettings,
         activity: Activity,
+        onPickResource: (() -> Unit)? = null,
     ) {
         val receivers = receiversFor(activity, content, settings)
-        if (receivers.isEmpty()) return
+        // S0681: the pinned «Select resource..» action keeps the submenu non-empty even with no receivers.
+        if (receivers.isEmpty() && onPickResource == null) return
 
         val subMenu = menu.addSubMenu(Menu.NONE, Menu.NONE, order, R.string.share_to_menu_title)
         // addSubMenu mirrors the parent item's title into the submenu header, which renders as a
@@ -117,6 +128,19 @@ class SendToMenuManager @Inject constructor(
             )
             item.setOnMenuItemClickListener {
                 dispatch(activity, target, content)
+                true
+            }
+        }
+        // S0681: append the pinned «Select resource..» action last, after the system-share receiver.
+        if (onPickResource != null) {
+            val pickItem = subMenu.add(
+                Menu.NONE, Menu.NONE, receivers.size,
+                activity.getString(R.string.share_to_pick_resource),
+            )
+            pickItem.setIcon(R.drawable.ic_folder)
+            pickItem.setOnMenuItemClickListener {
+                Timber.d("S0681: pinned Select-resource tapped in send-to overflow submenu")
+                onPickResource()
                 true
             }
         }

@@ -35,6 +35,7 @@ class StreamsSessionStore @Inject constructor(
         val lastMediaFilter: String?,
         val lastQuery: String?,
         val lastCatalogRefreshAt: Long,
+        val lastDisplayMode: String?,
     )
 
     suspend fun read(): Session {
@@ -44,6 +45,7 @@ class StreamsSessionStore @Inject constructor(
             lastMediaFilter = prefs[KEY_LAST_MEDIA_FILTER],
             lastQuery = prefs[KEY_LAST_QUERY],
             lastCatalogRefreshAt = prefs[KEY_LAST_CATALOG_REFRESH_AT] ?: 0L,
+            lastDisplayMode = prefs[KEY_LAST_DISPLAY_MODE],
         )
     }
 
@@ -61,10 +63,17 @@ class StreamsSessionStore @Inject constructor(
         }
     }
 
+    suspend fun writeDisplayMode(mode: String) {
+        context.streamsSessionDataStore.edit { prefs ->
+            prefs[KEY_LAST_DISPLAY_MODE] = mode
+        }
+    }
+
     private companion object {
         val KEY_LAST_SORT = stringPreferencesKey("last_sort")
         val KEY_LAST_MEDIA_FILTER = stringPreferencesKey("last_media_filter")
         val KEY_LAST_QUERY = stringPreferencesKey("last_query")
         val KEY_LAST_CATALOG_REFRESH_AT = longPreferencesKey("last_catalog_refresh_at")
+        val KEY_LAST_DISPLAY_MODE = stringPreferencesKey("last_display_mode")
     }
 }

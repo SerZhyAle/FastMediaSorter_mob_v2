@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Settings manager for the "Add widget to home screen" action.
@@ -50,7 +49,6 @@ class GeneralSettingsWidgetHelper(
 
     private fun showPickerDialog(entries: List<HomeWidgetEntry>) {
         val context = fragment.requireContext()
-        Timber.d("S0646: widget-type picker opening list-choice dialog")
         ListSelectionDialog<HomeWidgetEntry>(
             context,
             ListSelectionConfig(

@@ -22,6 +22,8 @@ class ScreenshotSettingsStore private constructor() {
             stringPreferencesKey("screenshot_destination_resource_id")
         private val KEY_COPY_SCREENSHOT_TO_CLIPBOARD =
             booleanPreferencesKey("copy_screenshot_to_clipboard")
+        private val KEY_SCREEN_CAPTURE_DISCLOSURE_ACCEPTED =
+            booleanPreferencesKey("screen_capture_disclosure_accepted")
 
         data class Values(
             val gestureOverlayEnabled: Boolean,
@@ -30,6 +32,7 @@ class ScreenshotSettingsStore private constructor() {
             val screenshotGestureActionUp: ScreenshotGestureAction,
             val screenshotDestinationResourceId: String?,
             val copyScreenshotToClipboard: Boolean,
+            val screenCaptureDisclosureAccepted: Boolean,
         )
 
         fun read(preferences: Preferences): Values = Values(
@@ -48,6 +51,7 @@ class ScreenshotSettingsStore private constructor() {
             ),
             screenshotDestinationResourceId = preferences[KEY_SCREENSHOT_DESTINATION_RESOURCE_ID],
             copyScreenshotToClipboard = preferences[KEY_COPY_SCREENSHOT_TO_CLIPBOARD] ?: false,
+            screenCaptureDisclosureAccepted = preferences[KEY_SCREEN_CAPTURE_DISCLOSURE_ACCEPTED] ?: false,
         )
 
         fun write(preferences: MutablePreferences, settings: AppSettings) {
@@ -60,6 +64,7 @@ class ScreenshotSettingsStore private constructor() {
                 settings.screenshotDestinationResourceId
             )
             preferences[KEY_COPY_SCREENSHOT_TO_CLIPBOARD] = settings.copyScreenshotToClipboard
+            preferences[KEY_SCREEN_CAPTURE_DISCLOSURE_ACCEPTED] = settings.screenCaptureDisclosureAccepted
         }
     }
 }

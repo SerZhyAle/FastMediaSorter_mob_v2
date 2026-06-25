@@ -45,6 +45,10 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
     internal var content: ShareableContent? = null
     internal var settings: AppSettings? = null
 
+    // S0681: host-supplied copy-to-resource action. When non-null, the sheet shows a pinned
+    // «Select resource..» row below the receiver list; null leaves the row hidden.
+    internal var onPickResource: (() -> Unit)? = null
+
     private var _binding: SheetSendToBinding? = null
     private val binding get() = _binding!!
 
@@ -52,9 +56,11 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
         fun newInstance(
             content: ShareableContent,
             settings: AppSettings,
+            onPickResource: (() -> Unit)? = null,
         ): SendToBottomSheet = SendToBottomSheet().also {
             it.content = content
             it.settings = settings
+            it.onPickResource = onPickResource
         }
     }
 
@@ -87,6 +93,18 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
         binding.rvSendToReceivers.doOnPreDraw {
             binding.rvSendToReceivers.findViewHolderForAdapterPosition(0)
                 ?.itemView?.requestFocus()
+        }
+
+        // S0681: pinned «Select resource..» row - the last reachable item, after the system-share
+        // receiver. Shown only when the host wired the copy-to-resource action.
+        val pickResource = onPickResource
+        binding.llPickResource.isVisible = pickResource != null
+        if (pickResource != null) {
+            binding.llPickResource.setOnClickListener {
+                Timber.d("S0681: pinned Select-resource tapped in send-to bottom sheet")
+                pickResource()
+                dismiss()
+            }
         }
     }
 

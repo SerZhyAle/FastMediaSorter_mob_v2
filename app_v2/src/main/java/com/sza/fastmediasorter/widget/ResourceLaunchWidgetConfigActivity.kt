@@ -28,11 +28,11 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Configuration activity for Resource Launch widget
@@ -88,6 +88,10 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
     }
 
     override fun setupViews() {
+        // Rule 17: keep the picker inside system-bar + cutout safe bounds in both orientations.
+        // BaseActivity enables edge-to-edge but a Scaffold inside a ComposeView host does not
+        // consume the window insets on its own; mirror CameraQuickCaptureConfigActivity.
+        binding.widgetConfigComposeView.applySystemBarInsetPadding()
         binding.widgetConfigComposeView.setContent {
             MaterialTheme {
                 val entryPoint = EntryPointAccessors.fromApplication(

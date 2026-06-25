@@ -2750,12 +2750,12 @@
     <string name="app_launch_panel_os_app_info">Про застосунок</string>
     <string name="app_launch_panel_os_datetime">Дата і час</string>
     <string name="app_launch_panel_add_chooser_title">Додати на панель</string>
-    <string name="app_launch_panel_path_external_app">Функція Android</string>
-    <string name="app_launch_panel_path_os_part">Частина системи</string>
+    <string name="app_launch_panel_path_external_app">Застосунок</string>
+    <string name="app_launch_panel_path_os_part">Налаштування ОС Андроїд</string>
     <string name="app_launch_panel_path_app_feature">Функція FastMediaSorter</string>
     <string name="app_launch_panel_path_app_resource">Ресурс FastMediaSorter</string>
     <string name="app_launch_panel_picker_feature_title">Вибір функції</string>
-    <string name="app_launch_panel_picker_os_title">Вибір частини системи</string>
+    <string name="app_launch_panel_picker_os_title">Вибір налаштування ОС Андроїд</string>
     <string name="app_launch_panel_picker_resource_title">Вибір ресурсу</string>
     <string name="app_launch_panel_route_disabled_hint">Вимкнено - натисніть, щоб увімкнути</string>
     <string name="app_launch_panel_sub_feature">Функція застосунку</string>
@@ -2779,4 +2779,17 @@
     <string name="settings_streams_clear_statuses">Очистити позначки відтворення</string>
     <string name="settings_streams_clear_statuses_confirm">Прибрати зелені та червоні позначки з усіх каналів? Самі канали залишаться.</string>
     <string name="settings_streams_clear_statuses_done">Позначки прибрано.</string>
+    <string name="screen_capture_disclosure_message">Застосунок може захопити поточний екран пристрою, включно з іншими застосунками, лише після вашого підтвердження в системному запиті Android. Вміст екрана може містити персональні дані. Знімки залишаються на цьому пристрої, доки ви самі не вирішите скопіювати, відредагувати, перекласти або надіслати їх. Вони зберігаються в вибрану папку для знімків або в запасні папки пристрою.</string>
+    <string name="screen_capture_disclosure_title">Для знімка екрана потрібен ваш дозвіл</string>
+    <string name="screen_capture_disclosure_accept">Продовжити</string>
+    <string name="streams_favicon">Логотип каналу</string>
+    <string name="streams_grid_cell_cd">%1$s - поточний кадр</string>
+    <string name="streams_grid_no_frame_cd">%1$s - без прев\'ю</string>
+    <string name="streams_view_grid">Сіткою</string>
+    <string name="streams_view_list">Списком</string>
+    <string name="screenshot_gesture_action_crop_and_share">Обрізати знімок і надіслати</string>
+    <string name="share_to_pick_resource">Вибір ресурсу..</string>
+    <string name="draw_tool_crop">Обрізання</string>
+    <string name="draw_crop_frame_desc">Рамка виділення обрізання</string>
+    <string name="draw_crop_failed">Не вдалося обрізати зображення</string>
 </resources>

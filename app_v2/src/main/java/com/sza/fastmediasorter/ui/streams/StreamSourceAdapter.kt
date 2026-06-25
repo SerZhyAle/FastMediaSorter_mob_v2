@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.streams
 
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MotionEvent
@@ -20,6 +21,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /**
  * Renders the stream catalog. Row tap launches playback ([onPlay]); the pin affordance promotes the
@@ -37,6 +41,13 @@ class StreamSourceAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S0668: favicon plumbing kept as plain collaborators (not DI) so the adapter stays test-friendly.
+    // faviconResolver maps a url -> its sprite-atlas tile index (null = no favicon -> empty slot);
+    // faviconTileLoader decodes that index into a 32 px bitmap off the main thread (the slicer's
+    // tileFor). The defaults render every row with an empty slot, so callers without an atlas still work.
+    private val faviconResolver: (String) -> Int? = { null },
+    private val faviconTileLoader: suspend (Int) -> Bitmap? = { null },
+    private val faviconScope: CoroutineScope? = null,
 ) : ListAdapter<StreamSourceEntity, StreamSourceAdapter.VH>(DIFF) {
 
     private var playingId: String? = null
@@ -63,18 +74,32 @@ class StreamSourceAdapter(
     override fun onViewRecycled(holder: VH) {
         // S0587/S0579: a recycled row must not keep spinning - cancel its rotation animator.
         holder.stopPlaybackAnimation()
+        // S0668: also cancel any in-flight favicon decode so it cannot paint onto the reused holder.
+        holder.cancelFaviconLoad()
     }
 
     inner class VH(private val binding: ItemStreamSourceBinding) : RecyclerView.ViewHolder(binding.root) {
         // S0579: reuse the file-browser inline playback rotation on the row kind icon.
         private val playbackAnimator = InlinePlaybackAnimator(binding.ivKind)
 
+        // S0668: the url this holder is currently bound to, so an async favicon load that resolves after
+        // the row was recycled/rebound is dropped instead of painting a stale tile (mirrors setPlayingId).
+        private var boundUrl: String? = null
+        private var faviconJob: Job? = null
+
         fun stopPlaybackAnimation() = playbackAnimator.stopAll()
+
+        /** S0668: cancel the in-flight favicon load when the row is recycled. */
+        fun cancelFaviconLoad() {
+            faviconJob?.cancel()
+            faviconJob = null
+        }
 
         fun bind(source: StreamSourceEntity, isPlaying: Boolean) {
             binding.tvTitle.text = source.title
             binding.tvUrl.text = source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
+            bindFavicon(source.url)
             bindPlayStatus(source.lastPlayOutcome)
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
@@ -119,6 +144,35 @@ class StreamSourceAdapter(
                         }
                     }
                     show()
+                }
+            }
+        }
+
+        /**
+         * S0668: render the leading channel-logo thumbnail sliced from the favicon sprite-atlas. A url
+         * with no tile index leaves an empty slot (GONE, no placeholder - owner decision). The decode is
+         * async and rebind-safe: it is cancelled on rebind and the result is dropped unless the holder is
+         * still bound to the same url (a recycled row must not flash a previous channel's logo).
+         */
+        private fun bindFavicon(url: String) {
+            boundUrl = url
+            cancelFaviconLoad()
+            binding.ivFavicon.setImageDrawable(null)
+            val scope = faviconScope
+            val index = faviconResolver(url)
+            if (scope == null || index == null) {
+                binding.ivFavicon.visibility = View.GONE
+                return
+            }
+            faviconJob = scope.launch {
+                val tile = faviconTileLoader(index)
+                // The holder may have been rebound to another row while decoding - drop a stale result.
+                if (boundUrl != url) return@launch
+                if (tile != null) {
+                    binding.ivFavicon.setImageBitmap(tile)
+                    binding.ivFavicon.visibility = View.VISIBLE
+                } else {
+                    binding.ivFavicon.visibility = View.GONE
                 }
             }
         }
