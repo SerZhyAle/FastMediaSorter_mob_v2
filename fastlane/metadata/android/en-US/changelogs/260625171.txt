@@ -1,0 +1,7 @@
+• Screen capture - consent-based screenshot to edit, OCR-translate, share or save.
+• Stream grid view - live channels as tiles with current-frame previews and favicons.
+• Streams quick start - add or import streams right from the empty catalog.
+• Compact playback controls - context-aware tabs, speed presets and volume in one dialog.
+• Crop in editor - crop the image to a rectangle before annotating or sharing.
+• Send to resource - copy the current file to a destination folder from any player.
+..
