@@ -59,6 +59,12 @@ interface PlayerActionHost {
     fun reloadCurrentImageInPlace()
 
     /**
+     * Fired when the crop overlay is dismissed without applying a crop. Lets a host drop a pending
+     * post-crop action (e.g. crop-then-share) on cancel. Default no-op for hosts that do not chain one.
+     */
+    fun onCropFlowCancelled() {}
+
+    /**
      * A new file was saved into the current folder (crop-to-file / compress / draw save-as).
      * In-app navigates to it; a single-file host typically just confirms with a toast.
      */

@@ -1,0 +1,5 @@
+url,name,homepage,confidence,favicon_index
+http://example.com/news.m3u8,News One,https://news.example,0.9,0
+http://example.com/sport.m3u8,Sport Two,https://sport.example,0.8,17
+http://example.com/music.m3u8,Music Three,https://music.example,0.7,
+http://example.com/docs.m3u8,Docs Four,https://docs.example,0.6,-3

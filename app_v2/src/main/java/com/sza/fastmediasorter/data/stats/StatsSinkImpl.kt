@@ -20,7 +20,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,7 +57,6 @@ class StatsSinkImpl @Inject constructor(
         if (!enabled) return
         val delta = event.toDelta()
         if (delta.isEmpty) return
-        Timber.d("S0654: stats event recorded -> ${event::class.simpleName}")
         synchronized(lock) { pending += delta }
         scheduleFlush()
     }

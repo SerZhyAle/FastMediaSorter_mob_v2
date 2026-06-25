@@ -37,5 +37,8 @@ object MediaCapabilitiesModule {
         supportsMicRecording = BuildConfig.SUPPORT_MIC_RECORDING,
         supportsVrPlayer = BuildConfig.SUPPORT_VR_PLAYER,
         supportsWearCompanion = BuildConfig.SUPPORT_WEAR_COMPANION,
+        // Literal true (not BuildConfig.SUPPORT_VR_PLAYER): this module serves both vr and noLegal,
+        // and SUPPORT_VR_PLAYER is false on vr (S0241) while the 3D tab must show on both.
+        supportsVrMediaControls = true,
     )
 }

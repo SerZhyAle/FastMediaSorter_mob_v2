@@ -420,6 +420,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     screenshotGestureActionUp = screenshot.screenshotGestureActionUp,
                     screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
                     copyScreenshotToClipboard = screenshot.copyScreenshotToClipboard,
+                    screenCaptureDisclosureAccepted = screenshot.screenCaptureDisclosureAccepted,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
@@ -477,8 +478,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S0050: absent key → false (opt-in feature, disabled by default)
                     showBlackScreenButton = preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] ?: false,
 
-                    // S0473: absent key → false (opt-in statistics, disabled by default)
-                    enableStatistics = preferences[KEY_ENABLE_STATISTICS] ?: false,
+                    // Absent key → true: local-only usage statistics are enabled by default on a
+                    // fresh install (nothing leaves the device; user can opt out in onboarding/Settings).
+                    enableStatistics = preferences[KEY_ENABLE_STATISTICS] ?: true,
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier

@@ -12,6 +12,7 @@ import androidx.core.view.MenuItemCompat
 import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,13 +32,20 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
+import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
+import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
+import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * The "Трансляции" list screen - the single destination every entry-point opens. Tapping an AUDIO
@@ -55,6 +63,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val viewModel: StreamsViewModel by viewModels()
 
+    // S0668: favicon sprite-atlas sidecar (atlas PNG + url->index map) persisted by the catalog import.
+    @Inject
+    lateinit var faviconAtlasStore: FaviconAtlasStore
+
+    // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
+    // (writer) and the grid adapter (reader).
+    @Inject
+    lateinit var streamFrameCache: StreamFrameCache
+
+    // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
+    // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
+    private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
+
+    // S0668: the loaded url->index map; read on the lambda thread at bind time. Volatile so a reload
+    // after import is visible to the bind callbacks without further synchronisation.
+    @Volatile
+    private var faviconCoords: Map<String, Int> = emptyMap()
+
     private val adapter = StreamSourceAdapter(
         onPlay = ::onPlay,
         onPin = { viewModel.onPin(it.id) },
@@ -62,7 +88,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
+        faviconResolver = { url -> faviconCoords[url] },
+        faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+        faviconScope = lifecycleScope,
     )
+
+    // S0675: short-lived snapshot engine for grid mode; built lazily so Hilt field injection (the cache)
+    // has run. Uses applicationContext so a config-change does not leak the Activity into a capture.
+    private val snapshotManager by lazy {
+        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope)
+    }
+
+    // S0675: grid-mode adapter mirroring the list adapter's favicon plumbing; the cached frame is the
+    // primary content, with the favicon/placeholder as the no-frame fallback.
+    private val gridAdapter by lazy {
+        StreamGridAdapter(
+            onPlay = ::onPlay,
+            frameProvider = streamFrameCache::get,
+            requestCapture = snapshotManager::request,
+            faviconResolver = { url -> faviconCoords[url] },
+            faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            faviconScope = lifecycleScope,
+        )
+    }
+
+    private lateinit var gridModeManager: StreamGridModeManager
 
     private lateinit var inlineAudio: StreamInlineAudioManager
 
@@ -71,6 +121,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** Last rendered state, kept so the filter dialog can populate its facet choices on demand. */
     private var latestState = StreamsViewModel.StreamsUiState()
+
+    // S0675: the display mode last applied to the RecyclerView; null until the first state arrives, so the
+    // initial restored mode always triggers an applyMode (the manager swaps adapter/layout exactly once).
+    private var appliedDisplayMode: DisplayMode? = null
 
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
 
@@ -108,12 +162,25 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         )
         scrollButtons.attach()
 
+        gridModeManager = StreamGridModeManager(
+            recyclerView = binding.rvStreams,
+            swipeRefresh = binding.swipeStreams,
+            listAdapter = adapter,
+            gridAdapter = gridAdapter,
+            snapshotManager = snapshotManager,
+            cache = streamFrameCache,
+            lifecycleOwner = this,
+            resources = resources,
+            onToggleIconChanged = ::updateDisplayToggleIcon,
+        )
+
         binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
         onBackPressedDispatcher.addCallback(this) { exitStreamsWithAudioCheck() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
                 R.id.action_stream_import -> { showImportChooser(); true }
+                R.id.action_stream_display_toggle -> { viewModel.onToggleDisplayMode(); true }
                 R.id.action_stream_refresh -> { binding.rvStreams.scrollToPosition(0); true }
                 else -> false
             }
@@ -124,12 +191,42 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.btnFilter.setOnClickListener { showFilterDialog() }
         binding.btnSort.setOnClickListener { showSortDialog() }
 
+        // S0673: empty-state actions reuse the toolbar handlers so the recovery path is one tap.
+        binding.btnEmptyAddUrl.setOnClickListener { showSourceDialog(isImport = false) }
+        binding.btnEmptyImport.setOnClickListener { showImportChooser() }
+
         // S0637: a home-screen shortcut may have launched this screen to play a specific stream.
         handlePlayIntent(intent)
 
         // S0659: apply the catalog-refresh policy once the managers are wired. The ViewModel keeps this
         // idempotent across config-change recreation, so calling it from every setupViews is safe.
         viewModel.onScreenOpened()
+
+        // S0668: load the persisted favicon coords so already-imported rows can render their logo on
+        // first paint. Off the UI thread (coords() is a suspend file read); the volatile field publishes
+        // the result to the bind callbacks.
+        loadFaviconCoords()
+    }
+
+    /** S0668: (re)load the url->index map and repaint visible rows so their favicon slots refresh. */
+    private fun loadFaviconCoords() {
+        lifecycleScope.launch {
+            faviconCoords = faviconAtlasStore.coords()
+            Timber.d("S0668: favicon coords loaded (count=%d)", faviconCoords.size)
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
+    }
+
+    /**
+     * S0668: a completed catalog import rewrote the atlas + coords sidecar - drop the cached atlas and
+     * reload the coords so the new favicons appear without restarting the screen.
+     */
+    private fun onCatalogRefreshed() {
+        lifecycleScope.launch {
+            faviconSlicer.invalidate()
+            faviconCoords = faviconAtlasStore.coords()
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
     }
 
     /**
@@ -146,14 +243,47 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.toolbar.menu.forEach { item -> MenuItemCompat.setIconTintList(item, tint) }
     }
 
+    /**
+     * S0675: the toggle shows the icon/label of the mode it switches TO - grid glyph while in list,
+     * list glyph while in grid (same convention as BrowseRecyclerViewManager.updateDisplayMode). Re-tint
+     * so the swapped icon keeps the colorOnPrimary contrast.
+     */
+    private fun updateDisplayToggleIcon(mode: DisplayMode) {
+        val item = binding.toolbar.menu.findItem(R.id.action_stream_display_toggle) ?: return
+        when (mode) {
+            DisplayMode.LIST -> {
+                item.setIcon(R.drawable.ic_view_grid)
+                item.setTitle(R.string.streams_view_grid)
+            }
+            DisplayMode.GRID -> {
+                item.setIcon(R.drawable.ic_view_list)
+                item.setTitle(R.string.streams_view_list)
+            }
+        }
+        tintToolbarMenuIcons()
+    }
+
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
-            adapter.submitList(state.sources) {
-                // S0587: recompute scroll-button visibility once the new list is laid out
-                // (filter/sort/search change the row count).
-                if (::scrollButtons.isInitialized) scrollButtons.updateVisibility()
+            // S0675: a mode change swaps adapter + layout once; otherwise just keep the active adapter's
+            // list current. The list adapter keeps its scroll-button callback in LIST mode.
+            if (state.displayMode != appliedDisplayMode) {
+                appliedDisplayMode = state.displayMode
+                gridModeManager.applyMode(state.displayMode, state.sources)
+                // The manager's swap re-submits the list without the scroll-button callback; refresh once.
+                if (state.displayMode == DisplayMode.LIST && ::scrollButtons.isInitialized) {
+                    binding.rvStreams.post { scrollButtons.updateVisibility() }
+                }
+            } else if (state.displayMode == DisplayMode.LIST) {
+                adapter.submitList(state.sources) {
+                    // S0587: recompute scroll-button visibility once the new list is laid out
+                    // (filter/sort/search change the row count).
+                    if (::scrollButtons.isInitialized) scrollButtons.updateVisibility()
+                }
+            } else {
+                gridModeManager.submitCurrentList(state.sources)
             }
-            binding.tvEmpty.isVisible = state.isEmpty
+            binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
             updateFilterIndicator(state.filter)
         }
@@ -168,7 +298,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         Toast.LENGTH_LONG,
                     ).show()
                 }
-                is StreamsViewModel.StreamsEvent.CatalogUpdated ->
+                is StreamsViewModel.StreamsEvent.CatalogUpdated -> {
+                    // S0668: the catalog import just rewrote the favicon atlas + coords - refresh them.
+                    onCatalogRefreshed()
                     Toast.makeText(
                         this,
                         getString(
@@ -179,6 +311,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
+                }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
                 StreamsViewModel.StreamsEvent.SuggestCatalogRefresh -> showCatalogRefreshSuggestion()
             }
@@ -452,6 +585,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // mirrors local audio. Service-mode (ON) playback is owned by AudioPlaybackService and left alone.
         if (::inlineAudio.isInitialized && inlineAudio.isLocalPlaybackActive) {
             inlineAudio.stop()
+        }
+        // S0675: never run frame captures while backgrounded - cancel in-flight snapshots + the timer.
+        if (::gridModeManager.isInitialized) {
+            gridModeManager.stop()
+            snapshotManager.cancelAll()
         }
         super.onStop()
     }

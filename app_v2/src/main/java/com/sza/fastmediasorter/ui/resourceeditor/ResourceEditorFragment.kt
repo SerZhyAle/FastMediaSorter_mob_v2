@@ -1,10 +1,6 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
 import androidx.activity.result.contract.ActivityResultContracts
-import android.app.PendingIntent
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
-import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import android.view.LayoutInflater
@@ -33,8 +29,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
-import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
-import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
+import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
@@ -54,7 +49,7 @@ class ResourceEditorFragment : Fragment() {
 
     private val viewModel: ResourceFormViewModel by viewModels()
 
-    @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
+    @Inject lateinit var resourceLaunchWidgetPinManager: ResourceLaunchWidgetPinManager
 
     private var mode: ResourceEditorMode = ResourceEditorMode.CREATE
     private var resourceId: Long? = null
@@ -422,51 +417,30 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun pinWidgetForCurrentResource() {
-        val ctx = requireContext()
-        val currentResourceId = resourceId ?: return
-
-        if (!homeWidgetPinner.isSupported()) {
-            Toast.makeText(ctx, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (homeWidgetPinner.isKeyguardLocked()) {
-            MaterialAlertDialogBuilder(ctx)
-                .setMessage(R.string.widget_unlock_screen_prompt)
-                .setPositiveButton(R.string.ok, null)
-                .show()
-            return
-        }
-
-        val manager = AppWidgetManager.getInstance(ctx)
-        val provider = ComponentName(ctx, ResourceLaunchWidgetProvider::class.java)
-        val existingIds = manager.getAppWidgetIds(provider)
-        val prefs = ctx.getSharedPreferences(ResourceLaunchWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
-        val alreadyExists = existingIds.any { id ->
-            prefs.getLong("resource_id_$id", -1L) == currentResourceId
-        }
-        if (alreadyExists) {
-            Toast.makeText(ctx, R.string.widget_already_added, Toast.LENGTH_SHORT).show()
-            return
-        }
-
         val formData = viewModel.uiState.value.formData
-        prefs.edit()
-            .putLong(ResourceLaunchWidgetProvider.KEY_PENDING_RESOURCE_ID, currentResourceId)
-            .putString(ResourceLaunchWidgetProvider.KEY_PENDING_RESOURCE_NAME, formData.name)
-            .putString(ResourceLaunchWidgetProvider.KEY_PENDING_RESOURCE_PATH, formData.path)
-            .putString(ResourceLaunchWidgetProvider.KEY_PENDING_RESOURCE_TYPE, formData.type.name)
-            .apply()
-
-        val successCallback = PendingIntent.getBroadcast(
-            ctx, 0,
-            android.content.Intent(ResourceLaunchWidgetProvider.ACTION_WIDGET_PINNED).apply {
-                setPackage(ctx.packageName)
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        homeWidgetPinner.requestPin(provider, successCallback)
+        val currentResourceId = resourceId ?: return
+        when (
+            resourceLaunchWidgetPinManager.requestPin(
+                resourceId = currentResourceId,
+                resourceName = formData.name,
+                resourcePath = formData.path,
+                resourceType = formData.type,
+            )
+        ) {
+            ResourceLaunchWidgetPinManager.PinResult.Requested -> Unit
+            ResourceLaunchWidgetPinManager.PinResult.Unsupported -> {
+                Toast.makeText(requireContext(), R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
+            }
+            ResourceLaunchWidgetPinManager.PinResult.KeyguardLocked -> {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setMessage(R.string.widget_unlock_screen_prompt)
+                    .setPositiveButton(R.string.ok, null)
+                    .show()
+            }
+            ResourceLaunchWidgetPinManager.PinResult.AlreadyExists -> {
+                Toast.makeText(requireContext(), R.string.widget_already_added, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun getProfileLabelResId(profile: ResourceProfile): Int = when (profile) {

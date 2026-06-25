@@ -148,13 +148,14 @@
     <string name="welcome_func_documents">Документы</string>
     <string name="welcome_func_ocr">Распознавание текста (OCR)</string>
     <string name="welcome_func_translation">Перевод</string>
-    <!-- Landscape-only toggle descriptions (two-column functionality page) -->
+    <!-- Welcome functionality toggle descriptions -->
     <string name="welcome_func_file_manager_desc">Разрешает режим «Все файлы». Для каждого ресурса его всё равно нужно выбрать отдельно.</string>
     <string name="welcome_func_audio_desc">Воспроизведение музыки и аудио, сортировка треков по папкам.</string>
     <string name="welcome_func_video_desc">Воспроизведение видео и сортировка роликов встроенным плеером.</string>
     <string name="welcome_func_documents_desc">Открытие PDF, текста, электронных книг и офисных файлов.</string>
     <string name="welcome_func_ocr_desc">Распознавание и копирование текста с изображений и сканов.</string>
     <string name="welcome_func_translation_desc">Перевод распознанного и выделенного текста офлайн.</string>
+    <string name="welcome_func_streams_desc">Воспроизведение интернет-трансляций и импорт встроенного каталога.</string>
     <string name="welcome_func_elements_button">Все загружаемые (опциональные) элементы</string>
     <string name="welcome_func_downloading">Загрузка.. %1$d%%</string>
     <string name="welcome_func_download_failed">Не удалось загрузить - нажмите для повтора</string>

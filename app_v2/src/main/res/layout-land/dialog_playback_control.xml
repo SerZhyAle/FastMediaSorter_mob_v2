@@ -66,7 +66,7 @@
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_volume"
                 android:textAllCaps="false"
-                app:icon="@drawable/ic_notification_audio"
+                app:icon="@drawable/ic_volume_up"
                 app:iconGravity="textStart"
                 app:iconPadding="6dp" />
 
@@ -574,6 +574,43 @@
                         android:focusable="true"
                         android:focusableInTouchMode="false"
                         android:max="7" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeed05"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_speed_0_5x" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeed15"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_speed_1_5x" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeed20"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_speed_2x" />
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnResetSpeed"

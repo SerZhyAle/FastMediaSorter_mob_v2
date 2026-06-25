@@ -14,6 +14,17 @@
     android:paddingTop="8dp"
     android:paddingBottom="8dp">
 
+    <!-- S0668: leading channel-logo thumbnail, sliced from the favicon sprite-atlas at bind time.
+         Hidden by default; shown only when the row has a favicon tile (no placeholder -> empty slot). -->
+    <ImageView
+        android:id="@+id/ivFavicon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:contentDescription="@string/streams_favicon" />
+
     <!-- S0593: local play-status bullet (green/red/amber). Distinct shapes + contentDescription set in
          code carry the meaning, not colour alone. -->
     <ImageView

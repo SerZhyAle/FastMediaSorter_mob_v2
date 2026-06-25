@@ -26,4 +26,9 @@
         android:icon="@drawable/ic_draw_text"
         android:iconTint="#FFFFFF"
         android:title="@string/draw_tool_text" />
+    <item
+        android:id="@+id/draw_tool_crop"
+        android:icon="@drawable/ic_crop"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_tool_crop" />
 </menu>

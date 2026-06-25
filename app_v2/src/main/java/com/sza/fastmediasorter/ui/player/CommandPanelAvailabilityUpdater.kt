@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /** Computes per-state permissions + adaptive button visibility for [CommandPanelController]. Extracted from `CommandPanelController.updateCommandAvailability` to keep the host class under the 1000-LOC budget. */
 internal class CommandPanelAvailabilityUpdater(
@@ -144,7 +143,6 @@ internal class CommandPanelAvailabilityUpdater(
             canWrite && !state.isLiveVideoStream
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
-        if (state.isLiveVideoStream) Timber.d("S0642: copy/move destination panels hidden for live video stream")
         logPanelGeometrySnapshot("decision")
 
         // Force layout recalc when panels appear - mediaContentArea weight=1 takes all space, LinearLayout doesn't recalc on its own (same fix as updateSystemBarsForPlayer post-exitFullscreen).

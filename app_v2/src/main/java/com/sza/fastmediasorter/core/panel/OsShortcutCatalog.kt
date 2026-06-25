@@ -37,22 +37,22 @@ object OsShortcutCatalog {
         Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_settings) {
             Intent(Settings.ACTION_SETTINGS)
         },
-        Target(KEY_WIFI, R.string.app_launch_panel_os_wifi, R.drawable.ic_settings) {
+        Target(KEY_WIFI, R.string.app_launch_panel_os_wifi, R.drawable.ic_wifi) {
             Intent(Settings.ACTION_WIFI_SETTINGS)
         },
-        Target(KEY_BLUETOOTH, R.string.app_launch_panel_os_bluetooth, R.drawable.ic_settings) {
+        Target(KEY_BLUETOOTH, R.string.app_launch_panel_os_bluetooth, R.drawable.ic_bluetooth) {
             Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
         },
-        Target(KEY_DISPLAY, R.string.app_launch_panel_os_display, R.drawable.ic_settings) {
+        Target(KEY_DISPLAY, R.string.app_launch_panel_os_display, R.drawable.ic_display) {
             Intent(Settings.ACTION_DISPLAY_SETTINGS)
         },
-        Target(KEY_SOUND, R.string.app_launch_panel_os_sound, R.drawable.ic_settings) {
+        Target(KEY_SOUND, R.string.app_launch_panel_os_sound, R.drawable.ic_volume_up) {
             Intent(Settings.ACTION_SOUND_SETTINGS)
         },
-        Target(KEY_BATTERY, R.string.app_launch_panel_os_battery, R.drawable.ic_settings) {
+        Target(KEY_BATTERY, R.string.app_launch_panel_os_battery, R.drawable.ic_battery) {
             Intent(Intent.ACTION_POWER_USAGE_SUMMARY)
         },
-        Target(KEY_STORAGE, R.string.app_launch_panel_os_storage, R.drawable.ic_settings) {
+        Target(KEY_STORAGE, R.string.app_launch_panel_os_storage, R.drawable.ic_storage) {
             Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS)
         },
         Target(KEY_APP_INFO, R.string.app_launch_panel_os_app_info, R.drawable.ic_info) { context ->
@@ -61,7 +61,7 @@ object OsShortcutCatalog {
                 android.net.Uri.fromParts("package", context.packageName, null)
             )
         },
-        Target(KEY_DATETIME, R.string.app_launch_panel_os_datetime, R.drawable.ic_settings) {
+        Target(KEY_DATETIME, R.string.app_launch_panel_os_datetime, R.drawable.ic_schedule) {
             Intent(Settings.ACTION_DATE_SETTINGS)
         },
     )

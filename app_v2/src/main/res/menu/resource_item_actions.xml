@@ -9,6 +9,10 @@
         android:title="@string/resource_menu_launch"
         android:icon="@drawable/ic_play" />
     <item
+        android:id="@+id/action_add_to_home_screen"
+        android:title="@string/widget_add_to_home_screen"
+        android:icon="@drawable/ic_widget_resource_launch" />
+    <item
         android:id="@+id/action_edit"
         android:title="@string/edit"
         android:icon="@drawable/ic_edit_20" />

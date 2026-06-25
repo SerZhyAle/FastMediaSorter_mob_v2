@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +61,7 @@ class GeneralSettingsResetHelper(
                             binding.btnResetSmbConnections.text = fragment.getString(R.string.reset_smb_connections)
                         }
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.e(e, "Failed to reset SMB connections")
                         withContext(Dispatchers.Main) {
                             Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_smb_failed), Toast.LENGTH_LONG).show()
@@ -79,6 +81,7 @@ class GeneralSettingsResetHelper(
                 viewModel.resetGeneralSection()
                 Toast.makeText(fragment.requireContext(), R.string.reset_general_section_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to reset general section")
                 Toast.makeText(
                     fragment.requireContext(),
@@ -95,6 +98,7 @@ class GeneralSettingsResetHelper(
                 viewModel.resetToDefaults()
                 Toast.makeText(fragment.requireContext(), R.string.reset_settings_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to reset settings")
                 Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_settings_failed), Toast.LENGTH_LONG).show()
             }

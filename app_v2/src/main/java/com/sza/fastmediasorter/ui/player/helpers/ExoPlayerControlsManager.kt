@@ -121,7 +121,6 @@ class ExoPlayerControlsManager(
      */
     fun applyStreamControlProfile() {
         val isLiveStream = callback.isLiveVideoStream()
-        if (isLiveStream) Timber.d("S0641: trimmed on-player controls for live video stream")
         val hiddenForStream = if (isLiveStream) View.GONE else View.VISIBLE
         val pv = binding.playerView
         // exo_position / exo_progress / exo_duration are Media3 library ids (referenced as @id, not @+id).

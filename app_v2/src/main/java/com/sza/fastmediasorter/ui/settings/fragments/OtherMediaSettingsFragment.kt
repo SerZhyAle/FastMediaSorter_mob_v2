@@ -319,7 +319,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
     private fun setupOcrFontSpinners() {
         binding.rowOcrFontSize?.setOnRowClickListener {
-            Timber.d("S0646: OCR font-size row tapped, opening list-choice dialog")
             val settings = viewModel.settings.value
             SimpleValueChoiceDialog(
                 requireContext(),
@@ -336,7 +335,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
 
         binding.rowOcrFontFamily?.setOnRowClickListener {
-            Timber.d("S0646: OCR font-family row tapped, opening list-choice dialog")
             val settings = viewModel.settings.value
             SimpleValueChoiceDialog(
                 requireContext(),
@@ -361,7 +359,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
 
         binding.rowOcrEngineType?.setOnRowClickListener {
-            Timber.d("S0646: OCR engine-type row tapped, opening list-choice dialog")
             val settings = viewModel.settings.value
             SimpleValueChoiceDialog(
                 requireContext(),
@@ -383,7 +380,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
 
         binding.rowPaddleOcrModel?.setOnRowClickListener {
-            Timber.d("S0646: PaddleOCR-model row tapped, opening list-choice dialog")
             val settings = viewModel.settings.value
             SimpleValueChoiceDialog(
                 requireContext(),

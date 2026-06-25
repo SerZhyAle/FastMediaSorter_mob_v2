@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
@@ -100,6 +101,7 @@ class GeneralSettingsCacheHelper(
                 binding.btnClearCache.isEnabled = false
                 binding.btnClearCache.text = fragment.getString(R.string.cache_size_calculating)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    Timber.d("S0686: clearCache start - cancellation now rethrown, no false failure toast on teardown")
                     try {
                         try { com.bumptech.glide.Glide.get(fragment.requireContext()).clearDiskCache() }
                         catch (e: Exception) { Timber.e(e, "Glide clearDiskCache failed") }
@@ -143,6 +145,7 @@ class GeneralSettingsCacheHelper(
                             updateCacheSize()
                         }
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.e(e, "Failed to clear cache")
                         withContext(Dispatchers.Main) {
                             Toast.makeText(fragment.requireContext(), R.string.cache_clear_failed, Toast.LENGTH_SHORT).show()

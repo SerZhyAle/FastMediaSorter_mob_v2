@@ -55,14 +55,22 @@ class PlayerCommandPanelCallbackImpl(
     override fun onSendToClicked() {
         val content = buildShareableContent() ?: return
         val settings = activity.currentSettings ?: return
-        activity.sendToMenuManager.show(activity, content, settings)
+        // S0681: the pinned «Select resource..» row reuses the player's existing copy dialog, which
+        // already excludes the current resource and honours the goToNextAfterCopy setting.
+        activity.sendToMenuManager.show(
+            activity, content, settings,
+            onPickResource = { activity.dialogAndUiStateManager.showCopyDialog() },
+        )
     }
 
     // S0459 ADR-2: overflow PopupMenu renders «Send to..» as a native nested submenu.
     override fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int) {
         val content = buildShareableContent() ?: return
         val settings = activity.currentSettings ?: return
-        activity.sendToMenuManager.buildOverflowSubMenu(menu, order, content, settings, activity)
+        activity.sendToMenuManager.buildOverflowSubMenu(
+            menu, order, content, settings, activity,
+            onPickResource = { activity.dialogAndUiStateManager.showCopyDialog() },
+        )
     }
 
     // Builds the unified-menu payload for the current file. Local file: a FileProvider Uri is ready

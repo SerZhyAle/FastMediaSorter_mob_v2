@@ -12,6 +12,7 @@ enum class ScreenshotGestureAction {
     OCR_TRANSLATE,
     SEND_TO_RECIPIENTS,
     SHARE,
+    CROP_AND_SHARE,
     OPEN_APP,
     OPEN_PANEL,
     DO_NOT_USE;

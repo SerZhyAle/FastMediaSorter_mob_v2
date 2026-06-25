@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-22*
+*Last updated: 2026-06-24*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -42,6 +42,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
 - **Screen capture** `[Standard]`: Take a screenshot of the device screen from the Operations settings, or with an edge gesture, using Android's system capture consent, and save it to your chosen folder.
 - **App panel: system shortcuts and app features** `[Standard]`: The quick-launch panel can now hold not only other apps but also parts of the operating system and the app's own features and resources (calculator, mini-game, photo-OCR-translate, streams, a specific resource), and it arrives pre-filled with a useful set by default.
+- **Edge-gesture actions** `[Standard]`: Assign an edge swipe to open the app or its quick-launch panel, in addition to the screenshot gesture.
 - **Copy or move an opened file** `[Standard]`: When you open a file from another app, copy or move it straight to a configured destination folder from within the viewer.
 
 ## 4. Destination Management
@@ -66,6 +67,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Chromecast video casting** `[Standard]`: Cast the current video to any Chromecast device through a local proxy, straight from the player overflow menu.
 - **Video frame to clipboard** `[Standard / VR]`: Optionally copy each captured video frame to the system clipboard alongside saving it, ready to paste into another app.
 - **Player gesture controls** `[Standard / VR]`: Swipe vertical sliders for brightness and volume, and customize the 3x3 grid of tap zones that map to player actions.
+- **Auto-fullscreen on landscape** `[Standard / Lite / Photos / Legacy]`: Rotating the device to landscape switches the player to fullscreen automatically and surfaces the command panel; rotating back restores the windowed view.
 
 ## 8. VR Edition & OpenXR
 - **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.
@@ -130,4 +132,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Category & language filters** `[Standard / Legacy / noLegal / VR]`: Filter the streams list by category, language, and type (audio/video/RTSP) using searchable pickers. The language picker pins English, Russian, and Ukrainian to the top with flag icons.
 - **Background playback & exit prompts** `[Standard / Legacy / noLegal / VR]`: Manage streams using background audio settings. Leaving the streams list prompts to keep playing or stop the active stream when background playback is disabled.
 - **Local streams pinning** `[Standard / Legacy / noLegal / VR / Lite]`: Pin your favorite stream sources to the top of the list with a distinct icon for quick access.
+- **Stream-tailored player controls** `[Standard / Legacy / noLegal / VR]`: The stream player shows a trimmed control set fit for live playback, with channel-to-channel navigation and no copy/move panels.
+- **Live stream casting** `[Standard / Legacy / noLegal]`: Cast a live video stream to a Chromecast device straight from the stream player.
+- **Home-screen shortcut & card actions** `[Standard / Legacy / noLegal / VR]`: Pin a stream to the home screen for one-tap launch, and open a per-card actions menu directly from the streams list.
+- **Stream defaults & input parity** `[Standard / Legacy / noLegal / VR]`: Set a default sort order and media-type filter for the streams list, with full TV-remote and mouse navigation parity.
 

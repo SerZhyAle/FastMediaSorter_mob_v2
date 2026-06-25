@@ -186,6 +186,7 @@ data class AppSettings(
     val screenshotDestinationResourceId: String? = null,
     // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
     val copyScreenshotToClipboard: Boolean = false,
+    val screenCaptureDisclosureAccepted: Boolean = false,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,

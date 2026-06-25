@@ -361,6 +361,14 @@
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>
 
+        <!-- S0683: Quick Settings tile that opens the Quick Launch Panel (second entry point besides the left-edge gesture) -->
+        <service android:name=".core.AppLaunchPanelTileService" android:icon="@drawable/ic_view_grid" android:label="@string/app_launch_panel_title" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
+        </service>
+
         <!-- Wearable Data Layer - receives sync requests and acks from the watch companion -->
         <service android:name=".service.PhoneWearListenerService" android:exported="true">
             <intent-filter>

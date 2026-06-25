@@ -101,6 +101,58 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
         }
     }
     
+    // S0677: synchronous twins of the three methods used by NetworkVideoFrameDecoder on the Glide
+    // pool thread. Same logic as the suspend versions, but via the blocking DAO methods - no
+    // runBlocking and no Room-executor hop on the decode thread.
+    override fun getCachedThumbnailBlocking(filePath: String): File? {
+        return try {
+            val cacheEntry = thumbnailCacheDao.getThumbnailBlocking(filePath) ?: return null
+            val thumbnailFile = File(cacheEntry.thumbnailPath)
+            if (!thumbnailFile.exists()) {
+                Timber.w("ThumbnailCache: Cached file missing, deleting entry: $filePath")
+                thumbnailCacheDao.deleteThumbnailBlocking(filePath)
+                return null
+            }
+            thumbnailCacheDao.updateAccessTimeBlocking(filePath, System.currentTimeMillis())
+            thumbnailFile
+        } catch (e: Exception) {
+            Timber.e(e, "ThumbnailCache: Error getting cached thumbnail (blocking) for $filePath")
+            null
+        }
+    }
+
+    override fun saveThumbnailBlocking(filePath: String, thumbnailFile: File) {
+        try {
+            if (!thumbnailFile.exists()) {
+                Timber.w("ThumbnailCache: Cannot save non-existent file: ${thumbnailFile.absolutePath}")
+                return
+            }
+            val currentTime = System.currentTimeMillis()
+            thumbnailCacheDao.insertThumbnailBlocking(
+                ThumbnailCacheEntity(
+                    filePath = filePath,
+                    thumbnailPath = thumbnailFile.absolutePath,
+                    fileSize = thumbnailFile.length(),
+                    createdAt = currentTime,
+                    lastAccessedAt = currentTime
+                )
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "ThumbnailCache: Error saving thumbnail (blocking) for $filePath")
+        }
+    }
+
+    override fun deleteThumbnailBlocking(filePath: String) {
+        try {
+            val cacheEntry = thumbnailCacheDao.getThumbnailBlocking(filePath) ?: return
+            val thumbnailFile = File(cacheEntry.thumbnailPath)
+            if (thumbnailFile.exists()) thumbnailFile.delete()
+            thumbnailCacheDao.deleteThumbnailBlocking(filePath)
+        } catch (e: Exception) {
+            Timber.e(e, "ThumbnailCache: Error deleting thumbnail (blocking) for $filePath")
+        }
+    }
+
     override suspend fun cleanupOldThumbnails(days: Int): Int {
         return try {
             val cutoffTime = System.currentTimeMillis() - (days * 24L * 60L * 60L * 1000L)

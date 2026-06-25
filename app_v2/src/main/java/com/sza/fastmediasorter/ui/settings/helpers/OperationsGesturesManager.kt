@@ -44,7 +44,6 @@ class OperationsGesturesManager(
         // (isFallbackCaptureAvailable() == false), so the accessibility-shortcut rows are hidden;
         // noLegal (API 30+) keeps them as the silent-capture opt-in.
         val supportsA11ySilent = controller.isFallbackCaptureAvailable()
-        Timber.d("S0621: gestures settings group setup; supportsA11ySilent=$supportsA11ySilent (accessibility-shortcut rows ${if (supportsA11ySilent) "shown" else "hidden"})")
         binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
         binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
         // S0663: edit the gesture-bound quick-launch panel; the panel rides the same left-edge gesture,
@@ -71,7 +70,6 @@ class OperationsGesturesManager(
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
         }
         binding.btnSelectScreenshotDestination.setOnClickListener {
-            Timber.d("S0648: screenshot-destination selector (button-pattern) opening destination picker")
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
             ) { resource ->

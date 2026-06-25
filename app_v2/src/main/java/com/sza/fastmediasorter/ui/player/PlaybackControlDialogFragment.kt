@@ -58,26 +58,29 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val currentMediaType: MediaType?
         get() = host().currentMediaType.value
 
+    // S0670: snapshotted once when the dialog opens (see onViewCreated). A null player handle means
+    // the track set is not yet knowable, so both default to true - show the tab rather than false-hide it.
+    private var hasMultipleAudioTracks = true
+    private var hasSubtitles = true
+
+    // S0670: the 3D tab is a VR-build capability (vr + noLegal), gated by flavor, not by detected
+    // stereo content. The VR-player capability flag is unusable here - it is true only on noLegal
+    // (vr keeps it false under S0241) - so this reads the dedicated supportsVrMediaControls flag.
+    private val supportsVrMediaControls: Boolean by lazy {
+        EntryPointAccessors.fromApplication(
+            requireContext().applicationContext,
+            MediaCapabilitiesEntryPoint::class.java
+        ).mediaCapabilities().supportsVrMediaControls
+    }
+
     private val activeSections: List<ControlSection>
         get() = when (currentMediaType) {
             MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.SPEED)
             else -> buildList {
                 add(ControlSection.VOLUME)
-                add(ControlSection.AUDIO)
-                add(ControlSection.SUBTITLES)
-                // Phase 02: the main-side kill-switch is gone, so keep the stereo tab whenever
-                // the current file still exposes a stereo layout or the VR flavor is active.
-                val currentStereo = host().stereoMode.value
-                val isStereoContent = currentStereo != StereoMode.AUTO &&
-                    currentStereo != StereoMode.MONO &&
-                    currentStereo != StereoMode.UNKNOWN
-                val supportsVrPlayer = EntryPointAccessors.fromApplication(
-                    requireContext().applicationContext,
-                    MediaCapabilitiesEntryPoint::class.java
-                ).mediaCapabilities().supportsVrPlayer
-                if (supportsVrPlayer || isStereoContent) {
-                    add(ControlSection.STEREO)
-                }
+                if (hasMultipleAudioTracks) add(ControlSection.AUDIO)
+                if (hasSubtitles) add(ControlSection.SUBTITLES)
+                if (supportsVrMediaControls) add(ControlSection.STEREO)
                 add(ControlSection.HUE)
                 add(ControlSection.BRIGHTNESS)
                 add(ControlSection.SPEED)
@@ -103,8 +106,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("PlaybackControlDialog: onViewCreated mediaType=$currentMediaType")
-        Timber.d("S0619: playback control dialog shown - wide slider style on volume/hue/brightness/speed seekbars")
-        Timber.d("S0638: playback control dialog shown - adaptive pivot selector (rail portrait / strip landscape), height-bounded")
+        // S0670: snapshot track availability before building the section rail so audio/subtitle tabs
+        // hide when there is nothing to choose. Read once - the rail must stay stable for this dialog.
+        host().videoPlayerHandle?.let { handle ->
+            hasMultipleAudioTracks = handle.getAvailableAudioTracks().size > 1
+            hasSubtitles = handle.getAvailableSubtitleTracks().isNotEmpty()
+        }
+        Timber.d("S0670: playback control dialog opened - context-aware tabs (3D vrMedia=$supportsVrMediaControls, audioMulti=$hasMultipleAudioTracks, subs=$hasSubtitles) + speed presets")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {
@@ -622,6 +630,17 @@ class PlaybackControlDialogFragment : DialogFragment() {
         binding.btnResetSpeed.setOnClickListener {
             resetSpeed()
         }
+
+        binding.btnSpeed05.setOnClickListener { applySpeedPreset(0.5f) }
+        binding.btnSpeed15.setOnClickListener { applySpeedPreset(1.5f) }
+        binding.btnSpeed20.setOnClickListener { applySpeedPreset(2.0f) }
+    }
+
+    private fun applySpeedPreset(speed: Float) {
+        val index = speedSteps.indices.minByOrNull { abs(speedSteps[it] - speed) } ?: return
+        binding.seekSpeed.progress = index
+        host().videoPlayerHandle?.setPlaybackSpeed(speed)
+        updateSpeedLabel(speed)
     }
 
     private fun updateVolumeLabel(progress: Int, maxVolume: Int) {

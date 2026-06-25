@@ -56,7 +56,6 @@ class MainCameraCaptureManager(
      * when both are available; otherwise the host opens fixed in the single available mode.
      */
     fun captureCamera(photoAvailable: Boolean, videoAvailable: Boolean) {
-        Timber.d("S0523: quick capture from main menu")
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             return

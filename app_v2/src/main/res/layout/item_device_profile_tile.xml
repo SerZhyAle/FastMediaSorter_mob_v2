@@ -53,8 +53,9 @@
 
                 <TextView
                     android:id="@+id/tvProfileTileTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:textColor="?attr/colorOnSurface"
@@ -67,6 +68,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="12sp"
                     android:textStyle="bold"

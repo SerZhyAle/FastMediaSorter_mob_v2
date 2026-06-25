@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -150,7 +149,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
         // Audio empty state mode - trigger row opening a single-choice dialog (S0646)
         binding.rowAudioEmptyStateMode.setOnRowClickListener {
-            Timber.d("S0646: audio empty-state visualizer row tapped, opening list-choice dialog")
             val options = emptyStateModeKeys.zip(emptyStateModeLabels()) { key, label ->
                 com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog.Option(key, label)
             }

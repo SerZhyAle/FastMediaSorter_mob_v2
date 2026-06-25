@@ -2783,12 +2783,12 @@
     <string name="app_launch_panel_os_app_info">О приложении</string>
     <string name="app_launch_panel_os_datetime">Дата и время</string>
     <string name="app_launch_panel_add_chooser_title">Добавить на панель</string>
-    <string name="app_launch_panel_path_external_app">Функция Android</string>
-    <string name="app_launch_panel_path_os_part">Часть системы</string>
+    <string name="app_launch_panel_path_external_app">Приложение</string>
+    <string name="app_launch_panel_path_os_part">Настройки ОС Андроид</string>
     <string name="app_launch_panel_path_app_feature">Функция FastMediaSorter</string>
     <string name="app_launch_panel_path_app_resource">Ресурс FastMediaSorter</string>
     <string name="app_launch_panel_picker_feature_title">Выбор функции</string>
-    <string name="app_launch_panel_picker_os_title">Выбор части системы</string>
+    <string name="app_launch_panel_picker_os_title">Выбор настройки ОС Андроид</string>
     <string name="app_launch_panel_picker_resource_title">Выбор ресурса</string>
     <string name="app_launch_panel_route_disabled_hint">Выключено - нажмите, чтобы включить</string>
     <string name="app_launch_panel_sub_feature">Функция приложения</string>
@@ -2812,4 +2812,17 @@
     <string name="settings_streams_clear_statuses">Очистить отметки воспроизведения</string>
     <string name="settings_streams_clear_statuses_confirm">Убрать зелёные и красные отметки со всех каналов? Сами каналы останутся.</string>
     <string name="settings_streams_clear_statuses_done">Отметки убраны.</string>
+    <string name="screen_capture_disclosure_message">Приложение может захватить текущий экран устройства, включая другие приложения, только после вашего подтверждения в системном запросе Android. Содержимое экрана может включать персональные данные. Снимки остаются на этом устройстве, пока вы сами не решите скопировать, отредактировать, перевести или отправить их. Они сохраняются в выбранную папку для снимков или в запасные папки устройства.</string>
+    <string name="screen_capture_disclosure_title">Для снимка экрана нужно ваше разрешение</string>
+    <string name="screen_capture_disclosure_accept">Продолжить</string>
+    <string name="streams_favicon">Логотип канала</string>
+    <string name="streams_grid_cell_cd">%1$s - текущий кадр</string>
+    <string name="streams_grid_no_frame_cd">%1$s - без превью</string>
+    <string name="streams_view_grid">Сеткой</string>
+    <string name="streams_view_list">Списком</string>
+    <string name="screenshot_gesture_action_crop_and_share">Обрезать скриншот и отправить</string>
+    <string name="share_to_pick_resource">Выбор ресурса..</string>
+    <string name="draw_tool_crop">Обрезка</string>
+    <string name="draw_crop_frame_desc">Рамка выделения обрезки</string>
+    <string name="draw_crop_failed">Не удалось обрезать изображение</string>
 </resources>

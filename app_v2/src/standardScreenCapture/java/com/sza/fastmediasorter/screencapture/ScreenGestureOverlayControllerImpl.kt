@@ -11,7 +11,6 @@ import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -46,7 +45,6 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         permissionSettingsIntent(context)
 
     override fun setEnabled(enabled: Boolean) {
-        Timber.d("S0621: standard overlay controller setEnabled=$enabled (MediaProjection consent path, no a11y)")
         if (enabled && Settings.canDrawOverlays(appContext)) {
             OverlayHostService.start(appContext)
         } else {

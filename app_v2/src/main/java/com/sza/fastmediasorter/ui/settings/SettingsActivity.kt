@@ -160,9 +160,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             applyEdgeToEdgeInsets()
         }
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Timber.d("S0609: settings opened in landscape - verify multi-column rows, focus order and EN/RU/UK labels across fragments")
-        }
     }
 
     private fun maybeShowPendingCacheSizeToast() {

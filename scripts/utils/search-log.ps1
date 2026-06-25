@@ -253,15 +253,15 @@ $rawLines   = [string[]]@()
 if ($logFormat -eq "JSON") {
     # ── Format 2: Android Studio .logcat JSON export ─────────────────────────
     if (-not $Json) { Write-Host ("Loading JSON .logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
-    $json = Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $jsonDoc = Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json   # NB: must not be named $json - case-insensitively collides with the [switch]$Json param, which rejects the PSCustomObject
     $syntheticLines = [System.Collections.Generic.List[string]]::new()
 
-    foreach ($entry in $json.logcatMessages) {
+    foreach ($entry in $jsonDoc.logcatMessages) {
         $h   = $entry.header
         $lvl = ConvertTo-LevelChar $h.logLevel
         $pidNum = $h.pid
         $tidNum = $h.tid
-        $tag = $h.tag
+        $msgTag = $h.tag   # NB: must not be named $tag - case-insensitively collides with the [string]$Tag filter param, leaving it set to the last entry's tag and silently filtering all output
         $pkg = if ($h.applicationId) { $h.applicationId } else { $h.processName }
 
         # Convert Unix timestamp {seconds, nanos} → local datetime
@@ -274,7 +274,7 @@ if ($logFormat -eq "JSON") {
 
         $msg = $entry.message
         # Synthetic standard-format raw line (used by context mode)
-        $raw = "$ts $pidNum-$tidNum $tag $pkg $lvl  $msg"
+        $raw = "$ts $pidNum-$tidNum $msgTag $pkg $lvl  $msg"
         $syntheticLines.Add($raw)
 
         $p = [PSCustomObject]@{
@@ -282,7 +282,7 @@ if ($logFormat -eq "JSON") {
             TS   = $ts
             Time = $time
             PID  = "$pidNum-$tidNum"
-            Tag  = $tag
+            Tag  = $msgTag
             Pkg  = $pkg
             Lvl  = $lvl
             Msg  = $msg

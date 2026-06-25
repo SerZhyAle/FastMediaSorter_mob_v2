@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -168,6 +169,7 @@ class GeneralSettingsCredentialHelper(
                 Timber.i("Import complete: $credentialsImported credentials, $resourcesImported resources, settings=$settingsImported")
 
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to import test credentials")
                 Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_credentials_import_failed), Toast.LENGTH_LONG).show()
             }

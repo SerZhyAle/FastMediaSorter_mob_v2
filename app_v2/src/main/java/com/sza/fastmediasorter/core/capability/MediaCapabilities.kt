@@ -24,4 +24,6 @@ data class MediaCapabilities(
     val supportsMicRecording: Boolean,
     val supportsVrPlayer: Boolean,
     val supportsWearCompanion: Boolean,
+    /** True only on VR-capable builds (vr + noLegal); gates VR media UI such as the player 3D tab. */
+    val supportsVrMediaControls: Boolean = false,
 )

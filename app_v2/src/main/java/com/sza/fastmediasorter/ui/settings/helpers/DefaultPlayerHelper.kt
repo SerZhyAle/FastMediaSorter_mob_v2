@@ -156,7 +156,6 @@ object DefaultPlayerHelper {
             return
         }
 
-        Timber.d("S0646: default-document-type picker opening list-choice dialog")
         SimpleValueChoiceDialog(
             context = context,
             lifecycleOwner = fragment.viewLifecycleOwner,

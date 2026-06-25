@@ -148,13 +148,14 @@
     <string name="welcome_func_documents">Documents</string>
     <string name="welcome_func_ocr">Text recognition (OCR)</string>
     <string name="welcome_func_translation">Translation</string>
-    <!-- Landscape-only toggle descriptions (two-column functionality page) -->
+    <!-- Welcome functionality toggle descriptions -->
     <string name="welcome_func_file_manager_desc">Permits the All Files mode. You still turn it on per resource.</string>
     <string name="welcome_func_audio_desc">Play music and audio, sort tracks into folders.</string>
     <string name="welcome_func_video_desc">Play videos and sort clips with the built-in player.</string>
     <string name="welcome_func_documents_desc">Open PDF, text, e-books and office files.</string>
     <string name="welcome_func_ocr_desc">Recognize and copy text from images and scans.</string>
     <string name="welcome_func_translation_desc">Translate recognized and selected text offline.</string>
+    <string name="welcome_func_streams_desc">Play internet streams and import the built-in catalog.</string>
     <string name="welcome_func_elements_button">All downloadable (optional) elements</string>
     <string name="welcome_func_downloading">Downloading.. %1$d%%</string>
     <string name="welcome_func_download_failed">Download failed - tap to retry</string>

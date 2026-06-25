@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:focusable="true"
         android:clickable="true"
-        android:nextFocusDown="@id/rowDefaultSort"
         app:str_title="@string/settings_streams_toggle"
         app:str_subtitle="@string/settings_streams_summary" />
 
@@ -30,10 +29,6 @@
             android:id="@+id/rowDefaultSort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@id/rowEnableStreams"
-            android:nextFocusDown="@id/rowDefaultMediaFilter"
             app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/settings_streams_default_sort" />
 
@@ -41,10 +36,6 @@
             android:id="@+id/rowDefaultMediaFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@id/rowDefaultSort"
-            android:nextFocusDown="@id/rowCatalogRefresh"
             app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/settings_streams_default_filter" />
 
@@ -52,10 +43,6 @@
             android:id="@+id/rowCatalogRefresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@id/rowDefaultMediaFilter"
-            android:nextFocusDown="@id/btnClearPlayStatuses"
             app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/settings_streams_catalog_refresh" />
 
@@ -67,7 +54,6 @@
             android:layout_marginTop="@dimen/margin_small"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusUp="@id/rowCatalogRefresh"
             android:nextFocusDown="@id/btnStreams"
             android:text="@string/settings_streams_clear_statuses" />
 

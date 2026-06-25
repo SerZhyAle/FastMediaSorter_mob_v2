@@ -50,6 +50,8 @@ class ResourceAdapter(
     private val onScanClick: (MediaResource) -> Unit = {},
     // S0422: export a single resource to a share file.
     private val onExportClick: (MediaResource) -> Unit = {},
+    // S0661: pin the configurable resource-launch widget for this resource from the row overflow.
+    private val onAddToHomeScreenClick: (MediaResource) -> Unit = {},
     // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
     // null, the menu item is hidden (e.g. on devices where allowSeparateWindow=false).
     private val onOpenInNewWindowClick: ((MediaResource) -> Unit)? = null,
@@ -757,6 +759,10 @@ class ResourceAdapter(
                                     }
                                     R.id.action_launch_player -> {
                                         onIconClick(resource)
+                                        true
+                                    }
+                                    R.id.action_add_to_home_screen -> {
+                                        onAddToHomeScreenClick(resource)
                                         true
                                     }
                                     R.id.action_edit -> {

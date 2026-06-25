@@ -6,7 +6,29 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6242.232** (June 2026)
+**Current release: 2.60.6251.711** (June 2026)
+
+> Changes since version 2.60.6242.232
+
+---
+
+## What's New
+
+- **Screen capture** - consent-based screenshot to edit, OCR-translate, share or save.
+- **Stream grid view** - live channels as tiles with current-frame previews and favicons.
+- **Streams quick start** - add or import streams right from the empty catalog.
+- **Compact playback controls** - context-aware tabs, speed presets and volume in one dialog.
+- **Crop in editor** - crop the image to a rectangle before annotating or sharing.
+- **Send to resource** - copy the current file to a destination folder from any player.
+- **Resource launch widget** - a 1x1 home-screen icon that opens a chosen folder.
+
+## What's Fixed
+
+- Network video thumbnails load more smoothly during fast scrolling.
+
+---
+
+## Previous Release: 2.60.6242.232 (June 2026)
 
 > Changes since version 2.60.6222.158
 

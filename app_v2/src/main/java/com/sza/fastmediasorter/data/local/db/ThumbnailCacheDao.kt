@@ -25,19 +25,33 @@ interface ThumbnailCacheDao {
     
     @Query("SELECT * FROM thumbnail_cache WHERE filePath = :filePath")
     suspend fun getThumbnail(filePath: String): ThumbnailCacheEntity?
-    
+
     /**
      * Save thumbnail cache entry.
      * Replaces existing entry if file path already exists.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertThumbnail(thumbnail: ThumbnailCacheEntity)
-    
+
     /**
      * Delete thumbnail cache entry.
      */
     @Query("DELETE FROM thumbnail_cache WHERE filePath = :filePath")
     suspend fun deleteThumbnail(filePath: String)
+
+    // S0677: synchronous (non-suspend) twins for the Glide decode thread - avoids runBlocking +
+    // the Room-executor hop on the pool thread. Safe off the main thread; do NOT call on the UI thread.
+    @Query("UPDATE thumbnail_cache SET lastAccessedAt = :currentTime WHERE filePath = :filePath")
+    fun updateAccessTimeBlocking(filePath: String, currentTime: Long)
+
+    @Query("SELECT * FROM thumbnail_cache WHERE filePath = :filePath")
+    fun getThumbnailBlocking(filePath: String): ThumbnailCacheEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertThumbnailBlocking(thumbnail: ThumbnailCacheEntity)
+
+    @Query("DELETE FROM thumbnail_cache WHERE filePath = :filePath")
+    fun deleteThumbnailBlocking(filePath: String)
     
     /**
      * Get all thumbnail paths older than specified timestamp (for cleanup).
