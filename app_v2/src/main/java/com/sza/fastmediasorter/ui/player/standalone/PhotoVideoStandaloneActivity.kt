@@ -116,7 +116,6 @@ class PhotoVideoStandaloneActivity :
         val op = pendingCustomPathOp
         pendingCustomPathOp = null
         if (uri == null || op == null) return@registerForActivityResult
-        Timber.d("S0610: standalone custom-path destination picked op=$op")
         contentResolver.takePersistableUriPermission(
             uri,
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -340,7 +339,6 @@ class PhotoVideoStandaloneActivity :
     // print path; returns false when no rendered image is available so the menu gate / dispatch fails cleanly.
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
         val bitmap = binding.photoView.drawable?.toBitmap() ?: return false
-        Timber.d("S0610: standalone image print dispatched via Send-to receiver")
         androidx.print.PrintHelper(this).apply {
             scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
         }.printBitmap(mediaFile.name, bitmap)
@@ -801,7 +799,6 @@ class PhotoVideoStandaloneActivity :
                 maybeRunAutoAction(type)
                 // S0610: build the Copy/Move destination grids for the shown file (runs in a coroutine
                 // inside the manager, so it does not delay first render).
-                Timber.d("S0610: standalone destination panels populated")
                 destinationButtonsManager.populateDestinationButtons()
             }
             folderPagingEnabled = state.supportsFolderPaging

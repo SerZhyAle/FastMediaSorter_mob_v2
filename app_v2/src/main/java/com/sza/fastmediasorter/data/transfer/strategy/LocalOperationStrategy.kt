@@ -90,7 +90,8 @@ class LocalOperationStrategy @Inject constructor(
 
             if (isSharedStoragePath(source) &&
                 android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
-                !hasManageMediaPermission()
+                !hasManageMediaPermission() &&
+                !hasAllFilesAccess()
             ) {
                 // Copy+delete cannot remove the original here and would leave a phantom duplicate.
                 throw TrashRenameUnavailableException(
@@ -163,30 +164,14 @@ class LocalOperationStrategy @Inject constructor(
     internal suspend fun deleteViaMediaStore(filePath: String): Boolean = withContext(Dispatchers.IO) {
         Timber.d("LocalOperationStrategy.deleteViaMediaStore: ENTRY - filePath=$filePath, API=${android.os.Build.VERSION.SDK_INT}")
         
-        // Check for MANAGE_MEDIA permission (Android 12+ / API 31+) - allows direct deletion without dialogs
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            val hasManageMedia = hasManageMediaPermission()
-            
-            if (hasManageMedia) {
-                Timber.d("LocalOperationStrategy: MANAGE_MEDIA granted, using direct File.delete()")
-                val file = File(filePath)
-                val deleted = file.delete()
-                if (deleted) {
-                    // Also delete from MediaStore index
-                    try {
-                        context.contentResolver.delete(
-                            android.provider.MediaStore.Files.getContentUri("external"),
-                            "${android.provider.MediaStore.MediaColumns.DATA} = ?",
-                            arrayOf(filePath)
-                        )
-                    } catch (e: Exception) {
-                        Timber.w(e, "Failed to remove from MediaStore index, but file deleted")
-                    }
-                }
-                return@withContext deleted
-            } else {
-                Timber.d("LocalOperationStrategy: MANAGE_MEDIA not granted, using MediaStore flow")
-            }
+        // Direct deletion is permitted when the app holds MANAGE_MEDIA (API 31+) OR All-Files-Access
+        // (MANAGE_EXTERNAL_STORAGE, API 30+). Both bypass the MediaStore consent dialog, which is
+        // unreachable from a headless/background worker. Without the All-Files-Access branch a
+        // scheduled MOVE with that permission granted loops forever - it re-uploads the originals each
+        // run and then fails to delete them via the consent path (S0710).
+        if (canDeleteDirectly()) {
+            Timber.d("S0710: direct delete permitted (MANAGE_MEDIA or All-Files-Access) for $filePath")
+            return@withContext directDeleteAndUnindex(filePath)
         }
         
         var cursor: android.database.Cursor? = null
@@ -593,5 +578,34 @@ class LocalOperationStrategy @Inject constructor(
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun hasAllFilesAccess(): Boolean {
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
+            android.os.Environment.isExternalStorageManager()
+    }
+
+    /** True when the app can delete shared-storage files directly, without a MediaStore consent dialog. */
+    private fun canDeleteDirectly(): Boolean {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && hasManageMediaPermission()) return true
+        return hasAllFilesAccess()
+    }
+
+    /** Direct File.delete() plus a best-effort MediaStore index cleanup. Caller must hold a direct-delete permission. */
+    private fun directDeleteAndUnindex(filePath: String): Boolean {
+        val file = File(filePath)
+        val deleted = file.delete()
+        if (deleted) {
+            try {
+                context.contentResolver.delete(
+                    android.provider.MediaStore.Files.getContentUri("external"),
+                    "${android.provider.MediaStore.MediaColumns.DATA} = ?",
+                    arrayOf(filePath)
+                )
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to remove from MediaStore index, but file deleted")
+            }
+        }
+        return deleted
     }
 }

@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260624144
-val defaultAppVersionName = "2.60.6241.447"
+val defaultAppVersionCode = 260626110
+val defaultAppVersionName = "2.60.6261.106"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -170,6 +170,10 @@ val screenCaptureStandardEnabled =
     (providers.gradleProperty("fms.screenCapture").orNull ?: "on").lowercase() != "off"
 val edgeGestureOverlayStandardEnabled =
     (providers.gradleProperty("fms.edgeGestureOverlay").orNull ?: "off").lowercase() != "off"
+// S0672: independent QS-tile fallback trigger (no specialUse / SYSTEM_ALERT_WINDOW), enabled instead of
+// the strip if Play rejects the specialUse declaration. Standard only.
+val edgeGestureTileStandardEnabled =
+    (providers.gradleProperty("fms.edgeGestureTile").orNull ?: "off").lowercase() != "off"
 val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
     when {
         raw.equals("true", ignoreCase = true) -> true
@@ -590,6 +594,12 @@ android {
                 // src/standard so the overlay can stay disabled independently from the capture suite.
                 kotlin.directories.add("src/standardScreenCapture/java")
             }
+            if (screenCaptureStandardEnabled && edgeGestureTileStandardEnabled) {
+                // S0672: standard-only QS-tile fallback trigger. Needs BOTH flags because the tile
+                // launches ScreenCaptureConsentActivity from src/screenCapture (present only when the
+                // capture suite is on).
+                kotlin.directories.add("src/standardEdgeTile/java")
+            }
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -971,6 +981,10 @@ androidComponents {
             // can stay OFF for standard while the MediaProjection capture suite ships (S0671/S0672).
             variant.sources.manifests.addStaticManifestFile("src/standardScreenCapture/AndroidManifest.xml")
         }
+        if (flavorName == "standard" && edgeGestureTileStandardEnabled) {
+            // S0672: QS-tile fallback manifest (TileService declaration, no specialUse / SYSTEM_ALERT_WINDOW).
+            variant.sources.manifests.addStaticManifestFile("src/standardEdgeTile/AndroidManifest.xml")
+        }
 
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
@@ -1135,8 +1149,10 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.59")
     kapt("com.google.dagger:hilt-android-compiler:2.59")
     
-    // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    // WorkManager - 2.10.x: SystemForegroundService handles Service.onTimeout() for
+    // FOREGROUND_SERVICE_TYPE_DATA_SYNC on Android 14+, preventing
+    // ForegroundServiceDidNotStopInTimeException fatals (S0709). Keep in sync with work-multiprocess below.
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     // Baseline Profiles runtime installer
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
@@ -1288,7 +1304,7 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
     // Required by LeakCanary for background heap analysis (RemoteListenableWorker)
-    debugImplementation("androidx.work:work-multiprocess:2.9.0")
+    debugImplementation("androidx.work:work-multiprocess:2.10.1") // Keep in sync with work-runtime-ktx (S0709)
     
     // Document Support - EPUB
     implementation("io.documentnode:epub4j-core:4.2") {

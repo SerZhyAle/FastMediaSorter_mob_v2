@@ -29,6 +29,9 @@
     <dimen name="toggler_title_text_size">14sp</dimen>
     <dimen name="toggler_desc_text_size">12sp</dimen>
 
+    <!-- Collapsible group header title: +2sp over toggler titles for stronger section hierarchy. -->
+    <dimen name="collapsible_section_title_text_size">16sp</dimen>
+
     <!-- Padding and margins -->
     <dimen name="padding_huge">24dp</dimen>
     <dimen name="padding_xxlarge">32dp</dimen>
@@ -114,6 +117,8 @@
     <dimen name="control_bar_padding">4dp</dimen>
     <dimen name="control_button_size">48dp</dimen>
     <dimen name="control_button_size_compact">32dp</dimen>
+    <!-- Portrait-only width for the label-less "programs" overflow button (S0698): 1.5x the 48dp button height. Landscape shows a text label and keeps wrap_content. -->
+    <dimen name="main_programs_button_width_portrait">72dp</dimen>
     <dimen name="toolbar_row_height_compact">24dp</dimen>
     <!-- Settings Activity: non-compact header heights (replaces actionBarSizePx ~56dp) -->
     <dimen name="settings_title_row_height">28dp</dimen>
@@ -326,6 +331,9 @@
     <dimen name="dialog_action_button_gap">16dp</dimen>
     <dimen name="dialog_action_button_min_height_compact">28dp</dimen>
     <dimen name="dialog_action_button_gap_compact">8dp</dimen>
+    <!-- S0684: cancel is shorter than the 56dp confirm (48dp = touch-target floor, never lower); confirm is widened so it reads as the dominant "under-finger" action while cancel stays content-narrow. -->
+    <dimen name="dialog_cancel_button_min_height">48dp</dimen>
+    <dimen name="dialog_confirm_button_min_width">120dp</dimen>
     <dimen name="dialog_color_item_size">32dp</dimen>
     <dimen name="dialog_color_grid_spacing">4dp</dimen>
 
@@ -741,5 +749,10 @@
     <dimen name="playback_slider_track_height">12dp</dimen>
     <dimen name="playback_slider_thumb_size">28dp</dimen>
     <dimen name="playback_slider_min_height">48dp</dimen>
+
+    <!-- Stream wait-phase label next to the buffering spinner (S0685) -->
+    <dimen name="stream_wait_label_text_size">14sp</dimen>
+    <dimen name="stream_wait_label_margin_top">56dp</dimen>
+    <dimen name="stream_wait_label_gap">8dp</dimen>
 
 </resources>

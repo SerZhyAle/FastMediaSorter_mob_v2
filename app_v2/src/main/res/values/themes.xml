@@ -304,8 +304,9 @@
 
     <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
 
-    <!-- Dialog action pair (S0538): one high-visibility role per slot so confirm/cancel are unmissable by a blind finger tap.
-         Confirm=green filled, Cancel=neutral outlined, Destructive=red filled. Min 56dp, colors from @color/ + ?attr/ only (Rule 19).
+    <!-- Dialog action pair (S0538/S0684): one high-visibility role per slot so confirm/cancel are unmissable by a blind finger tap.
+         Confirm=green filled (wide, "under-finger"), Cancel=soft-pink error-container tonal (shorter + narrower), Destructive=red filled.
+         Colors from @color/ + ?attr/ only (Rule 19).
          S0573: minHeight is bound directly to @dimen, not through ?attr/dialogActionButtonMinHeight, because
          MaterialButton inflation under transparent/dynamic dialog hosts proved that attr chain can fail at runtime. -->
     <style name="Widget.FastMediaSorter.Button.DialogConfirm" parent="Widget.FastMediaSorter.Button.Filled">
@@ -313,18 +314,22 @@
         <item name="backgroundTint">@color/confirm_button_bg</item>
         <item name="android:textColor">@color/confirm_button_on</item>
         <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
+        <!-- S0684: wide confirm dominates the pair; the content-narrow cancel reads as the lighter escape. -->
+        <item name="android:minWidth">@dimen/dialog_confirm_button_min_width</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.DialogDestructive" parent="Widget.FastMediaSorter.Button.Filled">
         <item name="backgroundTint">@color/delete_button</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
+        <item name="android:minWidth">@dimen/dialog_confirm_button_min_width</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Outlined">
-        <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="strokeColor">?attr/colorOutline</item>
-        <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
+    <!-- S0684: cancel is a soft-pink tonal fill, deliberately shorter than confirm; saturated red stays reserved for DialogDestructive. -->
+    <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Tonal">
+        <item name="backgroundTint">@color/cancel_button_bg</item>
+        <item name="android:textColor">@color/cancel_button_on</item>
+        <item name="android:minHeight">@dimen/dialog_cancel_button_min_height</item>
     </style>
 
     <!-- S0538: builder seam - every MaterialAlertDialogBuilder dialog inherits the unified pair via

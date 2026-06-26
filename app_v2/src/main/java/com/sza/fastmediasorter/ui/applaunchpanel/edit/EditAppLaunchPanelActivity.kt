@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.ui.applaunchpanel.edit
 
-import android.content.res.Configuration
 import android.view.View
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityEditAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
@@ -40,9 +40,8 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
             onTileClick = ::onTileClicked,
             onTileLongClick = ::showTileActionMenu,
         )
-        val isLandscape =
-            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val spanCount = if (isLandscape) 5 else 3
+        val isWide = resources.configuration.isWideLayout()
+        val spanCount = if (isWide) 5 else 3
         binding.recyclerView.layoutManager = GridLayoutManager(this, spanCount)
         binding.recyclerView.adapter = tileAdapter
 

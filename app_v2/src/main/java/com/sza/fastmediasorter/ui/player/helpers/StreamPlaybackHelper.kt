@@ -9,9 +9,9 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.extractor.metadata.icy.IcyHeaders
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
@@ -51,13 +51,14 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         return
     }
 
-    // Modest live-friendly buffer: a 60s backlog is comparable to a whole IPTV live window, which keeps
-    // the playhead near the expiring segment and triggers BehindLiveWindow more often, not less. Shared
-    // with VOD/radio on this branch - split into a live-only LoadControl if VOD start latency regresses.
-    val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(15_000, 30_000, 2_500, 5_000)
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
+    // S0688: bandwidth-adaptive buffer. A shared BandwidthMeter feeds both the player (so the http data
+    // source measures live throughput) and the load control, which widens the steady cushion on a weak
+    // link and tightens it back on a healthy one. Live content stays clamped to the proven S0685 live-safe
+    // depth so live-edge tracking (S0634) cannot regress; only non-live streams get the deepening. The
+    // start/post-rebuffer thresholds keep the S0685 values. Radio vs live load-control split is parked (S0689).
+    val bandwidthMeter = DefaultBandwidthMeter.Builder(context).build()
+    val loadControl = BandwidthAdaptiveLoadControl.create(bandwidthMeter)
+    Timber.d("S0688: stream load control bandwidth-adaptive (rtsp=%s) path=%s", isRtsp, path)
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -66,6 +67,7 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
 
     val builder = ExoPlayer.Builder(context)
         .setLoadControl(loadControl)
+        .setBandwidthMeter(bandwidthMeter)
         .setAudioAttributes(audioAttributes, true)
     if (!isRtsp) {
         // http(s): let the core auto-detect progressive / HLS / DASH (segmented resolves only where the modules exist).
@@ -114,17 +116,29 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
         private val isRtsp = path.startsWith("rtsp://")
         private var behindLiveRecoveries = 0
         private var transientRetries = 0
+        // S0685: true while a recovery path (re-anchor / classified retry) is re-establishing the stream,
+        // so the next BUFFERING is labelled "reconnecting" instead of a plain buffer fill. Set by the
+        // recovery branches in onPlayerError, cleared on a confirmed READY and on hard-fail.
+        private var reconnecting = false
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) return
             when (playbackState) {
-                Player.STATE_BUFFERING -> playerCallback.onBuffering(true)
+                Player.STATE_BUFFERING -> {
+                    playerCallback.onBuffering(true)
+                    playerCallback.onStreamWaitPhase(
+                        if (reconnecting) VideoPlayerManager.StreamWaitPhase.RECONNECTING
+                        else VideoPlayerManager.StreamWaitPhase.BUFFERING
+                    )
+                }
                 Player.STATE_READY -> {
                     // Reset the recovery budgets only on a confirmed READY, never on BUFFERING: a stream
                     // that flaps buffering<->error must not silently refill its quota and spin forever.
                     behindLiveRecoveries = 0
                     transientRetries = 0
+                    reconnecting = false
                     playerCallback.onBuffering(false)
+                    playerCallback.onStreamWaitPhase(null)
                     playerCallback.onPlaybackReady()
                 }
                 Player.STATE_ENDED -> playerCallback.onPlaybackEnded()
@@ -159,8 +173,11 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
             if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW && !isRtsp) {
                 if (behindLiveRecoveries < STREAM_MAX_BEHIND_LIVE_RECOVERIES) {
                     behindLiveRecoveries++
+                    // S0685: flip the wait label to "reconnecting" up front so the user sees the recovery
+                    // even before the player re-enters BUFFERING during the re-prepare.
+                    reconnecting = true
+                    playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
                     val backoffMs = (behindLiveRecoveries * 1_000L).coerceAtMost(5_000L)
-                    Timber.d("S0634: behind-live-window recovery - re-anchor to live edge attempt %d/%d %s", behindLiveRecoveries, STREAM_MAX_BEHIND_LIVE_RECOVERIES, path)
                     Timber.w(error, "Stream behind live window - re-anchoring to live edge (attempt %d): %s", behindLiveRecoveries, path)
                     managerScope.launch {
                         delay(backoffMs)
@@ -173,8 +190,10 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                 // P1 - transient/HTTP-5xx error: bounded retry with exponential backoff. On a live stream
                 // re-anchor before re-preparing (a stale live position just fails again); radio/VOD do not.
                 transientRetries++
+                // S0685: same up-front "reconnecting" hint for the classified-retry path.
+                reconnecting = true
+                playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
                 val backoffMs = STREAM_TRANSIENT_BASE_DELAY_MS shl (transientRetries - 1)
-                Timber.d("S0634: transient stream error recovery attempt %d/%d backoff=%dms %s", transientRetries, STREAM_MAX_TRANSIENT_RETRIES, backoffMs, path)
                 Timber.w(error, "Stream transient error - retrying in %dms (attempt %d): %s", backoffMs, transientRetries, path)
                 managerScope.launch {
                     delay(backoffMs)
@@ -184,7 +203,9 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                 return
             }
             Timber.w(error, "Stream playback error - surfacing to user: %s", path)
+            reconnecting = false
             playerCallback.onBuffering(false)
+            playerCallback.onStreamWaitPhase(null)
             playerCallback.onPlaybackError(error)
         }
     }

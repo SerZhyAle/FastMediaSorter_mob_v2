@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.applaunchpanel
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -10,6 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * Large quick-launch grid shown over the foreground app. Tapping a filled tile launches its target
@@ -51,9 +52,9 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         tileAdapter = AppLaunchPanelTileAdapter(onTileClick = ::onTileClicked)
-        val isLandscape =
-            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val spanCount = if (isLandscape) 5 else 3
+        val isWide = resources.configuration.isWideLayout()
+        Timber.d("S0693: app-launch panel isWide=$isWide widthDp=${resources.configuration.screenWidthDp}")
+        val spanCount = if (isWide) 5 else 3
         binding.rvPanelTiles.layoutManager = GridLayoutManager(requireContext(), spanCount)
         binding.rvPanelTiles.adapter = tileAdapter
         binding.btnEditPanel.setOnClickListener { openEditPanel() }

@@ -129,6 +129,7 @@
 - **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.
 - **Features (showcase)**: `docs/FEATURES*.md` (EN/RU/UK) is the curated public showcase published to the site, populated ONLY by `/skill-release` from the `ALL_FEATURES` diff since the previous release - never edited per-spec. `noLegal` showcase items go to gitignored `docs/FEATURES_noLegal*.md`.
 - **UI Comm**: `docs/COMMUNICATION_POLICY*.md` (EN/RU/UK). Read before modifying user-visible strings.
+- **Dialog action pair (S0538/S0684)**: any confirm/cancel pair in a dialog, bottom sheet, or custom layout uses the named styles - confirm = `Widget.FastMediaSorter.Button.DialogConfirm` (green, wide), cancel = `Widget.FastMediaSorter.Button.DialogCancel` (soft-pink tonal, shorter + narrower), destructive confirm = `Widget.FastMediaSorter.Button.DialogDestructive` (red). Never a one-off cancel button (icon-only/selection/scan dialogs are exempt). Standard: `docs/ARCHITECTURE.md` "Button Taxonomy". Gate: `scripts/quality/assert-dialog-cancel-style.ps1` (in `post-change.ps1`).
 
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.

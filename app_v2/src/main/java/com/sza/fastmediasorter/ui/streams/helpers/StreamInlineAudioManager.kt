@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -175,7 +176,8 @@ class StreamInlineAudioManager(
     }
 
     private fun renderTitle() {
-        val title = currentSource?.title ?: return
+        // S0691: dedup the `Name (Name)` form so the mini-control matches the list/grid rendering.
+        val title = currentSource?.title?.let(StreamTitleFormatter::display) ?: return
         val track = nowPlaying.value
         titleView.text = if (track.isNullOrBlank()) title else "$title - $track"
     }

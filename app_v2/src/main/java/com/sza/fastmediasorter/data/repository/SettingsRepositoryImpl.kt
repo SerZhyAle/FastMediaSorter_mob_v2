@@ -182,7 +182,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
-        // S0473: opt-in local usage statistics (default OFF). Same DataStore key as SettingsManager.ENABLE_STATISTICS.
+        // S0473: opt-in local usage statistics (default OFF for privacy).
         private val KEY_ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
 
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
@@ -415,6 +415,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     micRecordingDestinationResourceId = capture.micRecordingDestinationResourceId,
                     cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
                     gestureOverlayEnabled = screenshot.gestureOverlayEnabled,
+                    screenshotGestureStripVisible = screenshot.screenshotGestureStripVisible,
                     screenshotGestureActionDown = screenshot.screenshotGestureActionDown,
                     screenshotGestureActionRight = screenshot.screenshotGestureActionRight,
                     screenshotGestureActionUp = screenshot.screenshotGestureActionUp,

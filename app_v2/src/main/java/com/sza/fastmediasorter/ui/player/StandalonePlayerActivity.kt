@@ -336,7 +336,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onShowRenameDialog() = fileOperations.showStandaloneRenameDialog()
                 override fun onShowFileInfo() = showFileInfo()
                 override fun onToggleCommandPanel() {
-                    binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                    toggleStandaloneFullscreen()
                 }
                 override fun onToggleCopyPanel() { /* not applicable in standalone */ }
                 override fun onToggleMovePanel() { /* not applicable in standalone */ }
@@ -388,7 +388,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 }
                 override fun onSaveCurrent() { /* save frame not supported in standalone */ }
                 override fun onShowContextMenu() {
-                    binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                    toggleStandaloneFullscreen()
                 }
                 // Standalone plays a single file - no playlist navigation.
                 override fun onNextFile() {}

@@ -161,6 +161,11 @@ $runsSettingsDocGate = (
 # (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
 # settings-doc composite so a manifest/vocab change re-checks the guides.
 $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
+# S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
+# a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
+# never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
+$runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+    ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -259,6 +264,15 @@ if ($runsFocusHighlightGate) {
 }
 else {
     Skip-Step "focus-highlight-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDialogCancelGate) {
+    Invoke-Step "dialog-cancel-style-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "dialog-cancel-style-gate" "not applicable - touched file is not a dialog/bottom-sheet layout"
 }
 
 if ($runsAllFeaturesGate) {

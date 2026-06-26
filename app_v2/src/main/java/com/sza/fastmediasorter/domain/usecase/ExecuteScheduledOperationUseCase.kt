@@ -26,7 +26,11 @@ import javax.inject.Singleton
 data class ScheduledExecutionResult(
     val operationId: Long,
     val filesProcessed: Int,
-    val errors: List<String>
+    val errors: List<String>,
+    // S0710: set when the run halted because deleting the source requires an interactive permission
+    // grant (All-Files-Access / MANAGE_MEDIA) that is unreachable from a headless worker. The worker
+    // surfaces a notification and the loop stops instead of re-uploading the same files every run.
+    val permissionRequired: Boolean = false
 ) {
     val isSuccess: Boolean get() = errors.isEmpty()
     val statusString: String get() = if (isSuccess) "OK" else "ERROR: ${errors.first()}"
@@ -113,11 +117,16 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
 
             val errors = mutableListOf<String>()
             var successCount = 0
+            // S0710: a permission-required result is an operation-level wall, not a per-file error.
+            // Once seen, stop processing the rest of the batch so the run does not keep re-uploading
+            // files it can never delete in the background.
+            var permissionStop = false
 
             when (operation.operationType) {
                 ScheduledOpType.COPY -> {
                     val targetDir = File(targetResource!!.path)
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Copy(
                                 sources = listOf(File(file.path)),
@@ -147,6 +156,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                     Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
                                 }
                             }
+                            result is FileOperationResult.PermissionRequired ||
+                            result is FileOperationResult.AuthenticationRequired -> {
+                                permissionStop = true
+                                val err = permissionStopError(result)
+                                errors.add(err)
+                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
+                                Timber.w("ScheduledOp[$operationId] COPY halted - $err (${file.name})")
+                            }
                             result is FileOperationResult.Failure -> {
                                 errors.add(result.error)
                                 logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
@@ -164,6 +181,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 ScheduledOpType.MOVE -> {
                     val targetDir = File(targetResource!!.path)
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Move(
                                 sources = listOf(File(file.path)),
@@ -193,6 +211,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                     Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
                                 }
                             }
+                            result is FileOperationResult.PermissionRequired ||
+                            result is FileOperationResult.AuthenticationRequired -> {
+                                permissionStop = true
+                                val err = permissionStopError(result)
+                                errors.add(err)
+                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
+                                Timber.d("S0710: MOVE halted - $err (${file.name})")
+                            }
                             result is FileOperationResult.Failure -> {
                                 errors.add(result.error)
                                 logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
@@ -209,6 +235,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 }
                 ScheduledOpType.DELETE -> {
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Delete(
                                 files = listOf(File(file.path)),
@@ -221,6 +248,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                 successCount++
                                 logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
                                 Timber.d("ScheduledOp[$operationId] DELETE OK ${file.name}")
+                            }
+                            result is FileOperationResult.PermissionRequired ||
+                            result is FileOperationResult.AuthenticationRequired -> {
+                                permissionStop = true
+                                val err = permissionStopError(result)
+                                errors.add(err)
+                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
+                                Timber.w("ScheduledOp[$operationId] DELETE halted - $err (${file.name})")
                             }
                             result is FileOperationResult.Failure -> {
                                 errors.add(result.error)
@@ -244,7 +279,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // Count one run once the work loop executed; config-failure early returns above and the
             // exception path below are not runs. filesProcessed carries the successfully handled count.
             statsSink.record(StatsEvent.ScheduledRun(filesProcessed = successCount.toLong()))
-            ScheduledExecutionResult(operationId, successCount, errors)
+            ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
 
         } catch (e: CancellationException) {
             throw e
@@ -324,6 +359,16 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         TimeFilter.SINCE_LAST -> lastRunAt == null || file.createdDate > lastRunAt
         TimeFilter.LAST_HOUR -> file.createdDate > now - 3_600_000L
         TimeFilter.LAST_DAY -> file.createdDate > now - 86_400_000L
+    }
+
+    /**
+     * S0710: a [FileOperationResult.PermissionRequired] / [FileOperationResult.AuthenticationRequired]
+     * cannot be resolved inside a headless worker (it needs an interactive grant). Map it to a stable
+     * message so the run halts with a clear cause instead of being logged as a generic per-file failure.
+     */
+    private fun permissionStopError(result: FileOperationResult): String = when (result) {
+        is FileOperationResult.AuthenticationRequired -> "Re-authentication required for ${result.provider}"
+        else -> "Permission required to delete source in background (grant All-files access)"
     }
 
     /** Appends one line to the user-visible operations log. */

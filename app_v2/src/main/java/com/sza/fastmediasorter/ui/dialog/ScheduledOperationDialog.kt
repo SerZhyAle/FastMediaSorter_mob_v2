@@ -13,6 +13,7 @@ import android.widget.NumberPicker
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
@@ -48,10 +49,10 @@ class ScheduledOperationDialog(
         b = DialogScheduledOperationBinding.inflate(layoutInflater)
         setContentView(b.root)
         val dm = context.resources.displayMetrics
-        val isLandscape = dm.widthPixels > dm.heightPixels
+        val isWide = context.isWideLayout()
         window?.setLayout(
             (dm.widthPixels * 0.93).toInt(),
-            if (isLandscape) (dm.heightPixels * 0.90).toInt()
+            if (isWide) (dm.heightPixels * 0.90).toInt()
             else android.view.WindowManager.LayoutParams.WRAP_CONTENT
         )
         setupDropdowns()

@@ -82,12 +82,17 @@ class OverlayHostService : Service() {
             return START_NOT_STICKY
         }
 
+        val stripVisible = intent?.getBooleanExtra(EXTRA_STRIP_VISIBLE, false) ?: false
         try {
             if (!overlayVisible) {
-                overlayManager.show()
+                overlayManager.show(stripVisible)
                 overlayVisible = true
+            } else {
+                // Re-issued start (S0724 strip-visibility toggle): recolour the live strip in place.
+                overlayManager.setStripVisible(stripVisible)
             }
             startForegroundCompat()
+            Timber.d("S0672: edge-gesture overlay strip started (specialUse FGS)")
         } catch (e: Exception) {
             Timber.e(e, "OverlayHostService: failed to start overlay host")
             stopOverlayHost()
@@ -157,14 +162,23 @@ class OverlayHostService : Service() {
     companion object {
         private const val ACTION_START = "com.sza.fastmediasorter.action.OVERLAY_HOST_START"
         private const val ACTION_STOP = "com.sza.fastmediasorter.action.OVERLAY_HOST_STOP"
+        private const val EXTRA_STRIP_VISIBLE = "com.sza.fastmediasorter.extra.OVERLAY_STRIP_VISIBLE"
         private const val CHANNEL_ID = "screen_capture_overlay_host"
         private const val NOTIFICATION_ID = 0x4054
 
-        fun start(context: Context) {
+        fun start(context: Context, stripVisible: Boolean) {
             val intent = Intent(context, OverlayHostService::class.java).apply {
                 action = ACTION_START
+                putExtra(EXTRA_STRIP_VISIBLE, stripVisible)
             }
-            ContextCompat.startForegroundService(context, intent)
+            // Invariant: the sole caller runs in a foreground context (ScreenGestureOverlayStartupCoordinator
+            // .restoreIfNeeded via ProcessLifecycleOwner.onStart), so the Android-15 visible-overlay FGS-start
+            // rule holds. The catch is a defensive backstop only, in case a background caller is ever added.
+            try {
+                ContextCompat.startForegroundService(context, intent)
+            } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+                Timber.w("OverlayHostService: FGS start not allowed (no visible overlay / background) - skipping")
+            }
         }
 
         fun stop(context: Context) {

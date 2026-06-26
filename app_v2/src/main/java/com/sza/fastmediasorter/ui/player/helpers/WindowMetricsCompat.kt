@@ -4,64 +4,54 @@ import android.os.Build
 import android.view.WindowManager
 
 /**
- * Compatibility helper for getting window metrics on Android 9+
- * Handles API differences between Android 9-10 and Android 11+
+ * S0702: returns the size of the current app WINDOW, not the full physical display.
+ *
+ * Callers (image scale-type and Glide decode caps) need the area the media is shown in, so in
+ * split-screen / freeform the value must shrink to the window. API 30+ uses
+ * [WindowManager.getCurrentWindowMetrics] bounds (window-aware); the legacy path uses
+ * [android.view.Display.getSize] (the app-usable, multi-window-aware size) instead of `getRealSize`,
+ * which returned the whole physical screen and broke multi-window scaling.
  */
 object WindowMetricsCompat {
-    
-    /**
-     * Get device screen width in pixels
-     * Compatible with API 28+
-     */
+
+    /** Current app window width in pixels. */
     fun getScreenWidth(windowManager: WindowManager): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // API 30+ (Android 11+): Use WindowMetrics
             windowManager.currentWindowMetrics.bounds.width()
         } else {
-            // API 28-29 (Android 9-10): Use deprecated DisplayMetrics
             @Suppress("DEPRECATION")
             windowManager.defaultDisplay.let { display ->
                 android.graphics.Point().also { size ->
-                    display.getRealSize(size)
+                    display.getSize(size)
                 }.x
             }
         }
     }
-    
-    /**
-     * Get device screen height in pixels
-     * Compatible with API 28+
-     */
+
+    /** Current app window height in pixels. */
     fun getScreenHeight(windowManager: WindowManager): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // API 30+ (Android 11+): Use WindowMetrics
             windowManager.currentWindowMetrics.bounds.height()
         } else {
-            // API 28-29 (Android 9-10): Use deprecated DisplayMetrics
             @Suppress("DEPRECATION")
             windowManager.defaultDisplay.let { display ->
                 android.graphics.Point().also { size ->
-                    display.getRealSize(size)
+                    display.getSize(size)
                 }.y
             }
         }
     }
-    
-    /**
-     * Get both width and height as Pair
-     * Compatible with API 28+
-     */
+
+    /** Current app window size (width to height) in pixels. */
     fun getScreenSize(windowManager: WindowManager): Pair<Int, Int> {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // API 30+ (Android 11+): Use WindowMetrics
             val bounds = windowManager.currentWindowMetrics.bounds
             bounds.width() to bounds.height()
         } else {
-            // API 28-29 (Android 9-10): Use deprecated DisplayMetrics
             @Suppress("DEPRECATION")
             windowManager.defaultDisplay.let { display ->
                 android.graphics.Point().also { size ->
-                    display.getRealSize(size)
+                    display.getSize(size)
                 }.let { it.x to it.y }
             }
         }

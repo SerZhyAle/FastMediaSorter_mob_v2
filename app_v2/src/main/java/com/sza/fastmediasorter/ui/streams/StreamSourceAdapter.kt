@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -27,12 +28,12 @@ import kotlinx.coroutines.launch
 
 /**
  * Renders the stream catalog. Row tap launches playback ([onPlay]); the pin affordance promotes the
- * source locally ([onPin]); long-press removes it ([onRemove]). The now-playing indicator tracks the
+ * source locally ([onPin]); long-press toggles pin/unpin (S0695). The now-playing indicator tracks the
  * id passed to [setPlayingId] so the inline-audio row is marked without rebuilding the list.
  *
  * S0660: the overflow (`три точки`) is the canonical surface for secondary channel commands - add to
- * home screen, edit (manual channels only), send link, remove. The long-press remove and the separate
- * pin button stay as transitional duplicates while the menu grows.
+ * home screen, edit (manual channels only), send link, remove. S0695 moved the destructive remove out
+ * of long-press (now pin-toggle) so removal is reachable only through the explicit overflow menu.
  */
 class StreamSourceAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
@@ -96,7 +97,7 @@ class StreamSourceAdapter(
         }
 
         fun bind(source: StreamSourceEntity, isPlaying: Boolean) {
-            binding.tvTitle.text = source.title
+            binding.tvTitle.text = StreamTitleFormatter.display(source.title)
             binding.tvUrl.text = source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindFavicon(source.url)
@@ -109,7 +110,13 @@ class StreamSourceAdapter(
                 if (binding.tvTopic.isVisible || binding.tvLanguage.isVisible) View.VISIBLE else View.GONE
             bindPinState(source.pinned)
             binding.root.setOnClickListener { onPlay(source) }
-            binding.root.setOnLongClickListener { onRemove(source); true }
+            // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
+            // menu). The pin icon flips on rebind, so the gesture is self-evident without a confirmation.
+            binding.root.setOnLongClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                onPin(source)
+                true
+            }
             // Mouse right-click opens the row action menu (the visible overflow affordance), matching
             // the file-browser/resource-list right-click pattern. A per-row handler is required: the
             // activity-level mouse fallback only targets the focused view, never the row under the cursor.

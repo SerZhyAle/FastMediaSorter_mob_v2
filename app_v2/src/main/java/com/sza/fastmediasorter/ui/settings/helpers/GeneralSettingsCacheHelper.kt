@@ -23,6 +23,9 @@ class GeneralSettingsCacheHelper(
     private val fragment: Fragment,
     private val audioMetadataCacheRepository: AudioMetadataCacheRepository,
     private val calculateOptimalCacheSizeUseCase: CalculateOptimalCacheSizeUseCase,
+    // S0707: shared with the other General-settings input owners so the cancel-path restore
+    // write below cannot re-trigger actvCacheSizeLimit's commit listener mid-update.
+    private val setIsUpdatingSpinner: (Boolean) -> Unit,
 ) {
     fun checkAndSuggestOptimalCacheSize() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -43,9 +46,16 @@ class GeneralSettingsCacheHelper(
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 val currentCacheSize = viewModel.settings.value.cacheSizeMb
+                // S0707: raise the shared suppression flag for the duration of this programmatic
+                // restore so SettingsInputRow's commit listener does not re-fire. Cleared on the
+                // same post() that dismisses the dialog, after the text change has settled.
+                setIsUpdatingSpinner(true)
                 // S0567: SettingsInputRow exposes a `text` property (was AutoCompleteTextView.setText).
                 binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, currentCacheSize)
-                binding.actvCacheSizeLimit.post { dialog.dismiss() }
+                binding.actvCacheSizeLimit.post {
+                    setIsUpdatingSpinner(false)
+                    dialog.dismiss()
+                }
             }
             .setCancelable(false)
             .show()
@@ -101,7 +111,6 @@ class GeneralSettingsCacheHelper(
                 binding.btnClearCache.isEnabled = false
                 binding.btnClearCache.text = fragment.getString(R.string.cache_size_calculating)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    Timber.d("S0686: clearCache start - cancellation now rethrown, no false failure toast on teardown")
                     try {
                         try { com.bumptech.glide.Glide.get(fragment.requireContext()).clearDiskCache() }
                         catch (e: Exception) { Timber.e(e, "Glide clearDiskCache failed") }

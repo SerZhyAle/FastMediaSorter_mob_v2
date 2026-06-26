@@ -438,6 +438,7 @@ class SettingsViewModel @Inject constructor(
                 linkAutoDownloadResourceId = defaults.linkAutoDownloadResourceId,
                 // ScreenGestures group (moved from Player tab)
                 gestureOverlayEnabled = defaults.gestureOverlayEnabled,
+                screenshotGestureStripVisible = defaults.screenshotGestureStripVisible,
                 screenshotGestureActionDown = defaults.screenshotGestureActionDown,
                 screenshotGestureActionRight = defaults.screenshotGestureActionRight,
                 screenshotGestureActionUp = defaults.screenshotGestureActionUp

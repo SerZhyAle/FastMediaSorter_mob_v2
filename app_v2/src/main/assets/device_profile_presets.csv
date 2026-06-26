@@ -160,6 +160,7 @@
 "dropboxEnabled","","","","","","","","","","",""
 "videoRecordingDestinationResourceId","","","","","","","","","","",""
 "gestureOverlayEnabled","","","","","","","","","","",""
+"screenshotGestureStripVisible","","","","","","","","","","",""
 "screenshotGestureActionDown","","","","","","","","","","",""
 "screenshotGestureActionRight","","","","","","","","","","",""
 "screenshotGestureActionUp","","","","","","","","","","",""

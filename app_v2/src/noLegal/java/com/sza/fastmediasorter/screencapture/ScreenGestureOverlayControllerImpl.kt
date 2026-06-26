@@ -96,20 +96,36 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         // host shut down; otherwise the MediaProjection fallback runs if draw-over-apps is granted.
         // Granting neither leaves the toggle effectively off. The accessibility service lifecycle is
         // system-owned; we only push strip visibility to the live instance (if connected).
+        val stripVisible = readStripVisible()
         when {
             accessibilityPathActive(appContext) -> {
                 OverlayHostService.stop(appContext)
-                ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(true)
+                ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(true, stripVisible)
             }
             Settings.canDrawOverlays(appContext) -> {
                 ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(false)
-                OverlayHostService.start(appContext)
+                OverlayHostService.start(appContext, stripVisible)
             }
+        }
+    }
+
+    override fun setStripVisible(visible: Boolean) {
+        // S0724: recolour the live strip on whichever path currently hosts it; no-op while disabled.
+        if (!isEnabled()) return
+        when {
+            accessibilityPathActive(appContext) ->
+                ScreenshotAccessibilityServiceHolder.instance?.applyStripVisible(visible)
+            Settings.canDrawOverlays(appContext) ->
+                OverlayHostService.start(appContext, visible)
         }
     }
 
     override fun isEnabled(): Boolean = runBlocking {
         settingsRepository.get().getSettings().first().gestureOverlayEnabled
+    }
+
+    private fun readStripVisible(): Boolean = runBlocking {
+        settingsRepository.get().getSettings().first().screenshotGestureStripVisible
     }
 
     private fun isAccessibilityServiceEnabled(context: Context): Boolean {

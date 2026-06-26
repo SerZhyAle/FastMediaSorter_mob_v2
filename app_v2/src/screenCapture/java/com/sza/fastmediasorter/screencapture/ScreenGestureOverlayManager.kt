@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.screencapture
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.Gravity
@@ -28,16 +29,19 @@ class ScreenGestureOverlayManager(
     private val windowManager = overlayContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     private var stripView: View? = null
+    private var stripVisible = false
     private var gestureTriggered = false
     private var downX = 0f
     private var downY = 0f
 
-    fun show() {
+    fun show(stripVisible: Boolean = false) {
         if (stripView != null) return
+        this.stripVisible = stripVisible
         val spec = computeStripSpec()
         val view = View(overlayContext).apply {
             isClickable = false
             isFocusable = false
+            applyStripBackground(this)
             setOnTouchListener(::handleTouch)
         }
         val params = WindowManager.LayoutParams(
@@ -66,6 +70,18 @@ class ScreenGestureOverlayManager(
         val view = stripView ?: return
         windowManager.removeViewImmediate(view)
         stripView = null
+    }
+
+    /** S0724: recolour a live strip (grey when visible, transparent when hidden) without re-adding the
+     *  window; if no strip is shown yet, the value is applied by the next [show]. */
+    fun setStripVisible(visible: Boolean) {
+        if (stripVisible == visible) return
+        stripVisible = visible
+        stripView?.let { applyStripBackground(it) }
+    }
+
+    private fun applyStripBackground(view: View) {
+        view.setBackgroundColor(if (stripVisible) STRIP_VISIBLE_COLOR else Color.TRANSPARENT)
     }
 
     private fun handleTouch(view: View, event: MotionEvent): Boolean {
@@ -147,6 +163,8 @@ class ScreenGestureOverlayManager(
     )
 
     companion object {
+        // S0724: opaque grey RGB(128,128,128) makes the otherwise-invisible touch strip discoverable.
+        private const val STRIP_VISIBLE_COLOR = 0xFF808080.toInt()
         private const val STRIP_WIDTH_DP = 18
         // Strip spans the left edge from 10% to 75% of the safe height: the 10% top offset keeps
         // the corner free so the gesture is not triggered there; the strip ends at 75% downward.

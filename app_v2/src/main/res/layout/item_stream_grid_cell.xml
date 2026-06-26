@@ -12,12 +12,14 @@
     android:focusable="true"
     android:clickable="true">
 
+    <!-- S0700: must stay VISIBLE and opaque - a TextureView with visibility=invisible (or alpha 0) never
+         renders a frame into its SurfaceTexture on the software decoder, so onRenderedFirstFrame never fires
+         and the capture timed out. It sits BEHIND ivFrame, which carries an opaque background so the live
+         video is never seen; the captured bitmap is then painted into ivFrame. -->
     <TextureView
         android:id="@+id/textureCapture"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:alpha="0"
-        android:visibility="invisible"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -27,6 +29,7 @@
         android:id="@+id/ivFrame"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="?attr/colorSurfaceVariant"
         android:scaleType="centerCrop"
         android:contentDescription="@null"
         app:layout_constraintTop_toTopOf="parent"
@@ -34,12 +37,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="H,16:9" />
 
+    <!-- S0701: the title starts after the bottom-left status dot so the dot never overlaps the first
+         characters of the channel name; it still fills the rest of the tile width. -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_stream_grid_title_scrim"
-        android:paddingStart="8dp"
+        android:paddingStart="6dp"
         android:paddingEnd="8dp"
         android:paddingTop="12dp"
         android:paddingBottom="6dp"
@@ -47,8 +52,39 @@
         android:ellipsize="end"
         android:textAppearance="?attr/textAppearanceCaption"
         android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="@id/ivFrame"
+        app:layout_constraintStart_toEndOf="@id/ivGridStatus"
         app:layout_constraintEnd_toEndOf="@id/ivFrame"
         app:layout_constraintBottom_toBottomOf="@id/ivFrame" />
+
+    <!-- S0701: play-status dot mirrored from the list row (ivPlayStatus); icon shape + tint carry the
+         state. Pinned to the bottom-left of the frame, on a dark disc for contrast over any frame. -->
+    <ImageView
+        android:id="@+id/ivGridStatus"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_margin="6dp"
+        android:padding="3dp"
+        android:background="@drawable/bg_stream_grid_overlay_circle"
+        android:src="@drawable/ic_stream_status_unknown"
+        android:contentDescription="@string/stream_status_unknown"
+        app:layout_constraintStart_toStartOf="@id/ivFrame"
+        app:layout_constraintBottom_toBottomOf="@id/ivFrame" />
+
+    <!-- S0701: per-tile overflow (три точки) mirroring the list row's btnOverflow, anchored top-right of
+         the frame so the same secondary commands (shortcut/edit/share/remove) are reachable in grid mode. -->
+    <ImageButton
+        android:id="@+id/btnGridOverflow"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="2dp"
+        android:padding="7dp"
+        android:scaleType="centerInside"
+        android:background="@drawable/bg_stream_grid_overlay_circle"
+        android:src="@drawable/ic_more_vert"
+        app:tint="@android:color/white"
+        android:focusable="true"
+        android:contentDescription="@string/streams_more_actions"
+        app:layout_constraintTop_toTopOf="@id/ivFrame"
+        app:layout_constraintEnd_toEndOf="@id/ivFrame" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

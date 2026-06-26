@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -51,8 +52,14 @@ internal class PlayerObserverManager(
                 launch {
                     viewModel.loading.collect { isLoading ->
                         val currentType = viewModel.state.value.currentFile?.type
+                        // S0704: the reactive file-list driver is now one counted source among many.
+                        // PDF/EPUB keep their carve-out (their viewers own the bar for those types).
                         if (currentType != MediaType.PDF && currentType != MediaType.EPUB) {
-                            activity.activityBinding.progressBar.isVisible = isLoading
+                            if (isLoading) {
+                                activity.loadingIndicatorCoordinator.show(LoadingSource.FILE_LIST)
+                            } else {
+                                activity.loadingIndicatorCoordinator.hide(LoadingSource.FILE_LIST)
+                            }
                         }
                     }
                 }

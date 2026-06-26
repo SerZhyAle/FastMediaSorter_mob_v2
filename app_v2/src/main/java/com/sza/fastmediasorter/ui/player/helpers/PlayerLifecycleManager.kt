@@ -212,7 +212,8 @@ class PlayerLifecycleManager(
         
         // Cleanup handlers (moved from PlayerActivity)
         activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
-        activity.loadingIndicatorHandler.removeCallbacks(activity.showLoadingIndicatorRunnable)
+        // S0704: drop every loading source and cancel all pending spinner work.
+        activity.loadingIndicatorCoordinator.clearAll()
         
         activity.retryRunnable?.let { activity.retryHandler.removeCallbacks(it) }
         activity.retryRunnable = null

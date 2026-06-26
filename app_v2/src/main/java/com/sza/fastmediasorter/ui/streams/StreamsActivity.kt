@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
@@ -34,6 +35,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
@@ -104,6 +106,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val gridAdapter by lazy {
         StreamGridAdapter(
             onPlay = ::onPlay,
+            onPin = { viewModel.onPin(it.id) },
+            onRemove = ::confirmRemove,
+            onAddShortcut = ::onAddShortcut,
+            onEdit = ::showEditDialog,
+            onShareLink = ::onShareLink,
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -126,7 +133,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // initial restored mode always triggers an applyMode (the manager swaps adapter/layout exactly once).
     private var appliedDisplayMode: DisplayMode? = null
 
+    // S0699: the saved list position to restore (from RestoreScroll); applied once the row exists.
+    private var pendingScrollTarget: Int? = null
+    private var scrollRestored = false
+
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
+
+    // S0700: reachability sweep over the visible rows on the refresh action. applicationContext so a
+    // config-change never leaks the Activity into a probe's short-lived ExoPlayer.
+    private val healthProbe by lazy {
+        StreamHealthProbeManager(
+            context = applicationContext,
+            scope = lifecycleScope,
+            // S0700: a reachability probe updates the status bullet (green/amber, never red) and is not a play.
+            onStatus = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
+        )
+    }
 
     /** S0577: set when the user chose to keep a background stream playing on exit (skip teardown). */
     private var keepBackgroundService = false
@@ -172,6 +194,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleOwner = this,
             resources = resources,
             onToggleIconChanged = ::updateDisplayToggleIcon,
+            // S0700: grid frame capture reports reachability (green/amber, never red; not a play).
+            onStreamOutcome = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
         )
 
         binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
@@ -180,16 +204,27 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             when (item.itemId) {
                 R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
                 R.id.action_stream_import -> { showImportChooser(); true }
-                R.id.action_stream_display_toggle -> { viewModel.onToggleDisplayMode(); true }
-                R.id.action_stream_refresh -> { binding.rvStreams.scrollToPosition(0); true }
+                R.id.action_stream_display_toggle -> { cancelHealthProbe(); viewModel.onToggleDisplayMode(); true }
+                R.id.action_stream_refresh -> { startHealthProbe(); true }
                 else -> false
             }
         }
         tintToolbarMenuIcons()
 
-        binding.etSearch.doAfterTextChanged { viewModel.onQueryChanged(it?.toString().orEmpty()) }
-        binding.btnFilter.setOnClickListener { showFilterDialog() }
-        binding.btnSort.setOnClickListener { showSortDialog() }
+        binding.etSearch.doAfterTextChanged {
+            cancelHealthProbe()
+            viewModel.onQueryChanged(it?.toString().orEmpty())
+        }
+        binding.btnFilter.setOnClickListener { cancelHealthProbe(); showFilterDialog() }
+        binding.btnSort.setOnClickListener { cancelHealthProbe(); showSortDialog() }
+
+        // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
+        // e.g. the S0699 position restore, settle without DRAGGING so they do not cancel it).
+        binding.rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancelHealthProbe()
+            }
+        })
 
         // S0673: empty-state actions reuse the toolbar handlers so the recovery path is one tap.
         binding.btnEmptyAddUrl.setOnClickListener { showSourceDialog(isImport = false) }
@@ -212,7 +247,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun loadFaviconCoords() {
         lifecycleScope.launch {
             faviconCoords = faviconAtlasStore.coords()
-            Timber.d("S0668: favicon coords loaded (count=%d)", faviconCoords.size)
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
     }
@@ -286,6 +320,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
             updateFilterIndicator(state.filter)
+            // S0699: once the list carries the saved row, land on it (once per screen open).
+            tryRestoreScroll(state.sources.size)
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -313,6 +349,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     ).show()
                 }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
+                is StreamsViewModel.StreamsEvent.RestoreScroll -> {
+                    pendingScrollTarget = event.position
+                    tryRestoreScroll(latestState.sources.size)
+                }
                 StreamsViewModel.StreamsEvent.SuggestCatalogRefresh -> showCatalogRefreshSuggestion()
             }
         }
@@ -326,6 +366,41 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         Snackbar.make(binding.rvStreams, R.string.streams_catalog_refresh_suggestion, Snackbar.LENGTH_LONG)
             .setAction(R.string.streams_catalog_refresh_action) { viewModel.onImportCatalog() }
             .show()
+    }
+
+    /**
+     * S0700: the refresh action probes each currently-visible stream for reachability (green/red status)
+     * and, in grid mode, re-captures the visible tiles' thumbnails. The sweep aborts on any later user
+     * interaction (see [cancelHealthProbe]); the amber "unknown" stays the not-yet-probed default.
+     */
+    private fun startHealthProbe() {
+        val visible = visibleSources()
+        Timber.d("S0700: health probe started over %d visible streams", visible.size)
+        if (visible.isEmpty()) return
+        Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
+        if (latestState.displayMode == DisplayMode.GRID && ::gridModeManager.isInitialized) {
+            // Grid: the frame capture both renders the thumbnail and reports the VIDEO tile's status, so only
+            // AUDIO tiles need the lightweight surfaceless probe - avoids two decoders racing per video tile.
+            gridModeManager.refreshVisibleFrames()
+            healthProbe.start(visible.filter { it.mediaKind == "AUDIO" })
+        } else {
+            healthProbe.start(visible)
+        }
+    }
+
+    /** S0700: the rows/tiles currently on screen - the probe scope - read from the active layout manager. */
+    private fun visibleSources(): List<StreamSourceEntity> {
+        val layoutManager = binding.rvStreams.layoutManager as? LinearLayoutManager ?: return emptyList()
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+        if (first < 0 || last < 0) return emptyList()
+        val sources = latestState.sources
+        return (first..last).mapNotNull { sources.getOrNull(it) }
+    }
+
+    /** S0700: stop the reachability sweep so it never fights a user interaction or runs after the user moved on. */
+    private fun cancelHealthProbe() {
+        healthProbe.cancel()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -352,6 +427,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun onPlay(source: StreamSourceEntity) {
+        // S0700: selecting a stream aborts an in-flight reachability sweep.
+        cancelHealthProbe()
+        // S0690: tapping the row/tile that is already playing inline toggles it off (stop), so the
+        // same gesture both starts and stops the inline radio without hunting for the mini-control.
+        // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
+        if (source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id) {
+            inlineAudio.stop()
+            return
+        }
+        // S0711: starting any stream needs at least one active transport. Refuse fast (no spinner, no
+        // connection-timeout) when fully offline. Covers tile taps and the playByUrl shortcut path,
+        // both of which funnel through onPlay.
+        if (!viewModel.hasNetworkForStream()) {
+            Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            return
+        }
         if (source.mediaKind == "AUDIO") {
             inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
             return
@@ -366,6 +457,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 resourceId = SyntheticResourceIds.STREAM,
                 initialFilePath = source.url,
                 skipAvailabilityCheck = true,
+                // S0694: a video stream opens straight into immersive fullscreen.
+                enterFullscreen = true,
             )
         )
     }
@@ -475,7 +568,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * url/title; the ViewModel preserves pin/sort/origin and only surfaces an invalid-url message.
      */
     private fun showEditDialog(source: StreamSourceEntity) {
-        Timber.d("S0660: edit dialog opened for stream %s", source.url)
         val dialogBinding = DialogAddStreamBinding.inflate(layoutInflater)
         dialogBinding.tilUrl.hint = getString(R.string.streams_add_url_hint)
         dialogBinding.tilTitle.isVisible = true
@@ -502,7 +594,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** S0660: share the channel URL via the Android sharesheet (send-as-link, strategic §6.5). */
     private fun onShareLink(source: StreamSourceEntity) {
-        Timber.d("S0660: send-link tapped for stream %s", source.url)
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, source.url)
@@ -536,8 +627,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** Opens the category + language + media-kind filter dialog; the manager marshals selections to the ViewModel. */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, language, mediaKind ->
-            viewModel.onFilter(category = category, language = language, mediaKind = mediaKind)
+        filterDialogManager.show(latestState) { category, language, mediaKind, pinnedOnly ->
+            viewModel.onFilter(
+                category = category,
+                language = language,
+                mediaKind = mediaKind,
+                pinnedOnly = pinnedOnly,
+            )
         }
     }
 
@@ -545,10 +641,29 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
         val active = filter.category != null ||
             filter.language != null ||
-            filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL
+            filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
+            filter.pinnedOnly
         binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
         binding.btnFilter.contentDescription =
             getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
+    }
+
+    /**
+     * S0699: scroll to the remembered position once the list actually contains that row, exactly once per
+     * screen open. Clamped to the current bounds so a shorter list (filter/catalog change) still lands
+     * cleanly. A GridLayoutManager is a LinearLayoutManager, so list + grid + multi-column all work.
+     */
+    private fun tryRestoreScroll(itemCount: Int) {
+        if (scrollRestored) return
+        val target = pendingScrollTarget ?: return
+        if (itemCount <= 0) return
+        val clamped = target.coerceIn(0, itemCount - 1)
+        scrollRestored = true
+        pendingScrollTarget = null
+        binding.rvStreams.post {
+            (binding.rvStreams.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(clamped, 0)
+                ?: binding.rvStreams.scrollToPosition(clamped)
+        }
     }
 
     /** Sort-mode picker mapping each label to a [StreamsViewModel.SortMode]. */
@@ -580,7 +695,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun isBackgroundAudioEnabled(): Boolean =
         viewModel.settings.value.enablePersistentAudioPlayback && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // S0692: this Activity handles orientation config changes itself (manifest configChanges), so the
+        // list/grid column span must be recomputed here rather than via an Activity recreate.
+        if (::gridModeManager.isInitialized) gridModeManager.onConfigurationChanged()
+    }
+
     override fun onStop() {
+        // S0700: a backgrounded screen aborts any in-flight reachability sweep.
+        cancelHealthProbe()
+        // S0699: remember where the user left the list so the next open lands on the same channel.
+        (binding.rvStreams.layoutManager as? LinearLayoutManager)
+            ?.findFirstVisibleItemPosition()
+            ?.takeIf { it >= 0 }
+            ?.let { viewModel.onScrollPositionChanged(it) }
         // S0577: OFF-mode (in-app) stream audio must not survive the screen going to background -
         // mirrors local audio. Service-mode (ON) playback is owned by AudioPlaybackService and left alone.
         if (::inlineAudio.isInitialized && inlineAudio.isLocalPlaybackActive) {

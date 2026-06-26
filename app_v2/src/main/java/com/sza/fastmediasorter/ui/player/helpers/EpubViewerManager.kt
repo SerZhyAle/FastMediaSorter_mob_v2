@@ -48,9 +48,21 @@ class EpubViewerManager(
     private val coroutineScope: CoroutineScope,
     private val callback: EpubViewerCallback,
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository,
-    private val translationManager: TranslationManager
+    private val translationManager: TranslationManager,
+    // S0704: non-null only in the unified player; null in the document standalone (direct write).
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) : BaseDocumentViewerManager(root) {
     private val safeViews = PlayerBindingSafeViews(root)
+
+    /** S0704: route the EPUB load spinner through the coordinator when present, else write directly. */
+    private fun setEpubLoadSpinner(visible: Boolean) {
+        val coord = loadingIndicatorCoordinator
+        if (coord != null) {
+            if (visible) coord.show(LoadingSource.EPUB_LOAD) else coord.hide(LoadingSource.EPUB_LOAD)
+        } else {
+            safeViews.playerProgressBar.isVisible = visible
+        }
+    }
 
     interface EpubViewerCallback {
         fun showError(message: String)
@@ -109,6 +121,7 @@ class EpubViewerManager(
         },
         swipeGestureProvider = { swipeGestureDetector },
         bookProvider = { currentBook },
+        loadingIndicatorCoordinator = loadingIndicatorCoordinator,
     )
     // Backwards-compat alias for existing references.
     private val webView: WebView? get() = webViewLifecycle.current()
@@ -272,7 +285,7 @@ class EpubViewerManager(
         safeViews.setVisibleIfPresent(R.id.textViewerContainer, false)
         safeViews.pdfControlsLayout.isVisible = false
         safeViews.setVisibleIfPresent(R.id.btnTranslateImage, false)
-        safeViews.playerProgressBar.isVisible = true
+        setEpubLoadSpinner(true)
 
         // Force UI update to ensure progressBar is actually visible before async work
         safeViews.playerProgressBar.post { safeViews.playerProgressBar.invalidate() }
@@ -331,7 +344,7 @@ class EpubViewerManager(
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            safeViews.playerProgressBar.isVisible = false
+                            setEpubLoadSpinner(false)
                             callback.showError(context.getString(R.string.epub_load_failed))
                         }
                         throw e
@@ -340,7 +353,7 @@ class EpubViewerManager(
 
                 if (!file.exists()) {
                     loadingToastJob.cancel()
-                    safeViews.playerProgressBar.isVisible = false
+                    setEpubLoadSpinner(false)
                     callback.showError(context.getString(R.string.epub_file_not_found))
                     return@launch
                 }
@@ -391,7 +404,7 @@ class EpubViewerManager(
                         Timber.e(e, "Failed to parse EPUB")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            safeViews.playerProgressBar.isVisible = false
+                            setEpubLoadSpinner(false)
                             val messageRes = if (isProtectedEpubError(e)) {
                                 R.string.protected_file_unsupported
                             } else {
@@ -404,7 +417,7 @@ class EpubViewerManager(
             } catch (e: Exception) {
                 Timber.e(e, "EPUB display error")
                 loadingToastJob.cancel()
-                safeViews.playerProgressBar.isVisible = false
+                setEpubLoadSpinner(false)
                 callback.showError(context.getString(R.string.epub_display_error))
             }
         }
@@ -442,7 +455,7 @@ class EpubViewerManager(
 
         // Show progress bar while loading chapter (prevents "frozen" UI during HTML processing)
         withContext(Dispatchers.Main) {
-            safeViews.playerProgressBar.isVisible = true
+            setEpubLoadSpinner(true)
         }
 
         withContext(Dispatchers.IO) {

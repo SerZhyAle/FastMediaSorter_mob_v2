@@ -71,6 +71,7 @@ class AudioMetadataLoader @Inject constructor(
     companion object {
         private const val MAX_PARTIAL_READ_BYTES = 65536 // 64 KB - enough for ID3v2 + Vorbis headers
         private const val FAILED_CACHE_MAX_SIZE = 5000
+        private const val MEMORY_CACHE_MAX_SIZE = 5000
         /** After this many consecutive failures, disable the feature for the session. */
         private const val KILL_SWITCH_THRESHOLD = 15
         private const val MAX_COVER_BYTES = 4 * 1024 * 1024 // 4 MB cover art size limit
@@ -83,8 +84,14 @@ class AudioMetadataLoader @Inject constructor(
     /** Limits concurrent network fetches to avoid connection pool exhaustion. */
     private val semaphore = Semaphore(2)
 
-    /** In-memory cache: path → parsed metadata. Survives across scroll events. */
-    private val memoryCache = ConcurrentHashMap<String, AudioMetadata>()
+    /** In-memory cache: path → parsed metadata. FIFO eviction at [MEMORY_CACHE_MAX_SIZE] (parity with [failedCache]); survives across scroll events. */
+    private val memoryCache: MutableMap<String, AudioMetadata> = Collections.synchronizedMap(
+        object : LinkedHashMap<String, AudioMetadata>(128, 0.75f, false) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, AudioMetadata>): Boolean {
+                return size > MEMORY_CACHE_MAX_SIZE
+            }
+        }
+    )
 
     /** Paths currently being loaded - prevents duplicate parallel requests. */
     private val inFlight = ConcurrentHashMap.newKeySet<String>()

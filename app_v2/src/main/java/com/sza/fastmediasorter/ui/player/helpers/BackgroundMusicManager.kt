@@ -547,7 +547,10 @@ class BackgroundMusicManager @Inject constructor(
         currentTrackPath = null
         currentTrackName = null
         failedFiles.clear()
-        
+        // Drop listener lambdas: they capture the host PlayerActivity (S0726/S0715 P2).
+        onTrackChangedListener = null
+        onMusicErrorListener = null
+
         Timber.d("BackgroundMusic: Released all resources")
     }
     

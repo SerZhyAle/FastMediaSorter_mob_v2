@@ -135,7 +135,11 @@ class BrowseCommandOverflowManager(
             Candidate(R.id.btnSort, binding.btnSort, next(), alwaysEligible = true),
             Candidate(R.id.btnFilter, filterCell, next(), alwaysEligible = true),
             Candidate(R.id.btnRefresh, binding.btnRefresh, next(), alwaysEligible = true),
-            Candidate(R.id.btnToggleView, binding.btnToggleView, next(), alwaysEligible = true),
+            // Feature-gated, not always-eligible: audio-only libraries force list mode, so the toggle
+            // must vanish entirely (GONE) rather than linger disabled. Eligibility is reported from
+            // BrowseStateUiUpdater per resource; an always-eligible toggle would be force-shown here,
+            // overriding the GONE and leaving the dimmed-but-visible artifact.
+            Candidate(R.id.btnToggleView, binding.btnToggleView, next(), alwaysEligible = false),
             Candidate(R.id.btnSelectAll, binding.btnSelectAll, next(), alwaysEligible = true),
             Candidate(R.id.btnDeselectAll, binding.btnDeselectAll, next(), alwaysEligible = true),
             Candidate(R.id.btnPlay, binding.btnPlay, next(), alwaysEligible = true),

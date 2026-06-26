@@ -122,7 +122,8 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 // In harvest mode: intercept CDN video/HLS/DASH requests and auto-close
                 // as soon as the first media URL is found. The page is fully rendered
                 // because it’s a real visible WebView with real user gestures.
-                if (harvestMode && !request?.isForMainFrame!!) {
+                // request may be null per WebViewClient contract; treat null as "not a sub-frame" instead of !!-crashing (S0736/S0718).
+                if (harvestMode && request?.isForMainFrame == false) {
                     val url = request?.url?.toString()
                     if (url != null && isMediaCandidateUrl(url)) {
                         if (mediaHarvested.compareAndSet(false, true)) {

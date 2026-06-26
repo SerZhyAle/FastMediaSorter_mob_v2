@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -667,7 +668,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // surface, same as OCR/translation/VR/persistent-audio). S0575: also gate on the runtime
         // master toggle so the main-menu entry appears only when the user enabled Streams.
         val streamsAvailable = capabilityAvailability.isStreamsAvailable()
-        Timber.d("S0575: main menu streams gate support=%b enabled=%b", streamsAvailable, isStreamsEnabled)
         streamsMenuManager.populate(popup, streamsAvailable && isStreamsEnabled, 1)
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
@@ -795,9 +795,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         binding.rvResources.adapter = resourceAdapter
 
-        // Configure LayoutManager based on screen width (Tablet support)
-        val screenWidthDp = resources.configuration.screenWidthDp
-        if (screenWidthDp >= 600) {
+        // Configure LayoutManager based on available width / orientation (Tablet + wide-portrait support)
+        if (isWideLayout()) {
             // Tablet / Large screen: Use Grid Layout with columns from resources
             val columnCount = resources.getInteger(R.integer.resource_grid_column_count)
             binding.rvResources.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, columnCount)
@@ -972,8 +971,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.progressBar.isVisible = isLoading
         }
 
-        // Handle navigation progress (connection test during resource open)
+        // Handle navigation progress (connection test during resource open).
+        // While the resume-loading flow owns the indicator, defer to it so a stray
+        // isNavigating=false emission can't hide it mid-flow (one-frame race). S0708.
         collectOnLifecycle(viewModel.state) { state ->
+            if (::resumeHelper.isInitialized && resumeHelper.isResumeLoadingActive) return@collectOnLifecycle
             binding.navigationProgressLayout.isVisible = state.isNavigating
             if (state.isNavigating && state.navigationMessage != null) {
                 binding.tvNavigationMessage.text = state.navigationMessage

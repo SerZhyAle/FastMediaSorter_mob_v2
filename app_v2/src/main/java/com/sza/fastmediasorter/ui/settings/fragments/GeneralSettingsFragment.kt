@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -167,7 +168,7 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsCredentialHelper(viewModel, this, importCredentialsLauncher)
     }
     private val cacheHelper by lazy {
-        GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase)
+        GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase, { isUpdatingSpinner = it })
     }
     private val backupHelper by lazy {
         GeneralSettingsBackupHelper(
@@ -331,7 +332,7 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     private fun setupGeneralLayouts() {
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isWide = resources.configuration.isWideLayout()
 
         fun updateLayoutParams(view: View, isHorizontal: Boolean) {
             val params = view.layoutParams as LinearLayout.LayoutParams
@@ -340,8 +341,8 @@ class GeneralSettingsFragment : Fragment() {
             view.layoutParams = params
         }
 
-        binding.containerSync.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
-        updateLayoutParams(binding.layoutEnableSync, isLandscape)
-        updateLayoutParams(binding.layoutSyncControls, isLandscape)
+        binding.containerSync.orientation = if (isWide) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        updateLayoutParams(binding.layoutEnableSync, isWide)
+        updateLayoutParams(binding.layoutSyncControls, isWide)
     }
 }

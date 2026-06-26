@@ -244,13 +244,15 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             
             var migratedCount = 0
             var errorCount = 0
-            
+
+            // Load the cache table once; querying inside the loop re-scanned the whole table per file (S0733/S0717 P3 N+1).
+            val entriesByPath = thumbnailCacheDao.getAllThumbnails().associateBy { File(it.thumbnailPath) }
+
             oldFiles.forEach { oldFile ->
                 try {
                     if (oldFile.isFile) {
                         // Find database entry for this file
-                        val entries = thumbnailCacheDao.getAllThumbnails()
-                        val matchingEntry = entries.find { File(it.thumbnailPath) == oldFile }
+                        val matchingEntry = entriesByPath[oldFile]
                         
                         if (matchingEntry != null) {
                             // Move file to new location

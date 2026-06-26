@@ -2528,6 +2528,8 @@ Close the player and try again.</string>
     <string name="setting_subgroup_screen_gestures_title">Left-edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
+    <string name="setting_gesture_strip_visible_title">Show the left-edge gesture strip</string>
+    <string name="setting_gesture_strip_visible_summary">Tint the gesture strip grey so it is visible, instead of transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource - by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
@@ -2873,4 +2875,10 @@ Close the player and try again.</string>
     <string name="draw_tool_crop">Crop</string>
     <string name="draw_crop_frame_desc">Crop selection frame</string>
     <string name="draw_crop_failed">Couldn\'t crop the image</string>
+    <string name="stream_wait_buffering">Buffering..</string>
+    <string name="stream_wait_reconnecting">Reconnecting..</string>
+    <string name="streams_filter_pinned_only">Pinned only</string>
+    <string name="streams_refresh_probing">Checking streams..</string>
+    <string name="streams_error_no_network">No network. Connect to Wi-Fi or mobile data to play streams.</string>
+    <string name="tile_screenshot_label">Screenshot</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog
-import android.content.res.Configuration
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -9,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -57,7 +57,7 @@ internal class AddResourceFormManager(
 
     fun updateResourceTypeGridColumns() {
         binding.layoutResourceTypes.columnCount =
-            if (activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 1
+            if (activity.resources.configuration.isWideLayout()) 2 else 1
     }
 
     fun applyFlavorRestrictions() {

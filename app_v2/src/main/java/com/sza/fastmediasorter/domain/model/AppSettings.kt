@@ -180,6 +180,10 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
+    // S0724: tint the left-edge gesture strip opaque grey (RGB 128,128,128) so it is visible instead of
+    // transparent. Default off keeps the strip invisible (current behaviour). Effective only while the
+    // gesture overlay itself is enabled.
+    val screenshotGestureStripVisible: Boolean = false,
     val screenshotGestureActionDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
     val screenshotGestureActionRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotGestureActionUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,

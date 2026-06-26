@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import timber.log.Timber
 
@@ -27,10 +28,11 @@ class MainLayoutChromeManager(
 
     /** Show or hide text labels on toolbar buttons depending on orientation. */
     fun updateToolbarButtonLabels(config: Configuration) {
-        val isLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("updateToolbarButtonLabels: isLandscape=$isLandscape")
+        val isWide = config.isWideLayout()
+        Timber.d("updateToolbarButtonLabels: isWide=$isWide")
+        Timber.d("S0693: main chrome isWide=$isWide widthDp=${config.screenWidthDp}")
 
-        if (isLandscape) {
+        if (isWide) {
             binding.btnExit.text = activity.getString(R.string.exit)
             binding.btnAddResource.text = activity.getString(R.string.add)
             binding.btnFilter.text = activity.getString(R.string.search)
@@ -55,10 +57,9 @@ class MainLayoutChromeManager(
     fun updateLayoutManagerForScreenSize() {
         val gridMode = isResourceGridMode()
         val res = activity.resources
-        val screenWidthDp = res.configuration.screenWidthDp
-        val isWideScreen = screenWidthDp >= 600
+        val isWideScreen = res.configuration.isWideLayout()
 
-        Timber.d("updateLayoutManagerForScreenSize: screenWidthDp=$screenWidthDp, isWideScreen=$isWideScreen, isGridMode=$gridMode")
+        Timber.d("updateLayoutManagerForScreenSize: isWideScreen=$isWideScreen, isGridMode=$gridMode")
 
         if (gridMode) {
             // Compact Grid Mode - use resource-based column counts

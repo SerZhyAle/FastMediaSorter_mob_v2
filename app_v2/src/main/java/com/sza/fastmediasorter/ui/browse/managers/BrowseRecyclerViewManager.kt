@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import timber.log.Timber
@@ -95,18 +96,19 @@ class BrowseRecyclerViewManager(
         }
         callbacks.updateToggleButtonIcon(iconResId)
 
-        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val isWide = resources.configuration.isWideLayout()
+        Timber.d("S0693: browse displayMode isWide=$isWide widthDp=${resources.configuration.screenWidthDp}")
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
 
         val newLayoutManager = when (mode) {
             DisplayMode.LIST -> {
-                val columnCount = calculateListSpanCount(screenWidthDp, isLandscape)
+                val columnCount = calculateListSpanCount(screenWidthDp, isWide)
                 if (columnCount > 1) {
                     Timber.d(
                         "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=$columnCount"
                     )
-                    Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (landscape=$isLandscape, widthDp=$screenWidthDp)")
+                    Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (wide=$isWide, widthDp=$screenWidthDp)")
                     GridLayoutManager(recyclerView.context, columnCount)
                 } else {
                     Timber.d(
@@ -185,7 +187,7 @@ class BrowseRecyclerViewManager(
         // Release adapter resources if needed
     }
 
-    private fun calculateListSpanCount(screenWidthDp: Float, isLandscape: Boolean): Int {
+    private fun calculateListSpanCount(screenWidthDp: Float, isWide: Boolean): Int {
         val configuration = resources.configuration
         val isTelevision =
             (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION
@@ -195,7 +197,9 @@ class BrowseRecyclerViewManager(
 
         val baseMinCellWidthDp = when {
             isTelevision -> 320f
-            isLandscape -> 580f
+            // S0693: wide screens pack list rows at ~360dp so a wide-portrait tablet shows 2+ columns
+            // instead of one sparse full-width row.
+            isWide -> 360f
             else -> 460f
         }
         val adjustedMinCellWidthDp = baseMinCellWidthDp * configuration.fontScale.coerceIn(1.0f, 1.35f)

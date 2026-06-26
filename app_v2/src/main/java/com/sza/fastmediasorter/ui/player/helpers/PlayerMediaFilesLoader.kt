@@ -263,12 +263,6 @@ class PlayerMediaFilesLoader(
                     it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
                 }
                 if (streamPath != null) {
-                    // S0591: BlockNeedUserTest probe - proves the stream launch uses the dedicated STREAM
-                    // synthetic resource (id -200), not Favorites (id -100). Removed when S0591 leaves test.
-                    Timber.d(
-                        "S0591: stream launch resourceId=%d (STREAM=%d FAVORITES=%d)",
-                        resource.id, SyntheticResourceIds.STREAM, SyntheticResourceIds.FAVORITES,
-                    )
                     // S0590: show the human-readable channel name (from the stream list) as the
                     // player title instead of the raw URL segment. Resolved by URL so it works for
                     // any launch path; null title falls back to the URL-derived name downstream.

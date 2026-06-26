@@ -28,7 +28,6 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * Aggregates the deliverable modules (sets A/B/C/D) and OCR language data into a single inventory
@@ -237,7 +236,6 @@ class DeliverableInventoryImpl @Inject constructor(
     // S0575: the stream catalog is fetched directly (not a DeliverableSet), so map its one-shot import
     // result to the terminal DownloadProgress the shared row machinery already understands.
     private fun importStreamCatalog(): Flow<DownloadProgress> = flow {
-        Timber.d("S0575: extensions stream catalog import requested")
         emit(DownloadProgress.Queued)
         emit(
             when (val result = importStreamCatalogUseCase()) {

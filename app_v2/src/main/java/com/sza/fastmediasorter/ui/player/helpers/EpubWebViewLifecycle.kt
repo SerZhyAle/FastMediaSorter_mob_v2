@@ -19,6 +19,8 @@ internal class EpubWebViewLifecycle(
     private val onPageRendered: () -> Unit,
     private val swipeGestureProvider: () -> android.view.GestureDetector,
     private val bookProvider: () -> Book?,
+    // S0704: non-null only in the unified player; null in the document standalone (direct write).
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
     private var webView: WebView? = null
 
@@ -57,8 +59,16 @@ internal class EpubWebViewLifecycle(
         wv.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                // S0704: page rendered = EPUB_LOAD complete (the deterministic hide site). Posted so
+                // the hide lands after the WebView's own layout pass. Coordinator when present
+                // (unified player), else a direct write (document standalone).
                 val progress = safeViews.playerProgressBar
-                progress.post { progress.isVisible = false }
+                val coord = loadingIndicatorCoordinator
+                if (coord != null) {
+                    progress.post { coord.hide(LoadingSource.EPUB_LOAD) }
+                } else {
+                    progress.post { progress.isVisible = false }
+                }
                 onPageRendered()
             }
             override fun shouldInterceptRequest(

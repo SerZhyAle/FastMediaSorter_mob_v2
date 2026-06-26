@@ -46,13 +46,24 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
 
     override fun setEnabled(enabled: Boolean) {
         if (enabled && Settings.canDrawOverlays(appContext)) {
-            OverlayHostService.start(appContext)
+            OverlayHostService.start(appContext, readStripVisible())
         } else {
             OverlayHostService.stop(appContext)
         }
     }
 
+    override fun setStripVisible(visible: Boolean) {
+        // Only meaningful while the host is running; re-issuing start refreshes the live strip colour.
+        if (isEnabled() && Settings.canDrawOverlays(appContext)) {
+            OverlayHostService.start(appContext, visible)
+        }
+    }
+
     override fun isEnabled(): Boolean = runBlocking {
         settingsRepository.get().getSettings().first().gestureOverlayEnabled
+    }
+
+    private fun readStripVisible(): Boolean = runBlocking {
+        settingsRepository.get().getSettings().first().screenshotGestureStripVisible
     }
 }

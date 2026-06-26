@@ -252,6 +252,9 @@
 
         <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
 
+        <!-- S0685: stream wait-phase caption under the centered spinner (buffering vs reconnecting). -->
+        <TextView android:id="@+id/streamWaitLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="@dimen/stream_wait_label_margin_top" android:textColor="@color/white" android:textSize="@dimen/stream_wait_label_text_size" android:textAlignment="center" android:visibility="gone" />
+
         <include layout="@layout/player_tv_countdown_content" />
 
         <include layout="@layout/player_audio_touch_zones_overlay_content" />

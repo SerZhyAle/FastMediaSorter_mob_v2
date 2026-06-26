@@ -4,7 +4,6 @@ import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
-import androidx.core.view.isVisible
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.gif.GifDrawable
@@ -13,6 +12,8 @@ import com.bumptech.glide.request.target.Target
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
+import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import timber.log.Timber
 
@@ -21,9 +22,7 @@ internal class ImageLoadingGlideListeners(
     private val binding: ActivityPlayerUnifiedBinding,
     private val callback: ImageLoadingManager.ImageLoadingCallback,
     private val animatedImageController: AnimatedImageController,
-    private val loadingIndicatorHandler: android.os.Handler,
-    private val showLoadingIndicatorRunnable: Runnable,
-    private val hideLoadingSafetyRunnable: Runnable,
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator,
     private val getCurrentTargetView: () -> ImageView?,
     private val getCurrentCropSetting: () -> Boolean,
     private val getCurrentIsFullscreenOrSlideshow: () -> Boolean,
@@ -51,9 +50,8 @@ internal class ImageLoadingGlideListeners(
             animatedImageController.onLoadFailed()
             setCurrentIsAnimatedContent(false)
             callback.setAnimatedBadgeVisible(false)
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-            if (!callback.isDestroyed()) binding.progressBar.isVisible = false
+            // S0704: load failed - drop IMAGE_GLIDE and cancel its pending show + safety.
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (ImageLoadingDiagnostics.isNonCriticalNetworkImageError(e)) return false
             val isRaceConditionError = e?.rootCauses?.any { cause ->
                 val msg = cause.message ?: ""
@@ -86,11 +84,11 @@ internal class ImageLoadingGlideListeners(
                 )
             }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+            // S0704: image ready - drop IMAGE_GLIDE and cancel its pending show + safety so a fast
+            // load can never resurrect the spinner over the displayed image.
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             setPhotoViewImageLoaded(true)
             if (!callback.isDestroyed()) {
-                binding.progressBar.isVisible = false
                 applyScaleType(resource.intrinsicWidth, resource.intrinsicHeight)
                 logMemoryStats("AFTER onResourceReady")
                 val loadedBitmap = (resource as? BitmapDrawable)?.bitmap
@@ -124,10 +122,9 @@ internal class ImageLoadingGlideListeners(
             animatedImageController.onLoadFailed()
             setCurrentIsAnimatedContent(false)
             callback.setAnimatedBadgeVisible(false)
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+            // S0704: GIF load failed - drop IMAGE_GLIDE and cancel its pending show + safety.
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (!callback.isDestroyed()) {
-                binding.progressBar.isVisible = false
                 if (ImageLoadingDiagnostics.isNonCriticalNetworkImageError(e)) return false
                 callback.showError(binding.root.context.getString(R.string.error_gif_load_failed), e)
             }
@@ -147,11 +144,10 @@ internal class ImageLoadingGlideListeners(
                 )
             }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+            // S0704: GIF ready - drop IMAGE_GLIDE and cancel its pending show + safety.
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             setPhotoViewImageLoaded(true)
             if (!callback.isDestroyed()) {
-                binding.progressBar.isVisible = false
                 applyScaleType(resource.intrinsicWidth, resource.intrinsicHeight)
                 logMemoryStats("AFTER GIF onResourceReady")
                 callback.onImageContentLoaded()

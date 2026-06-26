@@ -43,6 +43,13 @@ class StreamFrameSnapshotManager(
     /** Invoked on the main thread after a successful capture so the adapter can repaint that url's tile. */
     var onCaptured: (url: String) -> Unit = {}
 
+    /**
+     * S0700: invoked on the main thread with the capture outcome for a captureable VIDEO stream - true when
+     * a frame was decoded (reachable), false on timeout/error. Lets the grid refresh derive the green/red
+     * status from the same decode that produces the thumbnail, instead of a separate reachability probe.
+     */
+    var onOutcome: (url: String, ok: Boolean) -> Unit = { _, _ -> }
+
     private val semaphore = Semaphore(MAX_CONCURRENT_CAPTURES)
     private val queue = ConcurrentLinkedQueue<CaptureRequest>()
 
@@ -56,7 +63,6 @@ class StreamFrameSnapshotManager(
      */
     fun request(url: String, textureViewProvider: () -> TextureView?) {
         if (cache.isFresh(url)) return
-        Timber.d("S0675: frame capture requested url=%s", url)
         synchronized(pending) {
             if (!pending.add(url)) return
         }
@@ -83,7 +89,11 @@ class StreamFrameSnapshotManager(
                     Timber.i("Stream snapshot skipped - cell recycled: %s", req.url)
                 } else {
                     val bitmap = capture(req.url, textureView)
-                    if (bitmap != null) withContext(Dispatchers.Main) { onCaptured(req.url) }
+                    // S0700: a recycled cell is not an outcome; only a real decode attempt reports green/red.
+                    withContext(Dispatchers.Main) {
+                        if (bitmap != null) onCaptured(req.url)
+                        onOutcome(req.url, bitmap != null)
+                    }
                 }
             }
             synchronized(inFlight) { inFlight.add(job) }
@@ -161,7 +171,9 @@ class StreamFrameSnapshotManager(
     }
 
     private companion object {
-        const val CAPTURE_TIMEOUT_MS = 6_000L
+        // S0700: live HLS on a software decoder needs well over the old 6 s to fetch the manifest, pull a
+        // segment, decode and render the first frame; 6 s timed out before any thumbnail appeared.
+        const val CAPTURE_TIMEOUT_MS = 12_000L
         const val MAX_CONCURRENT_CAPTURES = 2
     }
 }

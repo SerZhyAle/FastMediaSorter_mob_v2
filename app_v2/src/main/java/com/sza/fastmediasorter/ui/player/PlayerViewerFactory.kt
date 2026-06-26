@@ -17,8 +17,6 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 activity = activity,
                 viewModel = activity.viewModel,
                 binding = activity.activityBinding,
-                loadingIndicatorHandler = activity.loadingIndicatorHandler,
-                showLoadingIndicatorRunnable = activity.showLoadingIndicatorRunnable,
                 playerSettingsManagerProvider = { activity.playerSettingsManager },
                 imageLoadingManagerProvider = { activity.imageLoadingManager },
                 slideshowController = activity.slideshowController,
@@ -125,7 +123,8 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 }
             },
             playbackPositionRepository = activity.playbackPositionRepository,
-            translationManager = activity.translationManager
+            translationManager = activity.translationManager,
+            loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
         )
     }
 
@@ -179,6 +178,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             translationManager = activity.translationManager,
             saveFlow = saveFlow,
             textNoteStagingRegistry = activity.textNoteStagingRegistry,
+            loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
         )
     }
 

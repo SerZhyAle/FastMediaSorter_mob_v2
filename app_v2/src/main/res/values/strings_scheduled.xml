@@ -75,4 +75,6 @@
     <string name="scheduled_ops_toast_error">Operation error: %s</string>
     <string name="scheduled_ops_toggle">Use scheduled operations</string>
     <string name="scheduled_ops_toggle_hint">Copy, move, delete in the background</string>
+    <string name="scheduled_ops_notif_permission_title">Scheduled operation needs permission</string>
+    <string name="scheduled_ops_notif_permission_text">Grant All-files access so background Move/Delete can remove the original files.</string>
 </resources>

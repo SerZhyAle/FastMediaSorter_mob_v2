@@ -31,9 +31,33 @@ class PlayerGestureSetupManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val videoTouchDelegate = VideoTouchDelegate(activity, binding)
-    
+
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector
+
+    // S0694: a live video stream toggles between immersive fullscreen and command-panel mode on a single
+    // tap. Entering command-panel mode reveals topCommandPanel (with btnFullscreenCmd, the return-to-
+    // fullscreen affordance) and shows the ExoPlayer bottom controller; returning to fullscreen hides both.
+    // A dedicated detector keeps this off the 9/3-zone path and ignores scroll/long-press so it never
+    // competes with future stream gestures.
+    private val streamSurfaceGestureDetector: GestureDetector by lazy {
+        GestureDetector(activity, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = true
+
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (!viewModel.state.value.isLiveVideoStream) return false
+                if (viewModel.state.value.showCommandPanel) {
+                    viewModel.enterFullscreenMode()
+                    binding.playerView.hideController()
+                } else {
+                    viewModel.enterCommandPanelMode()
+                    binding.playerView.showController()
+                }
+                activity.updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
+                return true
+            }
+        })
+    }
 
     // Last ACTION_DOWN point on the PDF PhotoView (view coordinates), used to pre-select
     // the word under a long-press. NaN until the first PDF touch-down is observed.
@@ -116,7 +140,13 @@ class PlayerGestureSetupManager(
             val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
             val isPdfOrEpub = currentFile?.type == MediaType.PDF || currentFile?.type == MediaType.EPUB
             val isText = currentFile?.type == MediaType.TEXT
-            
+
+            // S0694: never consume a live-video-stream tap here - the 9/3-zone grid does not apply to a
+            // stream. Let it reach the PlayerView surface, where VideoTouchDelegate toggles the controller.
+            if (viewModel.state.value.isLiveVideoStream) {
+                return@setOnTouchListener false
+            }
+
             Timber.d("PlayerActivity.root.onTouch: action=${event.action}, type=${currentFile?.type}, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
             
             // For Text files: don't intercept touches, let TextViewerManager handle scrolling/gestures
@@ -239,9 +269,19 @@ class PlayerGestureSetupManager(
     private fun setupPlayerViewTouchListener() {
         binding.playerView.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) v.performClick()
-            val currentFile = viewModel.state.value.currentFile
-            val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+            val state = viewModel.state.value
+            val currentFile = state.currentFile
+            val isInFullscreenMode = !state.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+
+            // S0694: a live video stream taps between immersive fullscreen and command-panel mode. The
+            // 9/3-zone grid carries managed-file actions that do not apply to a stream, so route the tap
+            // to the dedicated stream detector instead. Consume the sequence so PlayerView's own controller
+            // does not also react (it is driven explicitly from the detector).
+            if (state.isLiveVideoStream) {
+                streamSurfaceGestureDetector.onTouchEvent(event)
+                return@setOnTouchListener true
+            }
 
             // DISABLED: Video gestures (F.1) - using 9-zone touch zones instead (per specification)
             // Previously: videoTouchDelegate handled brightness/volume/seek gestures for video
@@ -252,7 +292,7 @@ class PlayerGestureSetupManager(
                 }
                 return@setOnTouchListener false
             }
-            
+
             // In fullscreen mode with touch zones enabled, let our gesture detector handle it
             // BUT: allow bottom area to pass through for player controls
             if (isInFullscreenMode && useTouchZones) {

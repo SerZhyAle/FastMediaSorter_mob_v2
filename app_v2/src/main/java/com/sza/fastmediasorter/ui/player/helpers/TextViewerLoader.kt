@@ -47,7 +47,19 @@ internal class TextViewerLoader(
     private val clearAutoOpenEditMode: () -> Unit,
     private val enterEditMode: (Boolean) -> Unit,
     private val onTextCopyClicked: () -> Unit,
+    // S0704: non-null only in the unified player; null in standalone (direct progressBar write).
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
+    /** S0704: route the load spinner through the coordinator when present, else write directly. */
+    private fun setTextLoadSpinner(visible: Boolean) {
+        val coord = loadingIndicatorCoordinator
+        if (coord != null) {
+            if (visible) coord.show(LoadingSource.TEXT_LOAD) else coord.hide(LoadingSource.TEXT_LOAD)
+        } else {
+            safeViews.progressBarOrNull?.isVisible = visible
+        }
+    }
+
     fun load(mediaFile: MediaFile, isWritable: Boolean) {
         closePager()
         safeViews.imageViewOrNull?.isVisible = false
@@ -70,7 +82,7 @@ internal class TextViewerLoader(
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
         safeViews.tvTextContent.text = ""
-        safeViews.progressBarOrNull?.isVisible = true
+        setTextLoadSpinner(true)
         safeViews.btnCopyTextCmd.isVisible = true
         safeViews.btnCopyTextCmd.setOnClickListener { onTextCopyClicked() }
         safeViews.btnSearchTextCmd.isVisible = true
@@ -89,7 +101,7 @@ internal class TextViewerLoader(
                 else runCatching { networkFileManager.prepareFileForRead(mediaFile) }
                     .getOrElse {
                         withContext(Dispatchers.Main) {
-                            safeViews.progressBarOrNull?.isVisible = false
+                            setTextLoadSpinner(false)
                             showError(context.getString(R.string.text_file_load_failed))
                         }
                         return@launch
@@ -97,7 +109,7 @@ internal class TextViewerLoader(
 
                 if (!file.exists() && deferredStaged == null) {
                     withContext(Dispatchers.Main) {
-                        safeViews.progressBarOrNull?.isVisible = false
+                        setTextLoadSpinner(false)
                         showError(context.getString(R.string.text_file_not_found))
                     }
                     return@launch
@@ -112,7 +124,7 @@ internal class TextViewerLoader(
                     setSyntaxHighlightingEnabled(s.syntaxHighlighting)
                     setCurrentReaderTheme(resolveTheme(s.textReaderTheme))
                     withContext(Dispatchers.Main) {
-                        safeViews.progressBarOrNull?.isVisible = false
+                        setTextLoadSpinner(false)
                         renderPageContent("", s.showTextLineNumbers, 1)
                         safeViews.textPageNavigation.isVisible = false
                         safeViews.tvTextEncodingIndicator.text = Charsets.UTF_8.name()
@@ -128,7 +140,7 @@ internal class TextViewerLoader(
                     val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
                     val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
-                        safeViews.progressBarOrNull?.isVisible = false
+                        setTextLoadSpinner(false)
                         safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
                         safeViews.textPageNavigation.isVisible = false
                     }
@@ -149,7 +161,7 @@ internal class TextViewerLoader(
                 val startLine = pager.getStartLineNumber(0)
 
                 withContext(Dispatchers.Main) {
-                    safeViews.progressBarOrNull?.isVisible = false
+                    setTextLoadSpinner(false)
                     renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                     val multiPage = !pager.isSinglePage()
                     safeViews.textPageNavigation.isVisible = multiPage
@@ -179,7 +191,7 @@ internal class TextViewerLoader(
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
                 withContext(Dispatchers.Main) {
-                    safeViews.progressBarOrNull?.isVisible = false
+                    setTextLoadSpinner(false)
                     showError(context.getString(R.string.text_file_display_error))
                 }
             }

@@ -28,6 +28,7 @@ class AudioToggleTileService : TileService() {
 
     override fun onStartListening() {
         super.onStartListening()
+        Timber.d("S0713: AudioToggleTile bound and listening (tile is addable)")
         if (AudioPlaybackService.isRunning) {
             connectToSession()
         } else {

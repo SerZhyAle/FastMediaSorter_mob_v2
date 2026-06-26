@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -123,9 +122,19 @@ class StreamsViewModel @Inject constructor(
             sort = session.lastSort?.toSortMode() ?: defaults.streamsDefaultSort.toSortMode(),
             mediaKind = session.lastMediaFilter?.toMediaKind() ?: defaults.streamsDefaultMediaFilter.toMediaKind(),
             query = session.lastQuery ?: "",
+            // S0697: restore the facet selections + pinned-only toggle too. A restored facet value that no
+            // longer exists in the catalog simply yields an empty list with the filter shown active, so the
+            // user can clear it - no crash, no silent wrong data.
+            category = session.lastCategory,
+            language = session.lastLanguage,
+            pinnedOnly = session.lastPinnedOnly ?: false,
         )
         val restoredMode = session.lastDisplayMode?.toDisplayMode() ?: DisplayMode.LIST
         _state.update { it.copy(displayMode = restoredMode) }
+        // S0699: ask the Activity to land on the remembered position once the list renders. A buffered
+        // event survives init ordering, so it is delivered whether the read finishes before or after the
+        // first list emission; the Activity applies it once the row at that position exists.
+        session.lastScrollPosition?.let { _events.send(StreamsEvent.RestoreScroll(it)) }
         initialFilterApplied = true
     }
 
@@ -211,8 +220,11 @@ class StreamsViewModel @Inject constructor(
         category: String? = null,
         language: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
+        pinnedOnly: Boolean = false,
     ) {
-        _filter.update { it.copy(category = category, language = language, mediaKind = mediaKind) }
+        _filter.update {
+            it.copy(category = category, language = language, mediaKind = mediaKind, pinnedOnly = pinnedOnly)
+        }
         persistSession()
     }
 
@@ -224,7 +236,6 @@ class StreamsViewModel @Inject constructor(
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */
     fun onToggleDisplayMode() {
         val newMode = if (_state.value.displayMode == DisplayMode.GRID) DisplayMode.LIST else DisplayMode.GRID
-        Timber.d("S0675: display-mode toggled to %s", newMode.name)
         _state.update { it.copy(displayMode = newMode) }
         viewModelScope.launch { sessionStore.writeDisplayMode(newMode.name) }
     }
@@ -242,6 +253,9 @@ class StreamsViewModel @Inject constructor(
                 sort = filter.sort.name,
                 mediaFilter = filter.mediaKind.name,
                 query = filter.query,
+                category = filter.category,
+                language = filter.language,
+                pinnedOnly = filter.pinnedOnly,
             )
         }
     }
@@ -284,6 +298,18 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S0711: cheap synchronous snapshot of whether any network transport is active. A stream cannot
+     * be reached with no Wi-Fi/cellular/ethernet, so the play path consults this to refuse fast
+     * instead of letting ExoPlayer/the fullscreen player spin until a connection timeout.
+     */
+    fun hasNetworkForStream(): Boolean = networkContextAnalyzer.hasAnyNetwork()
+
+    /** S0699: remember the user's current list position so the next screen open lands on the same channel. */
+    fun onScrollPositionChanged(position: Int) = viewModelScope.launch {
+        if (position >= 0) sessionStore.writeScrollPosition(position)
+    }
+
     fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
 
     fun onRemove(source: StreamSourceEntity) = viewModelScope.launch { removeStreamSource(source) }
@@ -291,6 +317,10 @@ class StreamsViewModel @Inject constructor(
     /** S0593: record the inline-audio play outcome (OK on first playing, FAIL on error) for the row bullet. */
     fun recordStreamOutcome(id: String, ok: Boolean) =
         viewModelScope.launch { recordStreamPlayOutcome(id, ok) }
+
+    /** S0700: record a reachability-probe / grid-capture outcome - reachable -> green, else amber (not red). */
+    fun recordStreamProbeOutcome(id: String, reachable: Boolean) =
+        viewModelScope.launch { recordStreamPlayOutcome.recordProbe(id, reachable) }
 
     /** S0577: persist the background-audio exit preference chosen from the streams exit dialog. */
     fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) = viewModelScope.launch {
@@ -334,7 +364,9 @@ class StreamsViewModel @Inject constructor(
                 }
                 // topic stays ANDed: not exposed in the filter UI (the query box covers topic).
                 val topicHit = filter.topic == null || source.topic == filter.topic
-                queryHit && categoryHit && languageHit && mediaHit && topicHit
+                // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
+                val pinnedHit = !filter.pinnedOnly || source.pinned
+                queryHit && categoryHit && languageHit && mediaHit && topicHit && pinnedHit
             }
             val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
                 SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
@@ -386,6 +418,8 @@ class StreamsViewModel @Inject constructor(
         val topic: String? = null,
         val language: String? = null,
         val mediaKind: MediaKindFilter = MediaKindFilter.ALL,
+        // S0696: when true, keep only the streams the user personally pinned.
+        val pinnedOnly: Boolean = false,
         val sort: SortMode = SortMode.NAME,
     )
 
@@ -399,6 +433,9 @@ class StreamsViewModel @Inject constructor(
         data class ImportFinished(val inserted: Int) : StreamsEvent
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
         data class PlayRequested(val source: StreamSourceEntity) : StreamsEvent
+
+        /** S0699: ask the Activity to restore the saved list position once the row at [position] exists. */
+        data class RestoreScroll(val position: Int) : StreamsEvent
 
         /** S0659: ON_OPEN policy asks the Activity to surface a dismissible catalog-refresh suggestion. */
         data object SuggestCatalogRefresh : StreamsEvent

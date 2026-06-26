@@ -356,7 +356,7 @@
         <!-- Quick Settings tile for audio play/pause toggle -->
         <service android:name=".core.AudioToggleTileService" android:icon="@drawable/ic_tile_play" android:label="@string/tile_audio_label" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>
@@ -364,7 +364,7 @@
         <!-- S0683: Quick Settings tile that opens the Quick Launch Panel (second entry point besides the left-edge gesture) -->
         <service android:name=".core.AppLaunchPanelTileService" android:icon="@drawable/ic_view_grid" android:label="@string/app_launch_panel_title" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>

@@ -56,6 +56,10 @@ class TextViewerManager(
     // S0189: registry of deferred new-note intents. Non-null in panel PlayerActivity,
     // null in StandalonePlayerActivity (which never creates notes).
     private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry? = null,
+    // S0704: unified-player spinner owner. Non-null only in the unified PlayerActivity; null in the
+    // standalone activities, where the bar keeps its single reactive driver and these helpers fall
+    // back to direct progressBar writes.
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
 
     companion object {
@@ -190,6 +194,7 @@ class TextViewerManager(
         getTextGestureDetector = { textGestureDetector },
         resetTranslationState = { translationOverlayManager.resetState() },
         setTouchZonesEnabled = callback::setTouchZonesEnabled,
+        loadingIndicatorCoordinator = loadingIndicatorCoordinator,
     )
     private val searchManager = TextViewerSearchManager(safeViews)
 
@@ -526,6 +531,7 @@ class TextViewerManager(
             isAutoOpenEditMode = { autoOpenEditMode },
             clearAutoOpenEditMode = { autoOpenEditMode = false },
             enterEditMode = { autoOpen -> enterEditMode(autoOpen) },
+            loadingIndicatorCoordinator = loadingIndicatorCoordinator,
             onTextCopyClicked = {
                 val text = safeViews.tvTextContent.text.toString()
                 if (text.isNotEmpty()) {
@@ -851,6 +857,7 @@ class TextViewerManager(
             setUndoRedoManager = { undoRedoManager = it },
             applyLineNumbers = ::applyLineNumbers,
             showError = callback::showError,
+            loadingIndicatorCoordinator = loadingIndicatorCoordinator,
         )
     }
 

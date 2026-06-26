@@ -125,6 +125,9 @@ class BrowseStateUiUpdater(
         val shouldDisableToggle = state.resource?.isAudioOnly() == true
         val disableThumbnails = state.resource?.disableThumbnails == true
         onUpdateToggleViewAvailability(shouldDisableToggle)
+        // Keep the overflow partition in sync: an audio-only library hides the toggle (GONE), so it
+        // must also be ineligible for the command bar - otherwise the adaptive bar re-shows it dimmed.
+        setCommandEligibility(R.id.btnToggleView, !shouldDisableToggle)
 
         if (state.displayMode != currentDisplayMode ||
             shouldDisableToggle != currentAudioOnlyMode ||

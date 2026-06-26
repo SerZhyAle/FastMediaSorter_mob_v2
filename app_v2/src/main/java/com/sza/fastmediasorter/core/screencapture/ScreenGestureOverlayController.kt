@@ -27,4 +27,8 @@ interface ScreenGestureOverlayController {
 
     fun setEnabled(enabled: Boolean)
     fun isEnabled(): Boolean
+
+    /** S0724: push the left-edge strip's visibility (grey vs transparent) to the live overlay. No-op
+     * when the gesture overlay is currently disabled - the persisted value applies on the next enable. */
+    fun setStripVisible(visible: Boolean)
 }

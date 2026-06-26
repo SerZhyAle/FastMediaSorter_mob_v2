@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.calculator.helpers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -20,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
@@ -297,9 +297,8 @@ class CalculatorInputManager(
     }
 
     private fun resolveFunctionDialogWidthPx(): Int {
-        val isLandscape =
-            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val maxWidth = dpToPx(if (isLandscape) FUNCTION_DIALOG_MAX_WIDTH_LAND_DP else FUNCTION_DIALOG_MAX_WIDTH_PORT_DP)
+        val isWide = context.resources.configuration.isWideLayout()
+        val maxWidth = dpToPx(if (isWide) FUNCTION_DIALOG_MAX_WIDTH_LAND_DP else FUNCTION_DIALOG_MAX_WIDTH_PORT_DP)
         val horizontalMargin = dpToPx(FUNCTION_DIALOG_SIDE_MARGIN_DP)
         val availableWidth = context.resources.displayMetrics.widthPixels - (horizontalMargin * 2)
         return min(availableWidth, maxWidth)
@@ -311,9 +310,8 @@ class CalculatorInputManager(
             (rows * dpToPx(FUNCTION_DIALOG_BUTTON_HEIGHT_DP)) +
                 (rows * itemMargin * 2) +
                 (containerPadding * 2)
-        val isLandscape =
-            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val maxHeight = dpToPx(if (isLandscape) FUNCTION_DIALOG_MAX_HEIGHT_LAND_DP else FUNCTION_DIALOG_MAX_HEIGHT_PORT_DP)
+        val isWide = context.resources.configuration.isWideLayout()
+        val maxHeight = dpToPx(if (isWide) FUNCTION_DIALOG_MAX_HEIGHT_LAND_DP else FUNCTION_DIALOG_MAX_HEIGHT_PORT_DP)
         return min(contentHeight, maxHeight)
     }
 

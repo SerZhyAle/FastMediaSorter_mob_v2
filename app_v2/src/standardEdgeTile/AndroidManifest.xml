@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0672: Quick Settings tile fallback for the standard edge-gesture screen capture.
+    Injected into the standard build via addStaticManifestFile (build.gradle.kts) ONLY when
+    fms.edgeGestureTile != off. The tile launches the shared MediaProjection consent path
+    (ScreenCaptureConsentActivity) - NO SYSTEM_ALERT_WINDOW, NO FOREGROUND_SERVICE_SPECIAL_USE,
+    no persistent overlay. Play-safe contingency trigger if the specialUse strip is rejected.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenshotGestureTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_notification_screen_capture"
+            android:label="@string/tile_screenshot_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="false" />
+        </service>
+    </application>
+
+</manifest>

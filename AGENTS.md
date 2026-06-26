@@ -18,6 +18,7 @@
 - Layouts: portrait edit requires landscape (`res/layout-land/`) edit.
 - UI changes: run `/ui-clarify` before implementation.
 - WindowInsets: systemBars + displayCutout safe bounds (fitsSystemWindows not enough).
+- Dialog action pair (S0538/S0684): confirm/cancel in any dialog/bottom-sheet/custom layout uses the named styles - confirm = `DialogConfirm` (green, wide), cancel = `DialogCancel` (soft-pink tonal, shorter/narrower), destructive = `DialogDestructive` (red). Never a one-off cancel button. Gate: `scripts/quality/assert-dialog-cancel-style.ps1`.
 
 ## 4. Research Order
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
