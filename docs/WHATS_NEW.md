@@ -6,7 +6,34 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6251.711** (June 2026)
+**Current release: 2.60.6270.802** (June 2026)
+
+> Changes since version 2.60.6251.711
+
+---
+
+## What's New
+
+- **Fullscreen stream player** - watch a live channel full-screen with stream-tailored controls.
+- **Stop inline streams** - tap a playing tile again to stop it.
+- **Pin favorite streams** - long-press to pin, then filter to pinned-only.
+- **Streams remember their view** - filter, sort and list position persist between visits.
+- **Landscape stream grid** - multi-column list with status dots and a per-tile menu.
+- **Smoother stream startup** - health probe plus bandwidth-adaptive buffering.
+- **Clearer stream waiting state** - separate buffering and reconnecting labels.
+- **Edge-gesture screen capture** - opt-in left-edge strip and Quick Settings tile.
+- **Visible gesture strip** - optional grey guide marks the left-edge swipe zone.
+- **Width-based landscape layout** - wide screens use the landscape layout from 600dp.
+
+## What's Fixed
+
+- Offline streams now fail softly instead of breaking playback.
+- Database reset shows a recovery notice instead of failing silently.
+- Duplicate parenthetical names in stream titles are suppressed.
+
+---
+
+## Previous Release: 2.60.6251.711 (June 2026)
 
 > Changes since version 2.60.6242.232
 
