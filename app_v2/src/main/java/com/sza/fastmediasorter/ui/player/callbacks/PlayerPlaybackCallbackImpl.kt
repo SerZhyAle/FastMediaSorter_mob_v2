@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
-import android.os.Handler
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -12,6 +11,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -26,8 +26,6 @@ class PlayerPlaybackCallbackImpl(
     private val activity: PlayerActivity,
     private val viewModel: PlayerViewModel,
     private val binding: ActivityPlayerUnifiedBinding,
-    private val loadingIndicatorHandler: Handler,
-    private val showLoadingIndicatorRunnable: Runnable,
     private val playerSettingsManagerProvider: () -> PlayerSettingsManager,
     private val imageLoadingManagerProvider: () -> ImageLoadingManager,
     private val slideshowController: SlideshowController,
@@ -38,8 +36,11 @@ class PlayerPlaybackCallbackImpl(
 
     override fun onPlaybackReady() {
         activity.slideshowResourceAvailabilityManager.onPlaybackReady()
-        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-        binding.progressBar.isVisible = false
+        // S0704: playback ready - drop VIDEO_EXOPLAYER and cancel the playVideo pending show so a
+        // fast-starting clip never flashes the spinner over the first frame.
+        activity.loadingIndicatorCoordinator.reset(LoadingSource.VIDEO_EXOPLAYER)
+        // S0685: playback started - clear any stream wait-phase label (catch-all for the stream->local path).
+        binding.streamWaitLabel.isVisible = false
 
         // Apply player settings when ready
         playerSettingsManagerProvider().applyPlayerSettings()
@@ -93,10 +94,28 @@ class PlayerPlaybackCallbackImpl(
     
     override fun onBuffering(isBuffering: Boolean) {
         if (isBuffering) {
-            binding.progressBar.isVisible = true
+            activity.loadingIndicatorCoordinator.show(LoadingSource.VIDEO_EXOPLAYER)
         } else {
-            binding.progressBar.isVisible = false
+            activity.loadingIndicatorCoordinator.hide(LoadingSource.VIDEO_EXOPLAYER)
+            // S0685: spinner gone -> drop the wait-phase label too (the stream listener also clears it
+            // explicitly, this covers the generic non-stream buffering-off path).
+            binding.streamWaitLabel.isVisible = false
         }
+    }
+
+    override fun onStreamWaitPhase(phase: VideoPlayerManager.StreamWaitPhase?) {
+        val label = binding.streamWaitLabel
+        if (phase == null) {
+            label.isVisible = false
+            return
+        }
+        label.setText(
+            when (phase) {
+                VideoPlayerManager.StreamWaitPhase.BUFFERING -> R.string.stream_wait_buffering
+                VideoPlayerManager.StreamWaitPhase.RECONNECTING -> R.string.stream_wait_reconnecting
+            }
+        )
+        label.isVisible = true
     }
     
     override fun onPlaybackStateChanged(isPlaying: Boolean) {

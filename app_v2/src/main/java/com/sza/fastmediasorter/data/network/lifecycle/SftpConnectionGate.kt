@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.network.lifecycle
 
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.jcraft.jsch.ChannelSftp
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,6 +28,7 @@ import javax.inject.Singleton
 class SftpConnectionGate @Inject constructor(
     private val client: SftpClient,
     private val tracker: SftpRecreateTracker,
+    @ApplicationScope private val applicationScope: CoroutineScope,
     @Suppress("unused") private val diagnostics: ConnectionDiagnostics
 ) : NetworkConnectionGate<ChannelSftp> {
 
@@ -54,11 +57,16 @@ class SftpConnectionGate @Inject constructor(
 
     override fun closeFor(consumer: ConsumerType) {
         if (!consumer.isUi) return
-        try {
-            runBlocking { client.disconnectAllPool() }
-            Timber.i("[scope=lifecycle protocol=SFTP action=close_ui] all SFTP sessions disconnected")
-        } catch (e: Exception) {
-            Timber.w(e, "SftpConnectionGate.closeFor: disconnectAll failed")
+        // closeFor is invoked from ProcessLifecycleOwner.ON_STOP (Main); a synchronous SSH teardown
+        // here stalls the UI on every backgrounding. Fire-and-forget on the IO-backed application
+        // scope, mirroring SftpConnectionPool.disconnectAllOnNetworkChange (S0727).
+        applicationScope.launch {
+            try {
+                client.disconnectAllPool()
+                Timber.i("[scope=lifecycle protocol=SFTP action=close_ui] all SFTP sessions disconnected")
+            } catch (e: Exception) {
+                Timber.w(e, "SftpConnectionGate.closeFor: disconnectAll failed")
+            }
         }
     }
 

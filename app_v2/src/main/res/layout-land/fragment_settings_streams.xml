@@ -25,53 +25,83 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowDefaultSort"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/settings_streams_default_sort" />
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowDefaultMediaFilter"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowDefaultSort"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/settings_streams_default_sort" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowDefaultMediaFilter"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/settings_streams_default_filter" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/settings_streams_default_filter" />
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowCatalogRefresh"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowCatalogRefresh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/settings_streams_catalog_refresh" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearPlayStatuses"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="@dimen/margin_small"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusDown="@id/btnStreams"
+                android:text="@string/settings_streams_clear_statuses" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/settings_streams_catalog_refresh" />
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnClearPlayStatuses"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusDown="@id/btnStreams"
-            android:text="@string/settings_streams_clear_statuses" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStreams"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnClearPlayStatuses"
+                android:text="@string/streams_title"
+                app:icon="@drawable/ic_video"
+                app:iconGravity="start" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Streams shortcut (relocated from Playback). Visibility follows the master toggle above
-         (StreamsSettingsFragment) so the feature is hidden everywhere while disabled. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStreams"
-        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        android:focusable="true"
-        android:clickable="true"
-        android:nextFocusUp="@id/btnClearPlayStatuses"
-        android:text="@string/streams_title"
-        app:icon="@drawable/ic_video"
-        app:iconGravity="start" />
 
 </LinearLayout>

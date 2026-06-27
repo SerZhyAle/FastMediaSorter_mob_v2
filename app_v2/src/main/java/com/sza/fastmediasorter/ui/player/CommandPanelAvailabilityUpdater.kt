@@ -137,10 +137,16 @@ internal class CommandPanelAvailabilityUpdater(
         // S0642: copy-to / move-to destination groups are file operations - inapplicable to a live
         // video stream (it is not a managed file). They sit on their own panel, outside the command
         // profile filter (S0631), so gate them here too.
+        // S0741: an active image-edit overlay (draw/crop) immersive-hides these panels; this async
+        // availability pass (also re-entered at the tail of populateDestinationButtons) must not
+        // re-show them over the overlay. Only the destination panels need this gate - the rest of
+        // the command panel is hidden with the topCommandPanel container by PlayerImmersiveModeManager.
+        val editOverlayActive =
+            state.imageEditMode != com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE
         val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons &&
-            !state.isLiveVideoStream
+            !state.isLiveVideoStream && !editOverlayActive
         val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons &&
-            canWrite && !state.isLiveVideoStream
+            canWrite && !state.isLiveVideoStream && !editOverlayActive
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
         logPanelGeometrySnapshot("decision")

@@ -13,10 +13,16 @@ import timber.log.Timber
  * but preserves data when app goes to background (unlike simple HashMap which is cleared by GC).
  */
 object MediaFilesCacheManager {
-    
+
     // Calculate cache size: 128MB = 128 * 1024 * 1024 bytes
     // Average MediaFile size ~500 bytes, so this can hold ~260,000 files across all resources
     private const val CACHE_SIZE_BYTES = 128 * 1024 * 1024
+
+    // S0729: LruCache.get/put are internally synchronized, but the ArrayList stored as the value is
+    // mutated in place (set/add/removeAll) on Main while RandomPhotoFrameWidgetRefresher iterates a
+    // toList() snapshot on IO. Guard every value-content mutation AND the snapshot read with one lock
+    // so the two never interleave (no ConcurrentModificationException / torn read).
+    private val lock = Any()
     
     // Cache key = resourceId, value = list of MediaFiles
     // LruCache requires size calculation via sizeOf() override
@@ -52,7 +58,7 @@ object MediaFilesCacheManager {
                 file
             }
         }
-        cache.put(resourceId, fixedFiles.toMutableList())
+        synchronized(lock) { cache.put(resourceId, fixedFiles.toMutableList()) }
         Timber.d("MediaFilesCache: Cached ${fixedFiles.size} files for resource $resourceId")
     }
     
@@ -61,7 +67,8 @@ object MediaFilesCacheManager {
      * Thread-safe: LruCache handles synchronization internally.
      */
     fun getCachedList(resourceId: Long): List<MediaFile>? {
-        val files = cache.get(resourceId)?.toList()
+        // S0729: snapshot under lock so the toList() copy cannot race an in-place mutation on Main.
+        val files = synchronized(lock) { cache.get(resourceId)?.toList() }
         Timber.d("MediaFilesCache: Retrieved ${files?.size ?: 0} files for resource $resourceId")
         return files
     }
@@ -70,16 +77,16 @@ object MediaFilesCacheManager {
      * Updates a file in the cached list (after rename operation).
      * @return true if file was found and updated, false otherwise
      */
-    fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile): Boolean {
-        val list = cache.get(resourceId) ?: return false
+    fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile): Boolean = synchronized(lock) {
+        val list = cache.get(resourceId) ?: return@synchronized false
         val index = list.indexOfFirst { it.path == oldPath }
         if (index >= 0) {
             list[index] = newFile
             Timber.d("MediaFilesCache: Updated file at index $index (${oldPath} → ${newFile.path})")
-            return true
+            return@synchronized true
         }
         Timber.w("MediaFilesCache: File not found for update: $oldPath")
-        return false
+        false
     }
     
     /**
@@ -87,9 +94,9 @@ object MediaFilesCacheManager {
      * Normalizes URIs by decoding before comparison to handle both encoded and decoded paths.
      * @return true if file was found and removed, false otherwise
      */
-    fun removeFile(resourceId: Long, filePath: String): Boolean {
-        val list = cache.get(resourceId) ?: return false
-        
+    fun removeFile(resourceId: Long, filePath: String): Boolean = synchronized(lock) {
+        val list = cache.get(resourceId) ?: return@synchronized false
+
         // Normalize path for comparison (decode URI if it's encoded)
         val normalizedPath = try {
             if (filePath.startsWith("content://")) {
@@ -123,14 +130,14 @@ object MediaFilesCacheManager {
         } else {
             Timber.w("MediaFilesCache: File not found for removal: $filePath (normalized: $normalizedPath)")
         }
-        return removed
+        removed
     }
     
     /**
      * Adds a file to the cached list (after move-in operation from another resource).
      * Inserts in correct position based on current sort order (caller's responsibility to sort).
      */
-    fun addFile(resourceId: Long, file: MediaFile) {
+    fun addFile(resourceId: Long, file: MediaFile) = synchronized(lock) {
         val list = cache.get(resourceId) ?: mutableListOf<MediaFile>().also { cache.put(resourceId, it) }
         list.add(file)
         Timber.d("MediaFilesCache: Added file ${file.path} to resource $resourceId (${list.size} files total)")
@@ -162,8 +169,8 @@ object MediaFilesCacheManager {
     /**
      * Gets current size of cached list without retrieving it.
      */
-    fun getCacheSize(resourceId: Long): Int {
-        return cache.get(resourceId)?.size ?: 0
+    fun getCacheSize(resourceId: Long): Int = synchronized(lock) {
+        cache.get(resourceId)?.size ?: 0
     }
     
     /**
@@ -171,10 +178,10 @@ object MediaFilesCacheManager {
      * Called once on app startup to migrate old path format.
      * Returns number of fixed paths.
      */
-    fun fixCloudPaths(): Int {
+    fun fixCloudPaths(): Int = synchronized(lock) {
         var fixedCount = 0
         val snapshot = cache.snapshot()
-        
+
         snapshot.forEach { (resourceId, files) ->
             val updatedFiles = files.map { file ->
                 if (file.path.startsWith("cloud:/") && !file.path.startsWith("cloud://")) {
@@ -184,16 +191,16 @@ object MediaFilesCacheManager {
                     file
                 }
             }.toMutableList()
-            
+
             if (fixedCount > 0) {
                 cache.put(resourceId, updatedFiles)
             }
         }
-        
+
         if (fixedCount > 0) {
             Timber.i("MediaFilesCache: Fixed $fixedCount cloud paths (cloud:/ → cloud://)")
         }
-        
-        return fixedCount
+
+        fixedCount
     }
 }

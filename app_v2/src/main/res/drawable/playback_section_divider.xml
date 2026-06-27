@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0670: rail/content separator for the portrait playback-control dialog. Drawn via the parent
+     LinearLayout's showDividers instead of a child <View android:layout_height="match_parent">: a
+     plain View resolves to the full max-height cap under an AT_MOST height spec, which forced the
+     whole dialog to full screen height even for a 2-tab audio file. A showDividers divider is drawn,
+     not measured, so it no longer drives the row height. The 10dp insets reproduce the former
+     android:layout_marginHorizontal="10dp". -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="10dp"
+    android:insetRight="10dp">
+    <shape android:shape="rectangle">
+        <size android:width="1dp" />
+        <solid android:color="?attr/colorOutlineVariant" />
+    </shape>
+</inset>

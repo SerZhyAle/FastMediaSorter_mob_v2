@@ -116,7 +116,6 @@ class PhotoVideoStandaloneActivity :
         val op = pendingCustomPathOp
         pendingCustomPathOp = null
         if (uri == null || op == null) return@registerForActivityResult
-        Timber.d("S0610: standalone custom-path destination picked op=$op")
         contentResolver.takePersistableUriPermission(
             uri,
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -198,7 +197,7 @@ class PhotoVideoStandaloneActivity :
      * read-only source that never showed the Move panel does not gain it back.
      */
     private fun setBottomPanelsHiddenForDraw(drawing: Boolean) {
-        Timber.d("S0676: standalone draw mode changed drawing=$drawing")
+        destinationPanelsSuppressed = drawing
         val copyPanel = binding.root.findViewById<View>(R.id.copyToPanel)
         val movePanel = binding.root.findViewById<View>(R.id.moveToPanel)
         if (drawing) {
@@ -215,6 +214,11 @@ class PhotoVideoStandaloneActivity :
     // S0676: remembers Copy/Move panel visibility across a draw session so exit restores the exact state.
     private var copyPanelVisibleBeforeDraw = false
     private var movePanelVisibleBeforeDraw = false
+
+    // S0676/S0741: true while a fullscreen overlay suppresses the Copy/Move destination panels.
+    // The populate coroutine can finish after the overlay has already hidden the panels; this gate
+    // stops it from re-showing them until the overlay exits and restores the captured state.
+    private var destinationPanelsSuppressed = false
 
     // S0393: Group A image editing reuses the shared seam-based PlayerCropDelegate (replaces the
     // standalone-only StandaloneImageEditController). The PlayerActionHost members below supply the
@@ -340,7 +344,6 @@ class PhotoVideoStandaloneActivity :
     // print path; returns false when no rendered image is available so the menu gate / dispatch fails cleanly.
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
         val bitmap = binding.photoView.drawable?.toBitmap() ?: return false
-        Timber.d("S0610: standalone image print dispatched via Send-to receiver")
         androidx.print.PrintHelper(this).apply {
             scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
         }.printBitmap(mediaFile.name, bitmap)
@@ -475,7 +478,8 @@ class PhotoVideoStandaloneActivity :
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
-                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+                override fun shouldShowDestinationPanels(): Boolean =
+                    viewModel.state.value.mediaFile != null && !destinationPanelsSuppressed
             },
             shouldNumberSlots = { false },
             slotKeyGlyph = { null },
@@ -801,7 +805,6 @@ class PhotoVideoStandaloneActivity :
                 maybeRunAutoAction(type)
                 // S0610: build the Copy/Move destination grids for the shown file (runs in a coroutine
                 // inside the manager, so it does not delay first render).
-                Timber.d("S0610: standalone destination panels populated")
                 destinationButtonsManager.populateDestinationButtons()
             }
             folderPagingEnabled = state.supportsFolderPaging

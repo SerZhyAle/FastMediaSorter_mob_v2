@@ -133,12 +133,12 @@ class WelcomeFunctionalityController @Inject constructor(
             overlayPermissionLauncher = launcher,
             activity = activity,
             initialEnabled = settings.gestureOverlayEnabled,
+            initialStripVisible = settings.screenshotGestureStripVisible,
             persist = ::persist,
         ).also { it.setup() }
     }
 
     private fun bindStatisticsRow(row: SettingsToggleRow, settings: AppSettings) {
-        Timber.d("S0656: welcome functionality page wiring statistics toggle, current=${settings.enableStatistics}")
         row.setCheckedSilently(settings.enableStatistics)
         row.setOnCheckedChangeListener { isChecked ->
             persist { it.copy(enableStatistics = isChecked) }
@@ -304,7 +304,6 @@ class WelcomeFunctionalityController @Inject constructor(
         row.setCheckedSilently(settings.enableStreams)
         binding.groupStreamsProgress.visibility = View.GONE
         row.setOnCheckedChangeListener { isChecked ->
-            Timber.d("S0575: welcome Streams toggle -> %b", isChecked)
             if (isChecked) {
                 persist { it.copy(enableStreams = true) }
                 startStreamCatalogImport(binding, owner)

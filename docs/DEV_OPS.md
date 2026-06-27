@@ -148,6 +148,38 @@ pwsh -File scripts/utils/recover-kapt-stall.ps1
 
 `recover-kapt-stall.ps1` is the targeted scalpel: it stops daemons, removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory`. `clean-gradle-caches.ps1` nukes everything (`.gradle/`, `build/`, `app_v2/build/`) and is the cold-start option.
 
+### Shared-state mutation audit (S0703)
+
+On-demand quality tool, not a build gate. Finds places where one shared object is mutated from several layers (the "last-write-wins" / redundant / unsafe class).
+
+```powershell
+# Stage 1 - mechanical candidate harvest (UI view props + data carriers), ranked report + JSON.
+pwsh -NoProfile -File scripts/quality/audit-shared-state-writers.ps1 -Surface all -Top 20 -Json temp/shared-state-audit.json
+```
+
+`-Surface ui|data|all`, `-Top N`, `-MinWriters N`. Stage 2 hands the JSON plus the agent prompt `scripts/quality/shared-state-audit-prompt.md` to a research agent that adjudicates indirect writers / concurrency and lists survivors as `/spec-draft` candidates.
+
+### Static analysis (detekt + ktlint) - S0720
+
+A standalone static gate over Kotlin sources - detekt's code-smell/complexity rules plus the ktlint formatting ruleset. It is deliberately NOT wired into `assemble*`, so it never changes the runtime artifact or slows a normal build. Runs lexically (no type resolution), so it is fast and needs no full compile.
+
+```powershell
+# Run the gate (both modules)
+.\gradlew.bat :app_v2:detekt :wear:detekt
+
+# Wrapper with a PASS/FAIL verdict (this is what post-change.ps1 calls on Kotlin/Mixed)
+pwsh -NoProfile -File scripts/quality/assert-detekt.ps1 -Gate
+
+# Re-freeze the baseline after an intentional refactor (rewrites the per-module XML)
+.\gradlew.bat :app_v2:detektBaseline :wear:detektBaseline
+```
+
+Ratchet model: each module has a committed baseline freezing every pre-existing finding, so `detekt` fails only on NEW findings. Regenerate the baseline only when you intentionally accept/remove findings.
+
+- Config: `config/detekt/detekt.yml` (relies on `buildUponDefaultConfig` - only enables formatting + a few thresholds).
+- Baselines: `config/detekt/baseline-app_v2.xml`, `config/detekt/baseline-wear.xml`.
+- Plugin: applied per-subproject in the root `build.gradle.kts` (`subprojects { }`), detekt `1.23.8` + `detekt-formatting`.
+
 ## STRING RESOURCE TOOLING
 
 ```powershell

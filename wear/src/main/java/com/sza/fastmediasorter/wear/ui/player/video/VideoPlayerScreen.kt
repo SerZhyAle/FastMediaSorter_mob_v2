@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -124,7 +125,17 @@ private fun VideoPlayerContent(
     onPlayPause: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    
+    val context = LocalContext.current
+    // S0725: keep a stable PlayerView reference so onDispose can detach the surface (player = null).
+    // Media3 1.2.1 PlayerView does not unregister its ComponentListener on onDetachedFromWindow, so the
+    // player would otherwise retain every disposed PlayerView (-> Context).
+    val playerView = remember {
+        PlayerView(context).apply {
+            useController = false
+            setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -136,13 +147,7 @@ private fun VideoPlayerContent(
     ) {
         // Video surface
         AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    this.player = player
-                    useController = false
-                    setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
-                }
-            },
+            factory = { playerView.also { it.player = player } },
             modifier = Modifier.fillMaxSize(),
             update = { view ->
                 view.player = player
@@ -178,7 +183,9 @@ private fun VideoPlayerContent(
     // Cleanup
     DisposableEffect(Unit) {
         onDispose {
-            Timber.d("VideoPlayerScreen disposed")
+            // S0725: detach surface so the per-VM player does not retain the disposed PlayerView/Context.
+            playerView.player = null
+            Timber.d("VideoPlayerScreen disposed - player detached from surface")
         }
     }
 }

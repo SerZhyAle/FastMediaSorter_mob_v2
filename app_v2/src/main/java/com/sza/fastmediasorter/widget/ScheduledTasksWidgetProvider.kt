@@ -48,8 +48,18 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        // updateAppWidget collects two cold disk Flows (Room getAll + DataStore getSettings);
+        // running it inline on the BroadcastReceiver Main thread stalls onUpdate. Defer to IO and
+        // keep the broadcast alive via goAsync(), mirroring onReceive (S0727).
+        val pendingResult = goAsync()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidget(context, appWidgetManager, appWidgetId)
+                }
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

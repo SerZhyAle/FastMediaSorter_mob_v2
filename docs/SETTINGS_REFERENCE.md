@@ -244,6 +244,7 @@ _Available in: Standard, Legacy_
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
+| Show the left-edge gesture strip | Shows a semi-transparent grey guide on the first 4 px of the left-edge gesture strip; the rest stays transparent, and the change takes effect only while the gesture overlay is enabled. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
 | Auto-download incoming links | Automatically downloads a file when a link is shared into the app. |

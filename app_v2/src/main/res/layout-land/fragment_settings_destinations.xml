@@ -1133,6 +1133,15 @@
                         app:str_helpTitle="@string/setting_gesture_overlay_help_title"
                         app:str_helpMessage="@string/setting_gesture_overlay_help_message" />
 
+                    <!-- S0724: tint the left-edge strip grey so it is discoverable; depends on the overlay being enabled. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowGestureStripVisible"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_title="@string/setting_gesture_strip_visible_title"
+                        app:str_subtitle="@string/setting_gesture_strip_visible_summary" />
+
                     <!-- S0567: gesture-action + screenshot-destination selectors unified to SettingsSelectionRow
                          (landscape parity with portrait, Rule 11). Labels written via setValue() in the controller. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow

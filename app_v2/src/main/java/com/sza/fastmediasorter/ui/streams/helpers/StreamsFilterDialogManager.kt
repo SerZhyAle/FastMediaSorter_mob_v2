@@ -23,12 +23,18 @@ class StreamsFilterDialogManager(
 
     fun show(
         state: StreamsViewModel.StreamsUiState,
-        onApply: (category: String?, language: String?, mediaKind: StreamsViewModel.MediaKindFilter) -> Unit,
+        onApply: (
+            category: String?,
+            language: String?,
+            mediaKind: StreamsViewModel.MediaKindFilter,
+            pinnedOnly: Boolean,
+        ) -> Unit,
     ) {
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
         var category = state.filter.category
         var language = state.filter.language
         var mediaKind = state.filter.mediaKind
+        var pinnedOnly = state.filter.pinnedOnly
 
         fun renderValues() {
             binding.tvCategoryValue.text = category ?: activity.getString(R.string.streams_filter_all)
@@ -36,6 +42,7 @@ class StreamsFilterDialogManager(
         }
         renderValues()
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
+        binding.checkPinnedOnly.isChecked = pinnedOnly
 
         binding.rowCategory.setOnClickListener {
             SearchableOptionPickerDialog.newInstance(
@@ -45,7 +52,7 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     category = picked?.id
                     renderValues()
-                    onApply(category, language, mediaKind)
+                    onApply(category, language, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_category_picker")
         }
@@ -58,7 +65,7 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     language = picked?.id
                     renderValues()
-                    onApply(category, language, mediaKind)
+                    onApply(category, language, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_language_picker")
         }
@@ -70,7 +77,12 @@ class StreamsFilterDialogManager(
                 binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
                 else -> StreamsViewModel.MediaKindFilter.ALL
             }
-            onApply(category, language, mediaKind)
+            onApply(category, language, mediaKind, pinnedOnly)
+        }
+
+        binding.checkPinnedOnly.setOnCheckedChangeListener { _, isChecked ->
+            pinnedOnly = isChecked
+            onApply(category, language, mediaKind, pinnedOnly)
         }
 
         val dialog = MaterialAlertDialogBuilder(activity)
@@ -85,9 +97,11 @@ class StreamsFilterDialogManager(
                 category = null
                 language = null
                 mediaKind = StreamsViewModel.MediaKindFilter.ALL
+                pinnedOnly = false
                 renderValues()
                 binding.toggleMediaKind.check(binding.btnMediaAll.id)
-                onApply(category, language, mediaKind)
+                binding.checkPinnedOnly.isChecked = false
+                onApply(category, language, mediaKind, pinnedOnly)
             }
         }
         // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).

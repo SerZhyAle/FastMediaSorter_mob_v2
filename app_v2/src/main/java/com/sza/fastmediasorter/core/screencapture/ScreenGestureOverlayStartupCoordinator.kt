@@ -5,7 +5,6 @@ import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -24,10 +23,11 @@ class ScreenGestureOverlayStartupCoordinator @Inject constructor(
     suspend fun restoreIfNeeded() {
         if (controllers.isEmpty()) return
 
-        val gestureOverlayEnabled = settingsRepository.get().getSettings()
-            .map { it.gestureOverlayEnabled }
-            .first()
-        if (!gestureOverlayEnabled) return
+        // S0727: read the full settings snapshot once off-Main, then pass strip visibility into
+        // setEnabled so the controller does no settings IO on Main.immediate below.
+        val settings = settingsRepository.get().getSettings().first()
+        if (!settings.gestureOverlayEnabled) return
+        val stripVisible = settings.screenshotGestureStripVisible
 
         withContext(Dispatchers.Main.immediate) {
             controllers.forEach { controller ->
@@ -37,7 +37,7 @@ class ScreenGestureOverlayStartupCoordinator @Inject constructor(
                     )
                     return@forEach
                 }
-                controller.setEnabled(true)
+                controller.setEnabled(true, stripVisible)
                 Timber.i(
                     "ScreenGestureOverlayStartupCoordinator: overlay restore requested on startup"
                 )

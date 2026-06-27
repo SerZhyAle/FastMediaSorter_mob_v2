@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S0575: Media-tab "Streams" section hosting the single feature master toggle. Mirrors
@@ -45,7 +44,6 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindSwitch(binding.rowEnableStreams) { isChecked ->
-            Timber.d("S0575: settings Streams toggle -> %b", isChecked)
             viewModel.updateSettings(viewModel.settings.value.copy(enableStreams = isChecked))
         }
 

@@ -172,6 +172,9 @@
     <!-- S0611: dialog confirm button fill, decoupled from semantic success_color (day = white on green-800, 5.13:1). -->
     <color name="confirm_button_bg">#FF2E7D32</color>
     <color name="confirm_button_on">#FFFFFFFF</color>
+    <!-- S0684: soft-pink tonal cancel button (day = wine on rose, 9.51:1); distinct from the saturated destructive red. -->
+    <color name="cancel_button_bg">#FFF4D9DE</color>
+    <color name="cancel_button_on">#FF5A1F2A</color>
     <color name="info_color">#FF0288D1</color>
     <color name="scrollbar_thumb">#FF9E9E9E</color>
 
@@ -381,5 +384,9 @@
     <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->
     <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
     <color name="stream_status_unknown">#FFF9A825</color> <!-- Amber 800 - not yet played -->
+
+    <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
+         legible on top of an arbitrary captured video frame or favicon. -->
+    <color name="stream_grid_overlay_scrim">#99000000</color>
 </resources>
 

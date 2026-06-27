@@ -108,4 +108,15 @@
             android:text="@string/streams_filter_media_video" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <!-- S0696: quick facet limiting the list to the channels the user pinned themselves. -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/checkPinnedOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:minHeight="@dimen/list_item_height"
+        android:text="@string/streams_filter_pinned_only"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/resource_card_desc_text_size" />
+
 </LinearLayout>

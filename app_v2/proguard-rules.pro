@@ -20,6 +20,12 @@
 # Keep model classes
 -keep class com.sza.fastmediasorter.domain.model.** { *; }
 
+# Keep Gson-serialized persistence models that lack @SerializedName: without this R8 renames
+# their fields, breaking cross-version JSON restore (Drive backup, trash metadata, game state) - S0737/S0719.
+-keep class com.sza.fastmediasorter.domain.usecase.Backup** { *; }
+-keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
+-keep class com.sza.fastmediasorter.domain.game.** { *; }
+
 # ExoPlayer
 -keep class androidx.media3.** { *; }
 -dontwarn androidx.media3.**

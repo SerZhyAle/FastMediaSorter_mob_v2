@@ -310,6 +310,20 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal val hideControlsHandler = Handler(Looper.getMainLooper())
     internal val loadingIndicatorHandler = Handler(Looper.getMainLooper())
 
+    /**
+     * S0704: single visibility owner of the shared `R.id.progressBar`. Every former direct writer
+     * (reactive driver, image cycle, ExoPlayer/OCR/translation/PDF/text/EPUB) now requests show/hide
+     * by source through this coordinator instead of racing on `progressBar.isVisible`. Created lazily
+     * on first manager wiring, before any media manager needs it.
+     */
+    internal val loadingIndicatorCoordinator by lazy {
+        com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator(
+            progressBar = binding.progressBar,
+            handler = loadingIndicatorHandler,
+            isDestroyed = { isDestroyed || isFinishing },
+        )
+    }
+
     private lateinit var gestureDetector: GestureDetector
     internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
@@ -458,9 +472,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
     }
-    internal val showLoadingIndicatorRunnable = Runnable {
-        if (!isDestroyed && !isFinishing) binding.progressBar.isVisible = true
-    }
     private lateinit var imageTouchGestureDetector: GestureDetector
 
     // S0028: per-window resume state isolation
@@ -515,7 +526,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         setupTouchZones()
         binding.root.post {
             updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
+            initEnterFullscreenOnLaunch(savedInstanceState)
         }
+    }
+
+    /**
+     * S0694: a live video stream opens straight into fullscreen. Gate on the intent's resource id
+     * (STREAM is known immediately, whereas currentFile/isLiveVideoStream is not populated yet at
+     * first layout) and run only on a fresh launch - a process-death recreation must not re-force
+     * fullscreen after the user has manually exited it. enterFullscreenMode() is idempotent.
+     */
+    private fun initEnterFullscreenOnLaunch(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) return
+        if (!intent.getBooleanExtra(EXTRA_ENTER_FULLSCREEN, false)) return
+        val isStreamResource = intent.getLongExtra("resourceId", 0L) ==
+            com.sza.fastmediasorter.domain.model.SyntheticResourceIds.STREAM
+        if (!isStreamResource) return
+        viewModel.enterFullscreenMode()
+        updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
 
     /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
@@ -1176,6 +1204,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
         // S0289: last-played resource id propagated back to MainActivity on player exit so focus restores to the corresponding list row (not just the launch resource). Future extension: MainActivity may consume this via onActivityResult if the launch path is migrated from startActivity to ActivityResultLauncher.
         const val EXTRA_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"
 
+        // S0694: open a live video stream straight into fullscreen. Set by the Streams launch path;
+        // honoured once on first layout (see initEnterFullscreenOnLaunch).
+        const val EXTRA_ENTER_FULLSCREEN = "extra_enter_fullscreen"
+
         fun createIntent(
             context: Context,
             resourceId: Long,
@@ -1187,6 +1219,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
             windowId: String? = null,
+            enterFullscreen: Boolean = false,
         ): Intent {
             // S0241 Phase 03: VR runtime detached from main player entry-point - every flavor now
             // routes to the flat PlayerActivity directly.
@@ -1200,6 +1233,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
                 detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
                 windowId?.let { putExtra(EXTRA_WINDOW_ID, it) }
+                if (enterFullscreen) putExtra(EXTRA_ENTER_FULLSCREEN, true)
             }
         }
 

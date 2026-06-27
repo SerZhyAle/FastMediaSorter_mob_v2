@@ -1,15 +1,22 @@
 package com.sza.fastmediasorter.ui.streams
 
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.TextureView
 import android.view.ViewGroup
+import android.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -20,9 +27,18 @@ import kotlinx.coroutines.launch
  * it shows the favicon/placeholder fallback and, for http(s) VIDEO sources, enqueues a snapshot via
  * [requestCapture]. The favicon plumbing mirrors [StreamSourceAdapter] (rebind-safe with a boundUrl
  * guard). [repaintUrl] lets the snapshot engine's `onCaptured` callback refresh just one tile.
+ *
+ * S0701: each tile now also carries the same play-status dot (bottom-left) and overflow menu (top-right)
+ * as the list row, and S0695's long-press pin/unpin toggle - so grid mode is not a feature-poor sibling
+ * of the list. The secondary-command callbacks mirror [StreamSourceAdapter].
  */
 class StreamGridAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
+    private val onPin: (StreamSourceEntity) -> Unit,
+    private val onRemove: (StreamSourceEntity) -> Unit,
+    private val onAddShortcut: (StreamSourceEntity) -> Unit,
+    private val onEdit: (StreamSourceEntity) -> Unit,
+    private val onShareLink: (StreamSourceEntity) -> Unit,
     private val frameProvider: (url: String) -> Bitmap?,
     private val requestCapture: (url: String, textureViewProvider: () -> TextureView?) -> Unit,
     private val faviconResolver: (String) -> Int? = { null },
@@ -63,8 +79,36 @@ class StreamGridAdapter(
             val context = binding.root.context
             boundUrl = source.url
             cancelFaviconLoad()
-            binding.tvTitle.text = source.title
+            binding.tvTitle.text = StreamTitleFormatter.display(source.title)
+            bindPlayStatus(source.lastPlayOutcome)
             binding.root.setOnClickListener { onPlay(source) }
+            // S0695: long-press toggles pin/unpin on a tile too (mirrors the list row).
+            binding.root.setOnLongClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                onPin(source)
+                true
+            }
+            binding.btnGridOverflow.setOnClickListener { anchor ->
+                PopupMenu(anchor.context, anchor).apply {
+                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, 0, R.string.streams_add_to_home_screen)
+                    // Edit is offered only for user-added channels (mirrors the list row, S0660 §6.4).
+                    if (source.sourceOrigin == "MANUAL") {
+                        menu.add(Menu.NONE, ID_EDIT, 1, R.string.streams_edit)
+                    }
+                    menu.add(Menu.NONE, ID_SHARE_LINK, 2, R.string.streams_send_link)
+                    menu.add(Menu.NONE, ID_REMOVE, 3, R.string.streams_remove)
+                    setOnMenuItemClickListener { item ->
+                        when (item.itemId) {
+                            ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
+                            ID_EDIT -> { onEdit(source); true }
+                            ID_SHARE_LINK -> { onShareLink(source); true }
+                            ID_REMOVE -> { onRemove(source); true }
+                            else -> false
+                        }
+                    }
+                    show()
+                }
+            }
 
             val frame = frameProvider(source.url)
             if (frame != null) {
@@ -94,6 +138,25 @@ class StreamGridAdapter(
                 if (tile != null) binding.ivFrame.setImageBitmap(tile)
             }
         }
+
+        /** S0701: same tri-state play-status mapping as [StreamSourceAdapter.bindPlayStatus]. */
+        private fun bindPlayStatus(outcome: String?) {
+            val (iconRes, colorRes, descRes) = when (outcome) {
+                RecordStreamPlayOutcomeUseCase.OUTCOME_OK ->
+                    Triple(R.drawable.ic_stream_status_ok, R.color.stream_status_ok, R.string.stream_status_ok)
+                RecordStreamPlayOutcomeUseCase.OUTCOME_FAIL ->
+                    Triple(R.drawable.ic_stream_status_failed, R.color.stream_status_failed, R.string.stream_status_failed)
+                else ->
+                    Triple(R.drawable.ic_stream_status_unknown, R.color.stream_status_unknown, R.string.stream_status_unknown)
+            }
+            val context = binding.ivGridStatus.context
+            binding.ivGridStatus.setImageResource(iconRes)
+            ImageViewCompat.setImageTintList(
+                binding.ivGridStatus,
+                ColorStateList.valueOf(ContextCompat.getColor(context, colorRes))
+            )
+            binding.ivGridStatus.contentDescription = context.getString(descRes)
+        }
     }
 
     private fun isCaptureableVideo(source: StreamSourceEntity): Boolean =
@@ -101,6 +164,11 @@ class StreamGridAdapter(
             (source.url.startsWith("http://") || source.url.startsWith("https://"))
 
     private companion object {
+        const val ID_ADD_SHORTCUT = 1
+        const val ID_REMOVE = 2
+        const val ID_EDIT = 3
+        const val ID_SHARE_LINK = 4
+
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =
                 oldItem.id == newItem.id

@@ -25,7 +25,7 @@ class BrowseListSubmitManager(
     private val adapter: MediaFileAdapter,
     private val emptyStateView: View,
     private val scrollButtonManager: BrowseScrollButtonManager,
-    private val isLoadingProvider: () -> Boolean
+    private val shouldShowEmptyProvider: () -> Boolean
 ) {
     /** Flag for scroll restoration after PlayerActivity return. */
     var shouldScrollToLastViewed = false
@@ -150,7 +150,7 @@ class BrowseListSubmitManager(
         if (itemCount > 0) {
             emptyStateView.isVisible = false
         } else {
-            emptyStateView.isVisible = !isLoadingProvider()
+            emptyStateView.isVisible = shouldShowEmptyProvider()
         }
     }
 

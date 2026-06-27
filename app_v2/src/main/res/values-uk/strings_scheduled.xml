@@ -75,4 +75,6 @@
     <string name="scheduled_ops_toast_error">Помилка операції: %s</string>
     <string name="scheduled_ops_toggle">Використовувати операції за розкладом</string>
     <string name="scheduled_ops_toggle_hint">Копіювання, переміщення, видалення у фоні</string>
+    <string name="scheduled_ops_notif_permission_title">Запланованій операції потрібен дозвіл</string>
+    <string name="scheduled_ops_notif_permission_text">Надайте доступ до всіх файлів, щоб фонове переміщення/видалення могло видаляти оригінали.</string>
 </resources>

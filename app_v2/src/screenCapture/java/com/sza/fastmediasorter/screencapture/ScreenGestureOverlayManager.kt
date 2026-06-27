@@ -1,7 +1,12 @@
 package com.sza.fastmediasorter.screencapture
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.ColorFilter
+import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.view.Gravity
 import android.view.MotionEvent
@@ -28,16 +33,21 @@ class ScreenGestureOverlayManager(
     private val windowManager = overlayContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     private var stripView: View? = null
+    private var stripWidthPx = 0
+    private var stripVisible = false
     private var gestureTriggered = false
     private var downX = 0f
     private var downY = 0f
 
-    fun show() {
+    fun show(stripVisible: Boolean = false) {
         if (stripView != null) return
+        this.stripVisible = stripVisible
         val spec = computeStripSpec()
+        stripWidthPx = spec.width
         val view = View(overlayContext).apply {
             isClickable = false
             isFocusable = false
+            applyStripBackground(this)
             setOnTouchListener(::handleTouch)
         }
         val params = WindowManager.LayoutParams(
@@ -66,6 +76,29 @@ class ScreenGestureOverlayManager(
         val view = stripView ?: return
         windowManager.removeViewImmediate(view)
         stripView = null
+        stripWidthPx = 0
+    }
+
+    /** S0724: recolour a live strip (grey when visible, transparent when hidden) without re-adding the
+     *  window; if no strip is shown yet, the value is applied by the next [show]. */
+    fun setStripVisible(visible: Boolean) {
+        if (stripVisible == visible) return
+        stripVisible = visible
+        stripView?.let { applyStripBackground(it) }
+    }
+
+    private fun applyStripBackground(view: View) {
+        if (!stripVisible) {
+            view.setBackgroundColor(Color.TRANSPARENT)
+            return
+        }
+
+        val currentWidthPx = stripWidthPx.takeIf { it > 0 } ?: view.width.coerceAtLeast(EDGE_VISIBLE_WIDTH_PX)
+        val visibleEdgeWidthPx = EDGE_VISIBLE_WIDTH_PX.coerceAtMost(currentWidthPx)
+        view.background = EdgeGuideDrawable(
+            color = STRIP_VISIBLE_EDGE_COLOR,
+            visibleWidthPx = visibleEdgeWidthPx
+        )
     }
 
     private fun handleTouch(view: View, event: MotionEvent): Boolean {
@@ -147,6 +180,10 @@ class ScreenGestureOverlayManager(
     )
 
     companion object {
+        // S0724 follow-up: only the first 4 px stay visibly guided; the rest of the gesture zone
+        // remains transparent so the user can discover the edge without seeing the full hit area.
+        private const val STRIP_VISIBLE_EDGE_COLOR = 0x80808080.toInt()
+        private const val EDGE_VISIBLE_WIDTH_PX = 4
         private const val STRIP_WIDTH_DP = 18
         // Strip spans the left edge from 10% to 75% of the safe height: the 10% top offset keeps
         // the corner free so the gesture is not triggered there; the strip ends at 75% downward.
@@ -160,5 +197,34 @@ class ScreenGestureOverlayManager(
         private const val RIGHT_MAX_ANGLE_DEGREES = 20.0
         private const val DOWN_MIN_ANGLE_DEGREES = 20.0
         private const val DOWN_MAX_ANGLE_DEGREES = 70.0
+    }
+
+    private class EdgeGuideDrawable(
+        color: Int,
+        private val visibleWidthPx: Int
+    ) : Drawable() {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            this.color = color
+        }
+
+        override fun draw(canvas: Canvas) {
+            val width = visibleWidthPx.coerceAtMost(bounds.width()).coerceAtLeast(0)
+            if (width <= 0 || bounds.height() <= 0) return
+            canvas.drawRect(0f, 0f, width.toFloat(), bounds.height().toFloat(), paint)
+        }
+
+        override fun setAlpha(alpha: Int) {
+            paint.alpha = alpha
+            invalidateSelf()
+        }
+
+        override fun setColorFilter(colorFilter: ColorFilter?) {
+            paint.colorFilter = colorFilter
+            invalidateSelf()
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
     }
 }

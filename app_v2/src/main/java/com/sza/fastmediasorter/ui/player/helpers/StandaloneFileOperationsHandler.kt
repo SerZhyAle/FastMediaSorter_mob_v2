@@ -287,7 +287,6 @@ class StandaloneFileOperationsHandler(
      * resource id is -1 (full recipient list); the «..» entry routes to the host's SAF tree picker.
      */
     fun showCopyDialog() {
-        Timber.d("S0681: standalone Select-resource copy dialog requested")
         val file = getCurrentMediaFile() ?: return
         val useCase = fileOperationUseCase ?: return
         val destinationsUseCase = getDestinationsUseCase ?: return
@@ -406,7 +405,6 @@ class StandaloneFileOperationsHandler(
             Timber.w("StandalonePlayer: copy/move requested but no FileOperationUseCase wired for this host")
             return
         }
-        Timber.d("S0610: standalone ${if (isMove) "move" else "copy"} to destination requested")
         activity.lifecycleScope.launch {
             val settings = getCurrentSettings()
             val startedRes = if (isMove) R.string.msg_move_started else R.string.msg_copy_started

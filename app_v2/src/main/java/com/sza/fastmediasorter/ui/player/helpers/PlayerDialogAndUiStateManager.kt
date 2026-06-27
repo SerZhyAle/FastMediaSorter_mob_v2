@@ -194,7 +194,7 @@ class PlayerDialogAndUiStateManager(
         val currentFile = viewModel.state.value.currentFile ?: return
         
         lifecycleScope.launch {
-            binding.progressBar.isVisible = true
+            activity.loadingIndicatorCoordinator.show(LoadingSource.PDF_EXPORT)
             Toast.makeText(activity, R.string.pdf_exporting_started, Toast.LENGTH_SHORT).show()
             
             try {
@@ -246,12 +246,12 @@ class PlayerDialogAndUiStateManager(
                 }
             } finally {
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    activity.loadingIndicatorCoordinator.hide(LoadingSource.PDF_EXPORT)
                 }
             }
         }
     }
-    
+
     /**
      * Show copy dialog with file validation.
      */

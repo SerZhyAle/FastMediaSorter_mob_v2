@@ -531,6 +531,16 @@
       "titleUk": "Оверлей жестів"
     },
     {
+      "key": "rowGestureStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the left-edge gesture strip",
+      "titleRu": "Показывать полосу жеста у левого края",
+      "titleUk": "Показувати смугу жесту біля лівого краю"
+    },
+    {
       "key": "rowGoToNextAfterCopy",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

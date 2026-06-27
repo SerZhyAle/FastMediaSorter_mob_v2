@@ -194,6 +194,11 @@ class StandaloneDrawSaveHelper(
                     Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
                 }
                 return@launch
+            } finally {
+                // S0679: getOverlayBitmap() hands back a fresh throwaway snapshot; the compositor copies
+                // only the region it needs and does not take ownership, so release it here to avoid
+                // leaking one overlay-size bitmap per crop within a draw session.
+                overlay?.recycle()
             }
             withContext(Dispatchers.Main) {
                 setDisplayedBitmap(cropped)

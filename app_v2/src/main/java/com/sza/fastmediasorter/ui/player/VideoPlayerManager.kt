@@ -141,7 +141,21 @@ class VideoPlayerManager(
          * is expected to render a snackbar with a "Skip" action; default no-op for non-UI impls.
          */
         fun onDecoderCooldownReentry(path: String, remainingSec: Int) {}
+
+        /**
+         * S0685: stream-only wait-phase hint shown next to the buffering spinner so the user can tell a
+         * normal buffer fill from an active reconnection. `null` clears the label. Default no-op - only the
+         * full player UI renders it; other [PlayerCallback] impls keep the plain spinner.
+         */
+        fun onStreamWaitPhase(phase: StreamWaitPhase?) {}
     }
+
+    /**
+     * S0685: distinguishes the two stream wait phases the user sees as a spinner. [BUFFERING] is a routine
+     * buffer fill; [RECONNECTING] means the S0634 recovery path (live-edge re-anchor or classified retry)
+     * is actively re-establishing the stream.
+     */
+    enum class StreamWaitPhase { BUFFERING, RECONNECTING }
 
     /** Audio format information exposed via [getAudioFormat]. */
     data class AudioFormat(

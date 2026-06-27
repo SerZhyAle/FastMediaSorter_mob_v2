@@ -420,31 +420,15 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                                 val pageUrl = currentPageUrl.get()
                                 val domCandidates = parseDomCandidates(raw, pageUrl)
                                 if (shouldInspectEmbeddedJson(pageUrl)) {
-                                    runCatching {
-                                        target.evaluateJavascript("document.documentElement.outerHTML") { html ->
-                                            val decodedHtml = decodeEvaluatedHtml(html)
-                                            val baseUri = pageUrl ?: url ?: pageUrl
-                                            CoroutineScope(Dispatchers.IO).launch {
-                                                // Threads hydrates the authoritative post media in data-sjs;
-                                                // prefer that over noisy preview assets captured via request sniffing.
-                                                val embeddedCandidates = decodedHtml
-                                                    ?.takeIf { !baseUri.isNullOrBlank() }
-                                                    ?.let { structuredMediaSniffer.sniffEmbeddedJson(it, baseUri!!) }
-                                                    .orEmpty()
-                                                mainHandler.post {
-                                                    if (BuildConfig.DEBUG) {
-                                                        dumpDecodedPageHtml(decodedHtml, currentPageUrl.get())
-                                                    }
-                                                    finish(embeddedCandidates + domCandidates)
-                                                }
-                                            }
-                                        }
-                                    }.onFailure {
-                                        LinkDownloadTrace.verbose(
-                                            "dynamic-extractor embedded-json-eval failed reason=${it::class.simpleName}",
-                                        )
-                                        finishWithOptionalDebugDump(target, domCandidates, currentPageUrl.get(), finish)
-                                    }
+                                    inspectEmbeddedJson(
+                                        target = target,
+                                        domCandidates = domCandidates,
+                                        pageUrl = pageUrl,
+                                        url = url,
+                                        currentPageUrl = currentPageUrl,
+                                        mainHandler = mainHandler,
+                                        finish = finish
+                                    )
                                 } else {
                                     finishWithOptionalDebugDump(target, domCandidates, pageUrl, finish)
                                 }
@@ -459,6 +443,42 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                     DOM_SETTLE_MS,
                 )
             }
+        }
+    }
+
+    private fun inspectEmbeddedJson(
+        target: WebView,
+        domCandidates: List<HtmlMediaCandidate>,
+        pageUrl: String?,
+        url: String?,
+        currentPageUrl: AtomicReference<String>,
+        mainHandler: Handler,
+        finish: (List<HtmlMediaCandidate>) -> Unit
+    ) {
+        runCatching {
+            target.evaluateJavascript("document.documentElement.outerHTML") { html ->
+                val decodedHtml = decodeEvaluatedHtml(html)
+                val baseUri = pageUrl ?: url ?: pageUrl
+                CoroutineScope(Dispatchers.IO).launch {
+                    // Threads hydrates the authoritative post media in data-sjs;
+                    // prefer that over noisy preview assets captured via request sniffing.
+                    val embeddedCandidates = decodedHtml
+                        ?.takeIf { !baseUri.isNullOrBlank() }
+                        ?.let { structuredMediaSniffer.sniffEmbeddedJson(it, baseUri!!) }
+                        .orEmpty()
+                    mainHandler.post {
+                        if (BuildConfig.DEBUG) {
+                            dumpDecodedPageHtml(decodedHtml, currentPageUrl.get())
+                        }
+                        finish(embeddedCandidates + domCandidates)
+                    }
+                }
+            }
+        }.onFailure {
+            LinkDownloadTrace.verbose(
+                "dynamic-extractor embedded-json-eval failed reason=${it::class.simpleName}",
+            )
+            finishWithOptionalDebugDump(target, domCandidates, currentPageUrl.get(), finish)
         }
     }
 

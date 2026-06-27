@@ -40,7 +40,7 @@ class PlayerImageTranslationManager(
         safeViews.translationOverlayBackground.isVisible = false
         binding.translationLensOverlay.isVisible = false
         binding.translationLensOverlay.clear()
-        binding.progressBar.isVisible = false
+        activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
 
         if (binding.photoView.isVisible) {
             binding.photoView.setOnMatrixChangeListener(null)
@@ -98,7 +98,7 @@ class PlayerImageTranslationManager(
 
         safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
         binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
-        binding.progressBar.isVisible = true
+        activity.loadingIndicatorCoordinator.show(LoadingSource.TRANSLATION)
 
         val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
         val viewHeight = if (binding.photoView.isVisible) binding.photoView.height else binding.imageView.height
@@ -139,7 +139,7 @@ class PlayerImageTranslationManager(
                         viewHeight = viewHeight,
                         displayRect = displayRect,
                         onSuccess = { _ ->
-                            binding.progressBar.isVisible = false
+                            activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                             safeViews.translationOverlay.isVisible = false
                             if (binding.photoView.isVisible) {
                                 binding.photoView.setOnMatrixChangeListener { rect ->
@@ -153,7 +153,7 @@ class PlayerImageTranslationManager(
                             safeViews.btnTranslationFontIncrease?.visibility = View.VISIBLE
                         },
                         onEmpty = {
-                            binding.progressBar.isVisible = false
+                            activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                             safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
@@ -161,7 +161,7 @@ class PlayerImageTranslationManager(
                             activity.showError(activity.getString(R.string.translation_no_text_found))
                         },
                         onError = { message ->
-                            binding.progressBar.isVisible = false
+                            activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                             safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             Timber.w("PlayerImageTranslationManager: Lens translation failed: $message")
@@ -176,7 +176,7 @@ class PlayerImageTranslationManager(
                         targetLang = targetLang
                     )
                     withContext(Dispatchers.Main) {
-                        binding.progressBar.isVisible = false
+                        activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                         if (result != null) {
                             val (_, translated) = result
                             if (activity._textViewerManager != null) {
@@ -197,13 +197,13 @@ class PlayerImageTranslationManager(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                     stopTranslation()
                     activity.showError(activity.getString(R.string.translation_error))
                 }
             } finally {
                 withContext(Dispatchers.Main + NonCancellable) {
-                    binding.progressBar.isVisible = false
+                    activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                 }
             }
         }

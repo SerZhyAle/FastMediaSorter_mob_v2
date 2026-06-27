@@ -20,9 +20,26 @@ class TextOcrDisplayManager(
     private val getTextGestureDetector: () -> GestureDetector,
     private val resetTranslationState: () -> Unit,
     private val setTouchZonesEnabled: (Boolean) -> Unit,
+    // S0704: non-null only in the unified player; null in standalone (direct progressBar write).
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
     private var previousActiveView: View? = null
     private var wasEpubWebViewVisible = false
+
+    /**
+     * S0704: the OCR/translation result is being shown, so the operation spinner must be off. The
+     * driving operation (ImageOcrManager / PlayerImageTranslationManager) already hides its own
+     * source in its finally; this is the display-side safety. Routes through the coordinator when
+     * present, else writes the bar directly (standalone).
+     */
+    private fun hideOcrSpinner() {
+        val coord = loadingIndicatorCoordinator
+        if (coord != null) {
+            coord.hide(LoadingSource.OCR)
+        } else {
+            safeViews.progressBarOrNull?.isVisible = false
+        }
+    }
 
     fun displayOcrText(text: String) {
         resetTranslationState()
@@ -51,7 +68,7 @@ class TextOcrDisplayManager(
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
-        safeViews.progressBarOrNull?.isVisible = false
+        hideOcrSpinner()
         safeViews.btnCloseTextViewer.isVisible = true
 
         safeViews.btnEditTextCmd.isVisible = false
@@ -135,7 +152,7 @@ class TextOcrDisplayManager(
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
-        safeViews.progressBarOrNull?.isVisible = false
+        hideOcrSpinner()
         safeViews.btnCloseTextViewer.isVisible = true
 
         val bottomPadding = if (isPdfActive || isEpubActive) {

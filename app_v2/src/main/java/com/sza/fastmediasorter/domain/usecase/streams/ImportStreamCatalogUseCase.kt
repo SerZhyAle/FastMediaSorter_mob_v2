@@ -57,7 +57,6 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 .filter { it.faviconIndex != null }
                 .associate { it.url to it.faviconIndex!! }
             faviconAtlasStore.write(payload.atlasPng, coords)
-            Timber.d("S0668: catalog atlas persisted (atlas=%b, coords=%d)", payload.atlasPng != null, coords.size)
         } catch (e: Exception) {
             Timber.w(e, "Stream catalog import: favicon sidecar write failed (rows still merge)")
         }

@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
+import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -429,7 +430,7 @@ class BrowseManagerInitializer(
             adapter = mediaFileAdapter,
             emptyStateView = binding.emptyStateView,
             scrollButtonManager = scrollButtonManager,
-            isLoadingProvider = { viewModel.loading.value }
+            shouldShowEmptyProvider = { viewModel.fileListUiState.value === UiState.Empty }
         )
 
         setupDragToReorder()
@@ -449,7 +450,6 @@ class BrowseManagerInitializer(
             binding = binding,
             viewModel = viewModel,
             adapter = mediaFileAdapter,
-            settingsRepository = settingsRepository,
             onUpdateDisplayMode = { mode -> updateDisplayMode(mode) },
             onNotifyRangeChanged = { start, count, payload, source -> scrollButtonManager.notifyItemRangeChangedSafely(start, count, payload, source) },
             getShowPdfThumbnails = showPdfThumbnailsGetter,

@@ -6,11 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -21,8 +17,7 @@ import javax.inject.Inject
  * hides the accessibility-shortcut settings rows.
  */
 class ScreenGestureOverlayControllerImpl @Inject constructor(
-    @ApplicationContext context: Context,
-    private val settingsRepository: Lazy<SettingsRepository>
+    @ApplicationContext context: Context
 ) : ScreenGestureOverlayController {
 
     private val appContext = context.applicationContext
@@ -44,15 +39,18 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
     override fun fallbackPermissionSettingsIntent(context: Context): Intent =
         permissionSettingsIntent(context)
 
-    override fun setEnabled(enabled: Boolean) {
+    override fun setEnabled(enabled: Boolean, stripVisible: Boolean) {
         if (enabled && Settings.canDrawOverlays(appContext)) {
-            OverlayHostService.start(appContext)
+            OverlayHostService.start(appContext, stripVisible)
         } else {
             OverlayHostService.stop(appContext)
         }
     }
 
-    override fun isEnabled(): Boolean = runBlocking {
-        settingsRepository.get().getSettings().first().gestureOverlayEnabled
+    override fun setStripVisible(visible: Boolean, overlayEnabled: Boolean) {
+        // Only meaningful while the host is running; re-issuing start refreshes the live strip colour.
+        if (overlayEnabled && Settings.canDrawOverlays(appContext)) {
+            OverlayHostService.start(appContext, visible)
+        }
     }
 }

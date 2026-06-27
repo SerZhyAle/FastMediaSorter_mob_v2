@@ -517,10 +517,18 @@ class TouchZoneGestureManager(
                 val currentFile = state.currentFile
                 val showCommandPanel = state.showCommandPanel
                 val isInFullscreenMode = !showCommandPanel
-                
+
                 UserActionLogger.logGesture("SingleTap", "x=${e.x.toInt()} y=${e.y.toInt()}", "PlayerActivity")
                 Timber.d("onSingleTapConfirmed: pos=(${e.x.toInt()},${e.y.toInt()}), fullscreen=$isInFullscreenMode, type=${currentFile?.type}")
-                
+
+                // S0694: a live video stream is not a managed-file surface - the 9/3-zone actions
+                // (BACK/COPY/MOVE/DELETE/COMMAND_PANEL etc.) do not apply. Skip zone routing and report
+                // the tap unhandled so the PlayerView touch dispatch can toggle the ExoPlayer controller.
+                if (state.isLiveVideoStream) {
+                    Timber.d("onSingleTapConfirmed: live video stream - skipping touch zones")
+                    return false
+                }
+
                 // PDF/EPUB/TEXT: Handled by specialized managers
                 val isPdfOrEpub = currentFile?.type == MediaType.PDF || currentFile?.type == MediaType.EPUB
                 val isText = currentFile?.type == MediaType.TEXT
@@ -576,9 +584,6 @@ class TouchZoneGestureManager(
         )
 
         val isThreeZoneFallback = zoneMap == TouchZoneMap.REG_3100 || zoneMap == TouchZoneMap.REG_375
-        if (isThreeZoneFallback) {
-            Timber.d("S0620: fullscreen 3-zone fallback active (grid off) - left-edge command panel")
-        }
         val action = if (isThreeZoneFallback) {
             // S0620: fullscreen 3-zone fallback (grid off) - left-edge band opens the command
             // panel so file operations stay reachable by touch. Respect the reserved bottom

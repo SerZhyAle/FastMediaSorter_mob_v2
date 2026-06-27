@@ -48,6 +48,9 @@
     <!-- S0611: dialog confirm button fill in dark mode = dark text on green-300 (7.41:1); white-on-success_color was ~1.9:1. -->
     <color name="confirm_button_bg">#FF81C784</color>
     <color name="confirm_button_on">#FF0A2E0A</color>
+    <!-- S0684: soft-pink tonal cancel button (night = pale pink on mauve, 7.76:1); distinct from the saturated destructive red. -->
+    <color name="cancel_button_bg">#FF5C3A43</color>
+    <color name="cancel_button_on">#FFFFDCE4</color>
     <color name="info_color">#FF4FC3F7</color>
     <color name="scrollbar_thumb">#FF757575</color>
 

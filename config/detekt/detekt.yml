@@ -1,0 +1,32 @@
+# S0720: detekt config. Relies on buildUponDefaultConfig = true - this file only
+# enables the ktlint formatting ruleset and applies a few sensible threshold overrides
+# on top of detekt's bundled defaults. Defaults + a frozen baseline is the point; do not
+# over-tune. Do NOT enable rules that require type resolution (this gate runs lexically).
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: false
+
+complexity:
+  active: true
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+  NestedBlockDepth:
+    active: true
+    threshold: 5
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 40
+    thresholdInClasses: 40
+    thresholdInInterfaces: 40
+    thresholdInObjects: 40
+    thresholdInEnums: 40

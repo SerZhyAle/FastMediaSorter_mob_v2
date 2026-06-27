@@ -230,11 +230,34 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
-                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+                override fun shouldShowDestinationPanels(): Boolean =
+                    viewModel.state.value.mediaFile != null && !destinationPanelsSuppressed
             },
             shouldNumberSlots = { false },
             slotKeyGlyph = { null },
         )
+    }
+
+    // S0741: fullscreen document viewers suppress the Copy/Move destination panels while active.
+    // The async populate coroutine can finish after fullscreen already hid them, so the callback gate
+    // above plus this exact-state restore keep the panels from flashing over the viewer.
+    private var destinationPanelsSuppressed = false
+    private var copyPanelVisibleBeforeFullscreen = false
+    private var movePanelVisibleBeforeFullscreen = false
+
+    private fun setDestinationPanelsSuppressed(suppressed: Boolean) {
+        destinationPanelsSuppressed = suppressed
+        val copyPanel = binding.root.findViewById<View>(R.id.copyToPanel)
+        val movePanel = binding.root.findViewById<View>(R.id.moveToPanel)
+        if (suppressed) {
+            copyPanelVisibleBeforeFullscreen = copyPanel?.isVisible == true
+            movePanelVisibleBeforeFullscreen = movePanel?.isVisible == true
+            copyPanel?.isVisible = false
+            movePanel?.isVisible = false
+        } else {
+            copyPanel?.isVisible = copyPanelVisibleBeforeFullscreen
+            movePanel?.isVisible = movePanelVisibleBeforeFullscreen
+        }
     }
 
     // Lazily created document viewers - only the one matching the resolved type is ever touched.
@@ -260,8 +283,14 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 override fun isLandscapeMode(): Boolean =
                     resources.configuration.orientation ==
                         android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                override fun onEnterFullscreenMode() { binding.topCommandPanel.isVisible = false }
-                override fun onExitFullscreenMode() { binding.topCommandPanel.isVisible = true }
+                override fun onEnterFullscreenMode() {
+                    binding.topCommandPanel.isVisible = false
+                    setDestinationPanelsSuppressed(true)
+                }
+                override fun onExitFullscreenMode() {
+                    binding.topCommandPanel.isVisible = true
+                    setDestinationPanelsSuppressed(false)
+                }
             },
             translationManager = translationManager,
             playbackPositionRepository = playbackPositionRepository,
@@ -278,8 +307,14 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun displayTranslatedText(text: String) { /* shown inline in the EPUB overlay */ }
-                override fun onEnterFullscreenMode() { binding.topCommandPanel.isVisible = false }
-                override fun onExitFullscreenMode() { binding.topCommandPanel.isVisible = true }
+                override fun onEnterFullscreenMode() {
+                    binding.topCommandPanel.isVisible = false
+                    setDestinationPanelsSuppressed(true)
+                }
+                override fun onExitFullscreenMode() {
+                    binding.topCommandPanel.isVisible = true
+                    setDestinationPanelsSuppressed(false)
+                }
             },
             playbackPositionRepository = playbackPositionRepository,
             translationManager = translationManager
@@ -295,8 +330,14 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             coroutineScope = lifecycleScope,
             callback = object : OfficeDocumentViewerHost.Callback {
                 override fun showError(message: String) = showToastError(message)
-                override fun onEnterFullscreenMode() { binding.topCommandPanel.isVisible = false }
-                override fun onExitFullscreenMode() { binding.topCommandPanel.isVisible = true }
+                override fun onEnterFullscreenMode() {
+                    binding.topCommandPanel.isVisible = false
+                    setDestinationPanelsSuppressed(true)
+                }
+                override fun onExitFullscreenMode() {
+                    binding.topCommandPanel.isVisible = true
+                    setDestinationPanelsSuppressed(false)
+                }
                 override fun onRequireExternalFallback(mediaFile: MediaFile) =
                     openOfficeExternally(mediaFile)
             }

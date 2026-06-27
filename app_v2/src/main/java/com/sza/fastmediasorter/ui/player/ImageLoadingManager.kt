@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Handler
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -35,7 +34,9 @@ import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioInfoDisplayHelper
+import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
@@ -55,8 +56,7 @@ class ImageLoadingManager(
     private val audioMetadataCacheRepository: AudioMetadataCacheRepository,
     private val okHttpClient: okhttp3.OkHttpClient,
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val loadingIndicatorHandler: Handler,
-    private val showLoadingIndicatorRunnable: Runnable,
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator,
     private val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier,
     private val callback: ImageLoadingCallback
 ) {
@@ -220,10 +220,9 @@ class ImageLoadingManager(
         // in the video player pillarbox areas.
         dynamicBackgroundProcessor?.clear()
 
-        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-        loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-        binding.progressBar.isVisible = false
-
+        // S0704: video transition clears only the image source - OCR/FILE_LIST etc. stay owned by
+        // their flows (NOT clearAll). reset() also cancels the pending 1s show + 30s safety.
+        loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
     }
 
     /** Trigger dynamic background processing from a decoded video frame bitmap. Called by [VideoPlayerManager] (via [PlayerMediaLoaderManager]) on first frame rendered. No-op when dynamic background is disabled or screen dimensions not yet resolved. */
@@ -246,8 +245,8 @@ class ImageLoadingManager(
         // Cancel any dynamic background processing
         dynamicBackgroundProcessor?.clear()
 
-        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-        loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+        // S0704: destroy-time teardown - drop every source and pending spinner work.
+        loadingIndicatorCoordinator.clearAll()
 
         // Cancel all Glide requests (use applicationContext to avoid destroyed activity error)
         try {
@@ -343,15 +342,6 @@ class ImageLoadingManager(
         }
     }
 
-    // Safety timeout to hide spinner if Glide hangs or cancels silently
-    private val hideLoadingSafetyRunnable = Runnable {
-        Timber.w("ImageLoadingManager.safetyTimeout: Loading took too long, hiding spinner")
-        if (!callback.isDestroyed()) {
-            binding.progressBar.isVisible = false
-            callback.showToast(binding.root.context.getString(R.string.msg_loading_timeout))
-        }
-    }
-
     // Display image in ImageView or PhotoView based on settings
     fun displayImage(path: String) {
         isInImageDisplayMode = true
@@ -373,12 +363,9 @@ class ImageLoadingManager(
         val nextAdjacentPaths = callback.getAdjacentFiles().map { it.path }.toSet()
         val cancelledCount = imagePreloadHelper.cancelStaleJobsForPaths(nextAdjacentPaths)
 
-        // Ensure any pending loading indicator from previous request is cancelled immediately
-        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-        loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-        if (!callback.isDestroyed()) {
-            binding.progressBar.isVisible = false
-        }
+        // S0704: cancel any pending show/safety from the previous request and drop the IMAGE_GLIDE
+        // source. A fresh delayed show + safety are armed below once the new load actually starts.
+        loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
 
         // Skip if activity is being destroyed
         if (callback.isFinishing() || callback.isDestroyed()) {
@@ -420,10 +407,14 @@ class ImageLoadingManager(
         safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = false
 
-        // Schedule loading indicator to show after 1 second
-        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
-        // Schedule safety timeout (30 seconds)
-        loadingIndicatorHandler.postDelayed(hideLoadingSafetyRunnable, 30000)
+        // S0704: show the spinner after 1s if the load has not resolved, with a 30s safety net that
+        // also surfaces the load-timeout toast (preserved from the legacy hideLoadingSafetyRunnable).
+        loadingIndicatorCoordinator.showDelayed(LoadingSource.IMAGE_GLIDE)
+        loadingIndicatorCoordinator.armSafetyTimeout(LoadingSource.IMAGE_GLIDE) {
+            if (!callback.isDestroyed()) {
+                callback.showToast(binding.root.context.getString(R.string.msg_loading_timeout))
+            }
+        }
 
         val currentFile = callback.getCurrentFile()
         val resource = callback.getCurrentResource()
@@ -444,9 +435,7 @@ class ImageLoadingManager(
         // Pre-flight: HEIC/HEIF needs API 28+, AVIF needs API 31+. Show a clear message on
         // unsupported devices instead of letting Glide fail silently.
         if (!HeifSupportUtils.isSupported(pathExtension)) {
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
-            binding.progressBar.isVisible = false
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             val minVersion = HeifSupportUtils.minimumAndroidVersion(pathExtension) ?: pathExtension
             Timber.w("ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)")
             callback.showError(
@@ -830,9 +819,8 @@ class ImageLoadingManager(
 
         if (!fileExists) {
             Timber.w("ImageLoadingManager: File does not exist, showing error: $path")
-            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+            loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (!callback.isDestroyed()) {
-                binding.progressBar.isVisible = false
                 callback.showError(binding.root.context.getString(R.string.file_not_found_name, currentFile?.name ?: path))
             }
             return
@@ -926,9 +914,7 @@ class ImageLoadingManager(
             binding = binding,
             callback = callback,
             animatedImageController = animatedImageController,
-            loadingIndicatorHandler = loadingIndicatorHandler,
-            showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-            hideLoadingSafetyRunnable = hideLoadingSafetyRunnable,
+            loadingIndicatorCoordinator = loadingIndicatorCoordinator,
             getCurrentTargetView = { currentTargetView },
             getCurrentCropSetting = { currentCropSetting },
             getCurrentIsFullscreenOrSlideshow = { currentIsFullscreenOrSlideshow },

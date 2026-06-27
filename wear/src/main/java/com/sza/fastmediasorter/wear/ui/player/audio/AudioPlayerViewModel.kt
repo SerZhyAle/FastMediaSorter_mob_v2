@@ -303,7 +303,8 @@ class AudioPlayerViewModel @Inject constructor(
         Timber.d("AudioPlayerViewModel cleared")
         stopProgressUpdates()
         exoPlayer.removeListener(playerListener)
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
+        // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
+        // (HandlerThread, AudioTrack/audio-focus, codecs) instead of just stop()+clearMediaItems().
+        exoPlayer.release()
     }
 }

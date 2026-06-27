@@ -224,6 +224,9 @@
 
     <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- S0685: stream wait-phase caption under the centered spinner (buffering vs reconnecting). -->
+    <TextView android:id="@+id/streamWaitLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/stream_wait_label_gap" android:textColor="@color/white" android:textSize="@dimen/stream_wait_label_text_size" android:textAlignment="center" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/progressBar" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Mini Now Playing bar - must be present in both portrait and landscape layouts so that
          ActivityPlayerUnifiedBinding always generates the miniNowPlayingBar field (non-null).
          Absence here caused NowPlayingManager to receive a null miniBar on landscape. -->

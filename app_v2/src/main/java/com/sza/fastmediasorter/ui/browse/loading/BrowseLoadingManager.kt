@@ -196,7 +196,7 @@ class BrowseLoadingManager(
                 // Show every intermediate emission immediately so the user sees
                 // files as soon as possible. Final post-processing (favorites,
                 // caching, metadata update) happens after the flow completes.
-                callbacks.updateState(files, false, files.size, files.size, true)
+                callbacks.updateState(files, usePagination = false, loadingProgress = files.size, totalFileCount = files.size, isScanCancellable = true)
                 callbacks.updateLoadingProgress(files.size)
             }
         
@@ -206,7 +206,7 @@ class BrowseLoadingManager(
         Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms - final batch: ${files.size} files")
         
         if (files.isEmpty()) {
-            callbacks.updateState(emptyList(), false, 0, 0, false)
+            callbacks.updateState(emptyList(), usePagination = false, loadingProgress = 0, totalFileCount = 0, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
             return
@@ -248,7 +248,7 @@ class BrowseLoadingManager(
             Timber.d(
                 "BrowseLoadingManager: Single-phase render (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
             )
-            callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+            callbacks.updateState(finalFiles, usePagination = false, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
             MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
@@ -256,14 +256,14 @@ class BrowseLoadingManager(
             Timber.d(
                 "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target, two-phase fallback"
             )
-            callbacks.updateState(sortedFiles, false, 0, sortedFiles.size, false)
+            callbacks.updateState(sortedFiles, usePagination = false, loadingProgress = 0, totalFileCount = sortedFiles.size, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
 
             viewModelScope.launch(ioDispatcher) {
                 MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
                 if (hasFavoriteFlags) {
-                    callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+                    callbacks.updateState(finalFiles, usePagination = false, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
                 }
             }
         }

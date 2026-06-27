@@ -12,6 +12,8 @@ class ScreenshotSettingsStore private constructor() {
     companion object {
         private val KEY_GESTURE_OVERLAY_ENABLED =
             booleanPreferencesKey("gesture_overlay_enabled")
+        private val KEY_GESTURE_STRIP_VISIBLE =
+            booleanPreferencesKey("screenshot_gesture_strip_visible")
         private val KEY_SCREENSHOT_GESTURE_ACTION_DOWN =
             stringPreferencesKey("screenshot_gesture_action_down")
         private val KEY_SCREENSHOT_GESTURE_ACTION_RIGHT =
@@ -27,6 +29,7 @@ class ScreenshotSettingsStore private constructor() {
 
         data class Values(
             val gestureOverlayEnabled: Boolean,
+            val screenshotGestureStripVisible: Boolean,
             val screenshotGestureActionDown: ScreenshotGestureAction,
             val screenshotGestureActionRight: ScreenshotGestureAction,
             val screenshotGestureActionUp: ScreenshotGestureAction,
@@ -37,6 +40,7 @@ class ScreenshotSettingsStore private constructor() {
 
         fun read(preferences: Preferences): Values = Values(
             gestureOverlayEnabled = preferences[KEY_GESTURE_OVERLAY_ENABLED] ?: false,
+            screenshotGestureStripVisible = preferences[KEY_GESTURE_STRIP_VISIBLE] ?: false,
             screenshotGestureActionDown = ScreenshotGestureAction.fromName(
                 preferences[KEY_SCREENSHOT_GESTURE_ACTION_DOWN],
                 ScreenshotGestureAction.SILENT_SCREENSHOT
@@ -56,6 +60,7 @@ class ScreenshotSettingsStore private constructor() {
 
         fun write(preferences: MutablePreferences, settings: AppSettings) {
             preferences[KEY_GESTURE_OVERLAY_ENABLED] = settings.gestureOverlayEnabled
+            preferences[KEY_GESTURE_STRIP_VISIBLE] = settings.screenshotGestureStripVisible
             preferences[KEY_SCREENSHOT_GESTURE_ACTION_DOWN] = settings.screenshotGestureActionDown.name
             preferences[KEY_SCREENSHOT_GESTURE_ACTION_RIGHT] = settings.screenshotGestureActionRight.name
             preferences[KEY_SCREENSHOT_GESTURE_ACTION_UP] = settings.screenshotGestureActionUp.name

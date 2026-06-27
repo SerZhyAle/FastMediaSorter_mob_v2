@@ -45,7 +45,19 @@ internal class TextEditorModeController(
     private val setUndoRedoManager: (TextUndoRedoManager?) -> Unit,
     private val applyLineNumbers: (String, Boolean, Int) -> String,
     private val showError: (String) -> Unit,
+    // S0704: non-null only in the unified player; null in standalone (direct progressBar write).
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
+
+    /** S0704: route the save spinner through the coordinator when present, else write directly. */
+    private fun setTextSaveSpinner(visible: Boolean) {
+        val coord = loadingIndicatorCoordinator
+        if (coord != null) {
+            if (visible) coord.show(LoadingSource.TEXT_SAVE) else coord.hide(LoadingSource.TEXT_SAVE)
+        } else {
+            safeViews.progressBarOrNull?.isVisible = visible
+        }
+    }
 
     fun enterEditMode(autoOpen: Boolean = false) {
         val pager = getTextFilePager()
@@ -127,12 +139,12 @@ internal class TextEditorModeController(
             showError(context.getString(R.string.text_file_not_found))
             return
         }
-        safeViews.progressBarOrNull?.isVisible = true
+        setTextSaveSpinner(true)
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 val localFile = networkFileManager.prepareFileForWrite(fileToSave)
                 if (localFile == null) {
-                    withContext(Dispatchers.Main) { safeViews.progressBarOrNull?.isVisible = false }
+                    withContext(Dispatchers.Main) { setTextSaveSpinner(false) }
                     return@launch
                 }
                 localFile.writeText(newText)
@@ -142,7 +154,7 @@ internal class TextEditorModeController(
                     val uploadSuccess = networkFileManager.uploadEditedFile(fileToSave, localFile)
                     if (!uploadSuccess) {
                         withContext(Dispatchers.Main) {
-                            safeViews.progressBarOrNull?.isVisible = false
+                            setTextSaveSpinner(false)
                             showError(context.getString(R.string.text_file_upload_failed_after_local_save))
                         }
                         return@launch
@@ -150,7 +162,7 @@ internal class TextEditorModeController(
                     networkFileManager.clearEditingCache()
                 }
                 withContext(Dispatchers.Main) {
-                    safeViews.progressBarOrNull?.isVisible = false
+                    setTextSaveSpinner(false)
                     setOriginalTextWithoutNumbers(newText)
                 }
                 val settings = settingsRepository.getSettings().first() // C-3 fix: read settings on IO, not Main.
@@ -163,7 +175,7 @@ internal class TextEditorModeController(
             } catch (e: Exception) {
                 Timber.e(e, "Error saving text file")
                 withContext(Dispatchers.Main) {
-                    safeViews.progressBarOrNull?.isVisible = false
+                    setTextSaveSpinner(false)
                     showError(context.getString(R.string.text_file_save_failed))
                 }
             }

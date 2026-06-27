@@ -16,19 +16,18 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ItemResourceBinding
-import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
-import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
-import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.VirtualPathUtils
-import timber.log.Timber
+import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
+import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -55,15 +54,40 @@ class ResourceAdapter(
     // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
     // null, the menu item is hidden (e.g. on devices where allowSeparateWindow=false).
     private val onOpenInNewWindowClick: ((MediaResource) -> Unit)? = null,
-    private val isOpenInNewWindowVisible: Boolean = false
+    // S0727: mutable so MainActivity can fold in the persisted allowSeparateWindow preference off the
+    // Main thread (the initial value is the non-blocking runtime multi-window capability).
+    private var isOpenInNewWindowVisible: Boolean = false
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
 
     companion object {
         const val VIEW_TYPE_LIST = 0
         const val VIEW_TYPE_GRID = 1
 
+        // C-213: partial-rebind payload to refresh only the selection visual on a selection change.
+        private const val PAYLOAD_SELECTION = "payload_selection"
+
+        // B-514: dark text color for the resource-type chip on light backgrounds (was per-bind Color.parseColor).
+        private const val DARK_TEXT_COLOR = 0xFF1A1A1A.toInt()
+
         private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
+
+        private const val MEDIA_TYPE_CACHE_INITIAL = 64
+        private const val MEDIA_TYPE_CACHE_LOAD = 0.75f
+        private const val MEDIA_TYPE_CACHE_MAX = 128
+
+        // Bounded main-thread memo for formatMediaTypes; the built SpannableString is immutable after
+        // build, so the same instance is safely shared across TextViews for identical type-sets.
+        private val mediaTypeFormatCache =
+            object : LinkedHashMap<Pair<Set<MediaType>, Boolean>, CharSequence>(
+                MEDIA_TYPE_CACHE_INITIAL,
+                MEDIA_TYPE_CACHE_LOAD,
+                true,
+            ) {
+                override fun removeEldestEntry(
+                    eldest: MutableMap.MutableEntry<Pair<Set<MediaType>, Boolean>, CharSequence>?
+                ): Boolean = size > MEDIA_TYPE_CACHE_MAX
+            }
 
         private data class SingleCategoryIndicator(
             val iconRes: Int,
@@ -72,6 +96,9 @@ class ResourceAdapter(
         
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
+            val key = types to allFiles
+            mediaTypeFormatCache[key]?.let { return it }
+
             if (allFiles) {
                 return "ALL"
             }
@@ -148,7 +175,8 @@ class ResourceAdapter(
             if (MediaType.OFFICE_DOCUMENT in types) {
                 spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.OFFICE_DOCUMENT)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            
+
+            mediaTypeFormatCache[key] = spannable
             return spannable
         }
 
@@ -215,7 +243,7 @@ class ResourceAdapter(
         selectedResourceId = resourceId
         currentList.forEachIndexed { index, resource ->
             if (resource.id == previousId || resource.id == resourceId) {
-                notifyItemChanged(index)
+                notifyItemChanged(index, PAYLOAD_SELECTION)
             }
         }
     }
@@ -230,6 +258,15 @@ class ResourceAdapter(
     fun setUseCompactElements(enabled: Boolean) {
         if (this.useCompactElements != enabled) {
             this.useCompactElements = enabled
+            notifyDataSetChanged()
+        }
+    }
+
+    // S0727: toggle the per-row "Open in new window" menu entry after construction, so the persisted
+    // allowSeparateWindow preference can be applied off the Main thread.
+    fun setOpenInNewWindowVisible(visible: Boolean) {
+        if (this.isOpenInNewWindowVisible != visible) {
+            this.isOpenInNewWindowVisible = visible
             notifyDataSetChanged()
         }
     }
@@ -251,6 +288,19 @@ class ResourceAdapter(
                 false
             )
             ResourceViewHolder(binding)
+        }
+    }
+
+    // C-213: refresh only the selection visual on a selection change instead of rebinding the whole row.
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains(PAYLOAD_SELECTION)) {
+            val resource = getItem(position)
+            when (holder) {
+                is GridViewHolder -> holder.applySelectionVisual(resource, selectedResourceId)
+                is ResourceViewHolder -> holder.applySelectionVisual(resource, selectedResourceId)
+            }
+        } else {
+            onBindViewHolder(holder, position)
         }
     }
 
@@ -337,26 +387,8 @@ class ResourceAdapter(
                     viewDestinationBorder.visibility = android.view.View.GONE
                 }
                 
-                if (!resource.isAvailable) {
-                    val bgColor = ContextCompat.getColor(root.context, R.color.unavailable_resource_bg)
-                    root.setBackgroundColor(bgColor)
-                } else {
-                    // Default background / Selection state
-                   val bgColor = if (resource.id == selectedId) {
-                        ContextCompat.getColor(root.context, android.R.color.holo_blue_light)
-                    } else if (resource.id == -100L) {
-                         ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
-                    } else {
-                        // Zebra striping for grid
-                        if (bindingAdapterPosition % 2 == 0) {
-                            ContextCompat.getColor(root.context, R.color.resource_item_bg_even)
-                        } else {
-                            ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
-                        }
-                    }
-                    root.setBackgroundColor(bgColor)
-                }
-                
+                this@GridViewHolder.applySelectionVisual(resource, selectedId)
+
                 // Writable/Lock indicator - not shown for virtual aggregate paths
                 val isVirtualResource = resource.path.startsWith("virtual://")
                 tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && !isVirtualResource && resource.id != -100L) {
@@ -366,9 +398,8 @@ class ResourceAdapter(
                 }
 
                 tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
-                root.isSelected = resource.id == selectedId
                 root.setOnClickListenerDebounced { onItemClick(resource) }
-                root.setOnLongClickListenerDebounced { 
+                root.setOnLongClickListenerDebounced {
                     if (resource.id != -100L) {
                         onItemLongClick(resource)
                         true
@@ -376,7 +407,7 @@ class ResourceAdapter(
                         false
                     }
                 }
-                
+
                 // Mouse right-click support (triggers long click action)
                 root.setOnGenericMotionListener { _, event ->
                     if (event.action == android.view.MotionEvent.ACTION_BUTTON_PRESS &&
@@ -389,7 +420,7 @@ class ResourceAdapter(
                         false
                     }
                 }
-                
+
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
@@ -445,6 +476,33 @@ class ResourceAdapter(
                 } else {
                     btnMoreActions.visibility = android.view.View.GONE
                 }
+            }
+        }
+
+        // C-213: the grid row's selection visual is both root.isSelected and the row background
+        // (selected -> holo_blue_light, otherwise zebra/favorites/unavailable). Shared by the full
+        // bind and the PAYLOAD_SELECTION partial rebind so both produce identical state.
+        fun applySelectionVisual(resource: MediaResource, selectedId: Long?) {
+            val root = binding.root
+            root.isSelected = resource.id == selectedId
+            if (!resource.isAvailable) {
+                val bgColor = ContextCompat.getColor(root.context, R.color.unavailable_resource_bg)
+                root.setBackgroundColor(bgColor)
+            } else {
+                // Default background / Selection state
+                val bgColor = if (resource.id == selectedId) {
+                    ContextCompat.getColor(root.context, android.R.color.holo_blue_light)
+                } else if (resource.id == -100L) {
+                    ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
+                } else {
+                    // Zebra striping for grid
+                    if (bindingAdapterPosition % 2 == 0) {
+                        ContextCompat.getColor(root.context, R.color.resource_item_bg_even)
+                    } else {
+                        ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
+                    }
+                }
+                root.setBackgroundColor(bgColor)
             }
         }
     }
@@ -511,8 +569,11 @@ class ResourceAdapter(
                 val b = android.graphics.Color.blue(chipColor)
                 val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
                 tvResourceType.setTextColor(
-                    if (luminance > 0.4) android.graphics.Color.parseColor("#1A1A1A")
-                    else android.graphics.Color.WHITE
+                    if (luminance > 0.4) {
+                        DARK_TEXT_COLOR
+                    } else {
+                        android.graphics.Color.WHITE
+                    }
                 )
                 val iconDrawable = ResourceIconComposer.compose(root.context, resource)
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
@@ -583,10 +644,8 @@ class ResourceAdapter(
                 tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
                 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
-                
+
                 // Destination badge and border
-                Timber.d("ResourceAdapter: resource=${resource.name}, isDestination=${resource.isDestination}, destinationOrder=${resource.destinationOrder}, color=${resource.destinationColor}")
-                
                 if (resource.isDestination) {
                     binding.viewDestinationBorder.visibility = android.view.View.VISIBLE
                     val borderDrawable = ContextCompat.getDrawable(
@@ -598,8 +657,7 @@ class ResourceAdapter(
                         resource.destinationColor
                     )
                     binding.viewDestinationBorder.background = borderDrawable
-                    Timber.d("ResourceAdapter: Border set for ${resource.name}, borderDrawable=$borderDrawable")
-                    
+
                     // Show badge only if destinationOrder is set (quick sort)
                     if (resource.destinationOrder != null) {
                         binding.tvDestinationBadge.visibility = android.view.View.VISIBLE
@@ -685,11 +743,11 @@ class ResourceAdapter(
                     tvLastSync.visibility = android.view.View.GONE
                 }
 
-                root.isSelected = resource.id == selectedId
+                applySelectionVisual(resource, selectedId)
                 root.setOnClickListenerDebounced {
                     onItemClick(resource)
                 }
-                
+
                 root.setOnLongClickListenerDebounced {
                     if (resource.id != -100L) {
                         onItemLongClick(resource)
@@ -825,6 +883,13 @@ class ResourceAdapter(
                 }
 
             }
+        }
+
+        // C-213: the list row's selection visual is only root.isSelected (the row background is
+        // selection-independent zebra striping). Shared by the full bind and the PAYLOAD_SELECTION
+        // partial rebind.
+        fun applySelectionVisual(resource: MediaResource, selectedId: Long?) {
+            binding.root.isSelected = resource.id == selectedId
         }
     }
 

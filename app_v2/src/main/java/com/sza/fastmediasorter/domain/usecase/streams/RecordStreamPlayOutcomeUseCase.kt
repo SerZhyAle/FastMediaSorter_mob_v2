@@ -18,6 +18,7 @@ class RecordStreamPlayOutcomeUseCase @Inject constructor(
     private val repository: StreamSourceRepository,
     private val statsSink: StatsSink,
 ) {
+    /** S0593: a real user-initiated play. OK -> green + counted as a play; FAIL -> red (the user saw it fail). */
     suspend operator fun invoke(id: String, ok: Boolean) {
         repository.recordPlayOutcome(id, if (ok) OUTCOME_OK else OUTCOME_FAIL)
         // Count only a successful local play. Resolve the stored kind so the audio/video split is
@@ -28,9 +29,20 @@ class RecordStreamPlayOutcomeUseCase @Inject constructor(
         }
     }
 
+    /**
+     * S0700: a reachability probe / grid frame capture. Reachable -> green; unreachable -> amber "unknown"
+     * (NOT red). Red is reserved for a real play the user started that failed (see [invoke]). A probe never
+     * counts as a play, so no usage statistic is recorded.
+     */
+    suspend fun recordProbe(id: String, reachable: Boolean) {
+        repository.recordPlayOutcome(id, if (reachable) OUTCOME_OK else OUTCOME_UNKNOWN)
+    }
+
     companion object {
         const val OUTCOME_OK = "OK"
         const val OUTCOME_FAIL = "FAIL"
+        // S0700: an inconclusive probe; the row/tile bullet renders it as the amber "not yet confirmed" state.
+        const val OUTCOME_UNKNOWN = "UNKNOWN"
         // Mirrors StreamMediaKindClassifier's stored kind; AUDIO -> ViewKind.AUDIO, RTSP/VIDEO -> VIDEO.
         private const val MEDIA_KIND_AUDIO = "AUDIO"
     }

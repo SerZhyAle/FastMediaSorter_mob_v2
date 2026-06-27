@@ -52,7 +52,7 @@
                 android:id="@+id/csh_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/toggler_title_text_size"
+                android:textSize="@dimen/collapsible_section_title_text_size"
                 android:textStyle="bold" />
 
             <TextView

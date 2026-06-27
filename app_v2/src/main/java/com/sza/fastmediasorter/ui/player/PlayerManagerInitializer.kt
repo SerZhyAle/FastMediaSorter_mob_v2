@@ -429,8 +429,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             audioMetadataCacheRepository = activity.audioMetadataCacheRepository,
             okHttpClient = activity.okHttpClient,
             lifecycleScope = activity.lifecycleScope,
-            loadingIndicatorHandler = activity.loadingIndicatorHandler,
-            showLoadingIndicatorRunnable = activity.showLoadingIndicatorRunnable,
+            loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
             panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerImageLoadingCallbackImpl(
                 activity = activity,
@@ -661,6 +660,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.settingsRepository,
             translationManager = activity.translationManager,
             textViewerManagerProvider = { activity.textViewerManager },
+            loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
             callback = object : ImageOcrManager.ImageOcrCallback {
                 override fun showError(message: String) { activity.showError(message) }
                 override fun getString(resId: Int): String = activity.getString(resId)
@@ -760,7 +760,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
             lifecycleScope = activity.lifecycleScope,
             loadingIndicatorHandler = activity.loadingIndicatorHandler,
-            showLoadingIndicatorRunnable = activity.showLoadingIndicatorRunnable,
             mediaFilesCacheManager = activity.mediaFilesCacheManager,
             audioServiceController = activity.audioServiceController,
             onAudioServicePlaybackChanged = { isPlaying ->

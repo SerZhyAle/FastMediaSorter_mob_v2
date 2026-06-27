@@ -57,8 +57,9 @@ class PlayerMediaLoaderManager(
     private val textViewerManagerProvider: () -> TextViewerManager,
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
     private val lifecycleScope: LifecycleCoroutineScope,
+    // S0704: retained for the audio-readiness feedback toast only; the spinner is owned by
+    // activity.loadingIndicatorCoordinator.
     private val loadingIndicatorHandler: Handler,
-    private val showLoadingIndicatorRunnable: Runnable,
     private val mediaFilesCacheManager: MediaFilesCacheManager,
     private val audioServiceController: AudioServiceController? = null,
     private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {},
@@ -259,9 +260,11 @@ class PlayerMediaLoaderManager(
         // Configure PlayerView based on media type
         configurePlayerViewForMediaType(isAudioFile, currentFile)
         
-        // Schedule loading indicator to show after 1 second
-        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
-        
+        // S0704: show the generic media-buffering spinner after 1s (covers in-app video/audio and
+        // the brief pre-bind window for service audio). Cleared by onPlaybackReady (in-app) or
+        // bindServicePlayerToView (service).
+        activity.loadingIndicatorCoordinator.showDelayed(LoadingSource.VIDEO_EXOPLAYER)
+
         // Route audio to persistent playback service when enabled
         val isPersistentAudioEnabled = viewModel.state.value.enablePersistentAudioPlayback
             && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
@@ -720,8 +723,9 @@ class PlayerMediaLoaderManager(
     internal fun bindServicePlayerToView(player: Player) {
         bindServicePlaybackListener(player)
         binding.playerView.player = player
-        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-        binding.progressBar.isVisible = false
+        // S0704: service audio bound = ready. Cancel the playVideo pending show (armed as
+        // VIDEO_EXOPLAYER before the audio/video branch) and drop the source.
+        activity.loadingIndicatorCoordinator.reset(LoadingSource.VIDEO_EXOPLAYER)
         activity.updateTrackButtonsVisibility()
         Timber.d("PlayerMediaLoaderManager: service player bound to PlayerView")
     }
@@ -779,12 +783,10 @@ class PlayerMediaLoaderManager(
         
         lifecycleScope.launch(Dispatchers.Main) {
             try {
-                // Cancel any pending loading indicator
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                if (!activity.isDestroyed) {
-                    binding.progressBar.isVisible = false
-                }
-                
+                // S0704: clear the image spinner + its pending show/safety before reloading the
+                // edited image (a fresh displayImage() arms them again).
+                activity.loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
+
                 // Clear memory cache for both views (immediate effect)
                 val requestManager = Glide.get(activity)
                     .requestManagerRetriever

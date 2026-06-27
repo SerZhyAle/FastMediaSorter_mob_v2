@@ -2,13 +2,19 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Context
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthResolutionTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 @Singleton
@@ -35,11 +41,47 @@ class GoogleDriveInteractiveSignInCoordinator @Inject constructor(
 
     private suspend fun runIdentitySignIn(activity: Activity): AuthResult {
         return try {
-            when (val result = identityRepository.signInPrimary(activity, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)) {
-                is IdentitySignInResult.Success -> AuthResult.Success(
-                    accountName = result.account.email,
-                    credentialsJson = result.account.email
+            // S0744: force the Credential Manager account chooser so the user can pick the account
+            // that is actually on the device, instead of silently reusing a previously authorized
+            // account that may no longer mint a token (the removed-account dead-end).
+            when (
+                val result = identityRepository.signInPrimary(
+                    activity,
+                    GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES,
+                    preferAccountChooser = true
                 )
+            ) {
+                is IdentitySignInResult.Success -> {
+                    val driveScopes = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
+                    val scopeObjects = driveScopes.map { Scope(it.value) }
+                    val authorizationRequest = AuthorizationRequest.builder()
+                        .setRequestedScopes(scopeObjects)
+                        .build()
+                    val authClient = Identity.getAuthorizationClient(activity)
+                    val authResult = authClient.authorize(authorizationRequest).await()
+
+                    val authorized = if (authResult.hasResolution()) {
+                        val pendingIntent = authResult.pendingIntent
+                        if (pendingIntent != null) {
+                            Timber.i("GMS Drive authorization requires resolution, launching shadow activity")
+                            GoogleDriveAuthResolutionTracker.resolvePendingIntent(activity, pendingIntent)
+                        } else {
+                            false
+                        }
+                    } else {
+                        authResult.accessToken != null
+                    }
+
+                    if (authorized) {
+                        AuthResult.Success(
+                            accountName = result.account.email,
+                            credentialsJson = result.account.email
+                        )
+                    } else {
+                        Timber.e("GMS Drive authorization failed or was cancelled by user")
+                        AuthResult.Cancelled
+                    }
+                }
 
                 IdentitySignInResult.Cancelled -> AuthResult.Cancelled
 

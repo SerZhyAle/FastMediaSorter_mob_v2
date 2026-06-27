@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0701: translucent dark disc behind a grid-tile overlay (status dot / overflow button) so it stays
+     legible on any captured frame or favicon. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/stream_grid_overlay_scrim" />
+</shape>

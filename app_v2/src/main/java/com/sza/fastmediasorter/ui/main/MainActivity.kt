@@ -13,68 +13,71 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.getPackageInfoCompat
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.db.DatabaseResetNotice
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.model.GamepadAction
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
+import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
+import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
+import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
+import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
+import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
+import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
+import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
+import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
-import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
-import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.core.cache.UnifiedFileCache
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
-import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
-import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
-import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
-import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
-import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
-import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
-import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
-import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
-import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
-import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
-import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
-import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
-import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
-import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
-import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
-import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
-import com.sza.fastmediasorter.ui.player.AudioPlaybackService
-import com.sza.fastmediasorter.core.error.ErrorSeverity
-import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import com.sza.fastmediasorter.util.getPackageInfoCompat
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
+import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -204,6 +207,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         savedInstanceState?.let {
             if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
         }
+
+        // S0731: if the local database had to be reset on an open/migration failure, inform the user
+        // (reason + backup location) now that an Activity exists, instead of the prior silent wipe.
+        DatabaseResetNotice.showIfPending(this)
 
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
         binding.root.post {
@@ -667,7 +674,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // surface, same as OCR/translation/VR/persistent-audio). S0575: also gate on the runtime
         // master toggle so the main-menu entry appears only when the user enabled Streams.
         val streamsAvailable = capabilityAvailability.isStreamsAvailable()
-        Timber.d("S0575: main menu streams gate support=%b enabled=%b", streamsAvailable, isStreamsEnabled)
         streamsMenuManager.populate(popup, streamsAvailable && isStreamsEnabled, 1)
         val quickAdded = quickCaptureMenuManager.populate(
             popup,
@@ -728,11 +734,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 
-        // S0293 Phase 08: capture effective multi-window availability at adapter construction time.
-        // OR-composition (persistent preference OR runtime capability) - same rule as Browse / Player.
-        val mainAllowSeparateWindow = kotlinx.coroutines.runBlocking {
-            settingsRepository.getSettings().first().allowSeparateWindow
-        } || com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector.isMultiWindowActiveNow(this)
+        // S0293 Phase 08: effective multi-window availability = persistent preference OR runtime
+        // capability. S0727: seed from the non-blocking runtime capability only; the persisted
+        // allowSeparateWindow preference is folded in off-Main by the settings collector below
+        // (collectOnLifecycle(getSettings())), so setupViews does no disk IO on the Main thread.
+        val mainAllowSeparateWindow =
+            com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector.isMultiWindowActiveNow(this)
 
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
@@ -795,9 +802,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         binding.rvResources.adapter = resourceAdapter
 
-        // Configure LayoutManager based on screen width (Tablet support)
-        val screenWidthDp = resources.configuration.screenWidthDp
-        if (screenWidthDp >= 600) {
+        // Configure LayoutManager based on available width / orientation (Tablet + wide-portrait support)
+        if (isWideLayout()) {
             // Tablet / Large screen: Use Grid Layout with columns from resources
             val columnCount = resources.getInteger(R.integer.resource_grid_column_count)
             binding.rvResources.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, columnCount)
@@ -948,14 +954,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             // Use state.resources.size instead of adapter.itemCount
             // because submitList() updates itemCount asynchronously
-            val isEmpty = state.resources.isEmpty()
-
-            // Update visibility based on state
-            val hasError = viewModel.error.value != null
-            binding.errorStateView.isVisible = hasError && isEmpty
-            binding.emptyStateView.isVisible = !hasError && isEmpty
-            binding.rvResources.isVisible = !isEmpty
-
             updateFilterWarning(state)
 
             // Sync TabLayout selection with ViewModel state
@@ -968,29 +966,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        collectOnLifecycle(viewModel.loading) { isLoading ->
-            binding.progressBar.isVisible = isLoading
-        }
+        collectOnLifecycle(viewModel.resourceListUiState) { uiState ->
+            binding.progressBar.isVisible = when (uiState) {
+                UiState.Loading -> true
+                is UiState.Content -> uiState.isRefreshing
+                UiState.Empty, is UiState.Error -> false
+            }
+            binding.rvResources.isVisible = uiState is UiState.Content
+            binding.emptyStateView.isVisible = uiState === UiState.Empty
+            binding.errorStateView.isVisible = uiState is UiState.Error
 
-        // Handle navigation progress (connection test during resource open)
-        collectOnLifecycle(viewModel.state) { state ->
-            binding.navigationProgressLayout.isVisible = state.isNavigating
-            if (state.isNavigating && state.navigationMessage != null) {
-                binding.tvNavigationMessage.text = state.navigationMessage
+            if (uiState is UiState.Error) {
+                binding.tvErrorMessage.text = uiState.message
             }
         }
 
-        collectOnLifecycle(viewModel.error) { errorMessage ->
-            // Show error state if error occurred and no resources loaded
-            val hasError = errorMessage != null
-            val isEmpty = viewModel.state.value.resources.isEmpty()
-
-            binding.errorStateView.isVisible = hasError && isEmpty
-            binding.emptyStateView.isVisible = !hasError && isEmpty
-            binding.rvResources.isVisible = !isEmpty
-
-            if (hasError && isEmpty) {
-                binding.tvErrorMessage.text = errorMessage
+        // Handle navigation progress (connection test during resource open).
+        // While the resume-loading flow owns the indicator, defer to it so a stray
+        // isNavigating=false emission can't hide it mid-flow (one-frame race). S0708.
+        collectOnLifecycle(viewModel.state) { state ->
+            if (::resumeHelper.isInitialized && resumeHelper.isResumeLoadingActive) return@collectOnLifecycle
+            binding.navigationProgressLayout.isVisible = state.isNavigating
+            if (state.isNavigating && state.navigationMessage != null) {
+                binding.tvNavigationMessage.text = state.navigationMessage
             }
         }
 
@@ -1038,6 +1036,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+            // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
+            // capability), replacing the removed runBlocking read in setupViews.
+            resourceAdapter.setOpenInNewWindowVisible(
+                settings.allowSeparateWindow ||
+                    com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+                        .isMultiWindowActiveNow(this@MainActivity)
+            )
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
             if (calculatorEnabledChanged || embeddedGameEnabledChanged || cameraOcrEnabledChanged ||

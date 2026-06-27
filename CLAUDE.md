@@ -4,7 +4,7 @@
 
 ## 1. Communication & Style
 - **Chat**: RU. **Code/Docs/Logs/Commits**: EN. **Tone**: dry, concise. Ask if ambiguous.
-- **Ellipsis**: `..` (never `...`). **Dash**: plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`). **Russian Ё/ё**: mandatory in chat, UI, docs, Approved specs. Draft specs exempt.
+- **Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY)**: In docs prose and UI strings use `..` (never `...`), plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`), and Russian Ё/ё where grammatically correct. NEVER applies to code, technical/tactical specs, commands, logs, or chat.
 - **Timestamps**: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
 - **Caveman Mode**: Trigger via `/caveman` / `be brief`. Keep RU in chat, EN in code. Drop filler.
 - **Spec Writing**: Lists over tables (tables only for 3+ columns). No pseudographics. No self-evident links. One idea per bullet. No section summaries. Draft specs exempt.
@@ -129,6 +129,7 @@
 - **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.
 - **Features (showcase)**: `docs/FEATURES*.md` (EN/RU/UK) is the curated public showcase published to the site, populated ONLY by `/skill-release` from the `ALL_FEATURES` diff since the previous release - never edited per-spec. `noLegal` showcase items go to gitignored `docs/FEATURES_noLegal*.md`.
 - **UI Comm**: `docs/COMMUNICATION_POLICY*.md` (EN/RU/UK). Read before modifying user-visible strings.
+- **Dialog action pair (S0538/S0684)**: any confirm/cancel pair in a dialog, bottom sheet, or custom layout uses the named styles - confirm = `Widget.FastMediaSorter.Button.DialogConfirm` (green, wide), cancel = `Widget.FastMediaSorter.Button.DialogCancel` (soft-pink tonal, shorter + narrower), destructive confirm = `Widget.FastMediaSorter.Button.DialogDestructive` (red). Never a one-off cancel button (icon-only/selection/scan dialogs are exempt). Standard: `docs/ARCHITECTURE.md` "Button Taxonomy". Gate: `scripts/quality/assert-dialog-cancel-style.ps1` (in `post-change.ps1`).
 
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.
@@ -141,3 +142,14 @@
   - Kotlin/Java: prefer `.\a.ps1 fk` for compile-only symbol changes; escalate to `.\a.ps1 fc`, targeted `--tests`, or full `.\a.ps1 d` only when the touched area needs packaging/resource proof.
   - Python: Syntax check + test.
   - Layout/manifest: Target build passes.
+
+## 13. Code Audit Protocol
+- Full protocol: `docs/CODE_AUDIT_PROTOCOL.md` (layered audit, evidence ladder, per-layer checklists). Read and apply it whenever an **audit trigger** fires - do not re-derive the checks. Use the cheapest evidence rung that matches the risk.
+- **Audit triggers**: new screen/manager/worker/repository/long-lived helper; lifecycle change; coroutine/Flow/callback/listener/observer change; shared-mutable-state/synchronization/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image-loading/caching/network-path change; startup-path change; DI scope or singleton-ownership change; build/manifest/R8/keep-rule change affecting profiling/startup/minification/process; reported crash/ANR/OOM/jank/leak.
+- **Severity taxonomy** - tag every finding (review comments + `## Last Audit`): P0 crash/ANR/OOM/retained Activity-Fragment-View/deadlock/data-loss (blocks release); P1 data race on shared state, main-thread disk/network I/O, unbounded cache, unreleased heavy resource (fix before merge); P2 hot-path allocation churn, repeated expensive lookups, missing lifecycle-awareness, over-eager startup (fix or ticket); P3 readability/naming/`!!`/style (fix inline or note). P0/P1 require evidence at the matching evidence-ladder rung, not opinion.
+- **Listener symmetry**: every `register*`/`addListener`/`addCallback`/`addObserver` (esp. `Player.Listener`, `ContentObserver`, `BroadcastReceiver`) has a matching removal on the **symmetric** lifecycle edge (`onStart`/`onStop`, `onResume`/`onPause`, `onCreate`/`onDestroy`) - never split across asymmetric ones.
+- **Room main-safety**: no main-thread Room - `allowMainThreadQueries()` stays banned; DAO methods are `suspend` or return `Flow`; atomic multi-step writes wrapped in `@Transaction`/`withTransaction`; `Flow` queries `distinctUntilChanged` so an unrelated-row write does not re-render.
+- **Concurrency correctness**: shared mutable state confined to one thread or guarded (`Mutex`/`synchronized`/`@Volatile`, no read-modify-write race); `withContext(Dispatchers.IO)` sits at the Repository/DataSource boundary, not buried in business logic or pushed onto callers; no `runBlocking`/blocking I/O/`Thread.sleep` on a UI or single-threaded dispatcher.
+- **Player/Glide ownership**: one owner per `ExoPlayer`; `release()` on real teardown with `setVideoSurface(null)` + remove every listener + abandon audio focus first; apply the same release contract to every player host, not just the edited one (extends Rule 18). Glide decode at display size (`override(w,h)`), `clear(target)` on detach.
+- **R8 / minified proof**: a P0/P1 change touching reflection, serialization, DI graphs, manifests, or dependencies is not done until proven on the **minified release/target variant** (keep rules cover reflective/serialized types; no new `R8: missing class`/`unresolved`), not only on debug. Extends Rule 20.
+- Recurring finding -> convert to a mechanical gate (`scripts/quality/assert-*.ps1`), per Rule 19/20 and Layer 8. Do not duplicate the protocol text in rules - link to it.

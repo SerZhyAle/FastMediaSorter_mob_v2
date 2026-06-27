@@ -6,28 +6,29 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceShareFormat
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
-import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
+import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
-import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -36,6 +37,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -127,8 +129,11 @@ class MainViewModel @Inject constructor(
 
     override fun getInitialState() = MainState()
 
+    val resourceListUiState: StateFlow<UiState<MainState>> =
+        createUiState { currentState -> currentState.resources.isEmpty() }
+
     /**
-     * MainActivity renders BaseViewModel.error directly in the empty-state surface,
+     * The main screen routes BaseViewModel error state into a dedicated full-screen surface,
      * so this path must stay resource-backed instead of exposing raw exception text.
      */
     override fun handleError(throwable: Throwable) {

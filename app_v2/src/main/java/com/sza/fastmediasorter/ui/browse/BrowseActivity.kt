@@ -12,50 +12,51 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import com.bumptech.glide.Glide
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
-import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
-import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.transfer.strategies.LocalToFtpStrategy
-import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
 import com.sza.fastmediasorter.data.transfer.strategies.LocalToSftpStrategy
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
-import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
-import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
-import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
+import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
+import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
+import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
+import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
-import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
-import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
-import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.utils.UserActionLogger
-import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -423,8 +424,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun observeData() {
         if (mediaCapabilities.supportsMicRecording) {
-            collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-                val showMic = settings.micRecordingEnabled
+            collectOnLifecycle(viewModel.settings.map { it.micRecordingEnabled }.distinctUntilChanged()) { showMic ->
                 binding.btnMicRecord?.isVisible = showMic
                 // S0374: mic eligibility is owned here (not by the state collector) - report + re-partition.
                 if (::initializer.isInitialized) {
@@ -726,10 +726,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private fun onVideoCaptured(fileName: String) {
         viewModel.reloadFiles()
         viewModel.scrollToFileAfterRefresh(fileName)
-        lifecycleScope.launch {
-            if (settingsRepository.getSettings().first().videoCaptureOpenInPlayer) {
-                viewModel.openCapturedVideoAfterRefresh(fileName)
-            }
+        if (viewModel.settings.value.videoCaptureOpenInPlayer) {
+            viewModel.openCapturedVideoAfterRefresh(fileName)
         }
     }
 

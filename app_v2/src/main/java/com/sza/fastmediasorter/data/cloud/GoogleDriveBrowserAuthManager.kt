@@ -280,11 +280,12 @@ class GoogleDriveBrowserAuthManager @Inject constructor(
             REDIRECT_URI
         )
             .setScope(SCOPES.joinToString(" "))
+            // "prompt" is a built-in OAuth/OIDC param - AppAuth rejects it inside
+            // setAdditionalParameters() (IllegalArgumentException). It must go through setPrompt().
+            // "access_type" is Google-specific and is allowed as an additional parameter. S0746.
+            .setPrompt("consent")
             .setAdditionalParameters(
-                mapOf(
-                    "access_type" to "offline",
-                    "prompt" to "consent"
-                )
+                mapOf("access_type" to "offline")
             )
             .build()
 

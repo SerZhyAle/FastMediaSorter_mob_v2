@@ -212,7 +212,7 @@ class AudioStandaloneActivity :
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
-                override fun isCommandPanelVisible(): Boolean = viewModel.state.value.mediaFile != null
+                override fun shouldShowDestinationPanels(): Boolean = viewModel.state.value.mediaFile != null
             },
             shouldNumberSlots = { false },
             slotKeyGlyph = { null },

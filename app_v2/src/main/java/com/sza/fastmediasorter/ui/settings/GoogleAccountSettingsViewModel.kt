@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
@@ -120,11 +121,7 @@ class GoogleAccountSettingsViewModel @Inject constructor(
         showDiagnostics.value = !showDiagnostics.value
     }
 
-    private fun primaryScopes(): Set<GoogleScope> = setOf(
-        GoogleScope.DRIVE,
-        GoogleScope.DRIVE_READONLY,
-        GoogleScope.EMAIL,
-        GoogleScope.PROFILE,
-        GoogleScope.OPENID
-    )
+    // S0639: single source of truth - reuse the canonical Drive sign-in scope set (same path as
+    // BackupRestoreViewModel) so this interactive sign-in surface cannot drift from the GMS path.
+    private fun primaryScopes(): Set<GoogleScope> = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES
 }

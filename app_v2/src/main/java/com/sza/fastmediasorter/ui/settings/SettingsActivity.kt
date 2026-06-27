@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.settings
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.SystemClock
@@ -18,6 +17,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatTextView
@@ -338,12 +338,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private fun forceEqualTabWidths() {
         val tabStrip = binding.tabLayout.getChildAt(0) as? LinearLayout ?: return
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isWide = resources.configuration.isWideLayout()
         val landscapeTabWidth = resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
         for (index in 0 until tabStrip.childCount) {
             val child = tabStrip.getChildAt(index)
             val params = child.layoutParams as? LinearLayout.LayoutParams ?: continue
-            if (isLandscape) {
+            if (isWide) {
                 params.width = landscapeTabWidth
                 params.weight = 0f
             } else {
@@ -389,7 +389,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         )
 
         // Re-apply compact toolbar height now that the inset is known
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (resources.configuration.isWideLayout()) {
             updateLandscapeToolbarHeight()
         }
     }
@@ -400,9 +400,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun applyCompactToolbar(compact: Boolean) {
         toolbarCompact = compact
         val compactH = resources.getDimensionPixelSize(R.dimen.toolbar_row_height_compact)
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isWide = resources.configuration.isWideLayout()
 
-        if (isLandscape) {
+        if (isWide) {
             updateLandscapeToolbarHeight()
         } else {
             val titleH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_title_row_height)

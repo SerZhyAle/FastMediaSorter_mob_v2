@@ -5,7 +5,7 @@
 
 ## 2. Style & Communication
 - Chat: RU. Code/Docs/Logs/Commits: EN. Dry, concise.
-- Ellipsis `..` (never `...`). RU Ё/ё where grammatically correct (chat, UI, docs, Approved specs; Draft specs exempt).
+- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): use `..` (never `...`), plain hyphen `-` (never `—`, `–`, `―`), and RU Ё/ё where grammatically correct. Never enforce these typography rules in code, technical specs, commands, logs, or chat.
 - Caveman Mode: trigger `/caveman` / `be brief`. RU chat, EN code, drop filler.
 - Spec Writing: lists over tables (tables only 3+ columns); no pseudographics; no self-evident links; one idea per bullet; no section summaries; Draft specs exempt.
 
@@ -49,7 +49,15 @@
 - Step 3 PLANNING: EN execution plan as markdown checklist.
 - Step 4 IMPLEMENTATION: execute step-by-step; build/commit after each step; update features inventory.
 
-## 7. Scripts Reference
+## 7. Code Audit Protocol
+- Full protocol: `docs/CODE_AUDIT_PROTOCOL.md`. Apply it on any audit trigger: new screen/manager/worker/repository/long-lived helper; lifecycle/coroutine/Flow/listener/observer change; shared-state/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image/cache/network change; startup change; DI scope/singleton change; build/manifest/R8/keep-rule change affecting profiling/startup/minification; reported crash/ANR/OOM/jank/leak.
+- Tag every finding by severity P0-P3 (P0 crash/leak/data-loss blocks release; P1 race / main-thread I/O / unbounded cache / unreleased resource; P2 hot-path churn / over-eager startup; P3 readability/style). P0/P1 need evidence, not opinion.
+- Listener symmetry: every `register*`/`addListener`/`addObserver` has a matching removal on the symmetric lifecycle edge.
+- No main-thread Room (`allowMainThreadQueries()` banned); DAO `suspend`/`Flow`; atomic multi-step writes in `@Transaction`/`withTransaction`.
+- One owner per `ExoPlayer` with a full release contract (`release()` + `setVideoSurface(null)` + remove listeners + abandon focus); mirror across player hosts. Glide decode-at-size + `clear(target)` on detach.
+- Reflection/serialization/DI/manifest/dependency changes are proven on the minified release/target variant, not only debug (extends dead-weight Rule 16).
+
+## 8. Scripts Reference
 - Logs: `scripts/utils/search-log.ps1` (`-Summary`, `-Spam`, `-Errors`, `-Warnings`, `-Pattern`, `-Tag`).
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
 - Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.

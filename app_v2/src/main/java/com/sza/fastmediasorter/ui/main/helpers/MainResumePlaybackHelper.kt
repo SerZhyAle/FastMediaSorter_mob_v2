@@ -43,6 +43,14 @@ class MainResumePlaybackHelper(
     private val clearResumeStateUseCase: ClearResumeStateUseCase
 ) {
 
+    /**
+     * True while the resume-loading flow owns the navigation-progress indicator. The MainActivity
+     * ViewModel-state collector must NOT write that indicator while this is set, otherwise an
+     * `isNavigating=false` emission can hide it mid-flow (one-frame race). S0708.
+     */
+    var isResumeLoadingActive: Boolean = false
+        private set
+
     fun shouldAttemptResume(intent: Intent?): Boolean {
         // Only for standard launcher icon start (ACTION_MAIN)
         if (intent?.action != Intent.ACTION_MAIN) return false
@@ -70,7 +78,9 @@ class MainResumePlaybackHelper(
                     return@launch
                 }
 
-                // Show loading overlay only when we will actually attempt resume
+                // Show loading overlay only when we will actually attempt resume.
+                // Claim ownership of the indicator so the state collector defers to us.
+                isResumeLoadingActive = true
                 binding.navigationProgressLayout.isVisible = true
                 binding.tvNavigationMessage.text = activity.getString(R.string.resume_checking)
 
@@ -182,6 +192,7 @@ class MainResumePlaybackHelper(
     }
 
     fun dismissResumeLoading() {
+        isResumeLoadingActive = false
         binding.navigationProgressLayout.isVisible = false
     }
 }

@@ -42,7 +42,9 @@
         android:id="@+id/playbackResizableArea"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:divider="@drawable/playback_section_divider"
+        android:orientation="horizontal"
+        android:showDividers="middle">
 
         <!-- Section rail: vertical toggle group, scrolls when sections overflow the height -->
         <ScrollView
@@ -181,13 +183,9 @@
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </ScrollView>
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="10dp"
-            android:background="?attr/colorOutlineVariant" />
-
-        <!-- Content area - VerticalSeekBar renders vertically in portrait -->
+        <!-- Content area - VerticalSeekBar renders vertically in portrait. The rail/content separator
+             is drawn by the parent showDividers (see playback_section_divider) rather than a
+             match_parent <View>, which used to force the dialog to full height (S0670). -->
         <ScrollView
             android:layout_width="0dp"
             android:layout_height="match_parent"

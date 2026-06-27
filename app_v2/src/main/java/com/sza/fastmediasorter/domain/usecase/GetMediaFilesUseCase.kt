@@ -1,27 +1,28 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.core.metrics.ScanMetricsRecorder
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import com.sza.fastmediasorter.core.logging.CorrelationContext
-import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.usecase.scan.IncrementalScanStrategy
 import com.sza.fastmediasorter.domain.usecase.scan.ScanDispatcher
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
 
 data class SizeFilter(
     val imageSizeMin: Long,
@@ -296,6 +297,10 @@ class GetMediaFilesUseCase @Inject constructor(
                     } else {
                         StructuredLogger.d("Progressive: folder empty, skipping early emit")
                     }
+                } catch (e: CancellationException) {
+                    // Cooperative cancellation (e.g. a newer reload superseded this one) is normal
+                    // flow, not a scan failure - propagate it instead of "continuing with full scan".
+                    throw e
                 } catch (e: Exception) {
                     StructuredLogger.w(e, "Progressive partial scan failed, continuing with full scan")
                 }
@@ -358,6 +363,12 @@ class GetMediaFilesUseCase @Inject constructor(
         // Fetch favorites to mark files
         val favoriteUris = try {
             favoritesRepository.getAllFavorites().first().map { it.uri }.toSet()
+        } catch (e: CancellationException) {
+            // A rapid sequence of reloads (e.g. bulk media upload firing many MediaStore changes)
+            // cancels this in-flight load; the favorites .first() then throws CancellationException.
+            // That is normal cancellation, not an error - rethrow so it does not surface as a logged
+            // ERROR (which the debug UiNotificationTree would pop as a snackbar). S0742.
+            throw e
         } catch (e: Exception) {
             StructuredLogger.e(e, "Failed to fetch favorites")
             emptySet<String>()

@@ -139,7 +139,6 @@ class SendToMenuManager @Inject constructor(
             )
             pickItem.setIcon(R.drawable.ic_folder)
             pickItem.setOnMenuItemClickListener {
-                Timber.d("S0681: pinned Select-resource tapped in send-to overflow submenu")
                 onPickResource()
                 true
             }

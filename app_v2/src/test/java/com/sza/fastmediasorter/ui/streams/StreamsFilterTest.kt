@@ -21,6 +21,7 @@ class StreamsFilterTest {
         language: String? = null,
         topic: String? = null,
         mediaKind: String = "VIDEO",
+        pinned: Boolean = false,
     ) = StreamSourceEntity(
         id = id,
         url = "http://example/$id",
@@ -32,9 +33,28 @@ class StreamsFilterTest {
         category = category,
         topic = topic,
         language = language,
+        pinned = pinned,
     )
 
     private fun ids(list: List<StreamSourceEntity>) = list.map { it.id }.toSet()
+
+    @Test
+    fun `pinnedOnly keeps only pinned rows`() {
+        val sources = listOf(
+            source("p1", pinned = true),
+            source("p2", pinned = true),
+            source("u1", pinned = false),
+        )
+        assertEquals(
+            setOf("p1", "p2"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(pinnedOnly = true))),
+        )
+        // Off by default: every row passes.
+        assertEquals(
+            setOf("p1", "p2", "u1"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(pinnedOnly = false))),
+        )
+    }
 
     @Test
     fun `multi-language cell matches single-language filter`() {

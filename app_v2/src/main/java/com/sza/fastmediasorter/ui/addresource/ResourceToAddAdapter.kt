@@ -14,6 +14,8 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 
 
+private const val PAYLOAD_SELECTION = "payload_selection"
+
 class ResourceToAddAdapter(
     private val onSelectionChanged: (MediaResource, Boolean) -> Unit,
     private val onNameChanged: (MediaResource, String) -> Unit,
@@ -30,10 +32,11 @@ class ResourceToAddAdapter(
         val oldSelected = selectedPaths
         selectedPaths = paths
         
-        // Only notify changed items
+        // Only notify rows whose selection membership flipped; payload triggers
+        // checkbox-only rebind to avoid disrupting active EditText editing.
         currentList.forEachIndexed { index, resource ->
-            if (resource.path in oldSelected || resource.path in paths) {
-                notifyItemChanged(index)
+            if ((resource.path in oldSelected) != (resource.path in paths)) {
+                notifyItemChanged(index, PAYLOAD_SELECTION)
             }
         }
     }
@@ -49,6 +52,14 @@ class ResourceToAddAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position))
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == PAYLOAD_SELECTION }) {
+            holder.bindSelection(getItem(position))
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
+        }
     }
 
     inner class ViewHolder(
@@ -146,7 +157,19 @@ class ResourceToAddAdapter(
             }
         }
 
-        
+        fun bindSelection(resource: MediaResource) {
+            currentResource = resource
+
+            binding.apply {
+                cbAdd.setOnCheckedChangeListener(null)
+                cbAdd.isChecked = resource.path in selectedPaths
+                cbAdd.setOnCheckedChangeListener { _, isChecked ->
+                    onSelectionChanged(resource, isChecked)
+                }
+            }
+        }
+
+
         private fun setupMediaTypeButton(
             view: android.widget.TextView, 
             resource: MediaResource, 

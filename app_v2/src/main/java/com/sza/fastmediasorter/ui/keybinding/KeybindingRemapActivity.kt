@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.keybinding
 
 import android.os.Bundle
 import androidx.activity.viewModels
-import android.content.res.Configuration
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityKeybindingRemapBinding
 import com.sza.fastmediasorter.domain.input.CommandGroup
@@ -89,8 +89,8 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
                 viewModel.onResetGroupRequested(group)
             }
         )
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val spanCount = if (isLandscape) 2 else 1
+        val isWide = resources.configuration.isWideLayout()
+        val spanCount = if (isWide) 2 else 1
         val glm = GridLayoutManager(this, spanCount)
         glm.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int) =

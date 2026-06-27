@@ -25,6 +25,12 @@ interface ScreenGestureOverlayController {
      * Only meaningful when [isFallbackCaptureAvailable] is true. */
     fun fallbackPermissionSettingsIntent(context: Context): Intent
 
-    fun setEnabled(enabled: Boolean)
-    fun isEnabled(): Boolean
+    /** [stripVisible] is the persisted strip-visibility setting, supplied by the caller (read off the
+     * Main thread) so the controller performs no settings IO on the UI thread (S0727). */
+    fun setEnabled(enabled: Boolean, stripVisible: Boolean)
+
+    /** S0724: push the left-edge strip's visibility (grey vs transparent) to the live overlay. No-op
+     * when the gesture overlay is disabled. [overlayEnabled] is the persisted master toggle, supplied
+     * by the caller (read off the Main thread) so this performs no settings IO on the UI thread (S0727). */
+    fun setStripVisible(visible: Boolean, overlayEnabled: Boolean)
 }

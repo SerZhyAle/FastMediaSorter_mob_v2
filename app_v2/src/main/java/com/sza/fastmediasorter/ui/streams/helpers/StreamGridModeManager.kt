@@ -4,9 +4,9 @@ import android.content.res.Resources
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -37,6 +37,8 @@ class StreamGridModeManager(
     private val lifecycleOwner: LifecycleOwner,
     private val resources: Resources,
     private val onToggleIconChanged: (mode: DisplayMode) -> Unit,
+    // S0700: report a video tile's capture outcome (ok = first frame decoded) as its green/red status.
+    private val onStreamOutcome: (id: String, ok: Boolean) -> Unit = { _, _ -> },
 ) {
 
     private var currentMode: DisplayMode = DisplayMode.LIST
@@ -45,6 +47,10 @@ class StreamGridModeManager(
 
     init {
         snapshotManager.onCaptured = { url -> gridAdapter.repaintUrl(url) }
+        // S0700: a captured frame means the video stream is reachable here -> green; a failed decode -> red.
+        snapshotManager.onOutcome = { url, ok ->
+            latestList.firstOrNull { it.url == url }?.let { onStreamOutcome(it.id, ok) }
+        }
         swipeRefresh.setOnRefreshListener { onPullToRefresh() }
         swipeRefresh.isEnabled = false
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -58,7 +64,6 @@ class StreamGridModeManager(
     fun applyMode(mode: DisplayMode, currentList: List<StreamSourceEntity>) {
         currentMode = mode
         latestList = currentList
-        Timber.d("S0675: applyMode mode=%s items=%d", mode.name, currentList.size)
         onToggleIconChanged(mode)
         when (mode) {
             DisplayMode.LIST -> {
@@ -66,7 +71,10 @@ class StreamGridModeManager(
                 stopPeriodicRefresh()
                 swipeRefresh.isEnabled = false
                 swipeRefresh.isRefreshing = false
-                recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
+                // S0692: render the list in multiple columns in landscape (1 in portrait). A
+                // GridLayoutManager with span 1 is identical to a LinearLayoutManager, so the portrait
+                // path is unchanged. Recomputed here so a rotation-driven Activity recreate re-spans.
+                recyclerView.layoutManager = GridLayoutManager(recyclerView.context, calculateListSpanCount(resources))
                 recyclerView.adapter = listAdapter
                 listAdapter.submitList(currentList)
             }
@@ -77,6 +85,23 @@ class StreamGridModeManager(
                 swipeRefresh.isEnabled = true
                 startPeriodicRefresh()
             }
+        }
+    }
+
+    /**
+     * S0692: recompute the column span for the active mode after a rotation. The Activity declares
+     * `configChanges="orientation|screenSize"`, so it is never recreated on rotation and [applyMode] does
+     * not re-run - without this the landscape multi-column list would only appear after a mode toggle.
+     */
+    fun onConfigurationChanged() {
+        val layoutManager = recyclerView.layoutManager as? GridLayoutManager ?: return
+        val span = when (currentMode) {
+            DisplayMode.LIST -> calculateListSpanCount(resources)
+            DisplayMode.GRID -> calculateGridSpanCount(resources)
+        }
+        if (layoutManager.spanCount != span) {
+            layoutManager.spanCount = span
+            layoutManager.requestLayout()
         }
     }
 
@@ -101,6 +126,14 @@ class StreamGridModeManager(
     private fun onPullToRefresh() {
         invalidateAndResweepVisible()
         swipeRefresh.isRefreshing = false
+    }
+
+    /**
+     * S0700: re-capture the thumbnails of the currently-visible tiles (the grid arm of the refresh
+     * action). No-op unless in GRID mode. Mirrors pull-to-refresh's frame sweep without the spinner.
+     */
+    fun refreshVisibleFrames() {
+        if (currentMode == DisplayMode.GRID) invalidateAndResweepVisible()
     }
 
     private fun startPeriodicRefresh() {
@@ -138,8 +171,21 @@ class StreamGridModeManager(
         return (screenWidthDp / MIN_TILE_WIDTH_DP).toInt().coerceAtLeast(2)
     }
 
+    /**
+     * S0692: list column count. Portrait stays single-column; landscape fits as many ~[MIN_LIST_COLUMN_WIDTH_DP]
+     * columns as the width allows, at least 2 - a wide list row stays readable while filling the extra
+     * horizontal space instead of leaving it blank.
+     */
+    private fun calculateListSpanCount(resources: Resources): Int {
+        if (!resources.configuration.isWideLayout()) return 1
+        val displayMetrics = resources.displayMetrics
+        val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+        return (screenWidthDp / MIN_LIST_COLUMN_WIDTH_DP).toInt().coerceAtLeast(2)
+    }
+
     private companion object {
         const val REFRESH_INTERVAL_MS = 60_000L
         const val MIN_TILE_WIDTH_DP = 160f
+        const val MIN_LIST_COLUMN_WIDTH_DP = 360f
     }
 }

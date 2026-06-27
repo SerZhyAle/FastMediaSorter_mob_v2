@@ -90,8 +90,8 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         ScreenshotAccessibilityServiceHolder.instance = this
         serviceScope.launch {
-            val enabled = settingsRepository.get().getSettings().first().gestureOverlayEnabled
-            applyOverlayState(enabled)
+            val settings = settingsRepository.get().getSettings().first()
+            applyOverlayState(settings.gestureOverlayEnabled, settings.screenshotGestureStripVisible)
         }
     }
 
@@ -115,12 +115,17 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     }
 
     /** Show/hide the edge gesture strip. Called on connect and pushed by the settings controller. */
-    fun applyOverlayState(enabled: Boolean) {
+    fun applyOverlayState(enabled: Boolean, stripVisible: Boolean = false) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
-        if (enabled) showStrip() else hideStrip()
+        if (enabled) showStrip(stripVisible) else hideStrip()
     }
 
-    private fun showStrip() {
+    /** S0724: recolour the live strip (grey vs transparent) when only the visibility setting changes. */
+    fun applyStripVisible(visible: Boolean) {
+        overlayManager?.setStripVisible(visible)
+    }
+
+    private fun showStrip(stripVisible: Boolean) {
         if (overlayManager != null) return
         // Accessibility (dialog-free) takes priority: if the legacy MediaProjection host was running
         // its own strip, shut it down so only one strip exists once accessibility is on.
@@ -130,7 +135,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             onGestureMatched = { direction -> captureNow(direction) }
         )
-        manager.show()
+        manager.show(stripVisible)
         overlayManager = manager
     }
 

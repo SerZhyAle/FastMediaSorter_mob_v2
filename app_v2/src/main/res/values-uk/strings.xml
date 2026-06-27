@@ -1797,7 +1797,9 @@
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
-    <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
+    <string name="database_reset_dialog_title">Базу даних скинуто</string>
+    <string name="database_reset_dialog_message">Локальну базу даних не вдалося відкрити або оновити, тому її було скинуто, і застосунок продовжить роботу. Частина збережених даних (джерела, облікові записи, обране) могла бути втрачена.\n\nПричина: %1$s</string>
+    <string name="database_reset_backup_note">Копію попередньої бази даних збережено в:\n%1$s</string>
     <string name="resume_unavailable">Не вдалося відновити відтворення - ресурс недоступний або сесія закінчилася</string>
     <string name="resume_checking">Відновлення відтворення..</string>
 
@@ -2445,6 +2447,8 @@
     <string name="setting_subgroup_screen_gestures_title">Жести з лівого краю екрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
+    <string name="setting_gesture_strip_visible_title">Показувати смугу жесту біля лівого краю</string>
+    <string name="setting_gesture_strip_visible_summary">Показувати напівпрозору сіру напрямну на перших 4 px; решта прозора</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_help_message">Біля лівого краю екрана розташована тонка невидима смуга. Щоб зняти поточний екран, проведіть від смуги по діагоналі вниз і вправо (приблизно 45°). Знімок зберігається у вибраний ресурс - типово в папку скриншотів пристрою. Потрібен дозвіл «Поверх інших застосунків». Смуга займає лівий край від 10 до 75 відсотків висоти; верхній кут залишено вільним, щоб не спрацьовувати випадково.</string>
     <string name="setting_screenshot_destination_title">Завантажувати знімки до..</string>
@@ -2792,4 +2796,10 @@
     <string name="draw_tool_crop">Обрізання</string>
     <string name="draw_crop_frame_desc">Рамка виділення обрізання</string>
     <string name="draw_crop_failed">Не вдалося обрізати зображення</string>
+    <string name="stream_wait_buffering">Буферизація..</string>
+    <string name="stream_wait_reconnecting">Відновлення з\'єднання..</string>
+    <string name="streams_filter_pinned_only">Лише закріплені</string>
+    <string name="streams_refresh_probing">Перевірка трансляцій..</string>
+    <string name="streams_error_no_network">Немає мережі. Підключіться до Wi-Fi або мобільної мережі, щоб відтворювати трансляції.</string>
+    <string name="tile_screenshot_label">Знімок екрана</string>
 </resources>

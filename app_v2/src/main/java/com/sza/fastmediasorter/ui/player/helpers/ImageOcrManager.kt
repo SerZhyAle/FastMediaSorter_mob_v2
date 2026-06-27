@@ -35,6 +35,7 @@ class ImageOcrManager(
     private val settingsRepository: SettingsRepository,
     private val translationManager: TranslationManager,
     private val textViewerManagerProvider: () -> TextViewerManager,
+    private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator,
     private val callback: ImageOcrCallback
 ) {
     
@@ -77,7 +78,7 @@ class ImageOcrManager(
         // Show progress + disable the OCR button so the user gets immediate visual feedback.
         // First-call PaddleOCR/Tesseract init can take seconds (cold native library + model load);
         // without this the UI looks frozen even though the IO coroutine is running.
-        binding.progressBar.isVisible = true
+        loadingIndicatorCoordinator.show(LoadingSource.OCR)
         binding.btnOcrImageCmd.isEnabled = false
         Timber.d("S0288: ImageOcrManager launching OCR coroutine (Dispatchers.IO)")
 
@@ -94,7 +95,7 @@ class ImageOcrManager(
                 Timber.d("S0288: ImageOcrManager extractTextOnly returned len=${recognizedText?.length}")
 
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    loadingIndicatorCoordinator.hide(LoadingSource.OCR)
                     binding.btnOcrImageCmd.isEnabled = true
                     if (recognizedText != null && recognizedText.isNotBlank()) {
                         textViewerManagerProvider().displayOcrText(recognizedText)
@@ -106,7 +107,7 @@ class ImageOcrManager(
                 if (e is CancellationException) throw e
                 Timber.e(e, "ImageOcrManager OCR pipeline failed")
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.isVisible = false
+                    loadingIndicatorCoordinator.hide(LoadingSource.OCR)
                     binding.btnOcrImageCmd.isEnabled = true
                     callback.showError(callback.getString(R.string.ocr_error))
                 }

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -234,11 +235,11 @@ class BrowseButtonSetupHelper(
      * Show or hide text labels on toolbar buttons depending on orientation.
      */
     fun updateToolbarButtonLabels(config: Configuration) {
-        val isLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("updateToolbarButtonLabels: isLandscape=$isLandscape")
+        val isWide = config.isWideLayout()
+        Timber.d("updateToolbarButtonLabels: isWide=$isWide")
         val ctx = binding.root.context
 
-        if (isLandscape) {
+        if (isWide) {
             binding.btnBack.text = ctx.getString(R.string.back)
             binding.btnFilter.text = ctx.getString(R.string.search)
             binding.btnRefresh.text = ctx.getString(R.string.refresh)

@@ -1,0 +1,260 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.disabled)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.enabled)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.hide_password)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.save)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.saving_connection)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.show_password)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.ssh_key_configured)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.test_connection)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(R.string.testing_connection)</ID>
+    <ID>ArgumentListWrapping:AddNetworkSourceScreen.kt$(if (uiState.useSshKey) stringResource(R.string.enabled) else stringResource(R.string.disabled))</ID>
+    <ID>ArgumentListWrapping:FtpConnectionTest.kt$FtpConnectionTest$("FtpConnectionTest: test not supported on Wear OS for source '${source.name}' - returning stub failure")</ID>
+    <ID>ArgumentListWrapping:SelectedMediaManager.kt$SelectedMediaManager$("SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, streamUri=$effectiveStreamUri")</ID>
+    <ID>ArgumentListWrapping:SftpConnectionTest.kt$SftpConnectionTest$("SftpConnectionTest: test not supported on Wear OS for source '${source.name}' - returning stub failure")</ID>
+    <ID>ArgumentListWrapping:WearTextInput.kt$(inputValue.length)</ID>
+    <ID>ArgumentListWrapping:WearTextInput.kt$(value.length)</ID>
+    <ID>CyclomaticComplexMethod:BrowseViewModel.kt$BrowseViewModel$private fun getMimeTypeFromFileName(fileName: String): String?</ID>
+    <ID>FinalNewline:ApplyWearSettingsUseCaseTest.kt$com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCaseTest.kt</ID>
+    <ID>FinalNewline:FtpConnectionTestTest.kt$com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTestTest.kt</ID>
+    <ID>FinalNewline:ITunesTrackTest.kt$com.sza.fastmediasorter.wear.data.network.itunes.ITunesTrackTest.kt</ID>
+    <ID>FinalNewline:SftpConnectionTestTest.kt$com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTestTest.kt</ID>
+    <ID>FinalNewline:WearEventEnvelopeTest.kt$com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeTest.kt</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable fun AddNetworkSourceScreen( navController: NavController, viewModel: AddNetworkSourceViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun EditFieldOverlay( field: AddField, value: String, onValueChange: (String) -&gt; Unit, passwordVisible: Boolean, onPasswordVisibilityToggle: () -&gt; Unit, onSave: () -&gt; Unit, onCancel: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun EditableFieldChip( label: String, value: String, fallback: String, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun ProtocolChip( label: String, selected: Boolean, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddSmbScreen.kt$@Deprecated("Use AddNetworkSourceScreen instead") @Composable fun AddSmbScreen( navController: NavController )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable fun AudioPlayerScreen( viewModel: AudioPlayerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable private fun AudioPlayerContent( uiState: AudioPlayerUiState, isFavorite: Boolean, onPlayPause: () -&gt; Unit, onSeekForward: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable fun BrowseScreen( navController: NavController, viewModel: BrowseViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun EmptyContent(message: String)</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun ErrorContent( message: String, onRetry: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun LoadingContent()</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun MediaFileChip( file: WearMediaFile, mediaType: MediaType, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun MediaListContent( title: String, files: List&lt;WearMediaFile&gt;, mediaType: MediaType, onFileClick: (WearMediaFile) -&gt; Unit )</ID>
+    <ID>FunctionNaming:HomeScreen.kt$@Composable fun HomeScreen( navController: NavController, settingsViewModel: SettingsViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable fun ImageViewerScreen( viewModel: ImageViewerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:MainActivity.kt$@Composable fun MainNavigation()</ID>
+    <ID>FunctionNaming:MainActivity.kt$@Composable fun WearApp(initialHasPermissions: Boolean = false)</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun EmptyContent( syncState: SyncState, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun ErrorContent( message: String, onRetry: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun ExportToPhoneChip( exportState: ExportState, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun LoadingContent()</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun SourcesListContent( sources: List&lt;SourceItem&gt;, syncState: SyncState, exportState: ExportState = ExportState.Idle, onSourceClick: (String, String) -&gt; Unit, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit, onExportClick: () -&gt; Unit = {}, onDeleteClick: (SourceItem) -&gt; Unit = {} )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun SyncFromPhoneChip( syncState: SyncState, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PermissionsScreen.kt$@OptIn(ExperimentalPermissionsApi::class) @Composable fun PermissionsScreen( onPermissionsGranted: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable fun SettingsScreen( navController: NavController, viewModel: SettingsViewModel = hiltViewModel(), listState: ScalingLazyListState = rememberScalingLazyListState() )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun SlideshowIntervalStepper( currentSeconds: Int, onIntervalChanged: (Int) -&gt; Unit )</ID>
+    <ID>FunctionNaming:SyncResultScreen.kt$@Composable fun SyncResultScreen( navController: NavController, added: Int, updated: Int )</ID>
+    <ID>FunctionNaming:SyncTransferScreen.kt$@Composable fun SyncTransferScreen( navController: NavController, phoneName: String = "" )</ID>
+    <ID>FunctionNaming:Theme.kt$@Composable fun WearAppTheme( content: @Composable () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable fun VideoPlayerScreen( viewModel: VideoPlayerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun BatteryWarningDialog( onDismiss: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun VideoControls( isPlaying: Boolean, currentPosition: String, duration: String, progress: Float, onPlayPause: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun VideoPlayerContent( uiState: VideoPlayerUiState, player: androidx.media3.exoplayer.ExoPlayer, onScreenTap: () -&gt; Unit, onPlayPause: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:WearTextInput.kt$@Composable fun WearTextInput( label: String, value: String, onValueChange: (String) -&gt; Unit, isPassword: Boolean = false, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:WearTextInput.kt$@Composable private fun SimpleCharacterPickerDialog( initialValue: String, isPassword: Boolean = false, onSave: (String) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>ImplicitDefaultLocale:AudioPlayerUiState.kt$AudioPlayerUiState$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%.1f KB", bytes / 1024.0)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%.1f MB", bytes / (1024.0 * 1024.0))</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%d:%02d:%02d", hours, remainingMinutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:VideoPlayerUiState.kt$VideoPlayerUiState$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>ImportOrdering:AudioPlayerScreen.kt$import androidx.compose.foundation.background import androidx.compose.foundation.layout.Arrangement import androidx.compose.foundation.layout.Box import androidx.compose.foundation.layout.Column import androidx.compose.foundation.layout.Row import androidx.compose.foundation.layout.Spacer import androidx.compose.foundation.layout.fillMaxSize import androidx.compose.foundation.layout.fillMaxWidth import androidx.compose.foundation.layout.height import androidx.compose.foundation.layout.padding import androidx.compose.foundation.layout.size import androidx.compose.foundation.shape.CircleShape import androidx.compose.runtime.Composable import androidx.compose.runtime.collectAsState import androidx.compose.runtime.getValue import androidx.compose.ui.Alignment import androidx.compose.ui.Modifier import androidx.compose.ui.draw.clip import androidx.compose.ui.graphics.Color import androidx.compose.ui.layout.ContentScale import androidx.compose.ui.text.style.TextAlign import androidx.compose.ui.text.style.TextOverflow import androidx.compose.ui.unit.dp import androidx.hilt.navigation.compose.hiltViewModel import androidx.compose.ui.res.stringResource import androidx.compose.ui.semantics.contentDescription import androidx.compose.ui.semantics.semantics import androidx.wear.compose.material.Button import androidx.wear.compose.material.ButtonDefaults import androidx.wear.compose.material.CircularProgressIndicator import androidx.wear.compose.material.MaterialTheme import androidx.wear.compose.material.Text import coil.compose.AsyncImage import com.sza.fastmediasorter.wear.R import timber.log.Timber</ID>
+    <ID>ImportOrdering:NetworkSourceRepositoryImpl.kt$import android.content.SharedPreferences import com.google.gson.Gson import com.google.gson.reflect.TypeToken import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource import com.sza.fastmediasorter.wear.domain.model.NetworkSource import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository import kotlinx.coroutines.flow.Flow import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.withContext import timber.log.Timber</ID>
+    <ID>ImportOrdering:NetworkSourcesScreen.kt$import androidx.compose.foundation.gestures.detectTapGestures import androidx.compose.foundation.layout.fillMaxSize import androidx.compose.foundation.layout.fillMaxWidth import androidx.compose.foundation.layout.padding import androidx.compose.foundation.layout.size import androidx.compose.ui.input.pointer.pointerInput import androidx.compose.runtime.Composable import androidx.compose.runtime.LaunchedEffect import androidx.compose.runtime.collectAsState import androidx.compose.runtime.getValue import androidx.compose.runtime.mutableStateOf import androidx.compose.runtime.remember import androidx.compose.runtime.setValue import androidx.compose.ui.Modifier import androidx.compose.ui.res.stringResource import androidx.compose.ui.text.style.TextAlign import androidx.compose.ui.unit.dp import androidx.hilt.navigation.compose.hiltViewModel import androidx.navigation.NavController import androidx.wear.compose.foundation.lazy.ScalingLazyColumn import androidx.wear.compose.foundation.lazy.items import androidx.wear.compose.material.Chip import androidx.wear.compose.material.ChipDefaults import androidx.wear.compose.material.CircularProgressIndicator import androidx.wear.compose.material.MaterialTheme import androidx.wear.compose.material.Text import androidx.wear.compose.material.dialog.Alert import com.sza.fastmediasorter.wear.R import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState import timber.log.Timber</ID>
+    <ID>ImportOrdering:SettingsViewModel.kt$import android.content.Context import androidx.lifecycle.ViewModel import androidx.lifecycle.viewModelScope import com.sza.fastmediasorter.wear.BuildConfig import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository import dagger.hilt.android.lifecycle.HiltViewModel import dagger.hilt.android.qualifiers.ApplicationContext import kotlinx.coroutines.flow.combine import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.StateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.launch import timber.log.Timber import javax.inject.Inject</ID>
+    <ID>ImportOrdering:WearAppModule.kt$import android.content.Context import android.content.SharedPreferences import androidx.security.crypto.EncryptedSharedPreferences import androidx.security.crypto.MasterKey import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository import com.google.gson.Gson import dagger.Module import dagger.Provides import dagger.hilt.InstallIn import dagger.hilt.android.qualifiers.ApplicationContext import dagger.hilt.components.SingletonComponent import retrofit2.Retrofit import retrofit2.converter.gson.GsonConverterFactory import javax.inject.Qualifier import javax.inject.Singleton</ID>
+    <ID>Indentation:BrowseViewModel.kt$BrowseViewModel$ </ID>
+    <ID>Indentation:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$ </ID>
+    <ID>LongMethod:AddNetworkSourceScreen.kt$@Composable fun AddNetworkSourceScreen( navController: NavController, viewModel: AddNetworkSourceViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:AudioPlayerScreen.kt$@Composable private fun AudioPlayerContent( uiState: AudioPlayerUiState, isFavorite: Boolean, onPlayPause: () -&gt; Unit, onSeekForward: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>LongMethod:HomeScreen.kt$@Composable fun HomeScreen( navController: NavController, settingsViewModel: SettingsViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>LongMethod:MainActivity.kt$@Composable fun MainNavigation()</ID>
+    <ID>LongMethod:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:PermissionsScreen.kt$@OptIn(ExperimentalPermissionsApi::class) @Composable fun PermissionsScreen( onPermissionsGranted: () -&gt; Unit )</ID>
+    <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen( navController: NavController, viewModel: SettingsViewModel = hiltViewModel(), listState: ScalingLazyListState = rememberScalingLazyListState() )</ID>
+    <ID>LongMethod:WearTextInput.kt$@Composable private fun SimpleCharacterPickerDialog( initialValue: String, isPassword: Boolean = false, onSave: (String) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>LongParameterList:AudioPlayerViewModel.kt$AudioPlayerViewModel$( private val mediaRepository: WearMediaRepository, private val albumArtRepository: AlbumArtRepository, private val preferencesRepository: WearPreferencesRepository, private val selectedMediaManager: SelectedMediaManager, private val smbDataSource: SmbDataSource, private val exoPlayer: ExoPlayer, private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase, private val favoritesRepository: WearFavoritesRepository, private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase, savedStateHandle: SavedStateHandle, @ApplicationContext private val context: Context )</ID>
+    <ID>LongParameterList:NetworkSourcesScreen.kt$( sources: List&lt;SourceItem&gt;, syncState: SyncState, exportState: ExportState = ExportState.Idle, onSourceClick: (String, String) -&gt; Unit, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit, onExportClick: () -&gt; Unit = {}, onDeleteClick: (SourceItem) -&gt; Unit = {} )</ID>
+    <ID>LoopWithTooManyJumpStatements:WatchWearListenerService.kt$WatchWearListenerService$for</ID>
+    <ID>MagicNumber:AddNetworkSourceScreen.kt$0.9f</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$21</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$22</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$443</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$445</ID>
+    <ID>MagicNumber:AudioPlayerUiState.kt$AudioPlayerUiState$1000</ID>
+    <ID>MagicNumber:AudioPlayerUiState.kt$AudioPlayerUiState$60</ID>
+    <ID>MagicNumber:AudioPlayerViewModel.kt$AudioPlayerViewModel$10_000</ID>
+    <ID>MagicNumber:AudioPlayerViewModel.kt$AudioPlayerViewModel$500</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1000</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1024</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1024.0</ID>
+    <ID>MagicNumber:BrowseScreen.kt$60</ID>
+    <ID>MagicNumber:ImageSlideshowController.kt$ImageSlideshowController$1000L</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$21</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$22</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$443</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$445</ID>
+    <ID>MagicNumber:PermissionsScreen.kt$0xFFFF9800</ID>
+    <ID>MagicNumber:SettingsScreen.kt$10</ID>
+    <ID>MagicNumber:SettingsScreen.kt$15</ID>
+    <ID>MagicNumber:SettingsScreen.kt$20</ID>
+    <ID>MagicNumber:SettingsScreen.kt$3</ID>
+    <ID>MagicNumber:SettingsScreen.kt$30</ID>
+    <ID>MagicNumber:SettingsScreen.kt$5</ID>
+    <ID>MagicNumber:SettingsScreen.kt$60</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$3</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$4</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$5</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$6</ID>
+    <ID>MagicNumber:SftpDataSource.kt$SftpDataSource$30_000</ID>
+    <ID>MagicNumber:SmbDataSource.kt$SmbDataSource$30</ID>
+    <ID>MagicNumber:SyncResultScreen.kt$8_000</ID>
+    <ID>MagicNumber:VideoPlayerUiState.kt$VideoPlayerUiState$1000</ID>
+    <ID>MagicNumber:VideoPlayerUiState.kt$VideoPlayerUiState$60</ID>
+    <ID>MagicNumber:VideoPlayerViewModel.kt$VideoPlayerViewModel$3000</ID>
+    <ID>MagicNumber:VideoPlayerViewModel.kt$VideoPlayerViewModel$500</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$120</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$60</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$80</ID>
+    <ID>MagicNumber:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$5</ID>
+    <ID>MagicNumber:WearTextInput.kt$0.95f</ID>
+    <ID>MagicNumber:WearTextInput.kt$5</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$append(if (uiState.useSshKey) stringResource(R.string.enabled) else stringResource(R.string.disabled))</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$text = if (uiState.isLoading) stringResource(R.string.saving_connection) else stringResource(R.string.save)</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$text = if (uiState.isLoading) stringResource(R.string.testing_connection) else stringResource(R.string.test_connection)</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$value = if (uiState.sshPrivateKey.isBlank()) "" else stringResource(R.string.ssh_key_configured)</ID>
+    <ID>MaxLineLength:AddNetworkSourceScreen.kt$visualTransformation = if (field == AddField.PASSWORD &amp;&amp; !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None</ID>
+    <ID>MaxLineLength:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$state.protocol == NetworkSourceType.SMB &amp;&amp; state.shareName.isNotBlank() -&gt; "${state.server}/${state.shareName}"</ID>
+    <ID>MaxLineLength:AudioPlayerScreen.kt$colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()</ID>
+    <ID>MaxLineLength:FtpConnectionTest.kt$FtpConnectionTest$Timber.w("FtpConnectionTest: test not supported on Wear OS for source '${source.name}' - returning stub failure")</ID>
+    <ID>MaxLineLength:ImageViewerScreen.kt$colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()</ID>
+    <ID>MaxLineLength:SelectedMediaManager.kt$SelectedMediaManager$Timber.d("SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, streamUri=$effectiveStreamUri")</ID>
+    <ID>MaxLineLength:SftpConnectionTest.kt$SftpConnectionTest$Timber.w("SftpConnectionTest: test not supported on Wear OS for source '${source.name}' - returning stub failure")</ID>
+    <ID>MaxLineLength:WearTextInput.kt$text = "$label:\n${if (isPassword &amp;&amp; value.isNotEmpty()) "●".repeat(value.length) else if (value.isEmpty()) "(tap to edit)" else value}"</ID>
+    <ID>MaxLineLength:WearTextInput.kt$text = if (isPassword &amp;&amp; inputValue.isNotEmpty()) "●".repeat(inputValue.length) else inputValue.ifEmpty { "(empty)" }</ID>
+    <ID>MaximumLineLength:AddNetworkSourceScreen.kt$ </ID>
+    <ID>MaximumLineLength:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$ </ID>
+    <ID>MaximumLineLength:AudioPlayerScreen.kt$ </ID>
+    <ID>MaximumLineLength:FtpConnectionTest.kt$FtpConnectionTest$ </ID>
+    <ID>MaximumLineLength:ImageViewerScreen.kt$ </ID>
+    <ID>MaximumLineLength:SelectedMediaManager.kt$SelectedMediaManager$ </ID>
+    <ID>MaximumLineLength:SftpConnectionTest.kt$SftpConnectionTest$ </ID>
+    <ID>MaximumLineLength:WearTextInput.kt$ </ID>
+    <ID>MultiLineIfElse:SyncTransferScreen.kt$stringResource(R.string.wear_sync_receiving)</ID>
+    <ID>MultiLineIfElse:SyncTransferScreen.kt$stringResource(R.string.wear_sync_receiving_from, phoneName)</ID>
+    <ID>MultiLineIfElse:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$-1</ID>
+    <ID>MultiLineIfElse:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$null</ID>
+    <ID>MultiLineIfElse:WearTextInput.kt$ChipDefaults.outlinedChipColors()</ID>
+    <ID>MultiLineIfElse:WearTextInput.kt$ChipDefaults.primaryChipColors()</ID>
+    <ID>NewLineAtEndOfFile:ApplyWearSettingsUseCaseTest.kt$com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCaseTest.kt</ID>
+    <ID>NewLineAtEndOfFile:FtpConnectionTestTest.kt$com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTestTest.kt</ID>
+    <ID>NewLineAtEndOfFile:ITunesTrackTest.kt$com.sza.fastmediasorter.wear.data.network.itunes.ITunesTrackTest.kt</ID>
+    <ID>NewLineAtEndOfFile:SftpConnectionTestTest.kt$com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTestTest.kt</ID>
+    <ID>NewLineAtEndOfFile:WearEventEnvelopeTest.kt$com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeTest.kt</ID>
+    <ID>NoMultipleSpaces:AudioPlayerViewModel.kt$AudioPlayerViewModel$ </ID>
+    <ID>NoMultipleSpaces:ImportNetworkSourcesUseCase.kt$ImportNetworkSourcesUseCase$ </ID>
+    <ID>NoMultipleSpaces:NetworkSource.kt$NetworkSource$ </ID>
+    <ID>NoMultipleSpaces:VideoPlayerViewModel.kt$VideoPlayerViewModel$ </ID>
+    <ID>NoMultipleSpaces:WatchWearListenerService.kt$ </ID>
+    <ID>NoMultipleSpaces:WatchWearListenerService.kt$WatchSyncEvents$ </ID>
+    <ID>NoMultipleSpaces:WearPlaybackStatePayload.kt$WearPlaybackStatePayload$ </ID>
+    <ID>NoMultipleSpaces:WearSyncPayload.kt$WearNetworkSourcePayload$ </ID>
+    <ID>NoMultipleSpaces:WearSyncPayload.kt$WearSyncPayload$ </ID>
+    <ID>NoTrailingSpaces:AlbumArtRepository.kt$AlbumArtRepository$ </ID>
+    <ID>NoTrailingSpaces:AlbumArtRepositoryImpl.kt$AlbumArtRepositoryImpl$ </ID>
+    <ID>NoTrailingSpaces:AudioPlayerScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:AudioPlayerUiState.kt$AudioPlayerUiState$ </ID>
+    <ID>NoTrailingSpaces:AudioPlayerViewModel.kt$AudioPlayerViewModel$ </ID>
+    <ID>NoTrailingSpaces:BrowseScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:BrowseViewModel.kt$BrowseViewModel$ </ID>
+    <ID>NoTrailingSpaces:FastMediaSorterWearApp.kt$FastMediaSorterWearApp$ </ID>
+    <ID>NoTrailingSpaces:ITunesApiService.kt$ITunesApiService$ </ID>
+    <ID>NoTrailingSpaces:ITunesSearchResponse.kt$ITunesSearchResponse$ </ID>
+    <ID>NoTrailingSpaces:ITunesSearchResponse.kt$ITunesTrack$ </ID>
+    <ID>NoTrailingSpaces:ImageSlideshowController.kt$ImageSlideshowController$ </ID>
+    <ID>NoTrailingSpaces:ImageViewerScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:ImageViewerViewModel.kt$ImageViewerViewModel$ </ID>
+    <ID>NoTrailingSpaces:MainActivity.kt$ </ID>
+    <ID>NoTrailingSpaces:MainActivity.kt$MainActivity$ </ID>
+    <ID>NoTrailingSpaces:NetworkSourceRepository.kt$NetworkSourceRepository$ </ID>
+    <ID>NoTrailingSpaces:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$ </ID>
+    <ID>NoTrailingSpaces:NetworkSourcesScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:NetworkSourcesViewModel.kt$NetworkSourcesViewModel$ </ID>
+    <ID>NoTrailingSpaces:PermissionsScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:SelectedMediaManager.kt$SelectedMediaManager$ </ID>
+    <ID>NoTrailingSpaces:SettingsUiState.kt$SettingsUiState$ </ID>
+    <ID>NoTrailingSpaces:SlideshowController.kt$SlideshowController$ </ID>
+    <ID>NoTrailingSpaces:SmbConnectionViewModel.kt$SmbConnectionViewModel$ </ID>
+    <ID>NoTrailingSpaces:SmbDataSource.kt$SmbDataSource$ </ID>
+    <ID>NoTrailingSpaces:VideoPlayerScreen.kt$ </ID>
+    <ID>NoTrailingSpaces:VideoPlayerUiState.kt$VideoPlayerUiState$ </ID>
+    <ID>NoTrailingSpaces:VideoPlayerViewModel.kt$VideoPlayerViewModel$ </ID>
+    <ID>NoTrailingSpaces:VideoPlayerViewModel.kt$VideoPlayerViewModel.&lt;no name provided&gt;$ </ID>
+    <ID>NoTrailingSpaces:WearAppModule.kt$WearAppModule$ </ID>
+    <ID>NoTrailingSpaces:WearMediaRepository.kt$WearMediaRepository$ </ID>
+    <ID>NoTrailingSpaces:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$ </ID>
+    <ID>NoTrailingSpaces:WearPreferencesRepository.kt$WearPreferencesRepository$ </ID>
+    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$ </ID>
+    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl.PreferencesKeys$ </ID>
+    <ID>NoTrailingSpaces:WearTextInput.kt$ </ID>
+    <ID>NoUnusedImports:AudioPlayerViewModel.kt$com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerViewModel.kt</ID>
+    <ID>NoUnusedImports:BrowseScreen.kt$com.sza.fastmediasorter.wear.ui.browse.BrowseScreen.kt</ID>
+    <ID>NoUnusedImports:ExportSourcesUseCase.kt$com.sza.fastmediasorter.wear.domain.usecase.ExportSourcesUseCase.kt</ID>
+    <ID>NoUnusedImports:ImageViewerScreen.kt$com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen.kt</ID>
+    <ID>NoUnusedImports:SendFavoritesDeltaUseCase.kt$com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase.kt</ID>
+    <ID>NoUnusedImports:SettingsScreen.kt$com.sza.fastmediasorter.wear.ui.settings.SettingsScreen.kt</ID>
+    <ID>NoUnusedImports:SyncTransferScreen.kt$com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen.kt</ID>
+    <ID>NoUnusedImports:WearMediaRepositoryImpl.kt$com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl.kt</ID>
+    <ID>NoUnusedImports:WearSourcesExportPayload.kt$com.sza.fastmediasorter.wear.domain.model.WearSourcesExportPayload.kt</ID>
+    <ID>ReturnCount:AddNetworkSourceScreen.kt$private fun canSubmit(state: AddNetworkSourceUiState): Boolean</ID>
+    <ID>ReturnCount:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$private fun validate(state: AddNetworkSourceUiState, requireShareName: Boolean): String?</ID>
+    <ID>ReturnCount:BrowseViewModel.kt$BrowseViewModel$private fun getMimeTypeFromFileName(fileName: String): String?</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileInfo(path: String): Result&lt;FileInfo&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileSize(path: String): Result&lt;Long&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileStream(path: String): Result&lt;InputStream&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun listFiles(path: String): Result&lt;List&lt;String&gt;&gt;</ID>
+    <ID>SpacingAroundKeyword:NetworkSource.kt$NetworkSource$when</ID>
+    <ID>SpacingBetweenDeclarationsWithAnnotations:WatchWearListenerService.kt$WatchWearListenerService$@Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase</ID>
+    <ID>SpacingBetweenDeclarationsWithAnnotations:WatchWearListenerService.kt$WatchWearListenerService$@Inject lateinit var gson: Gson</ID>
+    <ID>StringTemplate:MainActivity.kt$MainActivity$${packageName}</ID>
+    <ID>SwallowedException:SmbDataSource.kt$SmbDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AlbumArtRepositoryImpl.kt$AlbumArtRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayerViewModel.kt$AudioPlayerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BrowseViewModel.kt$BrowseViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageViewerViewModel.kt$ImageViewerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MainActivity.kt$MainActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkSourcesViewModel.kt$NetworkSourcesViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SmbConnectionViewModel.kt$SmbConnectionViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SmbDataSource.kt$SmbDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:VideoPlayerViewModel.kt$VideoPlayerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WatchWearListenerService.kt$WatchWearListenerService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WearFavoritesRepositoryImpl.kt$WearFavoritesRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$e: Exception</ID>
+    <ID>UnusedParameter:ImageViewerScreen.kt$onToggleSlideshow: () -&gt; Unit</ID>
+    <ID>UnusedParameter:ImageViewerViewModel.kt$ImageViewerViewModel$startIndex: Int</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$navController: NavController</ID>
+    <ID>UnusedPrivateMember:BrowseViewModel.kt$BrowseViewModel$private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean</ID>
+    <ID>UnusedPrivateProperty:AudioPlayerViewModel.kt$AudioPlayerViewModel$private val albumArtRepository: AlbumArtRepository</ID>
+    <ID>UnusedPrivateProperty:AudioPlayerViewModel.kt$AudioPlayerViewModel$private val preferencesRepository: WearPreferencesRepository</ID>
+    <ID>UnusedPrivateProperty:SettingsViewModel.kt$SettingsViewModel$@ApplicationContext private val context: Context</ID>
+    <ID>UseRequire:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$throw IllegalArgumentException("Source not found: ${source.id}")</ID>
+    <ID>Wrapping:ImportNetworkSourcesUseCase.kt$ImportNetworkSourcesUseCase$;</ID>
+    <ID>Wrapping:ImportNetworkSourcesUseCaseTest.kt$ImportNetworkSourcesUseCaseTest$(</ID>
+    <ID>Wrapping:MainActivity.kt$;</ID>
+  </CurrentIssues>
+</SmellBaseline>

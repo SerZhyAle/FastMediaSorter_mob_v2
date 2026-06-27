@@ -58,12 +58,19 @@ class OperationsGesturesManager(
                     showGesturePermissionDialog(controller)
                     return@setOnCheckedChangeListener
                 }
-                controller.setEnabled(true)
+                controller.setEnabled(true, viewModel.settings.value.screenshotGestureStripVisible)
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
             } else {
-                controller.setEnabled(false)
+                controller.setEnabled(false, viewModel.settings.value.screenshotGestureStripVisible)
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
             }
+        }
+        binding.rowGestureStripVisible.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            Timber.d("S0724: gesture strip visibility toggled -> %b", isChecked)
+            viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureStripVisible = isChecked))
+            // Push the explicit value so a live strip recolours immediately (no-op while overlay is off).
+            controller.setStripVisible(isChecked, viewModel.settings.value.gestureOverlayEnabled)
         }
         binding.rowCopyScreenshotToClipboard.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -122,6 +129,9 @@ class OperationsGesturesManager(
         if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
             binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
         }
+        if (binding.rowGestureStripVisible.isChecked != settings.screenshotGestureStripVisible) {
+            binding.rowGestureStripVisible.setCheckedSilently(settings.screenshotGestureStripVisible)
+        }
         if (binding.rowCopyScreenshotToClipboard.isChecked != settings.copyScreenshotToClipboard) {
             binding.rowCopyScreenshotToClipboard.setCheckedSilently(settings.copyScreenshotToClipboard)
         }
@@ -144,7 +154,7 @@ class OperationsGesturesManager(
     fun onOverlayPermissionResult() {
         val controller = screenGestureControllers.firstOrNull() ?: return
         if (controller.isOverlayPermissionGranted(fragment.requireContext())) {
-            controller.setEnabled(true)
+            controller.setEnabled(true, viewModel.settings.value.screenshotGestureStripVisible)
             viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
         } else {
             binding.rowGestureOverlayEnabled.setCheckedSilently(false)

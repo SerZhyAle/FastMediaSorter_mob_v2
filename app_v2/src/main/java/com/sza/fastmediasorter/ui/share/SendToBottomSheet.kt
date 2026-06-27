@@ -101,7 +101,6 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
         binding.llPickResource.isVisible = pickResource != null
         if (pickResource != null) {
             binding.llPickResource.setOnClickListener {
-                Timber.d("S0681: pinned Select-resource tapped in send-to bottom sheet")
                 pickResource()
                 dismiss()
             }

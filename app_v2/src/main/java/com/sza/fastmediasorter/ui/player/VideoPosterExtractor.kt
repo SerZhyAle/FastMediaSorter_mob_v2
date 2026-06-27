@@ -138,18 +138,21 @@ class VideoPosterExtractor {
     private fun tryGlideMemoryCache(context: Context, path: String): Bitmap? {
         val file = File(path)
         if (!file.canRead()) return null
+        val target = Glide.with(context)
+            .asBitmap()
+            .load(file)
+            .signature(ObjectKey("${path}_${file.length()}"))
+            .override(AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE, AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE)
+            .centerCrop()
+            .onlyRetrieveFromCache(true)
+            .submit()
         return try {
-            Glide.with(context)
-                .asBitmap()
-                .load(file)
-                .signature(ObjectKey("${path}_${file.length()}"))
-                .override(AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE, AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE)
-                .centerCrop()
-                .onlyRetrieveFromCache(true)
-                .submit()
-                .get(50, TimeUnit.MILLISECONDS)
+            target.get(50, TimeUnit.MILLISECONDS)
         } catch (_: Exception) {
             null
+        } finally {
+            // RequestFutureTarget is not auto-cleared on timeout; release it (S0726/S0715 P3).
+            Glide.with(context).clear(target)
         }
     }
 

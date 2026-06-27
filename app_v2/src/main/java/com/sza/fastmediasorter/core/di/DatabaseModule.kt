@@ -1,9 +1,8 @@
 package com.sza.fastmediasorter.core.di
 
 import android.content.Context
-import android.widget.Toast
 import androidx.room.Room
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.db.DatabaseResetNotice
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
@@ -48,18 +47,11 @@ object DatabaseModule {
             db.openHelper.writableDatabase
             db
         } catch (e: Exception) {
-            Timber.e(e, "Database migration failed, resetting database: ${e.message}")
-            // Delete the corrupted database and create a fresh one
+            Timber.e(e, "Database open/migration failed, resetting database: ${e.message}")
+            // Back up the existing DB and record a notice so the first Activity can inform the user
+            // (reason + backup location) instead of the prior silent Toast (S0731). recordReset never throws.
+            DatabaseResetNotice.recordReset(context, DB_NAME, e)
             context.deleteDatabase(DB_NAME)
-            try {
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.database_reset_message),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            } catch (_: Exception) { /* Toast failure is non-critical */ }
             buildDatabase(context)
         }
     }
@@ -107,7 +99,9 @@ object DatabaseModule {
                 MIGRATION_34_35,
                 MIGRATION_35_36
             )
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
+            // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
+            // Room-internal table drop (S0731).
             .build()
     }
     

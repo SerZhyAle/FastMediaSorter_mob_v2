@@ -21,7 +21,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="persistent edge overlay strip host for screenshot gesture trigger" />
+                android:value="User-enabled on-screen edge handle that the user swipes to start an on-demand screen-capture session; runs only while the user keeps the gesture enabled and shows a persistent foreground notification while active." />
         </service>
     </application>
 

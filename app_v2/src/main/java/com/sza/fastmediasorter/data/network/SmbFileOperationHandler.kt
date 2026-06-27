@@ -169,6 +169,109 @@ class SmbFileOperationHandler @Inject constructor(
 
 
 
+    private sealed interface MoveOutcome {
+        data class Success(val destFilePath: String) : MoveOutcome
+        data class Failure(val error: String) : MoveOutcome
+        data class PermissionRequired(val sourcePath: String, val destFilePath: String) : MoveOutcome
+    }
+
+    private suspend fun moveSmbToSmb(
+        sourcePath: String,
+        destFilePath: String,
+        fileName: String
+    ): MoveOutcome {
+        val result = smbStrategy.moveFile(sourcePath, destFilePath)
+        return if (result.isSuccess) {
+            Timber.i("SMB executeMove: SUCCESS - moved $fileName via strategy")
+            MoveOutcome.Success(destFilePath)
+        } else {
+            val error = "Failed to move $fileName: ${result.exceptionOrNull()?.message}"
+            MoveOutcome.Failure(error)
+        }
+    }
+
+    private suspend fun moveBridgeToSmb(
+        sourcePath: String,
+        destFilePath: String,
+        fileName: String,
+        progressCallback: ByteProgressCallback?
+    ): MoveOutcome {
+        val tempFile = File(context.cacheDir, "bridge_${System.currentTimeMillis()}_$fileName")
+        return try {
+            // 1. Download source to temp
+            val downloadResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
+                sftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
+            } else {
+                ftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
+            }
+            
+            if (downloadResult.isFailure) {
+                val error = "Failed to download $fileName: ${downloadResult.exceptionOrNull()?.message}"
+                MoveOutcome.Failure(error)
+            } else {
+                // 2. Upload to SMB
+                val uploadResult = uploadToSmb(tempFile, destFilePath, progressCallback)
+                if (uploadResult is SmbResult.Success) {
+                    // 3. Delete network source
+                    val deleteResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
+                        sftpStrategy.deleteFile(sourcePath)
+                    } else {
+                        ftpStrategy.deleteFile(sourcePath)
+                    }
+                    
+                    if (deleteResult.isSuccess) {
+                        Timber.i("SMB executeMove: SUCCESS - moved $fileName via bridge")
+                        MoveOutcome.Success(destFilePath)
+                    } else {
+                        val error = "Uploaded $fileName but failed to delete source: ${deleteResult.exceptionOrNull()?.message}"
+                        MoveOutcome.Failure(error)
+                    }
+                } else {
+                    val error = "Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}"
+                    MoveOutcome.Failure(error)
+                }
+            }
+        } finally {
+            if (tempFile.exists()) tempFile.delete()
+        }
+    }
+
+    private suspend fun moveLocalToSmb(
+        sourcePath: String,
+        destFilePath: String,
+        fileName: String,
+        progressCallback: ByteProgressCallback?
+    ): MoveOutcome {
+        val uploadResult = uploadToSmb(File(sourcePath), destFilePath, progressCallback)
+        if (uploadResult !is SmbResult.Success) {
+            val error = "Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}"
+            return MoveOutcome.Failure(error)
+        }
+        
+        // 2. Delete Source - may require permission on Android 11+
+        return try {
+            val deleteSuccess = if (sourcePath.startsWith("content:/")) {
+                deleteWithSaf(sourcePath)
+            } else {
+                deleteFile(sourcePath).isSuccess
+            }
+            
+            if (deleteSuccess) {
+                Timber.i("SMB executeMove: SUCCESS - moved $fileName")
+                MoveOutcome.Success(destFilePath)
+            } else {
+                val error = "Uploaded $fileName but failed to delete source at $sourcePath"
+                Timber.e("SMB executeMove: FAILED - $error")
+                MoveOutcome.Failure(error)
+            }
+        } catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
+            // File is already uploaded to SMB! 
+            // Don't throw yet - collect for batch delete after all uploads complete.
+            Timber.i("SMB executeMove: File uploaded, permission needed for delete - $fileName")
+            MoveOutcome.PermissionRequired(sourcePath, destFilePath)
+        }
+    }
+
     override suspend fun executeMove(
         operation: FileOperation.Move,
         progressCallback: ByteProgressCallback?
@@ -205,102 +308,34 @@ class SmbFileOperationHandler @Inject constructor(
                 Timber.d("SMB executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName to $destFilePath")
                 progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
 
-                
-                when {
+                val outcome = when {
                     sourcePath.startsWith("smb:", ignoreCase = true) -> {
-                        // SMB -> SMB Move (or Rename)
-                        val result = smbStrategy.moveFile(sourcePath, destFilePath)
-                        if (result.isSuccess) {
-                            movedPaths.add(destFilePath)
-                            successCount++
-                            Timber.i("SMB executeMove: SUCCESS - moved $fileName via strategy")
-                        } else {
-                            val error = "Failed to move $fileName: ${result.exceptionOrNull()?.message}"
-                            errors.add(error)
-                        }
+                        moveSmbToSmb(sourcePath, destFilePath, fileName)
                     }
                     sourcePath.startsWith("sftp:", ignoreCase = true) || 
                     sourcePath.startsWith("ftp:", ignoreCase = true) -> {
-                        // Network -> SMB Move: Download to temp, upload, delete source
-                        val tempFile = File(context.cacheDir, "bridge_${System.currentTimeMillis()}_$fileName")
-                        try {
-                            // 1. Download source to temp
-                            val downloadResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
-                                sftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
-                            } else {
-                                ftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
-                            }
-                            
-                            if (downloadResult.isFailure) {
-                                val error = "Failed to download $fileName: ${downloadResult.exceptionOrNull()?.message}"
-                                errors.add(error)
-                            } else {
-                                // 2. Upload to SMB
-                                val uploadResult = uploadToSmb(tempFile, destFilePath, progressCallback)
-                                if (uploadResult is SmbResult.Success) {
-                                    // 3. Delete network source
-                                    val deleteResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
-                                        sftpStrategy.deleteFile(sourcePath)
-                                    } else {
-                                        ftpStrategy.deleteFile(sourcePath)
-                                    }
-                                    
-                                    if (deleteResult.isSuccess) {
-                                        movedPaths.add(destFilePath)
-                                        successCount++
-                                        Timber.i("SMB executeMove: SUCCESS - moved $fileName via bridge")
-                                    } else {
-                                        val error = "Uploaded $fileName but failed to delete source: ${deleteResult.exceptionOrNull()?.message}"
-                                        errors.add(error)
-                                    }
-                                } else {
-                                    val error = "Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}"
-                                    errors.add(error)
-                                }
-                            }
-                        } finally {
-                            if (tempFile.exists()) tempFile.delete()
-                        }
+                        moveBridgeToSmb(sourcePath, destFilePath, fileName, progressCallback)
                     }
                     else -> {
-                        // Local/SAF -> SMB Move (Upload + Delete)
-                        val uploadResult = uploadToSmb(File(sourcePath), destFilePath, progressCallback)
-                        
-                        if (uploadResult is SmbResult.Success) {
-                            // 2. Delete Source - may require permission on Android 11+
-                            try {
-                                val deleteSuccess = if (sourcePath.startsWith("content:/")) {
-                                    deleteWithSaf(sourcePath)
-                                } else {
-                                    deleteFile(sourcePath).isSuccess
-                                }
-                                
-                                if (deleteSuccess) {
-                                    movedPaths.add(destFilePath)
-                                    successCount++
-                                    Timber.i("SMB executeMove: SUCCESS - moved $fileName")
-                                } else {
-                                    val error = "Uploaded $fileName but failed to delete source at $sourcePath"
-                                    Timber.e("SMB executeMove: FAILED - $error")
-                                    errors.add(error)
-                                }
-                            } catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
-                                // File is already uploaded to SMB! 
-                                // Don't throw yet - collect for batch delete after all uploads complete.
-                                Timber.i("SMB executeMove: File uploaded, permission needed for delete - $fileName")
-                                pendingDeletePaths.add(sourcePath)
-                                pendingDeleteDestPaths.add(destFilePath)
-                                // Count as success (file is on server), source will be deleted after permission grant
-                                movedPaths.add(destFilePath)
-                                successCount++
-                            }
-                        } else {
-                            val error = "Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}"
-                            errors.add(error)
-                        }
+                        moveLocalToSmb(sourcePath, destFilePath, fileName, progressCallback)
                     }
                 }
-                // moveResult used for logging purposes only
+
+                when (outcome) {
+                    is MoveOutcome.Success -> {
+                        movedPaths.add(outcome.destFilePath)
+                        successCount++
+                    }
+                    is MoveOutcome.Failure -> {
+                        errors.add(outcome.error)
+                    }
+                    is MoveOutcome.PermissionRequired -> {
+                        pendingDeletePaths.add(outcome.sourcePath)
+                        pendingDeleteDestPaths.add(outcome.destFilePath)
+                        movedPaths.add(outcome.destFilePath)
+                        successCount++
+                    }
+                }
             }
             
             // After all uploads complete, check if any files need permission for batch delete.

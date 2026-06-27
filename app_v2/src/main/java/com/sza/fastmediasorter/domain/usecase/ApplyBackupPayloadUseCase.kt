@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import androidx.room.withTransaction
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -9,7 +11,9 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -20,6 +24,7 @@ import javax.inject.Inject
  * null sections so older (v4) backups apply without throwing. Merge keys per research/03.
  */
 class ApplyBackupPayloadUseCase @Inject constructor(
+    private val db: AppDatabase,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val favoritesDao: FavoritesDao,
@@ -40,7 +45,9 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         val webSessionsRestored: Int
     )
 
-    suspend operator fun invoke(payload: BackupPayload): RestoreSummary {
+    suspend operator fun invoke(payload: BackupPayload): RestoreSummary = withContext(Dispatchers.IO) {
+        // S0727: restores via Room/DataStore are main-safe, but the Google Drive restore path may call
+        // this off a Main coroutine; pin the whole apply to IO so no caller blocks the UI thread.
         check(payload.version <= BackupPayload.CURRENT_VERSION) {
             "Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app."
         }
@@ -56,91 +63,101 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             settingsRestored = true
         }
 
-        // 2. Network credentials (merge by credentialId; backup password wins per research/03).
+        // 2-5. S0732: the Room sections (credentials, resources, favorites, scheduled-op rows) commit
+        // all-or-nothing in one transaction; a kill mid-restore no longer leaves a partial DB. Counts
+        // are hoisted out so the RestoreSummary can read them; WorkManager scheduling is deferred to
+        // after commit (it must not run inside the DB transaction).
         var credentialsRestored = 0
-        payload.networkCredentials?.let { creds ->
-            val existing = credentialsRepository.getAllCredentials().first().associateBy { it.credentialId }
-            creds.forEach { backupCred ->
-                try {
-                    val entity = BackupMapper.toNetworkCredentialsEntity(backupCred)
-                    val prior = existing[entity.credentialId]
-                    if (prior != null) {
-                        credentialsRepository.update(entity.copy(id = prior.id))
-                    } else {
-                        credentialsRepository.insert(entity)
-                    }
-                    credentialsRestored++
-                } catch (e: Exception) {
-                    Timber.w(e, "ApplyBackup: skip credential %s", backupCred.credentialId)
-                }
-            }
-        }
-
-        // 3. Resources (merge by path+type / cloud key; keep id on update).
         var resourcesAdded = 0
         var resourcesUpdated = 0
         var resourcesNeedingAuth = 0
-        payload.resources?.let { backupResources ->
-            val existingResources = resourceRepository.getAllResourcesSync()
-            backupResources.forEach { backupRes ->
-                try {
-                    val candidate = BackupMapper.toMediaResource(backupRes)
-                    val existing = existingResources.firstOrNull { isSameResource(it, candidate) }
-                    if (existing != null) {
-                        resourceRepository.updateResource(candidate.copy(id = existing.id))
-                        resourcesUpdated++
-                    } else {
-                        resourceRepository.addResource(candidate)
-                        resourcesAdded++
-                        if (candidate.type != ResourceType.LOCAL) resourcesNeedingAuth++
-                    }
-                } catch (e: Exception) {
-                    Timber.w(e, "ApplyBackup: skip resource %s", backupRes.name)
-                }
-            }
-        }
-
-        // 4. Favorites (dedup by uri, resolve resource by path).
         var favoritesAdded = 0
         var favoritesSkipped = 0
-        payload.favorites?.let { favorites ->
-            val resourcesByPath = resourceRepository.getAllResourcesSync().associateBy { it.path }
-            favorites.forEach { backupFav ->
-                if (favoritesDao.isFavoriteSync(backupFav.uri)) {
-                    favoritesSkipped++
-                    return@forEach
+        var scheduledOpsAdded = 0
+        val enabledScheduledOpIds = mutableListOf<Long>()
+        db.withTransaction {
+            // 2. Network credentials (merge by credentialId; backup password wins per research/03).
+            payload.networkCredentials?.let { creds ->
+                val existing = credentialsRepository.getAllCredentials().first().associateBy { it.credentialId }
+                creds.forEach { backupCred ->
+                    try {
+                        val entity = BackupMapper.toNetworkCredentialsEntity(backupCred)
+                        val prior = existing[entity.credentialId]
+                        if (prior != null) {
+                            credentialsRepository.update(entity.copy(id = prior.id))
+                        } else {
+                            credentialsRepository.insert(entity)
+                        }
+                        credentialsRestored++
+                    } catch (e: Exception) {
+                        Timber.w(e, "ApplyBackup: skip credential %s", backupCred.credentialId)
+                    }
                 }
-                val localResource = resourcesByPath[backupFav.resourcePath]
-                if (localResource == null) {
-                    favoritesSkipped++
-                    return@forEach
+            }
+
+            // 3. Resources (merge by path+type / cloud key; keep id on update).
+            payload.resources?.let { backupResources ->
+                val existingResources = resourceRepository.getAllResourcesSync()
+                backupResources.forEach { backupRes ->
+                    try {
+                        val candidate = BackupMapper.toMediaResource(backupRes)
+                        val existing = existingResources.firstOrNull { isSameResource(it, candidate) }
+                        if (existing != null) {
+                            resourceRepository.updateResource(candidate.copy(id = existing.id))
+                            resourcesUpdated++
+                        } else {
+                            resourceRepository.addResource(candidate)
+                            resourcesAdded++
+                            if (candidate.type != ResourceType.LOCAL) resourcesNeedingAuth++
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "ApplyBackup: skip resource %s", backupRes.name)
+                    }
                 }
-                try {
-                    favoritesDao.insert(BackupMapper.toFavoritesEntity(backupFav, localResource.id))
-                    favoritesAdded++
-                } catch (e: Exception) {
-                    Timber.w(e, "ApplyBackup: skip favorite %s", backupFav.displayName)
-                    favoritesSkipped++
+            }
+
+            // 4. Favorites (dedup by uri, resolve resource by path).
+            payload.favorites?.let { favorites ->
+                val resourcesByPath = resourceRepository.getAllResourcesSync().associateBy { it.path }
+                favorites.forEach { backupFav ->
+                    if (favoritesDao.isFavoriteSync(backupFav.uri)) {
+                        favoritesSkipped++
+                        return@forEach
+                    }
+                    val localResource = resourcesByPath[backupFav.resourcePath]
+                    if (localResource == null) {
+                        favoritesSkipped++
+                        return@forEach
+                    }
+                    try {
+                        favoritesDao.insert(BackupMapper.toFavoritesEntity(backupFav, localResource.id))
+                        favoritesAdded++
+                    } catch (e: Exception) {
+                        Timber.w(e, "ApplyBackup: skip favorite %s", backupFav.displayName)
+                        favoritesSkipped++
+                    }
+                }
+            }
+
+            // 5. Scheduled operations (upsert rows here; reschedule enabled ops after commit).
+            payload.scheduledOperations?.let { ops ->
+                val resourcesByPath = resourceRepository.getAllResourcesSync().associateBy { it.path }
+                ops.forEach { backupOp ->
+                    try {
+                        val op = BackupMapper.toScheduledOperation(backupOp, resourcesByPath) ?: return@forEach
+                        val newId = scheduledOperationRepository.upsert(op)
+                        if (op.isEnabled) enabledScheduledOpIds.add(newId)
+                        scheduledOpsAdded++
+                    } catch (e: Exception) {
+                        Timber.w(e, "ApplyBackup: skip scheduled op")
+                    }
                 }
             }
         }
 
-        // 5. Scheduled operations (resolve resources by path+type, reschedule enabled).
-        var scheduledOpsAdded = 0
-        payload.scheduledOperations?.let { ops ->
-            val resourcesByPath = resourceRepository.getAllResourcesSync().associateBy { it.path }
-            ops.forEach { backupOp ->
-                try {
-                    val op = BackupMapper.toScheduledOperation(backupOp, resourcesByPath) ?: return@forEach
-                    val newId = scheduledOperationRepository.upsert(op)
-                    if (op.isEnabled) {
-                        scheduledOperationRepository.getById(newId)?.let { workManagerScheduler.scheduleOperation(it) }
-                    }
-                    scheduledOpsAdded++
-                } catch (e: Exception) {
-                    Timber.w(e, "ApplyBackup: skip scheduled op")
-                }
-            }
+        // Reschedule enabled operations after the transaction commits (WorkManager runs outside the tx).
+        enabledScheduledOpIds.forEach { id ->
+            scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperation(it) }
         }
 
         // 6. Saved site authorizations (overwrite per host+accountId).
@@ -156,7 +173,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             resourcesAdded, resourcesUpdated, credentialsRestored, favoritesAdded, scheduledOpsAdded, webSessionsRestored
         )
 
-        return RestoreSummary(
+        RestoreSummary(
             settingsRestored = settingsRestored,
             resourcesAdded = resourcesAdded,
             resourcesUpdated = resourcesUpdated,

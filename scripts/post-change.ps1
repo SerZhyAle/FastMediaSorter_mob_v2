@@ -129,6 +129,10 @@ $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
 $runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
+# committed per-module baseline (only NEW findings fail). Kotlin/Mixed only - it invokes
+# gradle, so it is scoped to changes that actually touch .kt to keep other paths fast.
+$runsDetektGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0416 FGS-notification gate. Blocks the Android 16 "Bad notification for startForeground"
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
@@ -161,6 +165,11 @@ $runsSettingsDocGate = (
 # (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
 # settings-doc composite so a manifest/vocab change re-checks the guides.
 $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
+# S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
+# a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
+# never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
+$runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+    ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -234,6 +243,24 @@ else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
+if ($runsDetektGate) {
+    Invoke-Step "detekt-gate" {
+        $detektArgs = @(
+            '-NoProfile'
+            '-File'
+            (Join-Path $root "scripts/quality/assert-detekt.ps1")
+            '-Gate'
+        )
+        if ($PSBoundParameters.ContainsKey('Module')) {
+            $detektArgs += @('-Module', $Module)
+        }
+        & $pwsh @detektArgs
+    }
+}
+else {
+    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
 if ($runsFgsGate) {
     Invoke-Step "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
@@ -259,6 +286,15 @@ if ($runsFocusHighlightGate) {
 }
 else {
     Skip-Step "focus-highlight-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDialogCancelGate) {
+    Invoke-Step "dialog-cancel-style-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "dialog-cancel-style-gate" "not applicable - touched file is not a dialog/bottom-sheet layout"
 }
 
 if ($runsAllFeaturesGate) {

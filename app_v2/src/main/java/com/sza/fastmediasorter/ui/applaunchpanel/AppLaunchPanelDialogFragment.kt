@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.applaunchpanel
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -10,6 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
@@ -51,9 +51,8 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         tileAdapter = AppLaunchPanelTileAdapter(onTileClick = ::onTileClicked)
-        val isLandscape =
-            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val spanCount = if (isLandscape) 5 else 3
+        val isWide = resources.configuration.isWideLayout()
+        val spanCount = if (isWide) 5 else 3
         binding.rvPanelTiles.layoutManager = GridLayoutManager(requireContext(), spanCount)
         binding.rvPanelTiles.adapter = tileAdapter
         binding.btnEditPanel.setOnClickListener { openEditPanel() }

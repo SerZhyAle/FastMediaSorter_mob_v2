@@ -335,47 +335,51 @@ class MediaMetadataHelper(
             sampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)?.toIntOrNull()
             
             val extractor = MediaExtractor()
-            extractor.setDataSource(file.absolutePath)
-            
-            for (i in 0 until extractor.trackCount) {
-                val format = extractor.getTrackFormat(i)
-                val mime = format.getString(MediaFormat.KEY_MIME)
-                if (mime?.startsWith("video/") == true) {
-                    videoCodec = mime
-                    if (width == null && format.containsKey(MediaFormat.KEY_WIDTH)) {
-                        width = format.getInteger(MediaFormat.KEY_WIDTH)
-                    }
-                    if (height == null && format.containsKey(MediaFormat.KEY_HEIGHT)) {
-                        height = format.getInteger(MediaFormat.KEY_HEIGHT)
-                    }
-                    // Frame rate
-                    if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-                        frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE).toDouble()
-                    }
-                    // Alternative: calculate from duration and frame count
-                    if (frameRate == null && duration != null && duration > 0) {
-                        try {
-                            val frameCount = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)?.toIntOrNull()
-                            if (frameCount != null && frameCount > 0) {
-                                frameRate = (frameCount * 1000.0) / duration
+            try {
+                extractor.setDataSource(file.absolutePath)
+
+                for (i in 0 until extractor.trackCount) {
+                    val format = extractor.getTrackFormat(i)
+                    val mime = format.getString(MediaFormat.KEY_MIME)
+                    if (mime?.startsWith("video/") == true) {
+                        videoCodec = mime
+                        if (width == null && format.containsKey(MediaFormat.KEY_WIDTH)) {
+                            width = format.getInteger(MediaFormat.KEY_WIDTH)
+                        }
+                        if (height == null && format.containsKey(MediaFormat.KEY_HEIGHT)) {
+                            height = format.getInteger(MediaFormat.KEY_HEIGHT)
+                        }
+                        // Frame rate
+                        if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+                            frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE).toDouble()
+                        }
+                        // Alternative: calculate from duration and frame count
+                        if (frameRate == null && duration != null && duration > 0) {
+                            try {
+                                val frameCount = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)?.toIntOrNull()
+                                if (frameCount != null && frameCount > 0) {
+                                    frameRate = (frameCount * 1000.0) / duration
+                                }
+                            } catch (e: Exception) {
+                                // Frame count not available
                             }
-                        } catch (e: Exception) {
-                            // Frame count not available
+                        }
+                    } else if (mime?.startsWith("audio/") == true) {
+                        audioCodec = mime
+                        // Extract audio channels
+                        if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+                            audioChannels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+                        }
+                        // Extract audio bitrate
+                        if (format.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                            audioBitrate = format.getInteger(MediaFormat.KEY_BIT_RATE)
                         }
                     }
-                } else if (mime?.startsWith("audio/") == true) {
-                    audioCodec = mime
-                    // Extract audio channels
-                    if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
-                        audioChannels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-                    }
-                    // Extract audio bitrate
-                    if (format.containsKey(MediaFormat.KEY_BIT_RATE)) {
-                        audioBitrate = format.getInteger(MediaFormat.KEY_BIT_RATE)
-                    }
                 }
+            } finally {
+                // Release native MediaExtractor on every path, incl. throws from setDataSource/getTrackFormat (S0726/S0715 P2).
+                extractor.release()
             }
-            extractor.release()
             
         } catch (e: Exception) {
             Timber.w(e, "Error reading video metadata from ${file.absolutePath} (size=${file.length()} bytes). If partial file, metadata may be unavailable - this is normal.")

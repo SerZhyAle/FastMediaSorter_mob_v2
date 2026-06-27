@@ -61,10 +61,11 @@ object ConnectionThrottleManager {
      * Connection state tracking per resource
      */
     private data class ProtocolState(
-        var currentLimit: Int,
+        // @field:Volatile: read unguarded on congestion/semaphore paths while written under synchronized(state) (S0728/S0716 P3).
+        @field:Volatile var currentLimit: Int,
         val consecutiveTimeouts: AtomicInteger = AtomicInteger(0),
         val consecutiveSuccesses: AtomicInteger = AtomicInteger(0),
-        var isDegraded: Boolean = false,  // Tracks if protocol is in degraded state with extended timeouts
+        @field:Volatile var isDegraded: Boolean = false,  // Tracks if protocol is in degraded state with extended timeouts
         val activeTasks: AtomicInteger = AtomicInteger(0)  // Track active operations
     )
     
@@ -76,6 +77,8 @@ object ConnectionThrottleManager {
     
     // User defined limit for network protocols (SMB, FTP, SFTP)
     // Reduced default from 2 to match new base limits
+    // @Volatile: written on Main (UI commit) + background settings-collect, read from IO throttle coroutines (S0728/S0716 P3).
+    @Volatile
     private var userDefinedNetworkLimit: Int = 2
     
     // Cache for speed test recommended threads per resource

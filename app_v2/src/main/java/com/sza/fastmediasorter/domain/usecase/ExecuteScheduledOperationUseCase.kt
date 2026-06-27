@@ -26,7 +26,11 @@ import javax.inject.Singleton
 data class ScheduledExecutionResult(
     val operationId: Long,
     val filesProcessed: Int,
-    val errors: List<String>
+    val errors: List<String>,
+    // S0710: set when the run halted because deleting the source requires an interactive permission
+    // grant (All-Files-Access / MANAGE_MEDIA) that is unreachable from a headless worker. The worker
+    // surfaces a notification and the loop stops instead of re-uploading the same files every run.
+    val permissionRequired: Boolean = false
 ) {
     val isSuccess: Boolean get() = errors.isEmpty()
     val statusString: String get() = if (isSuccess) "OK" else "ERROR: ${errors.first()}"
@@ -113,11 +117,16 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
 
             val errors = mutableListOf<String>()
             var successCount = 0
+            // S0710: a permission-required result is an operation-level wall, not a per-file error.
+            // Once seen, stop processing the rest of the batch so the run does not keep re-uploading
+            // files it can never delete in the background.
+            var permissionStop = false
 
             when (operation.operationType) {
                 ScheduledOpType.COPY -> {
                     val targetDir = File(targetResource!!.path)
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Copy(
                                 sources = listOf(File(file.path)),
@@ -126,44 +135,26 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                 sourceCredentialsId = sourceResource.credentialsId
                             )
                         )
-                        when {
-                            result is FileOperationResult.Success -> {
-                                if (result.skippedCount > 0) {
-                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] COPY SKIP ${file.name}")
-                                } else {
-                                    successCount++
-                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
-                                }
-                            }
-                            result is FileOperationResult.PartialSuccess -> {
-                                if (result.skippedCount > 0) {
-                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] COPY SKIP ${file.name}")
-                                } else {
-                                    successCount++
-                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
-                                }
-                            }
-                            result is FileOperationResult.Failure -> {
-                                errors.add(result.error)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
-                                Timber.d("ScheduledOp[$operationId] COPY ERROR ${file.name}: ${result.error}")
-                            }
-                            else -> {
-                                val err = "Failed to copy ${file.name}"
-                                errors.add(err)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
-                                Timber.d("ScheduledOp[$operationId] COPY ERROR ${file.name}")
-                            }
-                        }
+                        handleFileResult(
+                            result = result,
+                            file = file,
+                            opLabel = "COPY",
+                            fallbackErrMessage = "Failed to copy ${file.name}",
+                            operationId = operationId,
+                            ts = ts,
+                            opName = opName,
+                            srcLabel = srcLabel,
+                            dstLabel = dstLabel,
+                            addError = { errors.add(it) },
+                            incrementSuccess = { successCount++ },
+                            setPermissionStop = { permissionStop = true }
+                        )
                     }
                 }
                 ScheduledOpType.MOVE -> {
                     val targetDir = File(targetResource!!.path)
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Move(
                                 sources = listOf(File(file.path)),
@@ -172,68 +163,45 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                                 sourceCredentialsId = sourceResource.credentialsId
                             )
                         )
-                        when {
-                            result is FileOperationResult.Success -> {
-                                if (result.skippedCount > 0) {
-                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
-                                } else {
-                                    successCount++
-                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
-                                }
-                            }
-                            result is FileOperationResult.PartialSuccess -> {
-                                if (result.skippedCount > 0) {
-                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
-                                } else {
-                                    successCount++
-                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                    Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
-                                }
-                            }
-                            result is FileOperationResult.Failure -> {
-                                errors.add(result.error)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
-                                Timber.d("ScheduledOp[$operationId] MOVE ERROR ${file.name}: ${result.error}")
-                            }
-                            else -> {
-                                val err = "Failed to move ${file.name}"
-                                errors.add(err)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
-                                Timber.d("ScheduledOp[$operationId] MOVE ERROR ${file.name}")
-                            }
-                        }
+                        handleFileResult(
+                            result = result,
+                            file = file,
+                            opLabel = "MOVE",
+                            fallbackErrMessage = "Failed to move ${file.name}",
+                            operationId = operationId,
+                            ts = ts,
+                            opName = opName,
+                            srcLabel = srcLabel,
+                            dstLabel = dstLabel,
+                            addError = { errors.add(it) },
+                            incrementSuccess = { successCount++ },
+                            setPermissionStop = { permissionStop = true }
+                        )
                     }
                 }
                 ScheduledOpType.DELETE -> {
                     filtered.forEach { file ->
+                        if (permissionStop) return@forEach
                         val result = fileOperationUseCase.execute(
                             FileOperation.Delete(
                                 files = listOf(File(file.path)),
                                 softDelete = false
                             )
                         )
-                        when {
-                            result is FileOperationResult.Success ||
-                            result is FileOperationResult.PartialSuccess -> {
-                                successCount++
-                                logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                Timber.d("ScheduledOp[$operationId] DELETE OK ${file.name}")
-                            }
-                            result is FileOperationResult.Failure -> {
-                                errors.add(result.error)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
-                                Timber.d("ScheduledOp[$operationId] DELETE ERROR ${file.name}: ${result.error}")
-                            }
-                            else -> {
-                                val err = "Failed to delete ${file.name}"
-                                errors.add(err)
-                                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
-                                Timber.d("ScheduledOp[$operationId] DELETE ERROR ${file.name}")
-                            }
-                        }
+                        handleFileResult(
+                            result = result,
+                            file = file,
+                            opLabel = "DELETE",
+                            fallbackErrMessage = "Failed to delete ${file.name}",
+                            operationId = operationId,
+                            ts = ts,
+                            opName = opName,
+                            srcLabel = srcLabel,
+                            dstLabel = dstLabel,
+                            addError = { errors.add(it) },
+                            incrementSuccess = { successCount++ },
+                            setPermissionStop = { permissionStop = true }
+                        )
                     }
                 }
             }
@@ -244,7 +212,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // Count one run once the work loop executed; config-failure early returns above and the
             // exception path below are not runs. filesProcessed carries the successfully handled count.
             statsSink.record(StatsEvent.ScheduledRun(filesProcessed = successCount.toLong()))
-            ScheduledExecutionResult(operationId, successCount, errors)
+            ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
 
         } catch (e: CancellationException) {
             throw e
@@ -324,6 +292,68 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         TimeFilter.SINCE_LAST -> lastRunAt == null || file.createdDate > lastRunAt
         TimeFilter.LAST_HOUR -> file.createdDate > now - 3_600_000L
         TimeFilter.LAST_DAY -> file.createdDate > now - 86_400_000L
+    }
+
+    /**
+     * S0710: a [FileOperationResult.PermissionRequired] / [FileOperationResult.AuthenticationRequired]
+     * cannot be resolved inside a headless worker (it needs an interactive grant). Map it to a stable
+     * message so the run halts with a clear cause instead of being logged as a generic per-file failure.
+     */
+    private fun permissionStopError(result: FileOperationResult): String = when (result) {
+        is FileOperationResult.AuthenticationRequired -> "Re-authentication required for ${result.provider}"
+        else -> "Permission required to delete source in background (grant All-files access)"
+    }
+
+    private fun handleFileResult(
+        result: FileOperationResult,
+        file: MediaFile,
+        opLabel: String,
+        fallbackErrMessage: String,
+        operationId: Long,
+        ts: String,
+        opName: String,
+        srcLabel: String,
+        dstLabel: String,
+        addError: (String) -> Unit,
+        incrementSuccess: () -> Unit,
+        setPermissionStop: () -> Unit
+    ) {
+        when {
+            result is FileOperationResult.Success ||
+            result is FileOperationResult.PartialSuccess -> {
+                val skippedCount = when (result) {
+                    is FileOperationResult.Success -> result.skippedCount
+                    is FileOperationResult.PartialSuccess -> result.skippedCount
+                    else -> 0
+                }
+                if (skippedCount > 0) {
+                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
+                    Timber.d("ScheduledOp[$operationId] $opLabel SKIP ${file.name}")
+                } else {
+                    incrementSuccess()
+                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
+                    Timber.d("ScheduledOp[$operationId] $opLabel OK ${file.name}")
+                }
+            }
+            result is FileOperationResult.PermissionRequired ||
+            result is FileOperationResult.AuthenticationRequired -> {
+                setPermissionStop()
+                val err = permissionStopError(result)
+                addError(err)
+                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
+                Timber.w("ScheduledOp[$operationId] $opLabel halted - $err (${file.name})")
+            }
+            result is FileOperationResult.Failure -> {
+                addError(result.error)
+                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: ${result.error}")
+                Timber.d("ScheduledOp[$operationId] $opLabel ERROR ${file.name}: ${result.error}")
+            }
+            else -> {
+                addError(fallbackErrMessage)
+                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $fallbackErrMessage")
+                Timber.d("ScheduledOp[$operationId] $opLabel ERROR ${file.name}")
+            }
+        }
     }
 
     /** Appends one line to the user-visible operations log. */

@@ -75,4 +75,6 @@
     <string name="scheduled_ops_toast_error">Ошибка операции: %s</string>
     <string name="scheduled_ops_toggle">Использовать операции по расписанию</string>
     <string name="scheduled_ops_toggle_hint">Копирование, перемещение, удаление на фоне</string>
+    <string name="scheduled_ops_notif_permission_title">Запланированной операции нужно разрешение</string>
+    <string name="scheduled_ops_notif_permission_text">Предоставьте доступ ко всем файлам, чтобы фоновое перемещение/удаление могло удалять оригиналы.</string>
 </resources>

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,11 +17,12 @@ class FavoritesRepositoryImpl @Inject constructor(
     }
 
     override fun getAllFavorites(): Flow<List<FavoritesEntity>> {
-        return favoritesDao.getAllFavorites()
+        // Room invalidates at table granularity; dedup so an unrelated favorites write doesn't re-render unchanged rows (S0733/S0717 P3).
+        return favoritesDao.getAllFavorites().distinctUntilChanged()
     }
 
     override fun isFavorite(uri: String): Flow<Boolean> {
-        return favoritesDao.isFavorite(uri)
+        return favoritesDao.isFavorite(uri).distinctUntilChanged()
     }
 
     override suspend fun isFavoriteSync(uri: String): Boolean {

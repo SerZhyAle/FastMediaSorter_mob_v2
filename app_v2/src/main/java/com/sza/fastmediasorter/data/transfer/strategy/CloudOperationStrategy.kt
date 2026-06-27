@@ -11,13 +11,13 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.adaptCloudProgress
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -299,11 +299,10 @@ class CloudOperationStrategy @Inject constructor(
             val result = client.downloadFile(
                 fileId = info.fileIdForDownload,
                 outputStream = sink.outputStream,
-                progressCallback = { progress ->
-                    progressScope.launch {
-                        progressCallback?.onProgress(progress.bytesTransferred, progress.totalBytes, 0L)
-                    }
-                }
+                // S0730: throttle via the shared adapter (100KB + AtomicLong CAS) instead of launching
+                // a raw coroutine per 64KB tick - GoogleDriveRestClient emits untrottled, so the old
+                // path spawned thousands of coroutines on a large transfer and flooded the progress bar.
+                progressCallback = adaptCloudProgress(progressCallback, progressScope)
             )
             when (result) {
                 is CloudResult.Success -> sink.commit().fold(
@@ -360,11 +359,9 @@ class CloudOperationStrategy @Inject constructor(
                     fileName = targetName,
                     mimeType = mimeType,
                     parentFolderId = parentId.ifBlank { null },
-                    progressCallback = { progress ->
-                        progressScope.launch {
-                            progressCallback?.onProgress(progress.bytesTransferred, progress.totalBytes, 0L)
-                        }
-                    }
+                    // S0730: throttle via the shared adapter (see downloadCloudToLocal) rather than a
+                    // raw coroutine per progress tick.
+                    progressCallback = adaptCloudProgress(progressCallback, progressScope)
                 )) {
                     is CloudResult.Success -> Result.success(cloudDestPath)
                     is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))

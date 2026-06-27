@@ -40,7 +40,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPicker
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -123,7 +122,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S0651: Operations settings opened - mic-recording ask-filename shown as child of enable-recording")
         setupViews()
         setupCollapsibleSections()
         scheduledManager.setup()

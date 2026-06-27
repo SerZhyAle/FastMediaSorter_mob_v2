@@ -1,23 +1,29 @@
 package com.sza.fastmediasorter.core.cache
 
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Global singleton for managing translation cache across all PDF files.
  * Cache structure: fileName -> (pageIndex -> translatedText)
- * 
+ *
  * Cleared on:
  * - App startup (FastMediaSorterApp.onCreate)
  * - "Clear cache" button in settings
  * - NOT cleared when switching between files (preserves translations)
+ *
+ * Thread-safety (S0729): writes happen on Main (putTranslation) while reads/clears run on IO
+ * (putLensTranslation/getTranslation/clearAll). Both levels use ConcurrentHashMap so concurrent
+ * access cannot throw ConcurrentModificationException or lose entries; insertion uses an atomic
+ * putIfAbsent (API-23 safe, unlike Map.computeIfAbsent which is API 24+).
  */
 object TranslationCacheManager {
-    
+
     // Translation cache: fileName -> (pageIndex -> translated text)
-    private val cache = mutableMapOf<String, MutableMap<Int, String>>()
-    
+    private val cache = ConcurrentHashMap<String, ConcurrentHashMap<Int, String>>()
+
     // Lens style cache: fileName -> (pageIndex -> list of translated blocks)
-    private val lensCache = mutableMapOf<String, MutableMap<Int, List<com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslatedTextBlock>>>()
+    private val lensCache = ConcurrentHashMap<String, ConcurrentHashMap<Int, List<com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslatedTextBlock>>>()
     
     /**
      * Get cached translation for specific file and page
@@ -37,7 +43,12 @@ object TranslationCacheManager {
      * Cache translation for specific file and page
      */
     fun putTranslation(filePath: String, pageIndex: Int, translatedText: String) {
-        cache.getOrPut(filePath) { mutableMapOf() }[pageIndex] = translatedText
+        // S0729: atomic get-or-create of the per-file page map; putIfAbsent collapses the race
+        // where Main and IO both insert the same fileName concurrently.
+        val pageMap = cache[filePath] ?: ConcurrentHashMap<Int, String>().let { fresh ->
+            cache.putIfAbsent(filePath, fresh) ?: fresh
+        }
+        pageMap[pageIndex] = translatedText
         Timber.d("Cached translation for $filePath page $pageIndex")
     }
     
@@ -45,7 +56,11 @@ object TranslationCacheManager {
      * Cache lens translation blocks for specific file and page
      */
     fun putLensTranslation(filePath: String, pageIndex: Int, blocks: List<com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslatedTextBlock>) {
-        lensCache.getOrPut(filePath) { mutableMapOf() }[pageIndex] = blocks
+        // S0729: same atomic get-or-create as putTranslation.
+        val pageMap = lensCache[filePath] ?: ConcurrentHashMap<Int, List<com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslatedTextBlock>>().let { fresh ->
+            lensCache.putIfAbsent(filePath, fresh) ?: fresh
+        }
+        pageMap[pageIndex] = blocks
         Timber.d("Cached lens translation for $filePath page $pageIndex (${blocks.size} blocks)")
     }
     

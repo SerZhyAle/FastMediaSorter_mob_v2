@@ -68,7 +68,11 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     // region - interactive sign-in
 
-    override suspend fun signInPrimary(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
+    override suspend fun signInPrimary(
+        activityContext: Context,
+        scopes: Set<GoogleScope>,
+        preferAccountChooser: Boolean
+    ): IdentitySignInResult {
         // Pre-check Google Play Services availability before invoking Credential Manager.
         // Without this guard, an outdated / missing GMS produces a generic GetCredentialException
         // subtype that mapException() funnels into IdentityFailureReason.UnknownError, hiding the
@@ -88,7 +92,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         }
         val previous = _state.value
         _state.value = PrimaryGoogleAccountState.Authenticating
-        return runCatching { performSignIn(activityContext, scopes) }
+        return runCatching { performSignIn(activityContext, scopes, preferAccountChooser) }
             .recover { exception ->
                 _state.value = previous
                 mapException(exception).also {
@@ -100,11 +104,14 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             .getOrThrow()
     }
 
-    private suspend fun performSignIn(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
-        val response = tryGetCredentialWithChooserFallback(activityContext)
+    private suspend fun performSignIn(
+        activityContext: Context,
+        scopes: Set<GoogleScope>,
+        preferAccountChooser: Boolean
+    ): IdentitySignInResult {
+        val response = tryGetCredentialWithChooserFallback(activityContext, preferAccountChooser)
         val customCred = response.credential as? CustomCredential
-            ?: return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
-        if (customCred.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+        if (customCred == null || customCred.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
         }
         val tokenCred = GoogleIdTokenCredential.createFrom(customCred.data)
@@ -120,9 +127,15 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         return IdentitySignInResult.Success(account)
     }
 
-    private suspend fun tryGetCredentialWithChooserFallback(activityContext: Context) = runCatching {
-        val authorizedOnlyRequest = buildGetCredentialRequest(filterByAuthorizedAccounts = true)
-        CredentialManager.create(appContext).getCredential(activityContext, authorizedOnlyRequest)
+    private suspend fun tryGetCredentialWithChooserFallback(
+        activityContext: Context,
+        preferAccountChooser: Boolean
+    ) = runCatching {
+        // S0744: preferAccountChooser skips the authorized-accounts-only first pass and goes
+        // straight to the full chooser, so the user can pick an account other than a previously
+        // authorized one that can no longer mint a token.
+        val firstRequest = buildGetCredentialRequest(filterByAuthorizedAccounts = !preferAccountChooser)
+        CredentialManager.create(appContext).getCredential(activityContext, firstRequest)
     }.recoverCatching { error ->
         if (error is NoCredentialException) {
             // Fresh flavor package ids (for example vr / noLegal) may not have any pre-authorized
@@ -197,11 +210,22 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     override suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken? {
         val bound = (_state.value as? PrimaryGoogleAccountState.Bound)?.account ?: return null
-        val token = tokenIssuer.issue(bound.email, scopes)
-        if (token == null) {
-            _state.value = PrimaryGoogleAccountState.NeedsResignIn(bound, NeedsResignInReason.TokenExpired)
+        return when (val result = tokenIssuer.issue(bound.email, scopes)) {
+            is TokenIssueResult.Success -> result.token
+            TokenIssueResult.AccountAbsent -> {
+                // Bound account is no longer on the device (GMS ACCOUNT_NOT_PRESENT). Drop the stale
+                // binding so the next sign-in re-binds to a present account instead of dead-ending on
+                // the absent one. NeedsResignIn is wrong here - its contract is "same email". S0743.
+                Timber.i("Primary Google account no longer present on device; clearing stale binding")
+                store.clear()
+                _state.value = PrimaryGoogleAccountState.Unbound
+                null
+            }
+            TokenIssueResult.Failed -> {
+                _state.value = PrimaryGoogleAccountState.NeedsResignIn(bound, NeedsResignInReason.TokenExpired)
+                null
+            }
         }
-        return token
     }
 
     override suspend fun invalidateToken() {
