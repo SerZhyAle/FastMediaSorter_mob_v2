@@ -133,6 +133,10 @@ internal class PlayerFileOpsInitializer(
         }
         override fun shouldShowDestinationPanels(): Boolean {
             val state = activity.viewModel.state.value
+            // S0741: an active image-edit overlay (draw/crop) full-screens the media and
+            // PlayerImmersiveModeManager already hid the panels - this async populate must not
+            // re-show them over the overlay. imageEditMode is the same state immersive keys off.
+            if (state.imageEditMode != com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE) return false
             return state.showCommandPanel || state.currentFile?.type == MediaType.AUDIO
         }
     }
