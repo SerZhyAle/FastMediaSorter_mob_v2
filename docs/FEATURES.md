@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-24*
+*Last updated: 2026-06-27*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -136,4 +136,6 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Live stream casting** `[Standard / Legacy / noLegal]`: Cast a live video stream to a Chromecast device straight from the stream player.
 - **Home-screen shortcut & card actions** `[Standard / Legacy / noLegal / VR]`: Pin a stream to the home screen for one-tap launch, and open a per-card actions menu directly from the streams list.
 - **Stream defaults & input parity** `[Standard / Legacy / noLegal / VR]`: Set a default sort order and media-type filter for the streams list, with full TV-remote and mouse navigation parity.
+- **Fullscreen stream player & landscape grid** `[Standard / Photos / Legacy / noLegal / VR]`: Watch a live channel full-screen, browse streams as a multi-column grid with per-tile status dots in landscape, and the list remembers your filter, sort and scroll position.
+- **Resilient stream playback** `[Standard / Legacy / noLegal / VR]`: A health probe and bandwidth-adaptive buffering smooth startup, with distinct buffering and reconnecting states.
 
