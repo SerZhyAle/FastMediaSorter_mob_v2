@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.util.gif
 
 import android.graphics.Bitmap
+import android.util.SparseIntArray
 import java.io.OutputStream
 
 /**
@@ -99,13 +100,13 @@ class AnimatedGifEncoder {
         image.getPixels(pixels, 0, width, 0, 0, width, height)
         
         // Build color table using simple quantization
-        val colorMap = mutableMapOf<Int, Int>()
+        val colorMap = SparseIntArray(256)
         val colors = mutableListOf<Int>()
-        
+
         for (pixel in pixels) {
             val rgb = pixel and 0x00FFFFFF
-            if (!colorMap.containsKey(rgb) && colors.size < 256) {
-                colorMap[rgb] = colors.size
+            if (colorMap.get(rgb, -1) == -1 && colors.size < 256) {
+                colorMap.put(rgb, colors.size)
                 colors.add(rgb)
             }
         }
@@ -129,7 +130,8 @@ class AnimatedGifEncoder {
         indexedPixels = ByteArray(pixels.size)
         for (i in pixels.indices) {
             val rgb = pixels[i] and 0x00FFFFFF
-            indexedPixels!![i] = (colorMap[rgb] ?: findClosestColor(rgb, colors)).toByte()
+            val idx = colorMap.get(rgb, -1)
+            indexedPixels!![i] = (if (idx != -1) idx else findClosestColor(rgb, colors)).toByte()
         }
     }
     

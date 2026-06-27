@@ -28,7 +28,11 @@ class NoOpGoogleIdentityRepository @Inject constructor() : GoogleIdentityReposit
     override val state: StateFlow<PrimaryGoogleAccountState> =
         MutableStateFlow(PrimaryGoogleAccountState.Unbound).asStateFlow()
 
-    override suspend fun signInPrimary(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult =
+    override suspend fun signInPrimary(
+        activityContext: Context,
+        scopes: Set<GoogleScope>,
+        preferAccountChooser: Boolean
+    ): IdentitySignInResult =
         IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
 
     override suspend fun requestAdditionalScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult =

@@ -22,7 +22,6 @@ class AppLaunchPanelTileService : TileService() {
 
     override fun onStartListening() {
         super.onStartListening()
-        Timber.d("S0713: AppLaunchPanelTile bound and listening (tile is addable)")
         val tile = qsTile ?: return
         tile.state = Tile.STATE_INACTIVE
         tile.label = getString(R.string.app_launch_panel_title)

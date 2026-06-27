@@ -7,12 +7,24 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+
+private const val UI_STATE_SHARING_TIMEOUT_MS = 5_000L
+
+sealed interface UiState<out T> {
+    data object Loading : UiState<Nothing>
+    data object Empty : UiState<Nothing>
+    data class Error(val message: String) : UiState<Nothing>
+    data class Content<T>(val data: T, val isRefreshing: Boolean = false) : UiState<T>
+}
 
 /**
  * Base ViewModel that provides common functionality for all ViewModels.
@@ -58,6 +70,30 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
 
     protected fun setError(message: String?) {
         _error.value = message
+    }
+
+    protected fun createUiState(isEmpty: (State) -> Boolean): StateFlow<UiState<State>> {
+        fun resolveUiState(
+            currentState: State,
+            isLoading: Boolean,
+            errorMessage: String?
+        ): UiState<State> {
+            val empty = isEmpty(currentState)
+            return when {
+                empty && isLoading -> UiState.Loading
+                empty && errorMessage != null -> UiState.Error(errorMessage)
+                empty -> UiState.Empty
+                else -> UiState.Content(currentState, isRefreshing = isLoading)
+            }
+        }
+
+        return combine(state, loading, error) { currentState, isLoading, errorMessage ->
+            resolveUiState(currentState, isLoading, errorMessage)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(UI_STATE_SHARING_TIMEOUT_MS),
+            initialValue = resolveUiState(state.value, loading.value, error.value)
+        )
     }
 
     protected open fun handleError(throwable: Throwable) {

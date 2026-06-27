@@ -7,12 +7,18 @@ import androidx.paging.PagingData
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ResourceType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -109,6 +115,18 @@ class BrowseViewModel @Inject constructor(
     private val windowId: String = savedStateHandle.get<String>("extra_window_id")
         ?: com.sza.fastmediasorter.domain.repository.ResumeStateRepository.WINDOW_ID_MAIN
     private val windowIdProvider: () -> String = { windowId }
+
+    // S0730: single shared settings StateFlow for every Browse observer. Previously each observer
+    // collected settingsRepository.getSettings() independently, so the cold flow rebuilt the
+    // ~150-field AppSettings (with a glidePrefs side-effect write) once per observer on every
+    // settings write. Sharing collapses that to a single upstream collection; flowOn(Default) keeps
+    // the rebuild off Main; Eagerly so .value is current for synchronous reads.
+    val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
+    val fileListUiState: StateFlow<UiState<BrowseState>> =
+        createUiState { currentState -> currentState.mediaFiles.isEmpty() }
 
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
     

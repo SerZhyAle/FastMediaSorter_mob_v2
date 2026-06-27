@@ -1,7 +1,8 @@
 # Commit and Push Script for FastMediaSorter v2
 
 param(
-    [string]$Message
+    [string]$Message,
+    [switch]$NoPush
 )
 
 # Auto-generate commit message if not provided
@@ -23,6 +24,11 @@ if (-not $status) {
 # Commit with the message
 Write-Host "Committing with message: $Message"
 git commit -m $Message
+
+if ($NoPush) {
+    Write-Host "Commit completed without push."
+    exit 0
+}
 
 # Push to the current branch
 Write-Host "Pushing to remote..."

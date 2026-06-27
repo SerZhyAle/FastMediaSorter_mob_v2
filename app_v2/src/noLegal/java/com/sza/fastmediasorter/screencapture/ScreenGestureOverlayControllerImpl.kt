@@ -10,11 +10,7 @@ import android.provider.Settings
 import android.text.TextUtils
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -25,8 +21,7 @@ import javax.inject.Inject
  *   The backing permission is draw-over-apps (SYSTEM_ALERT_WINDOW).
  */
 class ScreenGestureOverlayControllerImpl @Inject constructor(
-    @ApplicationContext context: Context,
-    private val settingsRepository: Lazy<SettingsRepository>
+    @ApplicationContext context: Context
 ) : ScreenGestureOverlayController {
 
     private val appContext = context.applicationContext
@@ -85,7 +80,7 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
             R.string.screenshot_overlay_permission_rationale
         }
 
-    override fun setEnabled(enabled: Boolean) {
+    override fun setEnabled(enabled: Boolean, stripVisible: Boolean) {
         if (!enabled) {
             OverlayHostService.stop(appContext)
             ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(false)
@@ -96,7 +91,6 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         // host shut down; otherwise the MediaProjection fallback runs if draw-over-apps is granted.
         // Granting neither leaves the toggle effectively off. The accessibility service lifecycle is
         // system-owned; we only push strip visibility to the live instance (if connected).
-        val stripVisible = readStripVisible()
         when {
             accessibilityPathActive(appContext) -> {
                 OverlayHostService.stop(appContext)
@@ -109,23 +103,15 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         }
     }
 
-    override fun setStripVisible(visible: Boolean) {
+    override fun setStripVisible(visible: Boolean, overlayEnabled: Boolean) {
         // S0724: recolour the live strip on whichever path currently hosts it; no-op while disabled.
-        if (!isEnabled()) return
+        if (!overlayEnabled) return
         when {
             accessibilityPathActive(appContext) ->
                 ScreenshotAccessibilityServiceHolder.instance?.applyStripVisible(visible)
             Settings.canDrawOverlays(appContext) ->
                 OverlayHostService.start(appContext, visible)
         }
-    }
-
-    override fun isEnabled(): Boolean = runBlocking {
-        settingsRepository.get().getSettings().first().gestureOverlayEnabled
-    }
-
-    private fun readStripVisible(): Boolean = runBlocking {
-        settingsRepository.get().getSettings().first().screenshotGestureStripVisible
     }
 
     private fun isAccessibilityServiceEnabled(context: Context): Boolean {

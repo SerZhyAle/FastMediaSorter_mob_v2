@@ -54,8 +54,14 @@ object WearAppModule {
         return context.contentResolver
     }
     
+    /**
+     * S0725: NOT @Singleton. Audio and video player VMs each own a private ExoPlayer so each can
+     * release() it in onCleared without killing the other's instance. A process-lived singleton was
+     * never released (native HandlerThread / AudioTrack / codecs leaked for the whole process) and was
+     * shared between two owners that could not safely release it. Per-VM ownership matches the per-screen
+     * player lifecycle (audio and video are separate screens with no cross-screen playback continuity).
+     */
     @Provides
-    @Singleton
     fun provideExoPlayer(
         @ApplicationContext context: Context
     ): androidx.media3.exoplayer.ExoPlayer {

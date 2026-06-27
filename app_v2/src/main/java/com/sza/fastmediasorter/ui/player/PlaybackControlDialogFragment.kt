@@ -112,7 +112,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
             hasMultipleAudioTracks = handle.getAvailableAudioTracks().size > 1
             hasSubtitles = handle.getAvailableSubtitleTracks().isNotEmpty()
         }
-        Timber.d("S0670: playback control dialog opened - context-aware tabs (3D vrMedia=$supportsVrMediaControls, audioMulti=$hasMultipleAudioTracks, subs=$hasSubtitles) + speed presets")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {

@@ -8,6 +8,9 @@
     Script command to execute:
     r    - Build AAB Release
     vr   - Build VR Release APK
+    cc   - Commit without push
+    id   - Install Standard Debug APK on device (no launch)
+    ind  - Install noLegal Debug APK on device (no launch)
     ivn  - Install noLegal Debug APK on device (no launch)
     dc   - Build Debug Clean
     d    - Fast reusable debug build
@@ -68,6 +71,9 @@ $ProjectRoot = $PSScriptRoot
 $scripts = @{
     'r'         = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @{} }
     'vr'        = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @{} }
+    'cc'        = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @{ NoPush = $true } }
+    'id'        = @{ Path = 'scripts\builders\install-standard-debug-to-device.ps1'; Args = @{} }
+    'ind'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @{} }
     'ivn'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @{} }
     'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
     'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @{} }
@@ -112,6 +118,9 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "Available commands:" -ForegroundColor Yellow
     Write-Host "  r    - Build AAB Release" -ForegroundColor Cyan
     Write-Host "  vr   - Build VR Release APK" -ForegroundColor Cyan
+    Write-Host "  cc   - Commit without push" -ForegroundColor Cyan
+    Write-Host "  id   - Install Standard Debug APK on device (NO launch)" -ForegroundColor Cyan
+    Write-Host "  ind  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  ivn  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d    - Fast reusable debug build" -ForegroundColor Cyan

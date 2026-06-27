@@ -1383,6 +1383,10 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+    arguments {
+        // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
     javacOptions {
         option("-Xlint:-processing")
     }

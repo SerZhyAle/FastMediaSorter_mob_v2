@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
+import androidx.room.withTransaction
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.AppLaunchPanelTileDao
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
 import com.sza.fastmediasorter.domain.repository.AppLaunchPanelRepository
@@ -8,6 +10,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AppLaunchPanelRepositoryImpl @Inject constructor(
+    private val db: AppDatabase,
     private val dao: AppLaunchPanelTileDao
 ) : AppLaunchPanelRepository {
 
@@ -24,23 +27,31 @@ class AppLaunchPanelRepositoryImpl @Inject constructor(
 
     override suspend fun moveTile(fromSlot: Int, toSlot: Int) {
         if (fromSlot == toSlot) return
-        val bySlot = dao.getAll().associateBy { it.slotIndex }
-        val source = bySlot[fromSlot] ?: return
-        val target = bySlot[toSlot]
-        // Locked-view swap: source takes the target slot; any current target occupant falls back to
-        // the source slot so every position stays explicitly assigned.
-        dao.deleteBySlot(fromSlot)
-        dao.deleteBySlot(toSlot)
-        dao.upsert(source.copy(slotIndex = toSlot))
-        if (target != null) {
-            dao.upsert(target.copy(slotIndex = fromSlot))
+        // S0732: the read-modify-write swap is 4 separate DAO writes; a kill between the deletes and
+        // upserts would lose a tile permanently. Run it in one transaction so it is all-or-nothing.
+        db.withTransaction {
+            val bySlot = dao.getAll().associateBy { it.slotIndex }
+            val source = bySlot[fromSlot] ?: return@withTransaction
+            val target = bySlot[toSlot]
+            // Locked-view swap: source takes the target slot; any current target occupant falls back to
+            // the source slot so every position stays explicitly assigned.
+            dao.deleteBySlot(fromSlot)
+            dao.deleteBySlot(toSlot)
+            dao.upsert(source.copy(slotIndex = toSlot))
+            if (target != null) {
+                dao.upsert(target.copy(slotIndex = fromSlot))
+            }
         }
     }
 
     override suspend fun count(): Int = dao.count()
 
     override suspend fun replaceAll(tiles: List<AppLaunchPanelTile>) {
-        dao.clearAll()
-        tiles.forEach { dao.upsert(it.toEntity()) }
+        // S0732: clearAll + N upserts is non-atomic (same class as moveTile); a kill mid-replace
+        // would leave a partially-populated panel. Wrap in one transaction.
+        db.withTransaction {
+            dao.clearAll()
+            tiles.forEach { dao.upsert(it.toEntity()) }
+        }
     }
 }

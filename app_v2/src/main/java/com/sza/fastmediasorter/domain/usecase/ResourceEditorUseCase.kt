@@ -32,7 +32,6 @@ import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,8 +57,6 @@ class ResourceEditorUseCase @Inject constructor(
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-
-    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     private val _verificationStatuses = MutableStateFlow<Map<Long, ResourceVerificationStatus>>(emptyMap())
     val verificationStatuses: StateFlow<Map<Long, ResourceVerificationStatus>> = _verificationStatuses.asStateFlow()
@@ -190,7 +187,16 @@ class ResourceEditorUseCase @Inject constructor(
         )
     }
 
-    suspend fun save(formData: ResourceFormData): Result<ResourceEditorSaveResult> = withContext(ioDispatcher) {
+    /**
+     * @param verificationScope lifecycle-owned scope (the caller's viewModelScope) on which the
+     * fire-and-forget post-save connection check runs. S0730: previously this UseCase held its own
+     * never-cancelled SupervisorJob scope, so the network verification leaked past the editor's
+     * teardown; binding it to the caller cancels the in-flight check when the screen closes.
+     */
+    suspend fun save(
+        formData: ResourceFormData,
+        verificationScope: CoroutineScope
+    ): Result<ResourceEditorSaveResult> = withContext(ioDispatcher) {
         try {
             val validation = validate(formData)
             if (!validation.isValid) {
@@ -257,7 +263,7 @@ class ResourceEditorUseCase @Inject constructor(
             }
 
             updateVerificationStatus(resourceId, ResourceVerificationStatus.PENDING_VERIFICATION)
-            launchPostSaveVerification(resourceId)
+            launchPostSaveVerification(resourceId, verificationScope)
 
             Result.success(
                 ResourceEditorSaveResult(
@@ -446,8 +452,9 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    private fun launchPostSaveVerification(resourceId: Long) {
-        scope.launch {
+    private fun launchPostSaveVerification(resourceId: Long, scope: CoroutineScope) {
+        // ioDispatcher keeps the network check off Main even though the caller's scope is Main-bound.
+        scope.launch(ioDispatcher) {
             try {
                 val resource = resourceRepository.getResourceById(resourceId)
                     ?: run {

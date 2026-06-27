@@ -6,14 +6,18 @@
 - [Shared-state audit tool (S0703)](reference_shared_state_audit_tool.md) - audit-shared-state-writers.ps1; partition mgrs consume eligibility, not override GONE
 - [Player progressBar single owner (S0704)](project_player_progressbar_single_owner.md) - spinner owned by PlayerLoadingIndicatorCoordinator (source-counted); PdfViewerManager still a rogue writer
 - [prerelease Maestro flaky](project_prerelease_maestro_harness_flaky.md) - Maestro FAIL = harness not app; verify manually, trust toastCount, S0666
+- [prerelease is emulator-only](feedback_prerelease_emulator_only.md) - on real device: clean-uninstall wipes config + log-audit FAILs on foreign-app noise; isolate app signal manually
 - [Play Console API read-only](reference_play_console_api_access.md) - read track/bundle states (temp/play_status.py); CANNOT see review verdicts
-- [noLegal->Play capture family](project_play_release_in_review.md) - screenshots Verified; S0672 strip+tile code-complete (BlockNeedUserTest) + S0724 visible grey strip; ADR-3 submit VISIBLE strip; device-test+video next
+- [noLegal->Play capture family](project_play_release_in_review.md) - owner 2026-06-26 flips edgeGestureOverlay=on THIS release; QS-tile path device-verified; overlay strip/grey/swipe = real-device Play demo; artifacts in temp/
+- [Emulator capture-family testing](reference_emulator_capture_family_testing.md) - cmd statusbar add/click-tile + aapt2 build-check; overlay strip enable/recolour/swipe NOT emulator-drivable
+- [Test device Galaxy S21+ (full access)](reference_test_device_galaxy_s21.md) - SM-G996U1/RFCR110NBQJ, Android 15, 1080x2400; do anything; tall aspect for S0670; not Wear
 
 - [SettingsInputRow greedy width](feedback_settingsinputrow_greedy_width.md) - internally match_parent; fixed width in weighted rows; not-showing -> aapt2 the APK
 - [Canonical settings pickers](feedback_canonical_settings_value_pickers.md) - reuse ListSelectionDialog<T>+SettingsSelectionRow; destination=camera-folder visual
 - [No wrapper focus on compound rows](feedback_compound_row_no_wrapper_focus.md) - SettingsDropdownRow wrapper NO focusable/clickable; inner field is D-pad stop; ToggleRow exception (S0674)
 
 - [Incremental phantom unresolved-ref](project_incremental_build_phantom_unresolved.md) - dq after multi-file edits -> phantom; fix = clean build (cd)
+- [detekt gate in post-change (S0720)](project_detekt_gate_in_post_change.md) - post-change.ps1 now runs full gradle detekt on Kotlin/Mixed (slow); ratchet baselines; not in assemble*
 - [screenCapture gates gesture](project_screencapture_gates_gesture_capability.md) - default off unmounts standardScreenCapture; tests need -P fms.screenCapture=on
 - [close.ps1 two-step unblock](project_close_ps1_two_step_unblock.md) - refuses direct BlockNeedUserTest->Verified; go via Implemented
 
@@ -41,10 +45,11 @@
 
 - [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff/status for WIP; single dev, many tickets/file; git only on explicit ask
 - [Reuse existing settings toggles](feedback_reuse_existing_settings.md) - grep AppSettings+settings fragment before adding (S0523 cut 3 dups)
-- [Writing style: hyphen / ё / ..](feedback_writing_style.md) - hyphen not em-dash, ё not е, `..` not `...`; self-check every chat/.md/commit
+- [Writing style: hyphen / ё / ..](feedback_writing_style.md) - hyphen not em-dash, ё not е, `..` not `...`; docs prose + UI text ONLY (2026-06-26), never code/specs/chat
 - [Per-phase debug tags break gate](feedback_per_phase_debug_tags_break_gate.md) - no Timber.d("Sxxxx:") in intermediate phases; defer probes to final transition
 - [Fast checks during dev](feedback_fast_checks_during_dev.md) - default a.ps1 fk/fr/fc/fu (~2-8s); reserve d/dav for packaging/install proof
 - [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md) - never >1 gradle build (daemon OOM); post-change.ps1 static, safe anytime
+- [Constructor change -> compile tests](feedback_constructor_change_compile_tests.md) - assembleDebug skips test sources; run testStandardDebugUnitTest after signature changes; mockk withTransaction uses secondArg
 - [adb swiss-army CLI](reference_adb_swiss_army.md) - scripts/devtest/adb.ps1 + .\a.ps1 adb <verb> for quick device chores; prefer over raw adb
 - [activity_welcome.xml 3 width variants](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new view id in all three (no layout-land)
 - [spec-tech plan quality](feedback_spec_tech_plan_quality.md) - defects: misordered phases + doc-shuffling; keep 3.1-3.4/5.5 + research/ convention

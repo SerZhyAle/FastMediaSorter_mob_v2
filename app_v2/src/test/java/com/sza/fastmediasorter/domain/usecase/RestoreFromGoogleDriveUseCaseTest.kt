@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -20,8 +22,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -46,14 +50,24 @@ class RestoreFromGoogleDriveUseCaseTest {
     private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
     private val authSessionRepository = mockk<AuthSessionRepository>(relaxed = true)
     private val workManagerScheduler = mockk<WorkManagerScheduler>(relaxed = true)
+    private val db = mockk<AppDatabase>()
     private lateinit var useCase: RestoreFromGoogleDriveUseCase
 
     @Before
     fun setup() {
+        // S0732: ApplyBackupPayloadUseCase now wraps its Room sections in db.withTransaction; stub the
+        // extension so it simply runs the block in this repo-mocked unit test.
+        // db.withTransaction is an extension function: when stubbed via mockkStatic, arg 0 is the
+        // RoomDatabase receiver and arg 1 is the transaction block - run the block so the Room sections
+        // execute against the mocked repositories (S0732).
+        mockkStatic("androidx.room.RoomDatabaseKt")
+        coEvery { db.withTransaction(any<suspend () -> Any?>()) } answers {
+            runBlocking { secondArg<suspend () -> Any?>().invoke() }
+        }
         // S0406: Restore now delegates to the shared applier; build a real one from mocked repos
         // so the behavioral assertions below still exercise the merge logic.
         val applyUseCase = ApplyBackupPayloadUseCase(
-            settingsRepository, resourceRepository, favoritesDao, scheduledRepo,
+            db, settingsRepository, resourceRepository, favoritesDao, scheduledRepo,
             credentialsRepository, authSessionRepository, workManagerScheduler,
         )
         useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)

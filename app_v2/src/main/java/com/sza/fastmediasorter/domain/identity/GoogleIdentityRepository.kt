@@ -27,8 +27,15 @@ interface GoogleIdentityRepository {
      *
      * @param activityContext an Activity context - Credential Manager bottom sheet needs an Activity.
      * @param scopes the OAuth scopes to request. Must be a subset of [GoogleScope] non-restricted constants.
+     * @param preferAccountChooser when true (S0744), skip the authorized-accounts-only first pass and
+     *   show the full account chooser, so the user can pick a different account than the previously
+     *   authorized one (e.g. after a removed account self-healed the binding). Default false.
      */
-    suspend fun signInPrimary(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult
+    suspend fun signInPrimary(
+        activityContext: Context,
+        scopes: Set<GoogleScope>,
+        preferAccountChooser: Boolean = false
+    ): IdentitySignInResult
 
     /**
      * Adds additional [scopes] to an already-bound primary account. If the user picks a different

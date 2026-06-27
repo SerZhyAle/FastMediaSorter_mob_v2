@@ -30,7 +30,9 @@ import timber.log.Timber
         AppLaunchPanelTileEntity::class
     ],
     version = 36,
-    exportSchema = false
+    // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
+    // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

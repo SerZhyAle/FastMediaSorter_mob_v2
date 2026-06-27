@@ -302,16 +302,21 @@ internal class PlayerVrLaunchManager(
     }
 
     private fun updateOverlayMargins() {
-        activity.activityBinding.root.post {
+        // Capture the binding once before posting: the Runnable can run after the player Activity
+        // is destroyed (binding nulled), and re-reading activity.activityBinding inside it would
+        // throw "Binding is only valid between onCreateView and onDestroyView". Reading the
+        // already-captured views is harmless on a detached hierarchy (mirrors safeViews).
+        val binding = activity.activityBinding
+        binding.root.post {
             val defaultTop = activity.resources.getDimensionPixelSize(R.dimen.player_epub_button_margin_top)
             val defaultEnd = activity.resources.getDimensionPixelSize(R.dimen.player_epub_button_margin_end)
             val spacing = activity.resources.getDimensionPixelSize(R.dimen.margin_small)
             val anchors = listOfNotNull(
-                activity.activityBinding.btnTouchZonesHelp?.takeIf { it.isVisible },
-                activity.activityBinding.tvAnimatedBadge.takeIf { it.isVisible },
-                activity.activityBinding.sleepTimerBadge.takeIf { it.isVisible },
-                activity.activityBinding.tvPlayerFpsOverlay.takeIf { it.isVisible },
-                activity.activityBinding.btnExitEpubFullscreen?.takeIf { it.isVisible },
+                binding.btnTouchZonesHelp?.takeIf { it.isVisible },
+                binding.tvAnimatedBadge.takeIf { it.isVisible },
+                binding.sleepTimerBadge.takeIf { it.isVisible },
+                binding.tvPlayerFpsOverlay.takeIf { it.isVisible },
+                binding.btnExitEpubFullscreen?.takeIf { it.isVisible },
             )
             val top = anchors.fold(defaultTop) { currentTop, view ->
                 maxOf(currentTop, view.top + view.height + spacing)

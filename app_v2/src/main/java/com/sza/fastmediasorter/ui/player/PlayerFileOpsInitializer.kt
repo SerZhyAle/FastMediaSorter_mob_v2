@@ -131,7 +131,7 @@ internal class PlayerFileOpsInitializer(
         override fun onUpdateCommandAvailability() {
             activity.updateCommandAvailability(activity.viewModel.state.value)
         }
-        override fun isCommandPanelVisible(): Boolean {
+        override fun shouldShowDestinationPanels(): Boolean {
             val state = activity.viewModel.state.value
             return state.showCommandPanel || state.currentFile?.type == MediaType.AUDIO
         }

@@ -4,23 +4,27 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.room.withTransaction
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.model.FileTypeFlags
-import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import timber.log.Timber
@@ -35,6 +39,7 @@ import javax.inject.Inject
  */
 class ImportSettingsUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    private val appDatabase: AppDatabase,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
@@ -50,8 +55,10 @@ class ImportSettingsUseCase @Inject constructor(
      * @param exportUri Optional content URI from a previous export. If provided, uses it directly.
      *                  If null, attempts to find file by name in Downloads folder.
      */
-    suspend operator fun invoke(exportUri: String? = null): Result<Unit> {
-        return try {
+    suspend operator fun invoke(exportUri: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
+        // S0727: blocking IO (MediaStore query, FileInputStream.readBytes, XmlPullParser) runs on the
+        // caller's dispatcher (Main.immediate from the settings fragment) without this wrapper.
+        try {
             // Get input stream for the file
             val inputStream = if (exportUri != null && exportUri.startsWith("content://")) {
                 // Use provided URI directly (from recent export)
@@ -78,14 +85,14 @@ class ImportSettingsUseCase @Inject constructor(
                     |Android version: ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})
                     |Please ensure the file exists in your Downloads folder""".trimMargin()
                 Timber.e("ImportSettings: $errorMsg")
-                return Result.failure(Exception(errorMsg))
+                return@withContext Result.failure(Exception(errorMsg))
             }
             
             // S0406: read once, then dispatch by format. JSON → unified applier; XML → legacy parser.
             val importText = inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
             val trimmedText = importText.trimStart('﻿', ' ', '\n', '\r', '\t', ' ')
             if (trimmedText.startsWith("{")) {
-                return importFromJson(trimmedText)
+                return@withContext importFromJson(trimmedText)
             }
 
             // Legacy XML path (back-compat) - parse from the text already read.
@@ -229,7 +236,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         confirmDelete = data["confirmDelete"]?.toBoolean() ?: true,
                                         defaultGridMode = data["defaultGridMode"]?.toBoolean() ?: false,
                                         hideGridActionButtons = data["hideGridActionButtons"]?.toBoolean() ?: false,
-                                        fileOpsInOverflowMenu = data["fileOpsInOverflowMenu"]?.toBoolean() ?: false,
+                                        fileOpsInOverflowMenu = data["fileOpsInOverflowMenu"]?.toBoolean() ?: true,
                                         fileOpsOverflowMenuHintShown = data["fileOpsOverflowMenuHintShown"]?.toBoolean() ?: false,
                                         defaultIconSize = data["defaultIconSize"]?.toInt() ?: 96,
                                         defaultShowCommandPanel = data["defaultShowCommandPanel"]?.toBoolean() ?: true,
@@ -364,143 +371,7 @@ class ImportSettingsUseCase @Inject constructor(
                 eventType = parser.next()
             }
             
-            settings?.let {
-                settingsRepository.updateSettings(it)
-                Timber.d("Settings imported successfully")
-            }
-            
-            // Import credentials 
-            // Strategy: Insert/Update. Since password is not there, we just update host/user info.
-            // Actually, for simplicity and safety, we just insert. 
-            // In a real append scenario, checking existence would be better, but credential ID usually unique.
-            if (credentials.isNotEmpty()) {
-                // Legacy exports may omit shareName on the credential node while the linked SMB resource still has it in path.
-                val importedSmbShareNames = resources
-                    .asSequence()
-                    .filter { it.type == ResourceType.SMB && !it.credentialsId.isNullOrBlank() }
-                    .mapNotNull { resource ->
-                        val credentialId = resource.credentialsId ?: return@mapNotNull null
-                        val shareName = com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(resource.path)
-                            ?.takeIf { it.isNotBlank() }
-                        shareName?.let { credentialId to it }
-                    }
-                    .toMap()
-
-                val existingCredentials = credentialsRepository.getAllCredentials().first()
-                val existingCredMap = existingCredentials.associateBy { it.credentialId }
-                
-                credentials.forEach { credential ->
-                    val normalizedCredential = if (credential.type.equals("SMB", ignoreCase = true)) {
-                        credential.copy(
-                            shareName = credential.shareName?.takeIf { it.isNotBlank() }
-                                ?: importedSmbShareNames[credential.credentialId]
-                        )
-                    } else {
-                        credential
-                    }
-
-                    val existing = existingCredMap[normalizedCredential.credentialId]
-                    if (existing != null) {
-                        // Preserve existing password: import XML never contains passwords,
-                        // so overwriting with empty encryptedPassword would destroy working credentials.
-                        // Merge: take metadata from import, keep password (and ID) from DB.
-                        val merged = normalizedCredential.copy(
-                            id = existing.id,
-                            encryptedPassword = existing.encryptedPassword,
-                            shareName = normalizedCredential.shareName?.takeIf { it.isNotBlank() }
-                                ?: existing.shareName
-                        )
-                        credentialsRepository.update(merged)
-                    } else {
-                        credentialsRepository.insert(normalizedCredential)
-                    }
-                }
-                Timber.d("Imported ${credentials.size} network credentials")
-            }
-            
-            // MERGE RESOURCES LOGIC
-            // Strategy: 
-            // 1. Get existing resources
-            // 2. For each imported resource:
-            //    - Look for match by (Path + Type)
-            //    - If found: Update existing resource (keep ID) with imported values
-            //    - If not found: Insert as new
-            if (resources.isNotEmpty()) {
-                val existingResources = resourceRepository.getAllResources().first()
-                // Key: Path + Type. Using a composite key for matching.
-                val existingMap = existingResources.associateBy { "${it.path}|${it.type}" }
-                
-                resources.forEach { importedResource ->
-                    val key = "${importedResource.path}|${importedResource.type}"
-                    val existing = existingMap[key]
-                    
-                    if (existing != null) {
-                        // Update existing: Copy ID and other non-imported internal stats if we wanted to preserve them 
-                        // (but we usually want to restore backup state). 
-                        // So we explicitly take the ID from existing to ensure Update, not Insert.
-                        val mergedResource = importedResource.copy(id = existing.id)
-                        resourceRepository.updateResource(mergedResource)
-                        Timber.d("Updated existing resource: ${importedResource.name}")
-                    } else {
-                        resourceRepository.addResource(importedResource)
-                        Timber.d("Added new resource: ${importedResource.name}")
-                    }
-                }
-                Timber.d("Processed import of ${resources.size} resources (Merge Mode)")
-            }
-
-            // Import scheduled operations (version 3+ only)
-            if (backupVersion >= 3 && scheduledOps.isNotEmpty()) {
-                // Build path+type → id lookup from current DB state (after resource merge above)
-                val allResources = resourceRepository.getAllResources().first()
-                val resourceLookup = allResources.associateBy { "${it.path}|${it.type.name}" }
-
-                scheduledOps.forEach { data ->
-                    val srcKey = "${data["sourceResourcePath"]}|${data["sourceResourceType"]}"
-                    val srcResource = resourceLookup[srcKey]
-                    if (srcResource == null) {
-                        Timber.w("ImportSettings: ScheduledOp skipped - source not found: $srcKey")
-                        return@forEach
-                    }
-
-                    val dstPath = data["targetResourcePath"]
-                    val dstType = data["targetResourceType"]
-                    val dstResource = if (dstPath != null && dstType != null) {
-                        resourceLookup["$dstPath|$dstType"]
-                    } else null
-
-                    val opType = runCatching { ScheduledOpType.valueOf(data["operationType"] ?: "") }
-                        .getOrElse { ScheduledOpType.COPY }
-                    if (opType != ScheduledOpType.DELETE && dstResource == null) {
-                        Timber.w("ImportSettings: ScheduledOp skipped - target not found for $opType")
-                        return@forEach
-                    }
-
-                    val op = ScheduledOperation(
-                        id = 0,
-                        isEnabled = data["isEnabled"]?.toBoolean() ?: true,
-                        sourceResourceId = srcResource.id,
-                        operationType = opType,
-                        targetResourceId = dstResource?.id,
-                        fileTypeMask = data["fileTypeMask"]?.toIntOrNull()
-                            ?: FileTypeFlags.fromLegacyName(data["fileTypeFilter"] ?: ""),
-                        timeFilter = runCatching { TimeFilter.valueOf(data["timeFilter"] ?: "") }
-                            .getOrElse { TimeFilter.ALL },
-                        startTimeHour = data["startTimeHour"]?.toIntOrNull() ?: 0,
-                        startTimeMinute = data["startTimeMinute"]?.toIntOrNull() ?: 0,
-                        intervalHours = data["intervalHours"]?.toIntOrNull() ?: 1,
-                        intervalMinutes = data["intervalMinutes"]?.toIntOrNull() ?: 0,
-                        overwrite = data["overwrite"]?.toBoolean() ?: false,
-                        silentMode = data["silentMode"]?.toBoolean() ?: false
-                    )
-                    val newId = scheduledOperationRepository.upsert(op)
-                    if (op.isEnabled) {
-                        val savedOp = scheduledOperationRepository.getById(newId)
-                        if (savedOp != null) workManagerScheduler.scheduleOperation(savedOp)
-                    }
-                }
-                Timber.d("Imported ${scheduledOps.size} scheduled operations")
-            }
+            applyLegacyXmlSections(settings, resources, credentials, scheduledOps, backupVersion)
 
             Result.success(Unit)
             } // End of inputStream.use block
@@ -510,6 +381,170 @@ class ImportSettingsUseCase @Inject constructor(
         }
     }
     
+    /**
+     * S0732: apply the parsed legacy-XML sections atomically. Settings live in DataStore and are
+     * applied outside the transaction; the Room sections (credentials, resources, scheduled-op rows)
+     * commit all-or-nothing in one transaction so a kill mid-restore no longer leaves a partial DB.
+     * WorkManager scheduling is deferred to after commit - it must not run inside the DB transaction.
+     */
+    private suspend fun applyLegacyXmlSections(
+        settings: AppSettings?,
+        resources: List<MediaResource>,
+        credentials: List<com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity>,
+        scheduledOps: List<Map<String, String>>,
+        backupVersion: Int
+    ) {
+        settings?.let {
+            settingsRepository.updateSettings(it)
+            Timber.d("Settings imported successfully")
+        }
+
+        val enabledScheduledOpIds = mutableListOf<Long>()
+        appDatabase.withTransaction {
+            if (credentials.isNotEmpty()) mergeCredentials(credentials, resources)
+            if (resources.isNotEmpty()) mergeResources(resources)
+            if (backupVersion >= 3 && scheduledOps.isNotEmpty()) {
+                upsertScheduledOps(scheduledOps, enabledScheduledOpIds)
+            }
+        }
+
+        // Reschedule enabled operations after the transaction commits (WorkManager runs outside the tx).
+        enabledScheduledOpIds.forEach { id ->
+            scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperation(it) }
+        }
+    }
+
+    /**
+     * S0732: merge legacy-XML network credentials by credentialId. XML exports never carry passwords,
+     * so an existing row keeps its stored password (and id) while metadata is taken from the import.
+     */
+    private suspend fun mergeCredentials(
+        credentials: List<com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity>,
+        resources: List<MediaResource>
+    ) {
+        // Legacy exports may omit shareName on the credential node while the linked SMB resource still has it in path.
+        val importedSmbShareNames = resources
+            .asSequence()
+            .filter { it.type == ResourceType.SMB && !it.credentialsId.isNullOrBlank() }
+            .mapNotNull { resource ->
+                val credentialId = resource.credentialsId ?: return@mapNotNull null
+                val shareName = com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(resource.path)
+                    ?.takeIf { it.isNotBlank() }
+                shareName?.let { credentialId to it }
+            }
+            .toMap()
+
+        val existingCredMap = credentialsRepository.getAllCredentials().first().associateBy { it.credentialId }
+
+        credentials.forEach { credential ->
+            val normalizedCredential = if (credential.type.equals("SMB", ignoreCase = true)) {
+                credential.copy(
+                    shareName = credential.shareName?.takeIf { it.isNotBlank() }
+                        ?: importedSmbShareNames[credential.credentialId]
+                )
+            } else {
+                credential
+            }
+
+            val existing = existingCredMap[normalizedCredential.credentialId]
+            if (existing != null) {
+                val merged = normalizedCredential.copy(
+                    id = existing.id,
+                    encryptedPassword = existing.encryptedPassword,
+                    shareName = normalizedCredential.shareName?.takeIf { it.isNotBlank() }
+                        ?: existing.shareName
+                )
+                credentialsRepository.update(merged)
+            } else {
+                credentialsRepository.insert(normalizedCredential)
+            }
+        }
+        Timber.d("Imported ${credentials.size} network credentials")
+    }
+
+    /**
+     * S0732: merge legacy-XML resources by path+type, keeping the existing id on a match (update),
+     * otherwise inserting a new row.
+     */
+    private suspend fun mergeResources(resources: List<MediaResource>) {
+        val existingMap = resourceRepository.getAllResourcesSync().associateBy { "${it.path}|${it.type}" }
+        resources.forEach { importedResource ->
+            val existing = existingMap["${importedResource.path}|${importedResource.type}"]
+            if (existing != null) {
+                resourceRepository.updateResource(importedResource.copy(id = existing.id))
+                Timber.d("Updated existing resource: ${importedResource.name}")
+            } else {
+                resourceRepository.addResource(importedResource)
+                Timber.d("Added new resource: ${importedResource.name}")
+            }
+        }
+        Timber.d("Processed import of ${resources.size} resources (Merge Mode)")
+    }
+
+    /**
+     * S0732: upsert legacy-XML scheduled operations (version 3+) and collect the ids of enabled ops
+     * into [enabledScheduledOpIds] so the caller can reschedule them after the transaction commits.
+     */
+    private suspend fun upsertScheduledOps(
+        scheduledOps: List<Map<String, String>>,
+        enabledScheduledOpIds: MutableList<Long>
+    ) {
+        // Build path+type -> id lookup from current DB state (sees the resource merge above).
+        val resourceLookup = resourceRepository.getAllResourcesSync()
+            .associateBy { "${it.path}|${it.type.name}" }
+
+        scheduledOps.forEach { data ->
+            val op = buildScheduledOp(data, resourceLookup) ?: return@forEach
+            val newId = scheduledOperationRepository.upsert(op)
+            if (op.isEnabled) enabledScheduledOpIds.add(newId)
+        }
+        Timber.d("Imported ${scheduledOps.size} scheduled operations")
+    }
+
+    /**
+     * S0732: resolve a single legacy-XML scheduled-operation row against [resourceLookup]. Returns
+     * null (skipping the row) when the source - or a non-DELETE target - cannot be resolved.
+     */
+    private fun buildScheduledOp(
+        data: Map<String, String>,
+        resourceLookup: Map<String, MediaResource>
+    ): ScheduledOperation? {
+        val srcKey = "${data["sourceResourcePath"]}|${data["sourceResourceType"]}"
+        val srcResource = resourceLookup[srcKey]
+
+        val dstPath = data["targetResourcePath"]
+        val dstType = data["targetResourceType"]
+        val dstResource = if (dstPath != null && dstType != null) resourceLookup["$dstPath|$dstType"] else null
+
+        val opType = runCatching { ScheduledOpType.valueOf(data["operationType"] ?: "") }
+            .getOrElse { ScheduledOpType.COPY }
+
+        // Skip rows whose source - or non-DELETE target - cannot be resolved.
+        if (srcResource == null || (opType != ScheduledOpType.DELETE && dstResource == null)) {
+            val reason = if (srcResource == null) "source not found: $srcKey" else "target not found for $opType"
+            Timber.w("ImportSettings: ScheduledOp skipped - $reason")
+            return null
+        }
+
+        return ScheduledOperation(
+            id = 0,
+            isEnabled = data["isEnabled"]?.toBoolean() ?: true,
+            sourceResourceId = srcResource.id,
+            operationType = opType,
+            targetResourceId = dstResource?.id,
+            fileTypeMask = data["fileTypeMask"]?.toIntOrNull()
+                ?: FileTypeFlags.fromLegacyName(data["fileTypeFilter"] ?: ""),
+            timeFilter = runCatching { TimeFilter.valueOf(data["timeFilter"] ?: "") }
+                .getOrElse { TimeFilter.ALL },
+            startTimeHour = data["startTimeHour"]?.toIntOrNull() ?: 0,
+            startTimeMinute = data["startTimeMinute"]?.toIntOrNull() ?: 0,
+            intervalHours = data["intervalHours"]?.toIntOrNull() ?: 1,
+            intervalMinutes = data["intervalMinutes"]?.toIntOrNull() ?: 0,
+            overwrite = data["overwrite"]?.toBoolean() ?: false,
+            silentMode = data["silentMode"]?.toBoolean() ?: false
+        )
+    }
+
     /**
      * S0406: parse the unified JSON payload and delegate to the shared applier.
      */

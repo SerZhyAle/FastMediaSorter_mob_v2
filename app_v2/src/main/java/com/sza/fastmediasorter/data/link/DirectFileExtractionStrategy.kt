@@ -108,7 +108,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                 return@withContext OpenResult.Blocked(BlockedReason.AuthRequired)
             }
             val mime = response.header("Content-Type")?.substringBefore(';')?.trim()
-            if (!MediaMimeWhitelist.isAllowed(mime)) {
+            if (mime == null || !MediaMimeWhitelist.isAllowed(mime)) {
                 response.close()
                 return@withContext OpenResult.Blocked(BlockedReason.MimeNotAllowed)
             }
@@ -117,7 +117,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                 response.close()
                 return@withContext OpenResult.Error(IOException("empty body"))
             }
-            val fileName = deriveFileName(response, httpUrl, mime!!)
+            val fileName = deriveFileName(response, httpUrl, mime)
             OpenResult.Stream(
                 body = body.byteStream(),
                 contentLength = body.contentLength().takeIf { it > 0 },

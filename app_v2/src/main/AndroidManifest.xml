@@ -259,6 +259,9 @@
         <!-- Dedicated completion hop keeps AppAuth redirect parsing out of the host activities. -->
         <activity android:name=".ui.cloudauth.GoogleDriveAuthCompletionActivity" android:exported="false" android:excludeFromRecents="true" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
 
+        <!-- Dedicated resolution activity handles GMS PendingIntent resolution in a coroutine-friendly way. -->
+        <activity android:name=".ui.cloudauth.GoogleDriveAuthResolutionActivity" android:exported="false" android:excludeFromRecents="true" android:noHistory="true" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Dropbox Auth Activity -->
         <activity android:name="com.dropbox.core.android.AuthActivity" android:configChanges="orientation|keyboard" android:exported="true" android:launchMode="singleTask">
             <intent-filter>

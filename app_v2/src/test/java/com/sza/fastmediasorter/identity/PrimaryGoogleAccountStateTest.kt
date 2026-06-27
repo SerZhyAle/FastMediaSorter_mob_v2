@@ -87,7 +87,7 @@ class PrimaryGoogleAccountStateTest {
             scopes = scopes,
             expiresAt = Instant.parse("2026-05-16T21:00:00Z")
         )
-        coEvery { issuer.issue(sampleAccount.email, scopes) } returns expectedToken
+        coEvery { issuer.issue(sampleAccount.email, scopes) } returns TokenIssueResult.Success(expectedToken)
         repo = buildRepo()
 
         val token = repo.getAccessToken(scopes)
@@ -98,9 +98,9 @@ class PrimaryGoogleAccountStateTest {
     }
 
     @Test
-    fun `getAccessToken returning null flips state to NeedsResignIn`() = runTest(UnconfinedTestDispatcher()) {
+    fun `getAccessToken on Failed flips state to NeedsResignIn`() = runTest(UnconfinedTestDispatcher()) {
         coEvery { store.load() } returns sampleAccount
-        coEvery { issuer.issue(sampleAccount.email, scopes) } returns null
+        coEvery { issuer.issue(sampleAccount.email, scopes) } returns TokenIssueResult.Failed
         repo = buildRepo()
 
         val token = repo.getAccessToken(scopes)
@@ -112,6 +112,19 @@ class PrimaryGoogleAccountStateTest {
             NeedsResignInReason.TokenExpired,
             (state as PrimaryGoogleAccountState.NeedsResignIn).reason
         )
+    }
+
+    @Test
+    fun `getAccessToken on AccountAbsent clears binding and emits Unbound`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        coEvery { issuer.issue(sampleAccount.email, scopes) } returns TokenIssueResult.AccountAbsent
+        repo = buildRepo()
+
+        val token = repo.getAccessToken(scopes)
+
+        assertNull(token)
+        coVerify(exactly = 1) { store.clear() }
+        assertTrue(repo.state.value is PrimaryGoogleAccountState.Unbound)
     }
 
     @Test

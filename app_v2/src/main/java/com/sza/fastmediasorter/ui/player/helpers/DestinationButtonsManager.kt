@@ -54,8 +54,9 @@ class DestinationButtonsManager(
         fun onCustomPathPickerRequested(operationType: FileOperationType)
         fun getCurrentResourceId(): Long
         fun onUpdateCommandAvailability()
-        /** Check if command panel should be visible (used to prevent race condition) */
-        fun isCommandPanelVisible(): Boolean
+
+        /** Check whether destination panels may be shown right now (used to prevent overlay/fullscreen races). */
+        fun shouldShowDestinationPanels(): Boolean
     }
     
     /**
@@ -219,9 +220,9 @@ class DestinationButtonsManager(
                     safeViews.moveToButtonsGrid.addView(dotDotRow)
                 }
 
-                // CRITICAL: Check current state before showing panels
-                // This prevents race condition when user switches to fullscreen while buttons are loading
-                val shouldShowPanels = callback.isCommandPanelVisible()
+                // CRITICAL: Check current state before showing panels.
+                // This prevents race conditions when an overlay/fullscreen state changes while buttons are loading.
+                val shouldShowPanels = callback.shouldShowDestinationPanels()
 
                 if (!shouldShowPanels) {
                     Timber.d("DestinationButtonsManager: Command panel not visible (fullscreen mode?), skipping panel show")

@@ -84,7 +84,7 @@ class MediaFileAdapter(
     private var skipInitialThumbnailLoad = false // Control initial thumbnail loading
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
-    private var fileOpsInOverflowMenu: Boolean = false
+    private var fileOpsInOverflowMenu: Boolean = true
     private var isAudioOnlyMode: Boolean = false
 
     private val thumbnailLoader = AdapterThumbnailLoader(
@@ -299,8 +299,18 @@ class MediaFileAdapter(
         private const val VIEW_TYPE_GRID_NO_THUMB = 2
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         private const val PAYLOAD_PLAYBACK_STATE = "playback_state"
+        private const val PAYLOAD_SELECTION = "payload_selection"
         private const val PAYLOAD_AUDIO_METADATA = MediaFileDiffCallback.PAYLOAD_AUDIO_METADATA
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
+
+        // Payloads onBindViewHolder handles as partial binds; anything else falls back to a full bind.
+        private val KNOWN_PAYLOADS = setOf(
+            "LOAD_THUMBNAILS",
+            "FAVORITE_CHANGED",
+            PAYLOAD_PLAYBACK_STATE,
+            PAYLOAD_AUDIO_METADATA,
+            PAYLOAD_SELECTION,
+        )
     }
 
     // Shared click-listener helpers used by both ListViewHolder and GridViewHolder.
@@ -367,7 +377,7 @@ class MediaFileAdapter(
         if (paths.isEmpty() && oldSelected.isNotEmpty()) {
             currentList.forEachIndexed { index, file ->
                 if (file.path in oldSelected) {
-                    notifyItemChanged(index)
+                    notifyItemChanged(index, PAYLOAD_SELECTION)
                 }
             }
             return
@@ -378,7 +388,7 @@ class MediaFileAdapter(
             val wasSelected = file.path in oldSelected
             val isSelected = file.path in paths
             if (wasSelected != isSelected) {
-                notifyItemChanged(index)
+                notifyItemChanged(index, PAYLOAD_SELECTION)
             }
         }
     }
@@ -430,54 +440,48 @@ class MediaFileAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
-        val file = getItem(position)
         if (payloads.isEmpty()) {
-            // Standard full bind
             super.onBindViewHolder(holder, position, payloads)
-        } else {
-            // Handle multiple payloads - process each one
-            if (payloads.contains("LOAD_THUMBNAILS")) {
-                // For audio/text files: load extension bitmap (fast path in loadThumbnail handles this)
-                // For other types: load full thumbnail via Glide
-                when (holder) {
-                    is ListViewHolder -> holder.loadThumbnailOnly(file)
-                    is GridViewHolder -> holder.loadThumbnailOnly(file)
-                    is GridNoThumbViewHolder -> holder.loadThumbnailOnly(file)
-                }
-            }
-            if (payloads.contains("FAVORITE_CHANGED")) {
-                // Partial bind: only update favorite icon
-                when (holder) {
-                    is ListViewHolder -> {
-                        holder.itemView.findViewById<android.widget.ImageButton>(R.id.btnFavorite)?.setImageResource(
-                            if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-                        )
-                    }
-                    is GridViewHolder -> {
-                        holder.itemView.findViewById<android.widget.ImageButton>(R.id.btnFavorite)?.setImageResource(
-                            if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-                        )
-                    }
-                }
-            }
-            if (payloads.contains(PAYLOAD_PLAYBACK_STATE)) {
-                // Partial bind: only update inline play button state
-                if (holder is ListViewHolder) {
-                    holder.updatePlaybackState(file)
-                }
-            }
-            if (payloads.contains(PAYLOAD_AUDIO_METADATA)) {
-                // Partial bind: only update text labels with enriched audio metadata. For network files the ListAdapter list may not contain enriched data yet, so check AudioMetadataLoader's in-memory cache first.
-                val displayFile = resolveAudioMetadata(file)
-                if (holder is ListViewHolder) {
-                    holder.updateAudioMetadataText(displayFile)
-                }
-            }
-            // If no known payloads were handled, fall back to super
-            if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE) && !payloads.contains(PAYLOAD_AUDIO_METADATA)) {
-                super.onBindViewHolder(holder, position, payloads)
+            return
+        }
+        val file = getItem(position)
+        // Apply each present payload as a partial bind; fall back to a full bind only when none matched.
+        if (payloads.contains("LOAD_THUMBNAILS")) {
+            when (holder) {
+                is ListViewHolder -> holder.loadThumbnailOnly(file)
+                is GridViewHolder -> holder.loadThumbnailOnly(file)
+                is GridNoThumbViewHolder -> holder.loadThumbnailOnly(file)
             }
         }
+        if (payloads.contains("FAVORITE_CHANGED")) {
+            applyFavoritePayload(holder, file)
+        }
+        if (payloads.contains(PAYLOAD_PLAYBACK_STATE) && holder is ListViewHolder) {
+            holder.updatePlaybackState(file)
+        }
+        if (payloads.contains(PAYLOAD_AUDIO_METADATA) && holder is ListViewHolder) {
+            // Network files may lack enriched data here; resolveAudioMetadata checks the in-memory cache.
+            holder.updateAudioMetadataText(resolveAudioMetadata(file))
+        }
+        if (payloads.contains(PAYLOAD_SELECTION)) {
+            when (holder) {
+                is ListViewHolder -> holder.applySelectionVisual(file, selectedPaths)
+                is GridViewHolder -> holder.applySelectionVisual(file, selectedPaths)
+                is GridNoThumbViewHolder -> holder.applySelectionVisual(file, selectedPaths)
+            }
+        }
+        if (payloads.none { it in KNOWN_PAYLOADS }) {
+            super.onBindViewHolder(holder, position, payloads)
+        }
+    }
+
+    // Favorite-icon partial bind for list/grid rows (GridNoThumb has no favorite button).
+    private fun applyFavoritePayload(holder: RecyclerView.ViewHolder, file: MediaFile) {
+        if (holder !is ListViewHolder && holder !is GridViewHolder) return
+        val iconRes = if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+        holder.itemView
+            .findViewById<android.widget.ImageButton>(R.id.btnFavorite)
+            ?.setImageResource(iconRes)
     }
 
     override fun onCurrentListChanged(
@@ -509,6 +513,23 @@ class MediaFileAdapter(
 
         private var lastLoadedKey: String? = null
         private val playbackAnimator = InlinePlaybackAnimator(binding.btnPlayInline)
+
+        // Hoisted once per holder: avoids a per-bind List + iterator allocation for the action-button sizing loop.
+        private val actionButtons by lazy {
+            listOf(
+                binding.btnFavorite,
+                binding.btnCopyItem,
+                binding.btnMoveItem,
+                binding.btnRenameItem,
+                binding.btnDeleteItem,
+                binding.btnPlayInline
+            )
+        }
+
+        // Cached once per holder: applyInlineHighlight previously inflated this drawable on every call.
+        private val inlinePlayingBorder by lazy {
+            ContextCompat.getDrawable(binding.root.context, R.drawable.item_inline_playing_border)
+        }
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
             if (!file.isDirectory) {
@@ -644,11 +665,7 @@ class MediaFileAdapter(
         fun stopPlaybackAnimations() = playbackAnimator.stopAll()
 
         private fun applyInlineHighlight(active: Boolean) {
-            binding.root.foreground = if (active) {
-                ContextCompat.getDrawable(binding.root.context, R.drawable.item_inline_playing_border)
-            } else {
-                null
-            }
+            binding.root.foreground = if (active) inlinePlayingBorder else null
         }
 
         fun loadThumbnailOnly(file: MediaFile) {
@@ -667,7 +684,6 @@ class MediaFileAdapter(
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
 
             binding.apply {
-                val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
 
                 // In audio-only mode, hide thumbnail entirely for files (not folders)
@@ -730,18 +746,13 @@ class MediaFileAdapter(
                 } else {
                     (32 * root.resources.displayMetrics.density).toInt()
                 }
-                for (btn in listOf(btnFavorite, btnCopyItem, btnMoveItem, btnRenameItem, btnDeleteItem, btnPlayInline)) {
+                for (btn in actionButtons) {
                     btn.layoutParams.width = btnSizePx
                     btn.layoutParams.height = btnSizePx
                 }
 
-                // Hide checkbox for folders (folders can't be selected)
-                cbSelect.isVisible = !isFolder
-                if (!isFolder) {
-                    cbSelect.setOnCheckedChangeListener(null)
-                    cbSelect.isChecked = isSelected
-                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
-                }
+                // Checkbox visibility/state + selection background color (shared with PAYLOAD_SELECTION partial rebind)
+                this@ListViewHolder.applySelectionVisual(file, selectedPaths)
 
                 // Checkbox sits over the thumbnail in thumbnail mode; in no-thumbnail mode the icon
                 // is too small to host the overlay, so move the checkbox flush to its left (S0419).
@@ -749,15 +760,6 @@ class MediaFileAdapter(
                     anchor = thumbnailFrame ?: ivThumbnail,
                     leftOfIcon = this@MediaFileAdapter.disableThumbnails && !audioOnlyFile
                 )
-
-                // Highlight selected items
-                // Highlight selected items using background color
-                val backgroundColor = when {
-                    isSelected -> root.context.getColor(com.sza.fastmediasorter.R.color.item_selected)
-                    bindingAdapterPosition % 2 != 0 -> root.context.getColor(com.sza.fastmediasorter.R.color.item_alternate)
-                    else -> root.context.getColor(com.sza.fastmediasorter.R.color.item_normal)
-                }
-                root.setBackgroundColor(backgroundColor)
 
                 // In audio-only mode: top line = Artist - Title, bottom = filename + size + duration
                 // For network audio files, check AudioMetadataLoader cache for enriched data.
@@ -828,6 +830,28 @@ class MediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, isListMode = true)
                 ?.let { lastLoadedKey = it }
+        }
+
+        /**
+         * Apply only the selection-reflecting visuals (checkbox + row background). Shared by bind()
+         * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
+         */
+        fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
+            val isSelected = file.path in selectedPaths
+            val isFolder = file.isDirectory
+            binding.cbSelect.isVisible = !isFolder
+            if (!isFolder) {
+                binding.cbSelect.setOnCheckedChangeListener(null)
+                binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+            }
+            val context = binding.root.context
+            val backgroundColor = when {
+                isSelected -> context.getColor(com.sza.fastmediasorter.R.color.item_selected)
+                bindingAdapterPosition % 2 != 0 -> context.getColor(com.sza.fastmediasorter.R.color.item_alternate)
+                else -> context.getColor(com.sza.fastmediasorter.R.color.item_normal)
+            }
+            binding.root.setBackgroundColor(backgroundColor)
         }
 
         /**
@@ -965,16 +989,10 @@ class MediaFileAdapter(
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
 
             binding.apply {
-                val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
 
-                // Hide checkbox for folders (folders can't be selected)
-                cbSelect.isVisible = !isFolder
-                if (!isFolder) {
-                    cbSelect.setOnCheckedChangeListener(null)
-                    cbSelect.isChecked = isSelected
-                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
-                }
+                // Checkbox visibility/state + selection card color (shared with PAYLOAD_SELECTION partial rebind)
+                applySelectionVisual(file, selectedPaths)
 
                 // Set dynamic thumbnail size (height only - width is match_parent)
                 val sizeInPx = if (this@MediaFileAdapter.disableThumbnails) {
@@ -1000,15 +1018,6 @@ class MediaFileAdapter(
                     imgParams.height = sizeInPx
                     ivThumbnail.layoutParams = imgParams
                 }
-
-                // Highlight selected items
-                cvCard.setCardBackgroundColor(
-                    if (isSelected) {
-                        root.context.getColor(R.color.item_selected)
-                    } else {
-                        root.context.getColor(R.color.item_normal)
-                    }
-                )
 
                 tvFileName.text = file.name
                 if (useCompactElements) {
@@ -1058,6 +1067,28 @@ class MediaFileAdapter(
                 // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
                 apkTileBadgeBinder.bind(root, file)
             }
+        }
+
+        /**
+         * Apply only the selection-reflecting visuals (checkbox + card color). Shared by bind()
+         * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
+         */
+        fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
+            val isSelected = file.path in selectedPaths
+            val isFolder = file.isDirectory
+            binding.cbSelect.isVisible = !isFolder
+            if (!isFolder) {
+                binding.cbSelect.setOnCheckedChangeListener(null)
+                binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+            }
+            binding.cvCard.setCardBackgroundColor(
+                if (isSelected) {
+                    binding.root.context.getColor(R.color.item_selected)
+                } else {
+                    binding.root.context.getColor(R.color.item_normal)
+                }
+            )
         }
 
         private fun loadThumbnail(file: MediaFile) {
@@ -1168,16 +1199,10 @@ class MediaFileAdapter(
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             binding.apply {
-                val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
 
-                // Hide checkbox for folders (folders can't be selected)
-                cbSelect.isVisible = !isFolder
-                if (!isFolder) {
-                    cbSelect.setOnCheckedChangeListener(null)
-                    cbSelect.isChecked = isSelected
-                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
-                }
+                // Checkbox visibility/state + selection card color (shared with PAYLOAD_SELECTION partial rebind)
+                applySelectionVisual(file, selectedPaths)
 
                 // Keep the extension tile square (sized to the cell height); it never stretches
                 // across the doubled cell width - the name takes the remaining horizontal space.
@@ -1189,11 +1214,6 @@ class MediaFileAdapter(
                         flThumbnailContainer.layoutParams = lp
                     }
                 }
-
-                cvCard.setCardBackgroundColor(
-                    if (isSelected) root.context.getColor(R.color.item_selected)
-                    else root.context.getColor(R.color.item_normal)
-                )
 
                 tvFileName.text = file.name
                 tvFileName.setTextSize(
@@ -1228,6 +1248,28 @@ class MediaFileAdapter(
                 // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
                 apkTileBadgeBinder.bind(root, file)
             }
+        }
+
+        /**
+         * Apply only the selection-reflecting visuals (checkbox + card color). Shared by bind()
+         * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
+         */
+        fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
+            val isSelected = file.path in selectedPaths
+            val isFolder = file.isDirectory
+            binding.cbSelect.isVisible = !isFolder
+            if (!isFolder) {
+                binding.cbSelect.setOnCheckedChangeListener(null)
+                binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+            }
+            binding.cvCard.setCardBackgroundColor(
+                if (isSelected) {
+                    binding.root.context.getColor(R.color.item_selected)
+                } else {
+                    binding.root.context.getColor(R.color.item_normal)
+                }
+            )
         }
 
         private fun loadThumbnail(file: MediaFile) {

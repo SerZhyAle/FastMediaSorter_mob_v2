@@ -14,7 +14,7 @@ package com.sza.fastmediasorter.domain.model
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
-    val resourceOpsInOverflowMenu: Boolean = false, // S0160: collapse resource action buttons into ⋮ overflow menu
+    val resourceOpsInOverflowMenu: Boolean = true, // S0160: collapse resource action buttons into ⋮ overflow menu
 
     // S0328: app color theme override. AUTO = follow device night-mode (default, no behavior change),
     // LIGHT = force light, DARK = force dark. Applied at process start via AppCompatDelegate.
@@ -130,10 +130,10 @@ data class AppSettings(
     val confirmMove: Boolean = false, // Confirm before moving files (used by Safe Mode)
     val defaultGridMode: Boolean = false,
     val hideGridActionButtons: Boolean = true, // Hide quick action buttons (copy/move/rename/delete) on grid thumbnails
-    val fileOpsInOverflowMenu: Boolean = false, // Collapse file op buttons into a single ⋮ overflow menu per row
+    val fileOpsInOverflowMenu: Boolean = true, // Collapse file op buttons into a single ⋮ overflow menu per row
     val fileOpsOverflowMenuHintShown: Boolean = false, // True after the one-time "ops moved to menu" Toast was shown
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
-    val defaultIconSize: Int = 48, // dp (must be 32 + 8*N for slider validation)
+    val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
@@ -141,7 +141,7 @@ data class AppSettings(
     val nineZoneGridEnabled: Boolean = true, // When false, the fullscreen player uses the simpler 3-zone tap layout instead of the 9-zone grid (S0620)
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
-    val rendererMigrationEnabled: Boolean = true, // Migration flag for new static image renderer pipeline (enabled as default)
+    val rendererMigrationEnabled: Boolean = false, // Migration boundary flag for the static image renderer pipeline (disabled by default)
     
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
@@ -180,9 +180,9 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
-    // S0724: tint the left-edge gesture strip opaque grey (RGB 128,128,128) so it is visible instead of
-    // transparent. Default off keeps the strip invisible (current behaviour). Effective only while the
-    // gesture overlay itself is enabled.
+    // S0724: show a semi-transparent grey guide only on the first 4 px of the left-edge gesture strip,
+    // while the rest of the gesture zone stays transparent. Default off keeps the strip invisible.
+    // Effective only while the gesture overlay itself is enabled.
     val screenshotGestureStripVisible: Boolean = false,
     val screenshotGestureActionDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
     val screenshotGestureActionRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,

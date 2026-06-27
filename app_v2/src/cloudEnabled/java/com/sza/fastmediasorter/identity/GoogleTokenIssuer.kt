@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.identity
 
 import android.content.Context
 import com.google.android.gms.auth.GoogleAuthUtil
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.core.di.CloudTokenDispatcher
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
@@ -13,8 +16,24 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
+/**
+ * Outcome of a token issuance attempt. Distinguishes a removed device account (a self-heal signal
+ * for the identity repository) from a transient / refreshable failure, so a stale binding is cleared
+ * only when the account is provably gone from the device. S0743.
+ */
+sealed interface TokenIssueResult {
+    data class Success(val token: GoogleAccessToken) : TokenIssueResult
+
+    /** GMS `ACCOUNT_NOT_PRESENT` - the bound account is no longer on the device. */
+    data object AccountAbsent : TokenIssueResult
+
+    /** Refreshable / transient failure (network, revoked grant, etc.) - keep the binding. */
+    data object Failed : TokenIssueResult
+}
 
 /**
  * Issues OAuth 2.0 access tokens for the currently bound primary Google account (strategic S0200).
@@ -42,27 +61,58 @@ class GoogleTokenIssuer @Inject constructor(
 
     /**
      * Returns a fresh-enough access token for the [email] account covering [scopes].
-     * Returns null when `GoogleAuthUtil.getToken` fails (network, revoked grant, etc.).
+     * On failure returns [TokenIssueResult.AccountAbsent] when GMS reports the bound account is no
+     * longer on the device, or [TokenIssueResult.Failed] for any transient / refreshable error.
      */
-    @Suppress("DEPRECATION") // GoogleAuthUtil.getToken - Credential Manager has no token-issuance equivalent yet; see KDoc.
-    suspend fun issue(email: String, scopes: Set<GoogleScope>): GoogleAccessToken? = mutex.withLock {
+    suspend fun issue(email: String, scopes: Set<GoogleScope>): TokenIssueResult = mutex.withLock {
         val cached = cache[scopes]
         if (cached != null && cached.expiresAt.isAfter(Instant.now().plusSeconds(REFRESH_THRESHOLD_SECONDS))) {
-            return@withLock cached
+            return@withLock TokenIssueResult.Success(cached)
         }
-        val scopeString = "oauth2:" + scopes.joinToString(" ") { it.value }
+        val scopeObjects = scopes.map { Scope(it.value) }
+        val authorizationRequest = AuthorizationRequest.builder()
+            .setRequestedScopes(scopeObjects)
+            .build()
         withContext(tokenDispatcher) {
             runCatching {
-                val raw = GoogleAuthUtil.getToken(context, email, scopeString)
+                val result = Identity.getAuthorizationClient(context)
+                    .authorize(authorizationRequest)
+                    .await()
+                if (result.hasResolution()) {
+                    throw Exception("Authorization requires resolution")
+                }
+                val raw = result.accessToken ?: throw Exception("Authorization returned null access token")
                 GoogleAccessToken(
                     token = raw,
                     scopes = scopes,
                     expiresAt = Instant.now().plus(TOKEN_LIFETIME)
                 )
-            }.onSuccess { cache[scopes] = it }
-             .onFailure { Timber.w(it, "Token issuance failed for scopes=$scopes") }
-             .getOrNull()
+            }.fold(
+                onSuccess = { token ->
+                    cache[scopes] = token
+                    TokenIssueResult.Success(token)
+                },
+                onFailure = { error ->
+                    Timber.w(error, "Token issuance failed for scopes=$scopes")
+                    if (isAccountNotPresent(error)) TokenIssueResult.AccountAbsent else TokenIssueResult.Failed
+                }
+            )
         }
+    }
+
+    // GMS surfaces a removed/absent device account as an IOException whose message is the status
+    // name "AccountNotPresent" (logcat: "[GoogleAuthUtil] error status:ACCOUNT_NOT_PRESENT"). Walk a
+    // bounded cause chain; anything not positively matched is treated as a refreshable failure so a
+    // misclassification never clears a valid binding. S0743.
+    private fun isAccountNotPresent(error: Throwable?): Boolean {
+        var cause = error
+        var depth = 0
+        while (cause != null && depth < CAUSE_WALK_LIMIT) {
+            if (cause.message?.contains(ACCOUNT_NOT_PRESENT_MARKER) == true) return true
+            cause = cause.cause
+            depth++
+        }
+        return false
     }
 
     /** Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`. */
@@ -85,5 +135,9 @@ class GoogleTokenIssuer @Inject constructor(
 
         /** GMS default access tokens expire at ~60 min; we preemptively re-issue at the 55-min mark. */
         val TOKEN_LIFETIME: Duration = Duration.ofMinutes(55)
+
+        /** GMS status name carried in the `GoogleAuthUtil.getToken` failure when the account is gone. */
+        const val ACCOUNT_NOT_PRESENT_MARKER = "AccountNotPresent"
+        const val CAUSE_WALK_LIMIT = 4
     }
 }

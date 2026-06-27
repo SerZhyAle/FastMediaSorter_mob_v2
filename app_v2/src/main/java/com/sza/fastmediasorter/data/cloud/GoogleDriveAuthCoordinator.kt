@@ -218,7 +218,14 @@ class GoogleDriveAuthCoordinator(
 
         val bound = identityRepository.state.value as? PrimaryGoogleAccountState.Bound
         if (bound != null) {
-            return identityRepository.getAccessToken(driveScopes)?.token
+            val token = identityRepository.getAccessToken(driveScopes)?.token
+            if (token != null) {
+                return token
+            }
+            // S0746: the GMS identity path could not mint a Drive token (e.g. alias account whose
+            // id-token email is not a device AccountManager name -> ACCOUNT_NOT_PRESENT). Do NOT
+            // clear the browser store - it can hold an independently-valid OAuth credential that
+            // mints tokens via a refresh grant. Fall through to it instead.
         }
 
         if (!gmsOnlyMode && browserAuthManager.ensureActiveFromStored()) {

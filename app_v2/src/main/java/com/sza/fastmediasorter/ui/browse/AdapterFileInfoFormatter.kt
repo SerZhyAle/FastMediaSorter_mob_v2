@@ -1,15 +1,28 @@
 package com.sza.fastmediasorter.ui.browse
 
-import android.text.format.DateFormat
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.formatMediaDuration
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import timber.log.Timber
-import java.util.Date
 
 /** Pure formatting helpers for MediaFileAdapter list items. No state, no Android context. */
 object AdapterFileInfoFormatter {
+
+    // Per-bind formatting hot path: cache one SimpleDateFormat per thread instead of re-parsing the
+    // pattern and allocating Calendar/SpannableStringBuilder on every RecyclerView row. SimpleDateFormat
+    // is not thread-safe, so confine via ThreadLocal. API23-safe form (no ThreadLocal.withInitial).
+    private val timestampFormat = object : ThreadLocal<java.text.SimpleDateFormat>() {
+        override fun initialValue() = java.text.SimpleDateFormat("yy-MM-dd HH:mm", java.util.Locale.US)
+    }
+
+    /**
+     * "yy-MM-dd HH:mm" timestamp. Locale.US is deliberate: the pattern is purely numeric (no localized
+     * month/day names or AM/PM), and android.text.format.DateFormat.format - which this replaced - emits
+     * ASCII digits for such patterns regardless of system locale, so the rendered text is unchanged for
+     * every supported locale. A fixed locale also keeps the cached formatter deterministic.
+     */
+    fun formatTimestamp(millis: Long): String = timestampFormat.get()!!.format(java.util.Date(millis))
 
     /** "Artist - Title" for the top line in audio-only mode. Falls back to filename if metadata absent. */
     fun buildAudioDisplayName(file: MediaFile): String {
@@ -35,7 +48,7 @@ object AdapterFileInfoFormatter {
     /** "size • date • duration" for the bottom line in audio-only mode. */
     fun buildAudioDetailLine(file: MediaFile): String {
         val size = if (file.size > 0) formatFileSize(file.size) else null
-        val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else null
+        val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else null
         val duration = formatDuration(file.duration)
         return listOfNotNull(size, date, duration).joinToString(" • ")
     }
@@ -81,7 +94,7 @@ object AdapterFileInfoFormatter {
 
             MediaType.IMAGE, MediaType.GIF -> {
                 val resolution = if (file.width != null && file.height != null) "${file.width}x${file.height}" else null
-                val dateTaken = file.exifDateTime?.let { DateFormat.format("yy-MM-dd HH:mm", Date(it)).toString() }
+                val dateTaken = file.exifDateTime?.let { formatTimestamp(it) }
                 val parts = listOfNotNull(resolution, dateTaken, sizeSegment)
                 if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
             }
@@ -93,7 +106,7 @@ object AdapterFileInfoFormatter {
     private fun buildLegacyFileInfo(file: MediaFile): String {
         // Hide invalid FTP metadata (size=0 or date=1970-01-01)
         val size = if (file.size > 0) formatFileSize(file.size) else "-"
-        val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else "-"
+        val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else "-"
         return "$size • $date"
     }
 

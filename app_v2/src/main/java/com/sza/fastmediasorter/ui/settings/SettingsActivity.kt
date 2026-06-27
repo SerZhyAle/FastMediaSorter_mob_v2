@@ -339,7 +339,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun forceEqualTabWidths() {
         val tabStrip = binding.tabLayout.getChildAt(0) as? LinearLayout ?: return
         val isWide = resources.configuration.isWideLayout()
-        Timber.d("S0693: settings tabs isWide=$isWide widthDp=${resources.configuration.screenWidthDp}")
         val landscapeTabWidth = resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
         for (index in 0 until tabStrip.childCount) {
             val child = tabStrip.getChildAt(index)

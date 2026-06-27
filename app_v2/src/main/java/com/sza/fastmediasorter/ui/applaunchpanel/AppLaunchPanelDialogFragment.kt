@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * Large quick-launch grid shown over the foreground app. Tapping a filled tile launches its target
@@ -53,7 +52,6 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         tileAdapter = AppLaunchPanelTileAdapter(onTileClick = ::onTileClicked)
         val isWide = resources.configuration.isWideLayout()
-        Timber.d("S0693: app-launch panel isWide=$isWide widthDp=${resources.configuration.screenWidthDp}")
         val spanCount = if (isWide) 5 else 3
         binding.rvPanelTiles.layoutManager = GridLayoutManager(requireContext(), spanCount)
         binding.rvPanelTiles.adapter = tileAdapter

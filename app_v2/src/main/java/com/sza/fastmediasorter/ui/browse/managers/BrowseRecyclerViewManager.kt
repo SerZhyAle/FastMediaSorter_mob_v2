@@ -97,7 +97,6 @@ class BrowseRecyclerViewManager(
         callbacks.updateToggleButtonIcon(iconResId)
 
         val isWide = resources.configuration.isWideLayout()
-        Timber.d("S0693: browse displayMode isWide=$isWide widthDp=${resources.configuration.screenWidthDp}")
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
 

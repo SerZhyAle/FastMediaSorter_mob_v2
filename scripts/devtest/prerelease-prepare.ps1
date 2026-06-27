@@ -216,6 +216,53 @@ if ($mediaPresent) {
     Add-Stage 'seed-media' 'OK' "seeded $mediaRoot"
 }
 
+# ---------- stage 3b: ensure MediaStore index (S0747) ----------
+# Files seeded on disk are invisible to MediaStore queries until indexed. The seed-media stage
+# above SKIPs re-seeding (and its scan) whenever $mediaRoot already exists, so a present-but-
+# unindexed tree - left by a prior run whose scan never completed - keeps the canonical fixture
+# unqueryable. Every Maestro image flow that looks it up by name then fails spuriously, turning an
+# otherwise clean app run RED. Force a scan + verify on BOTH the present and freshly-seeded paths.
+function Test-MediaIndexed {
+    # Match in PowerShell rather than via a `content query --where` clause: the embedded quoting of
+    # a where-expression survives the PowerShell -> adb -> device-shell hops unreliably.
+    $q = & $adb @adbTarget shell content query --uri content://media/external/images/media --projection _display_name 2>$null
+    return ("$q" -match 'photo_001\.jpg')
+}
+function Invoke-MediaScan {
+    # Re-scan every seeded file (mirrors setup_test_media.ps1 step 11).
+    $seededFiles = & $adb @adbTarget shell "find $mediaRoot -type f" 2>$null | Where-Object { $_ -match '^/' }
+    foreach ($f in $seededFiles) {
+        $p = "$f".Trim()
+        if ($p) { & $adb @adbTarget shell "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d 'file://$p'" *> $null }
+    }
+}
+function Wait-MediaIndexed {
+    # Poll after a scan instead of a single check: a broadcast-driven scan is asynchronous, so an
+    # immediate query can read stale - the very race that let Maestro outrun indexing. Polling first
+    # avoids a spurious heavy full re-seed when MediaStore is merely slow.
+    param([int]$Attempts = 4, [int]$DelaySeconds = 2)
+    for ($i = 0; $i -lt $Attempts; $i++) {
+        if (Test-MediaIndexed) { return $true }
+        Start-Sleep -Seconds $DelaySeconds
+    }
+    return (Test-MediaIndexed)
+}
+
+if (-not (Test-MediaIndexed)) { Invoke-MediaScan }
+
+if (Wait-MediaIndexed) {
+    Add-Stage 'media-index' 'OK' 'MediaStore indexed (photo_001.jpg queryable)'
+} else {
+    # Last resort: full re-seed (wipe + re-push + scan), then re-verify with the same poll.
+    & pwsh -NoProfile -File "$RepoRoot/scripts/utils/setup_test_media.ps1" *> $null
+    if (Wait-MediaIndexed) {
+        Add-Stage 'media-index' 'OK' 're-seeded + MediaStore indexed (photo_001.jpg queryable)'
+    } else {
+        Add-Stage 'media-index' 'FAIL' 'photo_001.jpg not queryable in MediaStore after scan + full re-seed'
+        Complete-Run 10
+    }
+}
+
 # ---------- stage 4: launch verify (step 01.4) ----------
 # Launch via "adb.ps1 launch" - on debug builds it starts the explicit MainActivity and
 # bypasses the LeakCanary launcher trap. Then scan the launch window for a crash/FATAL/ANR.

@@ -103,9 +103,29 @@ object DebugNotificationCenter : Application.ActivityLifecycleCallbacks {
 }
 
 class UiNotificationTree : Timber.Tree() {
+    private companion object {
+        const val MAX_CAUSE_DEPTH = 8
+    }
+
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        if (priority >= android.util.Log.ERROR) {
-            DebugNotificationCenter.showError(message, t)
+        if (priority < android.util.Log.ERROR) return
+        // The debug error surface must show only genuine defects we intend to fix. Coroutine
+        // cancellation is normal flow (a superseding reload, a closed screen) - never surface it,
+        // even when some catch logs it at ERROR before being fixed at the source. S0742.
+        if (t.isCancellation()) return
+        DebugNotificationCenter.showError(message, t)
+    }
+
+    // Cancellation may arrive wrapped; walk a bounded cause chain. kotlin/kotlinx CancellationException
+    // are JVM typealiases of java.util.concurrent.CancellationException, so this catches all of them.
+    private fun Throwable?.isCancellation(): Boolean {
+        var cause = this
+        var depth = 0
+        while (cause != null && depth < MAX_CAUSE_DEPTH) {
+            if (cause is java.util.concurrent.CancellationException) return true
+            cause = cause.cause
+            depth++
         }
+        return false
     }
 }

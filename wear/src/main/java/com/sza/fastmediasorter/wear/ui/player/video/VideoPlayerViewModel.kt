@@ -333,10 +333,13 @@ class VideoPlayerViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")
+        Timber.d("S0725: video player teardown - release() + surface detached on screen exit")
         stopProgressUpdates()
         controlsHideJob?.cancel()
         exoPlayer.removeListener(playerListener)
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
+        // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
+        // instead of just stop()+clearMediaItems(); pairs with PlayerView.player = null in the screen's
+        // onDispose so neither the player nor the disposed PlayerView/Context survives screen exit.
+        exoPlayer.release()
     }
 }

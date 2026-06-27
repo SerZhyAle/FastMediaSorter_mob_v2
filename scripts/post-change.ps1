@@ -129,6 +129,10 @@ $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
 $runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
+# committed per-module baseline (only NEW findings fail). Kotlin/Mixed only - it invokes
+# gradle, so it is scoped to changes that actually touch .kt to keep other paths fast.
+$runsDetektGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0416 FGS-notification gate. Blocks the Android 16 "Bad notification for startForeground"
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
@@ -237,6 +241,24 @@ if ($runsNeuroslopGate) {
 }
 else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDetektGate) {
+    Invoke-Step "detekt-gate" {
+        $detektArgs = @(
+            '-NoProfile'
+            '-File'
+            (Join-Path $root "scripts/quality/assert-detekt.ps1")
+            '-Gate'
+        )
+        if ($PSBoundParameters.ContainsKey('Module')) {
+            $detektArgs += @('-Module', $Module)
+        }
+        & $pwsh @detektArgs
+    }
+}
+else {
+    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsFgsGate) {

@@ -276,6 +276,11 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                     Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
                 }
                 return@launch
+            } finally {
+                // S0679: getOverlayBitmap() hands back a fresh throwaway snapshot; the compositor copies
+                // only the region it needs and does not take ownership, so release it here to avoid
+                // leaking one overlay-size bitmap per crop within a draw session.
+                overlay?.recycle()
             }
             withContext(Dispatchers.Main) {
                 val previousBase = baseBitmap
@@ -306,7 +311,10 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
         } else {
             Bitmap.CompressFormat.PNG
         }
+        // S0679: PhotoView.getDisplayRect() returns null before the first layout / with no drawable set;
+        // cropOverlayToImage dereferences imageRect, so fall back to the full overlay bounds (no crop).
         val displayRect = activity.activityBinding.photoView.displayRect
+            ?: RectF(0f, 0f, overlayBitmap.width.toFloat(), overlayBitmap.height.toFloat())
         val croppedOverlay = cropOverlayToImage(
             overlay = overlayBitmap,
             imageRect = displayRect,

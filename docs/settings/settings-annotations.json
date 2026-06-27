@@ -265,9 +265,9 @@
     "uk": "Вмикає оверлей жестів на лівому краї екрана для запуску операцій свайпом."
   },
   "rowGestureStripVisible": {
-    "en": "Tints the left-edge gesture strip opaque grey so it is visible instead of transparent; takes effect only while the gesture overlay is enabled.",
-    "ru": "Делает полосу жеста у левого края непрозрачно-серой и видимой вместо прозрачной; действует только при включённом оверлее жестов.",
-    "uk": "Робить смугу жесту біля лівого краю непрозоро-сірою та видимою замість прозорої; діє лише за ввімкненого оверлея жестів."
+    "en": "Shows a semi-transparent grey guide on the first 4 px of the left-edge gesture strip; the rest stays transparent, and the change takes effect only while the gesture overlay is enabled.",
+    "ru": "Показывает полупрозрачную серую направляющую на первых 4 px полосы жеста у левого края; остальная часть остаётся прозрачной, и изменение действует только при включённом оверлее жестов.",
+    "uk": "Показує напівпрозору сіру напрямну на перших 4 px смуги жесту біля лівого краю; решта лишається прозорою, і зміна діє лише за ввімкненого оверлея жестів."
   },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",

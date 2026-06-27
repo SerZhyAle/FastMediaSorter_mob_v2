@@ -400,7 +400,9 @@ class ResourceFormViewModel @Inject constructor(
             }
 
             val saveResult = withContext(Dispatchers.IO) {
-                resourceEditorUseCase.save(currentForm)
+                // S0730: pass viewModelScope so the fire-and-forget post-save verification is cancelled
+                // when the editor closes instead of leaking on the UseCase's old never-cancelled scope.
+                resourceEditorUseCase.save(currentForm, viewModelScope)
             }
 
             saveResult.onSuccess { result ->

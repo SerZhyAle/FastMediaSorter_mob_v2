@@ -133,6 +133,7 @@ class WelcomeFunctionalityController @Inject constructor(
             overlayPermissionLauncher = launcher,
             activity = activity,
             initialEnabled = settings.gestureOverlayEnabled,
+            initialStripVisible = settings.screenshotGestureStripVisible,
             persist = ::persist,
         ).also { it.setup() }
     }

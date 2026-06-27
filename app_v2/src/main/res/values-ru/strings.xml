@@ -1793,7 +1793,9 @@
     <string name="vinyl_indicator_description">Индикатор воспроизведения аудио</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
-    <string name="database_reset_message">База данных сброшена из-за ошибки обновления. Ресурсы потребуется добавить заново.</string>
+    <string name="database_reset_dialog_title">База данных сброшена</string>
+    <string name="database_reset_dialog_message">Локальную базу данных не удалось открыть или обновить, поэтому она была сброшена, и приложение продолжит работу. Часть сохранённых данных (источники, учётные записи, избранное) могла быть потеряна.\n\nПричина: %1$s</string>
+    <string name="database_reset_backup_note">Копия прежней базы данных сохранена в:\n%1$s</string>
     <string name="resume_unavailable">Не удалось возобновить воспроизведение - ресурс недоступен или сессия истекла</string>
     <string name="resume_checking">Восстановление воспроизведения..</string>
 
@@ -2483,7 +2485,7 @@
     <string name="setting_gesture_overlay_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
     <string name="setting_gesture_strip_visible_title">Показывать полосу жеста у левого края</string>
-    <string name="setting_gesture_strip_visible_summary">Делать полосу жеста серой и видимой вместо прозрачной</string>
+    <string name="setting_gesture_strip_visible_summary">Показывать полупрозрачную серую направляющую на первых 4 px; остальная часть прозрачна</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_help_message">У левого края экрана расположена тонкая невидимая полоса. Чтобы снять текущий экран, проведите от полосы по диагонали вниз и вправо (примерно 45°). Снимок сохраняется в выбранный ресурс - по умолчанию в папку скриншотов устройства. Нужно разрешение «Поверх других приложений». Полоса занимает левый край от 10 до 75 процентов высоты; верхний угол оставлен свободным, чтобы не срабатывать случайно.</string>
     <string name="setting_screenshot_destination_title">Загружать скриншоты в..</string>

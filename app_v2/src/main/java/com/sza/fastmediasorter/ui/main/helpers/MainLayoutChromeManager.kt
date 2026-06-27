@@ -30,7 +30,6 @@ class MainLayoutChromeManager(
     fun updateToolbarButtonLabels(config: Configuration) {
         val isWide = config.isWideLayout()
         Timber.d("updateToolbarButtonLabels: isWide=$isWide")
-        Timber.d("S0693: main chrome isWide=$isWide widthDp=${config.screenWidthDp}")
 
         if (isWide) {
             binding.btnExit.text = activity.getString(R.string.exit)

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
+import androidx.room.withTransaction
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +14,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class StreamSourceRepository @Inject constructor(
+    private val db: AppDatabase,
     private val dao: StreamSourceDao
 ) {
 
@@ -61,33 +64,37 @@ class StreamSourceRepository @Inject constructor(
      * catalog rows missing from [entries] are pruned. Non-CATALOG (MANUAL/IMPORTED) rows are never
      * touched: a url already owned by a user row blocks the catalog insert and is left as-is.
      */
-    suspend fun mergeCatalog(entries: List<StreamSourceEntity>): CatalogMergeResult {
-        val existingCatalogUrls = dao.catalogSources().mapTo(HashSet()) { it.url }
-        val newUrls = entries.mapTo(HashSet()) { it.url }
+    suspend fun mergeCatalog(entries: List<StreamSourceEntity>): CatalogMergeResult =
+        // S0732: N update/insertIgnore writes plus a final deleteCatalogNotIn were not atomic, so a
+        // kill mid-merge left a half-synced catalog and observeSources re-emitted intermediate states.
+        // One transaction makes the catalog sync all-or-nothing (single observe* emission).
+        db.withTransaction {
+            val existingCatalogUrls = dao.catalogSources().mapTo(HashSet()) { it.url }
+            val newUrls = entries.mapTo(HashSet()) { it.url }
 
-        var added = 0
-        var updated = 0
-        for (entry in entries) {
-            if (entry.url in existingCatalogUrls) {
-                dao.updateCatalogByUrl(
-                    url = entry.url,
-                    title = entry.title,
-                    mediaKind = entry.mediaKind,
-                    category = entry.category,
-                    topic = entry.topic,
-                    language = entry.language
-                )
-                updated++
-            } else if (dao.insertIgnore(entry) != -1L) {
-                added++
+            var added = 0
+            var updated = 0
+            for (entry in entries) {
+                if (entry.url in existingCatalogUrls) {
+                    dao.updateCatalogByUrl(
+                        url = entry.url,
+                        title = entry.title,
+                        mediaKind = entry.mediaKind,
+                        category = entry.category,
+                        topic = entry.topic,
+                        language = entry.language
+                    )
+                    updated++
+                } else if (dao.insertIgnore(entry) != -1L) {
+                    added++
+                }
+                // insertIgnore == -1 means the url is owned by a non-CATALOG row; leave the user row alone.
             }
-            // insertIgnore == -1 means the url is owned by a non-CATALOG row; leave the user row alone.
-        }
 
-        dao.deleteCatalogNotIn(entries.map { it.url })
-        val removed = existingCatalogUrls.count { it !in newUrls }
-        return CatalogMergeResult(added = added, updated = updated, removed = removed)
-    }
+            dao.deleteCatalogNotIn(entries.map { it.url })
+            val removed = existingCatalogUrls.count { it !in newUrls }
+            CatalogMergeResult(added = added, updated = updated, removed = removed)
+        }
 
     /** S0570: outcome of a [mergeCatalog] run. */
     data class CatalogMergeResult(val added: Int, val updated: Int, val removed: Int)

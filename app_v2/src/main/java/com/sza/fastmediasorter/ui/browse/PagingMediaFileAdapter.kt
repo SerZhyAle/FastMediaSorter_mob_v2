@@ -6,22 +6,20 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.paging.PagingDataAdapter
-
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
+import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
-import com.sza.fastmediasorter.data.network.glide.NetworkFileData
-import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
@@ -29,7 +27,6 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import timber.log.Timber
 import java.io.File
-import java.util.Date
 import kotlin.math.ln
 import kotlin.math.pow
 
@@ -419,7 +416,7 @@ class PagingMediaFileAdapter(
 
         private fun buildFileInfo(file: MediaFile): String {
             val size = formatFileSize(file.size)
-            val date = DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate))
+            val date = AdapterFileInfoFormatter.formatTimestamp(file.createdDate)
             return "$size • $date"
         }
 

@@ -77,7 +77,7 @@
 "confirmMove","FALSE","TRUE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","TRUE","TRUE",""
 "defaultGridMode","FALSE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE",""
 "hideGridActionButtons","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE",""
-"fileOpsInOverflowMenu","FALSE","FALSE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","FALSE","TRUE",""
+"fileOpsInOverflowMenu","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE",""
 "fileOpsOverflowMenuHintShown","","","","","","","","","","",""
 "hideSystemUiInFullscreen","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE","TRUE",""
 "defaultIconSize","96","112","152","112","152","128","152","112","112","128",""
