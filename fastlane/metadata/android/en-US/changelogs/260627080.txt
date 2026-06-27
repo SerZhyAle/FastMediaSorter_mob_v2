@@ -1,0 +1,7 @@
+• Fullscreen stream player - watch a live channel full-screen with stream-tailored controls.
+• Stop inline streams - tap a playing tile again to stop it.
+• Pin favorite streams - long-press to pin, then filter to pinned-only.
+• Streams remember their view - filter, sort and list position persist between visits.
+• Landscape stream grid - multi-column list with status dots and a per-tile menu.
+• Smoother stream startup - health probe plus bandwidth-adaptive buffering.
+..
