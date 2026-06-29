@@ -112,6 +112,7 @@ Project hooks already present:
 - file-size and helper-extraction rules
 - responsibility ranking via `scripts/quality/measure-hotspots.ps1`
 - custom script gates under `scripts/quality/`
+- `detekt` + ktlint formatting ratchet gate
 
 ## Layer 2 - Lifecycle, coroutine, and concurrency audit
 
@@ -397,6 +398,8 @@ Already present:
 - `profileinstaller`
 - startup markers
 - quality gates for `GlobalScope` and unsafe Flow collect
+- `detekt` + ktlint formatting ratchet gate
+- listener symmetry ratchet gate (`scripts/quality/assert-listener-symmetry.ps1`)
 - responsibility ranking (`measure-hotspots.ps1`) and shared-state writer audit (`audit-shared-state-writers.ps1`)
 - startup deferral infrastructure
 
@@ -404,11 +407,9 @@ Recommended next additions:
 
 1. add a dedicated benchmark module with `Macrobenchmark`
 2. generate and maintain baseline profiles from real hot flows
-3. add `detekt` (complexity, nesting, long-method, code-smell metrics) and `ktlint` (deterministic formatting) - the project currently has neither, and they are the main missing tooling for readable-code enforcement
-4. add a custom Android Lint module for project-specific architecture rules
-5. add a `assert-listener-symmetry.ps1` gate (register/unregister and addListener/removeListener balance) modeled on the existing `scripts/quality/assert-*.ps1`
-6. formalize a small Perfetto capture playbook for startup and player regressions
-7. define benchmark thresholds for cold start, player open, and back-navigation
+3. add a custom Android Lint module for project-specific architecture rules
+4. formalize a small Perfetto capture playbook for startup and player regressions
+5. define benchmark thresholds for cold start, player open, and back-navigation
 
 ## Repo commands and anchors
 
@@ -423,6 +424,7 @@ Useful local commands:
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
 pwsh -NoProfile -File scripts/quality/assert-globalscope.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/assert-unsafe-collect.ps1 -Gate
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/measure-hotspots.ps1
 pwsh -NoProfile -File scripts/quality/audit-shared-state-writers.ps1
 ```

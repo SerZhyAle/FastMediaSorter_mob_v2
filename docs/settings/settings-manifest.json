@@ -151,6 +151,16 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
+      "key": "btnSelectScreenRecordingDest",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
       "key": "btnSelectScreenshotDestination",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -349,6 +359,16 @@
       "titleEn": "Save photos to clipboard",
       "titleRu": "Сохранять фотографии в буфер обмена",
       "titleUk": "Зберігати фотографії в буфер обміну"
+    },
+    {
+      "key": "rowCameraGeotag",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Geotag photos",
+      "titleRu": "Геотегирование фото",
+      "titleUk": "Геотегування фото"
     },
     {
       "key": "rowCameraOcrOnly",
@@ -651,6 +671,16 @@
       "titleUk": "Продовжувати відтворення при наступному запуску"
     },
     {
+      "key": "rowScreenRecordingEnabled",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Screen video recording",
+      "titleRu": "Видеозапись экрана",
+      "titleUk": "Відеозапис екрана"
+    },
+    {
       "key": "rowScreenshotGestureActionDown",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -679,6 +709,16 @@
       "titleEn": "Up gesture action",
       "titleRu": "Действие жеста вверх",
       "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowShowProgramsPanel",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show programs panel in main window",
+      "titleRu": "Показывать панель программ в основном окне",
+      "titleUk": "Показувати панель програм у головному вікні"
     },
     {
       "key": "rowUseTrash",
@@ -1949,6 +1989,16 @@
       "titleEn": "Enable Streams",
       "titleRu": "Включить трансляции",
       "titleUk": "Увімкнути трансляції"
+    },
+    {
+      "key": "rowShowStreamsPanel",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show streams panel in main window",
+      "titleRu": "Показывать панель трансляций в основном окне",
+      "titleUk": "Показувати панель трансляцій у головному вікні"
     },
     {
       "key": "btnClearSnapshotResource",

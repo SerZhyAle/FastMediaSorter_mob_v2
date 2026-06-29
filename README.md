@@ -12,7 +12,7 @@
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
-The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
+The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version. We are not going to pretend v1 was flawless - that is precisely why v2 exists.
 
 ## What FastMediaSorter Replaces 🧩
 

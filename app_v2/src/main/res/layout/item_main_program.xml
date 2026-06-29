@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0755 / S0770: one program/scenario entry on the main-window programs panel. Body button = icon
+     (+ label in landscape; set by MainProgramsPanelManager). The trailing three-dots button opens the
+     per-item menu (S0770) and is visible only in label mode; long-press on the body opens the same menu
+     in compact mode. contentDescription of the body mirrors the menu item title. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/main_panel_row_height"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnProgram"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:foreground="@drawable/focus_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:minWidth="@dimen/main_panel_item_min_width"
+        android:minHeight="0dp"
+        android:paddingHorizontal="@dimen/main_panel_item_spacing"
+        android:textColor="?attr/colorControlNormal"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+        app:iconSize="@dimen/icon_size_normal"
+        app:iconTint="?attr/colorControlNormal" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnProgramMenu"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:foreground="@drawable/focus_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        android:contentDescription="@string/more_actions"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:minWidth="@dimen/main_panel_item_min_width"
+        android:minHeight="0dp"
+        android:paddingHorizontal="0dp"
+        android:text=""
+        android:visibility="gone"
+        app:icon="@drawable/ic_more_vert"
+        app:iconGravity="textStart"
+        app:iconSize="@dimen/icon_size_normal"
+        app:iconTint="?attr/colorControlNormal" />
+
+</LinearLayout>

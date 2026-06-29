@@ -33,8 +33,8 @@ class StreamsSessionStore @Inject constructor(
 ) {
 
     /**
-     * Snapshot of the last session. Null sort/media-filter/query/category/language/pinned mean "no
-     * remembered value" -> the caller falls back to the user defaults. [lastCatalogRefreshAt] is epoch
+     * Snapshot of the last session. Null sort/media-filter/query/category/language/country/pinned mean
+     * "no remembered value" -> the caller falls back to the user defaults. [lastCatalogRefreshAt] is epoch
      * millis, 0 = never. [lastScrollPosition] is the first-visible adapter position, null = top/none.
      */
     data class Session(
@@ -43,6 +43,7 @@ class StreamsSessionStore @Inject constructor(
         val lastQuery: String?,
         val lastCategory: String?,
         val lastLanguage: String?,
+        val lastCountry: String?,
         val lastPinnedOnly: Boolean?,
         val lastCatalogRefreshAt: Long,
         val lastDisplayMode: String?,
@@ -57,6 +58,7 @@ class StreamsSessionStore @Inject constructor(
             lastQuery = prefs[KEY_LAST_QUERY],
             lastCategory = prefs[KEY_LAST_CATEGORY],
             lastLanguage = prefs[KEY_LAST_LANGUAGE],
+            lastCountry = prefs[KEY_LAST_COUNTRY],
             lastPinnedOnly = prefs[KEY_LAST_PINNED_ONLY],
             lastCatalogRefreshAt = prefs[KEY_LAST_CATALOG_REFRESH_AT] ?: 0L,
             lastDisplayMode = prefs[KEY_LAST_DISPLAY_MODE],
@@ -74,6 +76,7 @@ class StreamsSessionStore @Inject constructor(
         query: String,
         category: String?,
         language: String?,
+        country: String?,
         pinnedOnly: Boolean,
     ) {
         context.streamsSessionDataStore.edit { prefs ->
@@ -82,6 +85,7 @@ class StreamsSessionStore @Inject constructor(
             prefs[KEY_LAST_QUERY] = query
             if (category != null) prefs[KEY_LAST_CATEGORY] = category else prefs.remove(KEY_LAST_CATEGORY)
             if (language != null) prefs[KEY_LAST_LANGUAGE] = language else prefs.remove(KEY_LAST_LANGUAGE)
+            if (country != null) prefs[KEY_LAST_COUNTRY] = country else prefs.remove(KEY_LAST_COUNTRY)
             prefs[KEY_LAST_PINNED_ONLY] = pinnedOnly
         }
     }
@@ -111,6 +115,7 @@ class StreamsSessionStore @Inject constructor(
         val KEY_LAST_QUERY = stringPreferencesKey("last_query")
         val KEY_LAST_CATEGORY = stringPreferencesKey("last_category")
         val KEY_LAST_LANGUAGE = stringPreferencesKey("last_language")
+        val KEY_LAST_COUNTRY = stringPreferencesKey("last_country")
         val KEY_LAST_PINNED_ONLY = booleanPreferencesKey("last_pinned_only")
         val KEY_LAST_CATALOG_REFRESH_AT = longPreferencesKey("last_catalog_refresh_at")
         val KEY_LAST_DISPLAY_MODE = stringPreferencesKey("last_display_mode")

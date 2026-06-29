@@ -8,7 +8,7 @@
 - [prerelease Maestro flaky](project_prerelease_maestro_harness_flaky.md) - Maestro FAIL = harness not app; verify manually, trust toastCount, S0666
 - [prerelease is emulator-only](feedback_prerelease_emulator_only.md) - on real device: clean-uninstall wipes config + log-audit FAILs on foreign-app noise; isolate app signal manually
 - [Play Console API read-only](reference_play_console_api_access.md) - read track/bundle states (temp/play_status.py); CANNOT see review verdicts
-- [noLegal->Play capture family](project_play_release_in_review.md) - owner 2026-06-26 flips edgeGestureOverlay=on THIS release; QS-tile path device-verified; overlay strip/grey/swipe = real-device Play demo; artifacts in temp/
+- [noLegal->Play capture family](project_play_release_in_review.md) - 2.60.6270.802 LIVE "Available on Google Play" 2026-06-27 22:24, specialUse review PASSED (177 countries); S0672/S0724 still BlockNeedUserTest pending grey-strip render check
 - [Emulator capture-family testing](reference_emulator_capture_family_testing.md) - cmd statusbar add/click-tile + aapt2 build-check; overlay strip enable/recolour/swipe NOT emulator-drivable
 - [Test device Galaxy S21+ (full access)](reference_test_device_galaxy_s21.md) - SM-G996U1/RFCR110NBQJ, Android 15, 1080x2400; do anything; tall aspect for S0670; not Wear
 
@@ -18,6 +18,8 @@
 
 - [Incremental phantom unresolved-ref](project_incremental_build_phantom_unresolved.md) - dq after multi-file edits -> phantom; fix = clean build (cd)
 - [detekt gate in post-change (S0720)](project_detekt_gate_in_post_change.md) - post-change.ps1 now runs full gradle detekt on Kotlin/Mixed (slow); ratchet baselines; not in assemble*
+- [Settings manifest regen](feedback_settings_manifest_regen.md) - new/removed setting: regen manifest (quote -D in pwsh!) + annotations + reference for Rule 22 gate
+- [detekt ktlint import layout](project_detekt_ktlint_import_layout.md) - ImportOrdering = group *,java,javax,kotlin (kotlinx stays in *) + case-sensitive ASCII; autoCorrect off; --rerun-tasks to refresh report
 - [screenCapture gates gesture](project_screencapture_gates_gesture_capability.md) - default off unmounts standardScreenCapture; tests need -P fms.screenCapture=on
 - [close.ps1 two-step unblock](project_close_ps1_two_step_unblock.md) - refuses direct BlockNeedUserTest->Verified; go via Implemented
 
@@ -29,12 +31,14 @@
 - [VR immersive logcat trap](reference_vr_immersive_logcat_capture_trap.md) - "package:mine" drops session; use raw adb logcat -b all; watch orphaned adb locks
 - [Quest 2D panel not introspectable](reference_quest_panel_not_introspectable.md) - uiautomator sees only vrshell; repro XR-gated UI on phone emulator or on-device Timber
 - [No edge-to-edge UI](feedback_no_edge_to_edge_ui_elements.md) - nothing full-bleed; bounded W+H; dropdowns sdr_fieldWidth 240/280; row-triggers exempt
+- [Respect system insets / safe bounds](feedback_respect_system_insets_safe_bounds.md) - every new window/panel/overlay must apply systemBars+cutout insets (targetSdk 35 edge-to-edge); we regress repeatedly; clamp to safe rect not displayMetrics
 - [No full-width buttons landscape (S0605)](feedback_no_fullwidth_buttons_landscape.md) - landscape buttons wrap_content+gravity; keypad/nav-rails/full-row exempt
 - [Landscape multi-column (S0609)](feedback_landscape_multicolumn_settings.md) - weighted LinearLayout layout-land only; toggles 2-up, buttons 3-4+ Flow
 - [configChanges no recreate on rotation](project_streams_activity_config_changes_rotation.md) - Streams/player handle orientation; recompute spans in onConfigurationChanged (S0692)
 - [IDE-open Draft may finalize mid-task](feedback_ide_open_spec_may_finalize_midtask.md) - /spec-all can rewrite Draft->Tactical while coding; re-read before design
 - [Emulator MediaProjection capture](reference_emulator_mediaprojection_capture.md) - standard non-VR AVD verifies menu-screenshot end-to-end
 - [Color theme switch on device](feedback_color_theme_device_switch.md) - pref-file swap doesn't stick (DataStore re-syncs); change via Settings UI+restart
+- [Sync docs/site on visible change](feedback_sync_docs_on_visible_change.md) - any visible-functionality change -> revisit affected doc sections + site copy (S0814 backfill)
 - [HOW_TO path drift gate](reference_howto_settings_path_gate.md) - S0558 gate validates "Settings -> .." vs manifest; extend howto-path-vocab.json on failure
 - [HOW_TO path parity gotcha](feedback_howto_settings_path_parity.md) - only U+2192+anchor lines need EN/RU/UK parity; use ASCII > for quick nav
 - [Flavor matrix: legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - persona table stale; legacy=full, photos=cloud+network, lite=no-cloud; verify gradle
@@ -67,6 +71,7 @@
 - [bash rg skips gitignored CATALOG](feedback_rg_gitignore_catalog.md) - bare bash rg "no matches" in dev/CATALOG not proof; use Grep tool / --no-ignore / Read
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element @(...) needs in-process & call, not pwsh -File; bash @(...) syntax error
 - [string[] param CSV via pwsh -File](feedback_string_array_param_csv_via_file.md) - quoted CSV to [string[]] binds as ONE element; pass @(..) or split in-script
+- [detekt gate on dirty tree](feedback_detekt_gate_dirty_tree.md) - post-change detekt is project-wide; filter for your files, don't fix others' WIP or re-baseline
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents truncate final docs-cleanup; verify files exist, finish centrally
 - [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash clobbers another's edits; disjoint files, central build
 - [/spec-dev continue: verify code first](feedback_spec_dev_continue_verify_code_first.md) - In-Progress may have code done but tracking 0/N; reconcile via live files

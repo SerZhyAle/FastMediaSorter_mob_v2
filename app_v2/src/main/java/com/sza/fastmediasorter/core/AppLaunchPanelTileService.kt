@@ -8,7 +8,6 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
-import timber.log.Timber
 
 /**
  * S0683: Quick Settings tile that opens the Quick Launch Panel - a second entry point besides the
@@ -31,7 +30,6 @@ class AppLaunchPanelTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        Timber.d("S0683: AppLaunchPanel QS tile clicked - launching panel")
         val intent = Intent(this, AppLaunchPanelActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }

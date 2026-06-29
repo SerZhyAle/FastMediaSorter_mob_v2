@@ -41,4 +41,5 @@ dependencyResolutionManagement {
 rootProject.name = "FastMediaSorter_v2"
 include(":app_v2")
 include(":wear")
+include(":lint-rules")
 

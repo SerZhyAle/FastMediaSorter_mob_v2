@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0755: horizontal programs panel for the main window. Mirrors the three-dots programs menu;
+     items that do not fit move under the trailing overflow button. Visibility owned by MainActivity. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/main_panel_row_height"
+    android:background="?attr/colorSurface"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/main_panel_item_spacing"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:id="@+id/programsPanelItems"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnProgramsPanelOverflow"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/main_panel_row_height"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:foreground="@drawable/focus_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        android:contentDescription="@string/more_actions"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:minWidth="@dimen/main_panel_item_min_width"
+        android:minHeight="0dp"
+        android:paddingHorizontal="@dimen/main_panel_item_spacing"
+        android:text=""
+        android:visibility="gone"
+        app:icon="@drawable/ic_more_vert"
+        app:iconGravity="textStart"
+        app:iconSize="@dimen/icon_size_normal"
+        app:iconTint="?attr/colorControlNormal" />
+
+</LinearLayout>

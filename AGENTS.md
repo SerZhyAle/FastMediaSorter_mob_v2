@@ -34,7 +34,8 @@
 - `/catalog`: class/feature queries, sync catalog.
 - `/doc-update`: docs sync.
 - `/log-reader`: logcat/log analysis.
-- `/build`, `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
+- `/release`: full release-campaign runbook (assess -> finish work -> `/spec-prerelease` -> docs incl. "What's New" -> `/skill-release` -> distribute -> verify); `/skill-release` is one step. Terms: `docs/BUILD_VS_RELEASE.md`.
+- `/build`: build checklist + reference (local "build" flow). `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
 
 ## 6. Workflow & PowerShell
 - Confirm branch before edit (`git branch --show-current`).

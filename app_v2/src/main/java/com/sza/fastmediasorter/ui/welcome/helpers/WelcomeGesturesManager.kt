@@ -40,7 +40,6 @@ class WelcomeGesturesManager(
         row.isVisible = true
         row.setCheckedSilently(initialEnabled)
         row.setOnCheckedChangeListener { isChecked ->
-            Timber.d("S0662: welcome gesture toggle -> $isChecked")
             if (isChecked) {
                 if (!controller.isOverlayPermissionGranted(activity)) {
                     showGesturePermissionDialog(controller)

@@ -8,8 +8,8 @@ import androidx.room.PrimaryKey
  * S0565: a user stream source in the "Трансляции" catalog. Holds the local pin-to-top order and
  * favorite flag, independent of the global favorites table. De-duplicated by [url] (unique index).
  *
- * S0570: [category]/[topic]/[language] are populated only for `sourceOrigin = CATALOG` rows
- * (curated catalog import); manual/imported rows leave them null.
+ * S0570/S0761: [category]/[topic]/[language]/[country] are populated only for `sourceOrigin = CATALOG`
+ * rows (curated catalog import); manual/imported rows leave them null.
  */
 @Entity(
     tableName = "stream_sources",
@@ -32,6 +32,7 @@ data class StreamSourceEntity(
     val category: String? = null,
     val topic: String? = null,
     val language: String? = null,
+    val country: String? = null,
     // S0593: outcome of the last local playback attempt on this device, driving the row status bullet.
     // null = never tried (amber/unknown), "OK" = last play reached playing (green), "FAIL" = last
     // attempt errored (red). [lastPlayOutcomeAt] is the epoch-millis timestamp of that outcome.

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.cameracapture.model
 
+import android.util.Range
+import android.util.Size
 import androidx.camera.core.CameraSelector
 
 /**
@@ -18,10 +20,32 @@ data class CameraRuntimeCapabilities(
     val minZoomRatio: Float = DEFAULT_ZOOM,
     val maxZoomRatio: Float = DEFAULT_ZOOM,
     val currentZoomRatio: Float = DEFAULT_ZOOM,
+    val currentLinearZoom: Float = 0f,
     val zoomPresets: List<Float> = emptyList(),
+    val supportsNightMode: Boolean = false,
+    val supportsExposureCompensation: Boolean = false,
+    val maxExposureCompensationIndex: Int = 0,
+    val supportsManualSensor: Boolean = false,
+    val isoRange: Range<Int>? = null,
+    val shutterRangeNs: Range<Long>? = null,
+    val awbModes: List<Int> = emptyList(),
+    val supportsHdrExtension: Boolean = false,
+    val availableAspectRatios: List<Int> = emptyList(),
+    val photoResolutions: List<Size> = emptyList(),
+    /** Native-ratio -> equivalent-zoom factor (this lens focal / main lens focal); 1.0 for the main lens. */
+    val zoomMultiplier: Float = 1f,
+    /** The active lens can focus close enough for a usable macro mode (heuristic on min focus distance). */
+    val supportsMacro: Boolean = false,
+    /** Closest focus distance in diopters (1/m) for macro; 0 when fixed-focus / unknown. */
+    val macroFocusDistance: Float = 0f,
+    /** Max native ratio reachable including digital crop beyond the lens optical/CameraX max (S0753). */
+    val maxDisplayZoomRatio: Float = DEFAULT_ZOOM,
 ) {
     /** A second lens to flip to exists. */
     val canSwitchLens: Boolean get() = availableLensFacings.size > 1
+
+    /** The active lens faces the user. */
+    val isFront: Boolean get() = activeLensFacing == CameraSelector.LENS_FACING_FRONT
 
     /** The active lens has a usable zoom range (not a fixed 1x). */
     val supportsZoom: Boolean get() = maxZoomRatio > minZoomRatio + ZOOM_EPSILON
@@ -30,21 +54,47 @@ data class CameraRuntimeCapabilities(
         const val DEFAULT_ZOOM = 1f
         const val ZOOM_EPSILON = 0.01f
 
+        /** Overall display-zoom ceiling (optical + CameraX + digital crop), in equivalent terms. */
+        const val MAX_DISPLAY_ZOOM = 30f
+
+        /** Digital-crop multiplier allowed beyond the lens optical/CameraX max (soft zoom). */
+        const val DIGITAL_ZOOM_CAP = 4f
+
+        /** Drop a preset sitting above this fraction of the max - redundant with the max button. */
+        const val NEAR_MAX_DROP_FACTOR = 0.85f
+
         /** No-capability fallback used before the first successful bind. */
         val NONE = CameraRuntimeCapabilities()
 
         /**
-         * Builds Samsung-familiar zoom presets clamped to the lens range: the wide preset (when the
-         * lens goes below 1x), 1x, 2x and the maximum, de-duplicated and ordered (S0545 §3.4).
+         * Builds zoom presets clamped to the lens range: the wide preset (when the lens goes below
+         * 1x), the 1x/3x/5x/10x/20x/30x steps that fall inside the range, plus the lens maximum so a
+         * reachable ceiling preset always exists even when it sits between table values, then
+         * de-duplicated and ordered (S0545 §3.4, S0753).
          */
-        fun buildZoomPresets(minZoom: Float, maxZoom: Float): List<Float> {
+        fun buildZoomPresets(
+            minZoom: Float,
+            maxZoom: Float,
+            multiplier: Float = 1f,
+            digitalCap: Float = 1f,
+        ): List<Float> {
             if (maxZoom <= minZoom + ZOOM_EPSILON) return emptyList()
-            val candidates = listOf(minZoom, 1f, 2f, maxZoom)
-            return candidates
-                .filter { it in minZoom..maxZoom }
+            val mult = if (multiplier > 0f) multiplier else 1f
+            // The reachable max includes digital crop beyond the optical/CameraX max, capped overall.
+            val maxNative = (maxZoom * digitalCap.coerceAtLeast(1f)).coerceAtMost(MAX_DISPLAY_ZOOM / mult)
+            // Desired presets in equivalent-zoom terms: below 1x only the lens minimum (minZoom), at/above
+            // 1x the 1/3/5/10/20/30 steps, ending at the reachable maximum (S0754 owner feedback).
+            val desiredEquiv = listOf(1f, 3f, 5f, 10f, 20f, 30f)
+            val candidates = desiredEquiv.map { it / mult } + minZoom + maxNative
+            val presets = candidates
+                .filter { it in minZoom..maxNative }
                 .map { (it * 10f).toInt() / 10f }
                 .distinct()
                 .sorted()
+            // Adaptive count: drop a step just below the max (redundant with the max button) - e.g. when
+            // the max is 3.3 the 3 step is dropped, like the new Samsung camera (S0753 device feedback).
+            val ceiling = presets.lastOrNull() ?: return presets
+            return presets.filter { it == ceiling || it < ceiling * NEAR_MAX_DROP_FACTOR }
         }
     }
 }

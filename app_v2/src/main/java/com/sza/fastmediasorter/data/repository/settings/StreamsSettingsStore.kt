@@ -21,12 +21,16 @@ object StreamsSettingsStore {
     private val KEY_DEFAULT_MEDIA_FILTER = stringPreferencesKey("streams_default_media_filter")
     private val KEY_CATALOG_REFRESH_POLICY = stringPreferencesKey("streams_catalog_refresh_policy")
 
+    // S0756: main-window streams panel toggle, persisted alongside the Streams master switch.
+    private val KEY_SHOW_STREAMS_PANEL = booleanPreferencesKey("show_streams_panel_main_window")
+
     /** Streams fields read from DataStore, ready for [AppSettings]. */
     data class Values(
         val enableStreams: Boolean,
         val streamsDefaultSort: StreamDefaultSort,
         val streamsDefaultMediaFilter: StreamMediaTypeFilter,
         val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy,
+        val showStreamsPanelInMainWindow: Boolean,
     )
 
     fun read(preferences: Preferences): Values = Values(
@@ -34,6 +38,7 @@ object StreamsSettingsStore {
         streamsDefaultSort = StreamDefaultSort.fromName(preferences[KEY_DEFAULT_SORT]),
         streamsDefaultMediaFilter = StreamMediaTypeFilter.fromName(preferences[KEY_DEFAULT_MEDIA_FILTER]),
         streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.fromName(preferences[KEY_CATALOG_REFRESH_POLICY]),
+        showStreamsPanelInMainWindow = preferences[KEY_SHOW_STREAMS_PANEL] ?: false,
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
@@ -41,5 +46,6 @@ object StreamsSettingsStore {
         preferences[KEY_DEFAULT_SORT] = settings.streamsDefaultSort.name
         preferences[KEY_DEFAULT_MEDIA_FILTER] = settings.streamsDefaultMediaFilter.name
         preferences[KEY_CATALOG_REFRESH_POLICY] = settings.streamsCatalogRefreshPolicy.name
+        preferences[KEY_SHOW_STREAMS_PANEL] = settings.showStreamsPanelInMainWindow
     }
 }

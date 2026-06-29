@@ -210,54 +210,61 @@
                         android:layout_marginBottom="8dp"
                         android:textStyle="bold" />
 
-                    <com.sza.fastmediasorter.ui.player.VerticalSeekBar
-                        android:id="@+id/seekVolume"
-                        style="@style/Widget.FMS.PlaybackSlider"
-                        android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false" />
-
+                    <!-- S0764: buttons column + vertical slider in the outer (right) column, so the
+                         slider stays under the thumb and the buttons stack instead of overflowing. -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="vertical">
+                        android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnMuteToggle"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:minHeight="48dp"
-                            android:text="@string/playback_control_mute"
-                            app:strokeColor="@color/btn_mute_toggle_state"
-                            app:strokeWidth="2dp" />
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnVolumeHalf"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginTop="6dp"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/volume_50_percent" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMuteToggle"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:minHeight="48dp"
+                                android:text="@string/playback_control_mute"
+                                app:strokeColor="@color/btn_mute_toggle_state"
+                                app:strokeWidth="2dp" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnVolumeMax"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginTop="6dp"
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnVolumeHalf"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/volume_50_percent" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnVolumeMax"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/volume_max" />
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.player.VerticalSeekBar
+                            android:id="@+id/seekVolume"
+                            style="@style/Widget.FMS.PlaybackSlider"
+                            android:layout_width="56dp"
+                            android:layout_height="160dp"
+                            android:layout_marginStart="12dp"
                             android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/volume_max" />
+                            android:focusableInTouchMode="false" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -489,24 +496,39 @@
                         android:layout_marginBottom="8dp"
                         android:textStyle="bold" />
 
-                    <com.sza.fastmediasorter.ui.player.VerticalSeekBar
-                        android:id="@+id/seekHue"
-                        style="@style/Widget.FMS.PlaybackSlider"
+                    <!-- S0764: buttons column + vertical slider in the outer (right) column. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:max="360" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnResetHue"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:text="@string/reset" />
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnResetHue"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/reset" />
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.player.VerticalSeekBar
+                            android:id="@+id/seekHue"
+                            style="@style/Widget.FMS.PlaybackSlider"
+                            android:layout_width="56dp"
+                            android:layout_height="160dp"
+                            android:layout_marginStart="12dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:max="360" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
@@ -523,24 +545,39 @@
                         android:layout_marginBottom="8dp"
                         android:textStyle="bold" />
 
-                    <com.sza.fastmediasorter.ui.player.VerticalSeekBar
-                        android:id="@+id/seekBrightness"
-                        style="@style/Widget.FMS.PlaybackSlider"
+                    <!-- S0764: buttons column + vertical slider in the outer (right) column. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:max="100" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnResetBrightness"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:text="@string/reset" />
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnResetBrightness"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/reset" />
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.player.VerticalSeekBar
+                            android:id="@+id/seekBrightness"
+                            style="@style/Widget.FMS.PlaybackSlider"
+                            android:layout_width="56dp"
+                            android:layout_height="160dp"
+                            android:layout_marginStart="12dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:max="100" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
@@ -557,61 +594,70 @@
                         android:layout_marginBottom="8dp"
                         android:textStyle="bold" />
 
-                    <com.sza.fastmediasorter.ui.player.VerticalSeekBar
-                        android:id="@+id/seekSpeed"
-                        style="@style/Widget.FMS.PlaybackSlider"
-                        android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:max="7" />
-
+                    <!-- S0764: buttons column + vertical slider in the outer (right) column, so the
+                         speed presets stack instead of overflowing off the right edge. -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="12dp"
                         android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSpeed05"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/playback_control_speed_0_5x" />
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSpeed15"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:focusable="true"
-                            android:focusableInTouchMode="false"
-                            android:text="@string/playback_control_speed_1_5x" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSpeed05"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/playback_control_speed_0_5x" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSpeed20"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSpeed15"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/playback_control_speed_1_5x" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSpeed20"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/playback_control_speed_2x" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnResetSpeed"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
+                                android:text="@string/reset" />
+                        </LinearLayout>
+
+                        <com.sza.fastmediasorter.ui.player.VerticalSeekBar
+                            android:id="@+id/seekSpeed"
+                            style="@style/Widget.FMS.PlaybackSlider"
+                            android:layout_width="56dp"
+                            android:layout_height="160dp"
+                            android:layout_marginStart="12dp"
                             android:focusable="true"
                             android:focusableInTouchMode="false"
-                            android:text="@string/playback_control_speed_2x" />
+                            android:max="7" />
                     </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnResetSpeed"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:focusable="true"
-                        android:focusableInTouchMode="false"
-                        android:text="@string/reset" />
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

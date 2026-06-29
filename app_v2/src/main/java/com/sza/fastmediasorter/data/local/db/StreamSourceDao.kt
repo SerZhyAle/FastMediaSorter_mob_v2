@@ -18,6 +18,13 @@ interface StreamSourceDao {
     @Query("SELECT * FROM stream_sources ORDER BY pinned DESC, sortIndex ASC, addedAt DESC")
     fun observeAll(): Flow<List<StreamSourceEntity>>
 
+    /**
+     * S0756: pinned channels only, in pin order, for the main-window streams panel. A dedicated query
+     * (vs filtering [observeAll]) means an unrelated catalog row write does not re-emit to the panel.
+     */
+    @Query("SELECT * FROM stream_sources WHERE pinned = 1 ORDER BY sortIndex ASC, addedAt DESC")
+    fun observePinned(): Flow<List<StreamSourceEntity>>
+
     /** Import path: ignores duplicates so a re-imported list keeps the existing local order. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(source: StreamSourceEntity): Long
@@ -41,6 +48,10 @@ interface StreamSourceDao {
 
     @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE id = :id")
     suspend fun pin(id: String, newSortIndex: Int)
+
+    /** S0770: drop a channel's pin so it leaves the main-window streams panel; the catalog row stays. */
+    @Query("UPDATE stream_sources SET pinned = 0 WHERE id = :id")
+    suspend fun unpin(id: String)
 
     /**
      * S0660: in-place edit of a user channel. Scoped to MANUAL rows so a CATALOG/IMPORTED row can
@@ -75,7 +86,7 @@ interface StreamSourceDao {
     /** S0570: refresh catalog metadata in place; sortIndex/pinned are preserved (not in the SET). */
     @Query(
         "UPDATE stream_sources SET title = :title, mediaKind = :mediaKind, category = :category, " +
-            "topic = :topic, language = :language WHERE url = :url AND sourceOrigin = 'CATALOG'"
+            "topic = :topic, language = :language, country = :country WHERE url = :url AND sourceOrigin = 'CATALOG'"
     )
     suspend fun updateCatalogByUrl(
         url: String,
@@ -83,6 +94,7 @@ interface StreamSourceDao {
         mediaKind: String,
         category: String?,
         topic: String?,
-        language: String?
+        language: String?,
+        country: String?
     )
 }

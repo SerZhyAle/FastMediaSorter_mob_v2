@@ -359,10 +359,16 @@
          keep controls legible. Do not convert to ?attr/ theme tokens. -->
     <!-- ============================================================ -->
     <color name="camera_capture_surface">#101114</color>
-    <color name="camera_capture_control_bg">#CC15171C</color>
-    <color name="camera_capture_control_stroke">#33FFFFFF</color>
+    <!-- S0753: ~30% opacity (70% transparent, owner-chosen); legibility comes from the stroke + elevation
+         shadow + outlined text, not the fill, so the controls can be this see-through. -->
+    <color name="camera_capture_control_bg">#4D15171C</color>
+    <color name="camera_capture_control_stroke">#B3FFFFFF</color>
     <color name="camera_capture_shutter_icon">#111318</color>
     <color name="camera_capture_focus_ring">#FFFFFFFF</color>
+    <!-- S0753: drop shadow behind overlay text/chips so they read on a bright (white) scene. -->
+    <color name="camera_capture_text_shadow">#CC000000</color>
+    <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
+    <color name="camera_capture_slider_inactive">#66FFFFFF</color>
 
     <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
          so the five media-type segments stay visually distinct; legend always shows value text,

@@ -202,50 +202,6 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
         testRow.visibility = if (showDetails) View.VISIBLE else View.GONE
         testRow.isClickable = showDetails
         testRow.isFocusable = showDetails
-        // S0606: detail groups render empty-to-bottom on Quest only. Dump the measured geometry of
-        // the container + its sub-groups + ancestors once they become visible, to pinpoint which
-        // sub-group/spinner collapses on the Quest compositor (not reproducible on a phone).
-        if (showDetails) {
-            detailGroups.post {
-                logViewGeometry(detailGroups, 0)
-                logAncestorGeometry(detailGroups)
-            }
-        }
-    }
-
-    private fun logViewGeometry(view: View, depth: Int) {
-        val id = if (view.id != View.NO_ID) {
-            runCatching { resources.getResourceEntryName(view.id) }.getOrNull() ?: "?"
-        } else "-"
-        val vis = when (view.visibility) {
-            View.VISIBLE -> "V"
-            View.INVISIBLE -> "I"
-            else -> "G"
-        }
-        Timber.d(
-            "S0606: ${"  ".repeat(depth)}${view.javaClass.simpleName} id=$id vis=$vis " +
-                "h=${view.height} mh=${view.measuredHeight} w=${view.width} top=${view.top} bottom=${view.bottom}",
-        )
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) logViewGeometry(view.getChildAt(i), depth + 1)
-        }
-    }
-
-    private fun logAncestorGeometry(start: View) {
-        var current: View? = start.parent as? View
-        var hops = 0
-        while (current != null && hops < 8) {
-            val id = if (current.id != View.NO_ID) {
-                runCatching { resources.getResourceEntryName(current.id) }.getOrNull() ?: "?"
-            } else "-"
-            Timber.d(
-                "S0606: ancestor[$hops] ${current.javaClass.simpleName} id=$id " +
-                    "h=${current.height} mh=${current.measuredHeight} top=${current.top} bottom=${current.bottom} " +
-                    "scrollY=${current.scrollY}",
-            )
-            current = current.parent as? View
-            hops++
-        }
     }
 
     private fun launchDiagnosticImmerse() {

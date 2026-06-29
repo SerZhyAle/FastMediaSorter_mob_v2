@@ -124,6 +124,7 @@ kotlin {
 }
 
 dependencies {
+    lintChecks(project(":lint-rules"))
     // Wear OS Compose - Using compatible BOM version for wear-compose 1.2.1
     // compose-bom 2024.02.00 includes compose-animation-core 1.6.x compatible with wear-compose 1.2.x
     val wearComposeBom = platform("androidx.compose:compose-bom:2024.02.00")

@@ -180,6 +180,56 @@ Ratchet model: each module has a committed baseline freezing every pre-existing 
 - Baselines: `config/detekt/baseline-app_v2.xml`, `config/detekt/baseline-wear.xml`.
 - Plugin: applied per-subproject in the root `build.gradle.kts` (`subprojects { }`), detekt `1.23.8` + `detekt-formatting`.
 
+### Listener symmetry ratchet gate - S0721
+
+A lexical ratchet over Kotlin listener ownership: `register*`/`unregister*`, `registerReceiver`/`unregisterReceiver`, and `add*Listener|Callback|Observer` vs the matching `remove*` calls. The gate is deliberately cheap - it scans `app_v2/src/main` + `wear/src/main`, compares the aggregate balance per file, and fails only when the total imbalance grows above the frozen baseline.
+
+```powershell
+# Report current count vs baseline
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1
+
+# PASS/FAIL verdict (wired into post-change.ps1 for Kotlin/Mixed changes)
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -Gate
+
+# Print every unbalanced file with counts
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -List
+
+# Ratchet the committed baseline DOWN after intentional cleanup
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -UpdateBaseline
+```
+
+Ratchet model: `scripts/quality/listener-symmetry-baseline.txt` freezes the current debt and blocks only NEW symmetry drift. The gate is a cheap guardrail, not a proof of lifecycle correctness - treat every hit as an audit lead, then confirm the symmetric lifecycle edge in code review or a targeted audit pass.
+
+### Custom Android Lint rules - S0721
+
+An AST-based custom lint checker `:lint-rules` enforcing structural project rules:
+- **ActivityLogicViolation**: No business logic / `@Inject` repositories inside Activities.
+- **UiContextLeak**: No storage of UI Context (Activity, Fragment, View) in ViewModels or `@Singleton`s.
+- **UnsafeFlowCollect**: No lifecycle-unsafe Flow `.collect` calls without `repeatOnLifecycle` or `flowWithLifecycle`.
+- **PlayerNotReleased**: Classes holding media players must release them via `release()`.
+- **MainThreadIo**: Blocking file/network I/O calls on the main thread in UI / ViewModel classes.
+
+Usage:
+```powershell
+# Run lint check on standard flavor debug variant
+.\gradlew.bat :app_v2:lintStandardDebug
+
+# Run tests of the lint rules module itself
+.\gradlew.bat :lint-rules:test
+```
+
+### Memory Leak Testing (LeakCanary) - S0721
+
+Instrumented leak detection run on demand using LeakCanary inside instrumented tests:
+- **LeakDetectionInstrumentationTest**: Automates UI traversal or lifecycle actions and fails the test run if any memory leaks (retaining Activities, Fragments, etc.) are detected.
+
+Usage:
+```powershell
+# Run the leak detection instrumented test
+.\gradlew.bat :app_v2:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.sza.fastmediasorter.leak.LeakDetectionInstrumentationTest
+```
+
+
 ## STRING RESOURCE TOOLING
 
 ```powershell

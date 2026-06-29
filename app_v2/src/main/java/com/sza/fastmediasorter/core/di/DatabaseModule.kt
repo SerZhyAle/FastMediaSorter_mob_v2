@@ -3,27 +3,28 @@ package com.sza.fastmediasorter.core.di
 import android.content.Context
 import androidx.room.Room
 import com.sza.fastmediasorter.core.db.DatabaseResetNotice
+import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.data.local.db.AppLaunchPanelTileDao
+import com.sza.fastmediasorter.data.local.db.CachedFileListDao
+import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
+import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
 import com.sza.fastmediasorter.data.local.db.MIGRATION_33_34
 import com.sza.fastmediasorter.data.local.db.MIGRATION_34_35
 import com.sza.fastmediasorter.data.local.db.MIGRATION_35_36
-import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
-import com.sza.fastmediasorter.data.local.db.AppLaunchPanelTileDao
-import com.sza.fastmediasorter.data.local.db.CachedFileListDao
-import com.sza.fastmediasorter.data.local.db.FavoritesDao
-import com.sza.fastmediasorter.data.local.db.StreamSourceDao
-import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
+import com.sza.fastmediasorter.data.local.db.MIGRATION_36_37
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
+import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
-import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -97,7 +98,8 @@ object DatabaseModule {
                 MIGRATION_32_33,
                 MIGRATION_33_34,
                 MIGRATION_34_35,
-                MIGRATION_35_36
+                MIGRATION_35_36,
+                MIGRATION_36_37
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent

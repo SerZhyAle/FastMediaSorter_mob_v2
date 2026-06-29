@@ -32,11 +32,13 @@
 - `/spec-test-device`: on-device verification, UI drive, logcat harvest.
 - `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
 - `/spec-prerelease`: end-to-end pre-release emulator sweep (clean install, resources, settings, scenario, perf, verdict) gating `/skill-release`.
+- `/release`: full release-campaign runbook (assess -> finish in-flight work -> `/spec-prerelease` -> evaluate -> ready docs incl. "What's New" -> `/skill-release` -> distribute everywhere -> verify). Checklist + work order; `/skill-release` is one step. Terms in `docs/BUILD_VS_RELEASE.md`.
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
 - `/catalog`: class/feature queries, run `scripts/catalog_sync.ps1`.
 - `/doc-update`: docs sync.
 - `/log-reader`: logcat/log analysis.
-- `/build`, `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
+- `/build`: build checklist (work order) + build-system reference. Local "build" flow; terms in `docs/BUILD_VS_RELEASE.md`.
+- `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
 
 ### 3.1 Auto-capture of out-of-scope findings (`/spec-draft`)
 - At **any** stage - research, development, audit, code review, device test, log analysis - when you discover a problem meeting ALL three conditions, invoke the `/spec-draft` procedure to park it, without asking:

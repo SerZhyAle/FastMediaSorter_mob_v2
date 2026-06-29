@@ -50,6 +50,58 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     'pwsh'
 }
 
+function Get-SectionBodyByHeading {
+    param(
+        [string]$Text,
+        [string[]]$HeadingPatterns
+    )
+
+    foreach ($match in [regex]::Matches($Text, '(?ms)^##\s+([^\r\n]+)\r?\n(.*?)(?=^\s*##\s+|\z)')) {
+        $heading = $match.Groups[1].Value.Trim()
+        foreach ($pattern in $HeadingPatterns) {
+            if ($heading -match $pattern) {
+                return $match.Groups[2].Value
+            }
+        }
+    }
+
+    return $null
+}
+
+function Get-UnresolvedResearchItemCount {
+    param([string]$Text)
+
+    $researchBody = Get-SectionBodyByHeading -Text $Text -HeadingPatterns @(
+        '(?i)\bResearch\s+items?\b',
+        '(?i)\bOpen\s+Questions?\b',
+        '(?i)Открытые\s+вопрос'
+    )
+    if (-not $researchBody) {
+        return 0
+    }
+
+    $explicitOpenCount = [regex]::Matches(
+        $researchBody,
+        '(?im)^\s*[-*]\s+\*\*(?:Статус|Status):\*\*\s*Open\b|^\s*[-*]\s*(?:Статус|Status):\s*Open\b'
+    ).Count
+    if ($explicitOpenCount -gt 0) {
+        return $explicitOpenCount
+    }
+
+    $itemMatches = [regex]::Matches($researchBody, '(?ms)^(?:[-*]|\d+\.)\s+.*?(?=^(?:[-*]|\d+\.)\s+|\z)')
+    $fallbackCount = 0
+    foreach ($item in $itemMatches) {
+        $block = $item.Value
+        $hasQuestionMarker = $block -match '(?im)\*\*(?:Вопрос|Question):\*\*' -or $block -match '\?'
+        $isResolved = $block -match '(?im)(?:\*\*(?:Статус|Status):\*\*\s*Resolved\b|\bStatus:\s*Resolved\b)'
+        if ($hasQuestionMarker -and -not $isResolved) {
+            $fallbackCount++
+        }
+    }
+
+    return $fallbackCount
+}
+
 # 1. Resolve catalog record
 $selectPath = Join-Path $PSScriptRoot 'select.ps1'
 $catJson = & $pwshExe -File $selectPath -Id $Id -Format json 2>$null
@@ -163,16 +215,8 @@ if ($depMatch.Success) {
     }
 }
 
-# 9. Research item count (§6 "Открытые вопросы" / "Open Questions")
-$researchOpenCount = 0
-$researchMatch = [regex]::Match($specText, '(?ms)^##\s+6\.[^\n]*Open\s+Questions?[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
-if (-not $researchMatch.Success) {
-    $researchMatch = [regex]::Match($specText, '(?ms)^##\s+6\.[^\n]*вопрос[^\n]*\n(.+?)(?:\r?\n##\s|\z)', 'IgnoreCase')
-}
-if ($researchMatch.Success) {
-    $items = [regex]::Matches($researchMatch.Groups[1].Value, '(?m)^\s*[-*]\s+\*\*[A-Z][\w-]*[-_]?\d*\*\*|^\s*\d+\.\s+\*\*')
-    $researchOpenCount = $items.Count
-}
+# 9. Research item count (heading-based, section-number agnostic; unresolved only)
+$researchOpenCount = Get-UnresolvedResearchItemCount -Text $specText
 
 # 10. Owner-gate detection
 $ownerGate = $false
@@ -207,7 +251,7 @@ elseif ($rec.status -eq 'BlockByOtherTask' -and $dependsOn.Count -gt 0) {
 }
 elseif ($researchOpenCount -ge 3 -and $rec.status -in @('Draft', 'Approved')) {
     $autoSkip = 'research-heavy'
-    $autoSkipReason = "§6 has $researchOpenCount unresolved research items; /spec-all would block"
+    $autoSkipReason = "Research section has $researchOpenCount unresolved items; /spec-all would block"
 }
 
 # 12. Compose result

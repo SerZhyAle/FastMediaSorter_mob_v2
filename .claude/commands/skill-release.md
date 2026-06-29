@@ -7,6 +7,8 @@
 
 Merge current `DEBUG-v00N` into `main`, tag release, update `WHATS_NEW.md` + `README.md` from git history, open next DEBUG branch, build release artifacts, publish standard AAB to Google Play, publish requested-flavor APK assets to GitHub Releases - one unattended pipeline. Default: only `standard` built+published; pass extra flavor names (or `all`) to widen GitHub spectrum (see Usage / `$FLAVORS`).
 
+> Terminology: `/skill-release` is the single **release** entry point (as defined in `docs/BUILD_VS_RELEASE.md`) and the only flow that spends paid GitHub Actions minutes. A local **build** on a `DEBUG-v0NN` branch is free.
+
 **Distribution channels** (full matrix in Step 12a): Google Play (automated), GitHub Store (automated), Google Drive (automated inside `a.ps1 r` - password-protected ZIP), 4pda forum (manual post, cumulative since last 4pda post), IzzyOnDroid (one-time RFP, then auto-pull from GitHub releases).
 
 ## Usage

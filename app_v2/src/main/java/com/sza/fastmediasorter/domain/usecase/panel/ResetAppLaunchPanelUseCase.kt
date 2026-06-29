@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.domain.usecase.panel
 import com.sza.fastmediasorter.domain.repository.AppLaunchPanelRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -16,7 +15,6 @@ class ResetAppLaunchPanelUseCase @Inject constructor(
     private val seedDefault: SeedDefaultAppLaunchPanelUseCase,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        Timber.d("S0663: reset panel to install-time defaults")
         repository.replaceAll(emptyList())
         seedDefault()
     }

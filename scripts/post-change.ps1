@@ -170,6 +170,8 @@ $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
 $runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
+# S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
+$runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -295,6 +297,15 @@ if ($runsDialogCancelGate) {
 }
 else {
     Skip-Step "dialog-cancel-style-gate" "not applicable - touched file is not a dialog/bottom-sheet layout"
+}
+
+if ($runsListenerSymmetryGate) {
+    Invoke-Step "listener-symmetry-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "listener-symmetry-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsAllFeaturesGate) {

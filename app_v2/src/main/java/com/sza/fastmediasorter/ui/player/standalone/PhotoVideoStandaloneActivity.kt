@@ -431,6 +431,9 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
+    /** S0763: cached 3D/VR master-toggle state; updated by the settings collector in [observeData]. */
+    private var cached3dVrEnabled = true
+
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
 
@@ -734,10 +737,21 @@ class PhotoVideoStandaloneActivity :
             }
             AUTO_ACTION_CROP_AND_SHARE -> {
                 autoActionConsumed = true
-                pendingShareAfterCrop = true
-                Timber.d("S0680: crop-and-share gesture auto-action entered")
-                cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
+                launchCropAndShareAutoAction()
             }
+        }
+    }
+
+    private fun launchCropAndShareAutoAction() {
+        lifecycleScope.launch {
+            Timber.d("S0680: crop-and-share auto-action start")
+            viewModel.ensureEditableImage()
+            if (viewModel.editableImageFile.value == null) {
+                pendingShareAfterCrop = false
+                return@launch
+            }
+            pendingShareAfterCrop = true
+            cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
         }
     }
 
@@ -844,6 +858,10 @@ class PhotoVideoStandaloneActivity :
                 if (enabled) R.string.rotation_toggle_sensor_on_desc
                 else R.string.rotation_toggle_sensor_off_desc
             )
+        }
+        // S0763: keep the 3D/VR master-toggle snapshot current for the playback control dialog.
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            cached3dVrEnabled = !settings.disable3dVr
         }
     }
 
@@ -1060,6 +1078,9 @@ class PhotoVideoStandaloneActivity :
 
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    // S0763: gate the dialog's "3D" section on the cached 3D/VR master-toggle state.
+    override val is3dVrEnabled: Boolean get() = cached3dVrEnabled
 
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) =

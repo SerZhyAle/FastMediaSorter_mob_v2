@@ -63,6 +63,11 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private var hasMultipleAudioTracks = true
     private var hasSubtitles = true
 
+    // S0763: the "3D" section is additionally gated by the user's 3D/VR master toggle. Snapshotted
+    // once on open (the rail stays stable for this dialog) from the host's cached settings. Default
+    // true keeps the prior behavior if the host has not resolved the setting yet.
+    private var is3dVrEnabled = true
+
     // S0670: the 3D tab is a VR-build capability (vr + noLegal), gated by flavor, not by detected
     // stereo content. The VR-player capability flag is unusable here - it is true only on noLegal
     // (vr keeps it false under S0241) - so this reads the dedicated supportsVrMediaControls flag.
@@ -80,7 +85,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 add(ControlSection.VOLUME)
                 if (hasMultipleAudioTracks) add(ControlSection.AUDIO)
                 if (hasSubtitles) add(ControlSection.SUBTITLES)
-                if (supportsVrMediaControls) add(ControlSection.STEREO)
+                if (supportsVrMediaControls && is3dVrEnabled) add(ControlSection.STEREO)
                 add(ControlSection.HUE)
                 add(ControlSection.BRIGHTNESS)
                 add(ControlSection.SPEED)
@@ -112,6 +117,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
             hasMultipleAudioTracks = handle.getAvailableAudioTracks().size > 1
             hasSubtitles = handle.getAvailableSubtitleTracks().isNotEmpty()
         }
+        // S0763: snapshot the 3D/VR master-toggle state before building the section rail.
+        is3dVrEnabled = host().is3dVrEnabled
+        Timber.d("S0763: 3D section gate supportsVrMediaControls=$supportsVrMediaControls is3dVrEnabled=$is3dVrEnabled")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {

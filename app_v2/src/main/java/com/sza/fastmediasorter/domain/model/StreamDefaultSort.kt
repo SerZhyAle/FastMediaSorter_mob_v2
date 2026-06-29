@@ -9,6 +9,7 @@ enum class StreamDefaultSort {
     NAME,
     TOPIC,
     LANGUAGE,
+    COUNTRY,
     RECENT;
 
     companion object {

@@ -430,4 +430,37 @@
         <item name="android:splitTrack">false</item>
         <item name="android:paddingVertical">12dp</item>
     </style>
+
+    <!-- S0753: camera overlay icon buttons - ~70% dark fill, visible stroke and an elevation shadow
+         so they separate from any background (white or black scene). -->
+    <style name="Widget.FastMediaSorter.Camera.OverlayButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="backgroundTint">@color/camera_capture_control_bg</item>
+        <item name="strokeColor">@color/camera_capture_control_stroke</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">@android:color/white</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+
+    <!-- S0753: camera overlay text (mode tabs, recording timer) with a drop shadow so white text
+         stays legible on a bright viewfinder. -->
+    <style name="Widget.FastMediaSorter.Camera.OverlayText" parent="">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:shadowColor">@color/camera_capture_text_shadow</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+
+    <!-- S0753: zoom preset chips - white text + shadow over a ~70% dark fill and a visible stroke,
+         so the pills read on any background. -->
+    <style name="Widget.FastMediaSorter.Camera.ZoomChip" parent="Widget.Material3.Chip.Filter">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:shadowColor">@color/camera_capture_text_shadow</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
+        <item name="chipBackgroundColor">@color/camera_capture_control_bg</item>
+        <item name="chipStrokeColor">@color/camera_capture_control_stroke</item>
+        <item name="chipStrokeWidth">1dp</item>
+    </style>
 </resources>

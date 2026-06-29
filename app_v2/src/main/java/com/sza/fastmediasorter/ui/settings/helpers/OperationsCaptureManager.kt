@@ -27,7 +27,10 @@ class OperationsCaptureManager(
     private val binding: FragmentSettingsDestinationsBinding,
     private val viewModel: SettingsViewModel,
     private val mediaCapabilities: MediaCapabilities,
+    // S0774: true when a ScreenVideoRecordingController is bound (standard fms.screenCapture=on + noLegal).
+    private val isScreenRecordingAvailable: Boolean,
     private val recordAudioPermissionLauncher: ActivityResultLauncher<String>,
+    private val locationPermissionLauncher: ActivityResultLauncher<String>,
     private val isUpdatingFromSettings: () -> Boolean,
     private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
     private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
@@ -57,6 +60,20 @@ class OperationsCaptureManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(cameraCaptureCopyToClipboard = isChecked))
+        }
+        // S0766: geotag is opt-in and persists only after ACCESS_FINE_LOCATION is granted (mic pattern):
+        // enabling without the grant requests it; the fragment's launcher persists the flag on grant and
+        // reverts the row on denial, so coordinates are never collected without explicit consent.
+        binding.rowCameraGeotag.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            if (isChecked && ContextCompat.checkSelfPermission(
+                    fragment.requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                return@setOnCheckedChangeListener
+            }
+            viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = isChecked))
         }
         binding.btnSelectCameraPhotosDest.setOnClickListener {
             pickDestination(
@@ -124,6 +141,26 @@ class OperationsCaptureManager(
                 }
             }
         }
+
+        // ── Screen video recording (S0774) ──
+        if (!isScreenRecordingAvailable) {
+            binding.rowScreenRecordingEnabled.isVisible = false
+            binding.layoutScreenRecordingDestSelector.isVisible = false
+        } else {
+            binding.rowScreenRecordingEnabled.setOnCheckedChangeListener { isChecked ->
+                if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+                viewModel.updateSettings(viewModel.settings.value.copy(screenRecordingEnabled = isChecked))
+                binding.layoutScreenRecordingDestSelector.isVisible = isChecked
+            }
+            binding.btnSelectScreenRecordingDest.setOnClickListener {
+                pickDestination(
+                    viewModel.settings.value.screenRecordingDestinationResourceId?.toLongOrNull()
+                ) { resource ->
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(screenRecordingDestinationResourceId = resource?.id?.toString()))
+                }
+            }
+        }
     }
 
     /** Applies the latest settings to the capture rows (camera photos, video, microphone). */
@@ -140,6 +177,9 @@ class OperationsCaptureManager(
         }
         if (binding.rowCameraCopyToClipboard.isChecked != settings.cameraCaptureCopyToClipboard) {
             binding.rowCameraCopyToClipboard.setCheckedSilently(settings.cameraCaptureCopyToClipboard)
+        }
+        if (binding.rowCameraGeotag.isChecked != settings.cameraGeotagEnabled) {
+            binding.rowCameraGeotag.setCheckedSilently(settings.cameraGeotagEnabled)
         }
         binding.layoutCameraToResourceOptions.isVisible = !settings.disableCameraCapture
         refreshLabel(
@@ -171,6 +211,17 @@ class OperationsCaptureManager(
                 settings.micRecordingDestinationResourceId,
                 R.string.setting_mic_recording_destination_default_downloads
             ) { binding.tvMicRecordingDest.text = it }
+        }
+        // Screen video recording rows (S0774, capability-gated).
+        if (isScreenRecordingAvailable) {
+            if (binding.rowScreenRecordingEnabled.isChecked != settings.screenRecordingEnabled) {
+                binding.rowScreenRecordingEnabled.setCheckedSilently(settings.screenRecordingEnabled)
+            }
+            binding.layoutScreenRecordingDestSelector.isVisible = settings.screenRecordingEnabled
+            refreshLabel(
+                settings.screenRecordingDestinationResourceId,
+                R.string.setting_screen_recording_destination_default_downloads
+            ) { binding.tvScreenRecordingDest.text = it }
         }
     }
 

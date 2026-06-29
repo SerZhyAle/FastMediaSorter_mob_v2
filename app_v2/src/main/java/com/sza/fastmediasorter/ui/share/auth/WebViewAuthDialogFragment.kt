@@ -66,7 +66,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
             LinkDownloadTrace.tag(
                 "webview-auth opened for ${LinkDownloadTrace.truncateUrl(targetUrl)}, cookies-before=$initialCookies, harvest=$harvestMode",
             )
-            web.loadUrl(targetUrl)
+            loadAuthUrl(web, targetUrl)
         }
 
         view.findViewById<MaterialButton>(R.id.btnWebviewAuthCancel).setOnClickListener {
@@ -88,6 +88,27 @@ class WebViewAuthDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
+    }
+
+    /**
+     * Harvest mode reuses the live browser session to reach gated content, so it loads directly.
+     * A login flow (add-account / relogin / manual) must instead start unauthenticated: the global
+     * CookieManager persists the previously-registered account's `sessionid` across app runs, and
+     * opening a provider login URL while that stale session is present makes the provider bounce
+     * login -> home -> login until the WebView aborts with ERR_TOO_MANY_REDIRECTS - which is why a
+     * second account could never be added. Clear cookies first, then load on the removal callback so
+     * the page never sees the old session (S0749).
+     */
+    private fun loadAuthUrl(web: WebView, targetUrl: String) {
+        if (harvestMode) {
+            web.loadUrl(targetUrl)
+            return
+        }
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies {
+            cookieManager.flush()
+            if (isAdded && !isDetached) web.loadUrl(targetUrl)
+        }
     }
 
     private fun configureWebView(web: WebView) {

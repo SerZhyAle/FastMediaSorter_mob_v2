@@ -146,6 +146,7 @@ _Available in: Standard, Legacy_
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
 | Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
+| Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 
 ## Other
 
@@ -206,6 +207,7 @@ _Available in: Standard, Legacy_
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
+| Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Default audio player | Sets which app opens audio files by default when tapped from outside this app. |
@@ -226,6 +228,7 @@ _Available in: Standard, Legacy_
 | Accept shared files | Allows other apps to share files directly into this app via the Android share sheet. |
 | Ask for each photo name | Prompts you to enter a name for each photo immediately after it is captured. |
 | Save photos to clipboard | Automatically copies each captured photo to the clipboard after saving. |
+| Geotag photos | Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default. |
 | Only OCR (no translation) | Runs OCR on the captured photo but skips translation, showing only the recognized text. |
 | Camera OCR translation | Recognizes and translates text in the photo taken with the built-in camera. |
 | Open captured photo for editing | Opens the captured photo in an image editor immediately after shooting. |
@@ -256,9 +259,11 @@ _Available in: Standard, Legacy_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | System media handler | Registers this app as a system-level media handler so it receives media intents from other apps. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
+| Screen video recording | Enables the built-in screen video recording feature. |
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |
 | Right gesture action | Chooses the action triggered by the rightward screen gesture. |
 | Up gesture action | Chooses the action triggered by the upward screen gesture. |
+| Show programs panel in main window | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |

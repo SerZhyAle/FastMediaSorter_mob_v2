@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.streams
 
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.Menu
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -13,15 +13,16 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
-import com.google.android.material.color.MaterialColors
-import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
+import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -105,9 +106,15 @@ class StreamSourceAdapter(
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
             bindChip(binding.tvTopic, source.topic)
+            // Country is shown before language as flag+code (e.g. "🇺🇦 UA"); manual rows leave it null.
+            bindChip(binding.tvCountry, countryChipText(binding.tvCountry, source.country))
             bindChip(binding.tvLanguage, source.language)
             binding.chipRow.visibility =
-                if (binding.tvTopic.isVisible || binding.tvLanguage.isVisible) View.VISIBLE else View.GONE
+                if (binding.tvTopic.isVisible || binding.tvCountry.isVisible || binding.tvLanguage.isVisible) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             bindPinState(source.pinned)
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
@@ -221,8 +228,18 @@ class StreamSourceAdapter(
             )
         }
 
+        /**
+         * Catalog country is an ISO 3166-1 alpha-2 code; render it as "flag code" (e.g. "🇺🇦 UA"). RU/BY
+         * use the custom image-flag contract from [LanguageFlagFormatter]; unmapped values degrade to the
+         * bare code, mirroring [bindChip].
+         */
+        private fun countryChipText(view: TextView, country: String?): CharSequence? {
+            val code = country?.trim()?.takeIf { it.isNotBlank() } ?: return null
+            return LanguageFlagFormatter.compactCountryCodeLabel(view, code)
+        }
+
         /** Catalog metadata only - manual/imported rows leave topic/language null, so hide the chip. */
-        private fun bindChip(view: TextView, value: String?) {
+        private fun bindChip(view: TextView, value: CharSequence?) {
             if (value.isNullOrBlank()) {
                 view.visibility = View.GONE
             } else {

@@ -10,6 +10,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- S0774: screen video recording records microphone audio and posts a foreground notification. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application>
         <activity
@@ -22,6 +25,20 @@
 
         <service
             android:name="com.sza.fastmediasorter.screencapture.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
+        <!-- S0774: continuous screen video recording. -->
+        <activity
+            android:name="com.sza.fastmediasorter.screencapture.ScreenVideoRecordingConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.ScreenVideoRecordingService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
     </application>

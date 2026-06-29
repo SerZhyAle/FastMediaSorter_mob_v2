@@ -1103,6 +1103,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
+    // S0763: gate the dialog's "3D" section on the 3D/VR master toggle (hot settings StateFlow).
+    override val is3dVrEnabled: Boolean get() = !viewModel.settings.value.disable3dVr
+
     override fun setStereoMode(mode: StereoMode) {
         viewModel.setStereoMode(mode)
     }

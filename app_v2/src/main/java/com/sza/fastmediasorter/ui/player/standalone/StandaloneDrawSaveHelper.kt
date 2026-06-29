@@ -159,7 +159,6 @@ class StandaloneDrawSaveHelper(
         viewW: Int,
         viewH: Int,
     ) {
-        Timber.d("S0679: draw-editor crop apply (standalone)")
         val base = getDisplayedBitmap() ?: run {
             Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
             return

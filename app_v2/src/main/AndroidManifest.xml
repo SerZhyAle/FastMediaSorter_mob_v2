@@ -16,6 +16,9 @@
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- S0766: optional GPS geotagging of in-app camera photos (opt-in, default off). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 
     <!-- Network permissions -->
@@ -36,6 +39,9 @@
     <!-- required=false keeps Play Store availability for camera-less devices such as XR headsets. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <!-- S0766: geotag is an opt-in extra; required=false keeps GPS-less devices eligible on Play. -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
@@ -200,7 +206,7 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="stateHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
@@ -213,7 +219,8 @@
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
-        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter" />
+        <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
+        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="keyboardHidden" android:screenOrientation="portrait" android:theme="@style/Theme.FastMediaSorter" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
@@ -546,6 +553,7 @@
              the .StandaloneTypelessPlayer alias; resolves the real media family and forwards explicitly
              to the matching specialized activity without loading heavy media SDKs. -->
         <activity android:name=".ui.player.dispatch.StandalonePlayerDispatcherActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+        <activity android:name=".ui.player.print.PrintDispatchActivity" android:exported="false" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().

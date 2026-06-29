@@ -20,6 +20,9 @@ class StreamSourceRepository @Inject constructor(
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
 
+    /** S0756: pinned channels only, in pin order, for the main-window streams panel. */
+    fun observePinnedSources(): Flow<List<StreamSourceEntity>> = dao.observePinned()
+
     suspend fun add(source: StreamSourceEntity) = dao.upsert(source)
 
     /** Inserts new sources, ignoring duplicates by url; returns how many were actually inserted. */
@@ -38,6 +41,9 @@ class StreamSourceRepository @Inject constructor(
     }
 
     suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
+
+    /** S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept. */
+    suspend fun unpin(id: String) = dao.unpin(id)
 
     /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
     suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
@@ -82,7 +88,8 @@ class StreamSourceRepository @Inject constructor(
                         mediaKind = entry.mediaKind,
                         category = entry.category,
                         topic = entry.topic,
-                        language = entry.language
+                        language = entry.language,
+                        country = entry.country
                     )
                     updated++
                 } else if (dao.insertIgnore(entry) != -1L) {

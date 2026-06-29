@@ -4,9 +4,9 @@ import android.app.Activity
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.ui.UiState
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.ResourceType

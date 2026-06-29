@@ -30,6 +30,7 @@ class MainStreamsMenuManager(
     }
 
     companion object {
-        private const val MENU_ITEM_STREAMS = 14
+        // S0770: read by MainActivity to map this item to its open-in-new-window launch.
+        const val MENU_ITEM_STREAMS = 14
     }
 }

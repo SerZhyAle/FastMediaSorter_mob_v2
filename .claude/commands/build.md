@@ -5,16 +5,17 @@
 > 2. Autonomy: silently fix minor/non-structural inaccuracies; block only for critical business-logic decisions.
 > 3. Terse report: one dry statement of what was done and why.
 
-Answer questions on build system, scripts, versioning, flavors, deployment for FastMediaSorter v2.
+A local **build** ("сборка"): compile, verify locally, commit to a `DEBUG-v0NN` branch. Free - zero GitHub Actions minutes (see `docs/BUILD_VS_RELEASE.md`). This skill is two things: a **work-order checklist** for doing one build without losing anything, and a **reference** for the build system, scripts, versioning, flavors, deployment. For publishing a version, that is a release - use `/release`.
 
 ## Usage
 
 ```
-/build [optional: specific question or topic]
+/build                          # run the build checklist: fast checks + build standard debug + build noLegal debug
+/build <specific question>      # answer from the reference below
 ```
 
 Examples:
-- `/build` - full build reference
+- `/build` - execute the work-order checklist end to end, building both standard and noLegal debug
 - `/build how do I build for device?`
 - `/build what flavors exist?`
 - `/build how does versioning work?`
@@ -24,12 +25,36 @@ Examples:
 ## Process
 
 On `$ARGUMENTS`:
-- Step 1 - Parse. If topic provided, focus it; else output full reference below.
-- Step 2 - Answer from reference below (authoritative for build/script/versioning). Don't search codebase unless question requires it.
+- Step 1 - Parse. Empty -> **execute** the Build Checklist below in order; do not just print it. A specific topic -> skip execution and answer from the reference.
+- Step 2 - For empty input: walk the checklist steps, running each command and recording `expected: X | actual: Y`. Build standard debug first, then noLegal debug - sequentially, never two gradle builds at once (daemon OOM). Report a terse one-line verdict per build (PASS/FAIL + APK path or failure digest).
+- Step 3 - For a specific question: answer from the reference below (authoritative for build/script/versioning). Don't search the codebase unless the question requires it.
+
+---
+
+## Build Checklist (work order)
+
+The order of work for a single local build, so nothing is dropped. None of this spends GitHub Actions minutes - a DEBUG-branch push triggers no CI (`docs/BUILD_VS_RELEASE.md`).
+
+1. **Branch.** `git branch --show-current` - confirm a `DEBUG-v0NN` branch, never `main`. The pre-push guard blocks an accidental `main` push.
+2. **Scope the change.** Know exactly which files this build covers; for a spec, the active `Sxxxx`.
+3. **Fast checks first** (seconds, not a full build):
+   - `.\a.ps1 fk` - Kotlin compile check (symbol/signature changes).
+   - `.\a.ps1 fc` - code + resources (when XML/strings/layouts touched).
+   - `.\a.ps1 fu` - unit suite, when logic changed (note pre-existing failures; verify own work per-class).
+4. **Build standard debug.** `.\a.ps1 dq` (fast, quiet) or `.\a.ps1 d` (zipped reusable APK). `.\a.ps1 cd` only when a clean build is genuinely needed.
+4b. **Build noLegal debug.** `.\a.ps1 nd` (`scripts/builders/build-nolegal-debug.ps1`). Run only after Step 4 finishes - never two gradle builds concurrently (daemon OOM). noLegal mounts `src/noLegal/` + VR/streaming source sets the standard flavor skips, so it catches flavor-isolation breakage standard cannot.
+5. **Verify locally.** Install + drive on a device/emulator when the change is user-visible (`/run`, `/verify`, or `.\a.ps1 id`). A compile-only change can stop at Step 3.
+6. **Clean up the touched files.** Resolve lint/neuroslop warnings in files you edited; Timber only (no `Log.d`); landscape layout parity if a `res/layout/` file changed.
+7. **Record the change.** Dev log per logical change (`scripts/post-change.ps1` facade, or `add_to_dev_log.ps1`); catalog sync once per ticket after `.kt` edits.
+8. **Commit + push to DEBUG.** `.\a.ps1 c "<message>"` - `git add` + commit + push to the current DEBUG branch. Quoted arg = commit subject. Still zero CI.
+
+Build failed? `.\a.ps1 bf` (last failure block) or `.\a.ps1 bfd` (structured digest). kapt stall -> `scripts/utils/recover-kapt-stall.ps1`.
 
 ---
 
 ## Build Reference
+
+> Terminology: a local **build** (free, on a `DEBUG-v0NN` branch) versus a **release** (paid CI, on `main`) is defined in `docs/BUILD_VS_RELEASE.md` - the source of truth for which actions spend GitHub Actions minutes.
 
 ### Quick Decision Table
 
@@ -38,6 +63,7 @@ On `$ARGUMENTS`:
 | Standard debug + version bump + deploy to device | `.\dev\build-with-version.ps1` |
 | Fast debug (no version bump) | `.\a.ps1 d` (zip) · `.\a.ps1 db` (no zip) |
 | **Fast quiet debug (recommended in skill loops)** | `.\a.ps1 dq` (no zip, suppresses UP-TO-DATE / deprecated-DSL / known-acceptable warnings) |
+| noLegal debug (sideload flavor) | `.\a.ps1 nd` (`scripts/builders/build-nolegal-debug.ps1`) |
 | Specific flavor debug | `.\gradlew.bat assemble<Flavor>Debug` |
 | Device build (build + adb install + launch) | `.\scripts\builders\build-standard-device.ps1` |
 | Release APK | `.\scripts\builders\build-standard-release.ps1` |

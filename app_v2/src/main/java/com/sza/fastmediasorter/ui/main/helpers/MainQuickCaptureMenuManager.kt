@@ -19,16 +19,18 @@ class MainQuickCaptureMenuManager(
     fun itemCount(voice: Boolean, camera: Boolean): Int =
         (if (voice) 1 else 0) + (if (camera) 1 else 0)
 
+    // S0758: camera before voice - the owner's canonical main-menu order puts "Камера" ahead of
+    // "Диктофон". startOrder is the camera slot; voice takes the next.
     fun populate(popup: PopupMenu, voice: Boolean, camera: Boolean, startOrder: Int): Int {
         var added = 0
-        if (voice) {
-            popup.menu.add(0, MENU_ITEM_QUICK_VOICE, startOrder + added, R.string.quick_voice_menu_label)
-                .setIcon(R.drawable.ic_microphone)
-            added++
-        }
         if (camera) {
             popup.menu.add(0, MENU_ITEM_QUICK_CAMERA, startOrder + added, R.string.quick_camera_menu_label)
                 .setIcon(R.drawable.ic_camera_capture)
+            added++
+        }
+        if (voice) {
+            popup.menu.add(0, MENU_ITEM_QUICK_VOICE, startOrder + added, R.string.quick_voice_menu_label)
+                .setIcon(R.drawable.ic_microphone)
             added++
         }
         return added
@@ -41,7 +43,8 @@ class MainQuickCaptureMenuManager(
     }
 
     companion object {
-        private const val MENU_ITEM_QUICK_VOICE = 10
-        private const val MENU_ITEM_QUICK_CAMERA = 12
+        // S0770: read by MainActivity to map these items to their "Remove" (disable) settings writes.
+        const val MENU_ITEM_QUICK_VOICE = 10
+        const val MENU_ITEM_QUICK_CAMERA = 12
     }
 }

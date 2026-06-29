@@ -54,7 +54,7 @@
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="msg_last_filter_restored">Восстановлен последний фильтр: %1$s</string>
     <string name="warning_files_may_remain_in_source">Некоторые файлы могли остаться в исходной папке. Проверьте источник и папку назначения. Затронуто: %1$d.</string>
-    <string name="no_supported_files_in_resource">Допустимых типов файла в ресурсе нет</string>
+    <string name="no_supported_files_in_resource">Поддерживаемых типов файлов здесь нет. Мы избирательнее, чем кажемся.</string>
     <string name="process_started">Процесс запущен..</string>
     <string name="long_operation_started">Операция выполняется, пожалуйста подождите..</string>
     <string name="please_wait">Пожалуйста, подождите..</string>
@@ -169,8 +169,8 @@
     <string name="play_random_short">Случайный</string>
     <string name="scroll_to_top">В начало списка</string>
     <string name="scroll_to_bottom">В конец списка</string>
-    <string name="empty_state_message">Добро пожаловать! 🎉\n\nНачните с установки настроек программы и добавления локальных папок устройства на этот экран</string>
-    <string name="no_media_files_found">В этой папке нет медиафайлов</string>
+    <string name="empty_state_message">Добро пожаловать! Экран пуст - ровно таким мы его и выпустили.\n\nДобавьте сюда папки устройства и откройте настройки, чтобы дело пошло.</string>
+    <string name="no_media_files_found">В этой папке нет медиафайлов. Мы честно обыскали все углы.</string>
     <string name="recent_media">Недавние медиа</string>
     <string name="virtual_all_music">Вся музыка</string>
     <string name="virtual_all_video">Всё видео</string>
@@ -188,7 +188,7 @@
     <string name="virtual_resource_added">Ресурс «%1$s» добавлен</string>
     <string name="rescan_all_virtual_warning_title">Ресканирование всех ресурсов</string>
     <string name="rescan_all_virtual_warning_message">Список включает виртуальные агрегирующие папки (Вся музыка, Все видео, Все изображения, Все документы). Их полное ресканирование может занять значительное время. Продолжить?</string>
-    <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
+    <string name="no_files_match_criteria">Под фильтры ничего не подошло. Планка оказалась высокой.</string>
     <string name="connection_failed">Сбой подключения</string>
     <string name="loading_indicator">Загрузка..</string>
     <string name="connecting">Подключение к ресурсу..</string>
@@ -579,12 +579,12 @@
     <string name="error_read_only">Этот ресурс доступен только для чтения</string>
 
     <!-- Empty state -->
-    <string name="no_files_found">Содержимого нет</string>
+    <string name="no_files_found">Здесь пусто. Мы проверили дважды.</string>
     <string name="empty_folder">Пустая папка</string>
-    <string name="empty_folder_hint">В этой папке нет медиафайлов</string>
+    <string name="empty_folder_hint">Папка совсем пуста - ни одного медиафайла на горизонте.</string>
     <string name="empty_folder_hint_subdirectories">В корневой папке нет файлов.\nВключите \"С подпапками\" в настройках ресурса для поиска во вложенных папках.</string>
     <string name="favorites_empty_title">Нет избранного</string>
-    <string name="favorites_empty_hint">Пометьте файлы как избранные чтобы увидеть их здесь</string>
+    <string name="favorites_empty_hint">Отметьте файлы звёздочкой, чтобы собрать их здесь. Без давления.</string>
 
     <string name="use_as_destination">Отметить для быстрой сортировки</string>
     <string name="counting">подсчёт..</string>
@@ -777,7 +777,7 @@
     <string name="tooltip_slideshow_music_title">Фоновая музыка слайдшоу</string>
     <string name="tooltip_slideshow_music_message">При включении музыкальные файлы из выбранного ресурса будут воспроизводиться в случайном порядке во время слайдшоу изображений/GIF. Выберите ресурс с вашей музыкальной коллекцией.</string>
     <string name="clear_selection">Очистить выбор</string>
-    <string name="no_resources_available">Нет доступных ресурсов</string>
+    <string name="no_resources_available">Ресурсов пока нет. Добавьте, чтобы нам было что показать.</string>
     <string name="main_select_resource_first">Сначала выберите ресурс.</string>
     <string name="main_select_resource_to_copy">Сначала выберите ресурс для копирования.</string>
     <string name="main_open_resource_failed">Не получилось открыть этот ресурс. Попробуйте ещё раз.</string>
@@ -931,7 +931,7 @@
     <string name="onedrive_connection_test_success">Успешно подключено!</string>
     <string name="onedrive_connection_test_failed">Ошибка подключения: %1$s</string>
 
-    <string name="no_folders_found">Папки не найдены</string>
+    <string name="no_folders_found">Папки не найдены. Возможно, они стесняются.</string>
     <string name="add_folder">Добавить папку</string>
     <string name="add_as_destination">Добавить в получатели</string>
     <string name="selected_folder">Выбрано: %1$s</string>
@@ -958,7 +958,7 @@
     <string name="network_parallelism_summary">Число параллельных потоков для сетевых операций (SMB, FTP, SFTP)</string>
 
     <!-- Streaming / Pre-cache settings -->
-    <string name="streaming_cache_empty">Кэш стриминга пуст.</string>
+    <string name="streaming_cache_empty">Кэш стриминга пуст. Ничего не закэшировано - ничего не потеряно.</string>
 
     <!-- Prefetch overlay pill -->
 
@@ -1702,7 +1702,7 @@
     <string name="failed_files">Файлы с ошибками</string>
     <string name="find_and_replace">Найти и заменить</string>
     <string name="find_hint">Найти..</string>
-    <string name="find_no_results">Нет результатов</string>
+    <string name="find_no_results">Ничего не найдено. Поиск вернулся с пустыми руками.</string>
     <string name="folder">Папка</string>
     <string name="folder_selected_successfully">Папка выбрана: %s</string>
     <string name="forward_10_seconds">Перемотать вперёд на 10 секунд</string>
@@ -2026,7 +2026,7 @@
     <string name="error_folder_create_failed">Не получилось создать папку.</string>
     <string name="error_folder_rename_failed">Не получилось переименовать папку.</string>
     <string name="error_cross_protocol_dir_not_supported">Копирование/перемещение папок между разными типами хранилищ не поддерживается.</string>
-    <string name="operation_completed">Операция выполнена</string>
+    <string name="operation_completed">Готово.</string>
     <string name="error_some_operations_failed">%1$d из %2$d операций не выполнено</string>
 
     <!-- Archive selected files (task_1_3) -->
@@ -2541,7 +2541,7 @@
     <string name="setting_screenshot_gesture_action_dialog_title">Действие жеста</string>
     <string name="screenshot_gesture_action_silent">Тихий скриншот</string>
     <string name="screenshot_gesture_action_open_player">Открыть в плеере</string>
-    <string name="screenshot_gesture_action_open_draw">Открыть для редактирования</string>
+    <string name="screenshot_gesture_action_open_draw">Скриншот для редактирования</string>
     <string name="screenshot_gesture_action_ocr_translate">Отправить на OCR-перевод</string>
     <string name="screenshot_gesture_action_share">Поделиться</string>
     <string name="screenshot_gesture_action_none">Не использовать</string>
@@ -2713,6 +2713,7 @@
     <string name="streams_sort_name">По названию</string>
     <string name="streams_sort_topic">По теме</string>
     <string name="streams_sort_language">По языку</string>
+    <string name="streams_sort_country">По стране</string>
     <string name="streams_sort_recent">Недавно добавленные</string>
     <string name="streams_filter_all">Все</string>
     <string name="ext_section_streams">Трансляции</string>
@@ -2726,7 +2727,7 @@
     <string name="background_audio_group_title">Фоновое воспроизведение аудио</string>
     <string name="streams_filter_category">Категория</string>
     <string name="streams_filter_language">Язык</string>
-    <string name="streams_filter_media_kind">Тип</string>
+    <string name="streams_filter_country">Страна</string>
     <string name="streams_filter_media_audio">Аудио</string>
     <string name="streams_filter_media_video">Видео</string>
     <string name="streams_filter_clear">Сбросить фильтры</string>
@@ -2835,4 +2836,56 @@
     <string name="streams_refresh_probing">Проверка трансляций..</string>
     <string name="streams_error_no_network">Нет сети. Подключитесь к Wi-Fi или мобильной сети, чтобы воспроизводить трансляции.</string>
     <string name="tile_screenshot_label">Снимок экрана</string>
+    <string name="camera_control_night">Ночной режим</string>
+    <string name="camera_lens_front">Фронт</string>
+    <string name="camera_lens_ultrawide">Ультраширик</string>
+    <string name="camera_lens_wide">Широкий</string>
+    <string name="camera_lens_tele">Теле</string>
+    <string name="camera_control_macro">Макро</string>
+    <string name="exit_background_stopped_toast">Фоновые функции остановлены</string>
+    <string name="minimize_to_background">Свернуть</string>
+    <string name="setting_camera_geotag_title">Геотегирование фото</string>
+    <string name="setting_camera_geotag_desc">Сохранять GPS-координаты в фото, снятых встроенной камерой. Нужно разрешение на геолокацию; по умолчанию выключено.</string>
+    <string name="camera_geotag_permission_denied">Для геотегирования нужно разрешение на геолокацию</string>
+    <string name="setting_show_programs_panel_title">Показывать панель программ в основном окне</string>
+    <string name="setting_show_programs_panel_summary">Дублировать меню программ горизонтальной полосой над списком ресурсов. Скрывает кнопку «три точки».</string>
+    <string name="setting_show_streams_panel_title">Показывать панель трансляций в основном окне</string>
+    <string name="setting_show_streams_panel_summary">Показывать закреплённые каналы горизонтальной полосой над списком ресурсов, с переходом к трансляциям.</string>
+    <string name="panel_remove_title">Убрать с панели?</string>
+    <string name="panel_remove_program_message">%1$s будет скрыт. Включить обратно можно в настройках.</string>
+    <string name="panel_remove_channel_message">%1$s исчезнет с панели. Канал останется в вашем списке.</string>
+    <string name="camera_save_destination">Сохраняет в: %1$s</string>
+    <string name="camera_control_send_to">Отправить в..</string>
+    <string name="camera_settings_title">Настройки камеры</string>
+    <string name="camera_setting_timer">Таймер</string>
+    <string name="camera_setting_grid">Сетка</string>
+    <string name="camera_setting_aspect">Соотношение сторон</string>
+    <string name="camera_setting_resolution">Разрешение</string>
+    <string name="camera_setting_exposure">Экспозиция</string>
+    <string name="camera_setting_white_balance">Баланс белого</string>
+    <string name="camera_setting_iso">ISO</string>
+    <string name="camera_setting_shutter">Выдержка</string>
+    <string name="camera_setting_hdr">HDR</string>
+    <string name="camera_setting_manual_sensor">Ручные ISO и выдержка</string>
+    <string name="camera_setting_wb_auto">Авто</string>
+    <string name="camera_setting_wb_incandescent">Лампа накаливания</string>
+    <string name="camera_setting_wb_fluorescent">Люминесцентная</string>
+    <string name="camera_setting_wb_warm_fluorescent">Тёплая люминесцентная</string>
+    <string name="camera_setting_wb_daylight">Дневной свет</string>
+    <string name="camera_setting_wb_cloudy">Облачно</string>
+    <string name="camera_setting_wb_twilight">Сумерки</string>
+    <string name="camera_setting_wb_shade">Тень</string>
+    <string name="screen_recording_menu_label">Видеозапись экрана</string>
+    <string name="screen_recording_notification_channel">Запись экрана</string>
+    <string name="screen_recording_notification_title">Идёт запись экрана</string>
+    <string name="screen_recording_notification_text">Нажмите «Стоп», чтобы завершить и сохранить.</string>
+    <string name="screen_recording_notification_stop">Стоп</string>
+    <string name="screen_recording_card_title">Идёт запись экрана</string>
+    <string name="screen_recording_stop">Остановить запись</string>
+    <string name="screen_recording_disclosure_title">Видеозапись экрана</string>
+    <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне.</string>
+    <string name="screen_recording_disclosure_start">Начать запись</string>
+    <string name="screen_recording_permission_denied">Для записи экрана нужны разрешения на микрофон и уведомления.</string>
+    <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>
+    <string name="screen_recording_error">Не удалось сохранить запись экрана.</string>
 </resources>

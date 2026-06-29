@@ -161,7 +161,7 @@
     <string name="welcome_func_download_failed">Не удалось загрузить - нажмите для повтора</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">Несколько разрешений</string>
+    <string name="welcome_permissions_title">&quot;Несколько&quot; разрешений</string>
     <string name="welcome_permissions_subtitle">Дайте доступ, чтобы приложение показывало ваши медиа.</string>
     <string name="welcome_func_streams">Трансляции</string>
     <string name="welcome_streams_catalog_done">Каталог загружен</string>

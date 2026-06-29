@@ -30,11 +30,14 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -43,9 +46,10 @@ import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
+import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
-import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
@@ -54,23 +58,33 @@ import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
+import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
+import com.sza.fastmediasorter.ui.main.helpers.MainProgramsPanelManager
+import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
+import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
+import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.util.AppErrorNotifier
@@ -105,6 +119,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var quickCaptureMenuManager: MainQuickCaptureMenuManager
     private lateinit var linkDownloadMenuManager: MainLinkDownloadMenuManager
     private lateinit var linkDownloadManager: MainLinkDownloadManager
+    private lateinit var exitButtonManager: MainExitButtonManager
+    private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
+    private lateinit var screenRecordingMenuManager: MainScreenRecordingMenuManager
+    private lateinit var screenRecordingManager: MainScreenRecordingManager
+    private lateinit var programsPanelManager: MainProgramsPanelManager
+    private lateinit var streamsPanelManager: MainStreamsPanelManager
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
@@ -115,6 +135,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isQuickPhotoEnabled = false
     private var isLinkDownloadEnabled = false
     private var isStreamsEnabled = false
+    // S0774: settings toggle AND a bound ScreenVideoRecordingController (capability present).
+    private var isScreenRecordingEnabled = false
+
+    // S0755/S0756: main-window panel toggles, mirrored from settings; drive panel visibility + the
+    // three-dots button suppression (programs panel) and the Streams-item dedup (streams panel).
+    private var isProgramsPanelEnabled = false
+    private var isStreamsPanelEnabled = false
+
+    // S0770: latest settings snapshot from the collector, so the panel item menus can read the
+    // multi-window flag synchronously and base a "Remove" (disable) write on the current state.
+    private var latestSettings: AppSettings? = null
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -130,6 +161,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val quickCaptureCameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> if (::cameraCaptureManager.isInitialized) cameraCaptureManager.handleResult(result) }
+
+    // S0774: screen-recording permission launchers - registered pre-STARTED, delegated to the manager.
+    private val screenRecordingRecordAudioLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (::screenRecordingManager.isInitialized) screenRecordingManager.onRecordAudioResult(granted) }
+
+    private val screenRecordingPostNotificationsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (::screenRecordingManager.isInitialized) screenRecordingManager.onPostNotificationsResult(granted) }
 
     // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
 
@@ -156,6 +196,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    // S0774: empty except on standard (fms.screenCapture=on) + noLegal; gates the screen-recording scenario.
+    @Inject
+    lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
+    @Inject
+    lateinit var screenRecordingStateController: ScreenRecordingStateController
 
     @Inject
     lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
@@ -193,6 +240,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var resourceLaunchWidgetPinManager: ResourceLaunchWidgetPinManager
+
+    // S0756: pinned channels + favicon atlas for the main-window streams panel.
+    @Inject
+    lateinit var observePinnedStreamSources: ObservePinnedStreamSourcesUseCase
+
+    @Inject
+    lateinit var faviconAtlasStore: FaviconAtlasStore
+
+    // S0770: "Remove" on a streams-panel channel chip drops its pin (channel leaves the panel, row kept).
+    @Inject
+    lateinit var unpinStreamSource: UnpinStreamSourceUseCase
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -384,11 +442,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onDeleteConfirmation = { resource -> showDeleteConfirmation(resource) },
             onAddResourceClick = { binding.btnAddResource.performClick() },
             onFilterClick = { binding.btnFilter.performClick() },
-            onExit = {
-                stopAudioPlaybackService()
-                finishAffinity()
-                android.os.Process.killProcess(android.os.Process.myPid())
-            },
+            // S0759: the keyboard exit shortcut keeps full-exit semantics (the minimize/close split is
+            // owned by the on-screen exit button per scope Q6).
+            onExit = { performFullExit() },
             onShowHelp = {
                 InputHelpDialogFragment.show(supportFragmentManager, UiSurface.MAIN)
             },
@@ -510,6 +566,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         permissionsHelper.checkLocalPermissionsOnStartup()
         bannerManager.showIfNeeded()
+
+        // S0759: recompute the exit/minimize mode from live background activity each time the main
+        // window resumes (a service may have started/stopped while away). The settings collector keeps
+        // the edge-gesture trigger fresh; this covers the foreground-service / scheduled-op triggers.
+        if (::exitButtonManager.isInitialized) exitButtonManager.refresh()
     }
 
     override fun onPause() {
@@ -605,7 +666,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun refreshMainWindowDropdownMenuVisibility() {
-        val shouldShowMenuButton = getMainWindowDropdownMenuItemCount() > 0
+        // S0755: when the programs panel replaces the menu on the main window, hide the three-dots button.
+        val shouldShowMenuButton = !isProgramsPanelEnabled && getMainWindowDropdownMenuItemCount() > 0
         val visibilityChanged = binding.layoutMainDropdownMenu.isVisible != shouldShowMenuButton ||
             binding.btnMainDropdownMenu.isVisible != shouldShowMenuButton
         if (visibilityChanged) {
@@ -615,15 +677,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun getMainWindowDropdownMenuItemCount(): Int =
-        (if (isCalculatorEnabled) 1 else 0) + (if (isCameraOcrEnabled) 1 else 0) + getMiniGameMenuItemCount() +
-            quickCaptureMenuManager.itemCount(
-                isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-                (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
-                    (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
-            ) + linkDownloadMenuManager.itemCount(isLinkDownloadEnabled)
+    /**
+     * S0755/S0756: recompute both main-window panels from the current settings flags. The streams panel
+     * also gates on flavor support + the Streams master toggle; its visibility feeds the programs panel
+     * as the Streams-item dedup signal, and the programs panel's own visibility hides the three-dots button.
+     */
+    private fun refreshPanels() {
+        if (!::programsPanelManager.isInitialized || !::streamsPanelManager.isInitialized) return
+        val streamsPanelVisible =
+            capabilityAvailability.isStreamsAvailable() && isStreamsEnabled && isStreamsPanelEnabled
+        streamsPanelManager.setVisible(streamsPanelVisible)
+        programsPanelManager.update(visible = isProgramsPanelEnabled, excludeStreams = streamsPanelVisible)
+        refreshMainWindowDropdownMenuVisibility()
+    }
 
-    private fun getMiniGameMenuItemCount(): Int = miniGameMenuManager.itemCount(isEmbeddedGameEnabled)
+    private fun getMainWindowDropdownMenuItemCount(): Int =
+        programsMenuCoordinator.itemCount(currentProgramsMenuGate())
+
+    // S0774: resolve the runtime flags + media capabilities into the coordinator's gate snapshot. The
+    // flags are mutated by the settings collector, so this is recomputed on every menu build.
+    private fun currentProgramsMenuGate() = MainProgramsMenuCoordinator.ProgramsMenuGate(
+        streams = capabilityAvailability.isStreamsAvailable() && isStreamsEnabled,
+        quickVoice = isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
+        quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
+            (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
+        calculator = isCalculatorEnabled,
+        cameraOcr = isCameraOcrEnabled,
+        linkDownload = isLinkDownloadEnabled,
+        miniGame = isEmbeddedGameEnabled,
+        screenRecording = isScreenRecordingEnabled,
+    )
 
     private fun showMainWindowDropdownMenu() {
         val popup = PopupMenu(this, binding.btnMainDropdownMenu)
@@ -634,57 +717,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         popup.setForceShowIcon(true)
-        popup.setOnMenuItemClickListener { item ->
-            if (miniGameMenuManager.handleMenuItem(item.itemId) ||
-                streamsMenuManager.handleMenuItem(item.itemId) ||
-                quickCaptureMenuManager.handleMenuItem(item.itemId) ||
-                linkDownloadMenuManager.handleMenuItem(item.itemId)
-            ) {
-                true
-            } else {
-                when (item.itemId) {
-                MENU_ITEM_CALCULATOR -> {
-                    startActivity(CalculatorActivity.createIntent(this))
-                    true
-                }
-                MENU_ITEM_CAMERA_OCR -> {
-                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this))
-                    true
-                }
-                else -> false
-                }
-            }
-        }
+        popup.setOnMenuItemClickListener { item -> handleMainWindowMenuItem(item.itemId) }
         popup.show()
     }
 
-    private fun populateMainWindowDropdownMenu(popup: PopupMenu): Int {
-        popup.menu.clear()
-        if (isCalculatorEnabled) {
-            popup.menu.add(0, MENU_ITEM_CALCULATOR, 0, R.string.calculator_title)
-                .setIcon(R.drawable.ic_calculator)
-        }
-        if (isCameraOcrEnabled) {
-            popup.menu.add(0, MENU_ITEM_CAMERA_OCR, 0, R.string.setting_camera_ocr_translation_title)
-                .setIcon(R.drawable.ic_camera_ocr_translate)
-        }
-        miniGameMenuManager.populate(popup, isEmbeddedGameEnabled, 1)
-        // S0678: route the compile-time Streams gate through the CapabilityAvailability contract
-        // instead of reading BuildConfig.SUPPORT_STREAMS directly here (the contract is the single
-        // surface, same as OCR/translation/VR/persistent-audio). S0575: also gate on the runtime
-        // master toggle so the main-menu entry appears only when the user enabled Streams.
-        val streamsAvailable = capabilityAvailability.isStreamsAvailable()
-        streamsMenuManager.populate(popup, streamsAvailable && isStreamsEnabled, 1)
-        val quickAdded = quickCaptureMenuManager.populate(
-            popup,
-            isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-            (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
-                (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
-            2,
-        )
-        linkDownloadMenuManager.populate(popup, isLinkDownloadEnabled, 2 + quickAdded)
-        return popup.menu.size()
-    }
+    /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
+    private fun handleMainWindowMenuItem(itemId: Int): Boolean =
+        programsMenuCoordinator.handleMenuItem(itemId)
+
+    // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
+    // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
+    private fun populateMainWindowDropdownMenu(popup: PopupMenu, excludeStreams: Boolean = false): Int =
+        programsMenuCoordinator.populate(popup, excludeStreams, currentProgramsMenuGate())
 
     /** S0289 §2: when the Activity resumes on a non-touch device with a known last-played resource id, request focus on the matching RecyclerView row so the user lands back where they came from after exiting the player. */
     private fun restoreFocusToLastPlayedResource() {
@@ -731,6 +775,62 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         linkDownloadMenuManager = MainLinkDownloadMenuManager(
             onLinkDownload = { linkDownloadManager.show() },
         )
+        screenRecordingManager = MainScreenRecordingManager(
+            activity = this,
+            controller = screenVideoRecordingControllers.firstOrNull(),
+            stateController = screenRecordingStateController,
+            requestRecordAudioPermission = {
+                screenRecordingRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            },
+            requestPostNotificationsPermission = {
+                screenRecordingPostNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            },
+        )
+        screenRecordingManager.bind(this)
+        screenRecordingMenuManager = MainScreenRecordingMenuManager(
+            onScreenRecording = { screenRecordingManager.start() },
+        )
+        programsMenuCoordinator = MainProgramsMenuCoordinator(
+            activity = this,
+            miniGameMenuManager = miniGameMenuManager,
+            streamsMenuManager = streamsMenuManager,
+            quickCaptureMenuManager = quickCaptureMenuManager,
+            linkDownloadMenuManager = linkDownloadMenuManager,
+            screenRecordingMenuManager = screenRecordingMenuManager,
+            isNewWindowAvailable = { isNewWindowAvailable() },
+            launchInNewWindow = { intent -> launchInNewWindow(intent) },
+            confirmRemoveProgram = { titleRes, apply -> confirmRemoveProgram(titleRes, apply) },
+        )
+        // S0755: programs panel renders the same menu the dropdown builds (single source of order/gates).
+        programsPanelManager = MainProgramsPanelManager(
+            panel = binding.mainProgramsPanel,
+            populateMenu = { popup, excludeStreams -> populateMainWindowDropdownMenu(popup, excludeStreams) },
+            onItemSelected = { itemId -> handleMainWindowMenuItem(itemId) },
+            // S0770: per-item menu providers - new-window launch + "Remove" (disable), null when absent.
+            newWindowActionFor = { itemId -> programNewWindowActionFor(itemId) },
+            removeActionFor = { itemId -> programRemoveActionFor(itemId) },
+        )
+        // S0756: streams panel - entry button + pinned channels; channel taps reuse the existing
+        // play-by-url path in StreamsActivity (no per-channel launch logic duplicated here).
+        streamsPanelManager = MainStreamsPanelManager(
+            panel = binding.mainStreamsPanel,
+            lifecycleOwner = this,
+            scope = lifecycleScope,
+            observePinnedStreamSources = observePinnedStreamSources,
+            faviconAtlasStore = faviconAtlasStore,
+            onOpenStreams = { startActivity(Intent(this, StreamsActivity::class.java)) },
+            onPlayChannel = { channel -> startActivity(StreamsActivity.createPlayIntent(this, channel.url)) },
+            // S0770: per-item menu actions - new-window launches + Remove (unpin) + availability gate.
+            menuActions = StreamsPanelMenuActions(
+                onOpenStreamsNewWindow = { launchInNewWindow(Intent(this, StreamsActivity::class.java)) },
+                onOpenChannelNewWindow = { channel ->
+                    launchInNewWindow(StreamsActivity.createPlayIntent(this, channel.url))
+                },
+                onRemoveChannel = { channel -> confirmRemoveChannel(channel) },
+                isNewWindowAvailable = ::isNewWindowAvailable,
+            ),
+        )
+        streamsPanelManager.setup()
         setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 
@@ -860,11 +960,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.scanAllResources()
         }
 
-        binding.btnExit.setOnClickListenerDebounced {
-            stopAudioPlaybackService()
-            finishAffinity()
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }
+        // S0759: the top-left exit button minimizes (moveTaskToBack) when any background function is
+        // live and only fully closes when nothing runs in the background; long-press always fully exits.
+        // The manager owns the mode decision; the Activity owns the minimize primitive and the teardown.
+        exitButtonManager = MainExitButtonManager(
+            exitButton = binding.btnExit,
+            onMinimize = { moveTaskToBack(true) },
+            onFullExit = { performFullExit() },
+        )
+        exitButtonManager.setupClickHandlers()
 
         binding.btnFavorites.setOnClickListenerDebounced {
             viewModel.openFavorites()
@@ -1010,6 +1114,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
@@ -1021,6 +1126,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // S0542: the manual "Download by link" entry reuses the existing link auto-download
             // setting - no separate toggle.
             val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
+            // S0755/S0756: streams-enabled and the two panel toggles all change panel visibility/content.
+            val streamsEnabledChanged = isStreamsEnabled != settings.enableStreams
+            val programsPanelChanged = isProgramsPanelEnabled != settings.showProgramsPanelInMainWindow
+            val streamsPanelChanged = isStreamsPanelEnabled != settings.showStreamsPanelInMainWindow
+            // S0774: gate on the toggle AND the capability (empty controller set on lite/photos/legacy).
+            val screenRecordingNowEnabled =
+                settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
+            val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
             isCalculatorEnabled = settings.enableCalculator
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
@@ -1029,6 +1142,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isQuickPhotoEnabled = !settings.disableCameraCapture
             isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
             isStreamsEnabled = settings.enableStreams
+            isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
+            isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
+            isScreenRecordingEnabled = screenRecordingNowEnabled
             binding.btnFavorites.visibility = if (settings.enableFavorites) {
                 View.VISIBLE
             } else {
@@ -1045,10 +1161,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
-            if (calculatorEnabledChanged || embeddedGameEnabledChanged || cameraOcrEnabledChanged ||
-                quickVoiceEnabledChanged || quickVideoEnabledChanged || quickPhotoEnabledChanged ||
-                linkDownloadEnabledChanged) {
-                refreshMainWindowDropdownMenuVisibility()
+            // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
+            // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
+            exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
+            // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
+            // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
+            val panelInputsChanged = listOf(
+                calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
+                quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
+                linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
+                screenRecordingEnabledChanged,
+            ).any { it }
+            if (panelInputsChanged) {
+                refreshPanels()
             }
             restitchControlBarFocusChain()
         }
@@ -1064,6 +1189,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         startActivity(intent)
+    }
+
+    // ---- S0770: per-item context menus on the programs (S0755) and streams (S0756) panels ----
+
+    /** Multi-window available (persisted setting OR runtime capability) - gates "Open in new window". */
+    private fun isNewWindowAvailable(): Boolean =
+        latestSettings?.allowSeparateWindow == true ||
+            com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+                .isMultiWindowActiveNow(this)
+
+    /** Launch an activity intent in a separate window (same flags as [openResourceInNewWindow]). */
+    private fun launchInNewWindow(intent: Intent) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        startActivity(intent)
+    }
+
+    /** S0770: "Open in new window" action for a programs-panel item (delegated to the coordinator). */
+    private fun programNewWindowActionFor(itemId: Int): (() -> Unit)? =
+        programsMenuCoordinator.newWindowActionFor(itemId)
+
+    /** S0770: "Remove" action for a programs-panel item (delegated to the coordinator). */
+    private fun programRemoveActionFor(itemId: Int): (() -> Unit)? =
+        programsMenuCoordinator.removeActionFor(itemId)
+
+    /** S0770: confirm, then disable the program's toggle; the settings collector rebuilds the panel. */
+    private fun confirmRemoveProgram(titleRes: Int, apply: (AppSettings) -> AppSettings) {
+        if (isFinishing || isDestroyed) return
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.panel_remove_title)
+            .setMessage(getString(R.string.panel_remove_program_message, getString(titleRes)))
+            .setPositiveButton(R.string.remove_action) { _, _ ->
+                val current = latestSettings ?: return@setPositiveButton
+                lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** S0770: confirm, then unpin the channel; the pinned-sources flow drops it from the streams panel. */
+    private fun confirmRemoveChannel(channel: StreamSourceEntity) {
+        if (isFinishing || isDestroyed) return
+        val name = com.sza.fastmediasorter.ui.streams.StreamTitleFormatter.display(channel.title)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.panel_remove_title)
+            .setMessage(getString(R.string.panel_remove_channel_message, name))
+            .setPositiveButton(R.string.remove_action) { _, _ ->
+                lifecycleScope.launch { unpinStreamSource(channel.id) }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun openSettings() {
@@ -1105,6 +1280,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Recreate tabs to apply new inline/stacked label configuration
         binding.tabResourceTypes.removeAllTabs()
         tabsManager.createTabs()
+
+        // S0755/S0756: re-apply the orientation/width-driven label rule + programs-panel overflow.
+        if (::programsPanelManager.isInitialized) programsPanelManager.refresh()
+        if (::streamsPanelManager.isInitialized) streamsPanelManager.onConfigurationChanged()
     }
 
     /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ScrollableTextDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
@@ -1233,6 +1412,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun getTabIndexForResourceTab(tab: ResourceTab): Int =
         tabsManager.getTabIndexForResourceTab(tab)
 
+    /** S0759: single full-teardown path reused by every full-exit caller (exit button close branch,
+     *  long-press, keyboard exit shortcut). Stops the audio service first to avoid the OS double-startup
+     *  bug (see stopAudioPlaybackService), then finishAffinity() + killProcess(). The minimize branch
+     *  deliberately does NOT go through here so background services stay alive. */
+    private fun performFullExit() {
+        stopAudioPlaybackService()
+        finishAffinity()
+        android.os.Process.killProcess(android.os.Process.myPid())
+    }
+
     /** Stop AudioPlaybackService before exiting the app. Prevents OS from restarting the process due to foreground service being alive. CRITICAL FIX: Without this, finishAffinity() + Process.killProcess() causes the OS to restart the same process within 1 second (double startup bug). */
     private fun stopAudioPlaybackService() {
         try {
@@ -1252,9 +1441,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 resourceType = resource.type,
             )
         ) {
-            ResourceLaunchWidgetPinManager.PinResult.Requested -> {
-                Timber.d("S0661: requested home-screen widget pin for resourceId=%s", resource.id)
-            }
+            ResourceLaunchWidgetPinManager.PinResult.Requested -> Unit
             ResourceLaunchWidgetPinManager.PinResult.Unsupported -> {
                 Toast.makeText(this, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
             }
@@ -1277,8 +1464,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_CAMERA_OCR_TRANSLATE = "com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE"
         const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
         const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
-        private const val MENU_ITEM_CALCULATOR = 1
-        private const val MENU_ITEM_CAMERA_OCR = 9
         /** Sent by AudioPlaybackService notification contentIntent (tapping the notification body).
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"

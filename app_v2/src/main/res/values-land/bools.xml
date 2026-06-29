@@ -2,4 +2,6 @@
 <resources>
     <bool name="is_tab_inline">true</bool>
     <bool name="is_resource_actions_inline">true</bool>
+    <!-- S0755: landscape shows programs panel labels next to icons. -->
+    <bool name="main_programs_panel_show_labels">true</bool>
 </resources>

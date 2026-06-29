@@ -27,9 +27,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -127,6 +128,7 @@ class StreamsViewModel @Inject constructor(
             // user can clear it - no crash, no silent wrong data.
             category = session.lastCategory,
             language = session.lastLanguage,
+            country = session.lastCountry,
             pinnedOnly = session.lastPinnedOnly ?: false,
         )
         val restoredMode = session.lastDisplayMode?.toDisplayMode() ?: DisplayMode.LIST
@@ -219,11 +221,18 @@ class StreamsViewModel @Inject constructor(
     fun onFilter(
         category: String? = null,
         language: String? = null,
+        country: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
         _filter.update {
-            it.copy(category = category, language = language, mediaKind = mediaKind, pinnedOnly = pinnedOnly)
+            it.copy(
+                category = category,
+                language = language,
+                country = country,
+                mediaKind = mediaKind,
+                pinnedOnly = pinnedOnly,
+            )
         }
         persistSession()
     }
@@ -255,6 +264,7 @@ class StreamsViewModel @Inject constructor(
                 query = filter.query,
                 category = filter.category,
                 language = filter.language,
+                country = filter.country,
                 pinnedOnly = filter.pinnedOnly,
             )
         }
@@ -268,6 +278,7 @@ class StreamsViewModel @Inject constructor(
         StreamDefaultSort.NAME -> SortMode.NAME
         StreamDefaultSort.TOPIC -> SortMode.TOPIC
         StreamDefaultSort.LANGUAGE -> SortMode.LANGUAGE
+        StreamDefaultSort.COUNTRY -> SortMode.COUNTRY
         StreamDefaultSort.RECENT -> SortMode.RECENT
     }
 
@@ -355,6 +366,8 @@ class StreamsViewModel @Inject constructor(
                 val categoryHit = filter.category == null || source.category == filter.category
                 val languageHit = filter.language == null ||
                     source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
+                // Country is a single code, so a plain equality (like category), not token matching.
+                val countryHit = filter.country == null || source.country == filter.country
                 // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
                 val mediaHit = when (filter.mediaKind) {
                     MediaKindFilter.ALL -> true
@@ -366,32 +379,38 @@ class StreamsViewModel @Inject constructor(
                 val topicHit = filter.topic == null || source.topic == filter.topic
                 // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
                 val pinnedHit = !filter.pinnedOnly || source.pinned
-                queryHit && categoryHit && languageHit && mediaHit && topicHit && pinnedHit
+                queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit && pinnedHit
             }
             val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
                 SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
                 SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic }
                 SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+                SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
                 SortMode.RECENT -> compareByDescending { it.addedAt }
             }
             // Pinned-first is the primary key regardless of the chosen secondary order.
             return matched.sortedWith(compareByDescending<StreamSourceEntity> { it.pinned }.then(secondary))
         }
 
-        internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets = StreamsFacets(
-            categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
-            topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
-            // Catalog language cells can be comma-separated (e.g. "russian,ukrainian"); split into
-            // individual language names so each is a separate, single-language facet option.
-            languages = sources.asSequence()
-                .mapNotNull { it.language }
-                .flatMap { it.splitToSequence(',') }
-                .map { it.trim().lowercase() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-                .sorted()
-                .toList(),
-        )
+        internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {
+            val facets = StreamsFacets(
+                categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
+                topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
+                // Catalog language cells can be comma-separated (e.g. "russian,ukrainian"); split into
+                // individual language names so each is a separate, single-language facet option.
+                languages = sources.asSequence()
+                    .mapNotNull { it.language }
+                    .flatMap { it.splitToSequence(',') }
+                    .map { it.trim().lowercase() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .sorted()
+                    .toList(),
+                // Country is a single ISO 3166-1 alpha-2 code per row (never comma-split, unlike language).
+                countries = sources.mapNotNull { it.country?.takeIf(String::isNotBlank) }.distinct().sorted(),
+            )
+            return facets
+        }
     }
 
     data class StreamsUiState(
@@ -410,6 +429,7 @@ class StreamsViewModel @Inject constructor(
         val categories: List<String> = emptyList(),
         val topics: List<String> = emptyList(),
         val languages: List<String> = emptyList(),
+        val countries: List<String> = emptyList(),
     )
 
     data class StreamsFilter(
@@ -417,13 +437,14 @@ class StreamsViewModel @Inject constructor(
         val category: String? = null,
         val topic: String? = null,
         val language: String? = null,
+        val country: String? = null,
         val mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         // S0696: when true, keep only the streams the user personally pinned.
         val pinnedOnly: Boolean = false,
         val sort: SortMode = SortMode.NAME,
     )
 
-    enum class SortMode { NAME, TOPIC, LANGUAGE, RECENT }
+    enum class SortMode { NAME, TOPIC, LANGUAGE, COUNTRY, RECENT }
 
     /** Media-kind facet: ALL passes everything, AUDIO matches audio rows, VIDEO matches VIDEO + RTSP rows. */
     enum class MediaKindFilter { ALL, AUDIO, VIDEO }

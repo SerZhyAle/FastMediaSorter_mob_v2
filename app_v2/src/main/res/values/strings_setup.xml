@@ -161,7 +161,7 @@
     <string name="welcome_func_download_failed">Download failed - tap to retry</string>
     <string name="welcome_func_download_done">Ready</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">A few permissions</string>
+    <string name="welcome_permissions_title">&quot;A few&quot; permissions</string>
     <string name="welcome_permissions_subtitle">Grant access so the app can show your media.</string>
     <string name="welcome_func_streams">Streams</string>
     <string name="welcome_streams_catalog_done">Catalog downloaded</string>

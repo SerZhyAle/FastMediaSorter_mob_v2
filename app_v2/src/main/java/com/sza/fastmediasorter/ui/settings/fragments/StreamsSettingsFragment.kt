@@ -46,6 +46,11 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowEnableStreams) { isChecked ->
             viewModel.updateSettings(viewModel.settings.value.copy(enableStreams = isChecked))
         }
+        // S0756: main-window streams panel toggle (lives under the master switch, so it is only
+        // reachable while Streams is enabled).
+        bindSwitch(binding.rowShowStreamsPanel) { isChecked ->
+            viewModel.updateSettings(viewModel.settings.value.copy(showStreamsPanelInMainWindow = isChecked))
+        }
 
         // S0659: dropdown entries follow each enum's declaration order so the chosen index maps back to
         // the enum via `entries[index]`. Sort/filter reuse the existing list-screen labels; only the
@@ -55,6 +60,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                 getString(R.string.streams_sort_name),
                 getString(R.string.streams_sort_topic),
                 getString(R.string.streams_sort_language),
+                getString(R.string.streams_sort_country),
                 getString(R.string.streams_sort_recent),
             )
         )
@@ -93,6 +99,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
 
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             setSwitchChecked(binding.rowEnableStreams, settings.enableStreams)
+            setSwitchChecked(binding.rowShowStreamsPanel, settings.showStreamsPanelInMainWindow)
             withSettingsUpdate {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)
                 setDropdownSelection(binding.rowDefaultMediaFilter, settings.streamsDefaultMediaFilter.ordinal)

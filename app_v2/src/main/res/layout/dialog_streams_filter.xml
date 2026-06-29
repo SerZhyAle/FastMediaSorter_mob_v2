@@ -6,83 +6,11 @@
     android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
-    <LinearLayout
-        android:id="@+id/rowCategory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/list_item_height"
-        android:orientation="horizontal"
-        android:paddingTop="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_small">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/streams_filter_category"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-
-        <TextView
-            android:id="@+id/tvCategoryValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/dialog_field_spacing"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/rowLanguage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/list_item_height"
-        android:orientation="horizontal"
-        android:paddingTop="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_small">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/streams_filter_language"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-
-        <TextView
-            android:id="@+id/tvLanguageValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/dialog_field_spacing"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/resource_card_desc_text_size" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        android:text="@string/streams_filter_media_kind"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="@dimen/toggler_desc_text_size" />
-
+    <!-- Media kind sits at the very top as the primary facet; no separate "Type" heading. -->
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/toggleMediaKind"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
         app:selectionRequired="true"
         app:singleSelection="true">
 
@@ -107,6 +35,156 @@
             android:layout_height="wrap_content"
             android:text="@string/streams_filter_media_video" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- Category + language as two tappable columns; the chevron and accent-coloured value
+         signal that each opens a picker (the label alone read as static text before). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/rowCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="@dimen/list_item_height"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/padding_small"
+            android:paddingBottom="@dimen/padding_small">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/streams_filter_category"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/toggler_desc_text_size" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvCategoryValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowLanguage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="@dimen/list_item_height"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/padding_small"
+            android:paddingBottom="@dimen/padding_small">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/streams_filter_language"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/toggler_desc_text_size" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvLanguageValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- S0761: Country as a full-width third facet row under the Category + Language pair; mirrors the
+         language column's label+chevron+value structure and picker wiring. -->
+    <LinearLayout
+        android:id="@+id/rowCountry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="@dimen/list_item_height"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/streams_filter_country"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/toggler_desc_text_size" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvCountryValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+    </LinearLayout>
 
     <!-- S0696: quick facet limiting the list to the channels the user pinned themselves. -->
     <com.google.android.material.checkbox.MaterialCheckBox

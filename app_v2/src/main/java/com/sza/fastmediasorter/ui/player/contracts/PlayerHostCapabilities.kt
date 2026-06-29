@@ -67,6 +67,16 @@ interface PlayerHostCapabilities {
     /** Last stereo mode reported by the auto-detector; used to seed dialog default. */
     val detectedStereoMode: StateFlow<StereoMode>
 
+    /**
+     * True when the user's 3D/VR master toggle is enabled (Settings -> Media -> 3D/VR, backed by
+     * [com.sza.fastmediasorter.domain.model.AppSettings.disable3dVr]). The playback control dialog
+     * hides the "3D" stereo section when this is false even on VR builds: manual stereo override is
+     * meaningless while 3D/VR classification is globally disabled (all content plays as 2D).
+     * Default true so a host that does not gate on the master toggle keeps the prior behavior; the
+     * section is still ultimately gated by the build's VR-media-controls capability. (S0763)
+     */
+    val is3dVrEnabled: Boolean get() = true
+
     /** Set the user-selected stereo mode for the current file. */
     fun setStereoMode(mode: StereoMode)
 

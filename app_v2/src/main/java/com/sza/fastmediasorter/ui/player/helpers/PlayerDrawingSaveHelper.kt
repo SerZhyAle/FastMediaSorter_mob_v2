@@ -238,7 +238,6 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
         viewW: Int,
         viewH: Int,
     ) {
-        Timber.d("S0679: draw-editor crop apply (in-app player)")
         val baseBitmap = activity.viewModel.currentDisplayedBitmap ?: run {
             Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
             return

@@ -333,7 +333,6 @@ class VideoPlayerViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")
-        Timber.d("S0725: video player teardown - release() + surface detached on screen exit")
         stopProgressUpdates()
         controlsHideJob?.cancel()
         exoPlayer.removeListener(playerListener)

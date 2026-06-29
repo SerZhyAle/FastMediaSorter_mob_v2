@@ -375,7 +375,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      */
     private fun startHealthProbe() {
         val visible = visibleSources()
-        Timber.d("S0700: health probe started over %d visible streams", visible.size)
         if (visible.isEmpty()) return
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
         if (latestState.displayMode == DisplayMode.GRID && ::gridModeManager.isInitialized) {
@@ -413,13 +412,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun handlePlayIntent(intent: Intent?) {
         if (intent?.action != ACTION_PLAY_STREAM) return
         val url = intent.getStringExtra(EXTRA_STREAM_URL)?.takeIf { it.isNotBlank() } ?: return
-        Timber.d("S0637: home-screen shortcut launched stream %s", url)
         viewModel.playByUrl(url)
     }
 
     /** S0637: build a home-screen shortcut for the chosen channel; report if the launcher refuses. */
     private fun onAddShortcut(source: StreamSourceEntity) {
-        Timber.d("S0637: add-to-home-screen tapped for stream %s", source.url)
         val requested = StreamShortcutPinManager(this).requestPin(source)
         val message =
             if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
@@ -625,12 +622,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         dialog.show()
     }
 
-    /** Opens the category + language + media-kind filter dialog; the manager marshals selections to the ViewModel. */
+    /**
+     * Opens the category + language + country + media-kind filter dialog; the manager marshals
+     * selections to the ViewModel.
+     */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, language, mediaKind, pinnedOnly ->
+        filterDialogManager.show(latestState) { category, language, country, mediaKind, pinnedOnly ->
             viewModel.onFilter(
                 category = category,
                 language = language,
+                country = country,
                 mediaKind = mediaKind,
                 pinnedOnly = pinnedOnly,
             )
@@ -641,6 +642,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
         val active = filter.category != null ||
             filter.language != null ||
+            filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
         binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
@@ -688,6 +690,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         StreamsViewModel.SortMode.NAME -> R.string.streams_sort_name
         StreamsViewModel.SortMode.TOPIC -> R.string.streams_sort_topic
         StreamsViewModel.SortMode.LANGUAGE -> R.string.streams_sort_language
+        StreamsViewModel.SortMode.COUNTRY -> R.string.streams_sort_country
         StreamsViewModel.SortMode.RECENT -> R.string.streams_sort_recent
     }
 
@@ -743,6 +746,17 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 action = ACTION_PLAY_STREAM
                 putExtra(EXTRA_STREAM_URL, url)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
+        /**
+         * S0756: in-app navigation that opens this screen and plays one stream by its URL (reusing the
+         * same [handlePlayIntent] path as the shortcut, but without the launcher task flags so Back
+         * returns to the caller). Used by the main-window streams panel's channel taps.
+         */
+        fun createPlayIntent(context: Context, url: String): Intent =
+            Intent(context, StreamsActivity::class.java).apply {
+                action = ACTION_PLAY_STREAM
+                putExtra(EXTRA_STREAM_URL, url)
             }
     }
 }

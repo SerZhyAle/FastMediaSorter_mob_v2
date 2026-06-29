@@ -10,6 +10,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import io.documentnode.epub4j.domain.Book
+import io.documentnode.epub4j.epub.EpubReader
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,11 +22,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import io.documentnode.epub4j.domain.Book
-import io.documentnode.epub4j.epub.EpubReader
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import kotlin.math.roundToInt
 
 /**
  * Manages EPUB e-book viewing in PlayerActivity:
@@ -241,12 +242,8 @@ class EpubViewerManager(
                     val isHorizontalSwipe = kotlin.math.abs(diffX) > kotlin.math.abs(diffY)
 
                     if (isHorizontalSwipe && kotlin.math.abs(diffX) > 100 && kotlin.math.abs(velocityX) > 100) {
+                        // S0760: per-step size Toast removed (arrived too late); proportional step is self-evident.
                         if (diffX > 0) increaseFontSize() else decreaseFontSize()
-                        android.widget.Toast.makeText(
-                            root.context,
-                            root.context.getString(R.string.epub_font_size, currentFontSize),
-                            android.widget.Toast.LENGTH_SHORT,
-                        ).show()
                         return true
                     } else if (!isHorizontalSwipe && kotlin.math.abs(diffY) > 100 && kotlin.math.abs(velocityY) > 100) {
                         if (diffY < 0) {
@@ -651,19 +648,29 @@ class EpubViewerManager(
 
     // ── Font size control (public) ────────────────────────────────────────────
 
-    /** Increase EPUB body font size */
+    /** Increase EPUB body font size. S0760: shared proportional step (px scale). */
     fun increaseFontSize() {
-        if (currentFontSize < MAX_FONT_SIZE) {
-            currentFontSize += 2
+        val next = FontResizeController.increase(
+            currentFontSize.toFloat(),
+            MIN_FONT_SIZE.toFloat(),
+            MAX_FONT_SIZE.toFloat(),
+        ).roundToInt()
+        if (next != currentFontSize) {
+            currentFontSize = next
             saveFontSize()
             reloadCurrentChapter()
         }
     }
 
-    /** Decrease EPUB body font size */
+    /** Decrease EPUB body font size. S0760: shared proportional step (px scale). */
     fun decreaseFontSize() {
-        if (currentFontSize > MIN_FONT_SIZE) {
-            currentFontSize -= 2
+        val next = FontResizeController.decrease(
+            currentFontSize.toFloat(),
+            MIN_FONT_SIZE.toFloat(),
+            MAX_FONT_SIZE.toFloat(),
+        ).roundToInt()
+        if (next != currentFontSize) {
+            currentFontSize = next
             saveFontSize()
             reloadCurrentChapter()
         }

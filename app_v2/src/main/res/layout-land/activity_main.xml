@@ -331,6 +331,15 @@
 
         </LinearLayout>
 
+        <!-- S0755/S0756: programs + streams panels, above the resource-type tabs and the resource list. -->
+        <include
+            android:id="@+id/mainProgramsPanel"
+            layout="@layout/view_main_programs_panel" />
+
+        <include
+            android:id="@+id/mainStreamsPanel"
+            layout="@layout/view_main_streams_panel" />
+
         <!-- Resource Type Tabs -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"

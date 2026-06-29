@@ -1,15 +1,29 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.BitmapRegionDecoder
+import android.graphics.Rect
+import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
+import android.util.Size
 import android.view.Surface
+import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCase
+import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
@@ -17,10 +31,14 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleOwner
-import timber.log.Timber
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import timber.log.Timber
 import java.io.File
+import java.io.FileOutputStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -28,6 +46,11 @@ import java.util.concurrent.TimeUnit
  * [CameraRuntimeCapabilities] after every bind or lens switch, and exposes imperative torch / zoom /
  * focus hooks. All Camera2 reads stay behind [CameraCapabilityProbe] so the host never touches
  * CameraInfo directly (S0545 §3.4).
+ *
+ * S0753: the lens switch cycles every camera the device exposes to CameraX (e.g. back ultra-wide,
+ * back main, back tele, front), not just one back + one front, so otherwise-unreachable lenses (and
+ * their 0.5x / long-zoom ranges) become selectable; night mode uses the OEM NIGHT extension when
+ * available and falls back to exposure compensation otherwise so the control works on every device.
  */
 class CameraCaptureSessionManager(
     private val lifecycleOwner: LifecycleOwner,
@@ -39,13 +62,60 @@ class CameraCaptureSessionManager(
     private var activeRecording: Recording? = null
     private var camera: Camera? = null
     private var previewView: PreviewView? = null
-    private var lensFacing = CameraSelector.LENS_FACING_BACK
-    private var availableLensFacings: List<Int> = emptyList()
+    private var previewUseCase: Preview? = null
+
+    /** Every camera CameraX exposes to the app, back lenses first; the switch button cycles this list. */
+    private var availableCameras: List<CameraInfo> = emptyList()
+    private var activeCameraIndex = 0
+
+    /** Focal length of the main back lens, the 1x reference for equivalent-zoom labels (S0753). */
+    private var referenceFocal = 0f
 
     /** When true the session binds a video pipeline instead of image capture. Set before [bind]. */
     var videoMode: Boolean = false
 
     private val probe = CameraCapabilityProbe()
+
+    private var extensionsManager: ExtensionsManager? = null
+
+    /** True when the active lens exposes the CameraX NIGHT extension; drives the extension vs fallback path. */
+    private var nightExtensionAvailable = false
+
+    /** True when the active lens exposes the CameraX HDR extension. */
+    private var hdrExtensionAvailable = false
+
+    /** S0753: night-mode intent; applied via the NIGHT extension or an exposure-compensation fallback. */
+    var nightMode: Boolean = false
+        private set
+
+    /** S0754: HDR intent; applied by rebinding to the HDR extension selector when available. */
+    var hdrEnabled: Boolean = false
+        private set
+
+    /** S0753: macro (close-focus) intent for the active lens; applied live via Camera2 capture options. */
+    var macroEnabled: Boolean = false
+        private set
+
+    /** Device-driven target rotation of the locked portrait host; updated by CameraOrientationManager. */
+    private var targetRotation: Int = Surface.ROTATION_0
+
+    /** Live camera settings state mirrored into the dialog. */
+    private var exposureCompensationIndex = 0
+    private var whiteBalanceMode: Int? = null
+    private var manualIso: Int? = null
+    private var manualShutterNs: Long? = null
+    private var selectedAspectRatio: Int? = null
+    private var selectedResolution: Size? = null
+
+    /** S0753: digital (crop) zoom factor on top of the optical/CameraX max; 1 = no digital crop. */
+    private var digitalZoomFactor = 1f
+
+    /**
+     * Off-main thread for the digital-zoom JPEG crop so capture never blocks the UI. Created lazily on
+     * the first crop (most shots are not digital-zoom) and released in [unbind] so a closed session
+     * never leaks the worker thread (S0767).
+     */
+    private var cropExecutor: ExecutorService? = null
 
     /** Latest probed capabilities of the active lens; [CameraRuntimeCapabilities.NONE] before bind. */
     var capabilities: CameraRuntimeCapabilities = CameraRuntimeCapabilities.NONE
@@ -68,12 +138,33 @@ class CameraCaptureSessionManager(
                 runCatching {
                     val provider = providerFuture.get()
                     cameraProvider = provider
-                    availableLensFacings = probe.availableLensFacings(provider)
-                    if (availableLensFacings.isNotEmpty() && lensFacing !in availableLensFacings) {
-                        lensFacing = availableLensFacings.first()
-                    }
-                    bindToLifecycle(provider, previewView)
-                    onReady()
+                    availableCameras = probe.availableCameras(provider)
+                    // Start on the first back camera (the device's main wide), front cameras come last.
+                    activeCameraIndex =
+                        availableCameras.indexOfFirst { it.lensFacing == CameraSelector.LENS_FACING_BACK }
+                            .coerceAtLeast(0)
+                    referenceFocal = probe.mainBackFocalLength(availableCameras)
+                    Timber.i(
+                        "CameraCapture: %d camera(s) exposed to CameraX, facings=%s",
+                        availableCameras.size,
+                        availableCameras.map { it.lensFacing },
+                    )
+                    // S0753: the NIGHT extension needs the ExtensionsManager ready before binding; a
+                    // null manager just means the extension is unavailable, not a bind failure.
+                    val extFuture = ExtensionsManager.getInstanceAsync(context, provider)
+                    extFuture.addListener(
+                        {
+                            extensionsManager = runCatching { extFuture.get() }.getOrNull()
+                            runCatching {
+                                bindToLifecycle(provider, previewView)
+                                onReady()
+                            }.onFailure { error ->
+                                Timber.e(error, "CameraCaptureSessionManager: bind failed")
+                                onError(error)
+                            }
+                        },
+                        ContextCompat.getMainExecutor(context),
+                    )
                 }.onFailure { error ->
                     Timber.e(error, "CameraCaptureSessionManager: bind failed")
                     onError(error)
@@ -83,14 +174,21 @@ class CameraCaptureSessionManager(
         )
     }
 
-    /** Flips to the next available lens and rebinds; no-op when only one lens exists. */
+    /** Cycles to the next camera CameraX exposes and rebinds; no-op when only one camera exists. */
     @SuppressLint("MissingPermission")
     fun switchCamera() {
         val provider = cameraProvider ?: return
         val preview = previewView ?: return
-        if (availableLensFacings.size < 2) return
-        val nextIndex = (availableLensFacings.indexOf(lensFacing) + 1) % availableLensFacings.size
-        lensFacing = availableLensFacings[nextIndex]
+        if (availableCameras.size < 2) return
+        activeCameraIndex = (activeCameraIndex + 1) % availableCameras.size
+        // A different physical lens has its own capabilities, so drop stale night/macro intents.
+        nightMode = false
+        hdrEnabled = false
+        macroEnabled = false
+        whiteBalanceMode = null
+        manualIso = null
+        manualShutterNs = null
+        exposureCompensationIndex = 0
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
     }
@@ -105,6 +203,9 @@ class CameraCaptureSessionManager(
     fun applyMode(videoMode: Boolean) {
         if (this.videoMode == videoMode) return
         this.videoMode = videoMode
+        // S0753: night mode is photo-only, so leaving photo mode drops the night intent.
+        if (videoMode) nightMode = false
+        if (videoMode) hdrEnabled = false
         val provider = cameraProvider ?: return
         val preview = previewView ?: return
         if (isRecording()) stopRecording()
@@ -112,9 +213,145 @@ class CameraCaptureSessionManager(
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: mode switch failed") }
     }
 
-    fun setZoomRatio(ratio: Float) {
-        camera?.cameraControl?.setZoomRatio(ratio)
+    /**
+     * S0753: toggles night mode (photo only). When the active lens exposes the NIGHT extension a rebind
+     * swaps in the extension selector; otherwise it applies a strong positive exposure compensation,
+     * which lengthens exposure / raises gain in a dark scene without needing a rebind.
+     */
+    @SuppressLint("MissingPermission")
+    fun applyNightMode(enabled: Boolean) {
+        if (nightMode == enabled) return
+        if (enabled) hdrEnabled = false
+        nightMode = enabled
+        if (nightExtensionAvailable) {
+            val provider = cameraProvider ?: return
+            val preview = previewView ?: return
+            runCatching { bindToLifecycle(provider, preview) }
+                .onFailure { Timber.e(it, "CameraCaptureSessionManager: night mode switch failed") }
+        } else {
+            applyExposureCompensationForNight()
+        }
     }
+
+    @SuppressLint("MissingPermission")
+    fun applyHdr(enabled: Boolean) {
+        if (videoMode || hdrEnabled == enabled) return
+        if (enabled) nightMode = false
+        hdrEnabled = enabled
+        val provider = cameraProvider ?: return
+        val preview = previewView ?: return
+        runCatching { bindToLifecycle(provider, preview) }
+            .onFailure { Timber.e(it, "CameraCaptureSessionManager: HDR switch failed") }
+    }
+
+    private fun applyExposureCompensationForNight() {
+        val index = if (nightMode) capabilities.maxExposureCompensationIndex else 0
+        exposureCompensationIndex = index
+        runCatching { camera?.cameraControl?.setExposureCompensationIndex(index) }
+            .onFailure { Timber.w(it, "CameraCaptureSessionManager: exposure compensation failed") }
+    }
+
+    /** S0753: toggles macro by locking the active lens to its closest focus distance, applied live. */
+    fun applyMacro(enabled: Boolean) {
+        macroEnabled = enabled
+        applyCamera2Options()
+    }
+
+    fun setExposureCompensation(index: Int) {
+        if (!capabilities.supportsExposureCompensation || manualIso != null || manualShutterNs != null) return
+        exposureCompensationIndex = index.coerceIn(
+            -capabilities.maxExposureCompensationIndex,
+            capabilities.maxExposureCompensationIndex,
+        )
+        runCatching { camera?.cameraControl?.setExposureCompensationIndex(exposureCompensationIndex) }
+            .onFailure { Timber.w(it, "CameraCaptureSessionManager: exposure compensation failed") }
+    }
+
+    fun setWhiteBalance(mode: Int) {
+        whiteBalanceMode = if (mode == CameraMetadata.CONTROL_AWB_MODE_AUTO) null else mode
+        applyCamera2Options()
+    }
+
+    fun setManualSensor(iso: Int, exposureNs: Long) {
+        val isoRange = capabilities.isoRange ?: return
+        val shutterRange = capabilities.shutterRangeNs ?: return
+        if (!capabilities.supportsManualSensor) return
+        manualIso = iso.coerceIn(isoRange.lower, isoRange.upper)
+        manualShutterNs = exposureNs.coerceIn(shutterRange.lower, shutterRange.upper)
+        exposureCompensationIndex = 0
+        runCatching { camera?.cameraControl?.setExposureCompensationIndex(0) }
+            .onFailure { Timber.w(it, "CameraCaptureSessionManager: reset exposure for manual sensor failed") }
+        applyCamera2Options()
+    }
+
+    fun clearManualSensor() {
+        manualIso = null
+        manualShutterNs = null
+        applyCamera2Options()
+    }
+
+    fun setAspectRatioAndResolution(aspectRatio: Int?, resolution: Size?) {
+        val changed = selectedAspectRatio != aspectRatio || selectedResolution != resolution
+        selectedAspectRatio = aspectRatio
+        selectedResolution = resolution
+        if (!changed) return
+        val provider = cameraProvider ?: return
+        val preview = previewView ?: return
+        runCatching { bindToLifecycle(provider, preview) }
+            .onFailure { Timber.e(it, "CameraCaptureSessionManager: output format switch failed") }
+    }
+
+    fun currentExposureCompensationIndex(): Int = exposureCompensationIndex
+
+    fun currentWhiteBalanceMode(): Int? = whiteBalanceMode
+
+    fun currentManualIso(): Int? = manualIso
+
+    fun currentManualShutterNs(): Long? = manualShutterNs
+
+    fun currentAspectRatio(): Int? = selectedAspectRatio
+
+    fun currentResolution(): Size? = selectedResolution
+
+    fun setTargetRotation(rotation: Int) {
+        targetRotation = rotation
+        previewUseCase?.targetRotation = rotation
+        imageCapture?.targetRotation = rotation
+        videoCapture?.targetRotation = rotation
+    }
+
+    fun setZoomRatio(ratio: Float) {
+        val opticalRatio = ratio.coerceAtMost(capabilities.maxZoomRatio)
+        camera?.cameraControl?.setZoomRatio(opticalRatio)
+        // S0753: beyond the optical/CameraX max, keep zooming by scaling (cropping) the preview.
+        digitalZoomFactor = if (opticalRatio > 0f) (ratio / opticalRatio).coerceAtLeast(1f) else 1f
+        previewView?.let {
+            it.scaleX = digitalZoomFactor
+            it.scaleY = digitalZoomFactor
+        }
+    }
+
+    /** S0753: linear (0..1) zoom for the perceptually-linear slider; stays within the optical range. */
+    fun setLinearZoom(linear: Float) {
+        camera?.cameraControl?.setLinearZoom(linear)
+        resetDigitalZoom()
+    }
+
+    private fun resetDigitalZoom() {
+        digitalZoomFactor = 1f
+        previewView?.let {
+            it.scaleX = 1f
+            it.scaleY = 1f
+        }
+    }
+
+    /** S0753: resulting ratio after the last zoom change, so presets and slider can mirror each other. */
+    fun currentZoomRatio(): Float =
+        camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: CameraRuntimeCapabilities.DEFAULT_ZOOM
+
+    /** S0753: resulting 0..1 linear position after the last zoom change. */
+    fun currentLinearZoom(): Float =
+        camera?.cameraInfo?.zoomState?.value?.linearZoom ?: 0f
 
     fun setTorchEnabled(enabled: Boolean) {
         if (capabilities.hasFlashUnit) camera?.cameraControl?.enableTorch(enabled)
@@ -136,6 +373,7 @@ class CameraCaptureSessionManager(
     fun capture(
         previewView: PreviewView,
         outputFile: File,
+        location: android.location.Location? = null,
         onSaved: () -> Unit,
         onError: (Throwable) -> Unit,
     ) {
@@ -145,13 +383,34 @@ class CameraCaptureSessionManager(
             return
         }
 
-        capture.targetRotation = previewView.display?.rotation ?: Surface.ROTATION_0
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
+        capture.targetRotation = targetRotation
+        val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
+        // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
+        // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot
+        // keeps the same coordinates. A null location (setting off / no permission / no fix) leaves
+        // the photo without GPS - the shutter is never gated on a location.
+        if (location != null) {
+            builder.setMetadata(ImageCapture.Metadata().apply { this.location = location })
+        }
+        val outputOptions = builder.build()
         capture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(previewView.context),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) = onSaved()
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    // S0753: match the saved photo to a digital (soft) zoom by cropping it off-thread.
+                    val factor = digitalZoomFactor
+                    if (factor > 1f) {
+                        val executor = cropExecutor
+                            ?: Executors.newSingleThreadExecutor().also { cropExecutor = it }
+                        executor.execute {
+                            cropCenter(outputFile, factor)
+                            ContextCompat.getMainExecutor(previewView.context).execute { onSaved() }
+                        }
+                    } else {
+                        onSaved()
+                    }
+                }
 
                 override fun onError(exception: ImageCaptureException) {
                     Timber.e(exception, "CameraCaptureSessionManager: capture failed")
@@ -161,15 +420,69 @@ class CameraCaptureSessionManager(
         )
     }
 
+    /** S0753: center-crops a captured JPEG by [factor] to match the digital (soft) zoom, overwriting it. */
+    private fun cropCenter(file: File, factor: Float) {
+        runCatching {
+            // S0765: snapshot the EXIF CameraX wrote before we overwrite the file. Bitmap.compress
+            // emits a bare JPEG with no metadata, which silently dropped orientation/datetime/GPS for
+            // every digital-zoom shot. A center crop keeps the pixels in their stored (sensor)
+            // orientation, so the original tags - including TAG_ORIENTATION - remain valid as-is.
+            val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
+
+            @Suppress("DEPRECATION")
+            val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
+            val w = decoder.width
+            val h = decoder.height
+            val cropW = (w / factor).toInt().coerceAtLeast(1)
+            val cropH = (h / factor).toInt().coerceAtLeast(1)
+            val left = (w - cropW) / 2
+            val top = (h - cropH) / 2
+            val region = decoder.decodeRegion(Rect(left, top, left + cropW, top + cropH), null)
+            decoder.recycle()
+            val scaled = Bitmap.createScaledBitmap(region, w, h, true)
+            FileOutputStream(file).use { scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
+            if (scaled != region) region.recycle()
+            scaled.recycle()
+            originalExif?.let { restoreExif(it, file) }
+        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: digital-zoom crop failed") }
+    }
+
+    /**
+     * S0765: re-applies the [source] EXIF tags onto [target] after a re-encode that drops metadata.
+     * Orientation is copied unchanged (the crop did not physically rotate pixels), so a viewer rotates
+     * the cropped shot exactly like the original full-frame capture.
+     */
+    private fun restoreExif(source: ExifInterface, target: File) {
+        runCatching {
+            val dest = ExifInterface(target.absolutePath)
+            PRESERVED_EXIF_TAGS.forEach { tag ->
+                source.getAttribute(tag)?.let { value -> dest.setAttribute(tag, value) }
+            }
+            dest.saveAttributes()
+            Timber.d(
+                "S0765: restored EXIF after zoom crop orientation=" +
+                    "${dest.getAttribute(ExifInterface.TAG_ORIENTATION)} " +
+                    "datetime=${dest.getAttribute(ExifInterface.TAG_DATETIME)} " +
+                    "gps=${dest.getAttribute(ExifInterface.TAG_GPS_LATITUDE) != null}",
+            )
+        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: EXIF restore after crop failed") }
+    }
+
     fun unbind() {
         activeRecording?.stop()
         activeRecording = null
         cameraProvider?.unbindAll()
         cameraProvider = null
+        previewUseCase = null
         imageCapture = null
         videoCapture = null
         camera = null
         previewView = null
+        // S0767: orderly shutdown() (never shutdownNow) lets an in-flight crop finish writing its JPEG
+        // and releases the worker thread deterministically instead of waiting for GC, without blocking
+        // the calling (main) thread; nulling the field lets a later bind()+crop recreate it.
+        cropExecutor?.shutdown()
+        cropExecutor = null
     }
 
     fun isRecording(): Boolean = activeRecording != null
@@ -220,19 +533,51 @@ class CameraCaptureSessionManager(
             .onFailure { Timber.w(it, "CameraCaptureSessionManager: resume failed") }
     }
 
+    /** Selects exactly the given camera by identity, so a specific physical lens can be bound. */
+    private fun selectorFor(info: CameraInfo): CameraSelector =
+        CameraSelector.Builder()
+            .addCameraFilter { infos -> infos.filter { it == info } }
+            .build()
+
     private fun bindToLifecycle(provider: ProcessCameraProvider, previewView: PreviewView) {
-        val preview = Preview.Builder().build().also {
-            it.surfaceProvider = previewView.surfaceProvider
+        val activeInfo = availableCameras.getOrNull(activeCameraIndex) ?: run {
+            Timber.e("CameraCaptureSessionManager: no camera at index $activeCameraIndex")
+            return
         }
-        val selector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
+        val previewBuilder = Preview.Builder()
+        applyPreviewOutputConfig(previewBuilder)
+        val preview = previewBuilder.build().also {
+            it.surfaceProvider = previewView.surfaceProvider
+            it.targetRotation = targetRotation
+            previewUseCase = it
+        }
+        val baseSelector = selectorFor(activeInfo)
+        // S0753: NIGHT is photo-only and per-device; fall back to exposure compensation when unavailable.
+        nightExtensionAvailable = !videoMode &&
+            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.NIGHT) == true
+        hdrExtensionAvailable = !videoMode &&
+            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.HDR) == true
+        val selector = when {
+            hdrEnabled && hdrExtensionAvailable ->
+                extensionsManager!!.getExtensionEnabledCameraSelector(baseSelector, ExtensionMode.HDR)
+            nightMode && nightExtensionAvailable ->
+                extensionsManager!!.getExtensionEnabledCameraSelector(baseSelector, ExtensionMode.NIGHT)
+            else -> {
+                baseSelector
+            }
+        }
         val captureUseCase: UseCase = if (videoMode) {
             val recorder = Recorder.Builder().build()
             VideoCapture.withOutput(recorder).also {
+                it.targetRotation = targetRotation
                 videoCapture = it
                 imageCapture = null
             }
         } else {
-            ImageCapture.Builder().build().also {
+            val imageBuilder = ImageCapture.Builder()
+            applyImageOutputConfig(imageBuilder)
+            imageBuilder.build().also {
+                it.targetRotation = targetRotation
                 imageCapture = it
                 videoCapture = null
             }
@@ -242,11 +587,116 @@ class CameraCaptureSessionManager(
         val boundCamera = provider.bindToLifecycle(lifecycleOwner, selector, preview, captureUseCase)
 
         camera = boundCamera
-        capabilities = probe.probe(boundCamera, lensFacing, availableLensFacings)
+        resetDigitalZoom()
+        val probed = probe.probe(
+            boundCamera,
+            activeInfo.lensFacing,
+            availableCameras.map { it.lensFacing },
+            referenceFocal,
+        )
+        // Night mode is offered when either the OEM extension or exposure compensation can deliver it.
+        val supportsNight = nightExtensionAvailable || probed.supportsExposureCompensation
+        capabilities = probed.copy(
+            supportsNightMode = supportsNight,
+            supportsHdrExtension = hdrExtensionAvailable,
+        )
+        if (!capabilities.supportsManualSensor) {
+            manualIso = null
+            manualShutterNs = null
+        }
+        if (!capabilities.supportsHdrExtension) hdrEnabled = false
         onCapabilitiesChanged?.invoke(capabilities)
+        // A rebind resets exposure compensation, so re-apply the night offset on the fallback path.
+        if (nightMode && !nightExtensionAvailable) applyExposureCompensationForNight()
+        else if (manualIso == null && manualShutterNs == null && capabilities.supportsExposureCompensation) {
+            setExposureCompensation(exposureCompensationIndex)
+        }
+        applyCamera2Options()
+    }
+
+    private fun applyPreviewOutputConfig(builder: Preview.Builder) {
+        buildResolutionSelector()?.let(builder::setResolutionSelector)
+    }
+
+    private fun applyImageOutputConfig(builder: ImageCapture.Builder) {
+        buildResolutionSelector()?.let(builder::setResolutionSelector)
+    }
+
+    private fun buildResolutionSelector(): ResolutionSelector? {
+        if (selectedAspectRatio == null && selectedResolution == null) return null
+        val builder = ResolutionSelector.Builder()
+        selectedAspectRatio?.let {
+            builder.setAspectRatioStrategy(AspectRatioStrategy(it, AspectRatioStrategy.FALLBACK_RULE_AUTO))
+        }
+        selectedResolution?.let {
+            builder.setResolutionStrategy(
+                ResolutionStrategy(it, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
+            )
+        }
+        return builder.build()
+    }
+
+    private fun applyCamera2Options() {
+        val control = camera?.cameraControl ?: return
+        val c2 = Camera2CameraControl.from(control)
+        runCatching {
+            c2.clearCaptureRequestOptions()
+            val builder = CaptureRequestOptions.Builder()
+            var hasOptions = false
+            if (manualIso != null && manualShutterNs != null) {
+                builder
+                    .setCaptureRequestOption(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF)
+                    .setCaptureRequestOption(CaptureRequest.SENSOR_SENSITIVITY, manualIso!!)
+                    .setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, manualShutterNs!!)
+                hasOptions = true
+            }
+            if (macroEnabled && capabilities.macroFocusDistance > 0f) {
+                builder
+                    .setCaptureRequestOption(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+                    .setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, capabilities.macroFocusDistance)
+                hasOptions = true
+            }
+            whiteBalanceMode?.let {
+                builder.setCaptureRequestOption(CaptureRequest.CONTROL_AWB_MODE, it)
+                hasOptions = true
+            }
+            if (hasOptions) c2.setCaptureRequestOptions(builder.build())
+        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: Camera2 options apply failed") }
     }
 
     companion object {
         private const val FOCUS_AUTO_CANCEL_SECONDS = 3L
+        private const val JPEG_QUALITY = 95
+
+        /**
+         * S0765: EXIF tags carried across the digital-zoom re-encode so a cropped shot keeps the same
+         * rotation, capture time and place as the original full-frame JPEG CameraX produced.
+         */
+        private val PRESERVED_EXIF_TAGS = listOf(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.TAG_DATETIME,
+            ExifInterface.TAG_DATETIME_ORIGINAL,
+            ExifInterface.TAG_DATETIME_DIGITIZED,
+            ExifInterface.TAG_SUBSEC_TIME,
+            ExifInterface.TAG_OFFSET_TIME,
+            ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
+            ExifInterface.TAG_MAKE,
+            ExifInterface.TAG_MODEL,
+            ExifInterface.TAG_SOFTWARE,
+            ExifInterface.TAG_F_NUMBER,
+            ExifInterface.TAG_EXPOSURE_TIME,
+            ExifInterface.TAG_FOCAL_LENGTH,
+            ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
+            ExifInterface.TAG_WHITE_BALANCE,
+            ExifInterface.TAG_FLASH,
+            ExifInterface.TAG_GPS_LATITUDE,
+            ExifInterface.TAG_GPS_LATITUDE_REF,
+            ExifInterface.TAG_GPS_LONGITUDE,
+            ExifInterface.TAG_GPS_LONGITUDE_REF,
+            ExifInterface.TAG_GPS_ALTITUDE,
+            ExifInterface.TAG_GPS_ALTITUDE_REF,
+            ExifInterface.TAG_GPS_TIMESTAMP,
+            ExifInterface.TAG_GPS_DATESTAMP,
+        )
     }
 }

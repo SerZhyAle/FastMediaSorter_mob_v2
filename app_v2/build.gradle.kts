@@ -1085,6 +1085,7 @@ kotlin {
 }
 
 dependencies {
+    lintChecks(project(":lint-rules"))
     // Core Library Desugaring: java.time.* and other Java 8+ APIs on API 23-25 (legacy flavor)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
@@ -1248,6 +1249,8 @@ dependencies {
     implementation("androidx.camera:camera-view:1.5.3")
     // S0545: in-app video recording (unified capture host); replaces external ACTION_VIDEO_CAPTURE.
     implementation("androidx.camera:camera-video:1.5.3")
+    // S0753: OEM NIGHT extension for the camera night mode (device-gated via ExtensionsManager).
+    implementation("androidx.camera:camera-extensions:1.5.3")
     
     // Tesseract OCR (Offline, better Cyrillic support)
     // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)
@@ -1364,11 +1367,13 @@ dependencies {
     
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("com.squareup.leakcanary:leakcanary-android-instrumentation:2.12")
     // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
     androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 

@@ -176,3 +176,6 @@
 "streamsDefaultMediaFilter","","","","","","","","","","",""
 "streamsCatalogRefreshPolicy","","","","","","","","","","",""
 "nineZoneGridEnabled","","","","","","","","","","",""
+"showProgramsPanelInMainWindow","","","","","","","","","","",""
+"showStreamsPanelInMainWindow","","","","","","","","","","",""
+"cameraGeotagEnabled","","","","","","","","","","",""

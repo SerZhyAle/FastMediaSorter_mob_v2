@@ -197,6 +197,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private val orientationModeManager = PlayerOrientationModeManager()
     /** Cached from settingsRepository; updated by observeTranslationSettings(). */
     private var cachedTranslationEnabled = true
+
+    /** S0763: cached 3D/VR master-toggle state; updated by observeTranslationSettings(). */
+    private var cached3dVrEnabled = true
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
@@ -976,10 +979,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
     }
 
-    /** Keeps [cachedTranslationEnabled] in sync with the settings repository. */
+    /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the settings repository. */
     private fun observeTranslationSettings() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             cachedTranslationEnabled = settings.enableTranslation
+            cached3dVrEnabled = !settings.disable3dVr
             // Re-evaluate EPUB button whenever settings change
             updateEpubTranslatorVisibility()
         }
@@ -1025,6 +1029,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    // S0763: gate the dialog's "3D" section on the cached 3D/VR master-toggle state.
+    override val is3dVrEnabled: Boolean get() = cached3dVrEnabled
 
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) =

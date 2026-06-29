@@ -12,10 +12,10 @@ import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthResolutionTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class GoogleDriveInteractiveSignInCoordinator @Inject constructor(

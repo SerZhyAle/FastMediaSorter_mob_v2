@@ -48,6 +48,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
         private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
         private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
+
+        // S0755: main-window programs panel toggle (flat boolean alongside the other programs settings).
+        private val KEY_SHOW_PROGRAMS_PANEL = booleanPreferencesKey("show_programs_panel_main_window")
         private val KEY_DEFAULT_USER = stringPreferencesKey("default_user")
         private val KEY_DEFAULT_PASSWORD = stringPreferencesKey("default_password")
         private val KEY_NETWORK_PARALLELISM = intPreferencesKey("network_parallelism")
@@ -288,6 +291,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
                     embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
+                    showProgramsPanelInMainWindow = preferences[KEY_SHOW_PROGRAMS_PANEL] ?: false,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
                     defaultPassword = decryptPassword(preferences[KEY_DEFAULT_PASSWORD]),
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
@@ -353,6 +357,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsDefaultSort = streams.streamsDefaultSort,
                     streamsDefaultMediaFilter = streams.streamsDefaultMediaFilter,
                     streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
+                    showStreamsPanelInMainWindow = streams.showStreamsPanelInMainWindow,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -407,12 +412,16 @@ class SettingsRepositoryImpl @Inject constructor(
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
+                    cameraGeotagEnabled = capture.cameraGeotagEnabled,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
                     micRecordingEnabled = capture.micRecordingEnabled,
                     micRecordingAskFilename = capture.micRecordingAskFilename,
                     micRecordingDestinationResourceId = capture.micRecordingDestinationResourceId,
+                    screenRecordingEnabled = capture.screenRecordingEnabled,
+                    screenRecordingDestinationResourceId = capture.screenRecordingDestinationResourceId,
+                    screenRecordingDisclosureAccepted = capture.screenRecordingDisclosureAccepted,
                     cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
                     gestureOverlayEnabled = screenshot.gestureOverlayEnabled,
                     screenshotGestureStripVisible = screenshot.screenshotGestureStripVisible,
@@ -545,6 +554,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
             preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
+            preferences[KEY_SHOW_PROGRAMS_PANEL] = settings.showProgramsPanelInMainWindow
             preferences[KEY_DEFAULT_USER] = settings.defaultUser
             preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
             preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
