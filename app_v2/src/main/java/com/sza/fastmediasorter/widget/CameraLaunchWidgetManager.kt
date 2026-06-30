@@ -62,7 +62,6 @@ class CameraLaunchWidgetManager(
 
     /** Entry point from the trampoline's onCreate. */
     fun start() {
-        Timber.d("S0568: camera launch widget tapped - resolving photo/video availability")
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val photoAvailable = !settings.disableCameraCapture && mediaCapabilities.supportsImages

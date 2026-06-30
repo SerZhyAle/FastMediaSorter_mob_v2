@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.player.helpers
+package com.sza.fastmediasorter.core.cast
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.mediarouter.app.MediaRouteChooserDialogFragment
 import androidx.mediarouter.media.MediaRouteSelector
-import androidx.mediarouter.media.MediaRouter
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -17,10 +16,12 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.CastMediaControlIntent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.cast.LocalCastProxyServer
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.player.helpers.CastStreamDecision
+import com.sza.fastmediasorter.ui.player.helpers.CastStreamResolver
+import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,7 +32,7 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * Manages Chromecast media output from the player.
+ * GMS-backed [CastController]: manages Chromecast media output from the player.
  *
  * Supported media types: IMAGE, GIF, AUDIO, VIDEO (local or small network/cloud files), and live
  * http(s) video streams (HLS / DASH / progressive).
@@ -44,29 +45,29 @@ import java.io.File
  * - VIDEO files > [MAX_VIDEO_CAST_BYTES] from network/cloud are refused with a Toast.
  * - Live streams ([CastStreamResolver]): the URL is handed to the receiver directly as a live
  *   stream, bypassing the temp download and proxy. RTSP is rejected (receiver cannot play it).
+ *
+ * S0403: relocated from `src/main/.../ui/player/helpers/CastMediaManager` to the `castEnabled`
+ * source set so flavors without the Google Cast SDK never compile against it.
  */
-class CastMediaManager(
+class CastMediaManagerImpl(
     private val context: Context,
     private val lifecycleScope: CoroutineScope,
     private val networkFileManager: NetworkFileManager,
     private val mediaCapabilities: MediaCapabilities,
     private val onCastStateChanged: (isCasting: Boolean, deviceName: String?) -> Unit
-) {
+) : CastController {
 
     companion object {
         private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024   // 50 MB
         private const val DIALOG_TAG = "CastChooserDialog"
     }
 
-    init {
-    }
-
     // ── State ────────────────────────────────────────────────────────────────
 
-    val isCasting: Boolean get() = _isCasting
+    override val isCasting: Boolean get() = _isCasting
     @Volatile private var _isCasting = false
 
-    val castAvailableState = MutableStateFlow(false)
+    override val castAvailableState = MutableStateFlow(false)
 
     private val proxyServer = LocalCastProxyServer(context)
     private val castStreamResolver = CastStreamResolver()
@@ -121,7 +122,7 @@ class CastMediaManager(
     /**
      * Call once after CastContext is available (i.e. after FastMediaSorterApp.onCreate).
      */
-    fun init() {
+    override fun init() {
         if (!mediaCapabilities.supportsCast) {
             Timber.i("CastMediaManager: cast not supported on this platform - init skipped")
             return
@@ -152,7 +153,7 @@ class CastMediaManager(
     }
 
     /** Unregister listener, stop proxy, cancel downloads. Call from onDestroy. */
-    fun release() {
+    override fun release() {
         downloadJob?.cancel()
         downloadJob = null
         try {
@@ -174,12 +175,12 @@ class CastMediaManager(
     /**
      * Returns true if the Cast SDK is available on this device (Google Play Services present).
      */
-    val isCastAvailable: Boolean get() = castContext != null
+    override val isCastAvailable: Boolean get() = castContext != null
 
     /**
      * Opens the Cast device picker dialog. Call when the user taps "Cast to Chromecast".
      */
-    fun showCastDialog(activity: FragmentActivity) {
+    override fun showCastDialog(activity: FragmentActivity) {
         if (!PermissionHelper.hasLocalNetworkPermission(activity)) {
             if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
                 PermissionHelper.requestLocalNetworkPermission(activity)
@@ -222,7 +223,7 @@ class CastMediaManager(
      * If no session is active this is a no-op (the session listener will call sendMedia
      * when a session starts, if the user selects a device after tapping cast).
      */
-    fun sendCurrentMedia(file: MediaFile) {
+    override fun sendCurrentMedia(file: MediaFile) {
         if (!_isCasting || currentSession == null) {
             Timber.d("CastMediaManager: sendCurrentMedia called but not casting - ignoring")
             return

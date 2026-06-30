@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Wear Data Layer service overlay (S0403).
+
+  Mounted into every Wear-capable flavor (standard, noLegal, legacy) via build.gradle.kts
+  addStaticManifestFile. Declares the GMS WearableListenerService that receives sync requests and
+  acks from the watch companion. Flavors that mount wearStub (lite, photos, vr, and FOSS) never
+  declare this, so no Google Play Services Wearable reference reaches their merged manifest.
+
+  addStaticManifestFile is used instead of a flavor sourceSet manifest.srcFile because noLegal
+  already maps its manifest to src/vr/AndroidManifest.xml (a set, not merge); addStaticManifestFile
+  injects an additional merger input without clobbering that override (mirrors castEnabled).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <service android:name=".service.PhoneWearListenerService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:host="*" android:pathPrefix="/fms/network_sources" android:scheme="wear" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

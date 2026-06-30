@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ProgressBar
 import android.widget.TextView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
 import timber.log.Timber
 import java.text.DecimalFormat
 
@@ -21,7 +21,8 @@ import java.text.DecimalFormat
 class FileOperationProgressDialog(
     context: Context,
     private val operationType: String, // "Copying", "Moving", "Deleting"
-    private val onCancel: (() -> Unit)? = null // Callback when user clicks cancel
+    private val onCancel: (() -> Unit)? = null, // Callback when user clicks cancel
+    private val onBackground: (() -> Unit)? = null,
 ) : Dialog(context) {
 
     private lateinit var tvTitle: TextView
@@ -32,6 +33,7 @@ class FileOperationProgressDialog(
     private lateinit var tvEta: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCancel: android.widget.Button
+    private lateinit var btnBackground: android.widget.Button
 
     private var totalOperationBytes: Long = 0L
     
@@ -72,6 +74,8 @@ class FileOperationProgressDialog(
         tvEta = view.findViewById(R.id.tvEta)
         progressBar = view.findViewById(R.id.progressBar)
         btnCancel = view.findViewById(R.id.btnCancel)
+        btnBackground = view.findViewById(R.id.btnBackground)
+        btnBackground.visibility = if (onBackground != null) android.view.View.VISIBLE else android.view.View.GONE
 
         // S0266: initialise visible fields with "Preparing.." so cloud downloads (which only emit
         // their first Processing event after seconds of warm-up) never show layout-tool placeholders.
@@ -87,14 +91,22 @@ class FileOperationProgressDialog(
             onCancel?.invoke()
             dismiss()
         }
+        btnBackground.setOnClickListener {
+            onBackground?.invoke()
+            dismiss()
+        }
         
         setContentView(view)
         setCancelable(false)
         setCanceledOnTouchOutside(false)
     }
 
-    fun startShowTimer() {
-        showHandler.postDelayed(showRunnable, SHOW_DELAY_MS)
+    fun startShowTimer(showImmediately: Boolean = false) {
+        if (showImmediately) {
+            showRunnable.run()
+        } else {
+            showHandler.postDelayed(showRunnable, SHOW_DELAY_MS)
+        }
     }
 
     override fun dismiss() {
@@ -153,6 +165,27 @@ class FileOperationProgressDialog(
                 }
                 dismiss()
             }
+        }
+    }
+
+    fun updateSnapshot(snapshot: BrowseFileTransferProgressSnapshot) {
+        totalOperationBytes = snapshot.totalOperationBytes
+        val processing = FileOperationProgress.Processing(
+            currentFile = snapshot.currentFile,
+            currentIndex = snapshot.currentIndex,
+            totalFiles = snapshot.totalFiles,
+            bytesTransferred = snapshot.bytesTransferred,
+            totalBytes = snapshot.totalBytes,
+            speedBytesPerSecond = snapshot.speedBytesPerSecond,
+            completedOperationBytes = snapshot.completedOperationBytes,
+        )
+        pendingProgress = processing
+        if (!isStarted) {
+            isStarted = true
+            startTime = System.currentTimeMillis()
+        }
+        if (isShowing) {
+            applyProgressToUI(processing)
         }
     }
 
@@ -221,10 +254,12 @@ class FileOperationProgressDialog(
         fun show(
             context: Context,
             operationType: String,
-            onCancel: (() -> Unit)? = null
+            onCancel: (() -> Unit)? = null,
+            onBackground: (() -> Unit)? = null,
+            showImmediately: Boolean = false,
         ): FileOperationProgressDialog {
-            val dialog = FileOperationProgressDialog(context, operationType, onCancel)
-            dialog.startShowTimer()
+            val dialog = FileOperationProgressDialog(context, operationType, onCancel, onBackground)
+            dialog.startShowTimer(showImmediately = showImmediately)
             return dialog
         }
     }

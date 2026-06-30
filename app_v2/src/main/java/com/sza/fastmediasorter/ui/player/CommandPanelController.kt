@@ -17,7 +17,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
+import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
@@ -125,9 +125,9 @@ class CommandPanelController(
         private const val SMALL_CONTROLS_SCALE = 0.5f
     }
 
-    private lateinit var castMediaManager: CastMediaManager
+    private lateinit var castMediaManager: CastController
 
-    fun bindCastManager(manager: CastMediaManager) {
+    fun bindCastManager(manager: CastController) {
         castMediaManager = manager
         coroutineScope.launch {
             manager.castAvailableState.collect {

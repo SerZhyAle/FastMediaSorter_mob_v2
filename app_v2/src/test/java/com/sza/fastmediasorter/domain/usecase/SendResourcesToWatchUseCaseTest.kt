@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.google.android.gms.wearable.Node
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -40,7 +40,7 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `sends all SMB FTP SFTP resources and skips other types`() = runTest {
-        wearableRepository.connectedNodes = listOf(FakeNode())
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(
             makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"),
             makeResource(id = 2, type = ResourceType.FTP, credId = "cred-2"),
@@ -59,7 +59,7 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `skips resource with null credentialsId`() = runTest {
-        wearableRepository.connectedNodes = listOf(FakeNode())
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = null))
 
         val result = useCase()
@@ -72,7 +72,7 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `skips resource when credentials not found`() = runTest {
-        wearableRepository.connectedNodes = listOf(FakeNode())
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "missing-cred"))
 
         val result = useCase()
@@ -85,7 +85,7 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `skips resource when password decryption failed`() = runTest {
-        wearableRepository.connectedNodes = listOf(FakeNode())
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-bad"))
         credentialsRepository.byCredentialId["cred-bad"] = NetworkCredentialsEntity(
             credentialId = "cred-bad",
@@ -108,7 +108,7 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `sends valid payload as JSON bytes`() = runTest {
-        wearableRepository.connectedNodes = listOf(FakeNode())
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 5, type = ResourceType.SMB, credId = "cred-5"))
         credentialsRepository.byCredentialId["cred-5"] = makeCredentials("cred-5", "secret")
 
@@ -146,17 +146,11 @@ class SendResourcesToWatchUseCaseTest {
     }
 }
 
-private class FakeNode : Node {
-    override fun getId(): String = "node-1"
-    override fun getDisplayName(): String = "Pixel Watch"
-    override fun isNearby(): Boolean = true
-}
-
 private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
-    var connectedNodes: List<Node> = emptyList()
+    var connectedNodes: List<WearNode> = emptyList()
     val putCalls = mutableListOf<PutCall>()
 
-    override suspend fun getConnectedNodes(): List<Node> = connectedNodes
+    override suspend fun getConnectedNodes(): List<WearNode> = connectedNodes
 
     override suspend fun putDataItem(path: String, payload: ByteArray) {
         putCalls += PutCall(path, payload)

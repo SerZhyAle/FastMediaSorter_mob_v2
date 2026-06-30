@@ -2,9 +2,7 @@ package com.sza.fastmediasorter.core.di
 
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
-import com.sza.fastmediasorter.data.wear.WearableDataLayerRepositoryImpl
 import com.sza.fastmediasorter.domain.game.GameStateRepository
-import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
@@ -112,11 +110,8 @@ abstract class RepositoryModule {
         impl: ScheduledOperationRepositoryImpl
     ): ScheduledOperationRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindWearableDataLayerRepository(
-        impl: WearableDataLayerRepositoryImpl
-    ): WearableDataLayerRepository
+    // WearableDataLayerRepository is bound per-flavor by the seam modules (S0403):
+    // src/wearGms/.../di/WearModule (GMS impl) or src/wearStub/.../di/WearModule (no-op).
 
     @Binds
     @Singleton

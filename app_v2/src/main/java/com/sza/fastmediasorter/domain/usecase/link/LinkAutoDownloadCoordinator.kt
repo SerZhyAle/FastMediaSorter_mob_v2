@@ -89,7 +89,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             // not actually applied. The hint propagation chain is critical for YTMusic
             // audio-share - if this fires with audioOnly=true the hint is being dropped.
             Timber.d(
-                "S0260: session context skipped host=%s reason=%s audioOnly=%b",
+                "session context skipped host=%s reason=%s audioOnly=%b",
                 host,
                 if (resolvedHost == null) "no_resolved_host" else "no_cookies",
                 audioOnly,
@@ -107,7 +107,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 val sessionHost = resolvedHost ?: host
                 sessionContext.set(sessionHost, emptyList(), null, audioOnly = true)
                 Timber.d(
-                    "S0260: LinkAutoDownloadCoordinator.applySessionContext propagate audioOnly hint without cookies sessionHost=%s",
+                    "LinkAutoDownloadCoordinator.applySessionContext propagate audioOnly hint without cookies sessionHost=%s",
                     sessionHost,
                 )
             }
@@ -141,7 +141,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             cookies.size,
         )
         Timber.d(
-            "S0260: session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
+            "session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
             host,
             resolvedHost,
             cookies.size,
@@ -165,7 +165,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
         Timber.d(
-            "S0260: canonical orig=%s canonical=%s audioOnly=%b",
+            "canonical orig=%s canonical=%s audioOnly=%b",
             url.take(120),
             canonical.url.take(120),
             canonical.audioOnly,

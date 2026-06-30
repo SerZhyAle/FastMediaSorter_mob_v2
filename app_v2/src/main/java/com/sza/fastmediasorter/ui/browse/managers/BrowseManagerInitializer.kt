@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -101,6 +102,7 @@ class BrowseManagerInitializer(
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
     private val mediaCapabilities: MediaCapabilities,
     private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
@@ -324,8 +326,10 @@ class BrowseManagerInitializer(
         fileOperationsManager = BrowseFileOperationsManager(
             context = activity,
             coroutineScope = lifecycleScope,
+            lifecycleOwner = activity,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
+            browseTransferCoordinator = browseTransferCoordinator,
             sendToMenuManager = sendToMenuManager,
             dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : BrowseFileOperationsManager.FileOperationCallbacks {
@@ -334,6 +338,9 @@ class BrowseManagerInitializer(
                 override fun clearSelection() = viewModel.clearSelection()
                 override fun getCacheDir(): File? = activity.cacheDir
                 override fun getExternalCacheDir(): File? = activity.externalCacheDir
+                override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
+                override fun getCurrentBrowsePath(): String? = viewModel.state.value.currentPath
+                override fun navigateToFolder(path: String) = viewModel.navigateToFolder(path)
                 override fun onAuthRequest(provider: String) = when (provider) {
                     "dropbox" -> cloudAuthManager.launchDropboxSignIn()
                     "google_drive" -> cloudAuthManager.launchGoogleSignIn()

@@ -8,7 +8,7 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
+import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +28,7 @@ internal class CommandPanelAvailabilityUpdater(
     private val coroutineScope: CoroutineScope,
     private val bigButtonsMode: Boolean,
     private val getIsLandscapeMode: () -> Boolean,
-    private val getCastMediaManager: () -> CastMediaManager?,
+    private val getCastMediaManager: () -> CastController?,
     private val getAllowVrLaunch: () -> Boolean,
     private val shouldShowRandomNavigation: (com.sza.fastmediasorter.domain.model.ResourceProfile?) -> Boolean,
     private val isWifiConnected: (android.content.Context) -> Boolean,

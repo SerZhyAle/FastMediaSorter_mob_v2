@@ -233,7 +233,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     internal lateinit var shareManager: com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
     internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
-    internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
+    internal lateinit var castMediaManager: com.sza.fastmediasorter.core.cast.CastController
     internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
     internal lateinit var imageCropManager: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
@@ -367,6 +367,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
+    @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
     @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>

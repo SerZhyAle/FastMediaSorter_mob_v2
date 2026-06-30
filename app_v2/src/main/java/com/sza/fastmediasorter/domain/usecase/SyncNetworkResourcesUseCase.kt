@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -79,7 +80,11 @@ class SyncNetworkResourcesUseCase @Inject constructor(
                     Timber.i("SyncNetworkResourcesUseCase: Synced ${resource.name}, fileCount=$fileCount")
                     successCount++
                 } catch (e: Exception) {
-                    Timber.e(e, "SyncNetworkResourcesUseCase: Failed to sync ${resource.name}")
+                    HandledNetworkOutcomeLogger.logHandledSyncFailure(
+                        scope = "manual-network-sync",
+                        resourceLabel = resource.name,
+                        throwable = e
+                    )
                 }
 
                 processedCount++
@@ -88,7 +93,11 @@ class SyncNetworkResourcesUseCase @Inject constructor(
             
             Result.success(successCount)
         } catch (e: Exception) {
-            Timber.e(e, "SyncNetworkResourcesUseCase: Failed to sync network resources")
+            HandledNetworkOutcomeLogger.logHandledSyncFailure(
+                scope = "manual-network-sync",
+                resourceLabel = "session",
+                throwable = e
+            )
             Result.failure(e)
         }
     }
@@ -150,7 +159,11 @@ class SyncNetworkResourcesUseCase @Inject constructor(
             Timber.i("SyncNetworkResourcesUseCase: Synced ${resource.name}, fileCount=$fileCount")
             Result.success(Unit)
         } catch (e: Exception) {
-            Timber.e(e, "SyncNetworkResourcesUseCase: Failed to sync resource $resourceId")
+            HandledNetworkOutcomeLogger.logHandledSyncFailure(
+                scope = "manual-network-sync",
+                resourceLabel = "resource-$resourceId",
+                throwable = e
+            )
             Result.failure(e)
         }
     }

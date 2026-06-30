@@ -92,7 +92,6 @@ class OverlayHostService : Service() {
                 overlayManager.setStripVisible(stripVisible)
             }
             startForegroundCompat()
-            Timber.d("S0672: edge-gesture overlay strip started (specialUse FGS)")
         } catch (e: Exception) {
             Timber.e(e, "OverlayHostService: failed to start overlay host")
             stopOverlayHost()

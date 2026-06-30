@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import timber.log.Timber
+
 /**
  * S0760: single source of truth for the horizontal swipe font-resize step shared by the text
  * viewer (SP float, range 6..72) and the EPUB viewer (Int px, range 6..144).
@@ -18,7 +20,11 @@ internal object FontResizeController {
     private const val RESIZE_STOPS = 7f
 
     /** Proportional step for a range; always >= a small positive amount so resize never stalls. */
-    fun step(min: Float, max: Float): Float = ((max - min) / RESIZE_STOPS).coerceAtLeast(1f)
+    fun step(min: Float, max: Float): Float {
+        val value = ((max - min) / RESIZE_STOPS).coerceAtLeast(1f)
+        Timber.d("S0760: font resize step=$value range=$min..$max")
+        return value
+    }
 
     /** Next size up, clamped to [min, max]. */
     fun increase(current: Float, min: Float, max: Float): Float =

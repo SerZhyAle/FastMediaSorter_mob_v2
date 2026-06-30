@@ -50,6 +50,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -147,6 +148,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+    @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
@@ -386,6 +388,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binaryFileMenuActions = binaryFileMenuActions,
             browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
+            browseTransferCoordinator = browseTransferCoordinator,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             mediaCapabilities = mediaCapabilities,
             sendToMenuManager = sendToMenuManager,
@@ -493,6 +496,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.stateUiUpdater.currentDisplayMode = null
                 initializer.forceUpdateDisplayMode(mode)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::initializer.isInitialized && intent.getBooleanExtra(EXTRA_REATTACH_TRANSFER, false)) {
+            initializer.fileOperationsManager.requestTransferDialogReattach()
         }
     }
 
@@ -741,6 +752,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
         const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"
         const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
+        const val EXTRA_REATTACH_TRANSFER = "reattachTransfer"
         const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
         // S0028: multi-window - window identity and tear-off state
         const val EXTRA_WINDOW_ID = "extra_window_id"

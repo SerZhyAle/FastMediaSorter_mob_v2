@@ -277,7 +277,6 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     }
 
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
-        Timber.d("S0613: standalone text print dispatched via Send-to receiver")
         documentPrintManager.printCurrentFile(mediaFile)
         return true
     }

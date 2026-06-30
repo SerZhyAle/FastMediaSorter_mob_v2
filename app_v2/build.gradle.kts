@@ -572,6 +572,10 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: GMS-backed Wear Data Layer bridge; foss / non-Wear flavors mount wearStub.
+            kotlin.directories.add("src/wearGms/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
@@ -611,6 +615,13 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Google Cast SDK seam impl (castEnabled manifest injected via addStaticManifestFile
+            // below - manifest.srcFile above is a set, so it cannot also mount the cast overlay).
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: GMS-backed Wear Data Layer bridge (wearGms manifest injected via
+            // addStaticManifestFile below, same reason as castEnabled - the manifest.srcFile above
+            // is a set). foss / non-Wear flavors mount wearStub instead.
+            kotlin.directories.add("src/wearGms/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
@@ -622,6 +633,10 @@ android {
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: GMS-backed Wear Data Layer bridge; foss / non-Wear flavors mount wearStub.
+            kotlin.directories.add("src/wearGms/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
@@ -630,6 +645,10 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: vr has no Wear companion -> mount the wearStub no-op (no Play Services Wearable).
+            kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
@@ -638,6 +657,10 @@ android {
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: photos has no Wear companion -> mount the wearStub no-op.
+            kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
             // S0423 release scope: S0418 screencapture stays noLegal-only for now (Play review risk
@@ -646,6 +669,10 @@ android {
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            // S0403: lite ships Cast (video flavor), so it mounts the GMS-backed castEnabled impl.
+            kotlin.directories.add("src/castEnabled/java")
+            // S0403: lite has no Wear companion (SUPPORT_WEAR_COMPANION=false) -> wearStub no-op.
+            kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
         }
@@ -965,6 +992,25 @@ androidComponents {
             variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
         }
 
+        // S0403: the castEnabled source set is mounted by directory only, which does not pull in its
+        // AndroidManifest automatically. Inject the Cast OPTIONS_PROVIDER meta-data overlay for every
+        // cast-capable flavor. addStaticManifestFile is additive, so it coexists with noLegal's
+        // manifest.srcFile(src/vr) override. foss never mounts castEnabled, so it never registers it.
+        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy", "vr")
+        if (flavorName in castFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/castEnabled/AndroidManifest.xml")
+        }
+
+        // S0403: the wearGms source set (GMS WearableListenerService) is mounted by directory only,
+        // which does not pull in its AndroidManifest automatically. Inject the Wear Data Layer
+        // <service> overlay for every Wear-capable flavor. addStaticManifestFile is additive, so it
+        // coexists with noLegal's manifest.srcFile(src/vr) override. foss / non-Wear flavors mount
+        // wearStub (no manifest), so they never register the service.
+        val wearFlavors = setOf("standard", "noLegal", "legacy")
+        if (flavorName in wearFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/wearGms/AndroidManifest.xml")
+        }
+
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
         // service + FOREGROUND_SERVICE_MEDIA_PROJECTION) is injected into both the store flavor and
         // noLegal. The src/screenCapture source set is mounted by directory only, which does not pull
@@ -1276,8 +1322,14 @@ dependencies {
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")
     
-    // Wearable Data Layer - phone-side bridge to Wear OS companion
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
+    // Wearable Data Layer - phone-side bridge to Wear OS companion.
+    // S0403: consumed only by src/wearGms (WearableDataLayerRepositoryImpl + PhoneWearListenerService),
+    // mounted into the Wear-capable flavors only. Scoped per-flavor so the FOSS APK (and non-Wear
+    // flavors) never package the proprietary Play Services Wearable SDK. Keep this list in sync with
+    // the wearGms sourceSets mounts above.
+    "standardImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
+    "noLegalImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
+    "legacyImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.0.0")
@@ -1296,12 +1348,29 @@ dependencies {
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
     implementation("com.microsoft.identity.client:msal:6.0.1")
     
-    // Google Cast SDK + MediaRouter (Chromecast output from player)
-    implementation("com.google.android.gms:play-services-cast-framework:21.4.0")
-    implementation("androidx.mediarouter:mediarouter:1.7.0")
-
-    // NanoHTTPD - in-process HTTP proxy to serve local/cached files to Cast receiver
-    implementation("org.nanohttpd:nanohttpd:2.3.1")
+    // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
+    // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer), mounted
+    // into every flavor EXCEPT foss (which mounts castDisabled). Scoped per-flavor so the FOSS APK
+    // never packages the proprietary Google Cast SDK. Keep this list in sync with the castEnabled
+    // sourceSets mounts above.
+    "standardImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "noLegalImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "liteImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "photosImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "legacyImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "vrImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
+    "standardImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "noLegalImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "liteImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "photosImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "legacyImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "vrImplementation"("androidx.mediarouter:mediarouter:1.7.0")
+    "standardImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "noLegalImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "liteImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "photosImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "legacyImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "vrImplementation"("org.nanohttpd:nanohttpd:2.3.1")
 
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")

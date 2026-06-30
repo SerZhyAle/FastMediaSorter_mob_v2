@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
+import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -110,7 +111,11 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                     }
                     
                 } catch (e: Exception) {
-                    Timber.e(e, "NetworkFilesSyncWorker: Failed to sync ${resource.name}")
+                    HandledNetworkOutcomeLogger.logHandledSyncFailure(
+                        scope = "network-sync-worker",
+                        resourceLabel = resource.name,
+                        throwable = e
+                    )
                     // Continue with other resources even if one fails
                 }
             }
@@ -134,7 +139,11 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
 
             Result.success()
         } catch (e: Exception) {
-            Timber.e(e, "NetworkFilesSyncWorker: Background sync failed")
+            HandledNetworkOutcomeLogger.logHandledSyncFailure(
+                scope = "network-sync-worker",
+                resourceLabel = "session",
+                throwable = e
+            )
             Result.failure()
         }
     }

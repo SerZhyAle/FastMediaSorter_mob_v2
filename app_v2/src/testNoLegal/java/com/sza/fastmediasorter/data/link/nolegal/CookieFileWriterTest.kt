@@ -17,6 +17,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.net.HttpCookie
+import java.util.concurrent.TimeUnit
 
 /**
  * S0174 Phase 03: Unit tests for [CookieFileWriter] Netscape serialisation, eTLD+1 matching,
@@ -92,6 +93,15 @@ class CookieFileWriterTest {
         val parts = cookieLine!!.split("\t")
         assertEquals(7, parts.size)
         assertEquals("abc123", parts[6].trim()) // value is last field
+        // S0822 regression: field 4 (expiry) must be an ABSOLUTE epoch-seconds timestamp
+        // (now + maxAge), not the raw relative maxAge. A bare "3600" reads as 1970 and yt-dlp
+        // drops the cookie as expired, breaking authenticated fetches.
+        val expirySeconds = parts[EXPIRY_FIELD_INDEX].toLong()
+        val nowSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+        assertTrue(
+            "expiry must be a future absolute epoch, was $expirySeconds",
+            expirySeconds > nowSeconds,
+        )
         file.delete()
     }
 
@@ -104,5 +114,10 @@ class CookieFileWriterTest {
         writer.deleteCookieFile(file)
 
         assertFalse(file.exists())
+    }
+
+    private companion object {
+        // Netscape cookie line: domain, includeSubdomain, path, secure, expiry, name, value.
+        const val EXPIRY_FIELD_INDEX = 4
     }
 }

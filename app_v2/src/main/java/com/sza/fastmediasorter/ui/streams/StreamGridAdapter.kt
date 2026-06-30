@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.Menu
-import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
@@ -28,6 +27,12 @@ import kotlinx.coroutines.launch
  * [requestCapture]. The favicon plumbing mirrors [StreamSourceAdapter] (rebind-safe with a boundUrl
  * guard). [repaintUrl] lets the snapshot engine's `onCaptured` callback refresh just one tile.
  *
+ * S0700: the snapshot is captured offscreen by [StreamFrameSnapshotManager] (its own ImageReader
+ * surface, decoupled from this cell's views), so [requestCapture] no longer hands over a TextureView.
+ * On completion the manager calls back into [repaintUrl], which re-binds only the tile whose bound url
+ * matches - a recycled/scrolled cell that now shows a different url is never repainted with a stale
+ * frame, and the cell carries no live capture surface.
+ *
  * S0701: each tile now also carries the same play-status dot (bottom-left) and overflow menu (top-right)
  * as the list row, and S0695's long-press pin/unpin toggle - so grid mode is not a feature-poor sibling
  * of the list. The secondary-command callbacks mirror [StreamSourceAdapter].
@@ -40,7 +45,7 @@ class StreamGridAdapter(
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
     private val frameProvider: (url: String) -> Bitmap?,
-    private val requestCapture: (url: String, textureViewProvider: () -> TextureView?) -> Unit,
+    private val requestCapture: (url: String) -> Unit,
     private val faviconResolver: (String) -> Int? = { null },
     private val faviconTileLoader: suspend (Int) -> Bitmap? = { null },
     private val faviconScope: CoroutineScope? = null,
@@ -119,7 +124,9 @@ class StreamGridAdapter(
                 binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
                 bindFavicon(source.url)
                 if (isCaptureableVideo(source)) {
-                    requestCapture(source.url) { if (boundUrl == source.url) binding.textureCapture else null }
+                    // S0700: capture is offscreen (no cell surface); the bound-url guard now lives in
+                    // repaintUrl, so a recycled tile never receives another url's frame.
+                    requestCapture(source.url)
                 }
             }
         }

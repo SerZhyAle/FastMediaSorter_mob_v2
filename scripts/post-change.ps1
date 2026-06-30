@@ -36,7 +36,13 @@ param(
     [string]$ChangeType,
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
-    [switch]$SkipScan
+    [switch]$SkipScan,
+    # S0826: per-change closure on an always-dirty tree. When set, detekt is diff-scoped to
+    # -File (fails only on findings in THIS change), and the project-wide count-ratchet gates
+    # (neuroslop, listener-symmetry, flavor-flag, deprecated-pm) downgrade to advisory warnings
+    # - they grow on other tickets' in-flight WIP, so they cannot be attributed to this change.
+    # Release/CI omit the switch for the strict full project gate.
+    [switch]$ScopeToFile
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,6 +109,30 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 
 function Skip-Step([string]$Label, [string]$Reason) {
     Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
+}
+
+# S0826: like Invoke-Step but non-fatal. A project-wide count-ratchet gate (neuroslop,
+# listener-symmetry, flavor-flag, deprecated-pm) grows on other tickets' WIP, so under
+# -ScopeToFile a failure is reported as a WARN and the facade keeps going instead of
+# aborting the close. The operator still sees it and can verify their own files.
+function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action) {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    try {
+        $global:LASTEXITCODE = 0
+        & $Action
+        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+        $sw.Stop()
+        if ($exitCode -ne 0) {
+            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (project-wide ratchet; not attributed to your change - verify your files manually)"
+        }
+        else {
+            Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+        }
+    }
+    catch {
+        $sw.Stop()
+        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))"
+    }
 }
 
 $resolvedChangeType = if ($PSBoundParameters.ContainsKey('ChangeType')) {
@@ -227,8 +257,12 @@ else {
     Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
 }
 
+# S0826: project-wide count-ratchet gates run advisory (warn, non-fatal) under -ScopeToFile
+# because they grow on other tickets' in-flight WIP; fatal otherwise.
+$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
+
 if ($runsFlavorFlagGate) {
-    Invoke-Step "flavor-flag-gate" {
+    & $ratchetRunner "flavor-flag-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1") -Gate
     }
 }
@@ -237,7 +271,7 @@ else {
 }
 
 if ($runsNeuroslopGate) {
-    Invoke-Step "neuroslop-gate" {
+    & $ratchetRunner "neuroslop-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-neuroslop.ps1") -Gate
     }
 }
@@ -256,6 +290,11 @@ if ($runsDetektGate) {
         if ($PSBoundParameters.ContainsKey('Module')) {
             $detektArgs += @('-Module', $Module)
         }
+        if ($ScopeToFile) {
+            # diff-scope to this change: detekt fails only on findings in -File, not on
+            # other tickets' WIP that also sits above baseline on the dirty tree.
+            $detektArgs += @('-ChangedFiles', $File)
+        }
         & $pwsh @detektArgs
     }
 }
@@ -273,7 +312,7 @@ else {
 }
 
 if ($runsPmFlagsGate) {
-    Invoke-Step "deprecated-pm-flags-gate" {
+    & $ratchetRunner "deprecated-pm-flags-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1") -Gate
     }
 }
@@ -300,7 +339,7 @@ else {
 }
 
 if ($runsListenerSymmetryGate) {
-    Invoke-Step "listener-symmetry-gate" {
+    & $ratchetRunner "listener-symmetry-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1") -Gate
     }
 }

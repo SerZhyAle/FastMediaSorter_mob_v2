@@ -19,7 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -138,11 +137,4 @@ class PhoneWearListenerService : WearableListenerService() {
         const val PREFS = PREFS_NAME
         const val LAST_SYNC = KEY_LAST_SYNC
     }
-}
-
-/** Process-wide event bus for messages from the watch. */
-object WearSyncEvents {
-    val ackFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val watchSourcesReceivedFlow = MutableSharedFlow<WearSourcesExportPayload>(extraBufferCapacity = 1)
-    val watchPlaybackStateFlow = MutableSharedFlow<WearPlaybackStatePayload?>(extraBufferCapacity = 1)
 }

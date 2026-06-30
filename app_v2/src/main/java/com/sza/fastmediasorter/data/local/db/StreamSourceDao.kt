@@ -79,9 +79,14 @@ interface StreamSourceDao {
     @Query("SELECT * FROM stream_sources WHERE sourceOrigin = 'CATALOG'")
     suspend fun catalogSources(): List<StreamSourceEntity>
 
-    /** S0570: prune catalog rows that vanished from the latest catalog; never touches user rows. */
-    @Query("DELETE FROM stream_sources WHERE sourceOrigin = 'CATALOG' AND url NOT IN (:keepUrls)")
-    suspend fun deleteCatalogNotIn(keepUrls: List<String>)
+    /**
+     * S0821: delete a bounded batch of catalog rows by url; never touches user rows. The caller
+     * computes the (existing - new) prune delta in memory and feeds it here in bind-safe chunks,
+     * so the import no longer depends on SQLite's bind-variable limit (the old single
+     * `NOT IN (:keepUrls)` aborted large-catalog imports with "too many SQL variables").
+     */
+    @Query("DELETE FROM stream_sources WHERE sourceOrigin = 'CATALOG' AND url IN (:urls)")
+    suspend fun deleteCatalogByUrls(urls: List<String>)
 
     /** S0570: refresh catalog metadata in place; sortIndex/pinned are preserved (not in the SET). */
     @Query(

@@ -378,7 +378,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 httpClient.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
                         LinkDownloadTrace.verbose(
-                            "S0223: ig-api request failed status=${response.code}" +
+                            "ig-api request failed status=${response.code}" +
                                 " url=${LinkDownloadTrace.truncateUrl(apiUrl)}",
                         )
                         return@withContext emptyList()

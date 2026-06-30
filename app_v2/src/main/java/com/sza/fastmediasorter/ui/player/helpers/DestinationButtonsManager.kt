@@ -450,12 +450,14 @@ class DestinationButtonsManager(
         lifecycleScope.launch {
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.copyPanelCollapsed
-            
-            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
-            
-            // Clear cache to force reload on next populateDestinationButtons()
+            Timber.d("S0613: toggleCopyPanel collapsed=$newCollapsedState")
+
+            // S0613: update the cache BEFORE the Room write. updateSettings() emits on the settings
+            // Flow, which re-triggers populateDestinationButtons() on another coroutine; if the cache
+            // still held the pre-toggle value, that repopulate would revert the panel to the stale state.
             cachedCopyCollapsed = newCollapsedState
-            
+            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
+
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
@@ -465,8 +467,9 @@ class DestinationButtonsManager(
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !expanded
 
-            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
+            // S0613: cache before the Room write (see toggleCopyPanel) to avoid a stale repopulate.
             cachedCopyCollapsed = newCollapsedState
+            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
@@ -478,12 +481,11 @@ class DestinationButtonsManager(
         lifecycleScope.launch {
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.movePanelCollapsed
-            
-            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
-            
-            // Clear cache to force reload on next populateDestinationButtons()
+
+            // S0613: cache before the Room write (see toggleCopyPanel) to avoid a stale repopulate.
             cachedMoveCollapsed = newCollapsedState
-            
+            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
+
             updateMovePanelVisibility(newCollapsedState)
         }
     }
@@ -493,8 +495,9 @@ class DestinationButtonsManager(
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !expanded
 
-            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
+            // S0613: cache before the Room write (see toggleCopyPanel) to avoid a stale repopulate.
             cachedMoveCollapsed = newCollapsedState
+            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
             updateMovePanelVisibility(newCollapsedState)
         }
     }

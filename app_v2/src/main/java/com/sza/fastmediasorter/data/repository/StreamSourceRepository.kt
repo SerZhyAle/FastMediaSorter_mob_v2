@@ -71,7 +71,7 @@ class StreamSourceRepository @Inject constructor(
      * touched: a url already owned by a user row blocks the catalog insert and is left as-is.
      */
     suspend fun mergeCatalog(entries: List<StreamSourceEntity>): CatalogMergeResult =
-        // S0732: N update/insertIgnore writes plus a final deleteCatalogNotIn were not atomic, so a
+        // S0732: N update/insertIgnore writes plus the final catalog prune were not atomic, so a
         // kill mid-merge left a half-synced catalog and observeSources re-emitted intermediate states.
         // One transaction makes the catalog sync all-or-nothing (single observe* emission).
         db.withTransaction {
@@ -98,11 +98,22 @@ class StreamSourceRepository @Inject constructor(
                 // insertIgnore == -1 means the url is owned by a non-CATALOG row; leave the user row alone.
             }
 
-            dao.deleteCatalogNotIn(entries.map { it.url })
-            val removed = existingCatalogUrls.count { it !in newUrls }
-            CatalogMergeResult(added = added, updated = updated, removed = removed)
+            // S0821: prune vanished catalog rows without binding the whole new-url set into one
+            // statement. A single DELETE .. NOT IN (:keepUrls) blew past SQLite's bind-variable
+            // limit and aborted the import on large catalogs (release crash, API 29). Both url sets
+            // are already in memory, so delete the (existing - new) delta in bind-safe chunks - same
+            // transaction, identical semantics (only CATALOG rows whose url left the new list).
+            val urlsToDelete = existingCatalogUrls.filter { it !in newUrls }
+            urlsToDelete.chunked(SQLITE_IN_CLAUSE_LIMIT).forEach { dao.deleteCatalogByUrls(it) }
+            CatalogMergeResult(added = added, updated = updated, removed = urlsToDelete.size)
         }
 
     /** S0570: outcome of a [mergeCatalog] run. */
     data class CatalogMergeResult(val added: Int, val updated: Int, val removed: Int)
+
+    private companion object {
+        // SQLite caps host parameters per statement (999 on the API levels we still ship to);
+        // keep delete batches under it. Mirrors FavoritesRepositoryImpl's chunking.
+        const val SQLITE_IN_CLAUSE_LIMIT = 900
+    }
 }

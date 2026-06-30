@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Google Cast meta-data overlay (S0403).
+
+  Mounted into every cast-capable flavor (standard, noLegal, lite, photos, legacy, vr) via
+  build.gradle.kts addStaticManifestFile. Registers CastOptionsProvider so the Cast SDK
+  auto-discovers Chromecast devices. Flavors that mount castDisabled (e.g. FOSS) never declare
+  this, so no Google Cast SDK reference reaches their merged manifest.
+
+  addStaticManifestFile is used instead of a flavor sourceSet manifest.srcFile because noLegal
+  already maps its manifest to src/vr/AndroidManifest.xml (a set, not merge); addStaticManifestFile
+  injects an additional merger input without clobbering that override.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.sza.fastmediasorter.core.cast.CastOptionsProvider" />
+    </application>
+
+</manifest>

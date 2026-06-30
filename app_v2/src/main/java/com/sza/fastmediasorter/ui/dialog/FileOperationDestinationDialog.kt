@@ -53,7 +53,10 @@ class FileOperationDestinationDialog(
     private val onSelectFolderClicked: ((FileOperationType, List<File>, String?) -> Unit)? = null,
     // Callback invoked immediately when the user selects a destination (before the operation runs).
     // Used by BrowseFileOperationsManager to dispatch directory copy/move to the same destination.
-    private val onDestinationSelected: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null
+    private val onDestinationSelected: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null,
+    // Optional browse-only handoff. When present the dialog only returns the destination and
+    // the caller owns execution + progress presentation.
+    private val onOperationRequested: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null
 ) : Dialog(context) {
     
     private val scopeJob = SupervisorJob()
@@ -241,6 +244,13 @@ class FileOperationDestinationDialog(
 
         // Notify caller of selected destination before executing the operation.
         onDestinationSelected?.invoke(destination)
+
+        if (onOperationRequested != null) {
+            Timber.d("performOperation: delegated to caller-managed operation owner")
+            onOperationRequested.invoke(destination)
+            dismiss()
+            return
+        }
 
         // ARCHIVE mode: dialog only captures the destination; the caller performs the archive.
         if (operationType == FileOperationType.ARCHIVE) {

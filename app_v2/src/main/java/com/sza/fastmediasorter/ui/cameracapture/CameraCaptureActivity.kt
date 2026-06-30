@@ -877,8 +877,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             if (destinationName.isNullOrBlank()) {
                 binding.cameraSaveDestination.visibility = View.GONE
             } else {
-                binding.cameraSaveDestination.text =
-                    getString(R.string.camera_save_destination, destinationName)
+                binding.cameraSaveDestination.text = destinationName
                 binding.cameraSaveDestination.visibility = View.VISIBLE
                 applyOverlayRotation(currentOverlayRotation, animate = false)
             }

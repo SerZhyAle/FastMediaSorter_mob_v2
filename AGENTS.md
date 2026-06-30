@@ -42,11 +42,14 @@
 - Multi-step: follow `dev/AGENT_WORKFLOW.md` (5 steps).
 - After changes (except `/skill-fix`): run `.\scripts\add_to_dev_log.ps1`.
 - Kotlin changes: sync catalog via `scripts/catalog_sync.ps1 -Module <app_v2|wear>`.
+- Mechanical closure: prefer `scripts/post-change.ps1 -File <p> -Target <t> -Description <d> -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed>` (chains dev-log + catalog-sync + quality gates). On the always-dirty tree add `-ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets); omit for release/CI.
+- Detekt-clean-first: author touched `.kt` to pass detekt on the first build - log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding (shifts baseline). CLAUDE.md Rule 19.
 - PowerShell: Always `-NoProfile`. Batch: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`. Use literal `$LASTEXITCODE`. Use project wrappers.
+- Cost discipline: follow `docs/AGENT_COST_PLAYBOOK.md` - inline over subagent for single-fact lookups (<=3 tool calls), `/compact` at task boundaries, `/clear` on task switch, offload raw artifacts to `temp/`, restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
 
 ## 7. Validation
 - Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.
-- Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits, `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, and full debug APK builds only when packaging/install behavior matters.
+- Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits (`fkn` for noLegal), `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, `.\a.ps1 fg` to batch the fast static gates in one process, and full debug APK builds only when packaging/install behavior matters.
 
 ## 8. Code Audit Protocol
 - Full protocol: `docs/CODE_AUDIT_PROTOCOL.md`. Apply it on any **audit trigger**: new screen/manager/worker/repository/long-lived helper; lifecycle/coroutine/Flow/listener/observer change; shared-state/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image/cache/network change; startup change; DI scope/singleton change; build/manifest/R8/keep-rule change affecting profiling/startup/minification; reported crash/ANR/OOM/jank/leak.

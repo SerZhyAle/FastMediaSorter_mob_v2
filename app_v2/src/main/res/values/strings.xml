@@ -1951,12 +1951,12 @@ Close the player and try again.</string>
     <string name="pip_pause">Pause</string>
 
     <!-- Resource Profile Selector -->
-    <string name="label_profile_none">Quick Setup: Custom</string>
-    <string name="label_profile_audio_library">Quick Setup: Audio Library</string>
-    <string name="label_profile_video_library">Quick Setup: Video Library</string>
-    <string name="label_profile_photo_storage">Quick Setup: Photo Storage</string>
-    <string name="label_profile_documents">Quick Setup: Documents</string>
-    <string name="label_profile_all_files">Quick Setup: File Manager Mode</string>
+    <string name="label_profile_none">Custom</string>
+    <string name="label_profile_audio_library">Audio Library</string>
+    <string name="label_profile_video_library">Video Library</string>
+    <string name="label_profile_photo_storage">Photo Storage</string>
+    <string name="label_profile_documents">Documents</string>
+    <string name="label_profile_all_files">File Manager Mode</string>
     <string name="title_select_profile">Quick Setup Profile</string>
     <string name="database_reset_dialog_title">Database reset</string>
     <string name="database_reset_dialog_message">The local database could not be opened or upgraded, so it was reset and the app can keep working. Some saved data (sources, accounts, favorites) may have been lost.\n\nReason: %1$s</string>
@@ -2422,6 +2422,23 @@ Close the player and try again.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
     <string name="s0281_google_oauth_only_note">Couldn\'t get this YouTube content. Sign-in isn\'t stored here..</string>
+    <string name="browse_transfer_progress_background">Background</string>
+    <string name="browse_transfer_already_running">A file transfer is already running.</string>
+    <string name="browse_transfer_sent_to_background">Transfer continues in the background.</string>
+    <string name="browse_transfer_notif_channel_name">Browse file transfers</string>
+    <string name="browse_transfer_notif_channel_description">Progress and results for browse copy and move operations</string>
+    <string name="browse_transfer_notif_title_copy">Copying files</string>
+    <string name="browse_transfer_notif_title_move">Moving files</string>
+    <string name="browse_transfer_notif_title_done">File transfer complete</string>
+    <string name="browse_transfer_notif_title_failed">File transfer failed</string>
+    <string name="browse_transfer_notif_title_auth_required">Sign in required</string>
+    <string name="browse_transfer_notif_title_permission_required">Permission required</string>
+    <string name="browse_transfer_notif_text_preparing">Preparing..</string>
+    <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
+    <string name="browse_transfer_notif_text_failed">Open FastMediaSorter for details</string>
+    <string name="browse_transfer_notif_text_auth_required">Open FastMediaSorter to sign in and continue</string>
+    <string name="browse_transfer_notif_text_permission_required">Open FastMediaSorter to grant permission and retry</string>
+    <string name="browse_transfer_notif_action_cancel">Cancel</string>
     <string name="share_to_telegram">Send to Telegram</string>
     <string name="share_to_telegram_failed">Unable to send to Telegram. Try the standard share instead.</string>
     <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
@@ -2902,7 +2919,6 @@ Close the player and try again.</string>
     <string name="panel_remove_title">Remove from panel?</string>
     <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
     <string name="panel_remove_channel_message">%1$s will be removed from the panel. The channel stays in your list.</string>
-    <string name="camera_save_destination">Saves to: %1$s</string>
     <string name="camera_control_send_to">Send to..</string>
     <string name="camera_settings_title">Camera settings</string>
     <string name="camera_setting_timer">Self-timer</string>

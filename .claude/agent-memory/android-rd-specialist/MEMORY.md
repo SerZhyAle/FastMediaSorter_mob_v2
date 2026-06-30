@@ -2,6 +2,7 @@
 
 - [About Me](about_me.md) - Serhii, solo owner; data engineer, no Kotlin (vibecoded), SQL/VB.NET, weak English; explain via SQL/.NET analogues
 - [Argue then obey](feedback_argue_then_obey.md) - push back with reasoned arguments + criticize ideas, but defer to owner's final decision
+- [Finish mechanical follow-ups in-context](feedback_finish_mechanical_followups_in_context.md) - don't park a well-scoped mechanical tail into a later ticket; deferring re-pays context cost
 - [Universal Agent Kit](reference_universal_agent_kit.md) - public distillation of this project's method; review bar = portability+leanness
 - [Shared-state audit tool (S0703)](reference_shared_state_audit_tool.md) - audit-shared-state-writers.ps1; partition mgrs consume eligibility, not override GONE
 - [Player progressBar single owner (S0704)](project_player_progressbar_single_owner.md) - spinner owned by PlayerLoadingIndicatorCoordinator (source-counted); PdfViewerManager still a rogue writer
@@ -72,6 +73,9 @@
 - [close-and-log -DevLogs array binding](feedback_devlogs_array_binding.md) - multi-element @(...) needs in-process & call, not pwsh -File; bash @(...) syntax error
 - [string[] param CSV via pwsh -File](feedback_string_array_param_csv_via_file.md) - quoted CSV to [string[]] binds as ONE element; pass @(..) or split in-script
 - [detekt gate on dirty tree](feedback_detekt_gate_dirty_tree.md) - post-change detekt is project-wide; filter for your files, don't fix others' WIP or re-baseline
+- [Write detekt-clean first time](feedback_write_detekt_clean_first_time.md) - log lines <=120; magic numbers via TimeUnit/companion const; @Suppress on baselined method surfaces FunctionNaming
+- [BlockNeedUserTest status before gate](feedback_blockneedusertest_status_before_gate.md) - flip status to BlockNeedUserTest BEFORE post-change/ticket-log-audit, else fail-closed audit rejects your own probe
+- [Closure on dirty tree](feedback_closure_on_dirty_tree.md) - close with `post-change.ps1 -ScopeToFile` (S0826: diff-scoped detekt + advisory ratchets); fast checks `a.ps1 fkn`/`fg`
 - [Subagent impl skips final phase](feedback_subagent_impl_skips_final_phase.md) - impl subagents truncate final docs-cleanup; verify files exist, finish centrally
 - [Parallel impl agents: no git/build](feedback_parallel_agents_no_git_build.md) - one agent's git stash clobbers another's edits; disjoint files, central build
 - [/spec-dev continue: verify code first](feedback_spec_dev_continue_verify_code_first.md) - In-Progress may have code done but tracking 0/N; reconcile via live files

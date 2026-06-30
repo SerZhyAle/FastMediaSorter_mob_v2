@@ -1598,12 +1598,12 @@
     <string name="sleep_timer_set">Таймер сну встановлено на %s</string>
 
     <!-- Resource Profile Selector -->
-    <string name="label_profile_none">Швидке налаштування: Довільний</string>
-    <string name="label_profile_audio_library">Швидке налаштування: Аудіотека</string>
-    <string name="label_profile_video_library">Швидке налаштування: Відеотека</string>
-    <string name="label_profile_photo_storage">Швидке налаштування: Фотосховище</string>
-    <string name="label_profile_documents">Швидке налаштування: Документи</string>
-    <string name="label_profile_all_files">Швидке налаштування: Файловий менеджер</string>
+    <string name="label_profile_none">Довільний</string>
+    <string name="label_profile_audio_library">Аудіотека</string>
+    <string name="label_profile_video_library">Відеотека</string>
+    <string name="label_profile_photo_storage">Фотосховище</string>
+    <string name="label_profile_documents">Документи</string>
+    <string name="label_profile_all_files">Файловий менеджер</string>
     <string name="title_select_profile">Профіль швидкого налаштування</string>
 
 
@@ -2339,6 +2339,23 @@
     <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
     <string name="s0266_apk_download_preparing">Готується встановлення..</string>
     <string name="s0281_google_oauth_only_note">Не вдалося скачати з YouTube. Вхід у Google тут не зберігається..</string>
+    <string name="browse_transfer_progress_background">У фон</string>
+    <string name="browse_transfer_already_running">Перенесення файлів уже виконується.</string>
+    <string name="browse_transfer_sent_to_background">Перенесення триває у фоні.</string>
+    <string name="browse_transfer_notif_channel_name">Перенесення файлів</string>
+    <string name="browse_transfer_notif_channel_description">Прогрес і результати копіювання та переміщення з браузера</string>
+    <string name="browse_transfer_notif_title_copy">Копіювання файлів</string>
+    <string name="browse_transfer_notif_title_move">Переміщення файлів</string>
+    <string name="browse_transfer_notif_title_done">Перенесення завершено</string>
+    <string name="browse_transfer_notif_title_failed">Помилка перенесення</string>
+    <string name="browse_transfer_notif_title_auth_required">Потрібен вхід</string>
+    <string name="browse_transfer_notif_title_permission_required">Потрібен дозвіл</string>
+    <string name="browse_transfer_notif_text_preparing">Підготовка..</string>
+    <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
+    <string name="browse_transfer_notif_text_failed">Відкрийте FastMediaSorter для подробиць</string>
+    <string name="browse_transfer_notif_text_auth_required">Відкрийте FastMediaSorter, щоб увійти та продовжити</string>
+    <string name="browse_transfer_notif_text_permission_required">Відкрийте FastMediaSorter, щоб надати дозвіл і повторити</string>
+    <string name="browse_transfer_notif_action_cancel">Скасувати</string>
     <string name="share_to_telegram">Надіслати в Telegram</string>
     <string name="share_to_telegram_failed">Не вдалося надіслати в Telegram. Спробуйте звичайне «Поділитися».</string>
     <string name="midi_playback_failed">Не вдалося відтворити цей MIDI-файл. Спробуйте іншу копію або перейдіть до наступного треку.</string>
@@ -2821,7 +2838,6 @@
     <string name="panel_remove_title">Прибрати з панелі?</string>
     <string name="panel_remove_program_message">%1$s буде прихований. Увімкнути знову можна в налаштуваннях.</string>
     <string name="panel_remove_channel_message">%1$s зникне з панелі. Канал залишиться у вашому списку.</string>
-    <string name="camera_save_destination">Зберігає в: %1$s</string>
     <string name="camera_control_send_to">Надіслати в..</string>
     <string name="camera_settings_title">Налаштування камери</string>
     <string name="camera_setting_timer">Таймер</string>

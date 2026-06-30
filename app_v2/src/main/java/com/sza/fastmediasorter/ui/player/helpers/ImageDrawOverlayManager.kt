@@ -367,11 +367,13 @@ class ImageDrawOverlayManager(
         overflowBtn?.setOnClickListener { anchor ->
             android.widget.PopupMenu(activity, anchor).apply {
                 menuInflater.inflate(com.sza.fastmediasorter.R.menu.menu_draw_overflow, menu)
-                val hasActions = drawCanvasView?.hasActions() == true
+                val canUndo = drawCanvasView?.hasActions() == true ||
+                    drawCanvasView?.hasPendingCropUndo() == true
+                Timber.d("S0679: draw-undo menu canUndo=$canUndo")
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_last)
-                    ?.isEnabled = hasActions
+                    ?.isEnabled = canUndo
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_all)
-                    ?.isEnabled = hasActions
+                    ?.isEnabled = canUndo
                 // S0360: "Delete file" only when a source file is open.
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_delete_file)
                     ?.isVisible = currentFile != null
@@ -811,6 +813,9 @@ class ImageDrawOverlayManager(
         }
 
         fun hasActions(): Boolean = actions.isNotEmpty()
+
+        /** S0679 ADR-4: a crop with no strokes is still undoable via [pendingCropRestore]. */
+        fun hasPendingCropUndo(): Boolean = pendingCropRestore != null
 
         fun hasUnsavedChanges(): Boolean = revision != cleanRevision
 

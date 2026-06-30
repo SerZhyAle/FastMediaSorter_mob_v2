@@ -214,11 +214,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Cast SDK is initialised lazily by CastMediaManager.init() when a player opens, not here.
+        // Cast SDK is initialised lazily by CastController.init() (S0403 seam; GMS-backed
+        // CastMediaManagerImpl in the castEnabled source set) when a player opens, not here.
         // Eager init loaded the cast.framework.dynamite module on every cold start - even on sessions
         // that never open a player - which both slowed startup and exposed the process to GMS forcing
         // a SIG 9 restart when it hot-swaps that dynamite module. The only thing lost is warm device
-        // discovery before the first cast tap; CastMediaManager already creates the singleton on demand.
+        // discovery before the first cast tap; the controller already creates the singleton on demand.
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
 

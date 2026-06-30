@@ -69,6 +69,7 @@ Dependency version policy:
 - Libraries/protocol specifics: `docs/TECH_STACK.md`
 - Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
+- Agent-session cost discipline (spawn policy, context hygiene, skill tiers, MCP usage, measurement loop): `docs/AGENT_COST_PLAYBOOK.md` (S0816)
 - Device profile presets / first-run onboarding: `dev/DEVICE_PROFILE_PRESET_MATRIX.md` (matrix data: `app_v2/src/main/assets/device_profile_presets.csv`; consistency guard: `scripts/check_device_profile_presets.ps1`)
 - Feature specs, roadmaps, proposals: `PLAN/` folder
 - Feature inventory (source of truth, every shipped capability, EN-only): `docs/ALL_FEATURES.jsonl` - write via `scripts/all_features/add.ps1`, validate via `scripts/all_features/validate.ps1` (S0489). Replaced the retired `dev/FUNCTIONALITY.log`; chronology lives in git history + release diffs (`scripts/all_features/diff.ps1`). `docs/FEATURES*` is the curated public showcase, populated only by `/skill-release`.

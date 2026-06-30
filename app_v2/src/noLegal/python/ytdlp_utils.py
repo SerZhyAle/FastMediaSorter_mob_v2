@@ -174,7 +174,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         # vcodec=none + acodec=mp4a (or similar); video-only formats land on
         # vcodec=avc1/vp09 + acodec=none; combined progressive shows both.
         print(
-            "S0260: python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
+            "python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
                 fid=info.get('format_id'),
                 ext=ext,
                 vc=info.get('vcodec'),

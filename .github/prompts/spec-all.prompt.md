@@ -269,6 +269,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 - **Build mandatory on code changes** - skip only for docs-only diffs.
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
 - **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
+- **Detekt-clean-first (S0826)** - author touched `.kt` to pass detekt on the first build: log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding (shifts baseline, surfaces `FunctionNaming`). On the always-dirty tree, route closure through `post-change.ps1 -ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets). See CLAUDE.md Rule 19.
 - **MANUAL items are not failures** - `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly - always via `.\scripts\add_to_dev_log.ps1`.
 - Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.

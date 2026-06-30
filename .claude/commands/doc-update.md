@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Documentation Update
 
 Review current change, update all affected documentation files.

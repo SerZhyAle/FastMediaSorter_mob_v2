@@ -1,12 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.google.android.gms.wearable.Node
 import com.google.gson.Gson
+import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
@@ -17,9 +16,7 @@ class SendPlaybackCommandUseCaseTest {
     private val repository = mockk<WearableDataLayerRepository>(relaxed = true)
     private val useCase = SendPlaybackCommandUseCase(repository, Gson())
 
-    private fun node(id: String): Node = mockk {
-        every { getId() } returns id
-    }
+    private fun node(id: String): WearNode = WearNode(id, "Watch-$id")
 
     @Test
     fun `returns failure when no watch is connected`() = runTest {

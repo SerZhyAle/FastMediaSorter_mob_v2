@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
-import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
 import com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 import com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
@@ -697,11 +696,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
     }
 
     private fun initAudioAndMediaServices() {
-        activity.castMediaManager = CastMediaManager(
-            context = activity,
+        // S0403: Cast is behind the CastController seam. The per-flavor CastControllerFactory
+        // (castEnabled = GMS impl, castDisabled = no-op) builds it from the Activity-scoped args.
+        activity.castMediaManager = activity.castControllerFactory.create(
             lifecycleScope = activity.lifecycleScope,
             networkFileManager = activity.networkFileManager,
-            mediaCapabilities = activity.mediaCapabilities,
             onCastStateChanged = { isCasting, deviceName ->
                 activity.viewModel.updateCastState(isCasting, deviceName)
                 if (isCasting) {

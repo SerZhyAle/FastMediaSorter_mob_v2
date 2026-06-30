@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0675: stream grid tile. Column width is owned by the GridLayoutManager span; height derives from
-     the 16:9 ratio. The TextureView is the surface the snapshot engine renders into during capture and
-     stays invisible otherwise; ivFrame shows the cached frame or the favicon/placeholder fallback. -->
+     the 16:9 ratio. ivFrame shows the cached frame or the favicon/placeholder fallback.
+     S0700: frame capture is fully offscreen (StreamFrameSnapshotManager renders into its own ImageReader,
+     not a cell view), so the tile no longer hosts a capture TextureView - the captured bitmap is painted
+     into ivFrame from the frame cache once the offscreen decode completes. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -11,19 +13,6 @@
     android:foreground="?attr/selectableItemBackground"
     android:focusable="true"
     android:clickable="true">
-
-    <!-- S0700: must stay VISIBLE and opaque - a TextureView with visibility=invisible (or alpha 0) never
-         renders a frame into its SurfaceTexture on the software decoder, so onRenderedFirstFrame never fires
-         and the capture timed out. It sits BEHIND ivFrame, which carries an opaque background so the live
-         video is never seen; the captured bitmap is then painted into ivFrame. -->
-    <TextureView
-        android:id="@+id/textureCapture"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintDimensionRatio="H,16:9" />
 
     <ImageView
         android:id="@+id/ivFrame"

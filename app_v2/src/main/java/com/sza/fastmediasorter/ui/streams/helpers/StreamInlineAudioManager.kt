@@ -17,6 +17,7 @@ import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -84,6 +85,19 @@ class StreamInlineAudioManager(
     init {
         playStopButton.setOnClickListener { stop() }
         lifecycleOwner.collectOnLifecycle(nowPlaying) { renderTitle() }
+    }
+
+    /**
+     * S0778: the bottom sticky mini-control is the last child of an edge-to-edge content column, so
+     * under targetSdk 35 it drew beneath the navigation bar / a side display cutout and its stop button
+     * was untappable. Pad it inside the safe rect on every edge except top (the toolbar owns the status
+     * bar). The shared helper clamps to the live inset values and re-applies on rotation, so a landscape
+     * side cutout is covered too. Wiring lives here, not in the Activity (Rule 3).
+     */
+    fun applyWindowInsets() {
+        miniControl.applySystemBarInsetPadding(applyTop = false) { left, top, right, bottom ->
+            Timber.d("S0778: now-playing panel insets t=$top b=$bottom l=$left r=$right")
+        }
     }
 
     /** Returns the id of the source currently playing inline, or null. */

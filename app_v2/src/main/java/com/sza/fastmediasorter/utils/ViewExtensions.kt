@@ -64,12 +64,17 @@ fun WindowInsetsCompat.getStatusBarHeightSafe(resources: Resources): Int {
  *
  * Android 15 forces edge-to-edge for targetSdk 35, so ordinary form screens must
  * apply these insets even when they do not explicitly opt into fullscreen UI.
+ *
+ * Insets are passed through (not consumed) so sibling views in the same window still
+ * receive them. [onApplied] reports the per-edge inset deltas that were added on top of
+ * the captured base padding (0 for any disabled edge); callers use it for diagnostics.
  */
 fun View.applySystemBarInsetPadding(
     applyLeft: Boolean = true,
     applyTop: Boolean = true,
     applyRight: Boolean = true,
     applyBottom: Boolean = true,
+    onApplied: ((left: Int, top: Int, right: Int, bottom: Int) -> Unit)? = null,
 ) {
     val baseLeft = paddingLeft
     val baseTop = paddingTop
@@ -79,12 +84,21 @@ fun View.applySystemBarInsetPadding(
     fun apply(insets: WindowInsetsCompat) {
         val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
         val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        val left = if (applyLeft) maxOf(systemBars.left, cutout.left) else 0
+        val top = if (applyTop) {
+            maxOf(systemBars.top, cutout.top, insets.getStatusBarHeightSafe(resources))
+        } else {
+            0
+        }
+        val right = if (applyRight) maxOf(systemBars.right, cutout.right) else 0
+        val bottom = if (applyBottom) maxOf(systemBars.bottom, cutout.bottom) else 0
         updatePadding(
-            left = baseLeft + if (applyLeft) maxOf(systemBars.left, cutout.left) else 0,
-            top = baseTop + if (applyTop) maxOf(systemBars.top, cutout.top, insets.getStatusBarHeightSafe(resources)) else 0,
-            right = baseRight + if (applyRight) maxOf(systemBars.right, cutout.right) else 0,
-            bottom = baseBottom + if (applyBottom) maxOf(systemBars.bottom, cutout.bottom) else 0
+            left = baseLeft + left,
+            top = baseTop + top,
+            right = baseRight + right,
+            bottom = baseBottom + bottom,
         )
+        onApplied?.invoke(left, top, right, bottom)
     }
 
     ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->

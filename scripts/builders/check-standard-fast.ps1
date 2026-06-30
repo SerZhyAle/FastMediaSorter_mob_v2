@@ -1,6 +1,10 @@
 param(
     [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "Assemble")]
     [string]$Mode = "CodeAndResources",
+    # S0826: per-flavor fast compile check. Standard is the default; NoLegal needs its own
+    # path because it bundles Python via Chaquopy (see flag handling below).
+    [ValidateSet("Standard", "NoLegal")]
+    [string]$Flavor = "Standard",
     [string]$Tests,
     [switch]$Quiet
 )
@@ -12,19 +16,24 @@ Set-Location $projectRoot
 
 function Get-GradleTaskList {
     switch ($Mode) {
-        "Code" { return @(":app_v2:compileStandardDebugKotlin") }
-        "Resources" { return @(":app_v2:processStandardDebugResources") }
-        "CodeAndResources" { return @(":app_v2:compileStandardDebugKotlin", ":app_v2:processStandardDebugResources") }
-        "Unit" { return @(":app_v2:testStandardDebugUnitTest") }
-        "Assemble" { return @(":app_v2:assembleStandardDebug") }
+        "Code" { return @(":app_v2:compile${Flavor}DebugKotlin") }
+        "Resources" { return @(":app_v2:process${Flavor}DebugResources") }
+        "CodeAndResources" { return @(":app_v2:compile${Flavor}DebugKotlin", ":app_v2:process${Flavor}DebugResources") }
+        "Unit" { return @(":app_v2:test${Flavor}DebugUnitTest") }
+        "Assemble" { return @(":app_v2:assemble${Flavor}Debug") }
         default { throw "Unsupported mode: $Mode" }
     }
 }
 
 $gradleArgs = New-Object System.Collections.Generic.List[string]
 Get-GradleTaskList | ForEach-Object { $null = $gradleArgs.Add($_) }
-$null = $gradleArgs.Add("-Pchaquopy.enabled=false")
-$null = $gradleArgs.Add("--configuration-cache")
+# Standard has no Python: disable Chaquopy and use the configuration cache for speed.
+# NoLegal bundles Python via Chaquopy, whose API must stay on the compile classpath and
+# whose tasks are not configuration-cache serialisable - so keep it enabled and skip the cache.
+if ($Flavor -eq "Standard") {
+    $null = $gradleArgs.Add("-Pchaquopy.enabled=false")
+    $null = $gradleArgs.Add("--configuration-cache")
+}
 
 if ($Tests) {
     if ($Mode -ne "Unit") {
@@ -34,7 +43,7 @@ if ($Tests) {
     $null = $gradleArgs.Add($Tests)
 }
 
-Write-Host "Fast standard check.." -ForegroundColor Cyan
+Write-Host "Fast $Flavor check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
 if ($Tests) {
     Write-Host "Tests filter: $Tests" -ForegroundColor Yellow

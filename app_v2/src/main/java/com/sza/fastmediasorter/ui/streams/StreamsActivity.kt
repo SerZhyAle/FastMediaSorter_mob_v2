@@ -171,6 +171,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onError = ::showStreamUnavailable,
             onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
         )
+        // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
+        inlineAudio.applyWindowInsets()
 
         binding.rvStreams.layoutManager = LinearLayoutManager(this)
         binding.rvStreams.adapter = adapter

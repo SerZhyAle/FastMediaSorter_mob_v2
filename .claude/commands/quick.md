@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Quick Fix
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**

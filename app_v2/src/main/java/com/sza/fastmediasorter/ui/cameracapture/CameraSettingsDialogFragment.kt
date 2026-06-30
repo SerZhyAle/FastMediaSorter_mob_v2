@@ -1,12 +1,10 @@
 package com.sza.fastmediasorter.ui.cameracapture
 
 import android.app.Dialog
+import android.content.res.Configuration
 import android.hardware.camera2.CameraMetadata
 import android.os.Bundle
 import android.util.Size
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.camera.core.AspectRatio
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
@@ -15,6 +13,9 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+import timber.log.Timber
+import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.roundToLong
@@ -28,6 +29,10 @@ class CameraSettingsDialogFragment : DialogFragment() {
     private var exposureChangeListener: Slider.OnChangeListener? = null
     private var isoChangeListener: Slider.OnChangeListener? = null
     private var shutterChangeListener: Slider.OnChangeListener? = null
+
+    // Mutable working copy shared by every control listener while the dialog view exists.
+    // Holds the value identically to the previous local `var draft`; reset on each onCreateDialog.
+    private lateinit var draft: CameraSettingsState
 
     interface Callbacks {
         fun onCameraSettingsPreviewChanged(state: CameraSettingsState)
@@ -54,33 +59,43 @@ class CameraSettingsDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogCameraSettingsBinding.inflate(layoutInflater)
-        var draft = initialSettings.copy()
+        val orientation = resources.configuration.orientation
+        val orientationLabel = if (orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"
+        Timber.d("S0813: camera settings dialog inflated orientation=$orientationLabel")
+        draft = initialSettings.copy()
 
-        fun applyPreview() {
-            callbacks.onCameraSettingsPreviewChanged(draft)
-        }
+        bindCanonicalDropdowns()
+        bindCanonicalToggles()
+        setupExposureSlider()
+        setupManualSensorControls()
+        wireActionButtons()
 
+        return MaterialAlertDialogBuilder(requireContext())
+            .setView(binding.root)
+            .create()
+    }
+
+    private fun preview() {
+        callbacks.onCameraSettingsPreviewChanged(draft)
+    }
+
+    private fun bindCanonicalDropdowns() {
         val timerLabels = TIMER_OPTIONS.map { seconds ->
             if (seconds == 0) "0 s" else "$seconds s"
         }
-        bindSpinner(
-            view = binding.spinnerCameraTimer,
+        bindDropdown(
+            row = binding.rowCameraTimer,
             labels = timerLabels,
             selectedIndex = TIMER_OPTIONS.indexOf(draft.selfTimerSeconds).coerceAtLeast(0),
         ) { index ->
             draft = draft.copy(selfTimerSeconds = TIMER_OPTIONS[index])
         }
 
-        binding.switchCameraGrid.isChecked = draft.gridEnabled
-        binding.switchCameraGrid.setOnCheckedChangeListener { _, checked ->
-            draft = draft.copy(gridEnabled = checked)
-        }
-
         val aspectLabels = capabilities.availableAspectRatios.map(::aspectRatioLabel)
         binding.rowCameraAspect.isVisible = aspectLabels.isNotEmpty()
         if (aspectLabels.isNotEmpty()) {
             val selectedAspect = capabilities.availableAspectRatios.indexOf(draft.aspectRatio).coerceAtLeast(0)
-            bindSpinner(binding.spinnerCameraAspect, aspectLabels, selectedAspect) { index ->
+            bindDropdown(binding.rowCameraAspect, aspectLabels, selectedAspect) { index ->
                 draft = draft.copy(aspectRatio = capabilities.availableAspectRatios[index])
             }
         }
@@ -89,104 +104,116 @@ class CameraSettingsDialogFragment : DialogFragment() {
         binding.rowCameraResolution.isVisible = resolutionLabels.isNotEmpty()
         if (resolutionLabels.isNotEmpty()) {
             val selectedResolution = capabilities.photoResolutions.indexOf(draft.resolution).coerceAtLeast(0)
-            bindSpinner(binding.spinnerCameraResolution, resolutionLabels, selectedResolution) { index ->
+            bindDropdown(binding.rowCameraResolution, resolutionLabels, selectedResolution) { index ->
                 draft = draft.copy(resolution = capabilities.photoResolutions[index])
             }
         }
 
-        binding.rowCameraExposure.isVisible = capabilities.supportsExposureCompensation
-        if (capabilities.supportsExposureCompensation) {
-            val maxIndex = capabilities.maxExposureCompensationIndex.toFloat()
-            binding.sliderCameraExposure.valueFrom = -maxIndex
-            binding.sliderCameraExposure.valueTo = maxIndex
-            binding.sliderCameraExposure.stepSize = 1f
-            binding.sliderCameraExposure.value = draft.exposureCompensationIndex.toFloat()
-            binding.tvCameraExposureValue.text = signedValue(draft.exposureCompensationIndex)
-            val listener = Slider.OnChangeListener { _, value, fromUser ->
-                binding.tvCameraExposureValue.text = signedValue(value.toInt())
-                if (fromUser) {
-                    draft = draft.copy(exposureCompensationIndex = value.toInt())
-                    applyPreview()
-                }
-            }
-            exposureChangeListener = listener
-            binding.sliderCameraExposure.addOnChangeListener(listener)
-        }
-
-        val awbModes = capabilities.awbModes.distinct().sortedBy { if (it == CameraMetadata.CONTROL_AWB_MODE_AUTO) 0 else 1 }
+        val awbModes = capabilities.awbModes.distinct()
+            .sortedBy { if (it == CameraMetadata.CONTROL_AWB_MODE_AUTO) 0 else 1 }
         binding.rowCameraWhiteBalance.isVisible = awbModes.size > 1
         if (awbModes.size > 1) {
-            bindSpinner(
-                binding.spinnerCameraWhiteBalance,
+            bindDropdown(
+                binding.rowCameraWhiteBalance,
                 awbModes.map(::whiteBalanceLabel),
                 awbModes.indexOf(draft.whiteBalanceMode).coerceAtLeast(0),
             ) { index ->
                 draft = draft.copy(whiteBalanceMode = awbModes[index])
-                applyPreview()
+                preview()
             }
         }
+    }
 
-        binding.rowCameraManualSensor.isVisible = capabilities.supportsManualSensor
-        binding.layoutCameraIsoControls.isVisible = draft.manualSensorEnabled
-        binding.layoutCameraShutterControls.isVisible = draft.manualSensorEnabled
-        if (capabilities.supportsManualSensor) {
-            val isoRange = capabilities.isoRange!!
-            val shutterRange = capabilities.shutterRangeNs!!
-            val defaultIso = draft.manualIso ?: ((isoRange.lower + isoRange.upper) / 2)
-            val defaultShutter = draft.manualShutterNs ?: ((shutterRange.lower + shutterRange.upper) / 2)
-            binding.switchCameraManualSensor.isChecked = draft.manualSensorEnabled
-            binding.sliderCameraIso.valueFrom = isoRange.lower.toFloat()
-            binding.sliderCameraIso.valueTo = isoRange.upper.toFloat()
-            binding.sliderCameraIso.stepSize = 1f
-            binding.sliderCameraIso.value = defaultIso.toFloat()
-            binding.tvCameraIsoValue.text = defaultIso.toString()
-            binding.sliderCameraShutter.valueFrom = 0f
-            binding.sliderCameraShutter.valueTo = 100f
-            binding.sliderCameraShutter.stepSize = 1f
-            binding.sliderCameraShutter.value = shutterNsToSlider(defaultShutter, shutterRange.lower, shutterRange.upper)
-            binding.tvCameraShutterValue.text = shutterLabel(defaultShutter)
-            binding.switchCameraManualSensor.setOnCheckedChangeListener { _, checked ->
-                binding.layoutCameraIsoControls.isVisible = checked
-                binding.layoutCameraShutterControls.isVisible = checked
-                draft = draft.copy(
-                    manualSensorEnabled = checked,
-                    manualIso = binding.sliderCameraIso.value.toInt(),
-                    manualShutterNs = sliderToShutterNs(
-                        binding.sliderCameraShutter.value,
-                        shutterRange.lower,
-                        shutterRange.upper,
-                    ),
-                )
-                applyPreview()
-            }
-            val isoListener = Slider.OnChangeListener { _, value, fromUser ->
-                binding.tvCameraIsoValue.text = value.toInt().toString()
-                if (fromUser) {
-                    draft = draft.copy(manualIso = value.toInt())
-                    if (draft.manualSensorEnabled) applyPreview()
-                }
-            }
-            isoChangeListener = isoListener
-            binding.sliderCameraIso.addOnChangeListener(isoListener)
-            val shutterListener = Slider.OnChangeListener { _, value, fromUser ->
-                val shutterNs = sliderToShutterNs(value, shutterRange.lower, shutterRange.upper)
-                binding.tvCameraShutterValue.text = shutterLabel(shutterNs)
-                if (fromUser) {
-                    draft = draft.copy(manualShutterNs = shutterNs)
-                    if (draft.manualSensorEnabled) applyPreview()
-                }
-            }
-            shutterChangeListener = shutterListener
-            binding.sliderCameraShutter.addOnChangeListener(shutterListener)
+    private fun bindCanonicalToggles() {
+        binding.rowCameraGrid.isChecked = draft.gridEnabled
+        binding.rowCameraGrid.setOnCheckedChangeListener { checked ->
+            draft = draft.copy(gridEnabled = checked)
         }
 
         binding.rowCameraHdr.isVisible = capabilities.supportsHdrExtension
-        binding.switchCameraHdr.isChecked = draft.hdrEnabled
-        binding.switchCameraHdr.setOnCheckedChangeListener { _, checked ->
+        binding.rowCameraHdr.isChecked = draft.hdrEnabled
+        binding.rowCameraHdr.setOnCheckedChangeListener { checked ->
             draft = draft.copy(hdrEnabled = checked)
-            applyPreview()
+            preview()
         }
+    }
 
+    private fun setupExposureSlider() {
+        binding.rowCameraExposure.isVisible = capabilities.supportsExposureCompensation
+        if (!capabilities.supportsExposureCompensation) return
+        val maxIndex = capabilities.maxExposureCompensationIndex.toFloat()
+        binding.sliderCameraExposure.valueFrom = -maxIndex
+        binding.sliderCameraExposure.valueTo = maxIndex
+        binding.sliderCameraExposure.stepSize = SLIDER_STEP
+        binding.sliderCameraExposure.value = draft.exposureCompensationIndex.toFloat()
+        binding.tvCameraExposureValue.text = signedValue(draft.exposureCompensationIndex)
+        val listener = Slider.OnChangeListener { _, value, fromUser ->
+            binding.tvCameraExposureValue.text = signedValue(value.toInt())
+            if (fromUser) {
+                draft = draft.copy(exposureCompensationIndex = value.toInt())
+                preview()
+            }
+        }
+        exposureChangeListener = listener
+        binding.sliderCameraExposure.addOnChangeListener(listener)
+    }
+
+    private fun setupManualSensorControls() {
+        binding.rowCameraManualSensor.isVisible = capabilities.supportsManualSensor
+        binding.layoutCameraIsoControls.isVisible = draft.manualSensorEnabled
+        binding.layoutCameraShutterControls.isVisible = draft.manualSensorEnabled
+        if (!capabilities.supportsManualSensor) return
+        val isoRange = capabilities.isoRange!!
+        val shutterRange = capabilities.shutterRangeNs!!
+        val defaultIso = draft.manualIso ?: ((isoRange.lower + isoRange.upper) / 2)
+        val defaultShutter = draft.manualShutterNs ?: ((shutterRange.lower + shutterRange.upper) / 2)
+        binding.rowCameraManualSensor.isChecked = draft.manualSensorEnabled
+        binding.sliderCameraIso.valueFrom = isoRange.lower.toFloat()
+        binding.sliderCameraIso.valueTo = isoRange.upper.toFloat()
+        binding.sliderCameraIso.stepSize = SLIDER_STEP
+        binding.sliderCameraIso.value = defaultIso.toFloat()
+        binding.tvCameraIsoValue.text = defaultIso.toString()
+        binding.sliderCameraShutter.valueFrom = SHUTTER_SLIDER_MIN
+        binding.sliderCameraShutter.valueTo = SHUTTER_SLIDER_MAX
+        binding.sliderCameraShutter.stepSize = SLIDER_STEP
+        binding.sliderCameraShutter.value = shutterNsToSlider(defaultShutter, shutterRange.lower, shutterRange.upper)
+        binding.tvCameraShutterValue.text = shutterLabel(defaultShutter)
+        binding.rowCameraManualSensor.setOnCheckedChangeListener { checked ->
+            binding.layoutCameraIsoControls.isVisible = checked
+            binding.layoutCameraShutterControls.isVisible = checked
+            draft = draft.copy(
+                manualSensorEnabled = checked,
+                manualIso = binding.sliderCameraIso.value.toInt(),
+                manualShutterNs = sliderToShutterNs(
+                    binding.sliderCameraShutter.value,
+                    shutterRange.lower,
+                    shutterRange.upper,
+                ),
+            )
+            preview()
+        }
+        val isoListener = Slider.OnChangeListener { _, value, fromUser ->
+            binding.tvCameraIsoValue.text = value.toInt().toString()
+            if (fromUser) {
+                draft = draft.copy(manualIso = value.toInt())
+                if (draft.manualSensorEnabled) preview()
+            }
+        }
+        isoChangeListener = isoListener
+        binding.sliderCameraIso.addOnChangeListener(isoListener)
+        val shutterListener = Slider.OnChangeListener { _, value, fromUser ->
+            val shutterNs = sliderToShutterNs(value, shutterRange.lower, shutterRange.upper)
+            binding.tvCameraShutterValue.text = shutterLabel(shutterNs)
+            if (fromUser) {
+                draft = draft.copy(manualShutterNs = shutterNs)
+                if (draft.manualSensorEnabled) preview()
+            }
+        }
+        shutterChangeListener = shutterListener
+        binding.sliderCameraShutter.addOnChangeListener(shutterListener)
+    }
+
+    private fun wireActionButtons() {
         binding.btnCameraSettingsCancel.setOnClickListener {
             callbacks.onCameraSettingsCancelled(initialSettings)
             dismissAllowingStateLoss()
@@ -195,10 +222,6 @@ class CameraSettingsDialogFragment : DialogFragment() {
             callbacks.onCameraSettingsApplied(draft)
             dismissAllowingStateLoss()
         }
-
-        return MaterialAlertDialogBuilder(requireContext())
-            .setView(binding.root)
-            .create()
     }
 
     override fun onDestroyView() {
@@ -214,24 +237,16 @@ class CameraSettingsDialogFragment : DialogFragment() {
         super.onDestroyView()
     }
 
-    private fun bindSpinner(
-        view: android.widget.Spinner,
+    private fun bindDropdown(
+        row: SettingsDropdownRow,
         labels: List<String>,
         selectedIndex: Int,
         onSelected: (Int) -> Unit,
     ) {
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, labels).also {
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        view.adapter = adapter
-        view.setSelection(selectedIndex, false)
-        view.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, selectedView: View?, position: Int, id: Long) {
-                onSelected(position)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
+        // Entries must be set before the silent selection so the row can render the chosen label.
+        row.setEntries(labels)
+        row.setSelection(selectedIndex)
+        row.setOnItemSelectedListener(onSelected)
     }
 
     private fun aspectRatioLabel(value: Int): String = when (value) {
@@ -256,7 +271,7 @@ class CameraSettingsDialogFragment : DialogFragment() {
     }
 
     private fun sliderToShutterNs(value: Float, minNs: Long, maxNs: Long): Long {
-        val fraction = (value / 100f).coerceIn(0f, 1f)
+        val fraction = (value / SHUTTER_SLIDER_MAX).coerceIn(0f, 1f)
         val minLog = ln(minNs.toDouble())
         val maxLog = ln(maxNs.toDouble())
         return exp(minLog + ((maxLog - minLog) * fraction)).roundToLong().coerceIn(minNs, maxNs)
@@ -266,17 +281,18 @@ class CameraSettingsDialogFragment : DialogFragment() {
         val minLog = ln(minNs.toDouble())
         val maxLog = ln(maxNs.toDouble())
         val valueLog = ln(value.toDouble())
-        return (((valueLog - minLog) / (maxLog - minLog)) * 100.0).toFloat().coerceIn(0f, 100f)
+        val fraction = (valueLog - minLog) / (maxLog - minLog)
+        return (fraction * SHUTTER_SLIDER_MAX).toFloat().coerceIn(SHUTTER_SLIDER_MIN, SHUTTER_SLIDER_MAX)
     }
 
     private fun shutterLabel(valueNs: Long): String {
-        val millis = valueNs / 1_000_000.0
-        val seconds = valueNs / 1_000_000_000.0
+        val millis = valueNs / NANOS_PER_MILLI
+        val seconds = valueNs / NANOS_PER_SECOND
         return when {
-            valueNs >= 1_000_000_000L -> String.format("%.1f s", seconds)
-            millis >= 1.0 -> String.format("%.0f ms", millis)
+            valueNs >= ONE_SECOND_NANOS -> String.format(Locale.US, "%.1f s", seconds)
+            millis >= 1.0 -> String.format(Locale.US, "%.0f ms", millis)
             else -> {
-                val denominator = (1_000_000_000.0 / valueNs.toDouble()).roundToLong().coerceAtLeast(1)
+                val denominator = (NANOS_PER_SECOND / valueNs.toDouble()).roundToLong().coerceAtLeast(1)
                 "1/$denominator s"
             }
         }
@@ -285,5 +301,16 @@ class CameraSettingsDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "CameraSettingsDialog"
         private val TIMER_OPTIONS = listOf(0, 3, 5, 10)
+
+        // Material Slider config: 1-unit steps for all sliders; the shutter slider maps log-scaled
+        // nanoseconds onto a fixed 0..100 track (see shutterNsToSlider/sliderToShutterNs).
+        private const val SLIDER_STEP = 1f
+        private const val SHUTTER_SLIDER_MIN = 0f
+        private const val SHUTTER_SLIDER_MAX = 100f
+
+        // Shutter-duration formatting thresholds and divisors.
+        private const val NANOS_PER_MILLI = 1_000_000.0
+        private const val NANOS_PER_SECOND = 1_000_000_000.0
+        private const val ONE_SECOND_NANOS = 1_000_000_000L
     }
 }

@@ -234,8 +234,6 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
 **Roadmap entry:** <текст из роадмапа или «Ad-hoc - запрос <дата>»>
 **Tactical spec:** `PLAN/<Sxxxx>_<short-name>/` (будет создан через `/spec-tech`)
 
-> **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
-
 ---
 
 ## 1. Проблема
@@ -364,12 +362,6 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
 ## 11. Критерии готовности (strategic-level)
 
 <Нумерованный список. Наблюдаемые результаты, не архитектурные утверждения. «Пользователь видит X» или «Batch завершается за N минут».>
-
----
-
-## 12. Ссылка на тактическую спецификацию
-
-Следующий шаг: `/spec-tech <Sxxxx>` - создаст `PLAN/<Sxxxx>_<short-name>/` с фазами.
 ```
 
 ---
