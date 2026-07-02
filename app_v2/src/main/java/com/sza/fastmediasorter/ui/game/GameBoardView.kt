@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.GestureDetector
@@ -14,13 +15,16 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
 import com.sza.fastmediasorter.domain.game.GameDirection
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardActorCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardBaseCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardDefeatConnection
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardHighlightCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
+import com.sza.fastmediasorter.ui.game.helpers.GameBoardTheme
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
+import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -38,6 +42,9 @@ class GameBoardView @JvmOverloads constructor(
 
     private val scalingManager = GameScalingManager()
     private var renderState: GameBoardRenderState? = null
+    // S0804: cached skin; recomputed only when the render state's mode changes.
+    private var theme: GameBoardTheme = GameBoardTheme.forMode(context, GameMode.CLASSIC)
+    private var themedMode: GameMode = GameMode.CLASSIC
     private var renderedLevelNumber: Int? = null
     private var renderedIntroHighlightKey: Int? = null
     private var introHighlightUntilMs: Long = 0L
@@ -142,6 +149,10 @@ class GameBoardView @JvmOverloads constructor(
     }
 
     fun setRenderState(nextRenderState: GameBoardRenderState?) {
+        val nextMode = nextRenderState?.mode
+        if (nextMode != null && nextMode != themedMode) {
+            applyTheme(nextMode)
+        }
         if (nextRenderState?.levelNumber != renderedLevelNumber) {
             scalingManager.reset()
             renderedLevelNumber = nextRenderState?.levelNumber
@@ -193,7 +204,8 @@ class GameBoardView @JvmOverloads constructor(
             cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
             if (cell.baseCell == GameBoardBaseCell.EXIT) {
                 canvas.drawRect(cellRect, floorPaint)
-                drawExit(canvas, cellRect)
+                val door = theme.doorDrawable
+                if (door != null) drawActorDrawable(canvas, cellRect, door) else drawExit(canvas, cellRect)
             } else {
                 canvas.drawRect(cellRect, paintFor(cell.baseCell))
             }
@@ -245,6 +257,15 @@ class GameBoardView @JvmOverloads constructor(
     }
 
     private fun drawActor(canvas: Canvas, bounds: RectF, actorCell: GameBoardActorCell) {
+        val drawable = when (actorCell) {
+            GameBoardActorCell.PLAYER -> theme.playerDrawable
+            GameBoardActorCell.KRYVAVITSA -> theme.kryvavitsaDrawable
+            GameBoardActorCell.SHADOW -> theme.shadowDrawable
+        }
+        if (drawable != null) {
+            drawActorDrawable(canvas, bounds, drawable)
+            return
+        }
         val centerX = bounds.centerX()
         val centerY = bounds.centerY()
         // Star/triangle have less visual mass than a filled disc, so they get a larger radius to fill the cell.
@@ -257,14 +278,35 @@ class GameBoardView @JvmOverloads constructor(
         }
     }
 
+    private fun drawActorDrawable(canvas: Canvas, bounds: RectF, drawable: Drawable) {
+        val inset = bounds.width() * ACTOR_DRAWABLE_INSET
+        drawable.setBounds(
+            (bounds.left + inset).toInt(),
+            (bounds.top + inset).toInt(),
+            (bounds.right - inset).toInt(),
+            (bounds.bottom - inset).toInt()
+        )
+        drawable.draw(canvas)
+    }
+
+    private fun applyTheme(mode: GameMode) {
+        theme = GameBoardTheme.forMode(context, mode)
+        floorPaint.color = theme.floorColor
+        wallPaint.color = theme.wallColor
+        themedMode = mode
+        Timber.d("S0804: board theme applied mode=$mode")
+    }
+
     private fun drawAnimatedActors(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
         val remaining = (actorAnimationUntilMs - SystemClock.uptimeMillis()).toFloat()
         val progress = (1f - remaining / ACTOR_ANIMATION_MS.toFloat()).coerceIn(0f, 1f)
+        // Stomp: a single up-then-down hop over the step reads as a heavy march instead of a glide.
+        val bob = if (theme.stomp) -(sin(progress * PI).toFloat()) * scale.cellSize * STOMP_BOB_FACTOR else 0f
         renderState.actorTransitions.forEach { transition ->
             val column = transition.fromColumn + (transition.toColumn - transition.fromColumn) * progress
             val row = transition.fromRow + (transition.toRow - transition.fromRow) * progress
             val left = scale.offsetX + column * scale.cellSize
-            val top = scale.offsetY + row * scale.cellSize
+            val top = scale.offsetY + row * scale.cellSize + bob
             cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
             drawActor(canvas, cellRect, transition.actorCell)
         }
@@ -454,5 +496,7 @@ class GameBoardView @JvmOverloads constructor(
         private const val STAR_INNER_RADIUS_FACTOR = 0.4f
         private const val CIRCLE_RADIUS_FACTOR = 0.34f
         private const val POLYGON_RADIUS_FACTOR = 0.5f
+        private const val ACTOR_DRAWABLE_INSET = 0.06f
+        private const val STOMP_BOB_FACTOR = 0.16f
     }
 }

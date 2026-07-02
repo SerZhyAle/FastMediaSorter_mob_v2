@@ -258,6 +258,11 @@ class StandaloneViewManager(
 
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
+        // S0859: playVideo()/playAudio() are only reachable through here - release any previous
+        // video player / audio controller before dispatching, so folder paging, slideshow and
+        // rename-triggered re-show never orphan a live player (and its bound focus/service).
+        releaseVideoPlayer()
+        releaseAudioController()
         hidePhotoAndPlayerViews()
         when (mediaType) {
             MediaType.IMAGE -> showImage(mediaFile)
@@ -307,6 +312,27 @@ class StandaloneViewManager(
                 }
             }
         }
+        releaseVideoPlayer()
+        releaseAudioController()
+        // S0859: showImage/reloadImage/showGif load through an application-context RequestManager
+        // (ApplicationLifecycle) that is never auto-cleared by host destroy - explicitly clear the
+        // tracked target so it does not keep retaining the destroyed activity's photoView.
+        Glide.with(activity.applicationContext).clear(safeViews.photoView)
+        _pdfViewerManager?.close()
+        _pdfViewerManager = null
+        _epubViewerManager?.release()
+        _epubViewerManager = null
+        _textViewerManager?.release()
+        _textViewerManager = null
+    }
+
+    /**
+     * S0859: tear down any live video player and its audio focus request. Called both from
+     * [release] (host destroy) and from [show] before every dispatch (folder paging / slideshow /
+     * rename re-show / swap to a non-video type) - the previous player must never be orphaned.
+     */
+    private fun releaseVideoPlayer() {
+        stopPositionAutoSave()
         audioFocusManager?.releaseFocus()
         audioFocusManager = null
         // Media3 1.2.1: ExoPlayer.release() can block the main thread indefinitely when a
@@ -321,16 +347,18 @@ class StandaloneViewManager(
             player.release()
         }
         exoPlayer = null
+    }
+
+    /**
+     * S0859: tear down any live audio controller. Each [AudioServiceController] binds a
+     * MediaController connection to AudioPlaybackService that must be released before the field
+     * is overwritten by the next file, or it leaks a bound ServiceConnection per paging step.
+     */
+    private fun releaseAudioController() {
         // Standalone mode must never continue audio in background - stop before releasing the service controller.
         audioServiceController?.player?.stop()
         audioServiceController?.release()
         audioServiceController = null
-        _pdfViewerManager?.close()
-        _pdfViewerManager = null
-        _epubViewerManager?.release()
-        _epubViewerManager = null
-        _textViewerManager?.release()
-        _textViewerManager = null
     }
 
     // ── Image ───────────────────────────────────────────────────────────────

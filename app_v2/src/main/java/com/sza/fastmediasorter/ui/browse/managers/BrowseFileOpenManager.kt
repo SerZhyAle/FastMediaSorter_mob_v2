@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
@@ -54,6 +55,14 @@ class BrowseFileOpenManager(
      */
     fun openFile(file: MediaFile, approximatePosition: Int = 0) {
         Timber.d("BrowseFileOpenManager.openFile: file=${file.name}, type=${file.type}, pos=$approximatePosition")
+        // S0783: a favorited live channel materializes with the STREAM synthetic resource id and its URL
+        // as the path. It is not a browsable file, so route it straight to the stream player instead of
+        // the file-index lookup + file viewer below.
+        if (file.resourceId == SyntheticResourceIds.STREAM) {
+            inlineStop()
+            sendEvent(BrowseEvent.OpenStreamPlayer(file.path))
+            return
+        }
         val resource = stateFlow.value.resource ?: return
 
         val index = if (stateFlow.value.usePagination) {

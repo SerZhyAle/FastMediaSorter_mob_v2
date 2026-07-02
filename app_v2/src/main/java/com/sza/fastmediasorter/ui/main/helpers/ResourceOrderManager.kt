@@ -16,7 +16,9 @@ import timber.log.Timber
  * - Auto-switch to MANUAL sort mode when reordering
  */
 class ResourceOrderManager(
-    private val resourceRepository: ResourceRepository
+    // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
+    // through this coordinator. Every use site below is inside a suspend fun, so .get() runs off-main.
+    private val resourceRepository: dagger.Lazy<ResourceRepository>
 ) {
     
     /**
@@ -58,7 +60,7 @@ class ResourceOrderManager(
             // This handles duplicate displayOrder values (e.g. all = 0 after direct import)
             // by always deriving the swap targets from the current list position,
             // not from the potentially stale or non-unique domain model field.
-            resourceRepository.swapResourceDisplayOrders(
+            resourceRepository.get().swapResourceDisplayOrders(
                 resource.copy(displayOrder = currentIndex),
                 previousResource.copy(displayOrder = currentIndex - 1)
             )
@@ -96,7 +98,7 @@ class ResourceOrderManager(
             // This handles duplicate displayOrder values (e.g. all = 0 after direct import)
             // by always deriving the swap targets from the current list position,
             // not from the potentially stale or non-unique domain model field.
-            resourceRepository.swapResourceDisplayOrders(
+            resourceRepository.get().swapResourceDisplayOrders(
                 resource.copy(displayOrder = currentIndex),
                 nextResource.copy(displayOrder = currentIndex + 1)
             )
@@ -132,7 +134,7 @@ class ResourceOrderManager(
                 val moved = removeAt(currentIndex)
                 add(0, moved)
             }
-            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            resourceRepository.get().updateResourcesDisplayOrder(newOrder)
             Timber.d("Moved resource to top: ${resource.name}")
             OrderResult.Success
         } catch (e: Exception) {
@@ -164,7 +166,7 @@ class ResourceOrderManager(
                 val moved = removeAt(currentIndex)
                 add(moved)
             }
-            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            resourceRepository.get().updateResourcesDisplayOrder(newOrder)
             Timber.d("Moved resource to bottom: ${resource.name}")
             OrderResult.Success
         } catch (e: Exception) {
@@ -190,7 +192,7 @@ class ResourceOrderManager(
      */
     suspend fun saveResourceOrder(newOrder: List<MediaResource>): OrderResult {
         return try {
-            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            resourceRepository.get().updateResourcesDisplayOrder(newOrder)
             Timber.d("ResourceOrderManager: saved drag order for ${newOrder.size} resources")
             OrderResult.Success
         } catch (e: Exception) {

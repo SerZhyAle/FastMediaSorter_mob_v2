@@ -46,4 +46,18 @@
     <string name="game_widget_description">Open Kryvavitsa and the Monster</string>
     <string name="game_widget_disabled">Enable in Settings</string>
     <string name="game_widget_label">Kryvavitsa</string>
+
+    <!-- S0804: visual modes (skins) -->
+    <string name="game_mode_button_content_description">Game mode: %1$s</string>
+    <string name="game_mode_picker_title">Game mode</string>
+    <string name="game_mode_picker_unavailable">Game mode is unavailable.</string>
+    <string name="game_mode_classic">Classic</string>
+    <string name="game_mode_kryvavitsa">Kryvavitsa</string>
+    <string name="game_help_intro_kryvavitsa">Reach the door with the man before the woman with the machine gun and her knife-wielding helpers corner you.</string>
+    <string name="game_help_legend_player_kryvavitsa">Man - the character you control</string>
+    <string name="game_help_legend_kryvavitsa_kryvavitsa">Woman with a machine gun - the Kryvavitsa, hunts you</string>
+    <string name="game_help_legend_shadow_kryvavitsa">Woman with a knife - lesser Kryvavitsa, moves randomly</string>
+    <string name="game_help_legend_exit_kryvavitsa">Door - exit to the next level</string>
+    <string name="game_help_legend_wall_kryvavitsa">Black wall - can be pushed</string>
+    <string name="game_help_rules_kryvavitsa">Use arrows, keyboard, D-pad, swipe, or tap the board to move one cell.\nThe woman with the machine gun hunts the man. Her knife-wielding helpers wander randomly, stomping as they move.\nPush black walls into free cells to clear a path. The thick border blocks leaving the board.\nScore: -10 per move, +10 for pushing a wall, +50 for crushing a helper, +1000 for reaching the door.\nIf any enemy reaches the same or neighboring cell, the game ends.</string>
 </resources>

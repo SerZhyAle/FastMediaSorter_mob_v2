@@ -102,6 +102,7 @@ _Available in: Standard, Lite, Legacy_
 | Clear Selection | Clears the currently selected snapshot destination resource. |
 | Select Destination Resource | Selects the destination resource where video frame snapshots are saved. |
 | Set as default video player | Registers this app as the default handler for video files on the device. |
+| Open video files in fullscreen mode | Launches video playback straight into fullscreen mode when a video is opened from Browse. |
 | Show FPS over player | Displays the current frames-per-second counter over the video while it is playing. |
 | Show video thumbnails | Generates and displays thumbnail previews for video files in the file browser. |
 | Support video | Enables video file support so videos appear in the file browser and can be played. |
@@ -154,7 +155,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | Retry | Retries initializing the translation engine if the previous attempt failed. |
 | OCR & translation downloads | Manages downloadable OCR and translation components. |
-| Enable text recognition (OCR) | Enables on-device text recognition (OCR) so you can extract text from images. |
+| Enable text recognition | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
 | OCR Engine | Selects which on-device text-recognition engine is used for OCR. |
 | OCR Font Family | Sets the font family used to display recognized OCR text. |

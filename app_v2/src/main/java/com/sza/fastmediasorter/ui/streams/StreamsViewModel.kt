@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
@@ -50,6 +52,9 @@ import javax.inject.Inject
  * derive the list the UI renders; filtering/sorting lives here, not in the Activity. Pinned-first is
  * always the primary order key (matches the DAO ordering) before the chosen [SortMode].
  */
+// Pre-existing large state holder (already over the param threshold); S0712 adds the persistent
+// frame store as one more injected dependency. Kept whole - each dep is a distinct stream use case.
+@Suppress("LongParameterList")
 @HiltViewModel
 class StreamsViewModel @Inject constructor(
     observeStreamSources: ObserveStreamSourcesUseCase,
@@ -61,11 +66,15 @@ class StreamsViewModel @Inject constructor(
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
+    // S0783: shared Favorites - add/remove a channel and observe which channels are favorited.
+    private val favoritesUseCase: FavoritesUseCase,
     private val settingsRepository: SettingsRepository,
     private val sessionStore: StreamsSessionStore,
     // S0659: same synchronous Wi-Fi/unmetered check that backs searchAudioCoversOnlyOnWifi -
     // injected so the PERIODIC_WIFI policy never touches ConnectivityManager from the ViewModel.
     private val networkContextAnalyzer: NetworkContextAnalyzer,
+    // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
+    private val streamFramePersistentStore: StreamFramePersistentStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -75,6 +84,11 @@ class StreamsViewModel @Inject constructor(
     // player's behavior. Eager so `.value` is current when the Activity decides the playback path.
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
+    // S0783: URLs of favorited channels, so the per-channel overflow can label its action add vs remove.
+    // Eager so `.value` is current when the Activity pushes the state into the adapters.
+    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     private val _filter = MutableStateFlow(StreamsFilter())
 
@@ -299,6 +313,11 @@ class StreamsViewModel @Inject constructor(
     private fun String.toDisplayMode(): DisplayMode? =
         DisplayMode.values().firstOrNull { it.name == this }
 
+    /** S0783: add or remove the channel from the shared Favorites (independent of pin). */
+    fun toggleStreamFavorite(source: StreamSourceEntity) = viewModelScope.launch {
+        favoritesUseCase.toggleStreamFavorite(source)
+    }
+
     /** S0637: resolve a home-screen shortcut URL to its source and ask the Activity to play it. */
     fun playByUrl(url: String) = viewModelScope.launch {
         val source = getStreamSourceByUrl(url)
@@ -323,7 +342,11 @@ class StreamsViewModel @Inject constructor(
 
     fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
 
-    fun onRemove(source: StreamSourceEntity) = viewModelScope.launch { removeStreamSource(source) }
+    fun onRemove(source: StreamSourceEntity) = viewModelScope.launch {
+        removeStreamSource(source)
+        // S0712: drop the channel's persisted last-frame thumbnail so removed channels leave no orphan.
+        streamFramePersistentStore.remove(source.url)
+    }
 
     /** S0593: record the inline-audio play outcome (OK on first playing, FAIL on error) for the row bullet. */
     fun recordStreamOutcome(id: String, ok: Boolean) =

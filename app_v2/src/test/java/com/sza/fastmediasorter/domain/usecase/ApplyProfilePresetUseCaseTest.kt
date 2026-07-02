@@ -13,7 +13,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,8 +41,16 @@ class ApplyProfilePresetUseCaseTest {
             profileRepository,
             vrProfileSettingsSync,
         )
-        every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         coEvery { vrProfileSettingsSync.align(any(), any()) } answers { secondArg() }
+    }
+
+    // S0876: applySettingsOnly() now writes through the transform overload (mutex-serialized in the
+    // real repository) - capture the transform and apply it to a starting AppSettings() ourselves
+    // (mirrors the old getSettings() stub, which always returned AppSettings() by default).
+    private suspend fun captureTransformResult(): AppSettings {
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
+        return AppSettings().let { transform.captured(it) }
     }
 
     @Test
@@ -60,18 +67,19 @@ class ApplyProfilePresetUseCaseTest {
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
 
-        val saved = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
 
         val result = useCase.apply(DeviceProfileType.TV_MEDIA_BOX, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertTrue(saved.captured.preventSleep)
-        assertEquals(4, saved.captured.networkParallelism)
-        assertEquals(com.sza.fastmediasorter.domain.model.SortMode.DATE_DESC, saved.captured.defaultSortMode)
-        assertEquals("DARK", saved.captured.colorTheme)
+        assertTrue(saved.preventSleep)
+        assertEquals(4, saved.networkParallelism)
+        assertEquals(com.sza.fastmediasorter.domain.model.SortMode.DATE_DESC, saved.defaultSortMode)
+        assertEquals("DARK", saved.colorTheme)
         coVerify(exactly = 1) { vrProfileSettingsSync.align(DeviceProfileType.TV_MEDIA_BOX, any()) }
-        coVerify(exactly = 1) { settingsRepository.updateSettings(any()) }
+        coVerify(exactly = 1) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
         coVerify(exactly = 1) { profileRepository.updatePresetApplied(1) }
     }
 
@@ -92,24 +100,25 @@ class ApplyProfilePresetUseCaseTest {
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
 
-        val saved = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
 
         val result = useCase.apply(DeviceProfileType.VR_HEADSET, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertEquals(false, saved.captured.smbEnabled)
-        assertEquals(false, saved.captured.googleDriveEnabled)
-        assertTrue(saved.captured.gestureOverlayEnabled)
-        assertTrue(saved.captured.playerFollowSystemRotation)
-        assertTrue(saved.captured.copyScreenshotToClipboard)
+        assertEquals(false, saved.smbEnabled)
+        assertEquals(false, saved.googleDriveEnabled)
+        assertTrue(saved.gestureOverlayEnabled)
+        assertTrue(saved.playerFollowSystemRotation)
+        assertTrue(saved.copyScreenshotToClipboard)
         assertEquals(
             com.sza.fastmediasorter.domain.model.ScreenshotGestureAction.OPEN_IN_PLAYER,
-            saved.captured.screenshotGestureActionDown
+            saved.screenshotGestureActionDown
         )
-        assertEquals(setOf("email", "telegram"), saved.captured.enabledShareTargets)
-        assertEquals(setOf("print"), saved.captured.disabledShareTargets)
-        assertEquals("PNG", saved.captured.videoSnapshotFormat)
+        assertEquals(setOf("email", "telegram"), saved.enabledShareTargets)
+        assertEquals(setOf("print"), saved.disabledShareTargets)
+        assertEquals("PNG", saved.videoSnapshotFormat)
     }
 
     @Test
@@ -120,15 +129,15 @@ class ApplyProfilePresetUseCaseTest {
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
 
-        val savedTv = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(savedTv)) } returns Unit
+        val transformTv = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transformTv)) } returns Unit
         assertTrue(useCase.apply(DeviceProfileType.TV_MEDIA_BOX, presetVersion = 1).isSuccess)
-        assertTrue(savedTv.captured.enableStreams)
+        assertTrue(transformTv.captured(AppSettings()).enableStreams)
 
-        val savedFrame = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(savedFrame)) } returns Unit
+        val transformFrame = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transformFrame)) } returns Unit
         assertTrue(useCase.apply(DeviceProfileType.PHOTO_FRAME, presetVersion = 1).isSuccess)
-        assertEquals(false, savedFrame.captured.enableStreams)
+        assertEquals(false, transformFrame.captured(AppSettings()).enableStreams)
     }
 
     @Test
@@ -146,17 +155,18 @@ class ApplyProfilePresetUseCaseTest {
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
 
-        val saved = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
 
         val result = useCase.apply(DeviceProfileType.HOME_TABLET, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertTrue(saved.captured.preventSleep)
-        assertEquals(defaults.defaultUser, saved.captured.defaultUser)
-        assertEquals(defaults.defaultPassword, saved.captured.defaultPassword)
-        assertEquals(defaults.lastUsedResourceId, saved.captured.lastUsedResourceId)
-        assertEquals(defaults.enableStatistics, saved.captured.enableStatistics)
+        assertTrue(saved.preventSleep)
+        assertEquals(defaults.defaultUser, saved.defaultUser)
+        assertEquals(defaults.defaultPassword, saved.defaultPassword)
+        assertEquals(defaults.lastUsedResourceId, saved.lastUsedResourceId)
+        assertEquals(defaults.enableStatistics, saved.enableStatistics)
     }
 
     @Test
@@ -169,13 +179,14 @@ class ApplyProfilePresetUseCaseTest {
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
 
-        val saved = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
 
         val result = useCase.apply(DeviceProfileType.HOME_TABLET, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertEquals(defaults.screenshotGestureActionDown, saved.captured.screenshotGestureActionDown)
+        assertEquals(defaults.screenshotGestureActionDown, saved.screenshotGestureActionDown)
     }
 
     @Test
@@ -187,7 +198,7 @@ class ApplyProfilePresetUseCaseTest {
         val result = useCase.apply(DeviceProfileType.OTHER, presetVersion = 1)
 
         assertTrue(result.isSuccess)
-        coVerify(exactly = 0) { settingsRepository.updateSettings(any()) }
+        coVerify(exactly = 0) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
         coVerify(exactly = 0) { profileRepository.updatePresetApplied(any()) }
     }
 
@@ -202,14 +213,15 @@ class ApplyProfilePresetUseCaseTest {
             secondArg<AppSettings>().copy(disable3dVr = true)
         }
 
-        val saved = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(saved)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
 
         val result = useCase.apply(DeviceProfileType.OTHER, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertTrue(saved.captured.disable3dVr)
-        coVerify(exactly = 1) { settingsRepository.updateSettings(any()) }
+        assertTrue(saved.disable3dVr)
+        coVerify(exactly = 1) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
         coVerify(exactly = 0) { profileRepository.updatePresetApplied(any()) }
     }
 }

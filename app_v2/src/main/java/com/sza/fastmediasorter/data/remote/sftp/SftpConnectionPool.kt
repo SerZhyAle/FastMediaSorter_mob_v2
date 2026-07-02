@@ -7,8 +7,8 @@ import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
@@ -20,6 +20,7 @@ import timber.log.Timber
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -52,7 +53,12 @@ class SftpConnectionPool {
     private class PooledConnection(
         val session: Session,
         val jsch: JSch,
-        val pooledChannels: MutableList<PooledChannel> = mutableListOf(),
+        // S0866: CopyOnWriteArrayList - this list is mutated/iterated from four independent lock
+        // domains (sessionMutex, openChannelLock, poolMutex, and lock-free evict/release paths) that
+        // do not mutually exclude each other. A thread-safe collection removes the CME/lost-update
+        // risk at the list level; sessionMutex/openChannelLock still guard their own per-purpose
+        // count-then-add invariants (FILE_OPS vs PLAYBACK slot limits), which is orthogonal.
+        val pooledChannels: MutableList<PooledChannel> = CopyOnWriteArrayList(),
         val sessionMutex: Mutex = Mutex(),
         // Guards session.openChannel() across both suspend and blocking callers (Research #2)
         val openChannelLock: ReentrantLock = ReentrantLock(),
@@ -72,9 +78,16 @@ class SftpConnectionPool {
     )
 
     /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
+    // S0866: session-map mutation guard. Both the suspend path (getOrCreateSession,
+    // invalidateSession, disconnectAll) and the blocking ExoPlayer path
+    // (getOrCreateSessionBlocking) use this SAME monitor - previously the suspend path used a
+    // kotlinx.coroutines Mutex while the blocking path used synchronized(pooledSessions), two
+    // disjoint lock domains that did not exclude each other (TOCTOU: both could see existing==null
+    // and both create+overwrite a session for the same key, leaking the loser's JSch session).
+    // Safe as a plain monitor because every critical section below is synchronous JSch/map work
+    // with zero suspension points - no coroutine ever suspends while holding it.
     private val pooledSessions = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
-    private val poolMutex = Mutex()
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile
     private var sweepJob: Job? = null
@@ -204,8 +217,7 @@ class SftpConnectionPool {
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
         ensurePeriodicSweepRunning()
-        poolMutex.lock()
-        try {
+        synchronized(pooledSessions) {
             val existing = pooledSessions[key]
             if (existing != null && existing.session.isConnected) return existing
 
@@ -235,8 +247,6 @@ class SftpConnectionPool {
             pooledSessions[key] = pooled
             Timber.d("SFTP new session for ${info.host}")
             return pooled
-        } finally {
-            poolMutex.unlock()
         }
     }
 
@@ -245,8 +255,7 @@ class SftpConnectionPool {
     }
 
     private suspend fun invalidateSession(key: ConnectionKey) {
-        poolMutex.lock()
-        try {
+        synchronized(pooledSessions) {
             pooledSessions.remove(key)?.let { pooled ->
                 // S0219 Pillar B: session is removed from the map immediately so no new checkout
                 // can see it. If active borrowers still hold a reference, defer the actual
@@ -262,8 +271,6 @@ class SftpConnectionPool {
                     Timber.d("SFTP invalidate deferred for ${key.host} (activeBorrow=${pooled.activeBorrowCount.get()}) - last borrower will disconnect")
                 }
             }
-        } finally {
-            poolMutex.unlock()
         }
     }
 
@@ -296,7 +303,7 @@ class SftpConnectionPool {
         if (keysToRemove.isEmpty()) return
 
         cleanupScope.launch {
-            poolMutex.withLock {
+            synchronized(pooledSessions) {
                 keysToRemove.forEach { key ->
                     pooledSessions.remove(key)?.let { pooled ->
                         try {
@@ -535,8 +542,7 @@ class SftpConnectionPool {
     // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
 
     suspend fun disconnectAll() {
-        poolMutex.lock()
-        try {
+        synchronized(pooledSessions) {
             stopPeriodicSweep()
             pooledSessions.values.forEach { pooled ->
                 try {
@@ -545,8 +551,6 @@ class SftpConnectionPool {
                 } catch (_: Exception) {}
             }
             pooledSessions.clear()
-        } finally {
-            poolMutex.unlock()
         }
     }
 

@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -39,6 +41,12 @@ class SettingsRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) : SettingsRepository {
+
+    // S0876: serializes every transform-based updateSettings() call (see interface KDoc) so
+    // concurrent writers (Welcome enable-all's parallel deliverable-install coroutines, and any
+    // other transform() caller) always fold onto the previous writer's committed result instead
+    // of racing on a stale getSettings().first() snapshot.
+    private val transformMutex = Mutex()
 
     companion object {
         private val KEY_LANGUAGE = stringPreferencesKey("language")
@@ -115,6 +123,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN = booleanPreferencesKey("hide_system_ui_in_fullscreen")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
+        private val KEY_OPEN_VIDEO_IN_FULLSCREEN = booleanPreferencesKey("open_video_in_fullscreen")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
         private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
         private val KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY = booleanPreferencesKey("always_show_touch_zones_overlay")
@@ -153,6 +162,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
         private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
+        // S0781: main-window resource-type filter strip collapsed state.
+        private val KEY_RESOURCE_TYPE_TAB_COLLAPSED = booleanPreferencesKey("resource_type_tab_collapsed")
+        // S0807: main-window programs panel collapsed-strip state.
+        private val KEY_PROGRAMS_PANEL_COLLAPSED = booleanPreferencesKey("programs_panel_collapsed")
+        // S0808: main-window streams panel collapsed-strip state.
+        private val KEY_STREAMS_PANEL_COLLAPSED = booleanPreferencesKey("streams_panel_collapsed")
         private val KEY_ENABLE_PICTURE_IN_PICTURE = booleanPreferencesKey("enable_picture_in_picture")
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
         private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
@@ -390,6 +405,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
+                    openVideoInFullscreen = preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
                     alwaysShowTouchZonesOverlay = preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] ?: false,
@@ -433,6 +449,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     screenCaptureDisclosureAccepted = screenshot.screenCaptureDisclosureAccepted,
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
+                    resourceTypeTabCollapsed = preferences[KEY_RESOURCE_TYPE_TAB_COLLAPSED] ?: false,
+                    programsPanelCollapsed = preferences[KEY_PROGRAMS_PANEL_COLLAPSED] ?: false,
+                    streamsPanelCollapsed = preferences[KEY_STREAMS_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
                     defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
@@ -615,6 +634,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
             preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
             preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
+            preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] = settings.openVideoInFullscreen
             preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
             preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
             preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
@@ -642,6 +662,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences.setOrRemove(KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID, settings.videoRecordingDestinationResourceId)
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
+            preferences[KEY_RESOURCE_TYPE_TAB_COLLAPSED] = settings.resourceTypeTabCollapsed
+            preferences[KEY_PROGRAMS_PANEL_COLLAPSED] = settings.programsPanelCollapsed
+            preferences[KEY_STREAMS_PANEL_COLLAPSED] = settings.streamsPanelCollapsed
             preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
             preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
@@ -697,6 +720,13 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
             preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
             preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
+        }
+    }
+
+    override suspend fun updateSettings(transform: suspend (AppSettings) -> AppSettings) {
+        transformMutex.withLock {
+            val current = getSettings().first()
+            updateSettings(transform(current))
         }
     }
 

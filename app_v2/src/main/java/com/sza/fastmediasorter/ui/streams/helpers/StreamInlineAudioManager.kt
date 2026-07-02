@@ -124,6 +124,13 @@ class StreamInlineAudioManager(
         usingService = useBackgroundService
         if (useBackgroundService) {
             audioController.playAudioWithMetadata(Uri.parse(source.url), source.title) { startedPlayer ->
+                // S0874: the service connect is async - a stop()/newer play() during the connect window
+                // clears currentSource. Without this guard the late callback leaves an orphaned playing
+                // service player with all inline-UI state cleared (no reachable stop). Bail if stale.
+                if (currentSource?.id != source.id) {
+                    startedPlayer.stop()
+                    return@playAudioWithMetadata
+                }
                 player = startedPlayer
                 startedPlayer.addListener(playerListener)
             }

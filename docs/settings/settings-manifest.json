@@ -1576,9 +1576,9 @@
       "destination": "MEDIA",
       "layout": "fragment_settings_other",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Enable text recognition (OCR)",
-      "titleRu": "Разрешить распознавание текста (OCR)",
-      "titleUk": "Дозволити розпізнавання тексту (OCR)"
+      "titleEn": "Enable text recognition",
+      "titleRu": "Разрешить распознавание текста",
+      "titleUk": "Дозволити розпізнавання тексту"
     },
     {
       "key": "rowEnableTranslation",
@@ -2029,6 +2029,16 @@
       "titleEn": "Set as default video player",
       "titleRu": "Назначить видеоплеером по умолчанию",
       "titleUk": "Призначити відеоплеєром за замовчуванням"
+    },
+    {
+      "key": "rowOpenVideoInFullscreen",
+      "sectionId": "video",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_video",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Open video files in fullscreen mode",
+      "titleRu": "Открывать видеофайлы в полноэкранном режиме",
+      "titleUk": "Відкривати відеофайли в повноекранному режимі"
     },
     {
       "key": "rowPlayerShowFps",

@@ -34,6 +34,8 @@ The largest cost axis. Default to inline; spawning is the exception, not the ref
 
 **Hard rule:** never spawn a subagent for a lookup you could resolve inline. A subagent runs its own request fleet; its setup cost dominates a cheap lookup. When you do spawn, the agent's final message is the result you keep - relay the conclusion, not the file dumps.
 
+**Subagent MCP isolation:** when defining a subagent via `define_subagent`, always set `enable_mcp_tools` to `false` unless the subagent specifically needs to execute exploratory UI walks on the device (highly rare). This prevents spawning duplicate Node/MCP server processes.
+
 ---
 
 ## Context hygiene

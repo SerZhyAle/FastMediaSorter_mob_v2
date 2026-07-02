@@ -1,0 +1,954 @@
+[
+  {
+    "surface": "player-command",
+    "key": "BLACK_SCREEN",
+    "feature": "black_screen_button_title",
+    "drawable": "ic_black_screen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "CAST",
+    "feature": "cast_to_chromecast",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "COMPRESS_COPY",
+    "feature": "menu_compress_copy",
+    "drawable": "ic_compress",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "COPY_TEXT",
+    "feature": "copy",
+    "drawable": "ic_menu_save",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "CROP",
+    "feature": "menu_crop",
+    "drawable": "ic_crop",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "CROP_TO_FILE",
+    "feature": "menu_crop_to_file",
+    "drawable": "ic_crop_to_file",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "DELETE",
+    "feature": "delete",
+    "drawable": "ic_delete",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "DRAW_OVERLAY",
+    "feature": "menu_draw_overlay",
+    "drawable": "ic_draw_overlay",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "EDIT",
+    "feature": "edit",
+    "drawable": "ic_menu_edit",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "EDIT_TEXT",
+    "feature": "edit",
+    "drawable": "ic_menu_edit",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "EPUB_READER_SETTINGS",
+    "feature": "epub_reader_settings",
+    "drawable": "ic_settings",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "EPUB_SEARCH_ALL",
+    "feature": "epub_search_all_chapters",
+    "drawable": "ic_menu_search",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "EPUB_TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "FAVORITE",
+    "feature": "favorite",
+    "drawable": "ic_star_outline",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "FULLSCREEN",
+    "feature": "fullscreen_mode",
+    "drawable": "ic_fullscreen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "GOOGLE_LENS_IMAGE",
+    "feature": "google_lens",
+    "drawable": "ic_google_lens",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "GOOGLE_LENS_PDF",
+    "feature": "google_lens",
+    "drawable": "ic_google_lens",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "IMAGE_TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "INFO",
+    "feature": "file_information",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "LYRICS",
+    "feature": "lyrics",
+    "drawable": "ic_microphone",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OCR_EPUB",
+    "feature": "ocr_button_description",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OCR_IMAGE",
+    "feature": "ocr_button_description",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OCR_OFFICE",
+    "feature": "ocr_button_description",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OCR_PDF",
+    "feature": "ocr_button_description",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OPEN_IN_SEPARATE_WINDOW",
+    "feature": "action_open_in_separate_window",
+    "drawable": "ic_open_in_browse",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "OPEN_IN_VR",
+    "feature": "player_vr_overflow_open",
+    "drawable": "ic_vr_headset",
+    "assetFormat": "vector",
+    "public": false
+  },
+  {
+    "surface": "player-command",
+    "key": "PDF_COLOR_MODE",
+    "feature": "pdf_night_mode",
+    "drawable": "ic_night_mode",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "PDF_SCROLL_MODE",
+    "feature": "pdf_scroll_mode",
+    "drawable": "ic_view_list",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "PDF_TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "PDF_THUMBNAILS",
+    "feature": "pdf_thumbnails",
+    "drawable": "ic_view_list",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "PRINT",
+    "feature": "menu_print",
+    "drawable": "ic_print",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "RANDOM",
+    "feature": "random_file_description",
+    "drawable": "ic_random_nav",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "READER_SETTINGS",
+    "feature": "reader_settings",
+    "drawable": "ic_menu_preferences",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "READ_ALOUD",
+    "feature": "read_aloud",
+    "drawable": "ic_lock_silent_mode_off",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "RENAME",
+    "feature": "rename",
+    "drawable": "ic_rename",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "REOPEN_ENCODING",
+    "feature": "reopen_with_encoding",
+    "drawable": "ic_menu_sort_alphabetically",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "ROTATION_TOGGLE",
+    "feature": "rotation_toggle_title",
+    "drawable": "ic_rotation_unlocked",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SAVE_FRAME",
+    "feature": "menu_save_frame",
+    "drawable": "ic_save_frame",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SEARCH_EPUB",
+    "feature": "search",
+    "drawable": "ic_menu_search",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SEARCH_PDF",
+    "feature": "search",
+    "drawable": "ic_menu_search",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SEARCH_TEXT",
+    "feature": "search",
+    "drawable": "ic_menu_search",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SEARCH_YOUTUBE_MUSIC",
+    "feature": "search_in_youtube_music",
+    "drawable": "ic_youtube_music",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SEND_TO",
+    "feature": "share_to_menu_title",
+    "drawable": "ic_share",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SHARE",
+    "feature": "share",
+    "drawable": "ic_share",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SLEEP_TIMER",
+    "feature": "menu_sleep_timer",
+    "drawable": "ic_sleep_timer",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "SLIDESHOW",
+    "feature": "slideshow",
+    "drawable": "ic_play",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TOGGLE_MARKDOWN",
+    "feature": "toggle_markdown",
+    "drawable": "ic_menu_view",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TRANSLATE_EPUB",
+    "feature": "translate",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TRANSLATE_IMAGE",
+    "feature": "translate",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TRANSLATE_OFFICE",
+    "feature": "translate",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TRANSLATE_PDF",
+    "feature": "translate",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TRANSLATE_TEXT",
+    "feature": "translate",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "UNDO",
+    "feature": "undo",
+    "drawable": "ic_menu_revert",
+    "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "CLOUD",
+    "feature": "CLOUD",
+    "drawable": "ic_resource_cloud",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "FTP",
+    "feature": "FTP",
+    "drawable": "ic_resource_ftp",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "HTTP_STREAM",
+    "feature": "HTTP_STREAM",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "LOCAL",
+    "feature": "LOCAL",
+    "drawable": "ic_resource_local",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "RTSP_STREAM",
+    "feature": "RTSP_STREAM",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "SFTP",
+    "feature": "SFTP",
+    "drawable": "ic_resource_sftp",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "SMB",
+    "feature": "SMB",
+    "drawable": "ic_resource_smb",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "app_info",
+    "feature": "app_launch_panel_os_app_info",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "battery",
+    "feature": "app_launch_panel_os_battery",
+    "drawable": "ic_battery",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "bluetooth",
+    "feature": "app_launch_panel_os_bluetooth",
+    "drawable": "ic_bluetooth",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "calculator",
+    "feature": "app_launch_panel_route_calculator",
+    "drawable": "ic_calculator",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "datetime",
+    "feature": "app_launch_panel_os_datetime",
+    "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "display",
+    "feature": "app_launch_panel_os_display",
+    "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "favorites",
+    "feature": "app_launch_panel_route_favorites",
+    "drawable": "ic_resource_favorites",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "game",
+    "feature": "app_launch_panel_route_game",
+    "drawable": "ic_game_kryvavitsa",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "ocr",
+    "feature": "app_launch_panel_route_ocr",
+    "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "settings",
+    "feature": "app_launch_panel_os_settings",
+    "drawable": "ic_settings",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "sound",
+    "feature": "app_launch_panel_os_sound",
+    "drawable": "ic_volume_up",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "storage",
+    "feature": "app_launch_panel_os_storage",
+    "drawable": "ic_storage",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "streams",
+    "feature": "app_launch_panel_route_streams",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "wifi",
+    "feature": "app_launch_panel_os_wifi",
+    "drawable": "ic_wifi",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "email",
+    "feature": "share_target_title_email",
+    "drawable": "ic_send_email",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "instagram",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_camera",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "keep_drawing",
+    "feature": "share_target_title_keep_drawing",
+    "drawable": "ic_send_note_brush",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "keep_text",
+    "feature": "share_target_title_keep_text",
+    "drawable": "ic_send_note",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "lens",
+    "feature": "google_lens",
+    "drawable": "ic_google_lens",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "open_in",
+    "feature": "share_target_title_open_in",
+    "drawable": "ic_open_in_browse",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "print",
+    "feature": "menu_print",
+    "drawable": "ic_print",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "system_share",
+    "feature": "share_target_title_system_share",
+    "drawable": "ic_share",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "telegram",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_plane",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "whatsapp",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_chat",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerAdditionalPrograms",
+    "feature": "settings_category_additional_programs",
+    "drawable": "ic_apps",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerAudio",
+    "feature": "settings_category_audio",
+    "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerBackgroundAudio",
+    "feature": "background_audio_group_title",
+    "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerDocuments",
+    "feature": "settings_category_documents",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerFileBrowser",
+    "feature": "settings_category_file_browser",
+    "drawable": "ic_folder",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerImages",
+    "feature": "settings_category_images",
+    "drawable": "ic_image",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerOtherFeatures",
+    "feature": "settings_category_other_features",
+    "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerRemoteSources",
+    "feature": "settings_remote_sources_title",
+    "drawable": "ic_wifi",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerScheduled",
+    "feature": "scheduled_ops_section_title",
+    "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerScreenGestures",
+    "feature": "setting_subgroup_screen_gestures_title",
+    "drawable": "ic_gesture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerSendCommands",
+    "feature": "settings_send_commands_group",
+    "drawable": "ic_share",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerStreams",
+    "feature": "settings_streams_section",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerVideo",
+    "feature": "settings_category_video",
+    "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerVr",
+    "feature": "vr_settings_block_title",
+    "drawable": "ic_vr_headset",
+    "assetFormat": "vector",
+    "public": false
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraOcrTranslationEnabled",
+    "feature": "setting_camera_ocr_translation_title",
+    "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraToResourceEnabled",
+    "feature": "setting_camera_to_resource_enabled_title",
+    "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEmbeddedGame",
+    "feature": "game_settings_toggle_title",
+    "drawable": "ic_game_kryvavitsa",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableCalculator",
+    "feature": "calculator_title",
+    "drawable": "ic_calculator",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableOcr",
+    "feature": "enable_ocr",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnablePersistentAudioPlayback",
+    "feature": "background_audio_setting_title",
+    "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableScheduledOps",
+    "feature": "scheduled_ops_toggle",
+    "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableStreams",
+    "feature": "settings_streams_toggle",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableTranslation",
+    "feature": "enable_translation",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowGestureOverlayEnabled",
+    "feature": "setting_gesture_overlay_title",
+    "drawable": "ic_gesture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowMicRecordingEnabled",
+    "feature": "settings_mic_recording_enable_title",
+    "drawable": "ic_microphone",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowOpenStatistics",
+    "feature": "settings_statistics_open",
+    "drawable": "ic_history",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowScreenRecordingEnabled",
+    "feature": "settings_screen_recording_enable_title",
+    "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSourceCloud",
+    "feature": "settings_remote_source_cloud_title",
+    "drawable": "ic_resource_cloud",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSourceFtp",
+    "feature": "settings_remote_source_ftp_title",
+    "drawable": "ic_resource_sftp",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSourceSmb",
+    "feature": "settings_remote_source_smb_title",
+    "drawable": "ic_resource_smb",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSupportAudio",
+    "feature": "support_audio_description",
+    "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSupportImages",
+    "feature": "support_images_description",
+    "drawable": "ic_image",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSupportVideos",
+    "feature": "support_video_description",
+    "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowVideoCaptureEnabled",
+    "feature": "setting_video_capture_enable_title",
+    "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  }
+]

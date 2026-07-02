@@ -102,6 +102,21 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 - Probes run from the maintainer's machine; geo-restricted streams may read dead/unknown locally yet
   work on a user's device. Only drop confirmed-dead (DNS/refused/404/410).
 
+### Deep-signal append gate (discovery default, S0805)
+
+Discovery mode verifies **real media signal** before a new row can be appended. The header probe alone
+only reads the playlist status, so a channel whose playlist returns `200` but serves no segment reads
+`alive` and would enter the shipped catalog ("pseudo-alive"). To stop that, discovery runs the
+deep-signal probe below as a **second stage**: only the header-alive candidates are re-probed for real
+media bytes, and only signal-verified rows are appended. The candidate report gains a `signal_bytes`
+column showing why a pseudo-alive row was dropped.
+
+- On by default for every discovery run; pass `-SkipDeepSignal` for a fast prowl (header-alive rows
+  appended without signal verification, the pre-S0805 behaviour).
+- `-SkipLiveness` skips both stages (appends everything, no probing).
+- Pruning of the **existing** catalog stays deliberately conservative and is **not** auto-driven by the
+  deep signal: a channel dead from the maintainer's machine may be alive on a user's device.
+
 ### Deep-signal probe (`-DeepSignal`)
 
 The default header probe only reads the response status of the playlist/manifest URL, so an HLS master
@@ -128,8 +143,9 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 # Apply the prune after reviewing the report:
 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead
 ```
-- Default run appends only `alive` new rows to `delivery/stream-catalog/streams.csv` and writes a
-  timestamped backup under `temp/` first.
+- Default run appends only **signal-verified** `alive` new rows (header-alive + deep-signal confirmed,
+  see the append gate above) to `delivery/stream-catalog/streams.csv` and writes a timestamped backup
+  under `temp/` first.
 - Preview run writes `temp/stream-candidates.csv` + `temp/stream-candidates-report.csv` and does not
   touch the catalog.
 - Catalog maintenance report: `temp/stream-catalog-liveness.csv` (per-URL status + http code + note).

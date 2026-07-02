@@ -21,10 +21,12 @@ buildscript {
 
 plugins {
     id("com.android.application") version "9.2.1" apply false
+    id("com.android.test") version "9.2.1" apply false
     id("com.android.legacy-kapt") version "9.2.1" apply false
     id("com.google.devtools.ksp") version "2.3.8" apply false
     id("com.google.dagger.hilt.android") version "2.59" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
+    id("androidx.baselineprofile") version "1.5.0-alpha07" apply false
     // S0174: Chaquopy Python runtime - applied only in app_v2 (noLegal flavor).
     // 17.0.0: first version supporting AGP 9.x / Gradle 9.x (removes VersionNumber dependency).
     id("com.chaquo.python") version "17.0.0" apply false

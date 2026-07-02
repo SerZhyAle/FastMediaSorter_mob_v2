@@ -100,6 +100,14 @@
             android:layout_marginTop="@dimen/margin_normal"
             android:text="@string/game_how_to_play" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGameMode"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:layout_gravity="end"
+            android:text="@string/game_mode_classic" />
+
         <Space
             android:layout_width="match_parent"
             android:layout_height="0dp"

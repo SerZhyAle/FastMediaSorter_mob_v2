@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.game.GameStateSnapshot
 import kotlinx.coroutines.flow.Flow
@@ -64,6 +65,15 @@ class GameStateRepositoryImpl @Inject constructor(
         dataStore.edit { preferences -> preferences.remove(KEY_GAME_STATE) }
     }
 
+    override suspend fun loadMode(): GameMode {
+        val preferences = dataStore.data.first()
+        return GameMode.fromStorageName(preferences[KEY_GAME_MODE])
+    }
+
+    override suspend fun saveMode(mode: GameMode) {
+        dataStore.edit { preferences -> preferences[KEY_GAME_MODE] = mode.name }
+    }
+
     private suspend fun createAndSave(config: GameLevelConfig): GameStateSnapshot {
         val snapshot = GameStateSnapshot.fromLevelState(generator.createInitialState(config))
         saveSnapshot(snapshot)
@@ -102,5 +112,6 @@ class GameStateRepositoryImpl @Inject constructor(
 
     companion object {
         private val KEY_GAME_STATE = stringPreferencesKey("embedded_game_state")
+        private val KEY_GAME_MODE = stringPreferencesKey("embedded_game_mode")
     }
 }

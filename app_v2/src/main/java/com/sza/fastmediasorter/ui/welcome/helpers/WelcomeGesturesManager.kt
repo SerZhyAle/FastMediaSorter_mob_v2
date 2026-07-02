@@ -29,7 +29,7 @@ class WelcomeGesturesManager(
     // S0727: persisted strip-visibility snapshot, passed in by the controller's owner so setEnabled
     // gets it without the controller reading settings on the Main thread.
     private val initialStripVisible: Boolean,
-    private val persist: ((AppSettings) -> AppSettings) -> Unit,
+    private val persist: (suspend (AppSettings) -> AppSettings) -> Unit,
 ) {
     fun setup() {
         val controller = screenGestureControllers.firstOrNull()

@@ -27,8 +27,11 @@
     with S0381 (the sibling neuroslop-hygiene-hardening ticket); extend here
     rather than duplicating a parallel runner.
 
-    Each child is run as a SEPARATE process so its `exit` cannot terminate this
-    orchestrator (a dot-sourced `exit` would kill the host).
+    Each child runs IN-PROCESS via the call operator (`& file.ps1`), which isolates
+    the child's `exit` (it sets $LASTEXITCODE and returns to the caller - only a
+    DOT-sourced `. file.ps1` or a function-scoped `exit` would kill the host). This
+    removes ~8 pwsh cold-starts per run (S0848) while keeping the exit-isolation
+    guarantee and a 1:1 detector set / verdict with the previous fork version.
 
     Modes:
       (default)  Report each child's baseline-vs-actual line. Exit 0.
@@ -45,13 +48,6 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-
-$pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
-    "$env:ProgramFiles\PowerShell\7\pwsh.exe"
-}
-else {
-    'pwsh'
-}
 
 $children = @(
     'assert-trivial-comments.ps1',
@@ -72,12 +68,22 @@ foreach ($child in $children) {
         $failures++
         continue
     }
-    if ($Gate) {
-        & $pwshExe -NoProfile -File $path -Gate | Write-Host
-        if ($LASTEXITCODE -ne 0) { $failures++ }
+    # S0848 Phase 03: in-process call (no pwsh fork). `& $path` isolates the child's `exit`.
+    # A child that raises a terminating error (ErrorActionPreference=Stop) is caught and, in
+    # gate mode, counted as a failure - fail-closed, matching the fork's non-zero-exit outcome.
+    try {
+        $global:LASTEXITCODE = 0
+        if ($Gate) {
+            & $path -Gate
+            if ($LASTEXITCODE -ne 0) { $failures++ }
+        }
+        else {
+            & $path
+        }
     }
-    else {
-        & $pwshExe -NoProfile -File $path | Write-Host
+    catch {
+        Write-Host "neuroslop: child $child errored: $($_.Exception.Message)" -ForegroundColor Red
+        if ($Gate) { $failures++ }
     }
 }
 

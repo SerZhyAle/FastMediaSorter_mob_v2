@@ -2,14 +2,13 @@ package com.sza.fastmediasorter.domain.usecase.panel
 
 import android.content.Context
 import androidx.core.content.ContextCompat
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
 import com.sza.fastmediasorter.domain.repository.AppLaunchPanelRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -95,7 +94,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             }
             is AppLaunchPanelRouteTarget.Resource -> {
                 val resource = resourceRepository.getResourceById(target.resourceId) ?: return null
-                tileUi(tile, resource.name, resourceIconRes(resource.type))
+                tileUi(tile, resource.name, ResourceTypeIconMap.iconFor(resource.type))
             }
             null -> null
         }
@@ -110,15 +109,6 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             icon = ContextCompat.getDrawable(context, iconRes),
             isEmpty = false
         )
-
-    private fun resourceIconRes(type: ResourceType): Int = when (type) {
-        ResourceType.LOCAL -> R.drawable.ic_resource_local
-        ResourceType.SMB -> R.drawable.ic_resource_smb
-        ResourceType.SFTP -> R.drawable.ic_resource_sftp
-        ResourceType.FTP -> R.drawable.ic_resource_ftp
-        ResourceType.CLOUD -> R.drawable.ic_resource_cloud
-        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
-    }
 
     private fun emptySlot(slot: Int): AppLaunchPanelTileUi =
         AppLaunchPanelTileUi(

@@ -598,6 +598,14 @@ class VideoPlayerManager(
     // Public API - Playback dispatch
     // ═══════════════════════════════════════════════════════════════════════
 
+    // S0854: tracks the in-flight playVideo() coroutine. Cancelling it at the top of a new call
+    // serializes playback dispatch - without this, a rapid re-call (fast file switch) while the
+    // previous coroutine is still suspended (position lookup, network TS-probe) let both coroutines
+    // finish and interleave: the second startPositionSaving() call orphaned the first save loop
+    // (P0, retains PlayerActivity) and the same race let a second player be assigned before the
+    // first was released (S0865).
+    private var activeLoadJob: Job? = null
+
     /**
      * Start playback for [path], routing to the correct protocol handler based on [resourceType].
      * Restores a previously saved position and starts the auto-save loop after setup.
@@ -617,7 +625,10 @@ class VideoPlayerManager(
         // S0274 Wave 01: per-file pre-flight pipeline lives in VideoPlaybackPreflightHelper.
         preflightHelper.runPreflight(path, resourceType)
 
-        managerScope.launch {
+        // S0854: cancel any in-flight load before starting a new one - see activeLoadJob KDoc.
+        if (activeLoadJob?.isActive == true) Timber.d("S0854: playVideo - cancelling in-flight load job")
+        activeLoadJob?.cancel()
+        activeLoadJob = managerScope.launch {
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
 
@@ -749,6 +760,19 @@ class VideoPlayerManager(
 
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
     fun releasePlayer() = lifecycleHelper.releasePlayer()
+
+    /**
+     * S0865: belt-and-braces guard against the duplicate-player race - a concurrent playVideo()
+     * call may have raced through releasePlayer() + assignment while this coroutine was
+     * suspended on a network TS-probe. Call immediately before assigning a freshly-built
+     * ExoPlayer so a still-live player from that race gets released instead of orphaned.
+     */
+    internal fun releaseIfRacedPlayer() {
+        if (exoPlayer != null) {
+            Timber.w("VideoPlayerManager: duplicate-player race detected post-suspend - releasing stale player")
+            releasePlayer()
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Player-time accounting (S0473 follow-up)

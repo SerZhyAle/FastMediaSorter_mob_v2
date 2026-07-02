@@ -10,6 +10,10 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
+import com.sza.fastmediasorter.widget.CameraLaunchActivity
+import com.sza.fastmediasorter.widget.PhotoCaptureLaunchActivity
+import com.sza.fastmediasorter.widget.QuickAudioRecorderActivity
+import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
 import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -52,6 +56,48 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchPanel(context)
             true
         }
+        ScreenshotGestureAction.LAUNCH_CAMERA -> {
+            launchCamera(context)
+            true
+        }
+        ScreenshotGestureAction.TAKE_PHOTO -> {
+            Timber.d("S0790: edge-gesture take photo")
+            launchPhotoCapture(context, autoAction = null)
+            true
+        }
+        ScreenshotGestureAction.TAKE_PHOTO_SEND_TO -> {
+            Timber.d("S0791: edge-gesture take photo + send to")
+            launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
+            true
+        }
+        ScreenshotGestureAction.TAKE_PHOTO_EDIT -> {
+            Timber.d("S0792: edge-gesture take photo + edit")
+            launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
+            true
+        }
+        ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> {
+            Timber.d("S0794: edge-gesture take photo + OCR translate")
+            val action = if (capabilityAvailability.isTranslationAvailable()) {
+                PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE
+            } else {
+                Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, saving photo")
+                null
+            }
+            launchPhotoCapture(context, action)
+            true
+        }
+        ScreenshotGestureAction.START_VIDEO_RECORDING -> {
+            launchVideoCamera(context)
+            true
+        }
+        ScreenshotGestureAction.START_AUDIO_RECORDING -> {
+            launchAudioRecorder(context)
+            true
+        }
+        ScreenshotGestureAction.START_SCREEN_RECORDING -> {
+            launchScreenRecording(context)
+            true
+        }
         else -> false
     }
 
@@ -70,6 +116,57 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch app") }
     }
 
+    private fun launchCamera(context: Context) {
+        // S0788: reuse the widget's no-UI camera trampoline - it resolves the default capture
+        // destination, handles the CAMERA permission and opens the in-app camera. The dispatcher runs in
+        // a Service with no task of its own, so the transparent launcher needs FLAG_ACTIVITY_NEW_TASK.
+        Timber.d("S0788: edge-gesture launch camera")
+        val intent = Intent(context, CameraLaunchActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch camera") }
+    }
+
+    private fun launchPhotoCapture(context: Context, autoAction: String?) {
+        // S0790-S0794: transparent trampoline auto-captures a photo, then saves+toasts (autoAction null)
+        // or routes it into the standalone viewer (send-to / draw editor / OCR-translate).
+        val intent = PhotoCaptureLaunchActivity.intent(context, autoAction)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch photo capture") }
+    }
+
+    private fun launchVideoCamera(context: Context) {
+        // S0795: reuse the S0788 camera trampoline but force video mode - the user frames and taps
+        // record, then the clip is saved to the public Movies folder like the camera widget.
+        Timber.d("S0795: edge-gesture start video recording")
+        val intent = CameraLaunchActivity.videoIntent(context)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch video camera") }
+    }
+
+    private fun launchAudioRecorder(context: Context) {
+        // S0796: reuse the quick voice-recorder trampoline (S0349) - it gates RECORD_AUDIO and toggles
+        // the recording foreground service. Explicit same-app launch from the dispatcher's Service.
+        Timber.d("S0796: edge-gesture toggle audio recording")
+        val intent = Intent(context, QuickAudioRecorderActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to start audio recorder") }
+    }
+
+    private fun launchScreenRecording(context: Context) {
+        // S0797: reuse the screen-recording controller via a transparent trampoline that owns the
+        // FragmentActivity + permission launchers controller.launch() requires. The action is offered
+        // only where the capture engine is present, so the trampoline no-ops on other flavors.
+        Timber.d("S0797: edge-gesture toggle screen recording")
+        val intent = Intent(context, ScreenRecordingLaunchActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch screen recording") }
+    }
+
     private fun launchPanel(context: Context) {
         // The dispatcher runs in a Service with no task of its own, so the transparent panel host needs
         // FLAG_ACTIVITY_NEW_TASK. AppLaunchPanelActivity is singleTask + excludeFromRecents, so it floats
@@ -83,15 +180,30 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     /** Launches the route configured for [action]. No-op for silent/disabled; degrades to silent save when [savedUri] is null. */
     fun runPostSave(context: Context, action: ScreenshotGestureAction, savedUri: Uri?) {
         when (action) {
-            // OPEN_APP / OPEN_PANEL / DO_NOT_USE never reach here (handled pre-capture), kept for when-exhaustiveness.
+            // Pre-capture actions never reach here (handled in handlePreCaptureAction), kept for when-exhaustiveness.
             ScreenshotGestureAction.SILENT_SCREENSHOT,
             ScreenshotGestureAction.OPEN_APP,
             ScreenshotGestureAction.OPEN_PANEL,
+            ScreenshotGestureAction.LAUNCH_CAMERA,
+            ScreenshotGestureAction.TAKE_PHOTO,
+            ScreenshotGestureAction.TAKE_PHOTO_SEND_TO,
+            ScreenshotGestureAction.TAKE_PHOTO_EDIT,
+            ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE,
+            ScreenshotGestureAction.START_VIDEO_RECORDING,
+            ScreenshotGestureAction.START_AUDIO_RECORDING,
+            ScreenshotGestureAction.START_SCREEN_RECORDING,
             ScreenshotGestureAction.DO_NOT_USE -> return
 
             ScreenshotGestureAction.OPEN_IN_PLAYER -> openInViewer(context, savedUri, autoAction = null)
             ScreenshotGestureAction.OPEN_IN_DRAW ->
-                openInViewer(context, savedUri, autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
+                openInViewer(
+                    context,
+                    savedUri,
+                    autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW,
+                    // S0837: this is a just-captured screenshot; a default save inside the draw editor
+                    // should overwrite it in place (keeping a separate copy only on explicit "Save as..").
+                    overwriteSourceOnSave = true,
+                )
 
             ScreenshotGestureAction.OCR_TRANSLATE -> {
                 val autoAction = if (capabilityAvailability.isTranslationAvailable()) {
@@ -121,7 +233,12 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         }
     }
 
-    private fun openInViewer(context: Context, savedUri: Uri?, autoAction: String?) {
+    private fun openInViewer(
+        context: Context,
+        savedUri: Uri?,
+        autoAction: String?,
+        overwriteSourceOnSave: Boolean = false,
+    ) {
         if (savedUri == null) {
             Timber.i("ScreenshotGestureActionDispatcher: open skipped, no saved URI")
             return
@@ -129,9 +246,14 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(savedUri, MIME_PNG)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // S0837: the draw editor overwrites the source on a default save, so grant write too.
+            if (overwriteSourceOnSave) addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             setClass(context, PhotoVideoStandaloneActivity::class.java)
             if (autoAction != null) {
                 putExtra(PhotoVideoStandaloneActivity.EXTRA_AUTO_ACTION, autoAction)
+            }
+            if (overwriteSourceOnSave) {
+                putExtra(PhotoVideoStandaloneActivity.EXTRA_DRAW_OVERWRITE_SOURCE, true)
             }
         }
         runCatching { context.startActivity(intent) }

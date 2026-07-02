@@ -55,7 +55,9 @@ class FavoritesRemoteViewsFactory(private val context: Context) : RemoteViewsSer
             val database = entryPoint.database()
             
             favorites = runBlocking {
-                database.favoritesDao().getAllFavorites()
+                // S0783: the widget shows file favorites only - a live-channel row has no thumbnail/file
+                // to open from a home-screen widget, so read the kind = 'FILE' slice.
+                database.favoritesDao().getFileFavorites()
                     .first()
                     .take(10)
                     .map { entity ->

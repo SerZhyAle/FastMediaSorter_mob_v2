@@ -240,6 +240,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         fileOpsOverflowMenuHintShown = data["fileOpsOverflowMenuHintShown"]?.toBoolean() ?: false,
                                         defaultIconSize = data["defaultIconSize"]?.toInt() ?: 96,
                                         defaultShowCommandPanel = data["defaultShowCommandPanel"]?.toBoolean() ?: true,
+                                        openVideoInFullscreen = data["openVideoInFullscreen"]?.toBoolean() ?: true,
                                         showDetailedErrors = data["showDetailedErrors"]?.toBoolean() ?: false,
                                         showPlayerHintOnFirstRun = data["showPlayerHintOnFirstRun"]?.toBoolean() ?: true,
                                         alwaysShowTouchZonesOverlay = data["alwaysShowTouchZonesOverlay"]?.toBoolean() ?: false,
@@ -264,6 +265,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         maxRecipients = data["maxRecipients"]?.toInt() ?: 10,
                                         copyPanelCollapsed = data["copyPanelCollapsed"]?.toBoolean() ?: false,
                                         movePanelCollapsed = data["movePanelCollapsed"]?.toBoolean() ?: false,
+                                        resourceTypeTabCollapsed = data["resourceTypeTabCollapsed"]?.toBoolean() ?: false,
                                         
                                         lastUsedResourceId = data["lastUsedResourceId"]?.toLong() ?: -1L,
                                         enableThumbnailPreload = data["enableThumbnailPreload"]?.toBoolean() ?: false,

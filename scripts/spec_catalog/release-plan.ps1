@@ -15,7 +15,7 @@
 #   Deferred                         (BlockExternal/BlockQuestions - cannot drive from catalog)
 #
 # Every Draft and Approved present is listed (the caller asked for full coverage);
-# heavy ones are annotated (epic / owner-gate / research-heavy) but never dropped.
+# heavy ones are annotated (epic / owner-gate) but never dropped.
 #
 # Status -> command map. The trailing command of a pair is the prior skill's own
 # auto-chain (e.g. /spec-tech -> /spec-dev, /spec-fix -> /spec-check), listed
@@ -173,7 +173,7 @@ while ($remaining.Count -gt 0) {
     [void]$remaining.Remove($pick.id)
 }
 
-# --- annotations (epic / owner-gate / research-heavy) -------------------------
+# --- annotations (epic / owner-gate) ------------------------------------------
 # Cheap heuristics from the catalog record; deeper detection lives in preview.ps1
 # and is surfaced only when already loaded above.
 function Get-Annotations {

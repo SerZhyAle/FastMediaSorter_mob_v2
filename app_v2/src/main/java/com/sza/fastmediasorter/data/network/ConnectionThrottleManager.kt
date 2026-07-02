@@ -205,6 +205,10 @@ object ConnectionThrottleManager {
      */
     fun activateVideoPlayerMode(resourceKey: String) {
         synchronized(videoPlayerResources) {
+            // S0868: a just-finished sibling (routine next-file nav) may have scheduled the 300ms
+            // resume job; cancel it so it cannot zero videoPlayerActive during this new playback.
+            videoPlayerResumeJob?.cancel()
+            videoPlayerResumeJob = null
             videoPlayerResources.add(resourceKey)
             videoPlayerActive = true
             Timber.i("ConnectionThrottle: *** VIDEO PLAYER ACTIVATED for $resourceKey - SUSPENDING THUMBNAILS ***")
@@ -237,8 +241,14 @@ object ConnectionThrottleManager {
                 // FTP connections are still in process of being released (prevents SIGSEGV)
                 videoPlayerResumeJob = managerScope.launch {
                     delay(300)
-                    videoPlayerActive = false
-                    Timber.i("ConnectionThrottle: *** THUMBNAILS RESUMED after delay ***")
+                    // S0868: re-check under the same lock - cancel() cannot stop this write once the
+                    // job is past delay(); only clear the flag if playback is genuinely finished.
+                    synchronized(videoPlayerResources) {
+                        if (videoPlayerResources.isEmpty()) {
+                            videoPlayerActive = false
+                            Timber.i("ConnectionThrottle: *** THUMBNAILS RESUMED after delay ***")
+                        }
+                    }
                 }
             }
         }

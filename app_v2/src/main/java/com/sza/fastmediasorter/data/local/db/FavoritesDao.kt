@@ -32,6 +32,14 @@ interface FavoritesDao {
     @Query("SELECT * FROM favorites ORDER BY addedTimestamp DESC")
     suspend fun getAllFavoritesSync(): List<FavoritesEntity>
 
+    // S0783: file-only slice for consumers that cannot handle live-channel rows (widget, export,
+    // backup, Wear). The favorites screen keeps using [getAllFavorites] so channels still show there.
+    @Query("SELECT * FROM favorites WHERE kind = 'FILE' ORDER BY addedTimestamp DESC")
+    fun getFileFavorites(): Flow<List<FavoritesEntity>>
+
+    @Query("SELECT * FROM favorites WHERE kind = 'FILE' ORDER BY addedTimestamp DESC")
+    suspend fun getFileFavoritesSync(): List<FavoritesEntity>
+
     @Query("SELECT COUNT(*) FROM favorites")
     suspend fun getFavoritesCount(): Int
 }

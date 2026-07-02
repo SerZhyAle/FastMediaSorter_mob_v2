@@ -396,7 +396,9 @@ Already present:
 - `StrictModeHelper`
 - `LeakCanary`
 - `profileinstaller`
+- standard-flavor Macrobenchmark + Baseline Profile harness (`benchmark/`, S0722)
 - startup markers
+- Perfetto workflow playbook (`docs/PERFETTO_PLAYBOOK.md`)
 - quality gates for `GlobalScope` and unsafe Flow collect
 - `detekt` + ktlint formatting ratchet gate
 - listener symmetry ratchet gate (`scripts/quality/assert-listener-symmetry.ps1`)
@@ -405,11 +407,9 @@ Already present:
 
 Recommended next additions:
 
-1. add a dedicated benchmark module with `Macrobenchmark`
-2. generate and maintain baseline profiles from real hot flows
-3. add a custom Android Lint module for project-specific architecture rules
-4. formalize a small Perfetto capture playbook for startup and player regressions
-5. define benchmark thresholds for cold start, player open, and back-navigation
+1. extend perf coverage beyond `standard` if a flavor-specific hotspot appears
+2. wire selected perf commands into CI or managed-device automation when the local flow stabilizes
+3. ratchet benchmark JSON summaries once representative device baselines are committed
 
 ## Repo commands and anchors
 
@@ -420,6 +420,8 @@ Useful local commands:
 .\a.ps1 fr
 .\a.ps1 fc
 .\a.ps1 fu
+.\a.ps1 mb
+.\a.ps1 gbp
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
 pwsh -NoProfile -File scripts/quality/assert-globalscope.ps1 -Gate
@@ -436,6 +438,7 @@ Important code anchors:
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt`
 - `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugToolsBootstrap.kt`
 - `docs/BUILD_TEST_FAST_PATH.md`
+- `docs/PERFETTO_PLAYBOOK.md`
 
 ## External references
 

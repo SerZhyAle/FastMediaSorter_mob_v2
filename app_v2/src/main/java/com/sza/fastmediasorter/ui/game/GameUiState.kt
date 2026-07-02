@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.game
 import com.sza.fastmediasorter.domain.game.GameBoardValidationError
 import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GameLevelState
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GameMoveRejectReason
 import com.sza.fastmediasorter.domain.game.GamePosition
 import com.sza.fastmediasorter.domain.game.GameStatus
@@ -12,6 +13,8 @@ sealed interface GameUiState {
 
     data class Ready(
         val levelState: GameLevelState,
+        // S0804: active visual skin; carried through every state copy so re-skins survive turns/levels.
+        val mode: GameMode = GameMode.CLASSIC,
         val customBoard: Boolean = false,
         val storageReset: Boolean = false,
         val unreadableBoardWarning: Boolean = false,

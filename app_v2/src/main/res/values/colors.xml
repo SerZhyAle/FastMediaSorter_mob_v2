@@ -185,6 +185,8 @@
     <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
     <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
     <color name="focus_button_stroke">#FF1976D2</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
+    <!-- S0819: travelling focus-frame fallback, used only when an attaching window has no theme colorPrimary. Neutral high-contrast white reads on the dark media/player surfaces the overlay draws over. -->
+    <color name="focus_frame_fallback">#FFFFFFFF</color>
     <!-- S0512: translucent transient-state fills for item_interaction_overlay (android:foreground).
          Must be semi-transparent so they layer over selected/alternating row backgrounds without hiding content. -->
     <color name="item_overlay_pressed">#22000000</color>
@@ -238,6 +240,9 @@
     <!-- Action panels -->
     <color name="player_panel_copy">#CC004D00</color>
     <color name="player_panel_move">#CC00004D</color>
+    <!-- S0781: main-window resource-type filter strip (collapsed). Distinct teal in the action-panel family. -->
+    <color name="main_resource_filter_strip_background">#CC004D4D</color>
+    <color name="main_resource_filter_strip_foreground">@color/white</color>
 
     <!-- ============================================================ -->
     <!-- PLAYER COLOR ALIASES (mapped to base colors) -->

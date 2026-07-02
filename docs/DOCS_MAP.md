@@ -25,6 +25,9 @@ Essential reading for end-users to install, configure, and use the application. 
 | [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy, XR / noLegal). | Current |
 | [Complete Feature List](FEATURES.md) | Full inventory of all implemented user-facing features. Reference for documentation and changelog. | Current |
 | [Settings Reference](SETTINGS_REFERENCE.md) | Every setting explained - what each option does, grouped by section. Also [RU](SETTINGS_REFERENCE_RU.md), [UK](SETTINGS_REFERENCE_UK.md). | 2026-06-19 |
+| [Icon Legend](ICON_LEGEND.md) | Every interface icon paired with its exact on-screen label. Also [RU](ICON_LEGEND_RU.md), [UK](ICON_LEGEND_UK.md). | Current |
+
+> Authoring convention: user docs show the real interface icons (not emoji). Convention, regen pipeline, and drift gate: [icons/README.md](icons/README.md). The inventory, SVGs, and legend are generated - never hand-edited.
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:

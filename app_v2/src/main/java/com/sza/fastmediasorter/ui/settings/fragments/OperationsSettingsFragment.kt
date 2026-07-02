@@ -72,7 +72,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val defaultPlayerSettingsManager = DefaultPlayerSettingsManager()
 
     private val gestureActionPickerManager by lazy {
-        ScreenshotGestureActionPickerManager(capabilityAvailability)
+        // S0797: hide the "start screen recording" action where the capture engine is absent.
+        ScreenshotGestureActionPickerManager(
+            capabilityAvailability,
+            screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+        )
     }
 
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
@@ -146,6 +150,33 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         scheduledManager.setup()
         observeData()
         scheduledManager.checkAndExpandFromIntent()
+        checkAndExpandSectionFromIntent()
+    }
+
+    /**
+     * S0780: deep-link from the programs-panel "Configure" item - expand the Additional Programs group
+     * and scroll its header into view. The extra is consumed so it does not re-fire on rotation.
+     */
+    private fun checkAndExpandSectionFromIntent() {
+        val intent = requireActivity().intent
+        val sectionId = intent.getStringExtra(SettingsActivity.EXTRA_EXPAND_SECTION) ?: return
+        if (sectionId != SettingsActivity.SECTION_ADDITIONAL_PROGRAMS) return
+        intent.removeExtra(SettingsActivity.EXTRA_EXPAND_SECTION)
+        ensureSectionExpanded(sectionId)
+    }
+
+    /** S0780: expand the named Operations group and scroll its header into view (deep-link target). */
+    fun ensureSectionExpanded(sectionId: String) {
+        val header = when (sectionId) {
+            SettingsActivity.SECTION_ADDITIONAL_PROGRAMS -> binding.headerAdditionalPrograms
+            else -> return
+        }
+        if (!header.isVisible) return
+        header.setExpanded(true, notify = true)
+        header.post {
+            val bounds = android.graphics.Rect(0, 0, header.width, header.height)
+            header.requestRectangleOnScreen(bounds, false)
+        }
     }
 
     // S0535: unified collapsible groups - one orchestrator + consolidated store, default collapsed.

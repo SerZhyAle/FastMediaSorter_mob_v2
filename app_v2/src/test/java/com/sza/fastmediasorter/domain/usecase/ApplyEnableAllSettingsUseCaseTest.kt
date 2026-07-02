@@ -6,10 +6,9 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testutil.testMediaCapabilities
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -37,13 +36,14 @@ class ApplyEnableAllSettingsUseCaseTest {
         supportsDefaultPlayer = defaultPlayer,
     )
 
+    // S0876: the use case now writes through the transform overload (mutex-serialized in the real
+    // repository) - capture the transform lambda and apply it to `start` ourselves to get the result.
     private fun run(start: AppSettings, capabilities: MediaCapabilities): AppSettings {
-        every { settingsRepository.getSettings() } returns flowOf(start)
-        val captured = slot<AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(captured)) } returns Unit
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
         runTest { ApplyEnableAllSettingsUseCase(settingsRepository, capabilities)() }
-        coVerify { settingsRepository.updateSettings(any()) }
-        return captured.captured
+        coVerify { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
+        return runBlocking { transform.captured(start) }
     }
 
     @Test

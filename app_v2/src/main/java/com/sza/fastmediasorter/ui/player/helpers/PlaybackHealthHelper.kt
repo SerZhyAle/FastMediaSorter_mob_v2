@@ -115,8 +115,20 @@ internal fun VideoPlayerManager.cancelPlaybackHealthCheck() {
 internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
     try {
         cancelPlaybackHealthCheck()
-        isUsingMediaPlayer = true
+        // S0864: releaseMediaPlayer() also resets isUsingMediaPlayer - call it BEFORE the flag is
+        // set, so the flag survives to route pause/play/lifecycle calls to the fallback player.
         releaseMediaPlayer()
+        // S0864: checkPlaybackHealth only fires while ExoPlayer is actively playing - stop and
+        // release it before MediaPlayer starts, or both decoders play the file at once. Keep the
+        // rest of the session (currentFilePath, position-save, resourceKey) intact since playback
+        // continues on the same file via the fallback engine.
+        exoPlayer?.let { player ->
+            player.removeListener(playerListener)
+            player.stop()
+            player.release()
+        }
+        exoPlayer = null
+        currentPlayerView?.player = null
 
         mediaPlayer = MediaPlayer().apply {
             setDataSource(path)
@@ -162,6 +174,9 @@ internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
             }
             prepareAsync()
         }
+        // S0864: set after the MediaPlayer exists and the ExoPlayer is torn down, so no window
+        // exists where the flag is true but no fallback player is actually reachable.
+        isUsingMediaPlayer = true
 
         playerCallback.onBuffering(true)
         Timber.i("VideoPlayerManager: Using MediaPlayer fallback for: $path")

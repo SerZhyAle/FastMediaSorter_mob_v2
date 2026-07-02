@@ -188,6 +188,13 @@ class PhotoVideoStandaloneActivity :
             setDisplayedBitmap = { binding.photoView.setImageBitmap(it) },
             onDelete = { fileOperations.deleteCurrentFile() },
             onDrawModeChanged = { drawing -> setBottomPanelsHiddenForDraw(drawing) },
+            // S0837: overwrite the launched screenshot on a default save, but only while the editor is
+            // still on that file - a folder-paged neighbour must not be overwritten.
+            getOverwriteTargetUri = {
+                drawOverwriteSourceUri?.takeIf {
+                    viewModel.state.value.mediaFile?.contentUri == it.toString()
+                }
+            },
         ).also { drawSaveHelper = it }
 
     /**
@@ -436,6 +443,12 @@ class PhotoVideoStandaloneActivity :
 
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
+
+    /**
+     * S0837: the launched source URI to overwrite on a default draw save. Non-null only for the
+     * screenshot OPEN_IN_DRAW gesture ([EXTRA_DRAW_OVERWRITE_SOURCE]); null otherwise.
+     */
+    private var drawOverwriteSourceUri: Uri? = null
 
     /** Set by the crop-and-share auto-action; consumed on crop success, cleared on crop cancel. */
     private var pendingShareAfterCrop = false
@@ -778,6 +791,10 @@ class PhotoVideoStandaloneActivity :
             finish()
             return
         }
+        // S0837: remember the screenshot source so a default draw save overwrites it in place.
+        if (intent?.getBooleanExtra(EXTRA_DRAW_OVERWRITE_SOURCE, false) == true) {
+            drawOverwriteSourceUri = uri
+        }
         val displayName = try {
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
                 ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
@@ -1109,5 +1126,12 @@ class PhotoVideoStandaloneActivity :
         const val AUTO_ACTION_TRANSLATE = "translate"
         const val AUTO_ACTION_SEND_TO = "send_to"
         const val AUTO_ACTION_CROP_AND_SHARE = "crop_and_share"
+
+        /**
+         * S0837: set by the screenshot OPEN_IN_DRAW gesture. When true, a default save inside the draw
+         * editor overwrites the launched source URI in place instead of writing a new file; an explicit
+         * "Save as.." still creates a new file. Never set for photo-edit or the manual draw menu.
+         */
+        const val EXTRA_DRAW_OVERWRITE_SOURCE = "draw_overwrite_source"
     }
 }

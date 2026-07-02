@@ -169,8 +169,9 @@ class WelcomeEnableAllManager @Inject constructor(
             // S0575: enable Streams and best-effort fetch the catalog. The flag is set unconditionally
             // (not install-gated); a failed/empty import is a non-event - manual sources still work.
             appScope.launch {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(enableStreams = true))
+                // S0876: transform overload serializes against the concurrent enableOcr/enableTranslation
+                // writers below - a plain getSettings().first()+.copy()+updateSettings() here would race them.
+                settingsRepository.updateSettings { it.copy(enableStreams = true) }
                 importStreamCatalogUseCase()
             }
         }
@@ -178,15 +179,17 @@ class WelcomeEnableAllManager @Inject constructor(
 
     private fun enqueueAndEnableOnInstall(
         set: DeliverableSet,
-        enable: (AppSettings) -> AppSettings,
+        enable: suspend (AppSettings) -> AppSettings,
     ) {
         downloadRunner.enqueue(set)
         appScope.launch {
             val terminal = downloadRunner.progressOf(set)
                 .first { it is DownloadProgress.Installed || it is DownloadProgress.Failed }
             if (terminal is DownloadProgress.Installed) {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(enable(current))
+                // S0876: this is invoked once per deliverable set (OCR_ENGINES, TRANSLATION) as two
+                // independent coroutines - the transform overload serializes their writes so an
+                // install completing while the other's write is in flight cannot clobber it.
+                settingsRepository.updateSettings(enable)
             }
         }
     }

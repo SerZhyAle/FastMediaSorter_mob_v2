@@ -115,16 +115,17 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
         lifecycleScope.launch(Dispatchers.IO) {
             saveWidgetConfig(resource)
             RandomPhotoFrameWidgetRefresher.refresh(applicationContext, appWidgetId)
+            // S0870: updateAppWidget's second refresh() call is a runBlocking Room+gzip+Gson
+            // round-trip - keep it on IO and switch to Main only for the Activity result/teardown.
+            val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+            RandomPhotoFrameWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
             withContext(Dispatchers.Main) {
-                updateWidgetAndFinish()
+                finishWithResult()
             }
         }
     }
 
-    private fun updateWidgetAndFinish() {
-        val appWidgetManager = AppWidgetManager.getInstance(this)
-        RandomPhotoFrameWidgetProvider.updateAppWidget(this, appWidgetManager, appWidgetId)
-
+    private fun finishWithResult() {
         val resultValue = Intent().apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }

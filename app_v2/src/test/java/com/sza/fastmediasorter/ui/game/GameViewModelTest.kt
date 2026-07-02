@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.game.GameEnemy
 import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.domain.game.GameLevelState
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GamePosition
 import com.sza.fastmediasorter.domain.game.GameStats
 import com.sza.fastmediasorter.domain.game.GameStateRepository
@@ -233,6 +234,14 @@ class GameViewModelTest {
 
         override suspend fun clearSnapshot() {
             snapshots.value = null
+        }
+
+        var savedMode: GameMode = GameMode.CLASSIC
+
+        override suspend fun loadMode(): GameMode = savedMode
+
+        override suspend fun saveMode(mode: GameMode) {
+            savedMode = mode
         }
     }
 }

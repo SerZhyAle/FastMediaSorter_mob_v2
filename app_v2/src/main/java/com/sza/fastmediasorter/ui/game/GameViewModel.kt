@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GameEvent
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.domain.game.GameLevelState
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GameRulesEngine
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.game.GameStateSnapshot
@@ -34,6 +35,7 @@ class GameViewModel @Inject constructor(
 
     internal var seedProvider: () -> Long = { System.nanoTime() xor System.currentTimeMillis() }
     private var seedNonce = 0L
+    private var currentMode = GameMode.CLASSIC
 
     init {
         resumeGame()
@@ -43,6 +45,8 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = GameUiState.Loading
             try {
+                currentMode = gameStateRepository.loadMode()
+                Timber.d("S0804: resumed with mode=$currentMode")
                 val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
                 _state.value = ensurePlayableOnResume(readyFromSnapshot(snapshot))
             } catch (exception: RuntimeException) {
@@ -55,7 +59,19 @@ class GameViewModel @Inject constructor(
     fun startNewGame() {
         viewModelScope.launch {
             val levelState = boardGenerator.createInitialState(defaultConfig())
-            publishAndPersist(GameUiState.Ready(levelState = levelState))
+            publishAndPersist(GameUiState.Ready(levelState = levelState, mode = currentMode))
+        }
+    }
+
+    // S0804: mode is presentational, so switching re-skins the live board without touching the snapshot.
+    fun setMode(mode: GameMode) {
+        viewModelScope.launch {
+            if (mode == currentMode) return@launch
+            currentMode = mode
+            gameStateRepository.saveMode(mode)
+            Timber.d("S0804: mode switched to $mode")
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            _state.value = ready.copy(mode = mode)
         }
     }
 
@@ -174,6 +190,7 @@ class GameViewModel @Inject constructor(
         val levelState = snapshot.toLevelState()
         return GameUiState.Ready(
             levelState = levelState,
+            mode = currentMode,
             customBoard = snapshot.customBoard,
             unreadableBoardWarning = shouldWarnForUnreadableBoard(levelState.config, snapshot.customBoard)
         )

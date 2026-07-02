@@ -195,6 +195,15 @@ $runsSettingsDocGate = (
 # (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
 # settings-doc composite so a manifest/vocab change re-checks the guides.
 $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
+# S0815 icon-inventory drift gate. Fires only when a Doc/Mixed change touches the
+# generated icon tree (docs/icons/** - inventory, svgs, annotations) or a rendered
+# legend page (docs/ICON_LEGEND*). Re-checks asset coverage, orphans, legend
+# freshness, and cross-locale parity (pure text/file, no gradle). The heavy
+# inventory-vs-source export test stays opt-in / CI-only, so it is NOT run here.
+$runsIconInventoryGate = (
+    ($resolvedChangeType -in @('Doc', 'Mixed')) -and
+    ($normFile -match 'docs/icons/' -or $normFile -match 'docs/ICON_LEGEND')
+)
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
@@ -218,7 +227,9 @@ Skip-Step "functionality-log" "skill-owned; evaluate only for user-visible behav
 
 if ($runsCatalogSync) {
     Invoke-Step "catalog-sync" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module
+        # S0848: incremental scan - only the changed file gets a fresh git last-touched;
+        # the rest reuse their prior JSONL date, avoiding a per-file `git log` storm.
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module -ChangedFiles $File
     }
 }
 else {
@@ -261,9 +272,45 @@ else {
 # because they grow on other tickets' in-flight WIP; fatal otherwise.
 $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
 
+# S0848 Phase 02: start the gradle-backed detekt gate as a background thread job BEFORE the
+# fast lexical/ratchet gates, then join it after them. detekt does not depend on the lexical
+# gates, so overlapping turns wall-clock from (lexical + detekt) into ~max(lexical, detekt).
+# Verdict and exit code stay identical to the serial run. The try/finally below guarantees the
+# job is stopped even when a lexical gate fails and Invoke-Step calls exit (verified: a finally
+# runs before exit propagates), so no orphan detekt/gradle launcher survives a fail-fast close.
+$detektJob = $null
+if ($runsDetektGate) {
+    $detektArgs = @(
+        '-NoProfile'
+        '-File'
+        (Join-Path $root "scripts/quality/assert-detekt.ps1")
+        '-Gate'
+    )
+    if ($PSBoundParameters.ContainsKey('Module')) {
+        $detektArgs += @('-Module', $Module)
+    }
+    if ($ScopeToFile) {
+        # diff-scope to this change: detekt fails only on findings in -File, not on
+        # other tickets' WIP that also sits above baseline on the dirty tree.
+        $detektArgs += @('-ChangedFiles', $File)
+    }
+    $detektJob = Start-ThreadJob -Name 'detekt-gate' -ScriptBlock {
+        param($PwshExe, $Argv)
+        $out = & $PwshExe @Argv 2>&1 | Out-String
+        [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out }
+    } -ArgumentList $pwsh, $detektArgs
+}
+
+try {
+
 if ($runsFlavorFlagGate) {
-    & $ratchetRunner "flavor-flag-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1") -Gate
+    # S0848 Phase 04: under -ScopeToFile this gate now judges a real delta on the changed file
+    # (growth vs HEAD) rather than an advisory full scan, so it stays FATAL - a NEW flavor flag in
+    # this change fails, while other tickets' pre-existing reads no longer trip it.
+    Invoke-Step "flavor-flag-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
@@ -279,29 +326,6 @@ else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
-if ($runsDetektGate) {
-    Invoke-Step "detekt-gate" {
-        $detektArgs = @(
-            '-NoProfile'
-            '-File'
-            (Join-Path $root "scripts/quality/assert-detekt.ps1")
-            '-Gate'
-        )
-        if ($PSBoundParameters.ContainsKey('Module')) {
-            $detektArgs += @('-Module', $Module)
-        }
-        if ($ScopeToFile) {
-            # diff-scope to this change: detekt fails only on findings in -File, not on
-            # other tickets' WIP that also sits above baseline on the dirty tree.
-            $detektArgs += @('-ChangedFiles', $File)
-        }
-        & $pwsh @detektArgs
-    }
-}
-else {
-    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
-}
-
 if ($runsFgsGate) {
     Invoke-Step "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
@@ -312,8 +336,13 @@ else {
 }
 
 if ($runsPmFlagsGate) {
-    & $ratchetRunner "deprecated-pm-flags-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1") -Gate
+    # S0848 Phase 04: real delta on the changed file under -ScopeToFile (growth vs HEAD), so this
+    # gate stays FATAL - a NEW raw-int PackageManager overload in this change fails, unrelated
+    # pre-existing ones in other files do not.
+    Invoke-Step "deprecated-pm-flags-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
@@ -372,6 +401,44 @@ if ($runsHowToPathGate) {
 }
 else {
     Skip-Step "howto-settings-paths-gate" "not applicable - touched file is not a HOW_TO guide"
+}
+
+if ($runsIconInventoryGate) {
+    # Strict on a full run; advisory under -ScopeToFile because the legend re-render
+    # reads live app strings, so unrelated string WIP on the dirty tree could show as
+    # legend drift that is not attributable to this change.
+    & $ratchetRunner "icon-inventory-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-icon-inventory-sync.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "icon-inventory-sync-gate" "not applicable - touched file is not an icon asset or legend page"
+}
+
+# S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
+# inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
+# after the drain keeps the finally cleanup a no-op once the job has already been received.
+if ($runsDetektGate) {
+    Invoke-Step "detekt-gate" {
+        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
+        $script:detektJob = $null
+        if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
+            Write-Host ($r.Output.TrimEnd())
+        }
+        $global:LASTEXITCODE = if ($r) { [int]$r.ExitCode } else { 1 }
+    }
+}
+else {
+    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+}
+finally {
+    # Guarantee no orphan detekt/gradle launcher survives a fail-fast exit from a lexical gate.
+    if ($detektJob) {
+        try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
+        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+    }
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

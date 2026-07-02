@@ -6,8 +6,9 @@ import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -76,27 +77,7 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    // Construct SFTP URI with properly encoded path segments
-    val rawUri = if (path.startsWith("sftp://")) {
-        path
-    } else {
-        "sftp://${credentials.server}:${credentials.port}$path"
-    }
-
-    val parsedUri = PathUtils.safeParseUri(rawUri)
-    val encodedPath = parsedUri.path?.split("/")
-        ?.joinToString("/") { segment ->
-            if (segment.isEmpty()) "" else Uri.encode(segment, "@")
-        } ?: ""
-
-    // encodedAuthority keeps the host:port colon verbatim; authority() would percent-encode it to
-    // %3A, after which Uri.getHost()/getPort() on the rebuilt URI return "host:port" and -1.
-    val sftpUri = Uri.Builder()
-        .scheme("sftp")
-        .encodedAuthority(parsedUri.encodedAuthority)
-        .encodedPath(encodedPath)
-        .build()
-
+    val sftpUri = buildSftpUri(path, credentials)
     Timber.d("VideoPlayerManager: SFTP URI=$sftpUri")
 
     val routeHint = NetworkPlaybackContainerHint.fromPath(path)
@@ -106,6 +87,9 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     } else {
         TsPacketFormat.UNKNOWN
     }
+
+    // S0865: release any player a concurrent playVideo() raced in during the TS-probe suspension above.
+    releaseIfRacedPlayer()
 
     exoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(
@@ -125,4 +109,27 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     exoPlayer?.playWhenReady = playWhenReady
 
     Timber.i("VideoPlayerManager: SFTP video setup complete")
+}
+
+// Construct SFTP URI with properly encoded path segments.
+private fun buildSftpUri(path: String, credentials: NetworkCredentialsEntity): Uri {
+    val rawUri = if (path.startsWith("sftp://")) {
+        path
+    } else {
+        "sftp://${credentials.server}:${credentials.port}$path"
+    }
+
+    val parsedUri = PathUtils.safeParseUri(rawUri)
+    val encodedPath = parsedUri.path?.split("/")
+        ?.joinToString("/") { segment ->
+            if (segment.isEmpty()) "" else Uri.encode(segment, "@")
+        } ?: ""
+
+    // encodedAuthority keeps the host:port colon verbatim; authority() would percent-encode it to
+    // %3A, after which Uri.getHost()/getPort() on the rebuilt URI return "host:port" and -1.
+    return Uri.Builder()
+        .scheme("sftp")
+        .encodedAuthority(parsedUri.encodedAuthority)
+        .encodedPath(encodedPath)
+        .build()
 }

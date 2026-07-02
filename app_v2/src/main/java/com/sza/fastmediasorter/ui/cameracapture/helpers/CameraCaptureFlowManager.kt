@@ -60,6 +60,9 @@ class CameraCaptureFlowManager(
      */
     val multiCapture: Boolean = CameraCaptureContract.readMultiCapture(intent)
 
+    /** S0790: fire the shutter automatically once the preview is ready, then finish (edge-gesture photo). */
+    val autoCapture: Boolean = CameraCaptureContract.readAutoCapture(intent)
+
     /** S0566: live zoom ratio, kept in sync with preset taps, pinch and double-tap so the UI can reflect it. */
     var liveZoomRatio: Float = CameraRuntimeCapabilities.DEFAULT_ZOOM
         private set

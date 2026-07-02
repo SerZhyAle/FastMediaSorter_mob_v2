@@ -202,7 +202,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         )
     }
 
-    private val translationManager: TranslationManager by lazy {
+    // S0872: explicit Lazy so onDestroy can release it only when it was actually created.
+    private val translationManagerDelegate = lazy {
         TranslationManager(
             context = this,
             settingsRepository = settingsRepository,
@@ -226,6 +227,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             }
         )
     }
+    private val translationManager: TranslationManager by translationManagerDelegate
 
     private val textViewerManager: TextViewerManager by lazy {
         TextViewerManager(
@@ -547,6 +549,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
 
     override fun onDestroy() {
         textViewerManager.release()
+        // S0872: TextViewerManager.release() never touches translationManager - release it here, only if built.
+        if (translationManagerDelegate.isInitialized()) translationManager.release()
         super.onDestroy()
     }
 }

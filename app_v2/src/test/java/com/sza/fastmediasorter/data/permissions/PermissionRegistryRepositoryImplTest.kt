@@ -57,6 +57,17 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
+    fun `S0786 registers the opt-in location geotag permission in registry, onboarding and groups`() {
+        val location = repo.getEntries().firstOrNull { it.id == "access_fine_location" }
+        assertNotNull("location permission must be registered", location)
+        assertEquals(PermissionGroup.LOCATION, location!!.group)
+        assertTrue("location geotag must be optional (decline = no coordinates)", location.optional)
+        // Surfaces in onboarding so the user can grant it at first run, not only via system settings.
+        assertTrue("access_fine_location" in repo.getWelcomeEntries().map { it.id })
+        assertTrue(PermissionGroup.LOCATION in repo.getGroups().map { it.group })
+    }
+
+    @Test
     fun `every declared flavor-gate names an existing boolean BuildConfig field`() {
         // Guards against a typo'd / removed flavorGates string silently dropping a permission:
         // such a name resolves on no variant, so this standardDebug run fails fast on it.

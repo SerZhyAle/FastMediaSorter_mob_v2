@@ -68,6 +68,26 @@ class MediaSettingsFragment : Fragment() {
 
         setupSections()
         setupResetSection()
+        checkAndExpandSectionFromIntent()
+    }
+
+    /**
+     * S0780: deep-link from the streams-panel "Configure" entry - expand the Streams group and scroll
+     * its header into view. The extra is consumed so it does not re-fire on rotation. Settings types
+     * are referenced fully-qualified to keep this baselined file's import block untouched (detekt).
+     */
+    private fun checkAndExpandSectionFromIntent() {
+        val activityIntent = requireActivity().intent
+        val key = com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_EXPAND_SECTION
+        val sectionId = activityIntent.getStringExtra(key) ?: return
+        if (sectionId != com.sza.fastmediasorter.ui.settings.SettingsActivity.SECTION_STREAMS) return
+        activityIntent.removeExtra(key)
+        ensureSectionExpanded(sectionId)
+        val header = binding.headerStreams
+        header.post {
+            val bounds = android.graphics.Rect(0, 0, header.width, header.height)
+            header.requestRectangleOnScreen(bounds, false)
+        }
     }
 
     private fun setupResetSection() {

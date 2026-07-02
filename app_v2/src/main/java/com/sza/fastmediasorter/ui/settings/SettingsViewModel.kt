@@ -334,6 +334,7 @@ class SettingsViewModel @Inject constructor(
                 videoSnapshotResourceId = defaults.videoSnapshotResourceId,
                 videoSnapshotFormat = defaults.videoSnapshotFormat,
                 videoFrameCopyToClipboard = defaults.videoFrameCopyToClipboard,
+                openVideoInFullscreen = defaults.openVideoInFullscreen,
                 // S0659: Streams settings live in the Media section, so a Media reset must clear them too.
                 // enableStreams was previously omitted here - fixed so the master toggle resets as well.
                 enableStreams = defaults.enableStreams,

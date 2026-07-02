@@ -15,7 +15,7 @@ def _is_probe_excluded(url):
     Returns True when yt-dlp should not be used for the given URL.
     Covers both host-level exclusions and URL-pattern exclusions.
 
-    S0223: Instagram /p/ posts are image-only. yt-dlp 2026.3.17 InstagramIE
+    S0223: Instagram /p/ posts are image-only. yt-dlp's InstagramIE
     raises "There is no video in this post" for them, wasting ~10s probe time.
     /reel/ URLs must remain un-excluded so yt-dlp continues to handle videos.
     """

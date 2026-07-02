@@ -141,6 +141,9 @@ data class AppSettings(
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
+    // S0820: video files opened from Browse enter fullscreen immediately when this is on;
+    // per-resource showCommandPanel override still wins.
+    val openVideoInFullscreen: Boolean = true,
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
@@ -209,6 +212,12 @@ data class AppSettings(
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
+    // S0781: main-window resource-type filter strip collapsed state (mirror of copy/movePanelCollapsed).
+    val resourceTypeTabCollapsed: Boolean = false,
+    // S0807: main-window programs panel collapsed into its labelled strip (mirror of resourceTypeTabCollapsed).
+    val programsPanelCollapsed: Boolean = false,
+    // S0808: main-window streams panel collapsed into its labelled strip (mirror of programsPanelCollapsed).
+    val streamsPanelCollapsed: Boolean = false,
     val enablePictureInPicture: Boolean = true,
     
     // Last used resource for quick slideshow

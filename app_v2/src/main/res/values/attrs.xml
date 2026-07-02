@@ -14,6 +14,12 @@
     <attr name="dialogActionButtonMinHeight" format="dimension|reference" />
     <attr name="dialogActionButtonGap" format="dimension|reference" />
 
+    <!-- S0819: travelling D-pad/TV focus-frame styling. Centralized so each accent theme overrides
+         focusFrameColor via ?attr/colorPrimary; consumed by FocusFrameOverlay.kt. -->
+    <attr name="focusFrameColor" format="color" />
+    <attr name="focusFrameStrokeWidth" format="dimension" />
+    <attr name="focusFrameCornerRadius" format="dimension" />
+
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />
@@ -32,6 +38,8 @@
         <attr name="csh_headerPaddingHorizontal" format="dimension" />
         <attr name="csh_headerPaddingVertical" format="dimension" />
         <attr name="csh_prefixPaddingEnd" format="dimension" />
+        <!-- Optional leading category icon (decorative). Hidden when unset. S0776. -->
+        <attr name="csh_icon" format="reference" />
     </declare-styleable>
 
     <!-- Consumed by SettingsToggleRow.kt. All public attrs use the str_ prefix. -->
@@ -42,6 +50,8 @@
         <attr name="str_helpTitle" format="string|reference" />
         <attr name="str_helpMessage" format="string|reference" />
         <attr name="str_checked" format="boolean" />
+        <!-- Optional leading feature icon (decorative). Hidden when unset. S0776. -->
+        <attr name="str_icon" format="reference" />
     </declare-styleable>
 
     <!-- Consumed by SettingsSelectionRow.kt. All public attrs use the ssr_ prefix. -->

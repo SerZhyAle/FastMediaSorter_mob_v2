@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
 import com.sza.fastmediasorter.testing.createMediaResource
@@ -72,7 +73,7 @@ class RestoreFromGoogleDriveUseCaseTest {
         )
         useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
-        coEvery { settingsRepository.updateSettings(any()) } just Runs
+        coEvery { settingsRepository.updateSettings(any<AppSettings>()) } just Runs
     }
 
     private fun stubBackupDownload(json: String) {

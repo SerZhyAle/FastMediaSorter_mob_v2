@@ -13,6 +13,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -25,12 +26,12 @@ import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
-import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -49,7 +50,6 @@ import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
-import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
@@ -58,11 +58,13 @@ import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainPanelItemActionsManager
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
@@ -99,6 +101,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@UnstableApi
 @android.annotation.SuppressLint("SetTextI18n")
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -125,6 +128,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var screenRecordingManager: MainScreenRecordingManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
+    // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
+    private lateinit var panelItemActions: MainPanelItemActionsManager
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
@@ -247,6 +252,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var faviconAtlasStore: FaviconAtlasStore
+
+    @Inject
+    lateinit var networkContextAnalyzer: NetworkContextAnalyzer
 
     // S0770: "Remove" on a streams-panel channel chip drops its pin (channel leaves the panel, row kept).
     @Inject
@@ -790,6 +798,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecordingMenuManager = MainScreenRecordingMenuManager(
             onScreenRecording = { screenRecordingManager.start() },
         )
+        // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
+        // before the coordinator/menu-actions below, which delegate to it.
+        panelItemActions = MainPanelItemActionsManager(
+            activity = this,
+            settingsRepository = settingsRepository,
+            unpinStreamSource = unpinStreamSource,
+            currentSettings = { latestSettings },
+        )
         programsMenuCoordinator = MainProgramsMenuCoordinator(
             activity = this,
             miniGameMenuManager = miniGameMenuManager,
@@ -797,9 +813,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
             screenRecordingMenuManager = screenRecordingMenuManager,
-            isNewWindowAvailable = { isNewWindowAvailable() },
-            launchInNewWindow = { intent -> launchInNewWindow(intent) },
-            confirmRemoveProgram = { titleRes, apply -> confirmRemoveProgram(titleRes, apply) },
+            isNewWindowAvailable = { panelItemActions.isNewWindowAvailable() },
+            launchInNewWindow = { intent -> panelItemActions.launchInNewWindow(intent) },
+            confirmRemoveProgram = { titleRes, apply -> panelItemActions.confirmRemoveProgram(titleRes, apply) },
         )
         // S0755: programs panel renders the same menu the dropdown builds (single source of order/gates).
         programsPanelManager = MainProgramsPanelManager(
@@ -807,11 +823,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             populateMenu = { popup, excludeStreams -> populateMainWindowDropdownMenu(popup, excludeStreams) },
             onItemSelected = { itemId -> handleMainWindowMenuItem(itemId) },
             // S0770: per-item menu providers - new-window launch + "Remove" (disable), null when absent.
-            newWindowActionFor = { itemId -> programNewWindowActionFor(itemId) },
-            removeActionFor = { itemId -> programRemoveActionFor(itemId) },
+            newWindowActionFor = { itemId -> programsMenuCoordinator.newWindowActionFor(itemId) },
+            removeActionFor = { itemId -> programsMenuCoordinator.removeActionFor(itemId) },
+            // S0780: "Configure" opens the program/scenario behaviour settings group.
+            onConfigure = { startActivity(SettingsActivity.openProgramsSectionIntent(this)) },
+            // S0807: "Hide panel" drops the panel; the collector restores the top command-bar three-dots.
+            onHidePanel = { panelItemActions.hideProgramsPanelFromPanel() },
+            settingsRepository = settingsRepository,
+            scope = lifecycleScope,
+            // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
+            collapsedChip = binding.chipProgramsCollapsed,
         )
-        // S0756: streams panel - entry button + pinned channels; channel taps reuse the existing
-        // play-by-url path in StreamsActivity (no per-channel launch logic duplicated here).
+        // S0807: wire the leading header menu + collapsed-strip tap; load the persisted collapsed state.
+        programsPanelManager.install()
+        // S0756/S0777: streams panel - entry button + pinned channels. An AUDIO channel tap plays inline
+        // in the home window (the panel owns the now-playing mini-control); a VIDEO/RTSP tap falls back to
+        // the Streams screen.
         streamsPanelManager = MainStreamsPanelManager(
             panel = binding.mainStreamsPanel,
             lifecycleOwner = this,
@@ -819,18 +846,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             observePinnedStreamSources = observePinnedStreamSources,
             faviconAtlasStore = faviconAtlasStore,
             onOpenStreams = { startActivity(Intent(this, StreamsActivity::class.java)) },
-            onPlayChannel = { channel -> startActivity(StreamsActivity.createPlayIntent(this, channel.url)) },
+            // S0777: AUDIO taps play inline (this coordinator drives the bottom now-playing control); a
+            // VIDEO/RTSP tap defers to the Streams screen via onPlayVideo.
+            inlineAudio = com.sza.fastmediasorter.ui.main.helpers.MainStreamsInlineAudioManager(
+                lifecycleOwner = this,
+                binding = binding,
+                hasNetwork = networkContextAnalyzer::hasAnyNetwork,
+                isPersistentAudioSettingOn = { latestSettings?.enablePersistentAudioPlayback == true },
+                onPlayVideo = { channel -> startActivity(StreamsActivity.createPlayIntent(this, channel.url)) },
+            ),
             // S0770: per-item menu actions - new-window launches + Remove (unpin) + availability gate.
             menuActions = StreamsPanelMenuActions(
-                onOpenStreamsNewWindow = { launchInNewWindow(Intent(this, StreamsActivity::class.java)) },
-                onOpenChannelNewWindow = { channel ->
-                    launchInNewWindow(StreamsActivity.createPlayIntent(this, channel.url))
+                onOpenStreamsNewWindow = {
+                    panelItemActions.launchInNewWindow(Intent(this, StreamsActivity::class.java))
                 },
-                onRemoveChannel = { channel -> confirmRemoveChannel(channel) },
-                isNewWindowAvailable = ::isNewWindowAvailable,
+                onOpenChannelNewWindow = { channel ->
+                    panelItemActions.launchInNewWindow(StreamsActivity.createPlayIntent(this, channel.url))
+                },
+                onRemoveChannel = { channel -> panelItemActions.confirmRemoveChannel(channel) },
+                onDisableStreams = { panelItemActions.disableStreamsFromPanel() },
+                // S0782: hide only the panel (Streams stays on; the entry returns to the programs panel/menu).
+                onHideStreamsPanel = { panelItemActions.hideStreamsPanelFromPanel() },
+                // S0780: "Configure" opens the Streams settings group.
+                onConfigureStreams = { startActivity(SettingsActivity.openStreamsSectionIntent(this)) },
+                isNewWindowAvailable = panelItemActions::isNewWindowAvailable,
+                // S0783: add/remove the channel from the shared Favorites (feature-gated, label per state).
+                onToggleFavorite = { channel -> viewModel.toggleStreamFavorite(channel) },
+                isFavoritesEnabled = { latestSettings?.enableFavorites == true },
+                isChannelFavorite = { channel -> viewModel.favoriteStreamUrls.value.contains(channel.url) },
             ),
+            // S0808: persist the streams-panel collapsed-strip state (mirror of the programs panel).
+            settingsRepository = settingsRepository,
+            // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
+            collapsedChip = binding.chipStreamsCollapsed,
         )
         streamsPanelManager.setup()
+        // S0809: the three panels' collapsed representations now share one row above the resource list.
+        Timber.d("S0809: collapsed-panels shared row wired")
+        // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
+        MainCommandBarTooltipManager.apply(binding)
+        Timber.d("S0810: command-bar tooltips applied")
         setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 
@@ -897,7 +952,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
             // S0293 Phase 08: visible only when multi-window is effectively available (preference OR runtime)
             isOpenInNewWindowVisible = mainAllowSeparateWindow,
-            onOpenInNewWindowClick = { resource -> openResourceInNewWindow(resource.id) }
+            onOpenInNewWindowClick = { resource -> panelItemActions.openResourceInNewWindow(resource.id) }
         )
 
         binding.rvResources.adapter = resourceAdapter
@@ -1179,68 +1234,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    // S0293 Phase 08: launch BrowseActivity for the given resource as a new task so the
-    // platform places it in a separate window (Quest 3 panel / DeX desktop / ChromeOS).
-    private fun openResourceInNewWindow(resourceId: Long) {
-        val windowId = java.util.UUID.randomUUID().toString()
-        val intent = Intent(this, BrowseActivity::class.java).apply {
-            putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
-            putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        }
-        startActivity(intent)
-    }
-
-    // ---- S0770: per-item context menus on the programs (S0755) and streams (S0756) panels ----
-
-    /** Multi-window available (persisted setting OR runtime capability) - gates "Open in new window". */
-    private fun isNewWindowAvailable(): Boolean =
-        latestSettings?.allowSeparateWindow == true ||
-            com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
-                .isMultiWindowActiveNow(this)
-
-    /** Launch an activity intent in a separate window (same flags as [openResourceInNewWindow]). */
-    private fun launchInNewWindow(intent: Intent) {
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        startActivity(intent)
-    }
-
-    /** S0770: "Open in new window" action for a programs-panel item (delegated to the coordinator). */
-    private fun programNewWindowActionFor(itemId: Int): (() -> Unit)? =
-        programsMenuCoordinator.newWindowActionFor(itemId)
-
-    /** S0770: "Remove" action for a programs-panel item (delegated to the coordinator). */
-    private fun programRemoveActionFor(itemId: Int): (() -> Unit)? =
-        programsMenuCoordinator.removeActionFor(itemId)
-
-    /** S0770: confirm, then disable the program's toggle; the settings collector rebuilds the panel. */
-    private fun confirmRemoveProgram(titleRes: Int, apply: (AppSettings) -> AppSettings) {
-        if (isFinishing || isDestroyed) return
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.panel_remove_title)
-            .setMessage(getString(R.string.panel_remove_program_message, getString(titleRes)))
-            .setPositiveButton(R.string.remove_action) { _, _ ->
-                val current = latestSettings ?: return@setPositiveButton
-                lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /** S0770: confirm, then unpin the channel; the pinned-sources flow drops it from the streams panel. */
-    private fun confirmRemoveChannel(channel: StreamSourceEntity) {
-        if (isFinishing || isDestroyed) return
-        val name = com.sza.fastmediasorter.ui.streams.StreamTitleFormatter.display(channel.title)
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.panel_remove_title)
-            .setMessage(getString(R.string.panel_remove_channel_message, name))
-            .setPositiveButton(R.string.remove_action) { _, _ ->
-                lifecycleScope.launch { unpinStreamSource(channel.id) }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
     private fun openSettings() {
         startActivity(Intent(this, SettingsActivity::class.java))
     }
@@ -1398,8 +1391,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun setupResourceTypeTabs() {
         tabsManager = MainResourceTabsManager(
             tabLayout = binding.tabResourceTypes,
+            // S0809: the filter's collapsed representation is now the shared-row chip, not an in-place strip.
+            collapsedStrip = binding.chipFilterCollapsed,
             configuration = resources.configuration,
             gate = remoteSourceGate,
+            settingsRepository = settingsRepository,
+            scope = lifecycleScope,
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },
             getActiveTab = { viewModel.state.value.activeResourceTab },

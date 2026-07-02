@@ -944,6 +944,11 @@
     "ru": "Назначает приложение видеоплеером по умолчанию на устройстве.",
     "uk": "Призначає застосунок типовим відеоплеєром на пристрої."
   },
+  "rowOpenVideoInFullscreen": {
+    "en": "Launches video playback straight into fullscreen mode when a video is opened from Browse.",
+    "ru": "Запускает воспроизведение видео сразу в полноэкранном режиме при открытии из браузера файлов.",
+    "uk": "Запускає відтворення відео одразу в повноекранному режимі при відкритті з браузера файлів."
+  },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",

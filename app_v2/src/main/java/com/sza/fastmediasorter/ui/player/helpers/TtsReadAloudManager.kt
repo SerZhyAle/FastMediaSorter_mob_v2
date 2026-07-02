@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.widget.Toast
@@ -25,10 +27,14 @@ class TtsReadAloudManager(
         ERROR        // Initialization error
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var tts: TextToSpeech? = null
-    private var state = TtsState.IDLE
+    // S0871: writes confined to main via updateState's post; volatile so off-main readers
+    // (utterance/init callbacks, getState) observe the latest value.
+    @Volatile private var state = TtsState.IDLE
     private var currentText: String = ""
-    private var isInitialized = false
+    // S0871: written in onInit (may arrive off the main thread), read in startReading.
+    @Volatile private var isInitialized = false
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -179,7 +185,11 @@ class TtsReadAloudManager(
     }
 
     private fun updateState(newState: TtsState) {
-        state = newState
-        onStateChanged(newState)
+        // S0871: utterance-progress callbacks fire on a binder thread; post the state write and the
+        // owner callback to the main thread so state stays main-confined and readers see it consistent.
+        mainHandler.post {
+            state = newState
+            onStateChanged(newState)
+        }
     }
 }

@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import dagger.hilt.android.EntryPointAccessors
@@ -150,6 +151,7 @@ class CameraOcrFlowManager(
             outputUri = uri,
             outputPath = tempFile.absolutePath,
             mode = CameraCaptureMode.PHOTO,
+            scenario = CameraScenario.OCR_TRANSLATE,
         )
         callback.launchCamera(intent)
     }

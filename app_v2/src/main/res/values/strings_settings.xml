@@ -244,4 +244,6 @@
     <string name="settings_screen_recording_enable_desc">Record the whole screen to a video file with microphone audio. A stop control and a timer appear while recording.</string>
     <string name="setting_screen_recording_destination_title">Screen recordings destination</string>
     <string name="setting_screen_recording_destination_default_downloads">Default: Downloads folder</string>
+    <string name="setting_open_video_in_fullscreen_title">Open video files in fullscreen mode</string>
+    <string name="setting_open_video_in_fullscreen_desc">Videos opened from Browse launch straight into fullscreen playback</string>
 </resources>

@@ -682,12 +682,16 @@ android {
         unitTests {
             isIncludeAndroidResources = true // Required for Robolectric
             isReturnDefaultValues = true
-            // Forward the manifest-export toggle (S0440) to the test JVM; Gradle does not
-            // propagate -D system properties to test workers by default.
+            // Forward the doc-export toggles (S0440 settings manifest, S0815 icon inventory) to the
+            // test JVM; Gradle does not propagate -D system properties to test workers by default.
             all {
                 it.systemProperty(
                     "settings.manifest.generate",
                     System.getProperty("settings.manifest.generate") ?: "false"
+                )
+                it.systemProperty(
+                    "icon.inventory.generate",
+                    System.getProperty("icon.inventory.generate") ?: "false"
                 )
             }
         }
@@ -807,6 +811,19 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-STAGING"
             matchingFallbacks += listOf("release")
+        }
+        create("benchmark") {
+            initWith(getByName("release"))
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            versionNameSuffix = "-BENCHMARK"
+            matchingFallbacks += listOf("release")
+            signingConfig = if (hasCustomDebugKeystore) {
+                signingConfigs.getByName("debugCustom")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
@@ -970,6 +987,13 @@ tasks.named("preBuild").configure {
 // Replaces the legacy applicationVariants.all { } block (removed in AGP 10.0).
 // outputFileName wired lazily so versionName resolves after all variant merges.
 androidComponents {
+    beforeVariants(selector().withBuildType("benchmark")) { variantBuilder ->
+        val flavorName = variantBuilder.flavorName ?: ""
+        if (flavorName != "standard") {
+            variantBuilder.enable = false
+        }
+    }
+
     onVariants { variant ->
         val buildType = variant.buildType ?: ""
         val flavorName = variant.flavorName ?: ""
@@ -1340,6 +1364,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
+    "benchmarkImplementation"("com.github.chuckerteam.chucker:library-no-op:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
     
     // Cloud Storage - Dropbox

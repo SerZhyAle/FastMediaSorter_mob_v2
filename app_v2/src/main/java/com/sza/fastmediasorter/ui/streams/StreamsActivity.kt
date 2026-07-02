@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,6 +75,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var streamFrameCache: StreamFrameCache
 
+    // S0712: on-disk last-frame thumbnails, written by the snapshot engine and pre-warmed into the
+    // in-memory cache by the grid mode manager so known channels show their last frame on next launch.
+    @Inject
+    lateinit var streamFramePersistentStore: StreamFramePersistentStore
+
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -90,6 +96,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
+        onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+        favoritesEnabled = { viewModel.settings.value.enableFavorites },
+        isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -98,7 +107,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S0675: short-lived snapshot engine for grid mode; built lazily so Hilt field injection (the cache)
     // has run. Uses applicationContext so a config-change does not leak the Activity into a capture.
     private val snapshotManager by lazy {
-        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope)
+        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope, streamFramePersistentStore)
     }
 
     // S0675: grid-mode adapter mirroring the list adapter's favicon plumbing; the cached frame is the
@@ -111,6 +120,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,
             onShareLink = ::onShareLink,
+            onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+            favoritesEnabled = { viewModel.settings.value.enableFavorites },
+            isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -193,6 +205,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             gridAdapter = gridAdapter,
             snapshotManager = snapshotManager,
             cache = streamFrameCache,
+            persistentStore = streamFramePersistentStore,
             lifecycleOwner = this,
             resources = resources,
             onToggleIconChanged = ::updateDisplayToggleIcon,

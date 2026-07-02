@@ -44,6 +44,11 @@ class StreamGridAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S0783: mirrors StreamSourceAdapter - add/remove the channel from Favorites (feature-gated). The
+    // gate + label state are pulled lazily when the menu opens.
+    private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
+    private val favoritesEnabled: () -> Boolean = { false },
+    private val isFavorite: (StreamSourceEntity) -> Boolean = { false },
     private val frameProvider: (url: String) -> Bitmap?,
     private val requestCapture: (url: String) -> Unit,
     private val faviconResolver: (String) -> Int? = { null },
@@ -95,15 +100,27 @@ class StreamGridAdapter(
             }
             binding.btnGridOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
-                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, 0, R.string.streams_add_to_home_screen)
+                    // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
+                    if (favoritesEnabled()) {
+                        val favLabel = if (isFavorite(source)) {
+                            R.string.streams_remove_from_favorites
+                        } else {
+                            R.string.streams_add_to_favorites
+                        }
+                        // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
+                        // shortcut, edit, share, remove) without magic order literals.
+                        menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
+                    }
+                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
                     // Edit is offered only for user-added channels (mirrors the list row, S0660 §6.4).
                     if (source.sourceOrigin == "MANUAL") {
-                        menu.add(Menu.NONE, ID_EDIT, 1, R.string.streams_edit)
+                        menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
                     }
-                    menu.add(Menu.NONE, ID_SHARE_LINK, 2, R.string.streams_send_link)
-                    menu.add(Menu.NONE, ID_REMOVE, 3, R.string.streams_remove)
+                    menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
+                    menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
+                            ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
                             ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
                             ID_EDIT -> { onEdit(source); true }
                             ID_SHARE_LINK -> { onShareLink(source); true }
@@ -175,6 +192,7 @@ class StreamGridAdapter(
         const val ID_REMOVE = 2
         const val ID_EDIT = 3
         const val ID_SHARE_LINK = 4
+        const val ID_TOGGLE_FAVORITE = 5 // S0783
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

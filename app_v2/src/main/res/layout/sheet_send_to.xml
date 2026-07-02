@@ -49,7 +49,7 @@
             android:contentDescription="@null"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_folder"
+            android:src="@drawable/ic_resource"
             android:tint="?attr/colorOnSurface" />
 
         <TextView

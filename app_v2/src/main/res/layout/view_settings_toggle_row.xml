@@ -17,6 +17,18 @@
         android:duplicateParentState="true"
         android:focusable="false" />
 
+    <!-- Optional leading feature icon (S0776). Decorative; sits next to the label, hidden when unset. -->
+    <ImageView
+        android:id="@+id/str_icon"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="@dimen/settings_help_icon_margin"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        app:tint="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/str_textGroup"
         android:layout_width="0dp"

@@ -9,7 +9,12 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$Module,
     [string]$Root,
-    [string]$OutFile
+    [string]$OutFile,
+    # S0848 incremental mode. When provided, git `lastTouched` is recomputed only for
+    # these files; every other file reuses the value already stored in the existing JSONL
+    # (unchanged file -> unchanged last-touched date). Omitted -> full rebuild: git for
+    # every file, exactly as before (release/CI / `/catalog` full-refresh path).
+    [string[]]$ChangedFiles
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,6 +23,20 @@ if (-not $Root) {
     $Root = Resolve-Path (Join-Path $PSScriptRoot "..\..\..")
 }
 $Root = (Resolve-Path $Root).Path
+
+# Normalize the changed-files signal to a set of absolute, forward-slashed paths for
+# O(1) membership tests against each scanned file's full path. Missing/deleted entries
+# are harmless: they simply never match a file that is actually present in the tree.
+$changedSet = $null
+if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+    $changedSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($cf in $ChangedFiles) {
+        if ([string]::IsNullOrWhiteSpace($cf)) { continue }
+        $full = if ([System.IO.Path]::IsPathRooted($cf)) { $cf } else { Join-Path $Root $cf }
+        $normFull = ([System.IO.Path]::GetFullPath($full)) -replace '\\', '/'
+        [void]$changedSet.Add($normFull)
+    }
+}
 
 if (-not $OutFile) {
     $OutFile = Join-Path $Root "dev\CATALOG\$Module.jsonl"
@@ -173,6 +192,13 @@ function Test-HasTests([string]$fullPath) {
 }
 
 $existing = @{}
+# S0848: per-file last-touched carried from the previous scan, keyed by the relative
+# `path`, for reuse in incremental mode. A path is reusable ONLY when it maps to a single
+# distinct date: flavor-variant files (e.g. ScreenCaptureModule, TranslationFlavorModule)
+# share one relative path across source roots but have independent git histories, so a path
+# with conflicting dates is marked ambiguous and falls back to git per physical file.
+$ltByPath = @{}
+$ltAmbiguousPaths = [System.Collections.Generic.HashSet[string]]::new()
 if (Test-Path $OutFile) {
     foreach ($line in (Get-Content -Path $OutFile -Encoding UTF8)) {
         if (-not $line) { continue }
@@ -180,6 +206,14 @@ if (Test-Path $OutFile) {
             $obj = $line | ConvertFrom-Json -AsHashtable
             $key = "$($obj.path)::$($obj.class)"
             $existing[$key] = $obj
+            if ($obj.path -and $obj.lastTouched) {
+                if ($ltByPath.ContainsKey($obj.path)) {
+                    if ($ltByPath[$obj.path] -ne $obj.lastTouched) { [void]$ltAmbiguousPaths.Add($obj.path) }
+                }
+                else {
+                    $ltByPath[$obj.path] = $obj.lastTouched
+                }
+            }
         } catch {}
     }
 }
@@ -199,7 +233,18 @@ foreach ($file in $ktFiles) {
     if (-not $srcRoot) { continue }
     $rel = $file.FullName.Substring($srcRoot.Length + 1) -replace '\\', '/'
     $layer = Get-Layer $rel
-    $lastTouched = Get-LastTouched $file.FullName $Root
+    # S0848 incremental: recompute git last-touched only for changed files (or on a full
+    # rebuild, when no changed-set was given). An unchanged file with an unambiguous prior
+    # date reuses it; anything else (changed, new, or ambiguous flavor-variant path) hits git.
+    $fileNorm = $file.FullName -replace '\\', '/'
+    $lastTouched = $null
+    if ($changedSet -and -not $changedSet.Contains($fileNorm) -and
+        $ltByPath.ContainsKey($rel) -and -not $ltAmbiguousPaths.Contains($rel)) {
+        $lastTouched = $ltByPath[$rel]
+    }
+    if ([string]::IsNullOrEmpty($lastTouched)) {
+        $lastTouched = Get-LastTouched $file.FullName $Root
+    }
     $hasTests = Test-HasTests $file.FullName
 
     # One catalogue record per top-level class. Without this split, files that

@@ -82,6 +82,14 @@ class AudioEmptyStateController(
             return
         }
         Timber.d("AudioEmptyStateController: show(mode=$mode)")
+        // S0863: leaving video mode must release the muted looping player - hideAll() below only
+        // flips View visibility (the TextureView's SurfaceTexture keeps decoding behind a GONE
+        // view), and once currentMode changes below, onPause()/onIsPlayingChanged() no longer gate
+        // on the video branch, so an unreleased player becomes an orphan unreachable by backgrounding.
+        if (currentMode.isVideoMode() && !mode.isVideoMode()) {
+            releaseMediaPlayer()
+            videoActive = false
+        }
         currentMode = mode
         hideAll()
         when (mode) {
@@ -117,7 +125,16 @@ class AudioEmptyStateController(
             MODE_VISUALIZATION, MODE_GIF_LOOP -> {
                 if (playing) {
                     // Skip until prepared; onPrepared starts playback honoring the latest isPlaying.
-                    if (isPrepared) mediaPlayer?.start()
+                    // S0863: symmetric with the pause() guard below - start() throws on an Error-state
+                    // player (onError no longer leaves it half-alive, but guard defensively per fix hint).
+                    if (isPrepared) {
+                        try {
+                            mediaPlayer?.start()
+                        } catch (e: IllegalStateException) {
+                            Timber.w(e, "AudioEmptyStateController: start() failed on Error-state player")
+                            releaseMediaPlayer()
+                        }
+                    }
                 } else {
                     mediaPlayer?.let { mp ->
                         try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
@@ -147,7 +164,15 @@ class AudioEmptyStateController(
             wavesView.startAnimation()
         }
         if (isPlaying && (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP)) {
-            if (isPrepared) mediaPlayer?.start()
+            // S0863: symmetric with the onPause() guard above - start() throws on an Error-state player.
+            if (isPrepared) {
+                try {
+                    mediaPlayer?.start()
+                } catch (e: IllegalStateException) {
+                    Timber.w(e, "AudioEmptyStateController: start() failed on Error-state player")
+                    releaseMediaPlayer()
+                }
+            }
         }
     }
 
@@ -295,6 +320,10 @@ class AudioEmptyStateController(
                         else -> "EXTRA_$extra"
                     }
                     Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - no background shown")
+                    // S0863: MediaPlayer.OnErrorListener contract - the object enters Error state and
+                    // reset() must be called before reuse; releaseMediaPlayer() also clears isPrepared so
+                    // the unguarded start() sites in onIsPlayingChanged/onResume never see a dead player.
+                    releaseMediaPlayer()
                     videoActive = false
                     videoView.isVisible = false
                     showStaticNote()

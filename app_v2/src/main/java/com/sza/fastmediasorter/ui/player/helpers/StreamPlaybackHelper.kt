@@ -55,7 +55,8 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // source measures live throughput) and the load control, which widens the steady cushion on a weak
     // link and tightens it back on a healthy one. Live content stays clamped to the proven S0685 live-safe
     // depth so live-edge tracking (S0634) cannot regress; only non-live streams get the deepening. The
-    // start/post-rebuffer thresholds keep the S0685 values. Radio vs live load-control split is parked (S0689).
+    // start/post-rebuffer thresholds keep the S0685 values. Radio plays on a separate audio player and
+    // never reaches this control, so no radio-vs-live split applies here (S0689 archived as obsolete).
     val bandwidthMeter = DefaultBandwidthMeter.Builder(context).build()
     val loadControl = BandwidthAdaptiveLoadControl.create(bandwidthMeter)
     Timber.d("S0688: stream load control bandwidth-adaptive (rtsp=%s) path=%s", isRtsp, path)

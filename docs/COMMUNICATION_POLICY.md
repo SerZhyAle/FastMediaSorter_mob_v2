@@ -48,7 +48,7 @@
 - Explain why there is no content + natural invitation to act.
 - Do not leave empty states as dead ends.
 - Examples:
-  - ✓ "No files here yet. Add a folder or network resource to start browsing."
+  - ✓ "No files here yet. Add a resource - a device folder or a network source - to start browsing."
   - ✗ "No items found."
 
 ### 2.5 Progress / loading
@@ -141,3 +141,10 @@ Before any batch of new or updated strings is merged:
 - Qualified variants are allowed when the media type is relevant: "video file browser", "image browser", "document browser".
 - The word "explorer" is forbidden for this window in user-facing text.
 - Exception: strings about a **web browser** (Chrome Custom Tabs, Google sign-in) keep "browser" in the web sense and are out of scope of this rule.
+
+### 7.1 Resource vs Folder (S0799)
+
+- **Resource** is an internal FastMediaSorter entity: a registered address (local, network, or cloud) the user added by hand or imported. A resource can be a browse source, a Quick Sort destination, a media library, or a virtual aggregate (All Music, All Video, favorites, streams). A resource points to one folder or a branch of folders. Use "resource" whenever the text is about the app's registered entry: add / edit / copy / remove / select / refresh a resource, its name / type / path / PIN, the resource list.
+- **Folder** (directory) is a filesystem directory that exists independently of the app: a local Android folder, or a folder on a remote SMB / (S)FTP / cloud server. Use "folder" only for genuine directory work: the system or manual folder picker, the folder a resource points to, subfolder scanning, creating a folder on disk, cloud-provider folder IDs, current / parent-directory navigation.
+- Never call a resource a "folder": e.g. the "Add resource" action must not open a dialog titled "Add folder".
+- Two distinct icons back this split: `ic_resource` (a stacked collection) marks the resource concept; `ic_folder` marks a genuine folder. Never swap them (S0842).

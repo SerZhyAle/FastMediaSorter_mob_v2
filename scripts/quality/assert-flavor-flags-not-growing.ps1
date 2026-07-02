@@ -28,7 +28,10 @@
 [CmdletBinding(DefaultParameterSetName = 'Report')]
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
-    [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline
+    [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
+    # S0848 Phase 04: when set, judge only the growth these files introduce (working vs HEAD)
+    # instead of a full src/main scan. Preserves the "must not grow" guarantee for the change.
+    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -42,6 +45,24 @@ if (-not (Test-Path $baselineFile)) { Write-Error "Baseline file missing: $basel
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
 
 $rx = [regex]'BuildConfig\.(?:SUPPORT_|ENABLE_|IS_)[A-Za-z0-9_]+'
+
+# S0848 Phase 04: delta mode. Only the growth introduced by the changed files is judged, so
+# post-change -ScopeToFile gets a real verdict on the change instead of an advisory full scan.
+# Same regex as the full scan, applied per changed file (working vs its committed HEAD version).
+if ($ChangedFiles) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match 'app_v2/src/main/java/' })
+    $countFn = { param($t) $rx.Matches($t).Count }
+    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
+    Write-Host ("flavor-flags [delta over changed files]: baseline {0} | new occurrences {1}" -f $baseline, $d.Growth)
+    if ($Gate -and $d.Growth -gt 0) {
+        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
+        Write-Host "FAIL: new flavor-flag reads introduced in the changed file(s). Use the capability-surface pattern (MediaCapabilities) instead of a new BuildConfig guard in src/main."
+        exit 1
+    }
+    exit 0
+}
+
 $current = 0
 $files = Get-ChildItem -LiteralPath $mainRoot -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }

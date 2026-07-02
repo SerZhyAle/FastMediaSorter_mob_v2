@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0804 Kryvavytsia mode: the Kryvavitsa as a woman (A-line dress) holding a machine gun. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FFD32F2F"
+        android:pathData="M15,10 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <path
+        android:fillColor="#FFD32F2F"
+        android:pathData="M16,16 L24,16 L30,42 L10,42 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M18,22 L40,22 L40,25 L18,25 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M14,22 L18,22 L18,27 L14,29 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M28,25 L32,25 L31,32 L27,32 Z" />
+</vector>

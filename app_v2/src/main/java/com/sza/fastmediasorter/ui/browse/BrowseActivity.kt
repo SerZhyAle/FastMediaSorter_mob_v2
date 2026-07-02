@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Trace
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -148,6 +149,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+
     @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -180,6 +182,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0196 Phase 04 measurement hook: one-shot tag emitted on the first non-empty list bind so
     // perf traces can mark "primary content rendered" for the browse surface.
     private var firstListBoundLogged = false
+    private var browseReadyTraceEmitted = false
     private val cloudOperationStrategy by lazy(LazyThreadSafetyMode.NONE) {
         CloudOperationStrategy(
             this,
@@ -453,6 +456,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.submitList(state.mediaFiles) {
                     if (isSortingSubmit) viewModel.clearSorting()
                     initializer.listSubmitManager.onListSubmitted(state)
+                    emitBrowseReadyTraceIfNeeded(state)
                     // S0196 Phase 04: emit once after the first non-empty list is committed.
                     if (!firstListBoundLogged && state.mediaFiles.isNotEmpty()) {
                         firstListBoundLogged = true
@@ -621,6 +625,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             initializer.listSubmitManager.shouldScrollToLastViewed = true
             initializer.blackScreenManager.hide()
         }
+        // S0861: no other teardown edge here ever touched the mic manager - a session started with
+        // no finger down (RECORD_AUDIO grant auto-start) could survive past this activity's destroy.
+        if (::micRecordingManager.isInitialized) micRecordingManager.release()
         viewModel.cancelBackgroundThumbnailLoading()
         memoryProfileCoordinator.enter(MemoryScenario.IDLE)
         // Leaving browse is the cheapest stable release point for thumbnail-heavy memory.
@@ -747,7 +754,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         viewModel.openDrawingInEditor(path)
     }
 
+    private fun emitBrowseReadyTraceIfNeeded(state: BrowseState) {
+        val shouldEmitTrace = !browseReadyTraceEmitted &&
+            state.resource != null &&
+            state.loadingProgress == 0
+        if (shouldEmitTrace) {
+            browseReadyTraceEmitted = true
+            Trace.beginSection(FMS_BROWSE_READY)
+            Trace.endSection()
+        }
+    }
+
     companion object {
+        private const val FMS_BROWSE_READY = "FMS_BROWSE_READY"
         const val EXTRA_RESOURCE_ID = "resourceId"
         const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
         const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"

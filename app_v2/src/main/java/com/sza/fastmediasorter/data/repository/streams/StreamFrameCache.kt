@@ -11,11 +11,16 @@ import javax.inject.Singleton
  * guarded by [lock]. Entries older than [FRAME_TTL_MS] are treated as missing (the engine re-captures);
  * an LRU eviction keeps the map under [MAX_ENTRIES]. Bitmaps are never recycled here - one may still be
  * set on a live ImageView; reclamation is left to GC.
+ *
+ * S0712: an entry also carries a [Entry.live] flag. Live entries are captures from this session and obey
+ * the TTL as before. Restored entries ([putRestored]) are last-session thumbnails pre-warmed from disk:
+ * they are always shown by [get] (the persistent thumbnail) but never count as [isFresh], so the snapshot
+ * engine still captures a current frame and overwrites the stale disk thumbnail once it lands.
  */
 @Singleton
 class StreamFrameCache @Inject constructor() {
 
-    private data class Entry(val bitmap: Bitmap, val capturedAtElapsed: Long)
+    private data class Entry(val bitmap: Bitmap, val capturedAtElapsed: Long, val live: Boolean)
 
     private val lock = Any()
 
@@ -25,26 +30,38 @@ class StreamFrameCache @Inject constructor() {
             size > MAX_ENTRIES
     }
 
-    /** Returns the cached bitmap only if younger than the TTL; null otherwise (miss or expired). */
+    /**
+     * S0784: always returns the last captured frame for [url] once one exists (live or restored), so a
+     * grid tile keeps showing its last thumbnail and never reverts to the favicon/atlas placeholder.
+     * Freshness is decoupled from what is painted: [isFresh] still decides whether the snapshot engine
+     * re-captures in the background, but an expired live frame is shown until a fresh capture replaces it
+     * in place. Null only when the url was never captured, so the grid does the initial capture.
+     */
     fun get(url: String): Bitmap? = synchronized(lock) {
-        val entry = entries[url] ?: return null
-        if (isExpired(entry)) null else entry.bitmap
+        entries[url]?.bitmap
     }
 
-    /** True when a non-expired entry exists - the snapshot engine skips re-capture for fresh urls. */
+    /** True only for a non-expired live entry - the snapshot engine skips re-capture for fresh urls. */
     fun isFresh(url: String): Boolean = synchronized(lock) {
         val entry = entries[url] ?: return false
-        !isExpired(entry)
+        entry.live && !isExpired(entry)
     }
 
-    /** Stores/refreshes the entry for [url], evicting the eldest beyond [MAX_ENTRIES]. */
+    /** True when any entry (live or restored) already holds [url] - skips a redundant disk pre-warm. */
+    fun hasEntry(url: String): Boolean = synchronized(lock) { entries.containsKey(url) }
+
+    /** Stores/refreshes the live entry for [url], evicting the eldest beyond [MAX_ENTRIES]. */
     fun put(url: String, bitmap: Bitmap) = synchronized(lock) {
-        entries[url] = Entry(bitmap, SystemClock.elapsedRealtime())
+        entries[url] = Entry(bitmap, SystemClock.elapsedRealtime(), live = true)
     }
 
-    fun invalidate(url: String) = synchronized(lock) {
-        entries.remove(url)
-        Unit
+    /**
+     * S0712: seed a restored disk thumbnail for [url], but never clobber an entry already present (a
+     * live capture or earlier restore stays authoritative). Shown by [get], ignored by [isFresh].
+     */
+    fun putRestored(url: String, bitmap: Bitmap) = synchronized(lock) {
+        if (entries.containsKey(url)) return
+        entries[url] = Entry(bitmap, SystemClock.elapsedRealtime(), live = false)
     }
 
     fun clear() = synchronized(lock) {

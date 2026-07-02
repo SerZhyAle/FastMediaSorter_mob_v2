@@ -93,6 +93,7 @@
                     android:contentDescription="@string/settings_remote_source_smb_title"
                     android:focusable="true"
                     android:nextFocusDown="@+id/rowSourceFtp"
+                    app:str_icon="@drawable/ic_wifi"
                     app:str_title="@string/settings_remote_source_smb_title"
                     app:str_subtitle="@string/settings_remote_source_smb_subtitle" />
 
@@ -105,6 +106,7 @@
                     android:focusable="true"
                     android:nextFocusUp="@id/rowSourceSmb"
                     android:nextFocusDown="@+id/rowSourceCloud"
+                    app:str_icon="@drawable/ic_storage"
                     app:str_title="@string/settings_remote_source_ftp_title"
                     app:str_subtitle="@string/settings_remote_source_ftp_subtitle" />
 
@@ -116,6 +118,7 @@
                     android:contentDescription="@string/settings_remote_source_cloud_title"
                     android:focusable="true"
                     android:nextFocusUp="@id/rowSourceFtp"
+                    app:str_icon="@drawable/ic_cloud"
                     app:str_title="@string/settings_remote_source_cloud_title"
                     app:str_subtitle="@string/settings_remote_source_cloud_subtitle" />
 

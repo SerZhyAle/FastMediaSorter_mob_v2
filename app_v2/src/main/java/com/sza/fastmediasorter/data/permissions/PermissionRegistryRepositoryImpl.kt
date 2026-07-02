@@ -93,6 +93,21 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.CAMERA, optional = true,
         ),
+        // LOCATION
+        // S0786: opt-in geotag for in-app photo/video capture (embedding done by S0766). Registered here
+        // so the user can grant/deny it from onboarding and Settings, not only via system settings; when
+        // ungranted the capture simply carries no coordinates. Fine location drives an accurate geotag;
+        // the capture path accepts coarse too, so a coarse-only grant still works.
+        PermissionEntry(
+            id = "access_fine_location",
+            manifestName = Manifest.permission.ACCESS_FINE_LOCATION,
+            titleRes = R.string.perm_title_location,
+            descriptionRes = R.string.perm_desc_location,
+            iconRes = 0,
+            group = PermissionGroup.LOCATION,
+            optional = true,
+            minSdk = 23,
+        ),
         // MICROPHONE
         PermissionEntry(
             id = "record_audio",
@@ -131,7 +146,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             entry.minSdk <= Build.VERSION.SDK_INT &&
             entry.maxSdk >= Build.VERSION.SDK_INT &&
             evaluateFlavorGates(entry.flavorGates)
-        }
+        }.also { Timber.d("S0786: permission registry built %d entries incl location", it.size) }
 
     override fun getWelcomeEntries(): List<PermissionEntry> {
         // Show every permission this build can request; the user decides which to grant. No narrowing by
@@ -170,6 +185,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
                         PermissionGroup.STORAGE -> R.string.perm_group_storage
                         PermissionGroup.NETWORK -> R.string.perm_group_network
                         PermissionGroup.CAMERA -> R.string.perm_group_camera
+                        PermissionGroup.LOCATION -> R.string.perm_group_location
                         PermissionGroup.MICROPHONE -> R.string.perm_group_microphone
                         PermissionGroup.NOTIFICATION -> R.string.perm_group_notification
                         PermissionGroup.SYSTEM -> R.string.perm_group_system

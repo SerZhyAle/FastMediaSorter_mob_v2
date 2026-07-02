@@ -210,8 +210,7 @@ class LyricsManager(
      */
     fun hideLyricsViewer() {
         Timber.d("LyricsManager: Hiding lyrics viewer")
-        ttsManager?.release()
-        ttsManager = null
+        releaseTts()
         safeViews.lyricsViewerContainer.isVisible = false
         // Restore top command panel visibility
         binding.topCommandPanel.isVisible = true
@@ -219,6 +218,22 @@ class LyricsManager(
         binding.topCommandPanel.post {
             binding.topCommandPanel.requestApplyInsets()
         }
+    }
+
+    /**
+     * Release owned resources without touching any Views. Safe to call from PlayerActivity.onDestroy
+     * even when the lyrics viewer was never shown, and idempotent on repeated calls.
+     * S0871: onDestroy does not traverse hideLyricsViewer() (back-press/close only), so the bound
+     * TextToSpeech engine would otherwise outlive the Activity and leak its ServiceConnection.
+     */
+    fun release() {
+        releaseTts()
+    }
+
+    // S0871: single teardown for the owned TTS engine, shared by hideLyricsViewer() and release().
+    private fun releaseTts() {
+        ttsManager?.release()
+        ttsManager = null
     }
 
     private fun ensureTtsManager(): TtsReadAloudManager {

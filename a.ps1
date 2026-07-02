@@ -22,6 +22,8 @@
     fc   - Fast code + resources check
     fu   - Fast full unit-test suite
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
+    mb   - Run standard macrobenchmark suite
+    gbp  - Generate standard baseline profile
     cd   - Clean + Debug + Zip
     cdb  - Clean + Debug (without zip)
     cls  - Clean Gradle caches
@@ -91,6 +93,8 @@ $scripts = @{
     'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
     'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
+    'mb'        = @{ Path = 'scripts\builders\run-standard-macrobenchmark.ps1'; Args = @{} }
+    'gbp'       = @{ Path = 'scripts\builders\generate-standard-baseline-profile.ps1'; Args = @{} }
     'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @{} }
     'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @{} }
     'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @{} }
@@ -140,6 +144,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
     Write-Host "  fu   - Fast full unit-test suite" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
+    Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan
+    Write-Host "  gbp  - Generate standard baseline profile" -ForegroundColor Cyan
     Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
     Write-Host "  c    - Commit & Push" -ForegroundColor Cyan
     Write-Host "  ch   - Check Typo/Lint" -ForegroundColor Cyan

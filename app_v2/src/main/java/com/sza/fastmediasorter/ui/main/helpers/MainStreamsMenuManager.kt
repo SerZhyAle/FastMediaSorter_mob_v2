@@ -19,7 +19,7 @@ class MainStreamsMenuManager(
     fun populate(popup: PopupMenu, enabled: Boolean, order: Int): Int {
         if (!enabled) return 0
         popup.menu.add(0, MENU_ITEM_STREAMS, order, R.string.streams_title)
-            .setIcon(R.drawable.ic_video)
+            .setIcon(R.drawable.ic_cast)
         return 1
     }
 

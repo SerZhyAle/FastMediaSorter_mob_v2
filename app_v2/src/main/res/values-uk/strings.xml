@@ -157,7 +157,7 @@
     <string name="clear_all">Очистити все</string>
     <string name="filter">Фільтр</string>
     <string name="refresh">Оновити</string>
-    <string name="copy_resource">Дублювати налаштування теки</string>
+    <string name="copy_resource">Дублювати налаштування ресурсу</string>
     <string name="exit">Вихід</string>
     <string name="sort">Сортування</string>
     <string name="toggle_view">Вид</string>
@@ -197,7 +197,7 @@
     <string name="connection_ok_starting_speed_test">Підключення успішне. Запуск тесту швидкості..</string>
     <string name="error_subfolder_does_not_exist">Підпапка \'%1$s\' не існує в спільному ресурсі \'%2$s\'</string>
     <string name="retry">Повторити</string>
-    <string name="select_resource_type">Оберіть тип теки</string>
+    <string name="select_resource_type">Оберіть тип ресурсу</string>
 
     <!-- Connection Error Messages -->
     <string name="error_connection_timeout">Не вдається підключитися до \"%1$s\" - сервер %2$s не відповідає</string>
@@ -524,11 +524,9 @@
     <string name="register_as_destination">Швидке сортування</string>
 
     <!-- Edit Folder -->
-    <string name="edit_resource">Редагування теки</string>
-    <string name="edit_resource_with_type">Редагування теки (%1$s)</string>
     <!-- Add Folder -->
-    <string name="add_resource_title">Додати теку</string>
-    <string name="copy_resource_title">Дублювати налаштування теки</string>
+    <string name="add_resource_title">Додати ресурс</string>
+    <string name="copy_resource_title">Дублювати налаштування ресурсу</string>
     <!-- S0021: panel-fps-overlay -->
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Відкрити в новому вікні</string>
@@ -541,7 +539,7 @@
     <string name="resource_type_cloud">Хмара</string>
     <string name="scanning_progress">Сканування: %s</string>
     <string name="filters_active">Фільтри: %s</string>
-    <string name="add_sftp_ftp_title">Додати S/FTP теку</string>
+    <string name="add_sftp_ftp_title">Додати S/FTP ресурс</string>
     <string name="all_resources_available">Усі ресурси доступні: %1$d для запису, %2$d тільки для читання</string>
     <string name="all_resources_unavailable">Усі ресурси недоступні</string>
     <string name="resources_checked">Перевірено ресурсів: %1$d доступно (%2$d недоступно)</string>
@@ -551,8 +549,6 @@
     <string name="comment">Коментар</string>
     <string name="access_pin">ПІН-код доступу</string>
     <string name="pin_incorrect">Невірний ПІН-код</string>
-    <string name="resource_path">Шлях до теки</string>
-    <string name="resource_type">Тип теки</string>
     <string name="created_date">Дата створення</string>
     <string name="last_browse_date">Дата останнього перегляду</string>
     <string name="never_browsed">Ніколи не переглядався</string>
@@ -1236,7 +1232,7 @@
     <string name="invalid_page_number">Невірний номер сторінки. Введіть число від 1 до %1$d</string>
 
     <!-- OCR Feature -->
-    <string name="enable_ocr">Дозволити розпізнавання тексту (OCR)</string>
+    <string name="enable_ocr">Дозволити розпізнавання тексту</string>
     <string name="enable_ocr_summary">Витягування тексту із зображень та PDF для копіювання</string>
 
     <!-- Media Settings Categories -->
@@ -1647,7 +1643,6 @@
     <!-- OCR Best Models Feature -->
     <string name="add_folders">Додати %1$d папки</string>
     <string name="add_new_account">Додати новий акаунт</string>
-    <string name="add_resource">Додати ресурс</string>
     <string name="and_more_errors">і ще %d помилок</string>
     <string name="android_media_folder_added_warning">⚠️ Додано папку Android/media. Ці папки можуть мати обмежений доступ навіть за наявності дозволів. Якщо сканування не вдається, система може забороняти доступ до цієї папки.</string>
     <string name="animated_badge_gif">GIF</string>
@@ -1756,7 +1751,7 @@
     <string name="resource_added">Ресурс додано</string>
     <string name="resource_comment">Коментар</string>
     <string name="resource_pin_code">PIN-код (необов\'язково)</string>
-    <string name="resource_pin_code_hint">4–6 цифр для захисту цієї папки</string>
+    <string name="resource_pin_code_hint">4-6 цифр для захисту цього ресурсу</string>
     <string name="resource_type_icon">Іконка типу ресурсу</string>
     <string name="cd_resource_icon_quick_slideshow">Запустити слайдшоу</string>
     <string name="resources_added">Додано ресурсів: %1$d</string>
@@ -2079,7 +2074,7 @@
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-супутник</string>
     <string name="tooltip_wear_companion_title">Wear-супутник</string>
-    <string name="tooltip_wear_companion_message">Надішліть свої мережеві теки (SMB, FTP, хмара) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
+    <string name="tooltip_wear_companion_message">Надішліть свої мережеві ресурси (SMB, FTP, хмара) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
     <string name="wear_sync_description">Передайте мережеві джерела на підключений годинник Wear OS.</string>
     <string name="wear_last_synced">Остання синхр.: %s</string>
     <string name="wear_push_to_watch">Надіслати на годинник</string>
@@ -2439,7 +2434,7 @@
     <string name="ext_uninstall_all_confirm_title">Видалити всі розширення?</string>
     <string name="ext_uninstall_all_confirm_message">Видалити всі встановлені розширення і звільнити місце? Пізніше можна завантажити знову.</string>
     <string name="slideshow_stop">Зупинити слайд-шоу</string>
-    <string name="open_in_fms_external_file_notice">Цей файл розташований поза текою, доданою до застосунку, тому відкрився головний екран.</string>
+    <string name="open_in_fms_external_file_notice">Цей файл розташований поза ресурсом, доданим до застосунку, тому відкрився головний екран.</string>
     <string name="sftp_host_key_fingerprint_hint">Очікуваний відбиток host-key (SHA256, опційно)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не вдалося розібрати відбиток. Підтримуються SHA256:base64, hex з двокрапками, чистий base64.</string>
     <string name="sftp_host_key_mismatch_title">Не вдалося підтвердити сервер</string>
@@ -2519,11 +2514,11 @@
     <string name="setting_screenshot_gesture_action_right_title">Дія жесту праворуч</string>
     <string name="setting_screenshot_gesture_action_up_title">Дія жесту вгору</string>
     <string name="setting_screenshot_gesture_action_dialog_title">Дія жесту</string>
-    <string name="screenshot_gesture_action_silent">Тихий знімок</string>
-    <string name="screenshot_gesture_action_open_player">Відкрити в плеєрі</string>
-    <string name="screenshot_gesture_action_open_draw">Знімок для редагування</string>
-    <string name="screenshot_gesture_action_ocr_translate">Надіслати на OCR-переклад</string>
-    <string name="screenshot_gesture_action_share">Поділитися</string>
+    <string name="screenshot_gesture_action_silent">Тихий знімок екрана</string>
+    <string name="screenshot_gesture_action_open_player">Скріншот - Перегляд</string>
+    <string name="screenshot_gesture_action_open_draw">Скріншот для редагування</string>
+    <string name="screenshot_gesture_action_ocr_translate">Скріншот - OCR-переклад</string>
+    <string name="screenshot_gesture_action_share">Скріншот - поділитися</string>
     <string name="screenshot_gesture_action_none">Не використовувати</string>
     <string name="settings_keep_screen_on_player_title">Не вимикати екран під час роботи плеєра</string>
     <string name="settings_keep_screen_on_player_summary">Діє лише в плеєрі та окремих плеєрах, і лише коли загальне налаштування утримання екрана вимкнено.</string>
@@ -2558,7 +2553,7 @@
     <string name="screen_capture_copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="setting_copy_screenshot_to_clipboard_title">Зберігати скриншоти в буфер обміну</string>
     <string name="setting_copy_screenshot_to_clipboard_summary">Додатково копіювати кожен зроблений скриншот у буфер обміну, готовий для вставлення</string>
-    <string name="screenshot_gesture_action_send_to">Надіслати отримувачам</string>
+    <string name="screenshot_gesture_action_send_to">Скріншот - надіслати до..</string>
     <string name="statistics_title">Статистика</string>
     <string name="settings_statistics_open">Статистика</string>
     <string name="statistics_card_sorted">Відсортовано (копіюв. + перемещ.)</string>
@@ -2724,7 +2719,7 @@
     <string name="programs">Програми</string>
     <string name="error_scan_timeout">Тека завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
     <string name="cast_stream_unsupported_protocol">Цю трансляцію не можна транслювати на Chromecast</string>
-    <string name="screenshot_gesture_action_open_app">Відкрити програму</string>
+    <string name="screenshot_gesture_action_open_app">Відкрити основне вікно програми</string>
     <string name="streams_shortcut_channel_missing">Цієї трансляції більше немає в списку</string>
     <string name="streams_add_to_home_screen">На домашній екран</string>
     <string name="streams_shortcut_created">Ярлик додано на домашній екран</string>
@@ -2809,7 +2804,7 @@
     <string name="streams_grid_no_frame_cd">%1$s - без прев\'ю</string>
     <string name="streams_view_grid">Сіткою</string>
     <string name="streams_view_list">Списком</string>
-    <string name="screenshot_gesture_action_crop_and_share">Обрізати знімок і надіслати</string>
+    <string name="screenshot_gesture_action_crop_and_share">Обрізати скріншот і надіслати</string>
     <string name="share_to_pick_resource">Вибір ресурсу..</string>
     <string name="draw_tool_crop">Обрізання</string>
     <string name="draw_crop_frame_desc">Рамка виділення обрізання</string>
@@ -2871,4 +2866,36 @@
     <string name="screen_recording_permission_denied">Для запису екрана потрібні дозволи на мікрофон і сповіщення.</string>
     <string name="screen_recording_saved">Запис екрана збережено: %1$s</string>
     <string name="screen_recording_error">Не вдалося зберегти запис екрана.</string>
+    <string name="streams_panel_disable_action">Вимкнути</string>
+    <string name="action_configure">Налаштувати</string>
+    <string name="main_resource_type_filter_strip">Фільтр типів ресурсів</string>
+    <string name="streams_panel_hide_action">Сховати панель</string>
+    <string name="streams_add_to_favorites">До обраного</string>
+    <string name="streams_remove_from_favorites">З обраного</string>
+    <string name="streams_country_flag">Прапор країни</string>
+    <string name="perm_group_location">Місцезнаходження</string>
+    <string name="perm_title_location">Геомітка під час зйомки</string>
+    <string name="perm_desc_location">Опційно. Додає ваше місцезнаходження до фото та відео, знятих у застосунку. Відмовтеся - і знімки просто не матимуть координат.</string>
+    <string name="screenshot_gesture_action_launch_camera">Запустити камеру</string>
+    <string name="screenshot_gesture_action_start_video_recording">Почати відеозапис</string>
+    <string name="screenshot_gesture_action_start_audio_recording">Почати аудіозапис</string>
+    <string name="screenshot_gesture_action_start_screen_recording">Почати запис екрана</string>
+    <string name="screenshot_gesture_action_take_photo">Зробити фото</string>
+    <string name="screenshot_gesture_action_take_photo_send_to">Зробити фото і надіслати до..</string>
+    <string name="screenshot_gesture_action_take_photo_edit">Зробити фото і редагувати</string>
+    <string name="screenshot_gesture_action_take_photo_ocr_translate">Зробити фото і OCR-переклад</string>
+    <string name="action_open_app_settings">Налаштування програми</string>
+    <string name="programs_panel_configure_action">Налаштувати панель</string>
+    <string name="programs_panel_collapse_action">Згорнути панель</string>
+    <string name="programs_panel_hide_action">Сховати панель</string>
+    <string name="main_programs_panel_strip">Програми та сценарії</string>
+    <string name="streams_panel_collapse_action">Згорнути панель</string>
+    <string name="main_streams_panel_strip">Трансляції..</string>
+    <string name="camera_scenario_ocr_translate">Розпізнавання тексту</string>
+    <string name="error_importing_resources">Помилка імпорту ресурсів</string>
+    <string name="import_resources_message">Додати ресурси SZA?</string>
+    <string name="import_resources_title">Імпорт ресурсів</string>
+    <string name="music_resource_unavailable">Ресурс з музикою недоступний</string>
+    <string name="sza_resources_imported">Ресурси SZA імпортовано</string>
+    <string name="remove_resource">Видалити ресурс</string>
 </resources>

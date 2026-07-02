@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0804 Kryvavytsia mode: lesser Kryvavitsa as a woman (A-line dress) holding a knife. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF7B1FA2"
+        android:pathData="M17,10 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <path
+        android:fillColor="#FF7B1FA2"
+        android:pathData="M18,16 L26,16 L32,42 L12,42 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M36.5,13 L38.5,13 L38.5,17 L36.5,17 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M34,17 L41,17 L41,19 L34,19 Z" />
+    <path
+        android:fillColor="#FF212121"
+        android:pathData="M36,19 L39,19 L37.5,33 Z" />
+</vector>

@@ -83,4 +83,8 @@
     <item
         android:id="@+id/action_open_in_separate_window"
         android:title="@string/action_open_in_separate_window" />
+    <!-- S0806: lowest-priority entry - opens the main app settings window. Always available, pinned last. -->
+    <item
+        android:id="@+id/action_open_app_settings"
+        android:title="@string/action_open_app_settings" />
 </menu>

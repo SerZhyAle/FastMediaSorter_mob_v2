@@ -68,6 +68,9 @@ object OsShortcutCatalog {
 
     fun byKey(key: String): Target? = targets.firstOrNull { it.key == key }
 
+    /** The full curated set, unfiltered by device resolvability. Mirrors [InternalRouteCatalog.all]. */
+    fun all(): List<Target> = targets
+
     /** Targets whose intent resolves on this device. PackageManager work - run off the main thread. */
     fun available(context: Context): List<Target> =
         targets.filter { context.packageManager.resolveActivityCompat(it.intent(context), 0) != null }

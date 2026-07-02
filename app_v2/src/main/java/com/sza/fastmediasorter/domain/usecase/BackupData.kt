@@ -122,6 +122,7 @@ data class BackupSettings(
     val hideSystemUiInFullscreen: Boolean = true,
     val defaultIconSize: Int = 96,
     val defaultShowCommandPanel: Boolean = true,
+    val openVideoInFullscreen: Boolean = true,
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true,
     val alwaysShowTouchZonesOverlay: Boolean = false,
@@ -148,6 +149,7 @@ data class BackupSettings(
     // Player UI
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
+    val resourceTypeTabCollapsed: Boolean = false,
     val enablePictureInPicture: Boolean = false,
     // File list caching
     val defaultRememberFileList: Boolean = false,

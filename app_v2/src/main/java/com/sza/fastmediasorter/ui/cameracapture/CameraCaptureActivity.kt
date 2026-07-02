@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
@@ -90,6 +91,16 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         ): Intent =
             CameraCaptureContract.createIntent(context, outputUri, outputPath, mode)
 
+        // S0812: carry the calling scenario so the host can show a context label.
+        fun createIntent(
+            context: Context,
+            outputUri: Uri,
+            outputPath: String,
+            mode: CameraCaptureMode,
+            scenario: CameraScenario,
+        ): Intent =
+            CameraCaptureContract.createIntent(context, outputUri, outputPath, mode, scenario = scenario)
+
         private const val TAB_SELECTED_ALPHA = 1f
         private const val TAB_UNSELECTED_ALPHA = 0.5f
         private const val ZOOM_PILL_MATCH_EPSILON = 0.15f
@@ -131,6 +142,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     private lateinit var orientationManager: CameraOrientationManager
 
     private var captureInFlight = false
+    private var autoCaptureFired = false
     private var recordingPaused = false
     private var recordingFile: File? = null
     private var lastSavedPath: String? = null
@@ -186,6 +198,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         applyCaptureModeUi()
         setupModeSelector()
         refreshSaveDestinationLabel()
+        renderScenarioLabel()
         updateSendToVisibility()
         renderGridOverlay()
 
@@ -273,12 +286,23 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         sessionManager.onCapabilitiesChanged = { flowManager.onCapabilitiesChanged(it) }
         sessionManager.bind(
             previewView = binding.previewViewCamera,
-            onReady = { binding.btnCapturePhoto.isEnabled = true },
+            onReady = {
+                binding.btnCapturePhoto.isEnabled = true
+                maybeAutoCapture()
+            },
             onError = {
                 showError(R.string.camera_capture_error_no_camera_app)
                 finishCancelled()
             },
         )
+    }
+
+    // S0790: edge-gesture "take photo" opens this screen in auto-capture mode - fire the shutter once
+    // the preview is ready and finish with the result, so the trampoline can save or route the photo.
+    private fun maybeAutoCapture() {
+        if (!flowManager.autoCapture || autoCaptureFired) return
+        autoCaptureFired = true
+        triggerCapture()
     }
 
     override fun renderCapabilities(capabilities: CameraRuntimeCapabilities) {
@@ -792,6 +816,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         binding.btnCapturePhoto,
         binding.btnCameraLensSwitch,
         binding.cameraLensLabel,
+        binding.cameraScenarioLabel,
     )
 
     private fun showCameraSettingsDialog() {
@@ -881,6 +906,18 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                 binding.cameraSaveDestination.visibility = View.VISIBLE
                 applyOverlayRotation(currentOverlayRotation, animate = false)
             }
+        }
+    }
+
+    private fun renderScenarioLabel() {
+        val scenario = CameraCaptureContract.readScenario(intent)
+        Timber.d("S0812: render scenario label ${scenario.name}")
+        if (scenario.labelRes == 0) {
+            binding.cameraScenarioLabel.visibility = View.GONE
+        } else {
+            binding.cameraScenarioLabel.text = getString(scenario.labelRes)
+            binding.cameraScenarioLabel.visibility = View.VISIBLE
+            applyOverlayRotation(currentOverlayRotation, animate = false)
         }
     }
 

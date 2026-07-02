@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -12,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
@@ -34,6 +36,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     private val headerRow: LinearLayout
     private val helpIcon: ImageButton
     private val chevronView: ImageView
+    private val iconView: ImageView
     private val prefixView: TextView
     private val titleView: TextView
     private val summaryView: TextView
@@ -63,6 +66,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         headerRow = findViewById(R.id.csh_headerRow)
         helpIcon = findViewById(R.id.csh_iconHelp)
         chevronView = findViewById(R.id.csh_chevron)
+        iconView = findViewById(R.id.csh_icon)
         prefixView = findViewById(R.id.csh_prefix)
         titleView = findViewById(R.id.csh_title)
         summaryView = findViewById(R.id.csh_summary)
@@ -112,6 +116,22 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
      */
     fun setSummary(@StringRes resId: Int) {
         setSummary(context.getText(resId))
+    }
+
+    /**
+     * Sets an optional leading category icon. Passing `null` hides the icon slot (S0776).
+     */
+    fun setIcon(icon: Drawable?) {
+        iconView.setImageDrawable(icon)
+        iconView.visibility = if (icon == null) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Sets an optional leading category icon from a drawable resource (S0776).
+     */
+    fun setIcon(@DrawableRes resId: Int) {
+        iconView.setImageResource(resId)
+        iconView.visibility = View.VISIBLE
     }
 
     /**
@@ -236,6 +256,9 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             setSummary(typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_summary))
             val showHelp = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_showHelp, false)
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+
+            val iconRes = typedArray.getResourceId(R.styleable.CollapsibleSectionHeader_csh_icon, 0)
+            if (iconRes != 0) setIcon(iconRes)
 
             typedArray.getColorStateList(R.styleable.CollapsibleSectionHeader_csh_titleTextColor)?.let {
                 titleView.setTextColor(it)

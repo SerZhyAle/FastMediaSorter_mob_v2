@@ -7,22 +7,21 @@
     android:padding="@dimen/settings_padding">
 
     <!-- Images + GIF Row Container -->
+    <!-- S0832: portrait stacks the two support toggles on their own rows; landscape keeps them paired (layout-land). -->
     <LinearLayout
         android:id="@+id/containerImagesGif"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
         android:baselineAligned="false"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <!-- Support static images - help payload folded into the row -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSupportImages"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/resource_field_margin_end"
-            android:layout_weight="1"
+            app:str_icon="@drawable/ic_image"
             app:str_title="@string/support_images_description"
             app:str_subtitle="@string/setting_support_images_desc"
             app:str_showHelp="true"
@@ -33,10 +32,9 @@
         <!-- Support GIF animation -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSupportGifs"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_help_icon_margin"
-            android:layout_weight="1"
+            android:layout_marginTop="@dimen/margin_small"
             app:str_title="@string/support_gif_description"
             app:str_subtitle="@string/setting_support_gifs_desc" />
 

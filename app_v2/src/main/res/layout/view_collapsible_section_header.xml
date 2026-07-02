@@ -23,6 +23,16 @@
             app:srcCompat="@drawable/ic_arrow_drop_down"
             app:tint="?attr/colorOnSurfaceVariant" />
 
+        <!-- Optional leading category icon (S0776). Decorative; hidden when unset. -->
+        <ImageView
+            android:id="@+id/csh_icon"
+            android:layout_width="@dimen/settings_help_icon_size"
+            android:layout_height="@dimen/settings_help_icon_size"
+            android:layout_marginEnd="@dimen/settings_padding_vertical"
+            android:importantForAccessibility="no"
+            app:tint="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/csh_prefix"
             android:layout_width="wrap_content"

@@ -236,7 +236,7 @@
       "label_key": "cmd_navigation_next_file",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:22:0", "key:93:0", "key:166:0"],
+        "keyboard": ["key:93:0", "key:166:0"],
         "gamepad": ["gamepad_btn:99"],
         "mouse": ["mouse_btn:16"],
         "vr": ["vr:7"]
@@ -248,7 +248,7 @@
       "label_key": "cmd_navigation_previous_file",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:21:0", "key:92:0", "key:167:0"],
+        "keyboard": ["key:92:0", "key:167:0"],
         "gamepad": ["gamepad_btn:100"],
         "mouse": ["mouse_btn:8"],
         "vr": ["vr:6"]
@@ -416,7 +416,7 @@
       "label_key": "cmd_audio_volume_up",
       "flavor_gate": "photos_excluded",
       "triggers": {
-        "keyboard": ["key:19:0"],
+        "keyboard": [],
         "gamepad": ["gamepad_axis:14:1:0.7"],
         "mouse": [],
         "vr": ["vr:8"]
@@ -428,7 +428,7 @@
       "label_key": "cmd_audio_volume_down",
       "flavor_gate": "photos_excluded",
       "triggers": {
-        "keyboard": ["key:20:0"],
+        "keyboard": [],
         "gamepad": ["gamepad_axis:14:-1:0.7"],
         "mouse": [],
         "vr": ["vr:9"]

@@ -943,7 +943,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         exoPlayer?.stop()
         exoPlayer?.release()
         exoPlayer = null
-        playbackController.updatePlayer(null)
+        if (::playbackController.isInitialized) {
+            playbackController.updatePlayer(null)
+        }
     }
 
     private fun navigateToNextMedia() {

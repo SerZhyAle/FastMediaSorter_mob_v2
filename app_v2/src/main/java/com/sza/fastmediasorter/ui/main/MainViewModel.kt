@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceShareFormat
@@ -19,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
@@ -37,9 +39,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -104,6 +108,9 @@ sealed class MainEvent {
 }
 
 @HiltViewModel
+// S0783 adds favoritesUseCase to an already-large central VM constructor (channel favorite toggle for
+// the main-window streams panel). The dependency list was already past the threshold; kept whole.
+@Suppress("LongParameterList")
 class MainViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getResourcesUseCase: GetResourcesUseCase,
@@ -111,7 +118,11 @@ class MainViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
     private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
-    private val resourceRepository: ResourceRepository,
+    // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
+    // via this path. Dereferenced with .get() only inside coroutine bodies (mirrors S0194). NOTE: the
+    // sibling resource use-cases above are still non-Lazy and transitively open the DB at construction;
+    // the off-main Room warm-up in FastMediaSorterApp is the load-bearing fix (S0869 §3 step 4).
+    private val resourceRepository: dagger.Lazy<ResourceRepository>,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
@@ -121,6 +132,8 @@ class MainViewModel @Inject constructor(
     private val migrateS0059UseCase: MigrateS0059UseCase,
     private val dedupAuthAccountsUseCase: DedupAuthAccountsUseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
+    // S0783: shared Favorites - toggle a channel favorite and observe favorited channel URLs for the panel.
+    private val favoritesUseCase: FavoritesUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
@@ -131,6 +144,11 @@ class MainViewModel @Inject constructor(
 
     val resourceListUiState: StateFlow<UiState<MainState>> =
         createUiState { currentState -> currentState.resources.isEmpty() }
+
+    // S0783: URLs of favorited channels, so the streams-panel per-channel menu can label its action add
+    // vs remove. Eager so `.value` is current when the panel menu opens.
+    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     /**
      * The main screen routes BaseViewModel error state into a dedicated full-screen surface,
@@ -181,7 +199,7 @@ class MainViewModel @Inject constructor(
             runCatching { dedupAuthAccountsUseCase() }
                 .onFailure { Timber.w(it, "DedupAuthAccountsUseCase failed") }
             // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)
-            resourceRepository.backfillMissingIcons { path, profileName, typeName ->
+            resourceRepository.get().backfillMissingIcons { path, profileName, typeName ->
                 val profile = runCatching {
                     com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(profileName)
                 }.getOrElse { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
@@ -635,6 +653,13 @@ class MainViewModel @Inject constructor(
             val allResources = getResourcesUseCase().first()
             val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
             updateState { it.copy(resources = filteredResources) }
+        }
+    }
+
+    /** S0783: add or remove the channel from the shared Favorites (streams-panel per-channel menu). */
+    fun toggleStreamFavorite(source: StreamSourceEntity) {
+        viewModelScope.launch(ioDispatcher) {
+            favoritesUseCase.toggleStreamFavorite(source)
         }
     }
 

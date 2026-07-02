@@ -5,8 +5,8 @@
     <dimen name="main_panel_item_min_width">48dp</dimen>
     <dimen name="main_panel_item_spacing">2dp</dimen>
     <dimen name="main_panel_favicon_size">28dp</dimen>
-    <!-- Streams entry button: about twice a channel chip, with an extra trailing gap (S0756). -->
-    <dimen name="main_streams_entry_min_width">112dp</dimen>
+    <!-- Streams entry button: about one channel chip wide, with an extra trailing gap (S0756). -->
+    <dimen name="main_streams_entry_min_width">56dp</dimen>
     <dimen name="main_streams_entry_margin_end">12dp</dimen>
     <dimen name="main_stream_channel_min_width">56dp</dimen>
     <dimen name="main_panel_fading_edge">24dp</dimen>

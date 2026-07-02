@@ -25,11 +25,17 @@
   This catches "declared but not playing" streams that the header probe marks alive. Runs many more
   concurrent runspaces (default -Throttle 48); each fetch is CancellationToken-bounded.
 
+  Discovery append gate (S0805): in the default discovery mode the same deep-signal verification runs
+  as a SECOND stage after the header probe - only header-alive candidates are re-probed for real media
+  bytes, and only signal-verified rows are appended to streams.csv. This stops "pseudo-alive" channels
+  (playlist 2xx but no segment) from entering the shipped catalog. Opt out with -SkipDeepSignal for a
+  fast prowl; -SkipLiveness (no probing at all) skips both stages.
+
   Sources by axis:
     livetv : iptv-org public index (VIDEO / Live TV); header-gated (referrer/UA) streams dropped.
     genres : radio-browser community DB by exact tag (AUDIO), top by clickcount.
     geo    : radio-browser by country + iptv-org by country (under-represented regions).
-    webcam : curated seed list of public 24/7 HLS feeds (NASA etc.), liveness-filtered.
+    webcam : curated seed list of public 24/7 HLS feeds (DW, France 24, WildEarth etc.), liveness-filtered.
 
   Inclusion policy: keep every reachable live channel that actually carries signal - including
   grey-area restreams and -/- channels. Only defunct ('closed') and header-gated streams
@@ -56,6 +62,10 @@ param(
     [int]$LivenessTimeoutSec = 12,
     [int]$Throttle = 12,
     [switch]$SkipLiveness,
+    # S0805: skip the deep-signal append gate in discovery mode (fast prowl). By default discovery
+    # verifies real media bytes on the header-alive candidates before appending, so a "pseudo-alive"
+    # channel (playlist 2xx but serving no segment/body) is excluded. -SkipLiveness implies this too.
+    [switch]$SkipDeepSignal,
     [switch]$PreviewOnly,
     [switch]$CatalogOnly,
     [switch]$PruneDead,
@@ -728,17 +738,31 @@ function Get-IptvCandidates {
 
 function Get-WebcamSeeds {
     param([string]$axis)
+    # Curated public 24/7 HLS feeds. Every URL below is deep-signal verified (real segment bytes pulled
+    # via -CatalogOnly -DeepSignal) before baking in - CDN/akamai paths rotate, so re-verify with
+    # `-Axis webcam -PreviewOnly` when refreshing. S0843: the prior NASA ntv1/ntv2 + DW dwstream105 seeds
+    # went stale (playlist 200 but segment 404 - "declared but not playing") and were replaced with these
+    # signal-confirmed feeds; NASA retired its public akamai HLS in the NASA+ migration (dead/403).
     $seeds = @(
-        @{ name = 'NASA TV Public (ISS/Live)'; url = 'https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8'; topic = 'Science & Space'; country = 'US'; homepage = 'https://www.nasa.gov/nasatv'; note = 'NASA public-affairs live TV channel, US government free public feed' }
-        @{ name = 'NASA TV Media'; url = 'https://ntv2.akamaized.net/hls/live/2013923/NASA-NTV2-HLS/master.m3u8'; topic = 'Science & Space'; country = 'US'; homepage = 'https://www.nasa.gov/nasatv'; note = 'NASA media channel, US government free public feed' }
-        @{ name = 'DW Documentary 24/7'; url = 'https://dwamdstream105.akamaized.net/hls/live/2015531/dwstream105/master.m3u8'; topic = 'Documentary'; country = 'DE'; homepage = 'https://www.dw.com/'; note = 'Deutsche Welle public broadcaster free 24/7 feed' }
+        @{ name = 'DW English'; url = 'https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8'; topic = 'Documentary'; country = 'DE'; language = 'english'; homepage = 'https://www.dw.com/'; source = 'PUBLIC'; note = 'Deutsche Welle public broadcaster free 24/7 feed' }
+        @{ name = 'CGTN Documentary'; url = 'https://amg00405-rakutentv-cgtndocumentary-rakuten-0ql8j.amagi.tv/master.m3u8'; topic = 'Documentary'; country = 'CN'; language = 'english'; homepage = 'https://www.cgtn.com/'; source = 'PUBLIC'; note = 'CGTN documentary free 24/7 feed' }
+        @{ name = 'Al Arabiya Programs'; url = 'https://live.alarabiya.net/alarabiapublish/aaprograms.smil/playlist.m3u8'; topic = 'Documentary'; country = 'AE'; language = 'arabic'; homepage = 'https://www.alarabiya.net/'; source = 'PUBLIC'; note = 'Al Arabiya programs free 24/7 feed' }
+        @{ name = 'Asharq Documentary'; url = 'https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8'; topic = 'Documentary'; country = 'SA'; language = 'arabic'; homepage = 'https://www.asharq.com/'; source = 'PUBLIC'; note = 'Asharq documentary free 24/7 feed' }
+        @{ name = 'France 24 English'; url = 'https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8'; topic = 'News'; country = 'FR'; language = 'english'; homepage = 'https://www.france24.com/'; source = 'PUBLIC'; note = 'France 24 English public broadcaster free 24/7 feed' }
+        @{ name = 'Al Jazeera English'; url = 'https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8'; topic = 'News'; country = 'QA'; language = 'english'; homepage = 'https://www.aljazeera.com/'; source = 'PUBLIC'; note = 'Al Jazeera English free 24/7 feed' }
+        @{ name = 'CGTN'; url = 'https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8'; topic = 'News'; country = 'CN'; language = 'english'; homepage = 'https://www.cgtn.com/'; source = 'PUBLIC'; note = 'CGTN English news free 24/7 feed' }
+        @{ name = 'InWonder'; url = 'https://amg00861-terninternation-inwonder-samsungau-1k63k.amagi.tv/playlist/amg00861-terninternation-inwonder-samsungau/playlist.m3u8'; topic = 'Science & Space'; country = 'NL'; language = 'english'; homepage = 'https://www.wonder.tv/'; source = 'COMMUNITY'; note = 'Wonder science/nature FAST channel free 24/7 feed' }
+        @{ name = 'WildEarth'; url = 'https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8'; topic = 'Outdoor'; country = 'ZA'; language = 'english'; homepage = 'https://wildearth.tv/'; source = 'COMMUNITY'; note = 'WildEarth live wildlife safari webcam 24/7 feed' }
+        @{ name = 'Red Bull TV'; url = 'https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8'; topic = 'Outdoor'; country = 'AT'; language = 'english'; homepage = 'https://www.redbull.com/int-en/tv'; source = 'COMMUNITY'; note = 'Red Bull TV outdoor/adventure free 24/7 feed' }
+        @{ name = 'AKC TV Puppies 24/7'; url = 'https://install.akctvcontrol.com/speed/broadcast/140/desktop-playlist.m3u8'; topic = 'Outdoor'; country = 'US'; language = 'english'; homepage = 'https://www.akc.tv/'; source = 'COMMUNITY'; note = 'AKC TV live puppy webcam 24/7 feed' }
+        @{ name = '30A Darcizzle Offshore'; url = 'https://30a-tv.com/darcizzle.m3u8'; topic = 'Outdoor'; country = 'US'; language = 'english'; homepage = 'https://30a.tv/'; source = 'COMMUNITY'; note = '30A live offshore/beach webcam 24/7 feed' }
     )
     $out = @()
     foreach ($w in $seeds) {
         $out += New-Candidate -axis $axis -category 'Live TV' -topic $w.topic -name $w.name -url $w.url `
             -mediaKind 'VIDEO' -protocol 'HLS' -format 'm3u8' -bitrate '' -isLive $true `
-            -language 'english' -country $w.country -homepage $w.homepage `
-            -sourceKind 'GOV' -licenseNote $w.note -notes 'seed 24/7 public feed' -confidence 'medium' -score 0
+            -language $w.language -country $w.country -homepage $w.homepage `
+            -sourceKind $w.source -licenseNote $w.note -notes 'seed 24/7 public feed' -confidence 'medium' -score 0
     }
     return $out
 }
@@ -1155,6 +1179,28 @@ if (-not $SkipLiveness -and $deduped.Count -gt 0) {
     $probed | ForEach-Object { $deduped.Add($_) }
     $aliveCount = ($deduped | Where-Object { $_.liveness_status -eq 'alive' }).Count
     Write-Host ("Liveness: {0}/{1} alive" -f $aliveCount, $deduped.Count) -ForegroundColor Cyan
+
+    # S0805: second-stage deep-signal gate. The header probe above only reads the playlist status, so a
+    # "pseudo-alive" channel (playlist 2xx, no segment/body) still reads 'alive' and would be appended.
+    # Re-probe just the header-alive survivors for REAL media bytes and let that verdict decide the
+    # append; header-dead/unknown rows are left untouched. -Parallel runspaces return deserialized
+    # copies, so merge the verified rows back into $deduped by URL (unique per batch after dedup).
+    if (-not $SkipDeepSignal -and $aliveCount -gt 0) {
+        $headerAlive = @($deduped | Where-Object { $_.liveness_status -eq 'alive' })
+        $verified = Invoke-SignalProbe -Rows $headerAlive -Activity 'Candidate signal'
+        $verifiedByUrl = @{}
+        foreach ($v in $verified) { $verifiedByUrl[[string]$v.url] = $v }
+        $merged = [System.Collections.Generic.List[object]]::new()
+        foreach ($row in $deduped) {
+            $u = [string]$row.url
+            if ($verifiedByUrl.ContainsKey($u)) { $merged.Add($verifiedByUrl[$u]) } else { $merged.Add($row) }
+        }
+        $deduped = $merged
+        $signalAlive = @($deduped | Where-Object { $_.liveness_status -eq 'alive' }).Count
+        $dropped = $headerAlive.Count - $signalAlive
+        Write-Host ("Deep signal: {0}/{1} header-alive carry real signal ({2} pseudo-alive dropped)" -f `
+                $signalAlive, $headerAlive.Count, $dropped) -ForegroundColor Cyan
+    }
 }
 
 if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Force | Out-Null }
@@ -1164,7 +1210,9 @@ $reportPath = Join-Path $OutDir 'stream-candidates-report.csv'
 $sorted = $deduped | Sort-Object `
     @{ Expression = { if ($_.liveness_status -eq 'alive') { 0 } else { 1 } } }, `
     axis, @{ Expression = 'score'; Descending = $true }, category, topic, name
-$reportColumns = $Schema + @('axis', 'score', 'liveness_status', 'http_code', 'liveness_note', 'dup')
+# signal_bytes (S0805) is blank for header-only rows (never deep-probed) and carries the verified byte
+# count for the deep-signal stage, so the report shows WHY a pseudo-alive row was dropped.
+$reportColumns = $Schema + @('axis', 'score', 'liveness_status', 'http_code', 'liveness_note', 'signal_bytes', 'dup')
 Write-CsvUtf8 -Rows $sorted -Path $reportPath -Columns $reportColumns
 
 $keep = if ($SkipLiveness) { $sorted } else { $sorted | Where-Object { $_.liveness_status -eq 'alive' } }

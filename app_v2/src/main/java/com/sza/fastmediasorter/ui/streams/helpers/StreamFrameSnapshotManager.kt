@@ -15,6 +15,7 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,8 @@ class StreamFrameSnapshotManager(
     private val context: Context,
     private val cache: StreamFrameCache,
     private val scope: CoroutineScope,
+    // S0712: persist each captured grid frame so a known channel shows its last frame on next launch.
+    private val persistentStore: StreamFramePersistentStore,
 ) {
 
     /** Invoked on the main thread after a successful capture so the adapter can repaint that url's tile. */
@@ -70,15 +73,15 @@ class StreamFrameSnapshotManager(
     private val inFlight = mutableListOf<Job>()
 
     /**
-     * Enqueue a snapshot for [url]. Fresh-cached urls and already-pending urls are skipped. The capture
-     * no longer depends on any View - it renders into an offscreen surface this manager owns - so a
-     * recycled/scrolled cell never aborts or misdirects the result (the adapter keys the repaint on the
-     * cached url, not on a live TextureView).
+     * Enqueue a snapshot for [url]. Already-pending urls are always skipped; a still-fresh cached url is
+     * skipped too unless [force] is set (an explicit pull-to-refresh re-captures even a fresh tile). The
+     * capture renders into an offscreen surface this manager owns, so a recycled/scrolled cell never
+     * aborts or misdirects the result (the adapter keys the repaint on the cached url, not on a View).
      */
-    fun request(url: String) {
+    fun request(url: String, force: Boolean = false) {
         // S0700: entry point of the grid-capture flow (offscreen ImageReader capture per visible tile).
         Timber.d("S0700: snapshot request enqueued for %s", url)
-        if (cache.isFresh(url)) return
+        if (!force && cache.isFresh(url)) return
         synchronized(pending) {
             if (!pending.add(url)) return
         }
@@ -141,7 +144,12 @@ class StreamFrameSnapshotManager(
             surface = readerSurface
             reader.setOnImageAvailableListener({ r ->
                 if (firstFrame.isCompleted) {
-                    r.acquireLatestImage()?.close()
+                    // S0875: dispatched message can outlive capture()'s main-thread reader.close() - benign race.
+                    try {
+                        r.acquireLatestImage()?.close()
+                    } catch (e: IllegalStateException) {
+                        Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
+                    }
                     return@setOnImageAvailableListener
                 }
                 val bitmap = readFrame(r)
@@ -184,6 +192,10 @@ class StreamFrameSnapshotManager(
                 return@withContext null
             }
             cache.put(url, bitmap)
+            // S0712: write the low-res thumbnail to disk off the main thread; best-effort, never blocks
+            // the capture result. Reuses this manager's scope so it is cancelled with the grid.
+            Timber.d("S0712: persist captured frame %s", url)
+            scope.launch { persistentStore.save(url, bitmap) }
             bitmap
         } catch (t: Throwable) {
             Timber.w(t, "Stream snapshot failed: %s", url)
@@ -205,7 +217,13 @@ class StreamFrameSnapshotManager(
      * back to the capture size. Returns null if no image is available or the copy fails.
      */
     private fun readFrame(reader: ImageReader): Bitmap? {
-        val image = reader.acquireLatestImage() ?: return null
+        // S0875: acquire raced main-thread capture() teardown (reader closed) - benign, skip this frame.
+        val image = try {
+            reader.acquireLatestImage()
+        } catch (e: IllegalStateException) {
+            Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
+            null
+        } ?: return null
         return try {
             val plane = image.planes.firstOrNull()
             if (plane == null) {

@@ -18,10 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityGameBinding
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GameStatus
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardAccessibilityLabels
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderMapper
 import com.sza.fastmediasorter.ui.game.helpers.GameInputManager
+import com.sza.fastmediasorter.ui.game.helpers.GameModeMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +38,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
     private val renderMapper = GameBoardRenderMapper()
     private lateinit var boardView: GameBoardView
     private lateinit var inputManager: GameInputManager
+    private lateinit var modeMenuManager: GameModeMenuManager
     private var previousStatus: GameStatus? = null
     private var autoAdvanceJob: Job? = null
 
@@ -87,8 +90,17 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
             right = binding.btnGameRight
         )
         inputManager.bindPrimaryAction(binding.btnGameReset)
+        modeMenuManager = GameModeMenuManager(this, this)
         binding.btnGameBack.setOnClickListener { finish() }
-        binding.btnGameHelp.setOnClickListener { startActivity(Intent(this, GameHelpActivity::class.java)) }
+        binding.btnGameMode.setOnClickListener {
+            modeMenuManager.show(currentMode()) { selected -> viewModel.setMode(selected) }
+        }
+        binding.btnGameHelp.setOnClickListener {
+            startActivity(
+                Intent(this, GameHelpActivity::class.java)
+                    .putExtra(GameHelpActivity.EXTRA_MODE, currentMode().name)
+            )
+        }
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -114,6 +126,8 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         boardView.requestLayout()
     }
+
+    private fun currentMode(): GameMode = (viewModel.state.value as? GameUiState.Ready)?.mode ?: GameMode.CLASSIC
 
     private fun handleResetAction() {
         val ready = viewModel.state.value as? GameUiState.Ready
@@ -155,6 +169,9 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         binding.txtGameTurns.text = getString(R.string.game_turns, ready.turns)
         binding.btnGameReset.isEnabled = true
         binding.btnGameReset.text = resetActionText(ready)
+        val modeLabel = getString(GameModeMenuManager.labelRes(ready.mode))
+        binding.btnGameMode.text = modeLabel
+        binding.btnGameMode.contentDescription = getString(R.string.game_mode_button_content_description, modeLabel)
         maybeShowDefeatToast(ready)
         maybeScheduleAutoAdvance(ready)
         previousStatus = ready.levelState.status

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0787: list-selection row label colour. The selected row reads on the primary-container
+     highlight; every other row uses the standard on-surface colour for readable, non-faint text. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true" android:color="?attr/colorOnPrimaryContainer" />
+    <item android:color="?attr/colorOnSurface" />
+</selector>

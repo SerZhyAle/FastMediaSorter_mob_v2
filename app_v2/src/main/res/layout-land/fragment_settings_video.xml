@@ -23,6 +23,7 @@
             android:layout_weight="1"
             android:layout_marginEnd="@dimen/dialog_field_spacing"
             android:nextFocusRight="@id/rowShowVideoThumbnails"
+            app:str_icon="@drawable/ic_video"
             app:str_title="@string/support_video_description"
             app:str_subtitle="@string/setting_support_videos_desc"
             app:str_showHelp="true"
@@ -45,6 +46,15 @@
             app:str_helpMessage="@string/tooltip_video_thumbnails_message" />
 
     </LinearLayout>
+
+    <!-- S0820: launch straight into fullscreen when a video is opened from Browse -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowOpenVideoInFullscreen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/settings_item_margin_bottom"
+        app:str_title="@string/setting_open_video_in_fullscreen_title"
+        app:str_subtitle="@string/setting_open_video_in_fullscreen_desc" />
 
     <!-- Video size limit -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:gravity="center_vertical" android:orientation="horizontal">

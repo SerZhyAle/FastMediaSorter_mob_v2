@@ -404,6 +404,7 @@
                         android:id="@+id/headerScheduled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:csh_icon="@drawable/ic_schedule"
                         app:csh_title="@string/scheduled_ops_section_title" />
 
                     <LinearLayout
@@ -423,6 +424,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:layout_marginBottom="@dimen/margin_tiny"
+                            app:str_icon="@drawable/ic_schedule"
                             app:str_title="@string/scheduled_ops_toggle"
                             app:str_subtitle="@string/scheduled_ops_toggle_hint" />
 
@@ -603,6 +605,7 @@
                     android:id="@+id/headerOtherFeatures"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_camera_capture"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_other_features" />
 
@@ -615,6 +618,7 @@
                         android:id="@+id/rowCameraToResourceEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_camera_capture"
                         app:str_title="@string/setting_camera_to_resource_enabled_title"
                         app:str_subtitle="@string/setting_camera_to_resource_enabled_desc" />
 
@@ -715,6 +719,7 @@
                         android:id="@+id/rowVideoCaptureEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_video"
                         app:str_title="@string/setting_video_capture_enable_title"
                         app:str_subtitle="@string/setting_video_capture_enable_desc" />
 
@@ -791,6 +796,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginEnd="@dimen/margin_small"
+                            app:str_icon="@drawable/ic_microphone"
                             app:str_title="@string/settings_mic_recording_enable_title"
                             app:str_subtitle="@string/settings_mic_recording_enable_desc" />
 
@@ -857,6 +863,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_tiny"
+                        app:str_icon="@drawable/ic_display"
                         app:str_title="@string/settings_screen_recording_enable_title"
                         app:str_subtitle="@string/settings_screen_recording_enable_desc" />
 
@@ -920,6 +927,7 @@
                     android:id="@+id/headerAdditionalPrograms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_apps"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_additional_programs" />
 
@@ -943,6 +951,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
                             android:nextFocusRight="@id/rowEnableCalculator"
+                            app:str_icon="@drawable/ic_camera_ocr_translate"
                             app:str_title="@string/setting_camera_ocr_translation_title"
                             app:str_subtitle="@string/setting_camera_ocr_translation_desc" />
 
@@ -967,6 +976,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
                             android:nextFocusLeft="@id/rowCameraOcrTranslationEnabled"
+                            app:str_icon="@drawable/ic_calculator"
                             app:str_title="@string/calculator_title"
                             app:str_subtitle="@string/setting_calculator_desc"
                             app:str_showHelp="true"
@@ -977,6 +987,7 @@
                             android:id="@+id/rowEmbeddedGame"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_game_kryvavitsa"
                             app:str_title="@string/game_settings_toggle_title"
                             app:str_subtitle="@string/game_settings_toggle_subtitle"
                             app:str_showHelp="true"
@@ -1188,6 +1199,7 @@
                     android:id="@+id/headerScreenGestures"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_gesture"
                     app:csh_showHelp="false"
                     app:csh_title="@string/setting_subgroup_screen_gestures_title" />
 
@@ -1198,6 +1210,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
+                        app:str_icon="@drawable/ic_gesture"
                         app:str_title="@string/setting_gesture_overlay_title"
                         app:str_subtitle="@string/setting_gesture_overlay_summary"
                         app:str_showHelp="true"
@@ -1272,6 +1285,8 @@
                             android:focusable="true"
                             android:maxLines="2"
                             android:textAllCaps="false"
+                            app:icon="@drawable/ic_apps"
+                            app:iconGravity="textStart"
                             android:text="@string/app_launch_panel_settings_edit_button" />
 
                     </LinearLayout>

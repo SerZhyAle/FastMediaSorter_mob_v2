@@ -248,6 +248,23 @@
         tools:text="3"
         tools:visibility="visible" />
 
+    <!-- S0812: scenario context label (e.g. text recognition); sits above the zoom presets, hidden for generic capture. -->
+    <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+        android:id="@+id/cameraScenarioLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:maxLines="1"
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/cameraZoomPresetGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Text recognition"
+        tools:visibility="visible" />
+
     <!-- S0566/S0753: always-visible zoom presets (half-size, see-through); hidden when no zoom range. -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/cameraZoomPresetGroup"

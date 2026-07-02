@@ -128,6 +128,19 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 
 `.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
+### Macrobenchmark and Baseline Profiles (S0722)
+
+```powershell
+.\a.ps1 mb
+.\a.ps1 gbp
+```
+
+- `mb` runs the standard Macrobenchmark suite against the benchmark target.
+- `gbp` collects the standard Baseline Profile through the `nonMinifiedRelease` generation flow.
+- Wrapper scripts: `scripts/builders/run-standard-macrobenchmark.ps1` and `scripts/builders/generate-standard-baseline-profile.ps1`.
+- Expect JSON results and Perfetto traces under `benchmark/build/outputs/connected_android_test_additional_output/<variant>/connected/<device_id>/`.
+- See `docs/PERFETTO_PLAYBOOK.md` for thresholds, output interpretation, and Perfetto escalation rules.
+
 ### KAPT stall recovery (targeted validation only)
 
 Symptom: `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes while running a targeted validation command such as `:app_v2:compileStandardDebugKotlin` or `:app_v2:testStandardDebugUnitTest`. The build does not fail, so `build-debug.PS1`'s failure-driven auto-retry does not engage.

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape: maxHeight added to ScrollView; title+buttons row is first item so always visible -->
+<!-- Landscape: maxHeight added to ScrollView so all controls scroll (S0827: matches
+     dialog_camera_settings.xml landscape structure - full-width title, actions at bottom). -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,39 +13,16 @@
     android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
-    <!-- Title and Buttons at top -->
-    <LinearLayout
+    <!-- Title (S0827: own full-width line - Cancel/Apply moved to bottom row, mirrors
+         dialog_camera_settings.xml, avoids title wrap in portrait; kept consistent here too). -->
+    <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="@dimen/margin_small">
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/player_settings_title"
-            android:textSize="@dimen/text_size_title_dialog"
-            android:textStyle="bold" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancel"
-            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cancel" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnApply"
-            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dialog_action_button_gap"
-            android:text="@string/apply" />
-
-    </LinearLayout>
+        android:text="@string/player_settings_title"
+        android:textSize="@dimen/text_size_title_dialog"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_small" />
 
     <!-- Playback Speed Section -->
     <TextView
@@ -208,6 +186,30 @@
         android:textSize="@dimen/toggler_desc_text_size"
         android:textColor="@color/text_color_secondary"
         android:layout_marginBottom="@dimen/margin_small" />
+
+    <!-- Actions (S0827: bottom row, mirrors dialog_camera_settings.xml). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApply"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@string/apply" />
+    </LinearLayout>
 
 </LinearLayout>
 </ScrollView>

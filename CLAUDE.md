@@ -72,6 +72,7 @@
 - **Background long jobs**: Run full/release builds, full test suites, device sweeps via `run_in_background` (harness re-invokes on completion) and continue other work meanwhile. Never foreground-wait a slow build. Still never run >1 gradle build at once.
 - **Initiative**: Do not ask permission for searches, builds, queries. Flag blockers at start.
 - **Cost discipline**: Default to the playbook in `docs/AGENT_COST_PLAYBOOK.md` - prefer inline over a subagent for single-fact lookups (<=3 targeted tool calls), `/compact` at task boundaries and `/clear` on task switch, offload raw artifacts to `temp/` instead of holding them in chat, and restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
+- **Subagent MCP isolation**: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
 
 ## 7. PowerShell Efficiency
 - **Always pass `-NoProfile`** (e.g. `pwsh -NoProfile -File ...`).

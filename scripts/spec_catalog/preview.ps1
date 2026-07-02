@@ -23,7 +23,7 @@
 #     "tactical_folder": false,
 #     "last_audit_present": false,
 #     "timber_tags_kt": 0,
-#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified"
+#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified" (never research-heavy)
 #     "auto_skip_reason": null,           # human-readable reason
 #     "depends_on": [ {"id":"S0241","status":"Verified"}, ... ],
 #     "research_open_count": 5
@@ -249,10 +249,11 @@ elseif ($rec.status -eq 'BlockByOtherTask' -and $dependsOn.Count -gt 0) {
         $autoSkipReason = 'Depends on ' + ($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', '
     }
 }
-elseif ($researchOpenCount -ge 3 -and $rec.status -in @('Draft', 'Approved')) {
-    $autoSkip = 'research-heavy'
-    $autoSkipReason = "Research section has $researchOpenCount unresolved items; /spec-all would block"
-}
+# NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward
+# until it reaches readiness or hits a REAL human blocker (BlockQuestions/BlockExternal
+# set by /spec-all). research_open_count stays informational only - a heavy research
+# section is not a reason to pre-emptively skip; /spec-all resolves what it can from the
+# codebase and blocks only on genuinely human-gated questions.
 
 # 12. Compose result
 $result = [PSCustomObject]@{

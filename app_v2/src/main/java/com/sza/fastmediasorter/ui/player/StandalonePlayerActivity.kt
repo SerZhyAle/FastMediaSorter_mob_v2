@@ -452,7 +452,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         standaloneTrackSelectionManager = null
         videoTouchDelegate = null
         playerSettingsManager = null
-        viewManager.release()
+        // S0860: viewManager is assigned late in setupViews(); the probe short-circuit and a
+        // first-frame destroy run onDestroy before that, so guard the release like lifecycleManager.
+        if (::viewManager.isInitialized) viewManager.release()
         super.onDestroy()
     }
 

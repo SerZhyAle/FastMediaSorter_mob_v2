@@ -21,16 +21,28 @@ class BrowseStateManager(
     }
     
     /**
-     * Gets current focus position in RecyclerView.
-     * Returns first visible item position or 0 if unavailable.
+     * Gets the adapter position that browser commands (delete/copy/move/rename/
+     * toggle-selection, context menu, range-select) should target.
+     *
+     * Prefers the item that actually holds D-pad/keyboard focus so the action lands on
+     * the element the user sees highlighted - not merely the first visible one. Grid mode
+     * uses GridLayoutManager (a LinearLayoutManager subclass), so first-visible is a valid
+     * fallback there too. Falls back to first-visible, then 0, when nothing holds focus.
      */
     fun getCurrentFocusPosition(): Int {
+        val focused = recyclerView.focusedChild
+        val focusedPosition = if (focused != null) {
+            recyclerView.getChildAdapterPosition(focused)
+        } else {
+            RecyclerView.NO_POSITION
+        }
+        if (focusedPosition != RecyclerView.NO_POSITION) return focusedPosition
+
         val layoutManager = recyclerView.layoutManager
-        return when (layoutManager) {
-            is LinearLayoutManager -> {
-                layoutManager.findFirstVisibleItemPosition()
-            }
-            else -> 0
+        return if (layoutManager is LinearLayoutManager) {
+            layoutManager.findFirstVisibleItemPosition().takeIf { it != RecyclerView.NO_POSITION } ?: 0
+        } else {
+            0
         }
     }
     

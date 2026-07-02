@@ -81,7 +81,6 @@ class CookieFileWriter @Inject constructor(
         }
 
         Timber.d("CookieFileWriter: wrote %d cookies for host=%s", merged.size, targetHost)
-        Timber.d("S0822: cookie file written host=%s cookies=%d", targetHost, merged.size)
         return file
     }
 

@@ -244,4 +244,6 @@
     <string name="settings_screen_recording_enable_desc">Записывать весь экран в видеофайл со звуком микрофона. Во время записи доступны кнопка остановки и таймер.</string>
     <string name="setting_screen_recording_destination_title">Ресурс для записей экрана</string>
     <string name="setting_screen_recording_destination_default_downloads">По умолчанию: папка Downloads</string>
+    <string name="setting_open_video_in_fullscreen_title">Открывать видеофайлы в полноэкранном режиме</string>
+    <string name="setting_open_video_in_fullscreen_desc">Видео, открытые из браузера ресурсов, запускаются сразу в полноэкранном режиме</string>
 </resources>

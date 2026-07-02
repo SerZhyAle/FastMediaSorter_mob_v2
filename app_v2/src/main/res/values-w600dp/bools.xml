@@ -2,6 +2,4 @@
 <resources>
     <bool name="is_tab_inline">true</bool>
     <bool name="is_resource_actions_inline">true</bool>
-    <!-- S0756: a >=600dp-wide window shows channel labels next to thumbnails (window-size-class rule). -->
-    <bool name="main_streams_panel_show_labels">true</bool>
 </resources>

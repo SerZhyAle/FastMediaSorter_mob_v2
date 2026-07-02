@@ -30,7 +30,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
         val resources = resourceRepository.getAllResourcesSync()
         val resourceLookup = resources.associateBy { it.id }
 
-        val favorites = BackupMapper.toBackupFavorites(favoritesDao.getAllFavoritesSync(), resourceLookup)
+        // S0783: back up file favorites only; live-channel favorites are not part of the favorites backup.
+        val favorites = BackupMapper.toBackupFavorites(favoritesDao.getFileFavoritesSync(), resourceLookup)
         val scheduledOps = scheduledOperationRepository.getAll().first()
             .mapNotNull { BackupMapper.toBackupScheduledOperation(it, resourceLookup) }
 

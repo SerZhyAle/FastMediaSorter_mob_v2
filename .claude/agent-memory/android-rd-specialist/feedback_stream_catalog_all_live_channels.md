@@ -34,3 +34,16 @@ playlist URL only) and `-CatalogOnly -DeepSignal`, which pulls a few KB of real 
 master->media->first segment) so an HLS master that 200s but serves no segment is correctly `dead` -
 the "declared but not playing" case. Use `-DeepSignal` for accurate prune decisions; `-Throttle` 48+
 for the full 2300-row sweep.
+
+**Update 2026-07-01 (S0805):** the discovery/append path now runs the deep-signal probe by DEFAULT as a
+second stage after the header probe - only header-alive candidates are re-probed for real media bytes,
+and only signal-verified rows are appended, so pseudo-alive channels (playlist 2xx, no segment) can no
+longer enter the shipped catalog on a routine collection run. Opt out with `-SkipDeepSignal` (fast
+prowl); `-SkipLiveness` still skips both stages. Key asymmetry to preserve: **append = strict**
+(deep-signal gate, don't let pseudo-alive in) but **prune = conservative** (still header-only + human
+`-PruneDead`, since dead-from-here may be alive on a user's device). Do NOT auto-drive prune off deep
+signal. Side-finding S0843 (RESOLVED 2026-07-02, Implemented): `Get-WebcamSeeds`
+refreshed 3 dead seeds -> 12 deep-signal-verified 24/7 feeds (NASA dropped entirely - public akamai HLS
+dead/403 after the NASA+ move; DW dwstream105 -> DW English amagi; + France24/AlJazeera/CGTN/InWonder/
+WildEarth/RedBull/AKC/30A across Documentary/News/Science & Space/Outdoor). Re-verify seed URLs with
+`-Axis webcam -PreviewOnly` before publish - CDN/akamai paths rotate.

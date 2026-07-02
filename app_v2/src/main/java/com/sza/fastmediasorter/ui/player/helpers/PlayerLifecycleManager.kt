@@ -265,7 +265,16 @@ class PlayerLifecycleManager(
         } catch (e: UninitializedPropertyAccessException) {
             // Not initialized, skip
         }
-        
+
+        // S0871: LyricsManager owns a TextToSpeech engine bound to this Activity; release it here.
+        // hideLyricsViewer() (its only other teardown path) runs on back-press/close, which onDestroy
+        // does not traverse, so without this the TTS ServiceConnection leaks past teardown.
+        try {
+            activity.lyricsManager.release()
+        } catch (e: UninitializedPropertyAccessException) {
+            Timber.d("PlayerLifecycleManager: lyricsManager not initialized at teardown, skip")
+        }
+
         // Note: TextViewerManager IS released at line 166
         // Note: Translation cache is NOT cleared here - it's global and managed by TranslationCacheManager
         // Cache is cleared only on app startup and when user clicks "Clear cache" in settings

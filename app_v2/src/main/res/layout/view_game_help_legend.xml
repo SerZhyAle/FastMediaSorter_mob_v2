@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Icons and labels are swapped at runtime per game mode (S0804); values here are the Classic defaults. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -13,11 +14,13 @@
         android:orientation="horizontal">
 
         <View
+            android:id="@+id/icLegendPlayer"
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:background="@drawable/bg_game_ball_player" />
 
         <TextView
+            android:id="@+id/txtLegendPlayer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_normal"
@@ -34,11 +37,13 @@
         android:orientation="horizontal">
 
         <View
+            android:id="@+id/icLegendKryvavitsa"
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:background="@drawable/bg_game_ball_kryvavitsa" />
 
         <TextView
+            android:id="@+id/txtLegendKryvavitsa"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_normal"
@@ -55,11 +60,13 @@
         android:orientation="horizontal">
 
         <View
+            android:id="@+id/icLegendShadow"
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:background="@drawable/bg_game_ball_shadow" />
 
         <TextView
+            android:id="@+id/txtLegendShadow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_normal"
@@ -76,11 +83,13 @@
         android:orientation="horizontal">
 
         <View
+            android:id="@+id/icLegendExit"
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:background="@drawable/bg_game_ball_exit" />
 
         <TextView
+            android:id="@+id/txtLegendExit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_normal"
@@ -97,11 +106,13 @@
         android:orientation="horizontal">
 
         <View
+            android:id="@+id/icLegendWall"
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:background="@drawable/bg_game_ball_wall" />
 
         <TextView
+            android:id="@+id/txtLegendWall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_normal"

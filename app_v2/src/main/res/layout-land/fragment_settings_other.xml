@@ -28,6 +28,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                app:str_icon="@drawable/ic_translate"
                 app:str_title="@string/enable_translation"
                 app:str_subtitle="@string/setting_enable_translation_desc"
                 app:str_showHelp="true"
@@ -101,6 +102,7 @@
             android:id="@+id/rowEnableOcr"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:str_icon="@drawable/ic_ocr"
             app:str_title="@string/enable_ocr" />
 
         <TextView android:id="@+id/tvOcrSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:text="@string/enable_ocr_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />

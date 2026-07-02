@@ -46,6 +46,14 @@ class BrowseMicRecordingManager(
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
 
     fun startRecording(resource: MediaResource) {
+        // S0861: startRecording() had no reentrancy guard - a second call (e.g. the RECORD_AUDIO
+        // grant callback auto-starting while a prior held-with-no-finger session is still live)
+        // would overwrite mediaRecorder/pendingTempFile/audioFocusListener, orphaning the first
+        // recorder and permanently leaking its exclusive audio focus. Discard any live session first.
+        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+            Timber.w("startRecording - a session is already active, cancelling it first")
+            cancelRecording()
+        }
         pendingResource = resource
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -166,6 +174,18 @@ class BrowseMicRecordingManager(
         abandonAudioFocus()
         clearPendingSession(deleteTempFile = true)
         onRecordingStateChanged(false)
+    }
+
+    /**
+     * S0861: host teardown hook (onPause/onStop/onDestroy) - none of BrowseActivity's real
+     * lifecycle edges touched this manager before, so a MediaRecorder + exclusive audio focus
+     * started with no finger down (permission-grant auto-start) could survive activity destroy.
+     * Discards rather than saves, matching [com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager.release].
+     */
+    fun release() {
+        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+            cancelRecording()
+        }
     }
 
     private fun showNameDialog(tempFile: File, defaultName: String, resource: MediaResource) {

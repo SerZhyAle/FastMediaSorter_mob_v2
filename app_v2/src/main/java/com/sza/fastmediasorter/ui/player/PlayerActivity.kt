@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Trace
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.ActionMode
@@ -136,6 +137,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0021: lazy-initialised FPS meter for the flat 2D player overlay.
     internal val playerFpsMeter: PlayerFpsMeter = PlayerFpsMeter()
     private var playerFpsCollectorStarted: Boolean = false
+    private var playerReadyTraceEmitted: Boolean = false
     internal var playerFpsCollectorStartedAccess: Boolean
         get() = playerFpsCollectorStarted
         set(value) { playerFpsCollectorStarted = value }
@@ -367,6 +369,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
+
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
     @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
@@ -532,17 +535,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     }
 
     /**
-     * S0694: a live video stream opens straight into fullscreen. Gate on the intent's resource id
-     * (STREAM is known immediately, whereas currentFile/isLiveVideoStream is not populated yet at
-     * first layout) and run only on a fresh launch - a process-death recreation must not re-force
-     * fullscreen after the user has manually exited it. enterFullscreenMode() is idempotent.
+     * S0694/S0820: certain launches enter fullscreen immediately - a live video stream (S0694) or,
+     * when the "open video in fullscreen" setting is on, an ordinary video file opened from Browse
+     * with no per-resource command-panel override (S0820). Both producers resolve the decision
+     * before building the intent (the media type/stream-ness is not reliably known here at first
+     * layout) and pass the final result via [EXTRA_ENTER_FULLSCREEN] - trust it directly. Runs only
+     * on a fresh launch - a process-death recreation must not re-force fullscreen after the user has
+     * manually exited it. enterFullscreenMode() is idempotent.
      */
     private fun initEnterFullscreenOnLaunch(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) return
         if (!intent.getBooleanExtra(EXTRA_ENTER_FULLSCREEN, false)) return
-        val isStreamResource = intent.getLongExtra("resourceId", 0L) ==
-            com.sza.fastmediasorter.domain.model.SyntheticResourceIds.STREAM
-        if (!isStreamResource) return
+        Timber.d("S0820: initEnterFullscreenOnLaunch entering fullscreen on fresh launch")
         viewModel.enterFullscreenMode()
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
@@ -620,8 +624,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     override fun observeData() = lifecycleBridge.observeData()
 
-    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
+    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
+        emitTraceSection(FMS_PLAYER_BACK_NAVIGATION)
         lifecycleManager.exitPlayerWithAudioCheck(withTransition)
+    }
+
+    internal fun emitPlayerReadyTraceIfNeeded() {
+        if (playerReadyTraceEmitted) return
+        playerReadyTraceEmitted = true
+        emitTraceSection(FMS_PLAYER_READY)
+    }
+
+    private fun emitTraceSection(sectionName: String) {
+        Trace.beginSection(sectionName)
+        Trace.endSection()
+    }
 
     private fun setupGestureDetector() = gestureSetupManager.setupGestureDetector()
 
@@ -727,6 +744,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun scheduleHideControls() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        // S0819: in non-touch mode (D-pad/gamepad) the controls overlay is the only thing the
+        // travelling focus frame can land on, so never auto-hide it there - the frame would be
+        // left pointing at nothing. Touch mode keeps the original auto-hide behaviour.
+        if (!binding.root.isInTouchMode) return
         val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
         if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
             hideControlsHandler.postDelayed(hideControlsRunnable, VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS)
@@ -933,8 +954,23 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     internal fun stopVideoPlayback() = lifecycleManager.stopVideoPlayback()
 
-    /** S0289 §2.2: initial focus on play-pause when the player opens on a non-touch device. */
+    /**
+     * S0289 §2.2 / S0819: initial focus target on a non-touch open.
+     *
+     * `btnPlayPause` lives inside `controlsOverlay`, which is `gone` by default and only shown when
+     * `PlayerState.showControls` is true and the current media does not use touch zones. Focusing a
+     * `gone` view is a silent no-op, so before returning the button we make the overlay visible on a
+     * non-touch open (unless the media is touch-zone driven, e.g. images, where the overlay is
+     * intentionally suppressed and there is nothing to force-show). Visibility is set both on the
+     * `PlayerState` (so a following `updateUI` keeps it, and S0819's non-touch auto-hide guard leaves
+     * it up) and synchronously on the view (so the immediate `requestFocus()` in BaseActivity finds a
+     * focusable target on the very first pass).
+     */
     override fun getInitialFocusView(): View? {
+        if (!binding.root.isInTouchMode && !useTouchZones) {
+            if (!viewModel.state.value.showControls) viewModel.toggleControls()
+            binding.controlsOverlay.isVisible = true
+        }
         return binding.btnPlayPause
     }
 
@@ -1195,6 +1231,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
+        private const val FMS_PLAYER_READY = "FMS_PLAYER_READY"
+        private const val FMS_PLAYER_BACK_NAVIGATION = "FMS_PLAYER_BACK_NAVIGATION"
         // S0242 Phase 02: the legacy "modified files" intent extra was removed - the Browse Reconciler reads the MutationJournal independently on its onResume. S0028: per-window resume state isolation
         const val EXTRA_WINDOW_ID = "extra_window_id"
         // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
@@ -1253,9 +1291,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
             shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
             windowId: String? = null,
+            enterFullscreen: Boolean = false,
         ): Intent = createIntent(
             context, resourceId, initialIndex, skipAvailabilityCheck, initialFilePath,
             isPlaying, isSlideshowEnabled, shuffleOnStart, detectedStereoMode, windowId,
+            enterFullscreen,
         )
     }
 }

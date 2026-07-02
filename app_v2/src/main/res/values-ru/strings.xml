@@ -158,7 +158,7 @@
     <string name="clear_all">Очистить всё</string>
     <string name="filter">Фильтр</string>
     <string name="refresh">Обновить</string>
-    <string name="copy_resource">Добавить копированием</string>
+    <string name="copy_resource">Дублировать настройки ресурса</string>
     <string name="exit">Выход</string>
     <string name="sort">Сортировка</string>
     <string name="toggle_view">Вид</string>
@@ -198,7 +198,7 @@
     <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости..</string>
     <string name="error_subfolder_does_not_exist">Подпапка \'%1$s\' не существует в общем ресурсе \'%2$s\'</string>
     <string name="retry">Повторить</string>
-    <string name="select_resource_type">Выберите тип папки</string>
+    <string name="select_resource_type">Выберите тип ресурса</string>
 
     <!-- Connection Error Messages -->
     <string name="error_connection_timeout">Не удаётся подключиться к \"%1$s\" - сервер %2$s не отвечает</string>
@@ -536,11 +536,9 @@
     <string name="tooltip_allow_separate_window_message">Когда включено, на экранах обзора и плеера появляется действие «Открыть в новом окне», запускающее выбранную папку или файл в отдельном окне Android. Полезно на устройствах, поддерживающих многооконный режим (планшеты, складные устройства, ChromeOS, большие дисплеи). Когда выключено, действие скрыто и всё открывается в текущем окне.</string>
 
     <!-- Edit Folder -->
-    <string name="edit_resource">Редактирование папки</string>
-    <string name="edit_resource_with_type">Редактирование папки (%1$s)</string>
     <!-- Add Folder -->
-    <string name="add_resource_title">Добавить папку</string>
-    <string name="copy_resource_title">Добавить копированием</string>
+    <string name="add_resource_title">Добавить ресурс</string>
+    <string name="copy_resource_title">Дублировать настройки ресурса</string>
     <string name="resource_type_local">Локальные</string>
     <string name="resource_type_smb">Сетевая папка SMB</string>
     <string name="resource_type_sftp">SFTP</string>
@@ -548,7 +546,7 @@
     <string name="resource_type_cloud">Облако</string>
     <string name="scanning_progress">Сканирование: %s</string>
     <string name="filters_active">Фильтры: %s</string>
-    <string name="add_sftp_ftp_title">Добавить S/FTP папку</string>
+    <string name="add_sftp_ftp_title">Добавить S/FTP ресурс</string>
     <string name="all_resources_available">Все ресурсы доступны: %1$d для записи, %2$d только для чтения</string>
     <string name="all_resources_unavailable">Все ресурсы недоступны</string>
     <string name="resources_checked">Проверено ресурсов: %1$d доступно (%2$d недоступно)</string>
@@ -558,8 +556,6 @@
     <string name="comment">Комментарий</string>
     <string name="access_pin">ПИН-код доступа</string>
     <string name="pin_incorrect">Неверный ПИН-код</string>
-    <string name="resource_path">Путь папки</string>
-    <string name="resource_type">Тип папки</string>
     <string name="created_date">Дата создания</string>
     <string name="last_browse_date">Дата последнего просмотра</string>
     <string name="never_browsed">Никогда не просматривался</string>
@@ -1242,7 +1238,7 @@
     <string name="invalid_page_number">Неверный номер страницы. Введите число от 1 до %1$d</string>
 
     <!-- OCR Feature -->
-    <string name="enable_ocr">Разрешить распознавание текста (OCR)</string>
+    <string name="enable_ocr">Разрешить распознавание текста</string>
     <string name="enable_ocr_summary">Извлечение текста из изображений и PDF для копирования</string>
 
     <!-- Media Settings Categories -->
@@ -1650,7 +1646,6 @@
 
     <!-- OCR Best Models Feature -->
     <string name="add_folders">Добавить %1$d папки</string>
-    <string name="add_resource">Добавить ресурс</string>
     <string name="and_more_errors">и ещё %d ошибок</string>
     <string name="android_media_folder_added_warning">⚠️ Добавлена папка Android/media. Эти папки могут иметь ограниченный доступ даже при наличии разрешений. Если сканирование не удаётся, система может запрещать доступ к этой папке.</string>
     <string name="animated_badge_gif">GIF</string>
@@ -1754,7 +1749,7 @@
     <string name="resource_added">Ресурс добавлен</string>
     <string name="resource_comment">Комментарий</string>
     <string name="resource_pin_code">PIN-код (необязательно)</string>
-    <string name="resource_pin_code_hint">4–6 цифр для защиты этой папки</string>
+    <string name="resource_pin_code_hint">4-6 цифр для защиты этого ресурса</string>
     <string name="resource_type_icon">Иконка типа ресурса</string>
     <string name="cd_resource_icon_quick_slideshow">Запустить слайдшоу</string>
     <string name="resources_added">Добавлено ресурсов: %1$d</string>
@@ -2116,7 +2111,7 @@
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-компаньон</string>
     <string name="tooltip_wear_companion_title">Wear-компаньон</string>
-    <string name="tooltip_wear_companion_message">Отправьте свои сетевые папки (SMB, FTP, облако) на сопряжённые часы Wear OS, чтобы просматривать и воспроизводить их прямо с запястья. Нажмите кнопку, чтобы выбрать, какие типы медиа синхронизировать, и настроить воспроизведение на часах.</string>
+    <string name="tooltip_wear_companion_message">Отправьте свои сетевые ресурсы (SMB, FTP, облако) на сопряжённые часы Wear OS, чтобы просматривать и воспроизводить их прямо с запястья. Нажмите кнопку, чтобы выбрать, какие типы медиа синхронизировать, и настроить воспроизведение на часах.</string>
     <string name="wear_sync_description">Передайте сетевые источники на подключённые часы Wear OS.</string>
     <string name="wear_last_synced">Последняя синхр.: %s</string>
     <string name="wear_push_to_watch">Отправить на часы</string>
@@ -2476,7 +2471,7 @@
     <string name="ext_uninstall_all_confirm_title">Удалить все расширения?</string>
     <string name="ext_uninstall_all_confirm_message">Удалить все установленные расширения и освободить место? Позже можно скачать снова.</string>
     <string name="slideshow_stop">Остановить слайд-шоу</string>
-    <string name="open_in_fms_external_file_notice">Этот файл находится вне папки, добавленной в приложение, поэтому открылся главный экран.</string>
+    <string name="open_in_fms_external_file_notice">Этот файл находится вне ресурса, добавленного в приложение, поэтому открылся главный экран.</string>
     <string name="sftp_host_key_fingerprint_hint">Ожидаемый отпечаток host-key (SHA256, опционально)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не удалось разобрать отпечаток. Поддерживаются SHA256:base64, hex с двоеточиями, чистый base64.</string>
     <string name="sftp_host_key_mismatch_title">Не удалось подтвердить сервер</string>
@@ -2556,11 +2551,11 @@
     <string name="setting_screenshot_gesture_action_right_title">Действие жеста вправо</string>
     <string name="setting_screenshot_gesture_action_up_title">Действие жеста вверх</string>
     <string name="setting_screenshot_gesture_action_dialog_title">Действие жеста</string>
-    <string name="screenshot_gesture_action_silent">Тихий скриншот</string>
-    <string name="screenshot_gesture_action_open_player">Открыть в плеере</string>
+    <string name="screenshot_gesture_action_silent">Тихий снимок экрана</string>
+    <string name="screenshot_gesture_action_open_player">Скриншот - Просмотр</string>
     <string name="screenshot_gesture_action_open_draw">Скриншот для редактирования</string>
-    <string name="screenshot_gesture_action_ocr_translate">Отправить на OCR-перевод</string>
-    <string name="screenshot_gesture_action_share">Поделиться</string>
+    <string name="screenshot_gesture_action_ocr_translate">Скриншот - OCR-перевод</string>
+    <string name="screenshot_gesture_action_share">Скриншот - поделиться</string>
     <string name="screenshot_gesture_action_none">Не использовать</string>
     <string name="settings_keep_screen_on_player_title">Не выключать экран при работе плеера</string>
     <string name="settings_keep_screen_on_player_summary">Действует только в плеере и отдельных плеерах, и только когда общая настройка удержания экрана выключена.</string>
@@ -2595,7 +2590,7 @@
     <string name="screen_capture_copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="setting_copy_screenshot_to_clipboard_title">Сохранять скриншоты в буфер обмена</string>
     <string name="setting_copy_screenshot_to_clipboard_summary">Дополнительно копировать каждый снятый скриншот в буфер обмена, готовый для вставки</string>
-    <string name="screenshot_gesture_action_send_to">Отправить получателям</string>
+    <string name="screenshot_gesture_action_send_to">Скриншот - отправить в..</string>
     <string name="statistics_title">Статистика</string>
     <string name="settings_statistics_open">Статистика</string>
     <string name="statistics_card_sorted">Отсортировано (копир. + перемещ.)</string>
@@ -2757,7 +2752,7 @@
     <string name="programs">Программы</string>
     <string name="error_scan_timeout">Папка загружается слишком долго. Проверьте сеть и повторите попытку.</string>
     <string name="cast_stream_unsupported_protocol">Эту трансляцию нельзя транслировать на Chromecast</string>
-    <string name="screenshot_gesture_action_open_app">Открыть программу</string>
+    <string name="screenshot_gesture_action_open_app">Открыть основное окно программы</string>
     <string name="streams_shortcut_channel_missing">Этой трансляции больше нет в списке</string>
     <string name="streams_add_to_home_screen">На домашний экран</string>
     <string name="streams_shortcut_created">Ярлык добавлен на домашний экран</string>
@@ -2904,4 +2899,31 @@
     <string name="screen_recording_permission_denied">Для записи экрана нужны разрешения на микрофон и уведомления.</string>
     <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>
     <string name="screen_recording_error">Не удалось сохранить запись экрана.</string>
+    <string name="streams_panel_disable_action">Отключить</string>
+    <string name="action_configure">Настроить</string>
+    <string name="main_resource_type_filter_strip">Фильтр типов ресурсов</string>
+    <string name="streams_panel_hide_action">Спрятать панель</string>
+    <string name="streams_add_to_favorites">В избранное</string>
+    <string name="streams_remove_from_favorites">Из избранного</string>
+    <string name="streams_country_flag">Флаг страны</string>
+    <string name="perm_group_location">Местоположение</string>
+    <string name="perm_title_location">Геометка при съёмке</string>
+    <string name="perm_desc_location">Опционально. Добавляет ваше местоположение в фото и видео, снятые в приложении. Откажитесь - и в снимках просто не будет координат.</string>
+    <string name="screenshot_gesture_action_launch_camera">Запустить камеру</string>
+    <string name="screenshot_gesture_action_start_video_recording">Начать видеозапись</string>
+    <string name="screenshot_gesture_action_start_audio_recording">Начать аудиозапись</string>
+    <string name="screenshot_gesture_action_start_screen_recording">Начать запись экрана</string>
+    <string name="screenshot_gesture_action_take_photo">Сделать фото</string>
+    <string name="screenshot_gesture_action_take_photo_send_to">Сделать фото и отправить в..</string>
+    <string name="screenshot_gesture_action_take_photo_edit">Сделать фото и редактировать</string>
+    <string name="screenshot_gesture_action_take_photo_ocr_translate">Сделать фото и OCR-перевод</string>
+    <string name="action_open_app_settings">Настройки программы</string>
+    <string name="programs_panel_configure_action">Настроить панель</string>
+    <string name="programs_panel_collapse_action">Свернуть панель</string>
+    <string name="programs_panel_hide_action">Скрыть панель</string>
+    <string name="main_programs_panel_strip">Программы и сценарии</string>
+    <string name="streams_panel_collapse_action">Свернуть панель</string>
+    <string name="main_streams_panel_strip">Трансляции..</string>
+    <string name="camera_scenario_ocr_translate">Распознавание текста</string>
+    <string name="remove_resource">Удалить ресурс</string>
 </resources>

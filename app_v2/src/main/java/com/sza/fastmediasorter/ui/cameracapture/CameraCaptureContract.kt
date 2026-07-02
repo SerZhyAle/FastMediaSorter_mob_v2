@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 
 /**
  * Single owner of every intent extra and result extra exchanged with [CameraCaptureActivity].
@@ -40,6 +41,18 @@ object CameraCaptureContract {
      */
     const val EXTRA_MULTI_CAPTURE = "multi_capture"
 
+    /**
+     * S0790: fire the shutter automatically once the preview is ready, then finish (edge-gesture "take
+     * photo" family). Photo-only single shot; ignored for video. Default false keeps manual callers.
+     */
+    const val EXTRA_AUTO_CAPTURE = "auto_capture"
+
+    /**
+     * S0812: [CameraScenario] name identifying why the visible camera was opened, so the host can
+     * show a context label. Absent extra / [CameraScenario.NONE] means no label (generic capture).
+     */
+    const val EXTRA_SCENARIO = "scenario"
+
     /** Scratch dir the host writes into when [EXTRA_ALLOW_MODE_SWITCH] is set (mode picks the extension). */
     const val EXTRA_OUTPUT_DIR = "output_dir"
 
@@ -61,11 +74,13 @@ object CameraCaptureContract {
         outputPath: String? = null,
         mode: CameraCaptureMode = CameraCaptureMode.PHOTO,
         microphoneDefault: Boolean = true,
+        scenario: CameraScenario = CameraScenario.NONE,
     ): Intent =
         Intent(context, CameraCaptureActivity::class.java)
             .putExtra(EXTRA_OUTPUT, outputUri)
             .putExtra(EXTRA_CAPTURE_MODE, mode.name)
             .putExtra(EXTRA_MICROPHONE_DEFAULT, microphoneDefault)
+            .putExtra(EXTRA_SCENARIO, scenario.name)
             .apply { outputPath?.let { putExtra(EXTRA_OUTPUT_PATH, it) } }
 
     /**
@@ -92,8 +107,32 @@ object CameraCaptureContract {
             .putExtra(EXTRA_MICROPHONE_DEFAULT, microphoneDefault)
             .putExtra(EXTRA_MULTI_CAPTURE, multiCapture)
 
+    /**
+     * S0790: auto-capture entry - opens the host in PHOTO mode, fires the shutter once the preview is
+     * ready, then finishes with the captured file path (single shot, no mode switch). The caller owns
+     * the scratch [outputDir] + extension-less [outputBaseName]; the host writes dir/base.jpg.
+     */
+    fun createAutoCaptureIntent(
+        context: Context,
+        outputDir: String,
+        outputBaseName: String,
+    ): Intent =
+        Intent(context, CameraCaptureActivity::class.java)
+            .putExtra(EXTRA_OUTPUT_DIR, outputDir)
+            .putExtra(EXTRA_OUTPUT_BASENAME, outputBaseName)
+            .putExtra(EXTRA_CAPTURE_MODE, CameraCaptureMode.PHOTO.name)
+            .putExtra(EXTRA_ALLOW_MODE_SWITCH, false)
+            .putExtra(EXTRA_MULTI_CAPTURE, false)
+            .putExtra(EXTRA_AUTO_CAPTURE, true)
+
+    fun readAutoCapture(intent: Intent): Boolean =
+        intent.getBooleanExtra(EXTRA_AUTO_CAPTURE, false)
+
     fun readMode(intent: Intent): CameraCaptureMode =
         CameraCaptureMode.fromName(intent.getStringExtra(EXTRA_CAPTURE_MODE))
+
+    fun readScenario(intent: Intent): CameraScenario =
+        CameraScenario.fromName(intent.getStringExtra(EXTRA_SCENARIO))
 
     fun readAllowModeSwitch(intent: Intent): Boolean =
         intent.getBooleanExtra(EXTRA_ALLOW_MODE_SWITCH, false)

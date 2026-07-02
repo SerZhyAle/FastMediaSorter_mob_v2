@@ -56,6 +56,8 @@
             android:orientation="horizontal"
             android:gravity="center">
 
+            <!-- S0819: transport buttons are D-pad focusable with the S0289 stroke selector; nextFocus
+                 chain is a single-row wrap-around (btnPictureInPicture stays gone, excluded from it). -->
             <ImageButton
                 android:id="@+id/exo_repeat"
                 style="@style/Widget.AppCompat.Button.Borderless"
@@ -64,7 +66,11 @@
                 android:src="@drawable/ic_loop_list"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/playback_order_menu_title"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
                 android:nextFocusLeft="@id/btnPlaybackControl"
+                android:nextFocusRight="@id/exo_prev_file"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -76,6 +82,11 @@
                 android:src="@drawable/ic_back"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/previous_file"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/exo_repeat"
+                android:nextFocusRight="@id/btnRewind10"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -87,6 +98,11 @@
                 android:src="@drawable/ic_fast_rewind"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/rewind_10_seconds"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/exo_prev_file"
+                android:nextFocusRight="@id/exo_play_pause"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -97,6 +113,11 @@
                 android:layout_marginHorizontal="@dimen/player_play_button_margin_horizontal"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/play_pause"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/btnRewind10"
+                android:nextFocusRight="@id/btnForward30"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -107,6 +128,11 @@
                 android:src="@drawable/ic_fast_forward"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/forward_10_seconds"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/exo_play_pause"
+                android:nextFocusRight="@id/exo_next_file"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -117,6 +143,11 @@
                 android:src="@drawable/ic_next_circle_selector"
                 android:scaleType="centerInside"
                 android:contentDescription="@string/next_file"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/btnForward30"
+                android:nextFocusRight="@id/btnPlaybackControl"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -128,6 +159,10 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/selector_player_overlay_button_tint"
                 android:contentDescription="@string/control"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:nextFocusLeft="@id/exo_next_file"
                 android:nextFocusRight="@id/exo_repeat"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 

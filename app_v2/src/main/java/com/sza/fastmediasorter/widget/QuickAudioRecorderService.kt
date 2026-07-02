@@ -70,6 +70,11 @@ class QuickAudioRecorderService : Service() {
     private var outputFile: File? = null
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
 
+    // S0858: the finished clip's save (network upload with local fallback) runs async while the
+    // service stays foreground - guards the reentrancy window where a widget tap could start a
+    // second recorder, or a duplicate Stop tap could cancel the in-flight save via onDestroy.
+    private var isSaving = false
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -81,7 +86,9 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun handleStart() {
-        if (isRecording) return
+        // S0858: also block while a previous clip's save is still in flight - starting a new
+        // recorder here would orphan it when the stale save's stopSelf() later tears the service down.
+        if (isRecording || isSaving) return
 
         createChannel()
         startForegroundCompat()
@@ -125,6 +132,13 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun stopAndSave() {
+        // S0858: a duplicate Stop tap while the previous clip is still saving must be a no-op -
+        // recorderStarted is already false at this point, so the old code fell into the "nothing
+        // captured" branch and called stopSelf(), whose onDestroy() -> serviceScope.cancel()
+        // cancelled the in-flight save and dropped the captured clip. The original save's own
+        // completion still tears the service down once it finishes.
+        if (isSaving) return
+
         val file = outputFile
         var captured = false
         if (recorderStarted) {
@@ -145,31 +159,39 @@ class QuickAudioRecorderService : Service() {
         if (captured && file != null) {
             // S0526: hand the finished clip to the shared saver. Stay in the foreground until the
             // suspend save (which may upload over the network) completes, then report and stop.
+            // S0858: isSaving gates handleStart()/stopAndSave() reentrancy for the whole window.
+            isSaving = true
             serviceScope.launch {
-                val result = micRecordingSaver.save(
-                    tempFile = file,
-                    name = file.name,
-                    browsedResource = null,
-                    upload = { tempFile, name, resource -> uploadToResource(tempFile, name, resource) },
-                )
-                file.delete()
-                if (result.success) {
-                    val location = result.savedPath ?: result.resourceName ?: file.name
-                    toast(getString(R.string.quick_recorder_saved_to, location))
-                    result.fallbackReason?.let { reason ->
-                        saveFallbackNotifier.notify(
-                            reason = reason,
-                            folderLabel = result.folderLabel.orEmpty(),
-                            resourceName = result.resourceName.orEmpty(),
-                            background = true,
-                        )
+                try {
+                    val result = micRecordingSaver.save(
+                        tempFile = file,
+                        name = file.name,
+                        browsedResource = null,
+                        upload = { tempFile, name, resource -> uploadToResource(tempFile, name, resource) },
+                    )
+                    file.delete()
+                    if (result.success) {
+                        val location = result.savedPath ?: result.resourceName ?: file.name
+                        toast(getString(R.string.quick_recorder_saved_to, location))
+                        result.fallbackReason?.let { reason ->
+                            saveFallbackNotifier.notify(
+                                reason = reason,
+                                folderLabel = result.folderLabel.orEmpty(),
+                                resourceName = result.resourceName.orEmpty(),
+                                background = true,
+                            )
+                        }
+                    } else {
+                        toast(getString(R.string.quick_recorder_error))
                     }
-                } else {
-                    toast(getString(R.string.quick_recorder_error))
+                } finally {
+                    isSaving = false
+                    // Only this save's own file - a belt-and-braces guard against clobbering a
+                    // newer session's outputFile even though isSaving already blocks that path.
+                    if (outputFile === file) outputFile = null
+                    stopForegroundCompat()
+                    stopSelf()
                 }
-                outputFile = null
-                stopForegroundCompat()
-                stopSelf()
             }
         } else {
             toast(getString(R.string.quick_recorder_error))
@@ -199,6 +221,14 @@ class QuickAudioRecorderService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
+        // S0858: last-resort teardown - if a recorder session is still live here (system-initiated
+        // stop, or any path that bypassed stopAndSave()/failAndStop()), release the mic and abandon
+        // focus rather than leaving both held past service teardown.
+        if (mediaRecorder != null || recorderStarted) {
+            releaseRecorder()
+            abandonFocus()
+            isRecording = false
+        }
         super.onDestroy()
     }
 

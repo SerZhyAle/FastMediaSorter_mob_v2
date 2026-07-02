@@ -49,6 +49,13 @@ class BrowseInlineAudioManager(
     private var player: MediaPlayer? = null
     private val prefetchInProgress = ConcurrentHashMap.newKeySet<String>()
 
+    // S0862: bumped by every inlineStop()/inlineStart() call, captured by inlineStart's own IO
+    // coroutine at launch - the coroutine re-checks it right before publishing 'player' so a
+    // superseded load (screen-leave or rapid track-switch) releases its MediaPlayer instead of
+    // orphaning it. @Volatile since inlineStop() runs on Main while the coroutine reads on IO.
+    @Volatile
+    private var playGeneration = 0
+
     private val _inlinePlayerState = MutableStateFlow(InlinePlayerState())
     val inlinePlayerState: StateFlow<InlinePlayerState> = _inlinePlayerState.asStateFlow()
 
@@ -84,6 +91,7 @@ class BrowseInlineAudioManager(
 
     /** Stop playback and release MediaPlayer resources. */
     fun inlineStop() {
+        playGeneration++
         player?.let {
             try { it.stop() } catch (_: IllegalStateException) {}
             it.release()
@@ -141,6 +149,9 @@ class BrowseInlineAudioManager(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private fun inlineStart(file: MediaFile) {
+        // S0862: captured on the caller's thread before launch, so a concurrent inlineStop() or a
+        // second inlineStart() (rapid track switch) is visible to this coroutine's publish check.
+        val myGeneration = ++playGeneration
         scope.launch(Dispatchers.IO) {
             try {
                 val localPath = resolveLocalPath(file)
@@ -157,22 +168,16 @@ class BrowseInlineAudioManager(
                     downloadProgressPercent = 0
                 )
 
-                val newPlayer = MediaPlayer().apply {
-                    try {
-                        setDataSource(localPath)
-                    } catch (e: java.io.IOException) {
-                        val contentUri = file.contentUri
-                        if (contentUri != null) {
-                            Timber.i("InlinePlayer: direct path failed, using content URI for '${file.name}'")
-                            reset()
-                            setDataSource(context, android.net.Uri.parse(contentUri))
-                        } else {
-                            throw e
-                        }
-                    }
-                    prepare()
-                    setOnCompletionListener { inlinePlayNext() }
+                val newPlayer = buildInlineMediaPlayer(file, localPath)
+
+                if (myGeneration != playGeneration) {
+                    // S0862: superseded by inlineStop()/another inlineStart() while this coroutine
+                    // was building/preparing - release without publishing to avoid orphaning it.
+                    Timber.d("InlinePlayer: '${file.name}' superseded before publish, releasing")
+                    newPlayer.release()
+                    return@launch
                 }
+
                 player = newPlayer
                 _inlinePlayerState.value = InlinePlayerState(
                     playingPath = file.path,
@@ -182,10 +187,41 @@ class BrowseInlineAudioManager(
                 Timber.d("InlinePlayer: started '${file.name}'")
                 saveResumeState()
                 prefetchNextInlineAudio(file.path)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "InlinePlayer: failed to start '${file.name}'")
                 _inlinePlayerState.value = InlinePlayerState()
             }
+        }
+    }
+
+    /**
+     * S0862: build, set-data-source and prepare a [MediaPlayer] for [localPath]; on any failure
+     * releases the just-constructed native player before rethrowing, since it was never assigned
+     * to [player] and inlineStop() can never reach it otherwise.
+     */
+    private fun buildInlineMediaPlayer(file: MediaFile, localPath: String): MediaPlayer {
+        val newPlayer = MediaPlayer()
+        try {
+            try {
+                newPlayer.setDataSource(localPath)
+            } catch (e: java.io.IOException) {
+                val contentUri = file.contentUri
+                if (contentUri != null) {
+                    Timber.i("InlinePlayer: direct path failed, using content URI for '${file.name}'")
+                    newPlayer.reset()
+                    newPlayer.setDataSource(context, android.net.Uri.parse(contentUri))
+                } else {
+                    throw e
+                }
+            }
+            newPlayer.prepare()
+            newPlayer.setOnCompletionListener { inlinePlayNext() }
+            return newPlayer
+        } catch (e: Exception) {
+            newPlayer.release()
+            throw e
         }
     }
 

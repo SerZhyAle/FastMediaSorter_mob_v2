@@ -11,6 +11,11 @@ import android.print.PrintManager
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.ui.player.helpers.PrintShareFallbackManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -88,6 +93,8 @@ class PrintDispatchActivity : AppCompatActivity() {
         outState.putBoolean(STATE_TEXT_JOB_DISPATCHED, textJobDispatched)
     }
 
+    // Guard-clause early returns on the unavailable/fallback paths - ReturnCount is intentional.
+    @Suppress("ReturnCount")
     private fun dispatchPdf() {
         val current = request ?: return finish()
         val file = File(current.filePath)
@@ -119,6 +126,8 @@ class PrintDispatchActivity : AppCompatActivity() {
         }
     }
 
+    // Guard-clause early returns (fallback paths); WebView(this) can throw on broken WebView installs.
+    @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private fun dispatchText() {
         val current = request ?: return finish()
         val file = File(current.filePath)
@@ -147,7 +156,7 @@ class PrintDispatchActivity : AppCompatActivity() {
         } catch (error: Exception) {
             Timber.e(
                 error,
-                "PrintDispatchActivity: WebView unavailable for text print (${error.javaClass.simpleName}: ${error.message})"
+                "PrintDispatchActivity: WebView unavailable for text print"
             )
             fallbackToShareOrFail(file, current, "text/plain")
             return
@@ -217,6 +226,8 @@ class PrintDispatchActivity : AppCompatActivity() {
         val unavailableMessage: String,
     ) {
         companion object {
+            // One guarded return per required extra - ReturnCount is intentional for this parser.
+            @Suppress("ReturnCount")
             fun fromIntent(intent: android.content.Intent?): PrintRequest? {
                 intent ?: return null
                 val mode = intent.getStringExtra(EXTRA_MODE)
@@ -226,8 +237,10 @@ class PrintDispatchActivity : AppCompatActivity() {
                 val jobLabel = intent.getStringExtra(EXTRA_JOB_LABEL)?.takeIf { it.isNotBlank() } ?: return null
                 val displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME)?.takeIf { it.isNotBlank() } ?: return null
                 val chooserTitle = intent.getStringExtra(EXTRA_CHOOSER_TITLE)?.takeIf { it.isNotBlank() } ?: return null
-                val fallbackMessage = intent.getStringExtra(EXTRA_FALLBACK_MESSAGE)?.takeIf { it.isNotBlank() } ?: return null
-                val unavailableMessage = intent.getStringExtra(EXTRA_UNAVAILABLE_MESSAGE)?.takeIf { it.isNotBlank() } ?: return null
+                val fallbackMessage = intent.getStringExtra(EXTRA_FALLBACK_MESSAGE)
+                    ?.takeIf { it.isNotBlank() } ?: return null
+                val unavailableMessage = intent.getStringExtra(EXTRA_UNAVAILABLE_MESSAGE)
+                    ?.takeIf { it.isNotBlank() } ?: return null
                 return PrintRequest(
                     mode = mode,
                     filePath = filePath,
@@ -293,6 +306,8 @@ class PrintDispatchActivity : AppCompatActivity() {
             unavailableMessage = unavailableMessage,
         )
 
+        // Params mirror the intent extras 1:1; a param object would only shuffle the same fields.
+        @Suppress("LongParameterList")
         private fun start(
             context: android.content.Context,
             mode: PrintMode,
@@ -329,7 +344,13 @@ class PrintDispatchActivity : AppCompatActivity() {
         private val jobLabel: String,
     ) : PrintDocumentAdapter() {
 
-        private var copyJob: Thread? = null
+        // S0828: structured, cancellable copy scope replaces a raw Thread whose interrupt() could not
+        // reliably unblock a stuck FileInputStream.read() on some OEMs.
+        private val adapterScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        // Held so cancellation can close it: closing the source stream unblocks a blocked read() where
+        // Thread.interrupt() would not (interruptibility of blocking file I/O is OEM-dependent).
+        @Volatile private var activeInput: InputStream? = null
 
         override fun onLayout(
             oldAttributes: PrintAttributes?,
@@ -355,35 +376,53 @@ class PrintDispatchActivity : AppCompatActivity() {
             cancellationSignal: CancellationSignal,
             callback: WriteResultCallback,
         ) {
-            copyJob = Thread {
+            Timber.d("S0828: PDF spool onWrite via structured cancellable copy")
+            // Proactively abort when the platform signals cancel; closing the stream unblocks read().
+            cancellationSignal.setOnCancelListener { cancelActiveCopy() }
+            adapterScope.launch {
                 var inputStream: InputStream? = null
                 var outputStream: OutputStream? = null
                 try {
-                    inputStream = FileInputStream(sourceFile)
+                    inputStream = FileInputStream(sourceFile).also { activeInput = it }
                     outputStream = FileOutputStream(destination.fileDescriptor)
-                    val buffer = ByteArray(64 * 1024)
+                    val buffer = ByteArray(COPY_BUFFER_BYTES)
                     var bytesRead: Int
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                         if (cancellationSignal.isCanceled) {
                             callback.onWriteCancelled()
-                            return@Thread
+                            return@launch
                         }
                         outputStream.write(buffer, 0, bytesRead)
                     }
                     callback.onWriteFinished(arrayOf(PageRange.ALL_PAGES))
                 } catch (error: IOException) {
-                    Timber.e(error, "PrintDispatchActivity: PDF spool write failed")
-                    callback.onWriteFailed(null)
+                    // A cancel closes activeInput mid-read, surfacing here - report cancelled, not failed.
+                    if (cancellationSignal.isCanceled) {
+                        callback.onWriteCancelled()
+                    } else {
+                        Timber.e(error, "PrintDispatchActivity: PDF spool write failed")
+                        callback.onWriteFailed(null)
+                    }
                 } finally {
-                    try { inputStream?.close() } catch (_: Exception) {}
-                    try { outputStream?.close() } catch (_: Exception) {}
+                    activeInput = null
+                    try { inputStream?.close() } catch (_: IOException) {}
+                    try { outputStream?.close() } catch (_: IOException) {}
                 }
             }
-            copyJob!!.start()
         }
 
         override fun onFinish() {
-            copyJob?.interrupt()
+            cancelActiveCopy()
+            adapterScope.cancel()
+        }
+
+        /** Unblock a stuck copy by closing the source stream, then let the coroutine settle. */
+        private fun cancelActiveCopy() {
+            activeInput?.let { runCatching { it.close() } }
+        }
+
+        companion object {
+            private const val COPY_BUFFER_BYTES = 64 * 1024
         }
     }
 }
