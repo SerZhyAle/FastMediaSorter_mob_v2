@@ -3,10 +3,10 @@ package com.sza.fastmediasorter.data.network
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
-import com.sza.fastmediasorter.BuildConfig
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.network.model.ConnectionKey
@@ -21,6 +21,8 @@ import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -115,18 +117,20 @@ class SmbConnectionManager @Inject constructor(
         // Timeout degradation tracking
         private const val TIMEOUT_WARNING_THRESHOLD = 5
         private const val TIMEOUT_CRITICAL_THRESHOLD = 20
+        private const val TIMEOUT_FORCED_RECONNECT_THRESHOLD = 3
 
         // Auto-reset cooldown - prevent frequent resets
         private const val AUTO_RESET_COOLDOWN_MS = 30000L // 30 seconds
 
-        @Volatile
-        private var consecutiveTimeouts = 0
+        // Atomics, not @Volatile vars: ++ on a @Volatile is still load-add-store, and up to
+        // MAX_CONCURRENT_CONNECTIONS operations increment concurrently - lost increments delayed
+        // the degradation/forced-reconnect/full-reset thresholds. Mirrors
+        // ConnectionThrottleManager.ProtocolState; the auto-reset cooldown uses compareAndSet.
+        private val consecutiveTimeouts = AtomicInteger(0)
 
-        @Volatile
-        private var lastSuccessfulOperation = System.currentTimeMillis()
+        private val lastSuccessfulOperation = AtomicLong(System.currentTimeMillis())
 
-        @Volatile
-        private var lastAutoResetTime = 0L
+        private val lastAutoResetTime = AtomicLong(0L)
     }
 
     // S0061: pool ownership extracted to SmbConnectionPool; PooledConnection and
@@ -254,23 +258,23 @@ class SmbConnectionManager @Inject constructor(
         idleDisconnectPolicy.touch(idleTransportKey)
 
         // Reset timeout counter and connections after idle period
-        val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation
+        val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation.get()
         if (timeSinceLastSuccess > CONNECTION_FORCE_RESET_MS) {
             Timber.d("Idle for ${timeSinceLastSuccess}ms - closing all connections (server likely closed them)")
             closeAllConnections()
             resetClients()
-            consecutiveTimeouts = 0
-        } else if (consecutiveTimeouts > 0 && timeSinceLastSuccess > 60000) {
+            consecutiveTimeouts.set(0)
+        } else if (consecutiveTimeouts.get() > 0 && timeSinceLastSuccess > 60000) {
             Timber.d("Resetting timeout counter after ${timeSinceLastSuccess}ms idle (was: $consecutiveTimeouts)")
-            consecutiveTimeouts = 0
+            consecutiveTimeouts.set(0)
         }
 
         // Force reset after critical threshold
-        if (consecutiveTimeouts >= TIMEOUT_CRITICAL_THRESHOLD) {
+        if (consecutiveTimeouts.get() >= TIMEOUT_CRITICAL_THRESHOLD) {
             Timber.e("CRITICAL: $consecutiveTimeouts consecutive timeouts - forcing full reset")
             closeAllConnections()
             resetClients()
-            consecutiveTimeouts = 0
+            consecutiveTimeouts.set(0)
         }
 
         // Attempt 1: Try pooled connection
@@ -491,21 +495,23 @@ class SmbConnectionManager @Inject constructor(
     }
 
     private fun onSuccess() {
-        consecutiveTimeouts = 0
-        lastSuccessfulOperation = System.currentTimeMillis()
+        consecutiveTimeouts.set(0)
+        lastSuccessfulOperation.set(System.currentTimeMillis())
     }
 
     /** Handle timeout from pooled connection. */
     private fun handleTimeout(key: ConnectionKey, pooled: PooledConnection) {
-        consecutiveTimeouts++
-        Timber.d("Pooled connection timeout (#$consecutiveTimeouts)")
+        // Judge this thread's own increment result: re-reading the counter after a concurrent
+        // update could double-fire or skip a threshold action.
+        val timeouts = consecutiveTimeouts.incrementAndGet()
+        Timber.d("Pooled connection timeout (#$timeouts)")
 
-        if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-            Timber.w("SMB degradation: $consecutiveTimeouts consecutive timeouts")
+        if (timeouts >= TIMEOUT_WARNING_THRESHOLD) {
+            Timber.w("SMB degradation: $timeouts consecutive timeouts")
         }
 
-        // After 3 timeouts, force fresh reconnect
-        if (consecutiveTimeouts >= 3) {
+        // Force fresh reconnect after the strike threshold
+        if (timeouts >= TIMEOUT_FORCED_RECONNECT_THRESHOLD) {
             pool.removeAndCloseAsync(key)
         }
     }
@@ -565,17 +571,17 @@ class SmbConnectionManager @Inject constructor(
             autoResetIfNeeded(resetReason)
         } else if (isTimeout) {
             Timber.w("Pooled connection timed out (server session expired)")
-            consecutiveTimeouts++
-            if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                Timber.w("SMB degradation: $consecutiveTimeouts consecutive timeouts")
+            val timeouts = consecutiveTimeouts.incrementAndGet()
+            if (timeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                Timber.w("SMB degradation: $timeouts consecutive timeouts")
             }
         } else {
             // Other SMB errors - track as potential network issue
             Timber.w(e, "Pooled connection failed, retrying with fresh")
             if (e is com.hierynomus.smbj.common.SMBRuntimeException) {
-                consecutiveTimeouts++
-                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                    Timber.w("SMB degradation: $consecutiveTimeouts consecutive failures")
+                val failures = consecutiveTimeouts.incrementAndGet()
+                if (failures >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.w("SMB degradation: $failures consecutive failures")
                 }
             }
         }
@@ -641,7 +647,7 @@ class SmbConnectionManager @Inject constructor(
             Timber.e("CRITICAL socket error - forcing full reset")
             closeAllConnections()
             resetClients()
-            consecutiveTimeouts = 0
+            consecutiveTimeouts.set(0)
         } else if (isAuthError || isAccessError || isConfigError || isShareNotFound) {
             // Configuration/authentication errors - don't increment timeout counter
             Timber.w("Fresh connection configuration error (not network issue): $errorMessage")
@@ -658,14 +664,14 @@ class SmbConnectionManager @Inject constructor(
             // Track real network timeouts and failures
             if (e is kotlinx.coroutines.TimeoutCancellationException ||
                 e is com.hierynomus.smbj.common.SMBRuntimeException) {
-                consecutiveTimeouts++
-                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                    Timber.e("SMB severely degraded: $consecutiveTimeouts failures - full reset")
+                val failures = consecutiveTimeouts.incrementAndGet()
+                if (failures >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.e("SMB severely degraded: $failures failures - full reset")
                     closeAllConnections()
                     resetClients()
-                    consecutiveTimeouts = 0
-                } else if (consecutiveTimeouts > TIMEOUT_WARNING_THRESHOLD / 2) {
-                    Timber.w("SMB degradation: $consecutiveTimeouts timeouts")
+                    consecutiveTimeouts.set(0)
+                } else if (failures > TIMEOUT_WARNING_THRESHOLD / 2) {
+                    Timber.w("SMB degradation: $failures timeouts")
                 }
             }
         }
@@ -733,21 +739,28 @@ class SmbConnectionManager @Inject constructor(
      */
     private fun autoResetIfNeeded(reason: String) {
         val currentTime = System.currentTimeMillis()
-        val timeSinceLastReset = currentTime - lastAutoResetTime
+        val lastReset = lastAutoResetTime.get()
+        val timeSinceLastReset = currentTime - lastReset
 
         if (timeSinceLastReset < AUTO_RESET_COOLDOWN_MS) {
             Timber.d("SmbConnectionManager: Auto-reset skipped (cooldown: ${timeSinceLastReset}ms / ${AUTO_RESET_COOLDOWN_MS}ms)")
             return
         }
 
+        // CAS closes the check-then-act window: of N threads passing the cooldown check together,
+        // exactly one wins and resets - the rest skip instead of double-resetting the pool.
+        if (!lastAutoResetTime.compareAndSet(lastReset, currentTime)) {
+            Timber.d("SmbConnectionManager: Auto-reset skipped (concurrent reset won the race)")
+            return
+        }
+
         Timber.d("SmbConnectionManager: Auto-reset triggered - $reason")
-        lastAutoResetTime = currentTime
 
         closeAllConnections()
         resetClients()
         ConnectionThrottleManager.resetAllSmbStates()
-        consecutiveTimeouts = 0
-        lastSuccessfulOperation = currentTime
+        consecutiveTimeouts.set(0)
+        lastSuccessfulOperation.set(currentTime)
 
         // Notify callback (for UI toast)
         resetCallback?.onAutoReset(reason)
@@ -762,9 +775,9 @@ class SmbConnectionManager @Inject constructor(
         resetClients()
         ConnectionThrottleManager.resetAllSmbStates()
         playbackTracker.clearAll()
-        consecutiveTimeouts = 0
-        lastSuccessfulOperation = System.currentTimeMillis()
-        lastAutoResetTime = System.currentTimeMillis() // Update to prevent immediate auto-reset after manual
+        consecutiveTimeouts.set(0)
+        lastSuccessfulOperation.set(System.currentTimeMillis())
+        lastAutoResetTime.set(System.currentTimeMillis()) // Update to prevent immediate auto-reset after manual
         Timber.d("SmbConnectionManager: Reset complete")
     }
 
@@ -920,8 +933,8 @@ class SmbConnectionManager @Inject constructor(
         Timber.w("SmbConnectionManager: Network reconnected - invalidating all SMB connections")
         closeAllConnections()
         playbackTracker.clearAll()
-        consecutiveTimeouts = 0
-        lastSuccessfulOperation = System.currentTimeMillis()
+        consecutiveTimeouts.set(0)
+        lastSuccessfulOperation.set(System.currentTimeMillis())
     }
 
     /** Handle network loss (e.g., WiFi disconnected, airplane mode). Closes all connections immediately. */

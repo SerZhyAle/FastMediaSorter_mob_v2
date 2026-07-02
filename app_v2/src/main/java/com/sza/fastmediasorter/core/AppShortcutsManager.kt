@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -43,12 +43,6 @@ class AppShortcutsManager @Inject constructor(
         }
     }
 
-    private fun iconForType(type: ResourceType): Int = when (type) {
-        ResourceType.LOCAL -> R.drawable.ic_resource_local
-        ResourceType.SMB -> R.drawable.ic_resource_smb
-        ResourceType.SFTP -> R.drawable.ic_resource_sftp
-        ResourceType.FTP -> R.drawable.ic_resource_ftp
-        ResourceType.CLOUD -> R.drawable.ic_resource_cloud
-        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
-    }
+    // S0890: single source of truth for the type -> icon table.
+    private fun iconForType(type: ResourceType): Int = ResourceTypeIconMap.iconFor(type)
 }

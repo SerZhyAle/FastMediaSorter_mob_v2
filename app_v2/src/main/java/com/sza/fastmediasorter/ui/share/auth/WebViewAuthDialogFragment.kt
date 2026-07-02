@@ -243,7 +243,14 @@ class WebViewAuthDialogFragment : DialogFragment() {
                         displayName,
                         targetHost,
                     )
-                    emitResultAndDismiss(saved = savedAccountId != null, accountId = savedAccountId)
+                    // S0877: the callback runs from viewModelScope, which survives a config change -
+                    // it can resume on a destroyed instance where dismissAllowingStateLoss() throws
+                    // (no fragment manager). The session is already persisted and cookies scrubbed
+                    // above (both fragment-independent), so only the UI epilogue needs the guard -
+                    // same pattern as the harvest path and the cookie-removal callback.
+                    if (isAdded && !isDetached) {
+                        emitResultAndDismiss(saved = savedAccountId != null, accountId = savedAccountId)
+                    }
                 }
             }
             .setNegativeButton(android.R.string.cancel) { _, _ ->

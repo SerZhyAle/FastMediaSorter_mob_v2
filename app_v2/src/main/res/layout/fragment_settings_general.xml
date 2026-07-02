@@ -86,6 +86,7 @@
                             android:id="@+id/rowEnableFavorites"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_resource_favorites"
                             app:str_title="@string/enable_favorites"
                             app:str_subtitle="@string/setting_enable_favorites_desc"
                             app:str_showHelp="true"

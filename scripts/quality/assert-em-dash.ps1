@@ -38,7 +38,10 @@
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
     [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
-    [Parameter(ParameterSetName = 'Report')][switch]$List
+    [Parameter(ParameterSetName = 'Report')][switch]$List,
+    # S0850: when set, judge only the growth these files introduce (working vs HEAD)
+    # instead of a full src/main scan. Preserves the "must not grow" guarantee for the change.
+    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -50,6 +53,22 @@ $baselineFile = Join-Path $PSScriptRoot 'em-dash-baseline.txt'
 
 # Long-dash code points that must be a plain hyphen-minus in code/comments.
 $rx = [regex]'[–—―]'
+
+# S0850: delta mode - same regex as the full scan, applied per changed file (working vs HEAD),
+# mirroring the flavor-flags/deprecated-pm wiring from S0848 Phase 04.
+if ($ChangedFiles) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match 'app_v2/src/main/' })
+    $countFn = { param($t) $rx.Matches($t).Count }
+    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
+    Write-Host ("em-dash [delta over changed files]: new occurrences {0}" -f $d.Growth)
+    if ($Gate -and $d.Growth -gt 0) {
+        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
+        Write-Host "FAIL: new long dash introduced in the changed file(s). Use a plain hyphen '-' instead."
+        exit 1
+    }
+    exit 0
+}
 
 $current = 0
 $hits = [System.Collections.Generic.List[string]]::new()

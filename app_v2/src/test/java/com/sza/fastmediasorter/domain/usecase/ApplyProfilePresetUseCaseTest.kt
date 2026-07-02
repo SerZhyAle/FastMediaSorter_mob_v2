@@ -45,13 +45,8 @@ class ApplyProfilePresetUseCaseTest {
     }
 
     // S0876: applySettingsOnly() now writes through the transform overload (mutex-serialized in the
-    // real repository) - capture the transform and apply it to a starting AppSettings() ourselves
-    // (mirrors the old getSettings() stub, which always returned AppSettings() by default).
-    private suspend fun captureTransformResult(): AppSettings {
-        val transform = slot<suspend (AppSettings) -> AppSettings>()
-        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
-        return AppSettings().let { transform.captured(it) }
-    }
+    // real repository) - each test captures the transform and applies it to a starting AppSettings()
+    // itself (mirrors the old getSettings() stub, which always returned AppSettings() by default).
 
     @Test
     fun `applies overrides for a profile and persists the updated settings`() = runTest {
@@ -190,15 +185,23 @@ class ApplyProfilePresetUseCaseTest {
     }
 
     @Test
-    fun `skips settings application and preset marker when no overrides and vr sync is noop`() = runTest {
+    fun `applies identity transform and skips preset marker when no overrides and vr sync is noop`() = runTest {
         every { dataSource.load() } returns mapOf(
             DeviceProfileType.OTHER to emptyMap()
         )
 
+        val transform = slot<suspend (AppSettings) -> AppSettings>()
+        coEvery { settingsRepository.updateSettings(capture(transform)) } returns Unit
+
         val result = useCase.apply(DeviceProfileType.OTHER, presetVersion = 1)
+        val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        coVerify(exactly = 0) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
+        // S0876: the use case now always routes through the transform overload; "skip when nothing
+        // changed" moved into the repository (S0018 idempotency guard), so the observable contract
+        // here is an identity transform plus no preset-marker write - not "no call at all".
+        assertEquals(AppSettings(), saved)
+        coVerify(exactly = 1) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
         coVerify(exactly = 0) { profileRepository.updatePresetApplied(any()) }
     }
 

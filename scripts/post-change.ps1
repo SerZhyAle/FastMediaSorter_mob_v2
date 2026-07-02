@@ -38,9 +38,10 @@ param(
     [string]$KeyPrefix,
     [switch]$SkipScan,
     # S0826: per-change closure on an always-dirty tree. When set, detekt is diff-scoped to
-    # -File (fails only on findings in THIS change), and the project-wide count-ratchet gates
-    # (neuroslop, listener-symmetry, flavor-flag, deprecated-pm) downgrade to advisory warnings
-    # - they grow on other tickets' in-flight WIP, so they cannot be attributed to this change.
+    # -File (fails only on findings in THIS change), and every count-ratchet gate (neuroslop,
+    # listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real FATAL delta on
+    # the changed file (growth vs HEAD) instead of a full-project scan - other tickets' WIP no
+    # longer trips them. Only icon-inventory-sync stays advisory (its re-render is repo-wide).
     # Release/CI omit the switch for the strict full project gate.
     [switch]$ScopeToFile
 )
@@ -111,10 +112,10 @@ function Skip-Step([string]$Label, [string]$Reason) {
     Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
 }
 
-# S0826: like Invoke-Step but non-fatal. A project-wide count-ratchet gate (neuroslop,
-# listener-symmetry, flavor-flag, deprecated-pm) grows on other tickets' WIP, so under
-# -ScopeToFile a failure is reported as a WARN and the facade keeps going instead of
-# aborting the close. The operator still sees it and can verify their own files.
+# S0826: like Invoke-Step but non-fatal. A project-wide gate that cannot attribute its
+# failure to THIS change (today only icon-inventory-sync; the count-ratchet gates moved to
+# FATAL per-file deltas in S0848/S0850) is reported as a WARN under -ScopeToFile and the
+# facade keeps going instead of aborting the close. The operator still sees it.
 function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     try {
@@ -268,8 +269,9 @@ else {
     Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
 }
 
-# S0826: project-wide count-ratchet gates run advisory (warn, non-fatal) under -ScopeToFile
-# because they grow on other tickets' in-flight WIP; fatal otherwise.
+# S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
+# under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
+# the count-ratchet gates all judge FATAL per-file deltas.
 $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
 
 # S0848 Phase 02: start the gradle-backed detekt gate as a background thread job BEFORE the
@@ -318,8 +320,13 @@ else {
 }
 
 if ($runsNeuroslopGate) {
-    & $ratchetRunner "neuroslop-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-neuroslop.ps1") -Gate
+    # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
+    # HEAD) and the gate stays FATAL - a NEW violation in this change fails, while other
+    # tickets' pre-existing findings no longer trip it (mirrors flavor-flags/deprecated-pm).
+    Invoke-Step "neuroslop-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-neuroslop.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
@@ -368,8 +375,13 @@ else {
 }
 
 if ($runsListenerSymmetryGate) {
-    & $ratchetRunner "listener-symmetry-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1") -Gate
+    # S0850: under -ScopeToFile the gate judges per-file imbalance growth vs HEAD and stays
+    # FATAL - an edit that degrades symmetry in this change fails, unrelated pre-existing
+    # imbalance elsewhere does not.
+    Invoke-Step "listener-symmetry-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {

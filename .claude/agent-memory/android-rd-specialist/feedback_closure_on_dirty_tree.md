@@ -9,7 +9,7 @@ type: feedback
 **Fix shipped in S0826 (2026-06-30): add `-ScopeToFile`.**
 `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target ".." -Description ".." -ChangeType Kotlin -Module app_v2 -ScopeToFile`
 - detekt is diff-scoped to `-File` (re-judged via the Checkstyle XML report `<module>/build/reports/detekt/detekt.xml`, not cache-flaky stdout) - fails only on findings in your file.
-- the project-wide count-ratchet gates (neuroslop / listener-symmetry / flavor-flag / deprecated-pm) downgrade to advisory SKIP (warn, non-fatal) so the facade closes exit 0 when your own files are clean.
+- since S0848+S0850 (2026-07-03) ALL count-ratchet gates (neuroslop's 8 children / listener-symmetry / flavor-flag / deprecated-pm) judge a FATAL per-file delta vs HEAD under `-ScopeToFile`: a NEW violation in YOUR file fails the close; other tickets' pre-existing findings do not. Only icon-inventory-sync remains advisory.
 - targeted gates (ticket-log-audit, dialog-cancel, etc.) stay fatal.
 Omit `-ScopeToFile` for release/CI to get the strict full-project gate.
 

@@ -85,6 +85,7 @@
 - [Camera capture permission-free](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE
 
 ## Spec lifecycle & catalog
+- [Release scope 2026-07](project_release_scope_2026_07.md) - 11 gating tickets S0846..S0891; S0878 may inflate scope; verify statuses live
 - [BNUT sweep plan 2026-07-02](project_bnut_sweep_plan.md) - 65 tickets triaged, 0 stale; plan temp/spec_sweep_batch_plan.md, 24 batches
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) - grep `"Sxxxx:` too; single-line Timber.d pattern misses wrapped probes
 - [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff for WIP; git only on explicit ask
@@ -114,7 +115,7 @@
 - [Cyrillic bash->pwsh boundary](feedback_cyrillic_bash_pwsh_boundary.md) - never pass RU/UK as pwsh CLI args from Bash; author .ps1
 - [pwsh byte traps](feedback_pwsh_authoring_byte_traps.md) + [$-escape](feedback_pwsh_bash_dollar_escape_trap.md) + [backticks](feedback_no_backticks_in_bash_args.md) - Write escapes = control bytes; \$ collapses in bash -Command; bash substitutes backticks even quoted
 - [pwsh param/local collision](feedback_pwsh_param_local_case_collision.md) - lowercase loop-local same as param corrupts it
-- [string[] CSV via -File](feedback_string_array_param_csv_via_file.md) + [-DevLogs](feedback_devlogs_array_binding.md) - CSV binds ONE element; multi-@() needs in-process & call
+- [string[] CSV via -File](feedback_string_array_param_csv_via_file.md) + [-DevLogs](feedback_devlogs_array_binding.md) - -File binds ONE element; close-and-log takes JSON-array string (fixed 2026-07-03); no wrapper scripts
 - [pwsh shim in Git Bash](reference_pwsh_shim.md) - bare pwsh works via /c/Users/serzh/bin/pwsh
 - [set-android-string.ps1](reference_strings_tool.md) - byte-preserving set/add/get across EN/RU/UK
 - [String tools main/res only](feedback_string_tools_main_res_only.md) - ignore src/<flavor>/res; hand-edit + grep-verify

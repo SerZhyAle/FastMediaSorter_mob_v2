@@ -6,6 +6,7 @@ import android.graphics.drawable.LayerDrawable
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -82,18 +83,10 @@ object ResourceIconComposer {
         resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO   -> R.drawable.ic_virtual_video
         resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS    -> R.drawable.ic_virtual_docs
         resource.id == -100L                                         -> R.drawable.ic_resource_favorites
+        // S0890: cloud refines to the provider glyph; every other type follows the shared map.
         else -> when (resource.type) {
-            ResourceType.LOCAL -> R.drawable.ic_resource_local
-            ResourceType.SMB   -> R.drawable.ic_resource_smb
-            ResourceType.SFTP  -> R.drawable.ic_resource_sftp
-            ResourceType.FTP   -> R.drawable.ic_resource_ftp
-            ResourceType.CLOUD -> when (resource.cloudProvider?.name) {
-                "GOOGLE_DRIVE" -> R.drawable.ic_provider_google_drive
-                "ONEDRIVE"     -> R.drawable.ic_provider_onedrive
-                "DROPBOX"      -> R.drawable.ic_provider_dropbox
-                else           -> R.drawable.ic_resource_cloud
-            }
-            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
+            ResourceType.CLOUD -> CloudProviderIconMap.iconFor(resource.cloudProvider?.name)
+            else -> ResourceTypeIconMap.iconFor(resource.type)
         }
     }
 }

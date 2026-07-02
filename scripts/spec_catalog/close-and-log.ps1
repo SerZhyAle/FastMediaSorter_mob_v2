@@ -20,6 +20,11 @@
 #     -CatalogModule app_v2
 #
 # Each DevLogs entry is a JSON object with keys: file, target, desc.
+# Cross-process transport form: a SINGLE string holding a JSON ARRAY is also accepted and
+# expanded in-script, because `pwsh -File` binds only the first element of a multi-element
+# array param. Preferred when invoking from another process (no wrapper script needed):
+#   pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 -Id S0223 -Status Verified `
+#     -DevLogs '[{"file":"PLAN/S0223_*.md","target":"spec-all","desc":"msg1"},{"file":"a.kt","target":"spec-all","desc":"msg2"}]'
 # Pass -SkipCatalogSync to skip scan+render (use only when no .kt was touched).
 # Pass -SkipFuncLog or omit -FuncOp/-FuncDesc to skip the feature-inventory record.
 # Richer record: add -FeatArea, -FeatName, -FeatFlavors (csv), or explicit -FeatId.
@@ -54,6 +59,21 @@ $ErrorActionPreference = 'Stop'
 if ($Id -notmatch '^S\d{4}$') {
     Write-Error "Invalid -Id '$Id' (must match S####)"
     exit 2
+}
+
+# Cross-process transport form: `pwsh -File` binds only the FIRST element of a multi-element
+# array argument, so callers from another process pass one string holding a JSON ARRAY.
+# Expand it here into the canonical one-JSON-object-per-element shape.
+if ($DevLogs.Count -eq 1 -and $DevLogs[0].TrimStart().StartsWith('[')) {
+    try {
+        $DevLogs = @($DevLogs[0] | ConvertFrom-Json -ErrorAction Stop | ForEach-Object {
+                $_ | ConvertTo-Json -Compress
+            })
+    }
+    catch {
+        Write-Error "Malformed -DevLogs JSON array: $_"
+        exit 2
+    }
 }
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path

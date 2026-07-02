@@ -24,7 +24,11 @@
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
     [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
-    [Parameter(ParameterSetName = 'Report')][switch]$List
+    [Parameter(ParameterSetName = 'Report')][switch]$List,
+    # S0850: when set, judge only the imbalance growth these files introduce (working vs HEAD)
+    # instead of a full scan. A balance gate ratchets per file, so per-file growth preserves
+    # the "must not degrade" guarantee for the change.
+    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -53,6 +57,35 @@ $removeCallback = [regex]'\bremove[A-Za-z0-9_]*Callback\b'
 $addObserver = [regex]'\badd[A-Za-z0-9_]*Observer\b'
 $removeObserver = [regex]'\bremove[A-Za-z0-9_]*Observer\b'
 
+# S0850: the per-file imbalance is this gate's unit of count. Both the full scan and the
+# delta mode call this, so they judge byte-for-byte the same logic.
+function Get-FileImbalance([string]$text) {
+    if ([string]::IsNullOrEmpty($text)) { return 0 }
+    $dObs = [Math]::Abs($regContentObserver.Matches($text).Count - $unregContentObserver.Matches($text).Count)
+    $dRec = [Math]::Abs(($regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count) - $unregReceiver.Matches($text).Count)
+    $dList = [Math]::Abs($addListener.Matches($text).Count - $removeListener.Matches($text).Count)
+    $dCb = [Math]::Abs($addCallback.Matches($text).Count - $removeCallback.Matches($text).Count)
+    $dObs2 = [Math]::Abs($addObserver.Matches($text).Count - $removeObserver.Matches($text).Count)
+    return $dObs + $dRec + $dList + $dCb + $dObs2
+}
+
+# S0850: delta mode - per-file imbalance growth vs HEAD over the changed files only. An edit
+# that raises a file's imbalance fails; keeping or reducing it passes; other files' pre-existing
+# imbalance is ignored (it is already in HEAD / the committed baseline).
+if ($ChangedFiles) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match '(app_v2|wear)/src/main/' })
+    $countFn = { param($t) Get-FileImbalance $t }
+    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
+    Write-Host ("listener-symmetry [delta over changed files]: new imbalance {0}" -f $d.Growth)
+    if ($Gate -and $d.Growth -gt 0) {
+        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
+        Write-Host "FAIL: listener/observer/receiver/callback imbalance grew in the changed file(s). Pair every add/register with its remove/unregister on the symmetric lifecycle edge."
+        exit 1
+    }
+    exit 0
+}
+
 $files = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
 foreach ($root in $scanRoots) {
     if (Test-Path $root) {
@@ -69,37 +102,29 @@ foreach ($file in $files) {
     $text = Get-Content -LiteralPath $file.FullName -Raw
     if ([string]::IsNullOrEmpty($text)) { continue }
 
-    $cRegObs = $regContentObserver.Matches($text).Count
-    $cUnregObs = $unregContentObserver.Matches($text).Count
-    $dObs = [Math]::Abs($cRegObs - $cUnregObs)
-
-    $cRegRec = $regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count
-    $cUnregRec = $unregReceiver.Matches($text).Count
-    $dRec = [Math]::Abs($cRegRec - $cUnregRec)
-
-    $cAddList = $addListener.Matches($text).Count
-    $cRemoveList = $removeListener.Matches($text).Count
-    $dList = [Math]::Abs($cAddList - $cRemoveList)
-
-    $cAddCb = $addCallback.Matches($text).Count
-    $cRemoveCb = $removeCallback.Matches($text).Count
-    $dCb = [Math]::Abs($cAddCb - $cRemoveCb)
-
-    $cAddObs = $addObserver.Matches($text).Count
-    $cRemoveObs = $removeObserver.Matches($text).Count
-    $dObs2 = [Math]::Abs($cAddObs - $cRemoveObs)
-
-    $fileImbalance = $dObs + $dRec + $dList + $dCb + $dObs2
+    # S0850: the imbalance itself comes from the shared function; the per-category counts
+    # below are recomputed only for -List display detail.
+    $fileImbalance = Get-FileImbalance $text
     if ($fileImbalance -gt 0) {
         $current += $fileImbalance
         if ($List) {
+            $cRegObs = $regContentObserver.Matches($text).Count
+            $cUnregObs = $unregContentObserver.Matches($text).Count
+            $cRegRec = $regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count
+            $cUnregRec = $unregReceiver.Matches($text).Count
+            $cAddList = $addListener.Matches($text).Count
+            $cRemoveList = $removeListener.Matches($text).Count
+            $cAddCb = $addCallback.Matches($text).Count
+            $cRemoveCb = $removeCallback.Matches($text).Count
+            $cAddObs = $addObserver.Matches($text).Count
+            $cRemoveObs = $removeObserver.Matches($text).Count
             $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
             $details = [System.Collections.Generic.List[string]]::new()
-            if ($dObs -gt 0) { $details.Add("ContentObserver: $cRegObs vs $cUnregObs") }
-            if ($dRec -gt 0) { $details.Add("Receiver: $cRegRec vs $cUnregRec") }
-            if ($dList -gt 0) { $details.Add("Listener: $cAddList vs $cRemoveList") }
-            if ($dCb -gt 0) { $details.Add("Callback: $cAddCb vs $cRemoveCb") }
-            if ($dObs2 -gt 0) { $details.Add("Observer: $cAddObs vs $cRemoveObs") }
+            if ($cRegObs -ne $cUnregObs) { $details.Add("ContentObserver: $cRegObs vs $cUnregObs") }
+            if ($cRegRec -ne $cUnregRec) { $details.Add("Receiver: $cRegRec vs $cUnregRec") }
+            if ($cAddList -ne $cRemoveList) { $details.Add("Listener: $cAddList vs $cRemoveList") }
+            if ($cAddCb -ne $cRemoveCb) { $details.Add("Callback: $cAddCb vs $cRemoveCb") }
+            if ($cAddObs -ne $cRemoveObs) { $details.Add("Observer: $cAddObs vs $cRemoveObs") }
             $hits.Add(("{0} (imbalance: {1} | {2})" -f $rel, $fileImbalance, ($details -join ", ")))
         }
     }

@@ -43,7 +43,10 @@
 #>
 [CmdletBinding()]
 param(
-    [switch]$Gate
+    [switch]$Gate,
+    # S0850: forwarded to every child in gate mode - each judges only the growth the changed
+    # files introduce (working vs HEAD) instead of a full scan. Report mode stays full-scan.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -74,7 +77,9 @@ foreach ($child in $children) {
     try {
         $global:LASTEXITCODE = 0
         if ($Gate) {
-            & $path -Gate
+            # S0850: delta mode per child when a changed-files signal is present.
+            if ($ChangedFiles) { & $path -Gate -ChangedFiles $ChangedFiles }
+            else { & $path -Gate }
             if ($LASTEXITCODE -ne 0) { $failures++ }
         }
         else {
