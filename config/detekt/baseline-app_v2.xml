@@ -10014,7 +10014,6 @@
     <ID>ReturnCount:CalculatorEngine.kt$CalculatorEngine$private fun applyOperation(left: BigDecimal, right: BigDecimal, operator: Operator): Boolean</ID>
     <ID>ReturnCount:CalculatorExpressionEvaluator.kt$CalculatorExpressionEvaluator$fun evaluate(text: String): Result</ID>
     <ID>ReturnCount:CalculatorInputManager.kt$CalculatorInputManager$fun handleKeyEvent(event: KeyEvent): Boolean</ID>
-    <ID>ReturnCount:CameraCaptureActivity.kt$CameraCaptureActivity$private fun openLastCapture()</ID>
     <ID>ReturnCount:CameraCaptureFlowManager.kt$CameraCaptureFlowManager$fun resolveOutput(): Boolean</ID>
     <ID>ReturnCount:CameraCaptureFlowManager.kt$CameraCaptureFlowManager$private fun resolveLegacyOutputFile(): File?</ID>
     <ID>ReturnCount:CameraCaptureGestureManager.kt$CameraCaptureGestureManager.&lt;no name provided&gt;$override fun onFling( e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float, ): Boolean</ID>
@@ -11942,7 +11941,6 @@
     <ID>TooManyFunctions:BaseActivity.kt$BaseActivity&lt;VB : ViewBinding&gt; : AppCompatActivity</ID>
     <ID>TooManyFunctions:BrowseViewModel.kt$BrowseViewModel : BaseViewModel</ID>
     <ID>TooManyFunctions:CalculatorEngine.kt$CalculatorEngine</ID>
-    <ID>TooManyFunctions:CameraCaptureActivity.kt$CameraCaptureActivity : BaseActivityHostCallbacks</ID>
     <ID>TooManyFunctions:CommandPanelController.kt$CommandPanelController$CommandPanelCallback</ID>
     <ID>TooManyFunctions:DiagnosticXrActivity.kt$DiagnosticXrActivity : ComponentActivityCallback</ID>
     <ID>TooManyFunctions:DropboxClient.kt$DropboxClient : CloudStorageClient</ID>
@@ -12326,7 +12324,6 @@
     <ID>Wrapping:CalculatorExpressionEvaluator.kt$CalculatorExpressionEvaluator$;</ID>
     <ID>Wrapping:CalculatorExpressionEvaluator.kt$CalculatorExpressionEvaluator.Parser$;</ID>
     <ID>Wrapping:CalculatorInputManager.kt$CalculatorInputManager$;</ID>
-    <ID>Wrapping:CameraCaptureActivity.kt$CameraCaptureActivity$BaseActivity&lt;ActivityCameraCaptureBinding&gt;(), CameraCaptureFlowManager.Host, CameraCaptureGestureManager.Callbacks</ID>
     <ID>Wrapping:CameraQuickCaptureConfigActivity.kt$CameraQuickCaptureConfigActivity$;</ID>
     <ID>Wrapping:CameraQuickCaptureLaunchManager.kt$CameraQuickCaptureLaunchManager$;</ID>
     <ID>Wrapping:CloudFileOperationHandler.kt$CloudFileOperationHandler$(</ID>

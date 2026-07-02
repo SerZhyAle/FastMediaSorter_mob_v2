@@ -7,55 +7,45 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.net.Uri
-import android.hardware.camera2.CameraMetadata
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
-import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
-import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureFlowManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureManager
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureResultManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSaveDestinationLabelManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsCallbackHandler
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraZoomControlsManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
-import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
-import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
-import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.abs
 
 /**
  * Thin host for the unified in-app camera. View binding, launcher registration and event delegation
@@ -69,10 +59,9 @@ import kotlin.math.abs
  * one-shot-then-finish contract.
  */
 @AndroidEntryPoint
-class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
+class CameraCaptureActivity :
+    BaseActivity<ActivityCameraCaptureBinding>(),
     CameraCaptureFlowManager.Host,
-    CameraCaptureGestureManager.Callbacks,
-    CameraSettingsDialogFragment.Callbacks,
     SelfManagedScreenOrientation {
 
     companion object {
@@ -103,17 +92,8 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
 
         private const val TAB_SELECTED_ALPHA = 1f
         private const val TAB_UNSELECTED_ALPHA = 0.5f
-        private const val ZOOM_PILL_MATCH_EPSILON = 0.15f
 
-        // S0753: lens-multiplier thresholds for naming the active lens.
-        private const val ULTRA_WIDE_MAX_MULTIPLIER = 0.8f
-        private const val TELE_MIN_MULTIPLIER = 1.5f
-
-        // S0753: compact, see-through zoom preset pills.
-        private const val CHIP_SIDE_PADDING_DP = 10f
-        private const val CHIP_VERT_PADDING_DP = 4f
-        private const val CHIP_SPACING_DP = 6f
-        private const val CHIP_TEXT_SP = 11f
+        private const val COUNTDOWN_TICK_INTERVAL_MS = 1_000L
     }
 
     // S0566: host-side persistence for the stay-open multi-capture session. Reuses the shared
@@ -140,14 +120,17 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
     private lateinit var gestureManager: CameraCaptureGestureManager
     private lateinit var recordingTimer: CameraRecordingTimer
     private lateinit var orientationManager: CameraOrientationManager
+    private lateinit var rotationManager: CameraOverlayRotationManager
+    private lateinit var zoomControlsManager: CameraZoomControlsManager
+    private lateinit var resultManager: CameraCaptureResultManager
+    private lateinit var saveDestinationLabelManager: CameraCaptureSaveDestinationLabelManager
+    private lateinit var gestureCallbackHandler: CameraCaptureGestureCallbackHandler
+    private lateinit var settingsCallbackHandler: CameraSettingsCallbackHandler
 
     private var captureInFlight = false
     private var autoCaptureFired = false
     private var recordingPaused = false
     private var recordingFile: File? = null
-    private var lastSavedPath: String? = null
-    private var lastSavedMediaType: MediaType? = null
-    private var currentOverlayRotation = 0f
     private var countdownJob: Job? = null
 
     private val permissionLauncher = registerForActivityResult(
@@ -170,19 +153,15 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         sessionManager = CameraCaptureSessionManager(this)
         flowManager = CameraCaptureFlowManager(intent, this, sessionManager)
         recordingTimer = CameraRecordingTimer { formatted -> binding.txtRecordingTimer.text = formatted }
-        orientationManager = CameraOrientationManager(
-            context = this,
-            onIconRotationChanged = ::applyOverlayRotation,
-            onTargetRotationChanged = { sessionManager.setTargetRotation(it) },
-        )
+        initializeHelperManagers()
         binding.cameraTopBar.applySystemBarInsetPadding(applyBottom = false)
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)
 
         if (!flowManager.resolveOutput()) return
 
         binding.btnCloseCamera.setOnClickListener { flowManager.onClose() }
-        binding.btnCameraSettings.setOnClickListener { showCameraSettingsDialog() }
-        binding.btnCameraSendTo.setOnClickListener { openSendToMenu() }
+        binding.btnCameraSettings.setOnClickListener { settingsCallbackHandler.show(supportFragmentManager) }
+        binding.btnCameraSendTo.setOnClickListener { resultManager.openSendToMenu() }
         binding.btnCapturePhoto.isEnabled = false
         binding.btnCapturePhoto.setOnClickListener { onShutterClicked() }
         binding.btnCapturePhoto.setOnKeyListener { _, keyCode, event ->
@@ -197,9 +176,9 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         sessionManager.videoMode = flowManager.isVideoMode
         applyCaptureModeUi()
         setupModeSelector()
-        refreshSaveDestinationLabel()
-        renderScenarioLabel()
-        updateSendToVisibility()
+        saveDestinationLabelManager.refresh()
+        saveDestinationLabelManager.renderScenario()
+        resultManager.updateSendToVisibility()
         renderGridOverlay()
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
@@ -218,6 +197,53 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             geotagEnabled = settingsRepository.getSettings().first().cameraGeotagEnabled
             if (geotagEnabled && hasLocationPermission()) locationProvider.start(this@CameraCaptureActivity)
         }
+    }
+
+    /** S0844: builds every UI-only helper role the Activity delegates to (CLAUDE.md Rule 3). */
+    private fun initializeHelperManagers() {
+        rotationManager = CameraOverlayRotationManager(binding)
+        orientationManager = CameraOrientationManager(
+            context = this,
+            onIconRotationChanged = { rotationManager.apply(it) },
+            onTargetRotationChanged = { sessionManager.setTargetRotation(it) },
+        )
+        zoomControlsManager = CameraZoomControlsManager(
+            context = this,
+            presetGroup = binding.cameraZoomPresetGroup,
+            zoomSlider = binding.cameraZoomSlider,
+            zoomValue = binding.cameraZoomValue,
+            lensLabel = binding.cameraLensLabel,
+            onPresetSelected = { preset ->
+                flowManager.onZoomRatioSelected(preset)
+                syncZoomSelection()
+            },
+        )
+        resultManager = CameraCaptureResultManager(
+            activity = this,
+            lifecycleScope = lifecycleScope,
+            sessionManager = sessionManager,
+            settingsRepository = settingsRepository,
+            saveCapturedMedia = saveCapturedMedia,
+            sendToMenuManager = sendToMenuManager,
+            galleryThumbnail = binding.btnGalleryThumbnail,
+            sendToButton = binding.btnCameraSendTo,
+            onError = ::showError,
+        )
+        saveDestinationLabelManager = CameraCaptureSaveDestinationLabelManager(
+            intent = intent,
+            flowManager = flowManager,
+            settingsRepository = settingsRepository,
+            resourceRepository = resourceRepository,
+            rotationManager = rotationManager,
+            destinationLabel = binding.cameraSaveDestination,
+            scenarioLabel = binding.cameraScenarioLabel,
+            lifecycleScope = lifecycleScope,
+        )
+        settingsCallbackHandler = CameraSettingsCallbackHandler(
+            sessionManager = sessionManager,
+            flowManager = flowManager,
+            onGridToggled = ::renderGridOverlay,
+        )
     }
 
     /** S0766: true when fine OR coarse location is granted; geotag silently skips otherwise. */
@@ -314,7 +340,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         // S0753: name the active lens next to the switch so the user knows why flash hides on ultra-wide.
         binding.cameraLensLabel.visibility =
             if (capabilities.canSwitchLens) View.VISIBLE else View.GONE
-        binding.cameraLensLabel.text = lensLabel(capabilities)
+        zoomControlsManager.renderLensLabel(capabilities)
         // S0753: night mode is photo-only and device-gated; hidden where the lens has no NIGHT extension.
         binding.btnCameraNight.visibility =
             if (capabilities.supportsNightMode && !flowManager.isVideoMode) View.VISIBLE else View.GONE
@@ -330,7 +356,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         // S0566/ADR-5: zoom presets are always visible (no "More" toggle) whenever the lens can zoom.
         if (capabilities.supportsZoom) {
             binding.cameraZoomPresetGroup.visibility = View.VISIBLE
-            configureZoomControls(capabilities)
+            zoomControlsManager.configure(capabilities, flowManager.liveZoomRatio, flowManager.liveLinearZoom)
             binding.cameraZoomSlider.visibility = View.VISIBLE
             binding.cameraZoomSlider.value = flowManager.liveLinearZoom.coerceIn(0f, 1f)
             binding.cameraZoomValue.visibility = View.VISIBLE
@@ -340,34 +366,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             binding.cameraZoomSlider.visibility = View.GONE
             binding.cameraZoomValue.visibility = View.GONE
         }
-        applyOverlayRotation(currentOverlayRotation, animate = false)
-    }
-
-    // endregion
-
-    // region CameraCaptureGestureManager.Callbacks
-
-    override fun onTapToFocus(x: Float, y: Float) {
-        if (flowManager.onTapToFocus(x, y)) binding.focusRingOverlay.showAt(x, y)
-    }
-
-    override fun onDoubleTapZoom() {
-        flowManager.onDoubleTapZoom()
-        syncZoomSelection()
-    }
-
-    override fun onPinchZoom(scaleFactor: Float) {
-        flowManager.onPinchZoom(scaleFactor)
-        syncZoomSelection()
-    }
-
-    override fun onSwipeLensSwitch() {
-        flowManager.onLensSwitch()
-    }
-
-    override fun onSwipeModeSwitch(toNext: Boolean) {
-        if (!flowManager.allowModeSwitch || sessionManager.isRecording()) return
-        selectMode(if (flowManager.isVideoMode) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO)
+        rotationManager.reapply()
     }
 
     // endregion
@@ -393,7 +392,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         }
         binding.btnCameraLensSwitch.setOnClickListener { flowManager.onLensSwitch() }
         binding.btnCameraPauseResume.setOnClickListener { onPauseResumeClicked() }
-        binding.btnGalleryThumbnail.setOnClickListener { openLastCapture() }
+        binding.btnGalleryThumbnail.setOnClickListener { resultManager.openLastCapture() }
         binding.toggleCameraMicrophone.setOnClickListener {
             updateMicrophoneIcon(flowManager.onMicrophoneToggle())
         }
@@ -404,7 +403,14 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                 syncZoomSelection()
             }
         }
-        gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, this)
+        gestureCallbackHandler = CameraCaptureGestureCallbackHandler(
+            flowManager = flowManager,
+            sessionManager = sessionManager,
+            focusRingOverlay = binding.focusRingOverlay,
+            zoomControlsManager = zoomControlsManager,
+            selectMode = ::selectMode,
+        )
+        gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, gestureCallbackHandler)
         gestureManager.attach()
     }
 
@@ -423,7 +429,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         } else {
             binding.toggleCameraMicrophone.visibility = View.GONE
         }
-        refreshSaveDestinationLabel()
+        saveDestinationLabelManager.refresh()
         applyShutterAppearance(recording = false)
     }
 
@@ -449,7 +455,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             sessionManager.applyMode(videoMode = target == CameraCaptureMode.VIDEO)
             applyCaptureModeUi()
             renderModeTabs()
-            refreshSaveDestinationLabel()
+            saveDestinationLabelManager.refresh()
         }
     }
 
@@ -509,7 +515,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                 if (hasError) {
                     showError(R.string.camera_capture_error_save_generic)
                 } else {
-                    recordingFile?.let { persistMultiCapture(it, isVideo = true) }
+                    recordingFile?.let { resultManager.persistMultiCapture(it, isVideo = true) }
                 }
                 recordingFile = null
             } else {
@@ -588,11 +594,11 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         } else {
             recordingTimer.stop()
             binding.cameraRecordingTimer.visibility = View.GONE
-            if (flowManager.multiCapture && lastSavedPath != null) {
+            if (flowManager.multiCapture && resultManager.lastSavedPath != null) {
                 binding.btnGalleryThumbnail.visibility = View.VISIBLE
             }
         }
-        updateSendToVisibility()
+        resultManager.updateSendToVisibility()
     }
 
     private fun updateMicrophoneIcon(enabled: Boolean) {
@@ -601,78 +607,12 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         )
     }
 
-    private fun configureZoomControls(capabilities: CameraRuntimeCapabilities) {
-        val group = binding.cameraZoomPresetGroup
-        group.removeAllViews()
-        val density = resources.displayMetrics.density
-        val padH = (density * CHIP_SIDE_PADDING_DP).toInt()
-        val padV = (density * CHIP_VERT_PADDING_DP).toInt()
-        val spacing = (density * CHIP_SPACING_DP).toInt()
-        capabilities.zoomPresets.forEach { preset ->
-            // Custom see-through pill (the Material chip kept drawing an opaque light surface). The label
-            // is the equivalent zoom (native ratio x lens multiplier), so an ultra-wide reads 0.5x.
-            val pill = OutlinedTextView(this).apply {
-                text = formatZoomLabel(preset * capabilities.zoomMultiplier)
-                tag = preset
-                contentDescription = getString(R.string.camera_control_zoom)
-                isClickable = true
-                isFocusable = true
-                gravity = Gravity.CENTER
-                setTextColor(android.graphics.Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_TEXT_SP)
-                setPadding(padH, padV, padH, padV)
-                background = ContextCompat.getDrawable(context, R.drawable.bg_camera_zoom_chip)
-                setOnClickListener {
-                    flowManager.onZoomRatioSelected(preset)
-                    syncZoomSelection()
-                }
-            }
-            val lp = ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply { marginEnd = spacing }
-            group.addView(pill, lp)
-        }
-        syncZoomSelection()
-    }
-
-    /** Highlights the preset pill nearest the live zoom ratio; clears all when pinched between steps. */
-    private fun syncZoomSelection() {
-        val group = binding.cameraZoomPresetGroup
-        val live = flowManager.liveZoomRatio
-        var best: View? = null
-        var bestDelta = Float.MAX_VALUE
-        group.children.forEach { view ->
-            view.isSelected = false
-            val preset = view.tag as? Float ?: return@forEach
-            val delta = abs(preset - live)
-            if (delta < bestDelta) {
-                bestDelta = delta
-                best = view
-            }
-        }
-        if (bestDelta < ZOOM_PILL_MATCH_EPSILON) best?.isSelected = true
-        // Mirror the live linear position onto the slider (fromUser=false, so the listener no-ops).
-        binding.cameraZoomSlider.value = flowManager.liveLinearZoom.coerceIn(0f, 1f)
-        // S0753: live equivalent-zoom readout next to the slider.
-        binding.cameraZoomValue.text =
-            formatZoomRatio(flowManager.liveZoomRatio * flowManager.currentCapabilities.zoomMultiplier)
-    }
-
-    private fun formatZoomRatio(ratio: Float): String =
-        if (ratio % 1f == 0f) "${ratio.toInt()}×" else String.format(Locale.US, "%.1f×", ratio)
-
-    /** Zoom label without the "x" suffix so the preset pills stay narrow (S0753), e.g. "1", "0.5". */
-    private fun formatZoomLabel(ratio: Float): String =
-        if (ratio % 1f == 0f) "${ratio.toInt()}" else String.format(Locale.US, "%.1f", ratio)
-
-    /** Active-lens name next to the switch button (Ultra-wide / Wide / Tele / Front), by lens multiplier. */
-    private fun lensLabel(capabilities: CameraRuntimeCapabilities): String = when {
-        capabilities.isFront -> getString(R.string.camera_lens_front)
-        capabilities.zoomMultiplier < ULTRA_WIDE_MAX_MULTIPLIER -> getString(R.string.camera_lens_ultrawide)
-        capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> getString(R.string.camera_lens_tele)
-        else -> getString(R.string.camera_lens_wide)
-    }
+    /** Re-syncs zoom pill/slider/readout to the flow manager's live values (S0844). */
+    private fun syncZoomSelection() = zoomControlsManager.syncSelection(
+        flowManager.liveZoomRatio,
+        flowManager.liveLinearZoom,
+        flowManager.currentCapabilities.zoomMultiplier,
+    )
 
     private fun capturePhoto() {
         val file = flowManager.nextOutputFile() ?: return
@@ -699,7 +639,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
                     // Stay-open session: save this shot, refresh the thumbnail, keep the camera live.
                     captureInFlight = false
                     binding.btnCapturePhoto.isEnabled = true
-                    persistMultiCapture(file, isVideo = false)
+                    resultManager.persistMultiCapture(file, isVideo = false)
                 } else {
                     flowManager.onCaptureSucceeded()
                 }
@@ -716,51 +656,6 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         )
     }
 
-    /**
-     * S0566/ADR-2: persist one capture of a stay-open session to its public folder (photo ->
-     * DCIM/Camera, video -> Movies) through the shared use-case, then surface the result as the
-     * gallery thumbnail. The saver deletes the scratch file; the camera is never finished here.
-     */
-    private fun persistMultiCapture(file: File, isVideo: Boolean) {
-        val name = file.name
-        lifecycleScope.launch {
-            val result = saveCapturedMedia(file, isVideo)
-            if (isFinishing || isDestroyed) return@launch
-            when (result) {
-                is SaveResult.Success -> {
-                    lastSavedPath = result.savedPath
-                    lastSavedMediaType = if (isVideo) MediaType.VIDEO else MediaType.IMAGE
-                    showGalleryThumbnail(result.savedPath)
-                    updateSendToVisibility()
-                    Toast.makeText(
-                        this@CameraCaptureActivity,
-                        getString(R.string.camera_capture_saved, name),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                }
-                else -> {
-                    // The saver only deletes the scratch file on success, so drop the failed shot's
-                    // scratch copy here to avoid leaving CAP_<stamp>_<seq> orphans in the session dir.
-                    file.delete()
-                    showError(R.string.camera_capture_error_save_generic)
-                }
-            }
-        }
-    }
-
-    private fun showGalleryThumbnail(path: String) {
-        binding.btnGalleryThumbnail.visibility = View.VISIBLE
-        Glide.with(this).load(File(path)).centerCrop().into(binding.btnGalleryThumbnail)
-    }
-
-    private fun updateSendToVisibility() {
-        binding.btnCameraSendTo.visibility = if (!sessionManager.isRecording() && lastSavedPath != null) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
-    }
-
     private fun startSelfTimer(seconds: Int, onFinish: () -> Unit) {
         cancelCountdown()
         binding.btnCapturePhoto.isEnabled = false
@@ -768,7 +663,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
             binding.cameraCountdownOverlay.visibility = View.VISIBLE
             for (remaining in seconds downTo 1) {
                 binding.cameraCountdownOverlay.text = remaining.toString()
-                delay(1_000)
+                delay(COUNTDOWN_TICK_INTERVAL_MS)
             }
             binding.cameraCountdownOverlay.visibility = View.GONE
             countdownJob = null
@@ -783,181 +678,7 @@ class CameraCaptureActivity : BaseActivity<ActivityCameraCaptureBinding>(),
         binding.btnCapturePhoto.isEnabled = !captureInFlight
     }
 
-    private fun applyOverlayRotation(degrees: Float, animate: Boolean = true) {
-        currentOverlayRotation = degrees
-        orientationAwareViews().forEach { view ->
-            if (animate) {
-                view.animate()
-                    .rotation(degrees)
-                    .setDuration(180L)
-                    .start()
-            } else {
-                view.animate().cancel()
-                view.rotation = degrees
-            }
-        }
-    }
-
-    private fun orientationAwareViews(): List<View> = listOf(
-        binding.btnCloseCamera,
-        binding.cameraSaveDestination,
-        binding.btnCameraSettings,
-        binding.toggleCameraMicrophone,
-        binding.btnCameraFlash,
-        binding.btnCameraNight,
-        binding.btnCameraMacro,
-        binding.cameraRecordingTimer,
-        binding.cameraZoomValue,
-        binding.tabModePhoto,
-        binding.tabModeVideo,
-        binding.btnGalleryThumbnail,
-        binding.btnCameraPauseResume,
-        binding.btnCameraSendTo,
-        binding.btnCapturePhoto,
-        binding.btnCameraLensSwitch,
-        binding.cameraLensLabel,
-        binding.cameraScenarioLabel,
-    )
-
-    private fun showCameraSettingsDialog() {
-        if (supportFragmentManager.findFragmentByTag(CameraSettingsDialogFragment.TAG) != null) return
-        CameraSettingsDialogFragment().apply {
-            callbacks = this@CameraCaptureActivity
-            capabilities = flowManager.currentCapabilities
-            initialSettings = CameraSettingsDialogFragment.CameraSettingsState(
-                selfTimerSeconds = flowManager.selfTimerSeconds,
-                gridEnabled = flowManager.gridEnabled,
-                aspectRatio = sessionManager.currentAspectRatio(),
-                resolution = sessionManager.currentResolution(),
-                exposureCompensationIndex = sessionManager.currentExposureCompensationIndex(),
-                whiteBalanceMode = sessionManager.currentWhiteBalanceMode() ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
-                manualSensorEnabled = sessionManager.currentManualIso() != null &&
-                    sessionManager.currentManualShutterNs() != null,
-                manualIso = sessionManager.currentManualIso(),
-                manualShutterNs = sessionManager.currentManualShutterNs(),
-                hdrEnabled = sessionManager.hdrEnabled,
-            )
-        }.show(supportFragmentManager, CameraSettingsDialogFragment.TAG)
-    }
-
-    override fun onCameraSettingsPreviewChanged(state: CameraSettingsDialogFragment.CameraSettingsState) {
-        sessionManager.setExposureCompensation(state.exposureCompensationIndex)
-        sessionManager.setWhiteBalance(state.whiteBalanceMode)
-        if (state.manualSensorEnabled && state.manualIso != null && state.manualShutterNs != null) {
-            sessionManager.setManualSensor(state.manualIso, state.manualShutterNs)
-        } else {
-            sessionManager.clearManualSensor()
-        }
-        sessionManager.applyHdr(state.hdrEnabled)
-    }
-
-    override fun onCameraSettingsApplied(state: CameraSettingsDialogFragment.CameraSettingsState) {
-        Timber.d("S0754: applying camera settings dialog state")
-        onCameraSettingsPreviewChanged(state)
-        flowManager.setSelfTimerSeconds(state.selfTimerSeconds)
-        flowManager.setGridEnabled(state.gridEnabled)
-        renderGridOverlay()
-        sessionManager.setAspectRatioAndResolution(state.aspectRatio, state.resolution)
-    }
-
-    override fun onCameraSettingsCancelled(state: CameraSettingsDialogFragment.CameraSettingsState) {
-        onCameraSettingsPreviewChanged(state)
-    }
-
     private fun renderGridOverlay() {
         binding.cameraGridOverlay.visibility = if (flowManager.gridEnabled) View.VISIBLE else View.GONE
-    }
-
-    private fun openSendToMenu() {
-        val path = lastSavedPath ?: return
-        lifecycleScope.launch {
-            val file = File(path)
-            if (!file.exists()) return@launch
-            val uri = runCatching {
-                FileProvider.getUriForFile(this@CameraCaptureActivity, "$packageName.fileprovider", file)
-            }.getOrNull() ?: return@launch
-            val settings = settingsRepository.getSettings().first()
-            val mediaType = lastSavedMediaType ?: inferMediaType(file)
-            val content = ShareableContent(
-                uris = listOf(uri),
-                mime = ShareableContent.mimeForMediaType(file.name, mediaType),
-                mediaType = mediaType,
-                displayName = file.name,
-            )
-            sendToMenuManager.show(this@CameraCaptureActivity, content, settings)
-        }
-    }
-
-    private fun inferMediaType(file: File): MediaType {
-        val ext = file.extension.lowercase(Locale.US)
-        return when (ext) {
-            "mp4", "mkv", "webm" -> MediaType.VIDEO
-            else -> MediaType.IMAGE
-        }
-    }
-
-    private fun refreshSaveDestinationLabel() {
-        lifecycleScope.launch {
-            val destinationName = resolveSaveDestinationName()
-            if (destinationName.isNullOrBlank()) {
-                binding.cameraSaveDestination.visibility = View.GONE
-            } else {
-                binding.cameraSaveDestination.text = destinationName
-                binding.cameraSaveDestination.visibility = View.VISIBLE
-                applyOverlayRotation(currentOverlayRotation, animate = false)
-            }
-        }
-    }
-
-    private fun renderScenarioLabel() {
-        val scenario = CameraCaptureContract.readScenario(intent)
-        Timber.d("S0812: render scenario label ${scenario.name}")
-        if (scenario.labelRes == 0) {
-            binding.cameraScenarioLabel.visibility = View.GONE
-        } else {
-            binding.cameraScenarioLabel.text = getString(scenario.labelRes)
-            binding.cameraScenarioLabel.visibility = View.VISIBLE
-            applyOverlayRotation(currentOverlayRotation, animate = false)
-        }
-    }
-
-    private suspend fun resolveSaveDestinationName(): String? {
-        val fixedOutputParent = flowManager.currentOutputFile()?.parentFile?.name
-        if (!flowManager.multiCapture) return fixedOutputParent
-        val settings = settingsRepository.getSettings().first()
-        val configuredId = if (flowManager.isVideoMode) {
-            settings.videoRecordingDestinationResourceId
-        } else {
-            settings.cameraPhotosDestinationResourceId
-        }
-        val configuredName = configuredId?.toLongOrNull()?.let { id ->
-            withContext(Dispatchers.IO) { resourceRepository.getResourceById(id)?.name }
-        }
-        if (!configuredName.isNullOrBlank()) return configuredName
-        return if (flowManager.isVideoMode) {
-            CaptureDestinationPolicy.resolveVideoDestination(null).name
-        } else {
-            CaptureDestinationPolicy.resolveCameraDestination(null).name
-        }
-    }
-
-    /**
-     * S0566/§6.7: opens the most recent capture in the in-app player. Routes through
-     * [StandalonePlayerDispatcherActivity] (resolves the media family from the URI and forwards to the
-     * matching standalone host) instead of an implicit ACTION_VIEW the OS would hand to an external
-     * gallery, keeping the user inside the app. A missing/unviewable file is logged, not fatal.
-     */
-    private fun openLastCapture() {
-        val path = lastSavedPath ?: return
-        val file = File(path)
-        if (!file.exists()) return
-        val uri = runCatching {
-            FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-        }.getOrNull() ?: return
-        val intent = Intent(this, StandalonePlayerDispatcherActivity::class.java)
-            .setData(uri)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        runCatching { startActivity(intent) }
-            .onFailure { Timber.w(it, "CameraCaptureActivity: failed to open last capture in player") }
     }
 }
