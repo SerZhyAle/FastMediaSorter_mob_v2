@@ -63,12 +63,17 @@ class NowPlayingViewModel @Inject constructor(
     private var mediaController: MediaController? = null
     private var positionPollJob: Job? = null
 
+    // S0895: viewModelScope (where positionPollJob runs) lives until onCleared, not until the
+    // hosting sheet is merely stopped/backgrounded - without this flag the poll kept ticking every
+    // 500ms while playback continued but nothing was observing the sheet's state.
+    private var hostStarted = false
+
     private val playerListener = object : Player.Listener {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             Timber.d("NowPlayingViewModel: onIsPlayingChanged isPlaying=$isPlaying")
             _state.value = _state.value.copy(isPlaying = isPlaying)
-            if (isPlaying) startPositionPoll() else stopPositionPoll()
+            updatePositionPoll()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -126,7 +131,7 @@ class NowPlayingViewModel @Inject constructor(
                 )
                 _state.value = state
                 refreshQueueItems()
-                if (isPlaying) startPositionPoll()
+                updatePositionPoll()
                 Timber.d("NowPlayingViewModel: connected, isPlaying=$isPlaying")
             } catch (e: Exception) {
                 Timber.e(e, "NowPlayingViewModel: failed to connect")
@@ -143,6 +148,18 @@ class NowPlayingViewModel @Inject constructor(
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         mediaController = null
+    }
+
+    /** Host (NowPlayingBottomSheetFragment) view started - resume polling if also playing. */
+    fun onHostStart() {
+        hostStarted = true
+        updatePositionPoll()
+    }
+
+    /** Host view stopped (backgrounded/dismissed) - stop polling regardless of isPlaying. */
+    fun onHostStop() {
+        hostStarted = false
+        stopPositionPoll()
     }
 
     fun togglePlayPause() {
@@ -186,6 +203,10 @@ class NowPlayingViewModel @Inject constructor(
     private fun stopPositionPoll() {
         positionPollJob?.cancel()
         positionPollJob = null
+    }
+
+    private fun updatePositionPoll() {
+        if (hostStarted && _state.value.isPlaying) startPositionPoll() else stopPositionPoll()
     }
 
     private fun refreshQueueItems() {

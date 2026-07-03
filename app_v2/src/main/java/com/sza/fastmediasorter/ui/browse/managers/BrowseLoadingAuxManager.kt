@@ -57,9 +57,11 @@ class BrowseLoadingAuxManager(
 ) {
     // ── Mutable jobs (owned here, cancel via cancelAll / cancelPlayerWarmup) ──
 
-    private var playerWarmupJob: Job? = null
-    private var lastWarmupSignature: String? = null
-    private var audioMetadataEnrichmentJob: Job? = null
+    // @Volatile: written on IO (warm-up scheduled after a scan), cancelled/read on main (cancelAll /
+    // cancelPlayerWarmup) - without it the cancel edge can read a stale value and miss the live job.
+    @Volatile private var playerWarmupJob: Job? = null
+    @Volatile private var lastWarmupSignature: String? = null
+    @Volatile private var audioMetadataEnrichmentJob: Job? = null
 
     private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
         context.getString(resolveFriendlyBrowseErrorRes(throwable))

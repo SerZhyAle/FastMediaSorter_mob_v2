@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import android.widget.LinearLayout
 import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
+import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
 import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -50,6 +51,10 @@ class PlaybackSettingsFragment : Fragment() {
     @Inject lateinit var shareTargetRegistry: ShareTargetRegistry
     @Inject lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
     @Inject lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
+
+    // S0838: same resolver the runtime «Send to..» menus use, so a configured receiver shows the
+    // identical icon in Settings and in every menu (installed-app launcher icon, glyph fallback).
+    @Inject lateinit var shareTargetIconResolver: ShareTargetIconResolver
 
     // S0452: dynamic "Send file to.." rows keyed by ShareTarget.id, refreshed in observeData.
     private val sendCommandRows = mutableMapOf<String, SettingsToggleRow>()
@@ -295,6 +300,9 @@ class PlaybackSettingsFragment : Fragment() {
                 // S0474: start with the fast declared title; the installed-app label (ADR-5 parity
                 // with SendToBottomSheet) is resolved off the main thread below and applied after.
                 setTitle(getString(target.titleRes))
+                // S0838: show each receiver's own glyph immediately; the installed-app launcher icon
+                // (menu parity) is resolved off the main thread below and upgrades this in place.
+                target.iconRes?.let { setIcon(it) }
                 val available = shareTargetAvailabilityResolver.isAvailable(target)
                 isEnabled = available
                 // S0463: show the target's description when available; "Not installed" otherwise.
@@ -328,13 +336,22 @@ class PlaybackSettingsFragment : Fragment() {
             container.addView(row)
             sendCommandRows[target.id] = row
         }
-        // S0474: resolve installed-app labels off the main thread (PackageManager lookups must not
-        // block the Playback tab open); apply resolved labels to existing rows on the main thread.
+        // S0474 + S0838: resolve installed-app labels AND launcher icons off the main thread
+        // (PackageManager lookups must not block the Playback tab open); apply to existing rows on main.
         viewLifecycleOwner.lifecycleScope.launch {
-            val labels = withContext(Dispatchers.IO) {
-                targets.associate { it.id to resolveShareTargetLabel(it) }
+            val resolved = withContext(Dispatchers.IO) {
+                targets.associate { t ->
+                    t.id to (resolveShareTargetLabel(t) to shareTargetIconResolver.resolveIcon(t))
+                }
             }
-            labels.forEach { (id, label) -> sendCommandRows[id]?.setTitle(label) }
+            resolved.forEach { (id, pair) ->
+                sendCommandRows[id]?.let { row ->
+                    row.setTitle(pair.first)
+                    // Upgrade the glyph to the installed receiver app's launcher icon (menu parity);
+                    // null keeps the glyph (logical or not-installed target).
+                    pair.second?.let { icon -> row.setIcon(icon) }
+                }
+            }
         }
     }
 

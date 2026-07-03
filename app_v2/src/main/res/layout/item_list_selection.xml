@@ -1,18 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Item view for ListSelectionDialog (S0567, ADR-3).
-  A single full-width button styled by the project button taxonomy; the selected item
-  shows a leading check icon. No runtime-built buttons, no hardcoded colors.
+  S0787: item row for ListSelectionDialog. A readable full-width list row (not an outlined "oval"
+  button): optional leading icon, start-aligned label in the on-surface colour, and a trailing check
+  on the selected row. When activated the whole row is highlighted (bg_list_selection_row) so the
+  current value is obvious. No hardcoded colors - theme attributes only.
 -->
-<com.google.android.material.button.MaterialButton
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/item_label"
-    style="@style/Widget.FastMediaSorter.Button.Outlined"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/margin_tiny"
     android:layout_marginBottom="@dimen/margin_tiny"
-    android:gravity="center_vertical|start"
     android:minHeight="@dimen/destination_button_min_height"
-    android:textAlignment="viewStart"
-    android:textAllCaps="false" />
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_list_selection_row"
+    android:foreground="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_large"
+    android:paddingTop="@dimen/margin_small"
+    android:paddingBottom="@dimen/margin_small">
+
+    <ImageView
+        android:id="@+id/item_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="@dimen/margin_large"
+        android:visibility="gone"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/item_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+        android:textColor="@color/list_selection_row_text"
+        android:textAlignment="viewStart" />
+
+    <ImageView
+        android:id="@+id/item_check"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/margin_large"
+        android:src="@drawable/ic_check"
+        android:tint="?attr/colorOnPrimaryContainer"
+        android:visibility="gone"
+        android:contentDescription="@null" />
+</LinearLayout>

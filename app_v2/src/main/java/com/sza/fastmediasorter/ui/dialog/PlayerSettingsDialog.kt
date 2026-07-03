@@ -6,6 +6,7 @@ import android.os.Bundle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlayerSettingsBinding
 import com.sza.fastmediasorter.domain.model.StereoMode
+import timber.log.Timber
 
 /**
  * Dialog for video player settings:
@@ -55,6 +56,7 @@ class PlayerSettingsDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("S0827: player settings dialog shown - title on own line, actions at bottom")
         binding = DialogPlayerSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         

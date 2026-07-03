@@ -40,7 +40,15 @@ class WorkManagerScheduler @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    
+
+    private companion object {
+        // Shared tag carried by EVERY scheduled-operation work request. Bulk cancellation goes
+        // through cancelAllWorkByTag, which matches an exact tag - the per-operation unique names
+        // (sched_op_<id> / sched_op_run_all) cannot be cancelled as a group, so a single common tag
+        // is the only handle that reaches all of them at once.
+        const val TAG_SCHEDULED_OP = "sched_op"
+    }
+
     /**
      * Schedule periodic trash cleanup worker
      * Runs every 15 minutes to clean up trash folders older than 5 minutes
@@ -181,6 +189,7 @@ class WorkManagerScheduler @Inject constructor(
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_${operation.id}")
+                .addTag(TAG_SCHEDULED_OP)
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "sched_op_${operation.id}",
@@ -208,6 +217,7 @@ class WorkManagerScheduler @Inject constructor(
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_$operationId")
+                .addTag(TAG_SCHEDULED_OP)
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "sched_op_$operationId",
@@ -234,7 +244,8 @@ class WorkManagerScheduler @Inject constructor(
     /** Cancel ALL scheduled operation workers (e.g. when the user clears the table). */
     fun cancelAllScheduledOperations() {
         try {
-            WorkManager.getInstance(context).cancelAllWorkByTag("sched_op")
+            Timber.d("S0768: cancelAllScheduledOperations via tag=$TAG_SCHEDULED_OP")
+            WorkManager.getInstance(context).cancelAllWorkByTag(TAG_SCHEDULED_OP)
             Timber.i("WorkManagerScheduler: cancelled all scheduled operations")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: failed to cancel all scheduled ops")
@@ -276,6 +287,7 @@ class WorkManagerScheduler @Inject constructor(
                     .setInputData(Data.Builder().putLong(ScheduledOperationsWorker.KEY_OPERATION_ID, op.id).build())
                     .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                     .addTag("sched_op_run_all")
+                    .addTag(TAG_SCHEDULED_OP)
                     .build()
             }
             var continuation = WorkManager.getInstance(context)

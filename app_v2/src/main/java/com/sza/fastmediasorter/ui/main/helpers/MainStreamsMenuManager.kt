@@ -19,7 +19,7 @@ class MainStreamsMenuManager(
     fun populate(popup: PopupMenu, enabled: Boolean, order: Int): Int {
         if (!enabled) return 0
         popup.menu.add(0, MENU_ITEM_STREAMS, order, R.string.streams_title)
-            .setIcon(R.drawable.ic_video)
+            .setIcon(R.drawable.ic_cast)
         return 1
     }
 
@@ -30,6 +30,7 @@ class MainStreamsMenuManager(
     }
 
     companion object {
-        private const val MENU_ITEM_STREAMS = 14
+        // S0770: read by MainActivity to map this item to its open-in-new-window launch.
+        const val MENU_ITEM_STREAMS = 14
     }
 }

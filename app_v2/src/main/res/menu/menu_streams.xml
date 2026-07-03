@@ -6,13 +6,13 @@
         android:id="@+id/action_stream_add"
         android:icon="@drawable/ic_add"
         android:title="@string/streams_add"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_stream_import"
         android:icon="@drawable/ic_import"
         android:title="@string/streams_import"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_stream_display_toggle"

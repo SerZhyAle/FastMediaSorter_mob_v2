@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
@@ -140,13 +141,10 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
             }
             // Resource type icons
             val type = typeName?.let { runCatching { ResourceType.valueOf(it) }.getOrNull() }
-            return when (type) {
-                ResourceType.SMB -> R.drawable.ic_resource_smb
-                ResourceType.SFTP -> R.drawable.ic_resource_sftp
-                ResourceType.FTP -> R.drawable.ic_resource_ftp
-                ResourceType.CLOUD -> R.drawable.ic_resource_cloud
-                else -> R.drawable.ic_resource_local
-            }
+            // S0890: delegate to the shared map; null (unparseable type) keeps the local fallback.
+            // Stream-typed widgets now show ic_cast like every other surface (the old else-branch
+            // silently mapped them to the local-folder icon).
+            return if (type == null) R.drawable.ic_resource_local else ResourceTypeIconMap.iconFor(type)
         }
     }
 }

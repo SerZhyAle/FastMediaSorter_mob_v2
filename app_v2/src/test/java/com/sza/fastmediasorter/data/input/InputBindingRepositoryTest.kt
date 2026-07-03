@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.input
 
+import androidx.room.withTransaction
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.InputBinding
 import com.sza.fastmediasorter.domain.input.InputTrigger
@@ -7,12 +9,16 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -23,9 +29,25 @@ import org.junit.Test
  */
 class InputBindingRepositoryTest {
 
+    private val db = mockk<AppDatabase>(relaxed = true)
     private val dao = mockk<InputBindingDao>(relaxed = true)
     private val defaultsLoader = mockk<DefaultsMapLoader>()
-    private val repository = InputBindingRepository(dao, defaultsLoader)
+    private val repository = InputBindingRepository(db, dao, defaultsLoader)
+
+    @Before
+    fun setUp() {
+        // insertAllAsOverrides wraps its writes in db.withTransaction; make the mock run the block.
+        mockkStatic("androidx.room.RoomDatabaseKt")
+        // withTransaction is an extension fn: mockk indexes the receiver as arg 0, so the block is not
+        // firstArg. Pick the function argument and run it so the wrapped writes actually execute.
+        coEvery { db.withTransaction<Any?>(any()) } coAnswers {
+            @Suppress("UNCHECKED_CAST")
+            (args.first { it is Function<*> } as suspend () -> Any?).invoke()
+        }
+    }
+
+    @After
+    fun tearDown() = unmockkAll()
 
     private fun keyDefault(commandId: String, code: Int) =
         InputBinding(commandId, InputTrigger.Key(code), BindingSource.DEFAULT)

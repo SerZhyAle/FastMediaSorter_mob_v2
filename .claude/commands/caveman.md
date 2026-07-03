@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Caveman Mode
 
 > **LOCAL DIRECTIVES:**

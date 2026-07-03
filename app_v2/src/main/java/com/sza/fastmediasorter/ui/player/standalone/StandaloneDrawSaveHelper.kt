@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.standalone
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
@@ -26,9 +27,13 @@ import timber.log.Timber
 
 /**
  * S0410: drives the shared [ImageDrawOverlayManager] for the standalone image viewer. The standalone
- * host has no resource/folder context, so every draw save is a save-as: the base image and the draw
- * overlay are merged and written to a NEW file in Downloads (the source URI is never overwritten).
+ * host has no resource/folder context, so by default every draw save is a save-as: the base image and
+ * the draw overlay are merged and written to a NEW file in Pictures (the source URI is never touched).
  * Mirrors the in-app PlayerDrawingSaveHelper merge/crop pipeline without its staging/resource paths.
+ *
+ * S0837: for the screenshot OPEN_IN_DRAW gesture the host supplies [getOverwriteTargetUri]. When it
+ * returns a URI a DEFAULT save (no chosen filename) overwrites that source in place instead of writing
+ * a new file; an explicit "Save as.." (chosen filename) still writes a new file.
  */
 class StandaloneDrawSaveHelper(
     private val activity: AppCompatActivity,
@@ -49,6 +54,8 @@ class StandaloneDrawSaveHelper(
     // S0676: notify the host when draw mode enters (true) / leaves (false) so it can hide / restore the
     // Copy/Move bottom panels, mirroring the in-app PlayerImmersiveModeManager. No-op by default.
     private val onDrawModeChanged: (Boolean) -> Unit = {},
+    // S0837: source URI to overwrite on a default save (screenshot flow); null keeps save-as-new.
+    private val getOverwriteTargetUri: () -> Uri? = { null },
 ) {
     private val manager = ImageDrawOverlayManager(
         activity = activity,
@@ -117,25 +124,36 @@ class StandaloneDrawSaveHelper(
             else chosen + if (format == Bitmap.CompressFormat.JPEG) ".jpg" else ".png"
         val displayRect = getImageDisplayRect()
         val mime = if (format == Bitmap.CompressFormat.JPEG) "image/jpeg" else "image/png"
+        // S0837: a default save (no chosen filename) overwrites the launched screenshot in place;
+        // "Save as.." (filename != null) always falls through to the new-file path below.
+        val overwriteUri = if (filename == null) getOverwriteTargetUri() else null
+        if (overwriteUri != null) Timber.d("S0837: screenshot draw default-save overwriting source in place")
         lifecycleScope.launch {
             // Wrap the whole pipeline: a crop-geometry edge case, a merge failure, or a scoped-storage
-            // write denial must surface a toast, never crash the activity. Save target is MediaStore
+            // write denial must surface a toast, never crash the activity. Default target is MediaStore
             // Pictures (scoped-storage-correct, no storage permission needed for our own insert;
-            // mirrors the host's saveCurrentFrame).
+            // mirrors the host's saveCurrentFrame). S0837 overwrite writes back to the source URI.
             val saved = try {
                 val cropped = cropOverlayToImage(overlay, displayRect, base.width, base.height)
                 val bytes = mergeDrawOverlayUseCase.execute(base, cropped, format).getOrThrow()
                 withContext(Dispatchers.IO) {
-                    val values = ContentValues().apply {
-                        put(MediaStore.Images.Media.DISPLAY_NAME, finalName)
-                        put(MediaStore.Images.Media.MIME_TYPE, mime)
-                        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                    if (overwriteUri != null) {
+                        // "wt" truncates then writes; keeps the original MediaStore entry, name and path.
+                        activity.contentResolver.openOutputStream(overwriteUri, "wt")
+                            ?.use { it.write(bytes) } ?: return@withContext false
+                        true
+                    } else {
+                        val values = ContentValues().apply {
+                            put(MediaStore.Images.Media.DISPLAY_NAME, finalName)
+                            put(MediaStore.Images.Media.MIME_TYPE, mime)
+                            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                        }
+                        val uri = activity.contentResolver.insert(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+                        ) ?: return@withContext false
+                        activity.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+                        true
                     }
-                    val uri = activity.contentResolver.insert(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
-                    ) ?: return@withContext false
-                    activity.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
-                    true
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Standalone draw save failed")
@@ -159,7 +177,6 @@ class StandaloneDrawSaveHelper(
         viewW: Int,
         viewH: Int,
     ) {
-        Timber.d("S0679: draw-editor crop apply (standalone)")
         val base = getDisplayedBitmap() ?: run {
             Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
             return

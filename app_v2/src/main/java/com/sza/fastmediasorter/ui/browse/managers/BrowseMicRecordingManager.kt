@@ -28,6 +28,9 @@ class BrowseMicRecordingManager(
     private val activity: FragmentActivity,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
+    // S0901: application-lifetime scope for the save pipeline. Activity teardown right after stop must
+    // not cancel micRecordingSaver.save (which would drop the recording and orphan the temp file).
+    private val appScope: CoroutineScope,
     private val onFileSaved: (fileName: String) -> Unit,
     private val onRecordingStateChanged: (isRecording: Boolean) -> Unit,
     private val onUploadFile: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
@@ -46,6 +49,14 @@ class BrowseMicRecordingManager(
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
 
     fun startRecording(resource: MediaResource) {
+        // S0861: startRecording() had no reentrancy guard - a second call (e.g. the RECORD_AUDIO
+        // grant callback auto-starting while a prior held-with-no-finger session is still live)
+        // would overwrite mediaRecorder/pendingTempFile/audioFocusListener, orphaning the first
+        // recorder and permanently leaking its exclusive audio focus. Discard any live session first.
+        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+            Timber.w("startRecording - a session is already active, cancelling it first")
+            cancelRecording()
+        }
         pendingResource = resource
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -89,6 +100,10 @@ class BrowseMicRecordingManager(
 
         if (!focusGranted) {
             Timber.w("startRecording ABORT - audio focus not granted")
+            // S0896: audioFocusListener was set above before the grant result was known - clear it
+            // now. Without this, stopRecording()'s pending-file guard returns before ever reaching
+            // abandonAudioFocus(), leaking the dangling listener reference.
+            abandonAudioFocus()
             tempFile.delete()
             pendingTempFile = null
             pendingResource = null
@@ -150,10 +165,12 @@ class BrowseMicRecordingManager(
             return
         }
 
-        coroutineScope.launch {
+        appScope.launch {
             val settings = settingsRepository.getSettings().first()
             val defaultName = tempFile.name
-            if (settings.micRecordingAskFilename) {
+            // Only ask for a filename while the activity is alive; if it is gone, save with the default
+            // name rather than lose the recording. The save itself runs on appScope so it always finishes.
+            if (settings.micRecordingAskFilename && !activity.isFinishing && !activity.isDestroyed) {
                 withContext(Dispatchers.Main) { showNameDialog(tempFile, defaultName, resource) }
             } else {
                 save(tempFile, defaultName, resource)
@@ -168,6 +185,18 @@ class BrowseMicRecordingManager(
         onRecordingStateChanged(false)
     }
 
+    /**
+     * S0861: host teardown hook (onPause/onStop/onDestroy) - none of BrowseActivity's real
+     * lifecycle edges touched this manager before, so a MediaRecorder + exclusive audio focus
+     * started with no finger down (permission-grant auto-start) could survive activity destroy.
+     * Discards rather than saves, matching [com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager.release].
+     */
+    fun release() {
+        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+            cancelRecording()
+        }
+    }
+
     private fun showNameDialog(tempFile: File, defaultName: String, resource: MediaResource) {
         val input = EditText(activity).apply { setText(defaultName); selectAll() }
         MaterialAlertDialogBuilder(activity)
@@ -175,7 +204,7 @@ class BrowseMicRecordingManager(
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val name = input.text.toString().trim().ifBlank { defaultName }
-                coroutineScope.launch { save(tempFile, withExt(name, "m4a"), resource) }
+                appScope.launch { save(tempFile, withExt(name, "m4a"), resource) }
             }
             .setNegativeButton(R.string.cancel) { _, _ -> clearPendingSession(deleteTempFile = true) }
             .setOnCancelListener { clearPendingSession(deleteTempFile = true) }
@@ -185,6 +214,7 @@ class BrowseMicRecordingManager(
     private suspend fun save(tempFile: File, name: String, resource: MediaResource) {
         // S0526: delegate destination resolution, write/upload and the S0522 fallback to the shared
         // mic-save backend; this manager keeps only the recorder lifecycle and the user-facing notice.
+        Timber.d("S0901: mic save on appScope")
         val result = micRecordingSaver.save(
             tempFile = tempFile,
             name = name,
@@ -193,6 +223,8 @@ class BrowseMicRecordingManager(
         )
         clearPendingSession(deleteTempFile = true)
         withContext(Dispatchers.Main) {
+            // The activity may have been torn down while the save ran on appScope - skip UI feedback then.
+            if (activity.isDestroyed) return@withContext
             if (result.success) {
                 showSnackbar(activity.getString(R.string.mic_recording_saved, name))
                 result.fallbackReason?.let { reason ->

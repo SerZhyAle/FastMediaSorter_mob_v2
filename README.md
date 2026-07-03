@@ -12,7 +12,7 @@
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
-The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
+The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version. We are not going to pretend v1 was flawless - that is precisely why v2 exists.
 
 ## What FastMediaSorter Replaces 🧩
 
@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.6270.802 (June 2026)
+## What's New in v2.60.7031.316 (July 2026)
 
 **New:**
-Fullscreen stream player, re-tap to stop inline streams, pin and pinned-only filter, streams remember filter/sort/position, multi-column landscape stream grid with status dots and tile menus, stream health probe with bandwidth-adaptive buffering, buffering vs reconnecting labels, edge-gesture and Quick Settings screen capture, optional visible left-edge gesture strip, width-based landscape layout from 600dp.
+Main-window Programs and Streams panels with collapsible groups, colour-coded panels and context/header menus, streams inline audio and favoriting with country metadata filter/sort, screen-capture edge gestures for photo/audio/video/screen recording, camera zoom presets/night mode/GPS geotagging, fullscreen video by default, redesigned player settings dialog, travelling D-pad/TV focus frame, background/inline audio focus handling, mini-game visual modes, Browse background copy/move, exit button minimizes while background functions are active.
 
 **Fixed:**
-Offline streams fail softly instead of breaking playback, database reset shows a recovery notice, duplicate parenthetical stream titles suppressed.
+Browser sign-in rotation crash, standalone document viewer resource leaks, Read Aloud engine leak on screen recreation, SMB connection-degradation recovery under parallel load, network video thumbnail false-failure state, enable-all onboarding toggle revert, deprecated standalone player teardown crash, standalone player pause/SAF-rename regression, player subsystem correctness fixes, inline audio double-tap orphaned player.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

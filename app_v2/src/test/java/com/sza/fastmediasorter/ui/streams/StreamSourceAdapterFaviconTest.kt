@@ -37,9 +37,15 @@ class StreamSourceAdapterFaviconTest {
     // synchronously within bind() - no looper pumping needed.
     private val scope = CoroutineScope(Dispatchers.Unconfined)
 
-    private fun entity(url: String) = StreamSourceEntity(
-        id = url, url = url, title = "T", mediaKind = "VIDEO",
-        sourceOrigin = "CATALOG", sortIndex = 0, addedAt = 0L,
+    private fun entity(url: String, country: String? = null) = StreamSourceEntity(
+        id = url,
+        url = url,
+        title = "T",
+        mediaKind = "VIDEO",
+        sourceOrigin = "CATALOG",
+        sortIndex = 0,
+        addedAt = 0L,
+        country = country,
     )
 
     private fun adapter(
@@ -63,6 +69,9 @@ class StreamSourceAdapterFaviconTest {
     private fun faviconView(holder: StreamSourceAdapter.VH): View =
         holder.itemView.findViewById(R.id.ivFavicon)
 
+    private fun flagView(holder: StreamSourceAdapter.VH): View =
+        holder.itemView.findViewById(R.id.tvFaviconFlag)
+
     @Test
     fun `null index leaves favicon gone`() {
         val adapter = adapter(resolver = { null }, tile = { error("must not load for a null index") })
@@ -79,6 +88,31 @@ class StreamSourceAdapterFaviconTest {
         val iv = faviconView(holder) as android.widget.ImageView
         assertEquals(View.VISIBLE, iv.visibility)
         assertNotNull("a tile bitmap must be set", iv.drawable)
+    }
+
+    @Test
+    fun `S0785 no favicon but country shows the country flag fallback`() {
+        val adapter = adapter(resolver = { null }, tile = { error("must not load for a null index") })
+        val holder = bindAt(adapter, listOf(entity("u1", country = "UA")), 0)
+        assertEquals(View.GONE, faviconView(holder).visibility)
+        assertEquals(View.VISIBLE, flagView(holder).visibility)
+    }
+
+    @Test
+    fun `S0785 no favicon and no country leaves the flag slot gone`() {
+        val adapter = adapter(resolver = { null }, tile = { error("must not load for a null index") })
+        val holder = bindAt(adapter, listOf(entity("u1")), 0)
+        assertEquals(View.GONE, faviconView(holder).visibility)
+        assertEquals(View.GONE, flagView(holder).visibility)
+    }
+
+    @Test
+    fun `S0785 favicon tile present keeps the flag slot gone`() {
+        val bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
+        val adapter = adapter(resolver = { 0 }, tile = { bitmap })
+        val holder = bindAt(adapter, listOf(entity("u1", country = "UA")), 0)
+        assertEquals(View.VISIBLE, faviconView(holder).visibility)
+        assertEquals(View.GONE, flagView(holder).visibility)
     }
 
     @Test

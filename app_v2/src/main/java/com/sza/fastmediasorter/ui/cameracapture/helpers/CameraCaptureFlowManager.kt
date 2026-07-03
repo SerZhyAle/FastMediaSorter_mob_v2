@@ -60,8 +60,31 @@ class CameraCaptureFlowManager(
      */
     val multiCapture: Boolean = CameraCaptureContract.readMultiCapture(intent)
 
+    /** S0790: fire the shutter automatically once the preview is ready, then finish (edge-gesture photo). */
+    val autoCapture: Boolean = CameraCaptureContract.readAutoCapture(intent)
+
     /** S0566: live zoom ratio, kept in sync with preset taps, pinch and double-tap so the UI can reflect it. */
     var liveZoomRatio: Float = CameraRuntimeCapabilities.DEFAULT_ZOOM
+        private set
+
+    /** S0753: slider mirror of [liveZoomRatio] in 0..1 linear space; the two are kept in lockstep. */
+    var liveLinearZoom: Float = 0f
+        private set
+
+    /** S0753: night-mode UI state, reconciled against the session after each rebind. */
+    var nightModeEnabled: Boolean = false
+        private set
+
+    /** S0753: macro UI state, reconciled against the session after each rebind. */
+    var macroEnabled: Boolean = false
+        private set
+
+    /** S0754: UI-only self-timer delay, applied by the host before shutter/record start. */
+    var selfTimerSeconds: Int = 0
+        private set
+
+    /** S0754: UI-only preview grid toggle; the host shows/hides the overlay. */
+    var gridEnabled: Boolean = false
         private set
 
     /** S0566: monotonically increasing per-capture suffix so a multi-capture session never overwrites a file. */
@@ -165,6 +188,10 @@ class CameraCaptureFlowManager(
             capabilities.minZoomRatio,
             capabilities.maxZoomRatio,
         )
+        liveLinearZoom = capabilities.currentLinearZoom
+        // S0753: a rebind for a night toggle keeps the icon on; a lens without NIGHT clears it.
+        nightModeEnabled = session.nightMode && capabilities.supportsNightMode
+        macroEnabled = session.macroEnabled && capabilities.supportsMacro
         host.renderCapabilities(capabilities)
     }
 
@@ -176,6 +203,22 @@ class CameraCaptureFlowManager(
         return flashEnabled
     }
 
+    /** S0753: toggles the NIGHT extension when the active lens supports it; returns the resulting state. */
+    fun onNightModeToggle(): Boolean {
+        if (!currentCapabilities.supportsNightMode) return false
+        nightModeEnabled = !nightModeEnabled
+        session.applyNightMode(nightModeEnabled)
+        return nightModeEnabled
+    }
+
+    /** S0753: toggles macro (close focus) when the active lens supports it; returns the resulting state. */
+    fun onMacroToggle(): Boolean {
+        if (!currentCapabilities.supportsMacro) return false
+        macroEnabled = !macroEnabled
+        session.applyMacro(macroEnabled)
+        return macroEnabled
+    }
+
     /** Flips to the next lens; capabilities (and control visibility) refresh via the bind callback. */
     fun onLensSwitch() {
         if (currentCapabilities.canSwitchLens) session.switchCamera()
@@ -183,9 +226,30 @@ class CameraCaptureFlowManager(
 
     fun onZoomRatioSelected(ratio: Float) {
         if (!currentCapabilities.supportsZoom) return
-        val clamped = ratio.coerceIn(currentCapabilities.minZoomRatio, currentCapabilities.maxZoomRatio)
+        // S0753: clamp to the digital-extended max so presets/pinch can reach 10/20/30 via soft zoom.
+        val clamped = ratio.coerceIn(
+            currentCapabilities.minZoomRatio,
+            currentCapabilities.maxDisplayZoomRatio,
+        )
         liveZoomRatio = clamped
         session.setZoomRatio(clamped)
+        // Mirror the resulting linear position so a preset tap repositions the slider.
+        liveLinearZoom = session.currentLinearZoom()
+    }
+
+    /**
+     * S0753: slider-driven zoom in perceptually-linear (0..1) space. Sets linear zoom, then reads the
+     * resulting ratio back so the preset highlight ([liveZoomRatio]) stays the single source of truth.
+     */
+    fun onLinearZoomSelected(linear: Float) {
+        if (!currentCapabilities.supportsZoom) return
+        val clampedLinear = linear.coerceIn(0f, 1f)
+        session.setLinearZoom(clampedLinear)
+        liveLinearZoom = clampedLinear
+        liveZoomRatio = session.currentZoomRatio().coerceIn(
+            currentCapabilities.minZoomRatio,
+            currentCapabilities.maxZoomRatio,
+        )
     }
 
     /** S0566: continuous pinch zoom - scales the live ratio by the detector factor, clamped to the lens range. */
@@ -219,6 +283,14 @@ class CameraCaptureFlowManager(
     fun onMicrophoneToggle(): Boolean {
         microphoneEnabled = !microphoneEnabled
         return microphoneEnabled
+    }
+
+    fun setSelfTimerSeconds(seconds: Int) {
+        selfTimerSeconds = seconds.coerceAtLeast(0)
+    }
+
+    fun setGridEnabled(enabled: Boolean) {
+        gridEnabled = enabled
     }
 
     /** Completes the video flow: success packs the result, error surfaces a message and waits. */

@@ -3,14 +3,16 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.ColorStateList
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -21,12 +23,12 @@ import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -40,7 +42,6 @@ import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -48,25 +49,26 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
+import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.UserActionLogger
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
-import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.lang.ref.WeakReference
-import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
-import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
-import dagger.Lazy
 
 class BrowseManagerInitializer(
     private val activity: BrowseActivity,
@@ -101,6 +103,7 @@ class BrowseManagerInitializer(
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
     // S0135 - Google Play In-App Review request after successful Move/Copy.
     private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
     private val mediaCapabilities: MediaCapabilities,
     private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
@@ -324,8 +327,10 @@ class BrowseManagerInitializer(
         fileOperationsManager = BrowseFileOperationsManager(
             context = activity,
             coroutineScope = lifecycleScope,
+            lifecycleOwner = activity,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
+            browseTransferCoordinator = browseTransferCoordinator,
             sendToMenuManager = sendToMenuManager,
             dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : BrowseFileOperationsManager.FileOperationCallbacks {
@@ -334,6 +339,9 @@ class BrowseManagerInitializer(
                 override fun clearSelection() = viewModel.clearSelection()
                 override fun getCacheDir(): File? = activity.cacheDir
                 override fun getExternalCacheDir(): File? = activity.externalCacheDir
+                override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
+                override fun getCurrentBrowsePath(): String? = viewModel.state.value.currentPath
+                override fun navigateToFolder(path: String) = viewModel.navigateToFolder(path)
                 override fun onAuthRequest(provider: String) = when (provider) {
                     "dropbox" -> cloudAuthManager.launchDropboxSignIn()
                     "google_drive" -> cloudAuthManager.launchGoogleSignIn()
@@ -542,13 +550,11 @@ class BrowseManagerInitializer(
         }
         buttonSetupHelper.setupAllButtons(buttonCallbacks)
         
-        // Warm up the cache used by onOverflowMenuClick for synchronous access.
-        lifecycleScope.launch {
-            settingsRepository.getSettings().collect { latestSettings = it }
-        }
-        lifecycleScope.launch {
-            getDestinationsUseCase().collect { latestHasDestinations = it.isNotEmpty() }
-        }
+        // Warm up the cache used by onOverflowMenuClick for synchronous access. Bound to the STARTED
+        // lifecycle so the DataStore/Room upstreams stop collecting while BrowseActivity sits stopped in
+        // the back stack (they re-collect and refresh on restart).
+        activity.collectOnLifecycle(settingsRepository.getSettings()) { latestSettings = it }
+        activity.collectOnLifecycle(getDestinationsUseCase()) { latestHasDestinations = it.isNotEmpty() }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
 

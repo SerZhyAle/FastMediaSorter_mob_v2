@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.streams
 
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.Menu
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -13,18 +13,20 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
-import com.google.android.material.color.MaterialColors
-import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
+import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Renders the stream catalog. Row tap launches playback ([onPlay]); the pin affordance promotes the
@@ -35,6 +37,10 @@ import kotlinx.coroutines.launch
  * home screen, edit (manual channels only), send link, remove. S0695 moved the destructive remove out
  * of long-press (now pin-toggle) so removal is reachable only through the explicit overflow menu.
  */
+// The row needs every host command (play/pin/remove/shortcut/edit/share/favorite) plus the favicon
+// plumbing as plain collaborators; folding them into a config object would add indirection without
+// clarity, mirroring StreamGridAdapter/StreamGridModeManager.
+@Suppress("LongParameterList")
 class StreamSourceAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
     private val onPin: (StreamSourceEntity) -> Unit,
@@ -42,6 +48,12 @@ class StreamSourceAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S0783: add/remove the channel from the shared Favorites. Independent of pin. The overflow item is
+    // shown only when [favoritesEnabled] returns true, and its label flips on [isFavorite]. Both are
+    // pulled lazily when the menu opens, so they always reflect current settings/DB without a row rebind.
+    private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
+    private val favoritesEnabled: () -> Boolean = { false },
+    private val isFavorite: (StreamSourceEntity) -> Boolean = { false },
     // S0668: favicon plumbing kept as plain collaborators (not DI) so the adapter stays test-friendly.
     // faviconResolver maps a url -> its sprite-atlas tile index (null = no favicon -> empty slot);
     // faviconTileLoader decodes that index into a 32 px bitmap off the main thread (the slicer's
@@ -100,14 +112,20 @@ class StreamSourceAdapter(
             binding.tvTitle.text = StreamTitleFormatter.display(source.title)
             binding.tvUrl.text = source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
-            bindFavicon(source.url)
+            bindFavicon(source)
             bindPlayStatus(source.lastPlayOutcome)
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
             bindChip(binding.tvTopic, source.topic)
+            // Country is shown before language as flag+code (e.g. "🇺🇦 UA"); manual rows leave it null.
+            bindChip(binding.tvCountry, countryChipText(binding.tvCountry, source.country))
             bindChip(binding.tvLanguage, source.language)
             binding.chipRow.visibility =
-                if (binding.tvTopic.isVisible || binding.tvLanguage.isVisible) View.VISIBLE else View.GONE
+                if (binding.tvTopic.isVisible || binding.tvCountry.isVisible || binding.tvLanguage.isVisible) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             bindPinState(source.pinned)
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
@@ -133,16 +151,28 @@ class StreamSourceAdapter(
             binding.btnPin.setOnClickListener { onPin(source) }
             binding.btnOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
-                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, 0, R.string.streams_add_to_home_screen)
+                    // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
+                    if (favoritesEnabled()) {
+                        val favLabel = if (isFavorite(source)) {
+                            R.string.streams_remove_from_favorites
+                        } else {
+                            R.string.streams_add_to_favorites
+                        }
+                        // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
+                        // shortcut, edit, share, remove) without magic order literals.
+                        menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
+                    }
+                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
                     // Edit is offered only for user-added channels; CATALOG/IMPORTED rows are owned
                     // by their sync and must not be hand-edited (S0660 §6.4).
                     if (source.sourceOrigin == "MANUAL") {
-                        menu.add(Menu.NONE, ID_EDIT, 1, R.string.streams_edit)
+                        menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
                     }
-                    menu.add(Menu.NONE, ID_SHARE_LINK, 2, R.string.streams_send_link)
-                    menu.add(Menu.NONE, ID_REMOVE, 3, R.string.streams_remove)
+                    menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
+                    menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
+                            ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
                             ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
                             ID_EDIT -> { onEdit(source); true }
                             ID_SHARE_LINK -> { onShareLink(source); true }
@@ -156,19 +186,25 @@ class StreamSourceAdapter(
         }
 
         /**
-         * S0668: render the leading channel-logo thumbnail sliced from the favicon sprite-atlas. A url
-         * with no tile index leaves an empty slot (GONE, no placeholder - owner decision). The decode is
-         * async and rebind-safe: it is cancelled on rebind and the result is dropped unless the holder is
-         * still bound to the same url (a recycled row must not flash a previous channel's logo).
+         * S0668: render the leading channel-logo thumbnail sliced from the favicon sprite-atlas. The
+         * decode is async and rebind-safe: it is cancelled on rebind and the result is dropped unless the
+         * holder is still bound to the same url (a recycled row must not flash a previous channel's logo).
+         *
+         * S0785: when the url has no tile (null index or a decode that yields nothing), fall back to the
+         * channel's country flag in the same slot so the row keeps its alignment instead of collapsing;
+         * rows carrying neither a tile nor a country still leave the slot empty (owner decision S0668).
          */
-        private fun bindFavicon(url: String) {
+        private fun bindFavicon(source: StreamSourceEntity) {
+            val url = source.url
             boundUrl = url
             cancelFaviconLoad()
             binding.ivFavicon.setImageDrawable(null)
+            binding.ivFavicon.visibility = View.GONE
+            binding.tvFaviconFlag.visibility = View.GONE
             val scope = faviconScope
             val index = faviconResolver(url)
             if (scope == null || index == null) {
-                binding.ivFavicon.visibility = View.GONE
+                showCountryFlagFallback(source.country)
                 return
             }
             faviconJob = scope.launch {
@@ -176,12 +212,25 @@ class StreamSourceAdapter(
                 // The holder may have been rebound to another row while decoding - drop a stale result.
                 if (boundUrl != url) return@launch
                 if (tile != null) {
+                    binding.tvFaviconFlag.visibility = View.GONE
                     binding.ivFavicon.setImageBitmap(tile)
                     binding.ivFavicon.visibility = View.VISIBLE
                 } else {
-                    binding.ivFavicon.visibility = View.GONE
+                    showCountryFlagFallback(source.country)
                 }
             }
+        }
+
+        /** S0785: put the stream's country flag in the leading slot when no favicon tile is available. */
+        private fun showCountryFlagFallback(country: String?) {
+            val code = country?.trim()?.takeIf { it.isNotBlank() }
+            if (code == null || !LanguageFlagFormatter.applyCountryFlagGlyph(binding.tvFaviconFlag, code)) {
+                binding.tvFaviconFlag.visibility = View.GONE
+                return
+            }
+            Timber.d("S0785: streams-list favicon fallback -> country flag $code")
+            binding.ivFavicon.visibility = View.GONE
+            binding.tvFaviconFlag.visibility = View.VISIBLE
         }
 
         /**
@@ -221,8 +270,18 @@ class StreamSourceAdapter(
             )
         }
 
+        /**
+         * Catalog country is an ISO 3166-1 alpha-2 code; render it as "flag code" (e.g. "🇺🇦 UA"). RU/BY
+         * use the custom image-flag contract from [LanguageFlagFormatter]; unmapped values degrade to the
+         * bare code, mirroring [bindChip].
+         */
+        private fun countryChipText(view: TextView, country: String?): CharSequence? {
+            val code = country?.trim()?.takeIf { it.isNotBlank() } ?: return null
+            return LanguageFlagFormatter.compactCountryCodeLabel(view, code)
+        }
+
         /** Catalog metadata only - manual/imported rows leave topic/language null, so hide the chip. */
-        private fun bindChip(view: TextView, value: String?) {
+        private fun bindChip(view: TextView, value: CharSequence?) {
             if (value.isNullOrBlank()) {
                 view.visibility = View.GONE
             } else {
@@ -242,6 +301,7 @@ class StreamSourceAdapter(
         const val ID_REMOVE = 2
         const val ID_EDIT = 3
         const val ID_SHARE_LINK = 4
+        const val ID_TOGGLE_FAVORITE = 5 // S0783
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

@@ -30,7 +30,10 @@
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
     [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
-    [Parameter(ParameterSetName = 'Report')][switch]$List
+    [Parameter(ParameterSetName = 'Report')][switch]$List,
+    # S0850: when set, judge only the growth these files introduce (working vs HEAD)
+    # instead of a full layout scan. Preserves the "must not grow" guarantee for the change.
+    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -41,6 +44,23 @@ $resRoot = Join-Path $repoRoot 'app_v2/src/main/res'
 $baselineFile = Join-Path $PSScriptRoot 'layout-hardcoded-colors-baseline.txt'
 
 $rx = [regex]'="#[0-9a-fA-F]{3,8}"'
+
+# S0850: delta mode - same regex as the full scan, applied per changed layout XML (working vs
+# HEAD). The attribute value cannot span lines, so Matches on the raw text equals the
+# per-line count of the full scan. Only layout/ and layout-land/ files are in scope.
+if ($ChangedFiles) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match 'app_v2/src/main/res/layout(-land)?/' })
+    $countFn = { param($t) $rx.Matches($t).Count }
+    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.xml') -CountInText $countFn
+    Write-Host ("layout-hardcoded-colors [delta over changed files]: new occurrences {0}" -f $d.Growth)
+    if ($Gate -and $d.Growth -gt 0) {
+        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
+        Write-Host "FAIL: new hardcoded layout color introduced in the changed file(s). Reference a theme attr or named color."
+        exit 1
+    }
+    exit 0
+}
 
 $layoutDirs = @('layout', 'layout-land') | ForEach-Object { Join-Path $resRoot $_ } | Where-Object { Test-Path $_ }
 

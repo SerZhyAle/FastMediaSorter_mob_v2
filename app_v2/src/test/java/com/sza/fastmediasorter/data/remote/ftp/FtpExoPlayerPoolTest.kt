@@ -48,10 +48,4 @@ class FtpExoPlayerPoolTest {
         every { client.isConnected } returns false
         pool.releaseExoPlayerConnection(client)
     }
-
-    @Test
-    fun `cleanupIdleFtpConnections is a no-op on empty pool`() {
-        val pool = FtpExoPlayerPool()
-        pool.cleanupIdleFtpConnections()
-    }
 }

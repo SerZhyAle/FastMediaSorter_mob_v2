@@ -30,6 +30,19 @@
         app:layout_constraintStart_toStartOf="@id/previewViewCamera"
         app:layout_constraintTop_toTopOf="@id/previewViewCamera" />
 
+    <com.sza.fastmediasorter.ui.cameracapture.GridOverlayView
+        android:id="@+id/cameraGridOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/previewViewCamera"
+        app:layout_constraintEnd_toEndOf="@id/previewViewCamera"
+        app:layout_constraintStart_toStartOf="@id/previewViewCamera"
+        app:layout_constraintTop_toTopOf="@id/previewViewCamera"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:id="@+id/cameraTopBar"
         android:layout_width="0dp"
@@ -45,7 +58,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCloseCamera"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:contentDescription="@string/close"
@@ -62,6 +75,18 @@
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke" />
 
+        <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+            android:id="@+id/cameraSaveDestination"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:maxLines="2"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Saves to: Camera"
+            tools:visibility="visible" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
@@ -69,7 +94,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/toggleCameraMicrophone"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
@@ -91,7 +116,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCameraFlash"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:contentDescription="@string/camera_control_flash"
@@ -108,6 +133,64 @@
             app:iconSize="20dp"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
+            tools:visibility="visible" />
+
+        <!-- S0753: night-mode toggle; shown only when the active lens supports the NIGHT extension (photo). -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraNight"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/camera_control_night"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/camera_control_night"
+            android:visibility="gone"
+            app:icon="@drawable/ic_camera_night_off"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            tools:visibility="visible" />
+
+        <!-- S0753: macro toggle; shown only on a lens that can focus close (photo). -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraMacro"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/camera_control_macro"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/camera_control_macro"
+            android:visibility="gone"
+            app:icon="@drawable/ic_camera_macro_off"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraSettings"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/camera_settings_title"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/camera_settings_title"
+            app:icon="@drawable/ic_camera_settings"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
             tools:visibility="visible" />
     </LinearLayout>
 
@@ -138,14 +221,51 @@
 
         <TextView
             android:id="@+id/txtRecordingTimer"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
             android:textSize="14sp"
             tools:text="00:05" />
     </LinearLayout>
 
-    <!-- S0566: always-visible zoom presets (no "More" toggle); hidden when the lens has no zoom range. -->
+    <TextView
+        android:id="@+id/cameraCountdownOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_camera_timer"
+        android:paddingStart="20dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="42sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="3"
+        tools:visibility="visible" />
+
+    <!-- S0812: scenario context label (e.g. text recognition); sits above the zoom presets, hidden for generic capture. -->
+    <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+        android:id="@+id/cameraScenarioLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:maxLines="1"
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/cameraZoomPresetGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Text recognition"
+        tools:visibility="visible" />
+
+    <!-- S0566/S0753: always-visible zoom presets (half-size, see-through); hidden when no zoom range. -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/cameraZoomPresetGroup"
         android:layout_width="wrap_content"
@@ -153,11 +273,54 @@
         android:layout_marginBottom="12dp"
         android:contentDescription="@string/camera_control_zoom"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/cameraModeSelector"
+        app:chipSpacingHorizontal="6dp"
+        app:layout_constraintBottom_toTopOf="@id/cameraZoomSlider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:singleLine="true"
         app:singleSelection="true"
+        tools:visibility="visible" />
+
+    <!-- S0753: continuous zoom slider directly under the preset chips; gone when the lens cannot zoom. -->
+    <com.google.android.material.slider.Slider
+        android:id="@+id/cameraZoomSlider"
+        app:thumbColor="@android:color/white"
+        app:trackColorActive="@color/camera_capture_control_stroke"
+        app:trackColorInactive="@color/camera_capture_slider_inactive"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="@string/camera_control_zoom"
+        android:focusable="true"
+        android:stepSize="0"
+        android:value="0"
+        android:valueFrom="0"
+        android:valueTo="1"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/cameraModeSelector"
+        app:layout_constraintEnd_toStartOf="@id/cameraZoomValue"
+        app:layout_constraintStart_toStartOf="@id/cameraZoomPresetGroup"
+        tools:visibility="visible" />
+
+    <!-- S0753: live zoom readout to the right of the slider. -->
+    <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+        android:id="@+id/cameraZoomValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:gravity="end"
+        android:minWidth="44dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/cameraZoomSlider"
+        app:layout_constraintEnd_toEndOf="@id/cameraZoomPresetGroup"
+        app:layout_constraintStart_toEndOf="@id/cameraZoomSlider"
+        app:layout_constraintTop_toTopOf="@id/cameraZoomSlider"
+        tools:text="1.0×"
         tools:visibility="visible" />
 
     <!-- S0566: One UI text mode selector replacing the outlined toggle group; shown when switching is allowed. -->
@@ -180,7 +343,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
                 android:id="@+id/tabModePhoto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -197,7 +360,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
                 android:id="@+id/tabModeVideo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -247,7 +410,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCameraPauseResume"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_gravity="center_vertical|start"
@@ -288,8 +451,32 @@
             app:iconTint="@color/camera_capture_shutter_icon" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraSendTo"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:contentDescription="@string/camera_control_send_to"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/camera_control_send_to"
+            android:translationX="-88dp"
+            android:visibility="gone"
+            app:backgroundTint="@color/camera_capture_control_bg"
+            app:cornerRadius="26dp"
+            app:icon="@drawable/ic_camera_send_to"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="22dp"
+            app:iconTint="@android:color/white"
+            app:strokeColor="@color/camera_capture_control_stroke"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCameraLensSwitch"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_gravity="center_vertical|end"
@@ -308,6 +495,20 @@
             app:iconSize="24dp"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
+            tools:visibility="visible" />
+
+        <!-- S0753: active-lens label (e.g. 0.6x / 1x / Front), sits just left of the switch button. -->
+        <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+            android:id="@+id/cameraLensLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="64dp"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="0.6×"
             tools:visibility="visible" />
     </FrameLayout>
 

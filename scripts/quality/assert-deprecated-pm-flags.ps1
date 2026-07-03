@@ -30,7 +30,10 @@
 param(
     [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
     [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
-    [Parameter(ParameterSetName = 'Report')][switch]$List
+    [Parameter(ParameterSetName = 'Report')][switch]$List,
+    # S0848 Phase 04: judge only the growth these files introduce (working vs HEAD) instead of a
+    # full src/main scan. Preserves the "must not grow" (target 0) guarantee for the change.
+    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -43,6 +46,23 @@ $baselineFile = Join-Path $PSScriptRoot 'deprecated-pm-flags-baseline.txt'
 # <method>( <no nested parens / no newline> , ...  -> raw-int two-arg overloads.
 # `*Compat(` cannot match (suffix breaks the `\s*\(` anchor). Single-arg Intent.resolveActivity unmatched.
 $rx = [regex]'\b(getPackageInfo|getApplicationInfo|queryIntentActivities|resolveActivity)\s*\([^()\r\n]*,'
+
+# S0848 Phase 04: delta mode - judge only growth introduced by the changed files (working vs
+# HEAD), so post-change -ScopeToFile gets a real verdict instead of an advisory full scan. Same
+# regex as the full scan; the compat seam (PackageManagerCompat.kt) stays allow-listed.
+if ($ChangedFiles) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match 'app_v2/src/main/' })
+    $countFn = { param($t) $rx.Matches($t).Count }
+    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn -ExcludeNames @('PackageManagerCompat.kt')
+    Write-Host ("deprecated-pm-flags [delta over changed files]: new occurrences {0}" -f $d.Growth)
+    if ($Gate -and $d.Growth -gt 0) {
+        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
+        Write-Host "FAIL: new raw-int PackageManager flag overloads introduced in the changed file(s). Use the *Compat helpers in util/PackageManagerCompat.kt."
+        exit 1
+    }
+    exit 0
+}
 
 $current = 0
 $hits = [System.Collections.Generic.List[string]]::new()

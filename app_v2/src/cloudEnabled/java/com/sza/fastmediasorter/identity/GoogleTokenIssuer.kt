@@ -9,16 +9,16 @@ import com.sza.fastmediasorter.core.di.CloudTokenDispatcher
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.time.Duration
-import java.time.Instant
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.time.Duration
+import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Outcome of a token issuance attempt. Distinguishes a removed device account (a self-heal signal
@@ -64,6 +64,10 @@ class GoogleTokenIssuer @Inject constructor(
      * On failure returns [TokenIssueResult.AccountAbsent] when GMS reports the bound account is no
      * longer on the device, or [TokenIssueResult.Failed] for any transient / refreshable error.
      */
+    // [email] names the account the token belongs to (forwarded by callers + asserted in tests), but
+    // the GMS authorization client resolves the account implicitly from the bound device account and
+    // the cache is dropped on account switch via [invalidate] - so the body needs no explicit lookup.
+    @Suppress("UnusedParameter")
     suspend fun issue(email: String, scopes: Set<GoogleScope>): TokenIssueResult = mutex.withLock {
         val cached = cache[scopes]
         if (cached != null && cached.expiresAt.isAfter(Instant.now().plusSeconds(REFRESH_THRESHOLD_SECONDS))) {
@@ -78,10 +82,9 @@ class GoogleTokenIssuer @Inject constructor(
                 val result = Identity.getAuthorizationClient(context)
                     .authorize(authorizationRequest)
                     .await()
-                if (result.hasResolution()) {
-                    throw Exception("Authorization requires resolution")
-                }
-                val raw = result.accessToken ?: throw Exception("Authorization returned null access token")
+                check(!result.hasResolution()) { "Authorization requires resolution" }
+                val raw = result.accessToken
+                    ?: error("Authorization returned null access token")
                 GoogleAccessToken(
                     token = raw,
                     scopes = scopes,

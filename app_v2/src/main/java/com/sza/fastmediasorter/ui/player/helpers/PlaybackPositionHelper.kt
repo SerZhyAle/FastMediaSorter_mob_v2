@@ -20,6 +20,11 @@ import timber.log.Timber
  * Replaces any previously scheduled save loop.
  */
 internal fun VideoPlayerManager.startPositionSaving() {
+    // S0854: stop the previous loop before dropping the reference - each PositionSaveLoop owns
+    // its own Handler, so overwriting positionSaveLoop without stopping it first leaves the old
+    // runnable self-reposting forever (orphaned, retains this VideoPlayerManager/PlayerActivity).
+    Timber.d("S0854: startPositionSaving - stopping previous loop before creating new one")
+    positionSaveLoop?.stop()
     positionSaveLoop = PositionSaveLoop(
         intervalMs = VideoPlayerManager.POSITION_SAVE_INTERVAL_MS,
         getPath = { currentFilePath },

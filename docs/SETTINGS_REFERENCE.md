@@ -8,7 +8,7 @@ permalink: /docs/SETTINGS_REFERENCE.html
 
 _Generated from the app. Do not edit by hand._
 
-## General
+## <img src="icons/doc/ic_settings.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> General
 
 | Setting | What it does |
 |---|---|
@@ -78,7 +78,7 @@ _Generated from the app. Do not edit by hand._
 | Color theme | Selects the color theme applied across the app interface. |
 | Language/Язык/Мова | Selects the language used for the app interface. |
 
-## Images
+## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
 _Available in: Standard, Lite, Photos, Legacy_
 
@@ -93,7 +93,7 @@ _Available in: Standard, Lite, Photos, Legacy_
 | Support GIF animation | Enables animated GIF playback in the image viewer. |
 | Support static images | Enables support for static image formats (JPEG, PNG, WebP, etc.) in the file browser and viewer. |
 
-## Video
+## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
 _Available in: Standard, Lite, Legacy_
 
@@ -102,12 +102,13 @@ _Available in: Standard, Lite, Legacy_
 | Clear Selection | Clears the currently selected snapshot destination resource. |
 | Select Destination Resource | Selects the destination resource where video frame snapshots are saved. |
 | Set as default video player | Registers this app as the default handler for video files on the device. |
+| Open video files in fullscreen mode | Launches video playback straight into fullscreen mode when a video is opened from Browse. |
 | Show FPS over player | Displays the current frames-per-second counter over the video while it is playing. |
 | Show video thumbnails | Generates and displays thumbnail previews for video files in the file browser. |
 | Support video | Enables video file support so videos appear in the file browser and can be played. |
 | Save video frames to clipboard | Automatically copies the captured video frame snapshot to the clipboard. |
 
-## Audio
+## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
 _Available in: Standard, Legacy_
 
@@ -122,7 +123,7 @@ _Available in: Standard, Legacy_
 | Search only on Wi-Fi | Restricts online cover art search to Wi-Fi connections only, saving mobile data. |
 | Support audio | Enables audio file support so audio tracks appear in the file browser and can be played. |
 
-## Documents
+## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
 _Available in: Standard, Legacy_
 
@@ -136,7 +137,7 @@ _Available in: Standard, Legacy_
 | Support PDF documents | Enables viewing of PDF files in the built-in document viewer. |
 | Support text files (.txt, .md, .log, .json, .xml) | Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer. |
 
-## Streams
+## <img src="icons/doc/ic_cast.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
 
 | Setting | What it does |
 |---|---|
@@ -146,14 +147,15 @@ _Available in: Standard, Legacy_
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
 | Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
+| Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 
-## Other
+## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
 | Setting | What it does |
 |---|---|
 | Retry | Retries initializing the translation engine if the previous attempt failed. |
 | OCR & translation downloads | Manages downloadable OCR and translation components. |
-| Enable text recognition (OCR) | Enables on-device text recognition (OCR) so you can extract text from images. |
+| Enable text recognition | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
 | OCR Engine | Selects which on-device text-recognition engine is used for OCR. |
 | OCR Font Family | Sets the font family used to display recognized OCR text. |
@@ -163,7 +165,7 @@ _Available in: Standard, Legacy_
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
 
-## Playback
+## <img src="icons/doc/ic_play.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Playback
 
 | Setting | What it does |
 |---|---|
@@ -195,7 +197,7 @@ _Available in: Standard, Legacy_
 | Compact player buttons | Uses smaller, more compact player control buttons to save screen space. |
 | Default sort mode | Sets the default order in which files are sorted when a folder opens. |
 
-## Destinations
+## <img src="icons/doc/ic_folder.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Destinations
 
 | Setting | What it does |
 |---|---|
@@ -206,6 +208,7 @@ _Available in: Standard, Legacy_
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
+| Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Default audio player | Sets which app opens audio files by default when tapped from outside this app. |
@@ -226,6 +229,7 @@ _Available in: Standard, Legacy_
 | Accept shared files | Allows other apps to share files directly into this app via the Android share sheet. |
 | Ask for each photo name | Prompts you to enter a name for each photo immediately after it is captured. |
 | Save photos to clipboard | Automatically copies each captured photo to the clipboard after saving. |
+| Geotag photos | Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default. |
 | Only OCR (no translation) | Runs OCR on the captured photo but skips translation, showing only the recognized text. |
 | Camera OCR translation | Recognizes and translates text in the photo taken with the built-in camera. |
 | Open captured photo for editing | Opens the captured photo in an image editor immediately after shooting. |
@@ -256,9 +260,11 @@ _Available in: Standard, Legacy_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | System media handler | Registers this app as a system-level media handler so it receives media intents from other apps. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
+| Screen video recording | Enables the built-in screen video recording feature. |
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |
 | Right gesture action | Chooses the action triggered by the rightward screen gesture. |
 | Up gesture action | Chooses the action triggered by the upward screen gesture. |
+| Show programs panel in main window | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |

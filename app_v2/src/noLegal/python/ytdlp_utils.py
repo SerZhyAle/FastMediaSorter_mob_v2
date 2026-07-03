@@ -15,7 +15,7 @@ def _is_probe_excluded(url):
     Returns True when yt-dlp should not be used for the given URL.
     Covers both host-level exclusions and URL-pattern exclusions.
 
-    S0223: Instagram /p/ posts are image-only. yt-dlp 2026.3.17 InstagramIE
+    S0223: Instagram /p/ posts are image-only. yt-dlp's InstagramIE
     raises "There is no video in this post" for them, wasting ~10s probe time.
     /reel/ URLs must remain un-excluded so yt-dlp continues to handle videos.
     """
@@ -174,7 +174,7 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audi
         # vcodec=none + acodec=mp4a (or similar); video-only formats land on
         # vcodec=avc1/vp09 + acodec=none; combined progressive shows both.
         print(
-            "S0260: python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
+            "python download done format_id={fid} ext={ext} vcodec={vc} acodec={ac} audio_only_hint={ao}".format(
                 fid=info.get('format_id'),
                 ext=ext,
                 vc=info.get('vcodec'),

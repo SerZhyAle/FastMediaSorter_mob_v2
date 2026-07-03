@@ -11,8 +11,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,6 +29,9 @@ import org.robolectric.annotation.Config
  * The guard short-circuits when the incoming AppSettings equals the currently stored
  * value, eliminating the spam of redundant DataStore writes triggered by settings UI
  * listeners during initial inflation.
+ *
+ * S0876: also covers the transform overload's mutex serialization - concurrent read-modify-write
+ * writers must never lose an update.
  *
  * Robolectric: the write path reaches StrictModeHelper.allowDiskReads, which needs a real
  * StrictMode implementation (the JVM stub returns null and NPEs on Builder.build()).
@@ -83,5 +90,34 @@ class SettingsRepositoryImplTest {
         repo.updateSettings(defaults)
 
         coVerify(exactly = 0) { mockDataStore.updateData(any()) }
+    }
+
+    // S0876: regression guard for transformMutex in the updateSettings(transform) overload. Two
+    // writers race on disjoint fields the same way the real WelcomeEnableAllManager OCR/Translation
+    // enable-on-install writers do; without the mutex, writer B's stale read (taken while A is still
+    // mid-transform) would silently revert A's already-committed field once B's own full-snapshot
+    // write lands.
+    @Test
+    fun `updateSettings transform overload serializes concurrent writers - no lost update`() = runTest {
+        val state = MutableStateFlow(AppSettings(enableOcr = false, enableTranslation = false))
+        every { repo.getSettings() } returns state
+        coEvery { repo.updateSettings(any<AppSettings>()) } coAnswers {
+            state.value = it.invocation.args[0] as AppSettings
+        }
+
+        val writerA = launch {
+            repo.updateSettings { current ->
+                delay(50) // holds transformMutex, forcing writer B to queue behind this transform
+                current.copy(enableOcr = true)
+            }
+        }
+        val writerB = launch {
+            repo.updateSettings { current -> current.copy(enableTranslation = true) }
+        }
+        writerA.join()
+        writerB.join()
+
+        assertTrue("writer A's field must survive writer B's write", state.value.enableOcr)
+        assertTrue("writer B's field must survive writer A's write", state.value.enableTranslation)
     }
 }

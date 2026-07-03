@@ -30,7 +30,6 @@ class ScreenshotGestureTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        Timber.d("S0672: QS tile clicked - launching capture (DOWN action)")
         // Plain TileService (no Hilt): a TileService lifecycle does not fit the standard Hilt scopes, and
         // all capture/MediaProjection work already lives in ScreenCaptureConsentActivity. The tile reuses
         // the user's configured DOWN-direction action - it is the single-tap equivalent of the down-swipe.

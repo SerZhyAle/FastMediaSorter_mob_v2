@@ -1,0 +1,40 @@
+#!/bin/sh
+# Guard against an accidental direct push to `main` from the dev worktree.
+# Spec S0752. Activated via `core.hooksPath` -> scripts/githooks (see activate-hooks.ps1).
+#
+# A push to main is legitimate only from the release worktree (FastMediaSorter_release),
+# which is what /skill-release uses. From the dev worktree (FastMediaSorter_mob_v2) a push
+# to main would fire the paid GitHub Actions CI outside the controlled release pipeline.
+#
+# Allow main push when EITHER:
+#   - the initiating worktree basename is FastMediaSorter_release, OR
+#   - FMS_ALLOW_MAIN_PUSH=1 (explicit manual override / escape hatch).
+# Block otherwise.
+
+protected_ref="refs/heads/main"
+release_worktree="FastMediaSorter_release"
+
+pushes_main=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+	if [ "$remote_ref" = "$protected_ref" ]; then
+		pushes_main=1
+	fi
+done
+
+if [ "$pushes_main" -eq 0 ]; then
+	exit 0
+fi
+
+worktree_name=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")
+
+if [ "$worktree_name" = "$release_worktree" ] || [ "$FMS_ALLOW_MAIN_PUSH" = "1" ]; then
+	exit 0
+fi
+
+echo "----------------------------------------------------------------------" >&2
+echo "BLOCKED: direct push to 'main' from the dev worktree ($worktree_name)." >&2
+echo "Releases go through /skill-release (release worktree '$release_worktree')." >&2
+echo "Pushing to main here would start the paid GitHub Actions CI." >&2
+echo "To override intentionally: set FMS_ALLOW_MAIN_PUSH=1 and push again." >&2
+echo "----------------------------------------------------------------------" >&2
+exit 1

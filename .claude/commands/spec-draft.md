@@ -86,13 +86,14 @@ Journal `name` is **bare slug** - no `spec_` prefix. Status stays `Draft`.
 - Per attachment write one-line human caption in §0 describing what it is (e.g. "screenshot: crash dialog on landscape", "log excerpt: ANR trace") so future reader understands without opening file.
 - Never reference read-only zones as persisted copy location; copies always land under `PLAN/<Sxxxx>_<short-name>/attachments/`.
 
-**5 - Write skeleton file** at `PLAN/<Sxxxx>_<short-name>.md` from template below:
+**5 - Write skeleton file** at `PLAN/<Sxxxx>_<short-name>.md` from the appropriate template below:
 
+- **Template selection (S0826).** Bug-intent drafts - slug derived with a `bugfix-`/`hotfix-` prefix in step 1, i.e. a clear single defect from a crash/log/error report - use the **Compact bugfix template** (problem + root cause + fix + verification, ~5 sections). Everything else (features, strategic ideas) uses the full strategic template. The compact form matches what `/spec-all`'s Simple path expects, so a clear bug does not carry the full §1-§12 strategic skeleton it never needs. If a "bug" turns out architecturally broad, `/spec`/`/spec-update` can still expand it later.
 - Keep every section header and `<...>` placeholder hints intact - scaffold, not filled spec.
 - Fill frontmatter only: `Ticket`, `Status: Draft`, `Priority`, `Date` (today), `Tier` label, `Roadmap entry`, `Tactical spec` path.
 - **Fill §0 (Захваченный материал)** - only body section populated here:
   - Paste user's free-form text verbatim (own words, original language, no rewriting). If user gave only slug with no prose, write `<нет текста - только вложения>` or `<нет текста>`.
-  - List every attachment from step 4 as bullet: `- <caption> - PLAN/<Sxxxx>_<short-name>/attachments/<file>` (or linked repo path). If none, write `Вложений нет.`
+  - List every attachment from step 4 as bullet: `- <caption> - PLAN/<Sxxxx>_<short-name>/attachments/<file>` (or linked repo path). If none, omit **Вложения:** block entirely.
   - Optionally add `**Захвачено во время:**  <Sxxxx-активного-тикета>` only if active ticket is obvious from context - never guess.
 - Leave §1-§12 as template placeholders. Do NOT distill §0 into §1 here - happens later during `/spec` or `/spec-update`.
 - Do NOT run `..`/`ё`/lists-over-tables sanitation (Draft exempt - sanitation is Draft→Approved gate, not drafting friction). Do NOT emit §3.3 owner-input detection (belongs to Approval gate).
@@ -122,13 +123,9 @@ Journal `name` is **bare slug** - no `spec_` prefix. Status stays `Draft`.
 **Roadmap entry:** <текст из роадмапа или «Ad-hoc - запрос <дата>»>
 **Tactical spec:** `PLAN/<Sxxxx>_<short-name>/` (будет создан через `/spec-tech`)
 
-> **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
-
 ---
 
 ## 0. Захваченный материал (inbox)
-
-> Сырой захват идеи на лету. Вербатим-текст пользователя и вложения. Распределяется по §1/§3.1/§6 при доработке через `/spec` или `/spec-update`; секцию можно удалить, когда материал перенесён.
 
 **Захвачено:** <YYYY-MM-DD>
 
@@ -136,10 +133,8 @@ Journal `name` is **bare slug** - no `spec_` prefix. Status stays `Draft`.
 
 <вербатим-текст пользователя, без переписывания; или «нет текста»>
 
-**Вложения:**
-
+**Вложения:** (опустить если нет)
 - <подпись> - `PLAN/<Sxxxx>_<short-name>/attachments/<файл>`
-<или «Вложений нет.»>
 
 ---
 
@@ -242,12 +237,63 @@ Journal `name` is **bare slug** - no `spec_` prefix. Status stays `Draft`.
 ## 11. Критерии готовности (strategic-level)
 
 <Нумерованный список. Наблюдаемые результаты, не архитектурные утверждения.>
+```
 
 ---
 
-## 12. Ссылка на тактическую спецификацию
+## Compact bugfix template (S0826)
 
-Следующий шаг: `/spec-tech <Sxxxx>` - создаст `PLAN/<Sxxxx>_<short-name>/` с фазами.
+Used for bug-intent drafts (`bugfix-`/`hotfix-` slug). Captures §0 verbatim like the full skeleton, then a lean defect structure instead of §1-§12. `### 3.3 Owner inputs` is kept (exact heading) so the spec can still pass the Draft → Approved gate later. Leave §2/§3/§4 as placeholders here - they are filled during investigation/implementation, not at capture time.
+
+```markdown
+# Спецификация (compact bugfix): <Sxxxx> - <Краткое название дефекта>
+
+**Ticket:** <Sxxxx>
+**Status:** Draft
+**Priority:** <0..100>
+**Date:** <YYYY-MM-DD>
+**Tier:** <метка>
+
+---
+
+## 0. Захваченный материал (inbox)
+
+**Захвачено:** <YYYY-MM-DD>
+
+**Текст:**
+
+<вербатим-текст пользователя, без переписывания; или «нет текста»>
+
+**Вложения:** (опустить если нет)
+- <подпись> - `PLAN/<Sxxxx>_<short-name>/attachments/<файл>`
+
+---
+
+## 1. Проблема / симптом
+
+<Что наблюдается, где (flavor/устройство/экран), эвиденс - лог-строки, stack trace, repro. Без имён классов на этапе захвата.>
+
+---
+
+## 2. Корневая причина
+
+<Заполняется при расследовании. В скелете - «<расследовать>».>
+
+---
+
+## 3. Исправление
+
+<Минимальный фикс - заполняется при реализации. В скелете - «<реализовать>».>
+
+### 3.3 Owner inputs (Approval gate)
+
+- **Related tickets:** <Sxxxx-зависимости / связанные, либо «none»>
+
+---
+
+## 4. Проверка
+
+<Как доказать фикс: unit-тест / команда / on-device сценарий. В скелете - «<определить>».>
 ```
 
 ---

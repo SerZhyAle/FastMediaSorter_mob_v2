@@ -37,7 +37,6 @@
     <string name="epub_e">EPUB (E)</string>
     <string name="epub_exit_fullscreen">Выход из полноэкранного режима</string>
     <string name="epub_file_not_found">Этот EPUB-файл больше недоступен.</string>
-    <string name="epub_font_size">Размер шрифта: %1$d</string>
     <string name="epub_go_to_chapter_cancel">Отмена</string>
     <string name="epub_go_to_chapter_go">Перейти</string>
     <string name="epub_go_to_chapter_hint">Номер главы (1-%1$d)</string>

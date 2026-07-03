@@ -23,7 +23,7 @@
 #     "tactical_folder": false,
 #     "last_audit_present": false,
 #     "timber_tags_kt": 0,
-#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified"
+#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified" (never research-heavy)
 #     "auto_skip_reason": null,           # human-readable reason
 #     "depends_on": [ {"id":"S0241","status":"Verified"}, ... ],
 #     "research_open_count": 5
@@ -48,6 +48,58 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
 } else {
     'pwsh'
+}
+
+function Get-SectionBodyByHeading {
+    param(
+        [string]$Text,
+        [string[]]$HeadingPatterns
+    )
+
+    foreach ($match in [regex]::Matches($Text, '(?ms)^##\s+([^\r\n]+)\r?\n(.*?)(?=^\s*##\s+|\z)')) {
+        $heading = $match.Groups[1].Value.Trim()
+        foreach ($pattern in $HeadingPatterns) {
+            if ($heading -match $pattern) {
+                return $match.Groups[2].Value
+            }
+        }
+    }
+
+    return $null
+}
+
+function Get-UnresolvedResearchItemCount {
+    param([string]$Text)
+
+    $researchBody = Get-SectionBodyByHeading -Text $Text -HeadingPatterns @(
+        '(?i)\bResearch\s+items?\b',
+        '(?i)\bOpen\s+Questions?\b',
+        '(?i)Открытые\s+вопрос'
+    )
+    if (-not $researchBody) {
+        return 0
+    }
+
+    $explicitOpenCount = [regex]::Matches(
+        $researchBody,
+        '(?im)^\s*[-*]\s+\*\*(?:Статус|Status):\*\*\s*Open\b|^\s*[-*]\s*(?:Статус|Status):\s*Open\b'
+    ).Count
+    if ($explicitOpenCount -gt 0) {
+        return $explicitOpenCount
+    }
+
+    $itemMatches = [regex]::Matches($researchBody, '(?ms)^(?:[-*]|\d+\.)\s+.*?(?=^(?:[-*]|\d+\.)\s+|\z)')
+    $fallbackCount = 0
+    foreach ($item in $itemMatches) {
+        $block = $item.Value
+        $hasQuestionMarker = $block -match '(?im)\*\*(?:Вопрос|Question):\*\*' -or $block -match '\?'
+        $isResolved = $block -match '(?im)(?:\*\*(?:Статус|Status):\*\*\s*Resolved\b|\bStatus:\s*Resolved\b)'
+        if ($hasQuestionMarker -and -not $isResolved) {
+            $fallbackCount++
+        }
+    }
+
+    return $fallbackCount
 }
 
 # 1. Resolve catalog record
@@ -163,16 +215,8 @@ if ($depMatch.Success) {
     }
 }
 
-# 9. Research item count (§6 "Открытые вопросы" / "Open Questions")
-$researchOpenCount = 0
-$researchMatch = [regex]::Match($specText, '(?ms)^##\s+6\.[^\n]*Open\s+Questions?[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
-if (-not $researchMatch.Success) {
-    $researchMatch = [regex]::Match($specText, '(?ms)^##\s+6\.[^\n]*вопрос[^\n]*\n(.+?)(?:\r?\n##\s|\z)', 'IgnoreCase')
-}
-if ($researchMatch.Success) {
-    $items = [regex]::Matches($researchMatch.Groups[1].Value, '(?m)^\s*[-*]\s+\*\*[A-Z][\w-]*[-_]?\d*\*\*|^\s*\d+\.\s+\*\*')
-    $researchOpenCount = $items.Count
-}
+# 9. Research item count (heading-based, section-number agnostic; unresolved only)
+$researchOpenCount = Get-UnresolvedResearchItemCount -Text $specText
 
 # 10. Owner-gate detection
 $ownerGate = $false
@@ -205,10 +249,11 @@ elseif ($rec.status -eq 'BlockByOtherTask' -and $dependsOn.Count -gt 0) {
         $autoSkipReason = 'Depends on ' + ($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', '
     }
 }
-elseif ($researchOpenCount -ge 3 -and $rec.status -in @('Draft', 'Approved')) {
-    $autoSkip = 'research-heavy'
-    $autoSkipReason = "§6 has $researchOpenCount unresolved research items; /spec-all would block"
-}
+# NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward
+# until it reaches readiness or hits a REAL human blocker (BlockQuestions/BlockExternal
+# set by /spec-all). research_open_count stays informational only - a heavy research
+# section is not a reason to pre-emptively skip; /spec-all resolves what it can from the
+# codebase and blocks only on genuinely human-gated questions.
 
 # 12. Compose result
 $result = [PSCustomObject]@{

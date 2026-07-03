@@ -67,7 +67,6 @@ class OperationsGesturesManager(
         }
         binding.rowGestureStripVisible.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            Timber.d("S0724: gesture strip visibility toggled -> %b", isChecked)
             viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureStripVisible = isChecked))
             // Push the explicit value so a live strip recolours immediately (no-op while overlay is off).
             controller.setStripVisible(isChecked, viewModel.settings.value.gestureOverlayEnabled)

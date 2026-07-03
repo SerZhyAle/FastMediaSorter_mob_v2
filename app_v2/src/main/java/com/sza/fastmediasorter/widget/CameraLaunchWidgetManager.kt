@@ -49,6 +49,9 @@ class CameraLaunchWidgetManager(
     private val mediaCapabilities: MediaCapabilities,
     private val saveCapturedMedia: SaveCapturedMediaUseCase,
     private val coroutineScope: CoroutineScope,
+    // S0795: force the host into video mode (edge-gesture "start video recording"); default keeps the
+    // widget's photo-preferred switchable behaviour.
+    private val forceVideo: Boolean = false,
     private val requestPermission: () -> Unit,
     private val launchCapture: (Intent) -> Unit,
     private val finish: () -> Unit,
@@ -62,7 +65,6 @@ class CameraLaunchWidgetManager(
 
     /** Entry point from the trampoline's onCreate. */
     fun start() {
-        Timber.d("S0568: camera launch widget tapped - resolving photo/video availability")
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val photoAvailable = !settings.disableCameraCapture && mediaCapabilities.supportsImages
@@ -116,7 +118,12 @@ class CameraLaunchWidgetManager(
             return
         }
         val videoOk = videoAvailable && BrowseCameraCaptureManager.hasVideoCaptureHandler(activity)
-        if (!photoAvailable && !videoOk) {
+        // S0795: the video-recording gesture needs a usable video path; a plain launch needs either mode.
+        if (forceVideo && !videoOk) {
+            toastAndFinish(R.string.camera_capture_error_no_camera_app)
+            return
+        }
+        if (!forceVideo && !photoAvailable && !videoOk) {
             toastAndFinish(R.string.camera_capture_error_no_camera_app)
             return
         }
@@ -126,10 +133,10 @@ class CameraLaunchWidgetManager(
         }
         pendingDir = dir
         pendingBaseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        // S0563 degenerate gating: offer the in-screen PHOTO|VIDEO switch only when both are available;
-        // otherwise open the host fixed in the single available mode.
-        initialMode = if (photoAvailable) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO
-        allowSwitch = photoAvailable && videoOk
+        // S0795 forces video with no switch; otherwise S0563 degenerate gating: offer the in-screen
+        // PHOTO|VIDEO switch only when both are available, else open fixed in the single available mode.
+        initialMode = if (forceVideo || !photoAvailable) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO
+        allowSwitch = !forceVideo && photoAvailable && videoOk
         ensurePermissionAndCapture()
     }
 

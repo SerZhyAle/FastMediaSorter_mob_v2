@@ -1,14 +1,14 @@
 ---
 name: devlogs-array-binding
-description: close-and-log.ps1 -DevLogs array must be called in-process with &, never via pwsh -File (array collapses across process boundary)
+description: close-and-log.ps1 -DevLogs multi-entry - pass ONE JSON-array string (script expands it since 2026-07-03); never wrapper scripts
 metadata:
   type: feedback
 ---
 
-`close-and-log.ps1 -DevLogs @(...)` (and any PowerShell script taking an array param with multiple elements) must be invoked **in the same PowerShell process** with the call operator `&`, not through `pwsh -NoProfile -File script.ps1 -DevLogs $arr`.
+Multi-entry `-DevLogs` for `close-and-log.ps1`: pass a SINGLE string holding a JSON array - the script expands it in-process (fixed at source 2026-07-03 after owner said "fix the script instead of writing wrappers each time"):
 
-**Why:** `pwsh -File` serializes each array element as a separate command-line token. Only the first element binds to `-DevLogs`; the rest hit the parser as positional args and fail with "A positional parameter cannot be found that accepts argument '{...}'". Cost two failed finalize calls on S0082 (2026-06-03).
+`pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 -Id Sxxxx -Status Verified -DevLogs '[{"file":"..","target":"..","desc":".."},{"file":".."}]' -FuncOp FIX -FuncDesc "..."`
 
-**How to apply:** From the PowerShell tool (already pwsh), build the array then call directly:
-`$dl = @('{json1}','{json2}',...); & scripts/spec_catalog/close-and-log.ps1 -Id Sxxxx -Status Verified -DevLogs $dl -FuncOp ADD -FuncDesc "..." -CatalogModule app_v2`
-Single-element -DevLogs survives `pwsh -File`; multi-element does not. Same trap applies to Bash tool (`@(...)` triggers `bash: syntax error near unexpected token '('`) - use the PowerShell tool for any call passing a PS array.
+**Why:** `pwsh -File` binds only the FIRST element of a multi-element array argument (rest become unbound positional args - cost two failed finalize calls on S0082, 2026-06-03). A single JSON-array token survives the process boundary; nested single-quoting is safe from both PS and Bash.
+
+**How to apply:** Default to the JSON-array-string form above. In-process `&` call with a real `@(...)` array also still works from the PowerShell tool. NEVER author a temp wrapper .ps1 for this (owner flagged the ceremony 2026-07-03); reserve temp wrappers for Cyrillic args crossing the Bash->pwsh boundary or rituals reused across runs. General rule for any OTHER script with a multi-element array param: fix the script the same way (accept a JSON-array transport string) per CLAUDE.md Rule 13, don't work around it.

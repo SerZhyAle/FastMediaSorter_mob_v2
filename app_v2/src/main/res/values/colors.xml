@@ -185,6 +185,8 @@
     <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
     <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
     <color name="focus_button_stroke">#FF1976D2</color>    <!-- S0289: button/tab focus ring (aliases focus_indicator) -->
+    <!-- S0819: travelling focus-frame fallback, used only when an attaching window has no theme colorPrimary. Neutral high-contrast white reads on the dark media/player surfaces the overlay draws over. -->
+    <color name="focus_frame_fallback">#FFFFFFFF</color>
     <!-- S0512: translucent transient-state fills for item_interaction_overlay (android:foreground).
          Must be semi-transparent so they layer over selected/alternating row backgrounds without hiding content. -->
     <color name="item_overlay_pressed">#22000000</color>
@@ -238,6 +240,15 @@
     <!-- Action panels -->
     <color name="player_panel_copy">#CC004D00</color>
     <color name="player_panel_move">#CC00004D</color>
+    <!-- S0914: per-panel accent backgrounds for the three main-window collapsible panels (programs /
+         streams / resource-type filter). The same accent colours a panel's expanded body AND its collapsed
+         chip, so each panel is recognisable by colour in both states. Distinct hues in the #CC action-panel
+         family (generalises the S0781 filter-strip teal). Fixed, theme-independent by design (mirrors
+         player_panel_*); the shared white foreground keeps text/icons legible on every accent. -->
+    <color name="main_programs_panel_accent">#CC4D4D00</color>
+    <color name="main_streams_panel_accent">#CC4D004D</color>
+    <color name="main_filter_panel_accent">#CC004D4D</color>
+    <color name="main_panel_accent_foreground">@color/white</color>
 
     <!-- ============================================================ -->
     <!-- PLAYER COLOR ALIASES (mapped to base colors) -->
@@ -359,10 +370,16 @@
          keep controls legible. Do not convert to ?attr/ theme tokens. -->
     <!-- ============================================================ -->
     <color name="camera_capture_surface">#101114</color>
-    <color name="camera_capture_control_bg">#CC15171C</color>
-    <color name="camera_capture_control_stroke">#33FFFFFF</color>
+    <!-- S0753: ~30% opacity (70% transparent, owner-chosen); legibility comes from the stroke + elevation
+         shadow + outlined text, not the fill, so the controls can be this see-through. -->
+    <color name="camera_capture_control_bg">#4D15171C</color>
+    <color name="camera_capture_control_stroke">#B3FFFFFF</color>
     <color name="camera_capture_shutter_icon">#111318</color>
     <color name="camera_capture_focus_ring">#FFFFFFFF</color>
+    <!-- S0753: drop shadow behind overlay text/chips so they read on a bright (white) scene. -->
+    <color name="camera_capture_text_shadow">#CC000000</color>
+    <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
+    <color name="camera_capture_slider_inactive">#66FFFFFF</color>
 
     <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
          so the five media-type segments stay visually distinct; legend always shows value text,

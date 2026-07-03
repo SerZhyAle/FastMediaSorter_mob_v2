@@ -11,11 +11,13 @@ import com.sza.fastmediasorter.ui.streams.StreamsViewModel
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of
- * dialog logic (Rule 3/5). Presents a category row, a language row and an All/Audio/Video media-kind
- * toggle; each row opens a [SearchableOptionPickerDialog]. "Clear filters" lives in the dialog button bar
+ * dialog logic (Rule 3/5). Presents the All/Audio/Video media-kind toggle on top, then category and
+ * language as two tappable columns plus a full-width country row (S0761); each opens a
+ * [SearchableOptionPickerDialog]. "Clear filters" lives in the dialog button bar
  * (neutral) next to OK and resets in place without dismissing. Selections are applied live through
  * [onApply] (the ViewModel owns the actual filtering). Category options are flag-less; language options
- * carry a flag where the name resolves to a known language ([StreamLanguageOptionMapper]).
+ * carry a flag where the name resolves to a known language ([StreamLanguageOptionMapper]); country
+ * options carry a flag from the ISO code ([StreamCountryOptionMapper]).
  */
 class StreamsFilterDialogManager(
     private val activity: FragmentActivity,
@@ -26,6 +28,7 @@ class StreamsFilterDialogManager(
         onApply: (
             category: String?,
             language: String?,
+            country: String?,
             mediaKind: StreamsViewModel.MediaKindFilter,
             pinnedOnly: Boolean,
         ) -> Unit,
@@ -33,12 +36,14 @@ class StreamsFilterDialogManager(
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
         var category = state.filter.category
         var language = state.filter.language
+        var country = state.filter.country
         var mediaKind = state.filter.mediaKind
         var pinnedOnly = state.filter.pinnedOnly
 
         fun renderValues() {
             binding.tvCategoryValue.text = category ?: activity.getString(R.string.streams_filter_all)
             binding.tvLanguageValue.text = languageLabel(language)
+            binding.tvCountryValue.text = countryLabel(country)
         }
         renderValues()
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
@@ -52,7 +57,7 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     category = picked?.id
                     renderValues()
-                    onApply(category, language, mediaKind, pinnedOnly)
+                    onApply(category, language, country, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_category_picker")
         }
@@ -65,9 +70,17 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     language = picked?.id
                     renderValues()
-                    onApply(category, language, mediaKind, pinnedOnly)
+                    onApply(category, language, country, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_language_picker")
+        }
+
+        binding.rowCountry.setOnClickListener {
+            showCountryPicker(state.facets.countries, country) { picked ->
+                country = picked
+                renderValues()
+                onApply(category, language, country, mediaKind, pinnedOnly)
+            }
         }
 
         binding.toggleMediaKind.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -77,12 +90,12 @@ class StreamsFilterDialogManager(
                 binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
                 else -> StreamsViewModel.MediaKindFilter.ALL
             }
-            onApply(category, language, mediaKind, pinnedOnly)
+            onApply(category, language, country, mediaKind, pinnedOnly)
         }
 
         binding.checkPinnedOnly.setOnCheckedChangeListener { _, isChecked ->
             pinnedOnly = isChecked
-            onApply(category, language, mediaKind, pinnedOnly)
+            onApply(category, language, country, mediaKind, pinnedOnly)
         }
 
         val dialog = MaterialAlertDialogBuilder(activity)
@@ -96,12 +109,13 @@ class StreamsFilterDialogManager(
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
                 category = null
                 language = null
+                country = null
                 mediaKind = StreamsViewModel.MediaKindFilter.ALL
                 pinnedOnly = false
                 renderValues()
                 binding.toggleMediaKind.check(binding.btnMediaAll.id)
                 binding.checkPinnedOnly.isChecked = false
-                onApply(category, language, mediaKind, pinnedOnly)
+                onApply(category, language, country, mediaKind, pinnedOnly)
             }
         }
         // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).
@@ -109,6 +123,20 @@ class StreamsFilterDialogManager(
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.show()
+    }
+
+    /** Launches the country picker; [onPicked] receives the chosen code (null = cleared/All). */
+    private fun showCountryPicker(
+        countries: List<String>,
+        selected: String?,
+        onPicked: (String?) -> Unit,
+    ) {
+        SearchableOptionPickerDialog.newInstance(
+            title = activity.getString(R.string.streams_filter_country),
+            options = StreamCountryOptionMapper.countryOptions(countries),
+            selectedId = selected,
+            onPicked = { picked -> onPicked(picked?.id) },
+        ).show(activity.supportFragmentManager, "streams_country_picker")
     }
 
     private fun mediaKindButtonId(
@@ -126,5 +154,13 @@ class StreamsFilterDialogManager(
             activity.getString(R.string.streams_filter_all)
         } else {
             StreamLanguageOptionMapper.languageOptions(listOf(language)).firstOrNull()?.label ?: language
+        }
+
+    /** Decorates the active country code with its flag ("UA" -> "🇺🇦 UA"); "All" when no country is set. */
+    private fun countryLabel(country: String?): String =
+        if (country == null) {
+            activity.getString(R.string.streams_filter_all)
+        } else {
+            StreamCountryOptionMapper.countryOptions(listOf(country)).firstOrNull()?.label ?: country
         }
 }

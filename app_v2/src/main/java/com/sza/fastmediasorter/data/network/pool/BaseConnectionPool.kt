@@ -116,7 +116,10 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
      * Remove a specific connection from pool.
      */
     protected fun invalidateConnection(key: K) {
-        poolMutex.tryLock()
+        // tryLock() may fail when another coroutine holds poolMutex; only unlock() when we actually
+        // acquired it - an unconditional unlock() would release a lock this call does not own
+        // (corrupting the other critical section or throwing IllegalStateException).
+        val locked = poolMutex.tryLock()
         try {
             connectionPool.remove(key)?.let { pooled ->
                 try {
@@ -127,10 +130,10 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
                 }
             }
         } finally {
-            poolMutex.unlock()
+            if (locked) poolMutex.unlock()
         }
     }
-    
+
     /**
      * Quick cleanup: remove dead/idle connections without blocking.
      */

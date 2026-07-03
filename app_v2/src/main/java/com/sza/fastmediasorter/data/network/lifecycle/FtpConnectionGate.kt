@@ -1,26 +1,20 @@
 package com.sza.fastmediasorter.data.network.lifecycle
 
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import org.apache.commons.net.ftp.FTPClient
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Lifecycle adapter wrapping [FtpExoPlayerPool] under [NetworkConnectionGate]. S0067 Phase 04.
+ * Lifecycle adapter under [NetworkConnectionGate]. S0067 Phase 04.
  *
- * **First iteration scope:** [closeFor] (delegates to `cleanupIdleFtpConnections()`)
- * and [lastRecreateMs] (delegates to [FtpRecreateTracker]).
+ * **First iteration scope:** only [lastRecreateMs] (delegates to [FtpRecreateTracker]) is live.
  * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] - FTP consumers
- * continue calling `FtpClient` / `FtpExoPlayerPool` directly.
- *
- * **Known limitation:** [FtpExoPlayerPool] has no per-consumer (UI vs WORKER) tagging today.
- * `cleanupIdleFtpConnections()` only closes idle connections - active worker FTP transfers
- * are not interrupted by [closeFor], which is the desired (worker-safe) behaviour.
+ * continue calling `FtpClient` / `FtpExoPlayerPool` directly. [closeFor] is a no-op: ExoPlayer FTP
+ * connections are created per-acquire and disconnected on release, so there is no idle pool to sweep
+ * (the previous `cleanupIdleFtpConnections()` delegate was a permanent no-op - removed in S0904).
  */
 @Singleton
 class FtpConnectionGate @Inject constructor(
-    private val client: FtpClient,
     private val tracker: FtpRecreateTracker,
     @Suppress("unused") private val diagnostics: ConnectionDiagnostics
 ) : NetworkConnectionGate<FTPClient> {
@@ -49,13 +43,8 @@ class FtpConnectionGate @Inject constructor(
     }
 
     override fun closeFor(consumer: ConsumerType) {
-        if (!consumer.isUi) return
-        try {
-            client.cleanupIdleFtpConnections()
-            Timber.i("[scope=lifecycle protocol=FTP action=close_ui] idle FTP connections cleaned up")
-        } catch (e: Exception) {
-            Timber.w(e, "FtpConnectionGate.closeFor: cleanupIdleFtpConnections failed")
-        }
+        // No-op: ExoPlayer FTP connections are not pooled (created per-acquire, disconnected on
+        // release), so there is no idle pool to sweep on UI close (S0904).
     }
 
     override fun lastRecreateMs(resourceKey: String): Long? =

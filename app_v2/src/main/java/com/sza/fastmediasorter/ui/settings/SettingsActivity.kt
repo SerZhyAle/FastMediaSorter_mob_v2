@@ -108,13 +108,19 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         const val EXTRA_SOURCE_RESOURCE_ID = "extra_source_resource_id"
         /** Intent extra: Int - open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
-        /** Intent extra: String - scroll/focus a concrete Settings row after opening its tab. */
-        const val EXTRA_HIGHLIGHT_SETTING = "extra_highlight_setting"
         /** Intent extra: Boolean - open the Operations tab and expand the Scheduled section (S0353 widget deep-link). */
         const val EXTRA_OPEN_SCHEDULED = "extra_open_scheduled"
-        const val HIGHLIGHT_EMBEDDED_GAME = "embedded_game"
+
+        /** S0780: Intent extra - String section id; the owning tab fragment expands that group after opening. */
+        const val EXTRA_EXPAND_SECTION = "extra_expand_section"
         const val TAB_GENERAL = 0
+        const val TAB_MEDIA = 1
         const val TAB_PLAYBACK = 2
+        const val TAB_OPERATIONS = 3
+
+        /** S0780: deep-link section ids consumed by the tab fragments' checkAndExpandSectionFromIntent. */
+        const val SECTION_STREAMS = "streams"
+        const val SECTION_ADDITIONAL_PROGRAMS = "additional_programs"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
@@ -134,6 +140,20 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 else -> 0
             }
         }
+
+        /** S0780: open Settings on the Media tab and expand the Streams group (streams-panel "Configure"). */
+        fun openStreamsSectionIntent(context: Context): Intent =
+            Intent(context, SettingsActivity::class.java).apply {
+                putExtra(EXTRA_INITIAL_TAB, TAB_MEDIA)
+                putExtra(EXTRA_EXPAND_SECTION, SECTION_STREAMS)
+            }
+
+        /** S0780: open Settings on the Management tab and expand the Additional Programs group. */
+        fun openProgramsSectionIntent(context: Context): Intent =
+            Intent(context, SettingsActivity::class.java).apply {
+                putExtra(EXTRA_INITIAL_TAB, TAB_OPERATIONS)
+                putExtra(EXTRA_EXPAND_SECTION, SECTION_ADDITIONAL_PROGRAMS)
+            }
 
         fun openKeybindingRemap(context: Context) {
             context.startActivity(
@@ -180,6 +200,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
+        if (BuildConfig.DEBUG) Timber.d("S0776: settings context icons active")
 
         val adapter = SettingsPagerAdapter(this, settingsTabExtensions)
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})")

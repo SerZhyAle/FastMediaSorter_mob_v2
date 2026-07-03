@@ -2,9 +2,23 @@ name: Android CI Quality Gate
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
+    paths:
+      - 'app_v2/**'
+      - 'wear/**'
+      - 'gradle/**'
+      - '*.kts'
+      - 'gradlew*'
+      - '.github/workflows/android-ci.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'app_v2/**'
+      - 'wear/**'
+      - 'gradle/**'
+      - '*.kts'
+      - 'gradlew*'
+      - '.github/workflows/android-ci.yml'
   workflow_dispatch:
 
 concurrency:
@@ -13,12 +27,17 @@ concurrency:
 
 jobs:
   # ─────────────────────────────────────────────
-  # Job 1: Android Lint - blocks merge on failure
+  # verify = lint + unit tests + standard debug build in ONE Gradle call.
+  # Previously these were 3 separate jobs (lint -> unit-tests -> build),
+  # each on a cold runner restoring cache and recompiling standardDebug
+  # from scratch (~3x compile + 2 extra cold setups). Now the sources are
+  # compiled once and shared across lint/test/assemble. --continue runs all
+  # three even if one fails, so every report is still produced.
   # ─────────────────────────────────────────────
-  lint:
-    name: Android Lint
+  verify:
+    name: Verify (lint + unit tests + standard build)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -29,15 +48,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      # setup-gradle adds the Gradle build cache on top of dependency caching.
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Android Lint (standard flavor)
-        run: ./gradlew lintStandardDebug --stacktrace
+      - name: Lint + unit tests + standard debug build (single invocation)
+        run: ./gradlew lintStandardDebug testStandardDebugUnitTest assembleStandardDebug --continue --stacktrace
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
-      - name: Upload Lint report
+      - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -45,33 +69,7 @@ jobs:
           path: app_v2/build/reports/lint-results-*.html
           retention-days: 14
 
-  # ─────────────────────────────────────────────
-  # Job 2: Unit Tests - blocks merge on failure
-  # ─────────────────────────────────────────────
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: lint
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Run unit tests
-        run: ./gradlew testStandardDebugUnitTest --stacktrace
-
-      - name: Upload test results
+      - name: Upload unit test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -90,18 +88,31 @@ jobs:
           reporter: java-junit
           fail-on-error: true
 
+      # standard debug APK is produced here once and uploaded as an artifact.
+      - name: Upload standard debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-standard-debug
+          path: app_v2/build/outputs/apk/standard/debug/*.apk
+          retention-days: 7
+
   # ─────────────────────────────────────────────
-  # Job 3: Build checks - all flavors
+  # Extra flavors only (lite, photos, legacy). standard is already built in
+  # `verify`, so it is no longer rebuilt here. Runs on main push, PRs, and
+  # manual dispatch only (see if: below). needs: verify -> a lint/test failure
+  # short-circuits these expensive builds (fail-fast = saved minutes).
   # ─────────────────────────────────────────────
-  build:
+  build-flavors:
     name: Build (${{ matrix.flavor }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: unit-tests
+    needs: verify
+    if: github.ref_name == 'main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
-        flavor: [ standard, lite, photos, legacy ]
+        flavor: [ lite, photos, legacy ]
 
     steps:
       - name: Checkout
@@ -112,7 +123,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -120,7 +133,6 @@ jobs:
       - name: Build ${{ matrix.flavor }} debug
         run: ./gradlew assemble${{ matrix.flavor }}Debug --stacktrace
         env:
-          # Dropbox App Key - override with secret if available
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
       - name: Upload ${{ matrix.flavor }} APK
@@ -131,13 +143,17 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────
-  # Job 4: ProGuard/R8 release build check
+  # R8/ProGuard release build check (standard, unsigned).
+  # OPTIONAL extra saving: drop "github.ref_name == 'main'" so it runs only on
+  # PRs + dispatch (a main push right after merge re-proves what the PR already
+  # verified). Left enabled for safety.
   # ─────────────────────────────────────────────
-  build-release-check:
+  release-check:
     name: Release Build (ProGuard/R8 check)
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    needs: unit-tests
+    needs: verify
+    if: github.ref_name == 'main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout
@@ -148,7 +164,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -156,7 +174,6 @@ jobs:
       - name: Build standard release (unsigned)
         run: ./gradlew assembleStandardRelease --stacktrace
         env:
-          # Skip signing - only verify R8/ProGuard compiles
           SKIP_SIGNING: true
 
       - name: Upload release build mapping
@@ -168,27 +185,23 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────
-  # Job 5: Pipeline status notification
-  # Summarises all job outcomes in the GitHub
-  # workflow run page and posts a comment on PRs.
+  # Pipeline status notification. Job references updated to the new structure.
   # ─────────────────────────────────────────────
-  notify-status:
+  notify:
     name: Pipeline Status Notification
     runs-on: ubuntu-latest
-    # Always run; collect outcomes from all prior jobs.
     if: always()
-    needs: [ lint, unit-tests, build, build-release-check ]
+    needs: [ verify, build-flavors, release-check ]
+    timeout-minutes: 5
 
     steps:
       - name: Determine overall status
         id: overall
         run: |
-          LINT="${{ needs.lint.result }}"
-          TESTS="${{ needs.unit-tests.result }}"
-          BUILD="${{ needs.build.result }}"
-          RELEASE="${{ needs.build-release-check.result }}"
-
-          if [[ "$LINT" == "success" && "$TESTS" == "success" && "$BUILD" == "success" && "$RELEASE" == "success" ]]; then
+          VERIFY="${{ needs.verify.result }}"
+          FLAVORS="${{ needs.build-flavors.result }}"
+          RELEASE="${{ needs.release-check.result }}"
+          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
             echo "status=✅ ALL PASSED" >> "$GITHUB_OUTPUT"
             echo "emoji=✅" >> "$GITHUB_OUTPUT"
           else
@@ -203,43 +216,37 @@ jobs:
             echo ""
             echo "| Job | Result |"
             echo "| --- | ------ |"
-            echo "| Lint            | ${{ needs.lint.result }} |"
-            echo "| Unit Tests      | ${{ needs.unit-tests.result }} |"
-            echo "| Build (flavors) | ${{ needs.build.result }} |"
-            echo "| Release check   | ${{ needs.build-release-check.result }} |"
+            echo "| Verify (lint+test+std) | ${{ needs.verify.result }} |"
+            echo "| Build (extra flavors)  | ${{ needs.build-flavors.result }} |"
+            echo "| Release check          | ${{ needs.release-check.result }} |"
             echo ""
             echo "**Ref**: \`${{ github.ref_name }}\` | **Commit**: \`${{ github.sha }}\`"
             echo "**Triggered by**: ${{ github.event_name }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR (on failure)
-        # Post a comment only when running on a pull-request event AND something failed.
-        if: github.event_name == 'pull_request' && needs.lint.result != 'success' || github.event_name == 'pull_request' && needs.unit-tests.result != 'success' || github.event_name == 'pull_request' && needs.build.result != 'success' || github.event_name == 'pull_request' && needs.build-release-check.result != 'success'
+        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
         uses: actions/github-script@v7
         with:
           script: |
-            const lintStatus   = '${{ needs.lint.result }}';
-            const testsStatus  = '${{ needs.unit-tests.result }}';
-            const buildStatus  = '${{ needs.build.result }}';
-            const releaseStatus = '${{ needs.build-release-check.result }}';
-
+            const verify  = '${{ needs.verify.result }}';
+            const flavors = '${{ needs.build-flavors.result }}';
+            const release = '${{ needs.release-check.result }}';
             const body = [
               '## ❌ Android CI - pipeline failure',
               '',
               '| Job | Result |',
               '| --- | ------ |',
-              `| Lint            | ${lintStatus}   |`,
-              `| Unit Tests      | ${testsStatus}  |`,
-              `| Build (flavors) | ${buildStatus}  |`,
-              `| Release check   | ${releaseStatus}|`,
+              `| Verify (lint+test+std) | ${verify}  |`,
+              `| Build (extra flavors)  | ${flavors} |`,
+              `| Release check          | ${release} |`,
               '',
               `**Commit**: \`${{ github.sha }}\``,
               'Please fix failing jobs before merging.',
             ].join('\n');
-
             await github.rest.issues.createComment({
-              owner:   context.repo.owner,
-              repo:    context.repo.repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               issue_number: context.issue.number,
               body
             });

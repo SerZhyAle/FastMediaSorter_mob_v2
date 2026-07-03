@@ -25,7 +25,6 @@ class LaunchAppLaunchPanelTileUseCase @Inject constructor(
     }
 
     private suspend fun launchInternalRoute(tile: AppLaunchPanelTileUi): Boolean {
-        Timber.d("S0663: launch internal route %s", tile.targetId)
         return when (val target = AppLaunchPanelRouteTarget.decode(tile.targetId)) {
             is AppLaunchPanelRouteTarget.Feature -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return false

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.widget
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -44,6 +46,7 @@ class CameraLaunchActivity : AppCompatActivity() {
             mediaCapabilities = mediaCapabilities,
             saveCapturedMedia = saveCapturedMedia,
             coroutineScope = lifecycleScope,
+            forceVideo = intent?.getBooleanExtra(EXTRA_FORCE_VIDEO, false) == true,
             requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
             launchCapture = { intent -> captureLauncher.launch(intent) },
             finish = { finish() },
@@ -53,5 +56,11 @@ class CameraLaunchActivity : AppCompatActivity() {
 
     companion object {
         const val ACTION_LAUNCH = "com.sza.fastmediasorter.action.LAUNCH_CAMERA"
+
+        /** S0795: open the camera fixed in video mode (edge-gesture "start video recording"). */
+        private const val EXTRA_FORCE_VIDEO = "force_video"
+
+        fun videoIntent(context: Context): Intent =
+            Intent(context, CameraLaunchActivity::class.java).putExtra(EXTRA_FORCE_VIDEO, true)
     }
 }

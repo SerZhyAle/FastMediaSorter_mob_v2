@@ -6,12 +6,8 @@
     <!-- Keep the toolbar content at full height; the status-bar inset is applied to the outer container. -->
     <FrameLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:navigationIconTint="?attr/colorOnPrimary" app:title="@string/add_resource_title" app:titleTextColor="?attr/colorOnPrimary">
-
-            <!-- S0034: icon picker trigger at toolbar right edge -->
-            <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" />
-
-        </com.google.android.material.appbar.MaterialToolbar>
+        <!-- S0800: early icon picker removed; the resource icon is assigned later in the resource editor. -->
+        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:navigationIconTint="?attr/colorOnPrimary" app:title="@string/add_resource_title" app:titleTextColor="?attr/colorOnPrimary" />
 
     </FrameLayout>
 

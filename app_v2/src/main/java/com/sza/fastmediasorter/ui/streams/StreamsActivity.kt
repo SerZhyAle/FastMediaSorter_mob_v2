@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,6 +75,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var streamFrameCache: StreamFrameCache
 
+    // S0712: on-disk last-frame thumbnails, written by the snapshot engine and pre-warmed into the
+    // in-memory cache by the grid mode manager so known channels show their last frame on next launch.
+    @Inject
+    lateinit var streamFramePersistentStore: StreamFramePersistentStore
+
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -90,6 +96,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
+        onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+        favoritesEnabled = { viewModel.settings.value.enableFavorites },
+        isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -98,7 +107,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S0675: short-lived snapshot engine for grid mode; built lazily so Hilt field injection (the cache)
     // has run. Uses applicationContext so a config-change does not leak the Activity into a capture.
     private val snapshotManager by lazy {
-        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope)
+        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope, streamFramePersistentStore)
     }
 
     // S0675: grid-mode adapter mirroring the list adapter's favicon plumbing; the cached frame is the
@@ -111,6 +120,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,
             onShareLink = ::onShareLink,
+            onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+            favoritesEnabled = { viewModel.settings.value.enableFavorites },
+            isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -171,6 +183,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onError = ::showStreamUnavailable,
             onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
         )
+        // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
+        inlineAudio.applyWindowInsets()
 
         binding.rvStreams.layoutManager = LinearLayoutManager(this)
         binding.rvStreams.adapter = adapter
@@ -191,6 +205,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             gridAdapter = gridAdapter,
             snapshotManager = snapshotManager,
             cache = streamFrameCache,
+            persistentStore = streamFramePersistentStore,
             lifecycleOwner = this,
             resources = resources,
             onToggleIconChanged = ::updateDisplayToggleIcon,
@@ -375,7 +390,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      */
     private fun startHealthProbe() {
         val visible = visibleSources()
-        Timber.d("S0700: health probe started over %d visible streams", visible.size)
         if (visible.isEmpty()) return
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
         if (latestState.displayMode == DisplayMode.GRID && ::gridModeManager.isInitialized) {
@@ -413,13 +427,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun handlePlayIntent(intent: Intent?) {
         if (intent?.action != ACTION_PLAY_STREAM) return
         val url = intent.getStringExtra(EXTRA_STREAM_URL)?.takeIf { it.isNotBlank() } ?: return
-        Timber.d("S0637: home-screen shortcut launched stream %s", url)
         viewModel.playByUrl(url)
     }
 
     /** S0637: build a home-screen shortcut for the chosen channel; report if the launcher refuses. */
     private fun onAddShortcut(source: StreamSourceEntity) {
-        Timber.d("S0637: add-to-home-screen tapped for stream %s", source.url)
         val requested = StreamShortcutPinManager(this).requestPin(source)
         val message =
             if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
@@ -625,12 +637,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         dialog.show()
     }
 
-    /** Opens the category + language + media-kind filter dialog; the manager marshals selections to the ViewModel. */
+    /**
+     * Opens the category + language + country + media-kind filter dialog; the manager marshals
+     * selections to the ViewModel.
+     */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, language, mediaKind, pinnedOnly ->
+        filterDialogManager.show(latestState) { category, language, country, mediaKind, pinnedOnly ->
             viewModel.onFilter(
                 category = category,
                 language = language,
+                country = country,
                 mediaKind = mediaKind,
                 pinnedOnly = pinnedOnly,
             )
@@ -641,6 +657,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
         val active = filter.category != null ||
             filter.language != null ||
+            filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
         binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
@@ -688,6 +705,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         StreamsViewModel.SortMode.NAME -> R.string.streams_sort_name
         StreamsViewModel.SortMode.TOPIC -> R.string.streams_sort_topic
         StreamsViewModel.SortMode.LANGUAGE -> R.string.streams_sort_language
+        StreamsViewModel.SortMode.COUNTRY -> R.string.streams_sort_country
         StreamsViewModel.SortMode.RECENT -> R.string.streams_sort_recent
     }
 
@@ -743,6 +761,17 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 action = ACTION_PLAY_STREAM
                 putExtra(EXTRA_STREAM_URL, url)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
+        /**
+         * S0756: in-app navigation that opens this screen and plays one stream by its URL (reusing the
+         * same [handlePlayIntent] path as the shortcut, but without the launcher task flags so Back
+         * returns to the caller). Used by the main-window streams panel's channel taps.
+         */
+        fun createPlayIntent(context: Context, url: String): Intent =
+            Intent(context, StreamsActivity::class.java).apply {
+                action = ACTION_PLAY_STREAM
+                putExtra(EXTRA_STREAM_URL, url)
             }
     }
 }

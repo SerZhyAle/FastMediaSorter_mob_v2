@@ -111,6 +111,7 @@
                                 android:id="@+id/rowEnableFavorites"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                app:str_icon="@drawable/ic_resource_favorites"
                                 app:str_title="@string/enable_favorites"
                                 app:str_subtitle="@string/setting_enable_favorites_desc"
                                 app:str_showHelp="true"
@@ -146,6 +147,7 @@
                     android:id="@+id/headerFileBrowser"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_folder"
                     app:csh_title="@string/settings_category_file_browser" />
 
                 <LinearLayout android:id="@+id/containerFileBrowser" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -260,6 +262,7 @@
                     android:id="@+id/headerRemoteSources"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_wifi"
                     app:csh_title="@string/settings_remote_sources_title" />
 
                 <LinearLayout android:id="@+id/containerRemoteSources" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -273,6 +276,7 @@
                                 android:id="@+id/rowSourceSmb"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                app:str_icon="@drawable/ic_resource_smb"
                                 app:str_title="@string/settings_remote_source_smb_title"
                                 app:str_subtitle="@string/settings_remote_source_smb_subtitle"
                                 app:str_showHelp="true"
@@ -287,6 +291,7 @@
                                 android:id="@+id/rowSourceFtp"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                app:str_icon="@drawable/ic_resource_sftp"
                                 app:str_title="@string/settings_remote_source_ftp_title"
                                 app:str_subtitle="@string/settings_remote_source_ftp_subtitle"
                                 app:str_showHelp="true"
@@ -301,6 +306,7 @@
                         android:id="@+id/rowSourceCloud"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_resource_cloud"
                         app:str_title="@string/settings_remote_source_cloud_title"
                         app:str_subtitle="@string/settings_remote_source_cloud_subtitle"
                         app:str_showHelp="true"

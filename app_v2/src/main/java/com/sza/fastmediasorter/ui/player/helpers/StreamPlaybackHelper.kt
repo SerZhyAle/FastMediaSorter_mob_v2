@@ -55,7 +55,8 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // source measures live throughput) and the load control, which widens the steady cushion on a weak
     // link and tightens it back on a healthy one. Live content stays clamped to the proven S0685 live-safe
     // depth so live-edge tracking (S0634) cannot regress; only non-live streams get the deepening. The
-    // start/post-rebuffer thresholds keep the S0685 values. Radio vs live load-control split is parked (S0689).
+    // start/post-rebuffer thresholds keep the S0685 values. Radio plays on a separate audio player and
+    // never reaches this control, so no radio-vs-live split applies here (S0689 archived as obsolete).
     val bandwidthMeter = DefaultBandwidthMeter.Builder(context).build()
     val loadControl = BandwidthAdaptiveLoadControl.create(bandwidthMeter)
     Timber.d("S0688: stream load control bandwidth-adaptive (rtsp=%s) path=%s", isRtsp, path)
@@ -76,7 +77,11 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
 
     val player = builder.build()
     exoPlayer = player
-    player.addListener(streamPlaybackListener(path))
+    // S0893: BandwidthAdaptiveLoadControl (this file's loadControl) is not itself a Player.Listener -
+    // only the per-stream listener needs tracking here so release()/onDestroy() can remove it.
+    val streamListener = streamPlaybackListener(path)
+    player.addListener(streamListener)
+    activeExtraPlayerListener = streamListener
     currentPlayerView?.player = player
 
     if (isRtsp) {
@@ -166,6 +171,11 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            // S0895: capture the errored instance now - exoPlayer is a mutable property that can be
+            // reassigned to a different file's player before the delayed recovery below fires (user
+            // navigates away during the backoff window). Acting on the stale reference would yank
+            // that file's already-restored position instead of recovering the stream that errored.
+            val erroredPlayer = exoPlayer
             // P0 - routine live-edge desync: the manifest's sliding window moved past the playhead. This
             // is NOT a dead channel. A bare prepare() re-prepares at the same expired position and fails
             // again, so seek to the live edge first, then prepare. RTSP has no sliding window, so the seek
@@ -181,6 +191,7 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                     Timber.w(error, "Stream behind live window - re-anchoring to live edge (attempt %d): %s", behindLiveRecoveries, path)
                     managerScope.launch {
                         delay(backoffMs)
+                        if (exoPlayer !== erroredPlayer) return@launch
                         exoPlayer?.seekToDefaultPosition()
                         exoPlayer?.prepare()
                     }
@@ -197,6 +208,7 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                 Timber.w(error, "Stream transient error - retrying in %dms (attempt %d): %s", backoffMs, transientRetries, path)
                 managerScope.launch {
                     delay(backoffMs)
+                    if (exoPlayer !== erroredPlayer) return@launch
                     if (!isRtsp && exoPlayer?.isCurrentMediaItemLive == true) exoPlayer?.seekToDefaultPosition()
                     exoPlayer?.prepare()
                 }

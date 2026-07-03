@@ -167,7 +167,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         )
     }
 
-    private val translationManager: TranslationManager by lazy {
+    // S0872: explicit Lazy so onDestroy can release it only when it was actually created.
+    private val translationManagerDelegate = lazy {
         TranslationManager(
             context = this,
             settingsRepository = settingsRepository,
@@ -191,6 +192,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             }
         )
     }
+    private val translationManager: TranslationManager by translationManagerDelegate
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         StandaloneFileOperationsHandler(
@@ -261,7 +263,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     // Lazily created document viewers - only the one matching the resolved type is ever touched.
-    private val pdfViewerManager: PdfViewerManager by lazy {
+    // S0873: explicit Lazy so releaseActiveViewer()/onDestroy can release it when initialized - a
+    // mixed-type folder page (PDF -> EPUB) with an in-flight load can resurrect an off-type viewer.
+    private val pdfViewerManagerDelegate = lazy {
         PdfViewerManager(
             root = binding.root,
             networkFileManager = networkFileManager,
@@ -297,8 +301,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             statsSink = statsSink
         )
     }
+    private val pdfViewerManager: PdfViewerManager by pdfViewerManagerDelegate
 
-    private val epubViewerManager: EpubViewerManager by lazy {
+    // S0873: explicit Lazy (see pdf) so an initialized EPUB viewer is released on teardown/type-switch.
+    private val epubViewerManagerDelegate = lazy {
         EpubViewerManager(
             root = binding.root,
             networkFileManager = networkFileManager,
@@ -320,6 +326,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             translationManager = translationManager
         )
     }
+    private val epubViewerManager: EpubViewerManager by epubViewerManagerDelegate
 
     // S0301 / S0380: embedded Office viewer host. Market = no-op host (external handoff), noLegal =
     // engine-backed read-only viewer. Built against the trimmed layout's officeDocumentViewerContainer.
@@ -381,7 +388,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
-        Timber.d("S0613: standalone document print dispatched via Send-to receiver")
         documentPrintManager.printCurrentFile(mediaFile)
         return true
     }
@@ -786,20 +792,22 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     override fun onDestroy() {
         releaseActiveViewer()
+        // S0872: pdf/epub/office managers never touch translationManager - release it here, only if built.
+        if (translationManagerDelegate.isInitialized()) translationManager.release()
         super.onDestroy()
     }
 
-    /** Release only the viewer that was actually created (lazy delegates stay untouched otherwise). */
+    /**
+     * S0873: release EVERY initialized viewer, not just the current resolvedType's. A mixed-type
+     * folder page (e.g. PDF -> EPUB) runs this before the type switch while the outgoing viewer's
+     * async load is still in flight; that load then resurrects an off-type PdfRenderer/PFD/WebView
+     * which the old type-gated release could never reach (it leaked past onDestroy). Mirrors the
+     * unified-host family contract (PlayerLifecycleManager / StandaloneViewManager). The isInitialized()
+     * guards keep an untouched lazy viewer from being created just to release it.
+     */
     private fun releaseActiveViewer() {
-        when (resolvedType) {
-            MediaType.PDF -> pdfViewerManager.close()
-            MediaType.EPUB -> epubViewerManager.release()
-            // Only release the Office host if it was actually built (internal render path);
-            // an externally-delegated Office file never creates the host.
-            MediaType.OFFICE_DOCUMENT -> if (officeViewerHostDelegate.isInitialized()) {
-                officeViewerHost.release()
-            }
-            else -> Unit
-        }
+        if (pdfViewerManagerDelegate.isInitialized()) pdfViewerManager.close()
+        if (epubViewerManagerDelegate.isInitialized()) epubViewerManager.release()
+        if (officeViewerHostDelegate.isInitialized()) officeViewerHost.release()
     }
 }

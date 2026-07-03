@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.os.Build
 import androidx.lifecycle.Lifecycle
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -17,10 +18,21 @@ internal class VideoPlayerLifecycleHelper(
 ) {
     private var wasPlayingBeforePause = false
 
+    // S0893: remembers whether onStop() tore down an actively-loaded player, so onStart() knows to
+    // recreate it - release-on-onStop/recreate-on-onStart is the official Media3 guidance for API24+
+    // multi-window (developer.android.com/media/media3/exoplayer/lifecycle).
+    private var wasLoadedBeforeStop = false
+    private var wasPlayingBeforeStop = false
+
     fun releasePlayer() {
         if (manager.exoPlayer == null && manager.activeResourceKey == null) return
         manager.flushWatchClock()
         MemoryEnduranceTracker.endScenario()
+        // S0854: this is also the only teardown path when switching to a non-video file
+        // (PlayerLifecycleManager.stopVideoPlayback) - without this, the save loop has no future
+        // startPositionSaving() call to be replaced by and ticks forever against a released player.
+        Timber.d("S0854: releasePlayer - stopping position-save loop")
+        manager.stopPositionSaving()
 
         manager.pendingEffectsRunnable?.let { manager.effectsHandler.removeCallbacks(it) }
         manager.pendingEffectsRunnable = null
@@ -31,7 +43,17 @@ internal class VideoPlayerLifecycleHelper(
         )
 
         manager.exoPlayer?.let { player ->
-            player.removeListener(manager.playerListener)
+            // S0893: consolidated so every listener the active session may have added (playerListener
+            // is always present; activeExtraPlayerListener is PauseAwareLoadControl or the per-stream
+            // listener, whichever this session's protocol helper attached) is removed from one place.
+            listOfNotNull(manager.playerListener, manager.activeExtraPlayerListener).forEach(player::removeListener)
+            manager.activeExtraPlayerListener = null
+            // S0893: Media3 1.2.1 - release() can hang the main thread when a setVideoEffects() GL
+            // pipeline is still active (androidx/media #1139, #2098; same class of bug worked around
+            // in StandaloneViewManager.releaseVideoPlayer(), S0859). Drain effects and detach the
+            // surface while EGL is still valid, then release.
+            player.setVideoEffects(emptyList())
+            manager.currentPlayerView?.player = null
             player.release()
             manager.exoPlayer = null
             Timber.d("VideoPlayerManager: ExoPlayer released")
@@ -69,6 +91,38 @@ internal class VideoPlayerLifecycleHelper(
         wasPlayingBeforePause = false
     }
 
+    // S0893: API24+ release edge - a prepared player (codec + buffered media) must not be retained
+    // for the unbounded duration the host sits stopped in background (CODE_AUDIT_PROTOCOL contract
+    // item 2). Below API 24 this is a no-op - onPause()/onResume() above already cover the release
+    // per official pre-multi-window guidance, and the legacy flavor's narrow API23 sliver keeps
+    // today's behavior unchanged.
+    fun onStop() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        val hasActivePlayer = manager.exoPlayer != null ||
+            (manager.isUsingMediaPlayer && manager.mediaPlayer != null)
+        wasLoadedBeforeStop = hasActivePlayer
+        wasPlayingBeforeStop = manager.exoPlayer?.isPlaying == true ||
+            (manager.isUsingMediaPlayer && manager.mediaPlayer?.isPlaying == true)
+        if (!hasActivePlayer) return
+        Timber.d("S0893: VideoPlayerManager onStop - releasing player while backgrounded (API24+)")
+        // Explicit save before release - releasePlayer() does not save, and the periodic auto-save
+        // loop may be up to POSITION_SAVE_INTERVAL_MS stale.
+        manager.saveCurrentPosition()
+        releasePlayer()
+    }
+
+    // S0893: recreate only what was actually torn down by onStop() above.
+    fun onStart() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        if (!wasLoadedBeforeStop) return
+        wasLoadedBeforeStop = false
+        val path = manager.currentFilePath
+        val resourceType = manager.lastResourceType
+        if (path == null || resourceType == null) return
+        Timber.d("S0893: VideoPlayerManager onStart - recreating player released on background")
+        manager.playVideo(path, resourceType, manager.lastCredentialsId, playWhenReady = wasPlayingBeforeStop)
+    }
+
     fun onDestroy() {
         manager.flushWatchClock()
         manager.saveCurrentPosition()
@@ -81,7 +135,12 @@ internal class VideoPlayerLifecycleHelper(
         manager.isUsingMediaPlayer = false
 
         try {
-            playerToRelease?.removeListener(manager.playerListener)
+            // S0893: same consolidation as releasePlayer() above.
+            val player = playerToRelease
+            if (player != null) {
+                listOfNotNull(manager.playerListener, manager.activeExtraPlayerListener).forEach(player::removeListener)
+            }
+            manager.activeExtraPlayerListener = null
         } catch (e: Exception) {
             Timber.w(e, "VideoPlayerManager: Failed to remove listener")
         }
@@ -102,6 +161,9 @@ internal class VideoPlayerLifecycleHelper(
         manager.retryRunnable = null
 
         try {
+            // S0893: same Media3 1.2.1 GL-pipeline-release-hang guard as releasePlayer() above -
+            // drain the effects pipeline before release() (surface already detached above).
+            playerToRelease?.setVideoEffects(emptyList())
             playerToRelease?.release()
         } catch (e: Exception) {
             Timber.e(e, "VideoPlayerManager: Error releasing ExoPlayer")

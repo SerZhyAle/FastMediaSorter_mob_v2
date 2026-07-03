@@ -38,6 +38,29 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         private const val NOTIFICATION_ID = 4200
         // S0710: separate id so the permission advisory survives the ongoing "running" notification.
         private const val PERMISSION_NOTIFICATION_ID = 4201
+
+        // S0759: live counter of in-flight scheduled file operations. This worker runs as a foreground
+        // service (DATA_SYNC) for its whole doWork(), so a non-zero count means a background file op is
+        // actually keeping the app alive right now - the exit button reads this to decide minimize vs
+        // close. WorkManager has no query-by-worker-class API and the op ids are dynamic, so a companion
+        // counter mirrors the service flags (AudioPlaybackService.isRunning / QuickAudioRecorderService.
+        // isRecording) and avoids the deprecated ActivityManager.getRunningServices.
+        @Volatile
+        private var runningCount: Int = 0
+
+        @get:Synchronized
+        val isRunning: Boolean
+            get() = runningCount > 0
+
+        @Synchronized
+        private fun onWorkStarted() {
+            runningCount++
+        }
+
+        @Synchronized
+        private fun onWorkFinished() {
+            if (runningCount > 0) runningCount--
+        }
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
@@ -51,37 +74,44 @@ class ScheduledOperationsWorker @AssistedInject constructor(
 
         Timber.d("ScheduledOperationsWorker: starting op=$operationId")
 
+        // S0759: mark this op in-flight for the whole foreground run so the exit button can detect it.
+        onWorkStarted()
         try {
-            setForeground(createForegroundInfo())
-        } catch (e: Exception) {
-            Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
+            try {
+                setForeground(createForegroundInfo())
+            } catch (e: Exception) {
+                Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
+            }
+
+            val execResult = executeScheduledOperationUseCase(operationId)
+
+            // Update lastRunAt, lastRunStatus, nextRunAt in DB; rescheduling is handled by the
+            // WorkManagerScheduler observer.
+            val operation = scheduledOperationRepository.getById(operationId)
+            if (operation != null && operation.isEnabled) {
+                val now = System.currentTimeMillis()
+                val nextRunAt = calculateNextRunAt(operation, now)
+                val updated = operation.copy(
+                    lastRunAt = now,
+                    lastRunStatus = execResult.statusString,
+                    nextRunAt = nextRunAt,
+                    workerId = "sched_op_$operationId"
+                )
+                scheduledOperationRepository.update(updated)
+            }
+
+            // S0710: a permission-required halt cannot be resolved in the background. Tell the user once so
+            // they can grant All-files access, instead of silently re-running the same failing batch hourly.
+            if (execResult.permissionRequired) {
+                notifyPermissionRequired()
+            }
+
+            Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
+            com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+            return Result.success()
+        } finally {
+            onWorkFinished()
         }
-
-        val execResult = executeScheduledOperationUseCase(operationId)
-
-        // Update lastRunAt, lastRunStatus, nextRunAt in DB; rescheduling is handled by WorkManagerScheduler observer
-        val operation = scheduledOperationRepository.getById(operationId)
-        if (operation != null && operation.isEnabled) {
-            val now = System.currentTimeMillis()
-            val nextRunAt = calculateNextRunAt(operation, now)
-            val updated = operation.copy(
-                lastRunAt = now,
-                lastRunStatus = execResult.statusString,
-                nextRunAt = nextRunAt,
-                workerId = "sched_op_$operationId"
-            )
-            scheduledOperationRepository.update(updated)
-        }
-
-        // S0710: a permission-required halt cannot be resolved in the background. Tell the user once so
-        // they can grant All-files access, instead of silently re-running the same failing batch hourly.
-        if (execResult.permissionRequired) {
-            notifyPermissionRequired()
-        }
-
-        Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
-        com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
-        return Result.success()
     }
 
     private fun notifyPermissionRequired() {

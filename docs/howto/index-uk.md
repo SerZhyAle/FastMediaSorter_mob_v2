@@ -3,7 +3,7 @@ layout: default
 title: "Покрокові сценарії - FastMediaSorter v2"
 permalink: /docs/howto/index-uk.html
 ---
-# 📖 Покрокові сценарії
+# <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Покрокові сценарії
 
 Практичні посібники для реальних задач. Попередні знання не потрібні - кожен крок пояснено з нуля.
 
@@ -15,17 +15,17 @@ permalink: /docs/howto/index-uk.html
 
 **Що ви хочете зробити?**
 
-- 📷 _«Хочу, щоб фото з телефону автоматично копіювалися на ПК кожної ночі»_ → [Автобекап фото на ПК](scenario-camera-backup-uk.md)
-- 🍿 _«Хочу дивитися фільми/серіали з ПК на телефоні, без копіювання файлів»_ → [Домашній кінотеатр та VR](scenario-home-cinema-uk.md)
-- 🖼️ _«Є старий планшет - хочу зробити з нього фоторамку»_ → [Цифрова фоторамка](scenario-photo-frame-uk.md)
-- 🚗 _«У мене Android-магнітола в машині, хочу слухати свою музику»_ → [Музика в автомобілі](scenario-car-music-uk.md)
-- 📻 _«Хочу слухати інтернет-радіо на Android-магнітолі або плеєрі»_ → [Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md)
-- 🧹 _«У папці «Завантаження» 200 файлів, хочу швидко розкласти по папках»_ → [Порядок у завантаженнях (Quick Sort)](scenario-download-organizer-uk.md)
-- 🖥️ _«Чув про SMB/NAS, але не знаю, как підключитися»_ → [Підключення до NAS / Windows](scenario-smb-setup-uk.md)
-- 📱 _«Хочу додати віджети на домашній екран для швидкого запису нотаток або перегляду фото»_ → [Розумні віджети домашнього екрана](../HOW_TO_UK.md#розумні-віджети-домашнього-екрана)
-- 🕶️ _«Хочу дивитися SBS 3D-фільми та звичайні відео у віртуальній реальності»_ → [Іммерсивний кінотеатр OpenXR VR](../HOW_TO_UK.md#іммерсивний-кінотеатр-openxr-vr)
-- 🧮 _«Хочу швидко обчислювати математичні формули прямо з тексту документів або фото»_ → [Швидкі обчислення з тексту та OCR](../HOW_TO_UK.md#швидкі-обчислення-з-тексту-та-ocr)
-- 📝 _«Хочу створювати та редагувати нотатки Markdown прямо на хмарі або мережевому диску»_ → [Хмарні нотатки Markdown та код](../HOW_TO_UK.md#хмарні-нотатки-markdown-та-код)
+- <img src="../icons/doc/ic_camera_capture.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб фото з телефону автоматично копіювалися на ПК кожної ночі»_ → [Автобекап фото на ПК](scenario-camera-backup-uk.md)
+- <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися фільми/серіали з ПК на телефоні, без копіювання файлів»_ → [Домашній кінотеатр та VR](scenario-home-cinema-uk.md)
+- <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Є старий планшет - хочу зробити з нього фоторамку»_ → [Цифрова фоторамка](scenario-photo-frame-uk.md)
+- <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У мене Android-магнітола в машині, хочу слухати свою музику»_ → [Музика в автомобілі](scenario-car-music-uk.md)
+- <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати інтернет-радіо на Android-магнітолі або плеєрі»_ → [Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md)
+- <img src="../icons/doc/ic_sort.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У папці «Завантаження» 200 файлів, хочу швидко розкласти по папках»_ → [Порядок у завантаженнях (Quick Sort)](scenario-download-organizer-uk.md)
+- <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Чув про SMB/NAS, але не знаю, как підключитися»_ → [Підключення до NAS / Windows](scenario-smb-setup-uk.md)
+- <img src="../icons/doc/ic_widget_resource_launch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу додати віджети на домашній екран для швидкого запису нотаток або перегляду фото»_ → [Розумні віджети домашнього екрана](../HOW_TO_UK.md#розумні-віджети-домашнього-екрана)
+- <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися SBS 3D-фільми та звичайні відео у віртуальній реальності»_ → [Іммерсивний кінотеатр OpenXR VR](../HOW_TO_UK.md#іммерсивний-кінотеатр-openxr-vr)
+- <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу швидко обчислювати математичні формули прямо з тексту документів або фото»_ → [Швидкі обчислення з тексту та OCR](../HOW_TO_UK.md#швидкі-обчислення-з-тексту-та-ocr)
+- <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу створювати та редагувати нотатки Markdown прямо на хмарі або мережевому диску»_ → [Хмарні нотатки Markdown та код](../HOW_TO_UK.md#хмарні-нотатки-markdown-та-код)
 
 ---
 
@@ -33,24 +33,24 @@ permalink: /docs/howto/index-uk.html
 
 | Посібник | Що ви отримаєте | Час | Версія |
 |----------|----------------|-----|--------|
-| [🖼️ Цифрова фоторамка на планшеті](scenario-photo-frame-uk.md) | Планшет на підставці показує ваші фото з NAS або хмари - цілодобово, з музикою | ~15 хв | Standard / Будь-яка |
-| [🚗 Музика в автомобілі](scenario-car-music-uk.md) | Android-магнітола відтворює всю колекцію, керування кнопками керма | ~10 хв | Standard / Legacy |
-| [📻 Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md) | Відтворення інтернет-радіо та IPTV-потоків на будь-якому Android-пристрої - додайте URL, імпортуйте .m3u або оберіть зі списку станцій каталогу | ~10 хв | Standard / Legacy |
-| [🍿 Домашній кінотеатр та VR](scenario-home-cinema-uk.md) | Дивіться серіали з ПК прямо на телефоні або VR-шоломі - без USB, без копіювання | ~15 хв | Standard / Legacy |
-| [🧹 Порядок у завантаженнях (Quick Sort)](scenario-download-organizer-uk.md) | Розкладайте файли по папках одним дотиком - налаштувати раз, використовувати щодня | ~10 хв | Будь-яка |
-| [📷 Автобекап фото на ПК за розкладом](scenario-camera-backup-uk.md) | Автоматичне нічне копіювання фото по Wi-Fi - вмикається, копіює, засинає саме | ~15 хв | Standard |
-| [🖥️ Підключення до NAS / Windows (SMB)](scenario-smb-setup-uk.md) | Покрокове підключення SMB з поясненням кожного поля простою мовою | ~10 хв | Всі версії |
-| [📱 Розумні віджети домашнього екрана](../HOW_TO_UK.md#розумні-віджети-домашнього-екрана) | Додавайте віджети на екран для запису аудіо, запуску завдань чи показу випадкових фото | ~5 хв | Standard / Legacy / VR |
-| [🕶️ Іммерсивний кінотеатр OpenXR VR](../HOW_TO_UK.md#іммерсивний-кінотеатр-openxr-vr) | Дивіться 3D/360° медіафайли та плоскі відео на величезному віртуальному екрані у VR | ~10 хв | Тільки VR |
-| [🧮 Швидкі обчислення з тексту та OCR](../HOW_TO_UK.md#швидкі-обчислення-з-тексту-та-ocr) | Виділяйте формулы та числа в PDF або результатах розпізнавання тексту для швидкого розрахунку | ~5 хв | Standard / Legacy / VR |
-| [📝 Хмарні нотатки Markdown та код](../HOW_TO_UK.md#хмарні-нотатки-markdown-та-код) | Створюйте та редагуйте текстові нотатки та файли коду прямо на мережевих і хмарних дисках | ~10 хв | Standard / Будь-яка локально |
+| [<img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Цифрова фоторамка на планшеті](scenario-photo-frame-uk.md) | Планшет на підставці показує ваші фото з NAS або хмари - цілодобово, з музикою | ~15 хв | Standard / Будь-яка |
+| [<img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Музика в автомобілі](scenario-car-music-uk.md) | Android-магнітола відтворює всю колекцію, керування кнопками керма | ~10 хв | Standard / Legacy |
+| [<img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md) | Відтворення інтернет-радіо та IPTV-потоків на будь-якому Android-пристрої - додайте URL, імпортуйте .m3u або оберіть зі списку станцій каталогу | ~10 хв | Standard / Legacy |
+| [<img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Домашній кінотеатр та VR](scenario-home-cinema-uk.md) | Дивіться серіали з ПК прямо на телефоні або VR-шоломі - без USB, без копіювання | ~15 хв | Standard / Legacy |
+| [<img src="../icons/doc/ic_sort.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Порядок у завантаженнях (Quick Sort)](scenario-download-organizer-uk.md) | Розкладайте файли по папках одним дотиком - налаштувати раз, використовувати щодня | ~10 хв | Будь-яка |
+| [<img src="../icons/doc/ic_camera_capture.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Автобекап фото на ПК за розкладом](scenario-camera-backup-uk.md) | Автоматичне нічне копіювання фото по Wi-Fi - вмикається, копіює, засинає саме | ~15 хв | Standard |
+| [<img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Підключення до NAS / Windows (SMB)](scenario-smb-setup-uk.md) | Покрокове підключення SMB з поясненням кожного поля простою мовою | ~10 хв | Всі версії |
+| [<img src="../icons/doc/ic_widget_resource_launch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Розумні віджети домашнього екрана](../HOW_TO_UK.md#розумні-віджети-домашнього-екрана) | Додавайте віджети на екран для запису аудіо, запуску завдань чи показу випадкових фото | ~5 хв | Standard / Legacy / VR |
+| [<img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Іммерсивний кінотеатр OpenXR VR](../HOW_TO_UK.md#іммерсивний-кінотеатр-openxr-vr) | Дивіться 3D/360° медіафайли та плоскі відео на величезному віртуальному екрані у VR | ~10 хв | Тільки VR |
+| [<img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Швидкі обчислення з тексту та OCR](../HOW_TO_UK.md#швидкі-обчислення-з-тексту-та-ocr) | Виділяйте формулы та числа в PDF або результатах розпізнавання тексту для швидкого розрахунку | ~5 хв | Standard / Legacy / VR |
+| [<img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Хмарні нотатки Markdown та код](../HOW_TO_UK.md#хмарні-нотатки-markdown-та-код) | Створюйте та редагуйте текстові нотатки та файли коду прямо на мережевих і хмарних дисках | ~10 хв | Standard / Будь-яка локально |
 
 ---
 
 ## Не знаєте, з чого почати?
 
 - **Щойно встановили застосунок?** → [Швидкий старт](../QUICK_START_UK.md) - 5 хвилин до першого результату
-- 🧭 **Порада на перший запуск:** на екрані привітання можна вибрати **профіль пристрою**, який заздалегідь налаштує додаток під сценарії на кшталт Фоторамки, Музики в авто чи Домашнього кінотеатру - змінити можна будь-коли в Налаштуваннях → Інтерфейс. Див. [Перший запуск: виберіть профіль пристрою](../QUICK_START_UK.md#перший-запуск-виберіть-профіль-пристрою-30-секунд-).
+- <img src="../icons/doc/ic_info.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> **Порада на перший запуск:** на екрані привітання можна вибрати **профіль пристрою**, який заздалегідь налаштує додаток під сценарії на кшталт Фоторамки, Музики в авто чи Домашнього кінотеатру - змінити можна будь-коли в Налаштуваннях → Інтерфейс. Див. [Перший запуск: виберіть профіль пристрою](../QUICK_START_UK.md#перший-запуск-виберіть-профіль-пристрою-30-секунд-).
 - **Щось не працює?** → [Вирішення проблем](../TROUBLESHOOTING_UK.md)
 - **Технічне питання?** → [FAQ](../FAQ_UK.md)
 - **Хочете підключитися до NAS?** → [Посібник із SMB](scenario-smb-setup-uk.md) - це основа для Автобекапу, Кінотеатру та Фоторамки

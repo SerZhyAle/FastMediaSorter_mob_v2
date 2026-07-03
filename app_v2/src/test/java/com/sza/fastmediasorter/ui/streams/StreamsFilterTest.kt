@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.streams
 
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
+import com.sza.fastmediasorter.ui.streams.StreamsViewModel.SortMode
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.StreamsFilter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -14,11 +15,13 @@ import org.junit.Test
  */
 class StreamsFilterTest {
 
+    @Suppress("LongParameterList")
     private fun source(
         id: String,
         title: String = id,
         category: String? = null,
         language: String? = null,
+        country: String? = null,
         topic: String? = null,
         mediaKind: String = "VIDEO",
         pinned: Boolean = false,
@@ -33,6 +36,7 @@ class StreamsFilterTest {
         category = category,
         topic = topic,
         language = language,
+        country = country,
         pinned = pinned,
     )
 
@@ -138,5 +142,46 @@ class StreamsFilterTest {
             ),
         )
         assertEquals(listOf("russian", "ukrainian"), facets.languages)
+    }
+
+    @Test
+    fun `facetsOf collects country as single-value distinct sorted codes`() {
+        val facets = StreamsViewModel.facetsOf(
+            listOf(
+                source("a", country = "UA"),
+                source("b", country = "DE"),
+                source("c", country = "UA"),
+                source("d", country = null),
+            ),
+        )
+        // Single code per row (no comma split), de-duplicated and sorted; null country is dropped.
+        assertEquals(listOf("DE", "UA"), facets.countries)
+    }
+
+    @Test
+    fun `active country filter excludes unknown-country rows`() {
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("ua", country = "UA"),
+                source("de", country = "DE"),
+                source("unknown", country = null),
+            ),
+            StreamsFilter(country = "UA"),
+        )
+        assertEquals(setOf("ua"), ids(result))
+    }
+
+    @Test
+    fun `country sort places unknown-country rows last`() {
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("unknown", country = null),
+                source("ua", country = "UA"),
+                source("de", country = "DE"),
+            ),
+            StreamsFilter(sort = SortMode.COUNTRY),
+        )
+        // nullsLast: DE, UA, then the unknown-country row.
+        assertEquals(listOf("de", "ua", "unknown"), result.map { it.id })
     }
 }

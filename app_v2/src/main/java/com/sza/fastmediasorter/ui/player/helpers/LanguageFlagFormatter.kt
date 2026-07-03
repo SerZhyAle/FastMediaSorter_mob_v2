@@ -30,6 +30,10 @@ object LanguageFlagFormatter {
         "ru" to R.drawable.flag_white_blue_white,
         "be" to R.drawable.flag_white_red_white
     )
+    private val customCountryFlagLanguageCodes: Map<String, String> = mapOf(
+        "RU" to "ru",
+        "BY" to "be"
+    )
 
     /** True when the language code is rendered with a custom image flag instead of an emoji. */
     fun hasCustomFlag(code: String): Boolean = code.lowercase(Locale.ROOT) in customFlags
@@ -57,6 +61,46 @@ object LanguageFlagFormatter {
         val upperCode = code.uppercase(Locale.ROOT)
         if (item == null) return upperCode
         return prefixFlag(view, item, upperCode)
+    }
+
+    /** Compact country-chip label: custom image flag when configured, else emoji plus the ISO code. */
+    fun compactCountryCodeLabel(view: TextView, countryCode: String): CharSequence {
+        val normalized = countryCode.trim().uppercase(Locale.ROOT)
+        val customItem = customCountryFlagItem(normalized)
+        if (customItem != null) {
+            return compactLabel(view, customItem, normalized)
+        }
+        val emoji = TranslationLanguageCatalog.getFlagEmoji(normalized)
+        return if (emoji.isBlank()) normalized else "$emoji $normalized"
+    }
+
+    /**
+     * S0785: renders the flag glyph ONLY (no ISO code) for a country into [view] - used as the
+     * streams-list leading-slot fallback when a channel has no favicon tile. Custom image flags (RU/BY)
+     * are drawn via the same [ImageSpan] path as the chips; every other country uses its Unicode
+     * regional-indicator emoji. Returns false when the code maps to no flag, so the caller hides the
+     * slot instead of showing a blank glyph.
+     */
+    fun applyCountryFlagGlyph(view: TextView, countryCode: String): Boolean {
+        val normalized = countryCode.trim().uppercase(Locale.ROOT)
+        val customItem = customCountryFlagItem(normalized)
+        val glyph: CharSequence? = if (customItem != null) {
+            flagGlyph(view, customItem)
+        } else {
+            TranslationLanguageCatalog.getFlagEmoji(normalized).takeIf { it.isNotBlank() }
+        }
+        glyph ?: return false
+        view.text = glyph
+        return true
+    }
+
+    /** Custom image-flag item for a country code (used by streams-country pickers/chips). */
+    fun customCountryFlagItem(
+        countryCode: String,
+        displayLocale: Locale = Locale.getDefault()
+    ): LanguageItem? {
+        val languageCode = customCountryFlagLanguageCodes[countryCode.trim().uppercase(Locale.ROOT)] ?: return null
+        return TranslationLanguageCatalog.findLanguage(languageCode, displayLocale)
     }
 
     /** Plain-text equivalent of [label] for content descriptions (no image span, accessibility-safe). */

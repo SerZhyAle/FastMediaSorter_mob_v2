@@ -32,47 +32,104 @@ import timber.log.Timber
 class AudioServiceController(
     private val context: Context
 ) {
+    private val controllerLock = Any()
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
+    // S0895: MemoryEnduranceTracker is a single-slot global singleton (one active scenario at a
+    // time, no per-caller stack) - only end the scenario this instance actually started, or
+    // release() (which can fire even when this controller never connected, e.g. an eager/defensive
+    // construction with no playback) would clobber an unrelated subsystem's in-flight scenario
+    // (e.g. VideoPlayerManager's own tracked scenario).
+    private var ownsEnduranceScenario = false
+
     /** Whether the controller is currently connected to the service */
     val isConnected: Boolean
-        get() = mediaController?.isConnected == true
+        get() = synchronized(controllerLock) { mediaController?.isConnected == true }
 
     /** Returns the MediaController as a Player (or null if not connected) */
     val player: Player?
-        get() = mediaController
+        get() = synchronized(controllerLock) { mediaController }
 
     /**
      * Connect to AudioPlaybackService asynchronously.
      * @param onConnected Callback invoked when connection is established, with the MediaController as Player.
      */
     fun connect(onConnected: (Player) -> Unit) {
-        if (isConnected) {
-            mediaController?.let { onConnected(it) }
-            return
+        val connectionRequest = getOrCreateControllerFuture("connect")
+        when (connectionRequest) {
+            is ControllerConnectionRequest.Connected -> {
+                onConnected(connectionRequest.controller)
+                return
+            }
+            is ControllerConnectionRequest.FutureRequest -> Unit
         }
 
-        Timber.d("AudioServiceController: connecting to AudioPlaybackService")
-
-        val sessionToken = SessionToken(
-            context,
-            ComponentName(context, AudioPlaybackService::class.java)
-        )
-
-        val future = MediaController.Builder(context, sessionToken).buildAsync()
-        controllerFuture = future
-
+        val future = (connectionRequest as ControllerConnectionRequest.FutureRequest).future
         future.addListener({
             try {
                 val controller = future.get()
-                mediaController = controller
-                // S0120: record BASELINE for AUD-playback endurance session on first connection
-                MemoryEnduranceTracker.startScenario("AUD-playback")
-                Timber.d("AudioServiceController: connected successfully")
+                when (storeResolvedController(future, controller)) {
+                    ControllerStoreResult.Stale -> {
+                        controller.release()
+                        return@addListener
+                    }
+                    ControllerStoreResult.StoredNew -> {
+                        // S0120: record BASELINE for AUD-playback endurance session on first connection
+                        MemoryEnduranceTracker.startScenario("AUD-playback")
+                        ownsEnduranceScenario = true
+                        Timber.d("AudioServiceController: connected successfully")
+                    }
+                    ControllerStoreResult.ReusedExisting -> Unit
+                }
                 onConnected(controller)
             } catch (e: Exception) {
+                clearFutureOnFailure(future)
                 Timber.e(e, "AudioServiceController: failed to connect")
+            }
+        }, MoreExecutors.directExecutor())
+    }
+
+    /**
+     * Connect to AudioPlaybackService to read current playback state without starting playback.
+     * Safe to call multiple times - immediately invokes [onResult] if already connected.
+     *
+     * Used by NowPlayingManager to populate the mini bar when the activity opens on a
+     * non-audio file (e.g. photo/video) while background audio is still running.
+     *
+     * @param onResult Invoked with the connected Player, or null if the service could not
+     *   be reached (died between [AudioPlaybackService.isRunning] check and connect attempt).
+     *   May be called on a background thread - wrap UI ops in Handler(Main).
+     */
+    fun connectForStatus(onResult: (player: Player?) -> Unit) {
+        val connectionRequest = getOrCreateControllerFuture("connectForStatus")
+        when (connectionRequest) {
+            is ControllerConnectionRequest.Connected -> {
+                onResult(connectionRequest.controller)
+                return
+            }
+            is ControllerConnectionRequest.FutureRequest -> Unit
+        }
+
+        val future = (connectionRequest as ControllerConnectionRequest.FutureRequest).future
+        future.addListener({
+            try {
+                val controller = future.get()
+                when (storeResolvedController(future, controller)) {
+                    ControllerStoreResult.Stale -> {
+                        controller.release()
+                        onResult(null)
+                        return@addListener
+                    }
+                    ControllerStoreResult.StoredNew,
+                    ControllerStoreResult.ReusedExisting -> Unit
+                }
+                Timber.d("AudioServiceController: connectForStatus - connected")
+                onResult(controller)
+            } catch (e: Exception) {
+                clearFutureOnFailure(future)
+                Timber.w(e, "AudioServiceController: connectForStatus - failed (service may have died)")
+                onResult(null)
             }
         }, MoreExecutors.directExecutor())
     }
@@ -232,46 +289,8 @@ class AudioServiceController(
         }
     }
 
-    /**
-     * Connect to AudioPlaybackService to read current playback state without starting playback.
-     * Safe to call multiple times - immediately invokes [onResult] if already connected.
-     *
-     * Used by NowPlayingManager to populate the mini bar when the activity opens on a
-     * non-audio file (e.g. photo/video) while background audio is still running.
-     *
-     * @param onResult Invoked with the connected Player, or null if the service could not
-     *   be reached (died between [AudioPlaybackService.isRunning] check and connect attempt).
-     *   May be called on a background thread - wrap UI ops in Handler(Main).
-     */
-    fun connectForStatus(onResult: (player: Player?) -> Unit) {
-        if (isConnected) {
-            onResult(mediaController)
-            return
-        }
-
-        Timber.d("AudioServiceController: connectForStatus - connecting")
-        val sessionToken = SessionToken(
-            context,
-            ComponentName(context, AudioPlaybackService::class.java)
-        )
-        val future = MediaController.Builder(context, sessionToken).buildAsync()
-        controllerFuture = future
-
-        future.addListener({
-            try {
-                val controller = future.get()
-                mediaController = controller
-                Timber.d("AudioServiceController: connectForStatus - connected")
-                onResult(controller)
-            } catch (e: Exception) {
-                Timber.w(e, "AudioServiceController: connectForStatus - failed (service may have died)")
-                onResult(null)
-            }
-        }, MoreExecutors.directExecutor())
-    }
-
     fun applyPlaybackOrderMode(mode: PlaybackOrderMode) {
-        val player = mediaController ?: return
+        val player = synchronized(controllerLock) { mediaController } ?: return
         // S0549: on a single-item timeline (audio is frequently loaded as one MediaItem -
         // network/cloud streaming and the playlist fallback), REPEAT_MODE_ALL degenerates into
         // "repeat that one track" via MEDIA_ITEM_TRANSITION_REASON_REPEAT and STATE_ENDED never
@@ -305,12 +324,74 @@ class AudioServiceController(
      * Must be called when the Activity is destroyed.
      */
     fun release() {
-        // S0120: emit AUD-playback SUMMARY and schedule cooldown checkpoint
-        MemoryEnduranceTracker.endScenario()
+        if (ownsEnduranceScenario) {
+            // S0120: emit AUD-playback SUMMARY and schedule cooldown checkpoint
+            MemoryEnduranceTracker.endScenario()
+            ownsEnduranceScenario = false
+        }
         Timber.d("AudioServiceController: releasing")
-        controllerFuture?.let { MediaController.releaseFuture(it) }
-        controllerFuture = null
-        mediaController = null
+        synchronized(controllerLock) {
+            controllerFuture?.let { MediaController.releaseFuture(it) }
+            controllerFuture = null
+            mediaController = null
+        }
+    }
+
+    private fun getConnectedController(): MediaController? = synchronized(controllerLock) {
+        mediaController?.takeIf { it.isConnected }
+    }
+
+    private fun getOrCreateControllerFuture(reason: String): ControllerConnectionRequest {
+        synchronized(controllerLock) {
+            mediaController?.takeIf { it.isConnected }?.let { connectedController ->
+                return ControllerConnectionRequest.Connected(connectedController)
+            }
+
+            val existingFuture = controllerFuture
+            if (existingFuture != null && mediaController == null) {
+                Timber.d("AudioServiceController: %s - reusing in-flight controller future", reason)
+                return ControllerConnectionRequest.FutureRequest(existingFuture)
+            }
+
+            existingFuture?.let {
+                Timber.d("AudioServiceController: %s - releasing stale controller future", reason)
+                MediaController.releaseFuture(it)
+                controllerFuture = null
+                mediaController = null
+            }
+
+            Timber.d("AudioServiceController: %s - connecting to AudioPlaybackService", reason)
+            val sessionToken = SessionToken(
+                context,
+                ComponentName(context, AudioPlaybackService::class.java)
+            )
+            val future = MediaController.Builder(context, sessionToken).buildAsync()
+            controllerFuture = future
+            return ControllerConnectionRequest.FutureRequest(future)
+        }
+    }
+
+    private fun storeResolvedController(
+        future: ListenableFuture<MediaController>,
+        controller: MediaController
+    ): ControllerStoreResult = synchronized(controllerLock) {
+        if (controllerFuture !== future) {
+            return ControllerStoreResult.Stale
+        }
+
+        if (mediaController !== controller) {
+            mediaController = controller
+            return ControllerStoreResult.StoredNew
+        }
+        ControllerStoreResult.ReusedExisting
+    }
+
+    private fun clearFutureOnFailure(future: ListenableFuture<MediaController>) {
+        synchronized(controllerLock) {
+            if (controllerFuture === future && mediaController == null) {
+                controllerFuture = null
+            }
+        }
     }
 
     companion object {
@@ -318,6 +399,19 @@ class AudioServiceController(
         const val EXTRA_RESOURCE_ID = "fms.resource_id"
         const val EXTRA_SIZE = "fms.size"
         const val EXTRA_DATE_MODIFIED = "fms.date_modified"
+    }
+
+    private sealed interface ControllerConnectionRequest {
+        data class Connected(val controller: MediaController) : ControllerConnectionRequest
+        data class FutureRequest(
+            val future: ListenableFuture<MediaController>
+        ) : ControllerConnectionRequest
+    }
+
+    private enum class ControllerStoreResult {
+        Stale,
+        StoredNew,
+        ReusedExisting,
     }
 }
 

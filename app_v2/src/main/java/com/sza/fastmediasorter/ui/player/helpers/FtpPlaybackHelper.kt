@@ -98,6 +98,11 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
         TsPacketFormat.UNKNOWN
     }
 
+    // S0865: detectTsFormatSuspend above may have let a concurrent playVideo() call race through
+    // releasePlayer()+assignment while this coroutine was suspended - release any such orphan
+    // before this call overwrites the field.
+    releaseIfRacedPlayer()
+
     exoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(
             (dataSourceFactory as DataSource.Factory).buildBdTsMediaSourceFactory(format)
@@ -107,6 +112,7 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
         .build()
 
     exoPlayer?.addListener(loadControl)
+    activeExtraPlayerListener = loadControl
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 

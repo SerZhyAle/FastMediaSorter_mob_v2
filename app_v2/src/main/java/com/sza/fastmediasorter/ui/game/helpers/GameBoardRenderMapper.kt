@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.game.helpers
 
 import com.sza.fastmediasorter.domain.game.GameCell
 import com.sza.fastmediasorter.domain.game.GameEnemyType
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GamePosition
 import com.sza.fastmediasorter.ui.game.GameMoveActor
 import com.sza.fastmediasorter.ui.game.GameUiState
@@ -49,6 +50,7 @@ class GameBoardRenderMapper {
         return GameBoardRenderState(
             boardWidth = board.width,
             boardHeight = board.height,
+            mode = ready.mode,
             levelNumber = ready.levelNumber,
             isLargeBoard = ready.customBoard && (board.width > LARGE_BOARD_SIZE || board.height > LARGE_BOARD_SIZE),
             cells = cells,
@@ -103,6 +105,8 @@ class GameBoardAccessibilityLabels(
 data class GameBoardRenderState(
     val boardWidth: Int,
     val boardHeight: Int,
+    // S0804: active skin; the view recomputes its cached theme when this changes.
+    val mode: GameMode,
     val levelNumber: Int,
     val isLargeBoard: Boolean,
     val cells: List<GameBoardRenderCell>,

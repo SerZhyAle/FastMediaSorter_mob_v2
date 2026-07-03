@@ -29,6 +29,9 @@ data class AppSettings(
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
+    // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
+    // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
+    val showProgramsPanelInMainWindow: Boolean = false,
     val defaultUser: String = "",
     val defaultPassword: String = "",
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
@@ -97,6 +100,9 @@ data class AppSettings(
     val streamsDefaultSort: StreamDefaultSort = StreamDefaultSort.NAME,
     val streamsDefaultMediaFilter: StreamMediaTypeFilter = StreamMediaTypeFilter.ALL,
     val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.ON_OPEN,
+    // S0756: show pinned stream channels as a horizontal panel on the main window (entry button + pinned
+    // channels in pin order). Default OFF; effective only when [enableStreams] is on and the flavor ships Streams.
+    val showStreamsPanelInMainWindow: Boolean = false,
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
@@ -135,13 +141,16 @@ data class AppSettings(
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
+    // S0820: video files opened from Browse enter fullscreen immediately when this is on;
+    // per-resource showCommandPanel override still wins.
+    val openVideoInFullscreen: Boolean = true,
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
     val nineZoneGridEnabled: Boolean = true, // When false, the fullscreen player uses the simpler 3-zone tap layout instead of the 9-zone grid (S0620)
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
-    val rendererMigrationEnabled: Boolean = false, // Migration boundary flag for the static image renderer pipeline (disabled by default)
+    val rendererMigrationEnabled: Boolean = false, // Migration boundary flag for the static image renderer pipeline
     
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
@@ -163,6 +172,7 @@ data class AppSettings(
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
+    val cameraGeotagEnabled: Boolean = false, // S0766: opt-in GPS geotag of in-app camera photos (default off)
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
@@ -191,10 +201,23 @@ data class AppSettings(
     // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
     val copyScreenshotToClipboard: Boolean = false,
     val screenCaptureDisclosureAccepted: Boolean = false,
+    // S0774: screen video recording scenario (programs block). Direct toggle (like micRecordingEnabled).
+    val screenRecordingEnabled: Boolean = false,
+    // S0774: default destination for screen recordings; null = fallback to public Downloads.
+    // Resolved by CaptureDestinationPolicy.resolveScreenRecordingDestination.
+    val screenRecordingDestinationResourceId: String? = null,
+    // S0774: user accepted the continuous-recording disclosure (separate from the one-shot screenshot one).
+    val screenRecordingDisclosureAccepted: Boolean = false,
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
+    // S0781: main-window resource-type filter strip collapsed state (mirror of copy/movePanelCollapsed).
+    val resourceTypeTabCollapsed: Boolean = false,
+    // S0807: main-window programs panel collapsed into its labelled strip (mirror of resourceTypeTabCollapsed).
+    val programsPanelCollapsed: Boolean = false,
+    // S0808: main-window streams panel collapsed into its labelled strip (mirror of programsPanelCollapsed).
+    val streamsPanelCollapsed: Boolean = false,
     val enablePictureInPicture: Boolean = true,
     
     // Last used resource for quick slideshow

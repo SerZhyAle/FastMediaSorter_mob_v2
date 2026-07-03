@@ -112,6 +112,7 @@ Project hooks already present:
 - file-size and helper-extraction rules
 - responsibility ranking via `scripts/quality/measure-hotspots.ps1`
 - custom script gates under `scripts/quality/`
+- `detekt` + ktlint formatting ratchet gate
 
 ## Layer 2 - Lifecycle, coroutine, and concurrency audit
 
@@ -395,20 +396,20 @@ Already present:
 - `StrictModeHelper`
 - `LeakCanary`
 - `profileinstaller`
+- standard-flavor Macrobenchmark + Baseline Profile harness (`benchmark/`, S0722)
 - startup markers
+- Perfetto workflow playbook (`docs/PERFETTO_PLAYBOOK.md`)
 - quality gates for `GlobalScope` and unsafe Flow collect
+- `detekt` + ktlint formatting ratchet gate
+- listener symmetry ratchet gate (`scripts/quality/assert-listener-symmetry.ps1`)
 - responsibility ranking (`measure-hotspots.ps1`) and shared-state writer audit (`audit-shared-state-writers.ps1`)
 - startup deferral infrastructure
 
 Recommended next additions:
 
-1. add a dedicated benchmark module with `Macrobenchmark`
-2. generate and maintain baseline profiles from real hot flows
-3. add `detekt` (complexity, nesting, long-method, code-smell metrics) and `ktlint` (deterministic formatting) - the project currently has neither, and they are the main missing tooling for readable-code enforcement
-4. add a custom Android Lint module for project-specific architecture rules
-5. add a `assert-listener-symmetry.ps1` gate (register/unregister and addListener/removeListener balance) modeled on the existing `scripts/quality/assert-*.ps1`
-6. formalize a small Perfetto capture playbook for startup and player regressions
-7. define benchmark thresholds for cold start, player open, and back-navigation
+1. extend perf coverage beyond `standard` if a flavor-specific hotspot appears
+2. wire selected perf commands into CI or managed-device automation when the local flow stabilizes
+3. ratchet benchmark JSON summaries once representative device baselines are committed
 
 ## Repo commands and anchors
 
@@ -419,10 +420,13 @@ Useful local commands:
 .\a.ps1 fr
 .\a.ps1 fc
 .\a.ps1 fu
+.\a.ps1 mb
+.\a.ps1 gbp
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
 pwsh -NoProfile -File scripts/quality/assert-globalscope.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/assert-unsafe-collect.ps1 -Gate
+pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/measure-hotspots.ps1
 pwsh -NoProfile -File scripts/quality/audit-shared-state-writers.ps1
 ```
@@ -434,6 +438,7 @@ Important code anchors:
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt`
 - `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugToolsBootstrap.kt`
 - `docs/BUILD_TEST_FAST_PATH.md`
+- `docs/PERFETTO_PLAYBOOK.md`
 
 ## External references
 

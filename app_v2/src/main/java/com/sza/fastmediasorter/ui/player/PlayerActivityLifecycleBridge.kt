@@ -60,7 +60,9 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
             // When finishing, release ExoPlayer from PlayerView Surface immediately. Without this CCodec keeps the Surface alive across ATMS window transition (permanent black screen on back press for non-service audio/video). serviceAudioActiveOnPause branch already does this.
             if (activity.isFinishing) activity.activityBinding.playerView.player = null
         }
-        activity.audioEmptyStateController?.onPause()
+        // S0893: audioEmptyStateController now self-registers as a DefaultLifecycleObserver on
+        // activity.lifecycle, so onPause() dispatches automatically - the explicit call here would
+        // double-invoke it.
         activity.lifecycleManager.saveCurrentPlaybackPosition()
         // S0021: stop FPS meter when activity loses foreground; overlay hides via updatePlayerFpsOverlay().
         activity.playerFpsMeter.stop()
@@ -77,7 +79,9 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
         // S0162: re-apply orientation on resume (re-reads OS auto-rotate state - ADR-1).
         val rs = activity.viewModel.state.value
         activity.screenRotationManager.apply(activity, rs.effectiveFollowSystemRotation, rs.playerRotationSensorEnabled, activity.hasAccelerometer)
-        activity.audioEmptyStateController?.onResume()
+        // S0893: audioEmptyStateController now self-registers as a DefaultLifecycleObserver on
+        // activity.lifecycle, so onResume() dispatches automatically - the explicit call here would
+        // double-invoke it.
         activity.nowPlayingManager?.onStart(
             activity.viewModel.state.value.currentFile?.type,
             activity.viewModel.state.value.showNowPlayingPanel,

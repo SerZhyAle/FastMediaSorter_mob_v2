@@ -20,7 +20,6 @@ class SeedDefaultGestureBindingsUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         if (screenGestureControllers.isEmpty()) return
-        Timber.d("S0662: seeding default gesture bindings (first run)")
         val current = settingsRepository.getSettings().first()
         settingsRepository.updateSettings(
             current.copy(

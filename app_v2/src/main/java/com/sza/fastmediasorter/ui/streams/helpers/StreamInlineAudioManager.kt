@@ -6,6 +6,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
@@ -17,6 +19,7 @@ import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -86,6 +89,19 @@ class StreamInlineAudioManager(
         lifecycleOwner.collectOnLifecycle(nowPlaying) { renderTitle() }
     }
 
+    /**
+     * S0778: the bottom sticky mini-control is the last child of an edge-to-edge content column, so
+     * under targetSdk 35 it drew beneath the navigation bar / a side display cutout and its stop button
+     * was untappable. Pad it inside the safe rect on every edge except top (the toolbar owns the status
+     * bar). The shared helper clamps to the live inset values and re-applies on rotation, so a landscape
+     * side cutout is covered too. Wiring lives here, not in the Activity (Rule 3).
+     */
+    fun applyWindowInsets() {
+        miniControl.applySystemBarInsetPadding(applyTop = false) { left, top, right, bottom ->
+            Timber.d("S0778: now-playing panel insets t=$top b=$bottom l=$left r=$right")
+        }
+    }
+
     /** Returns the id of the source currently playing inline, or null. */
     val playingId: String? get() = currentSource?.id
 
@@ -110,6 +126,13 @@ class StreamInlineAudioManager(
         usingService = useBackgroundService
         if (useBackgroundService) {
             audioController.playAudioWithMetadata(Uri.parse(source.url), source.title) { startedPlayer ->
+                // S0874: the service connect is async - a stop()/newer play() during the connect window
+                // clears currentSource. Without this guard the late callback leaves an orphaned playing
+                // service player with all inline-UI state cleared (no reachable stop). Bail if stale.
+                if (currentSource?.id != source.id) {
+                    startedPlayer.stop()
+                    return@playAudioWithMetadata
+                }
                 player = startedPlayer
                 startedPlayer.addListener(playerListener)
             }
@@ -119,9 +142,18 @@ class StreamInlineAudioManager(
             // The Icy-MetaData request header keeps ICY now-playing flowing on the in-app player too.
             val httpFactory = DefaultHttpDataSource.Factory()
                 .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
+            // S0896: this OFF-mode local player had no audio-focus/becoming-noisy handling, unlike
+            // its service-mode twin (audioController.playAudioWithMetadata -> AudioPlaybackService).
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA)
+                .build()
             val local = ExoPlayer.Builder(miniControl.context)
                 .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+                .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+                .setHandleAudioBecomingNoisy(true)
                 .build()
+            Timber.d("S0896: StreamInlineAudioManager OFF-mode player built with handleAudioFocus")
             local.setMediaItem(MediaItem.fromUri(source.url))
             local.addListener(playerListener)
             local.prepare()
@@ -165,8 +197,15 @@ class StreamInlineAudioManager(
             local.release()
             localPlayer = null
         } else {
-            // Service player: stop playback but keep the controller connected for the next play().
-            player?.stop()
+            // Service player: quiesce it (stop + drop playWhenReady + clear the playlist) but keep the
+            // controller connected for the next play(). This lets AudioPlaybackService.onTaskRemoved's
+            // no-active-playback heuristic (!playWhenReady || mediaItemCount == 0) stopSelf() the service.
+            player?.let { p ->
+                p.playWhenReady = false
+                p.stop()
+                p.clearMediaItems()
+                Timber.d("S0900: service player quiesced on stop")
+            }
         }
         player = null
         usingService = false

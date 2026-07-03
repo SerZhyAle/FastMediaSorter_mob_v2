@@ -16,21 +16,25 @@
 # Usage:
 #   pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1
 #   pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude S0506,S0508
+#   pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude S0506 S0508
 #   pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Format table
 #
 # -Exclude carries the in-memory "processed this run" set so a follow-up call
-# returns the next candidate in one shot (no manual re-rank needed).
+# returns the next candidate in one shot (no manual re-rank needed). CSV,
+# repeated values, and space-separated ids are normalized into one set.
 #
 # Exit codes: 0 always (no candidate is a valid state, reported as selected=null).
 #   2 - usage error only.
 
-[CmdletBinding()]
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [string[]]$Exclude = @(),
-    [int]$MaxScan = 25,
     [switch]$NoDrift,
     [ValidateSet('json', 'table')]
-    [string]$Format = 'json'
+    [string]$Format = 'json',
+    [int]$MaxScan = 25,
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$AdditionalExclude = @()
 )
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
@@ -49,10 +53,14 @@ $eligibleStatuses = @(
     'Implemented', 'Partial', 'Broken', 'BlockByOtherTask'
 )
 $excludeSet = @{}
+$normalizedExcludeIds = New-Object System.Collections.Generic.List[string]
 # Split comma-joined elements: native pwsh parses `-Exclude S0506,S0508` into an array, but
 # invoking via `pwsh -File ... -Exclude "S0506,S0508"` binds the whole CSV as a single element.
-foreach ($e in $Exclude) {
+foreach ($e in (@($Exclude) + @($AdditionalExclude))) {
     foreach ($id in ($e -split ',')) { if ($id.Trim()) { $excludeSet[$id.Trim()] = $true } }
+}
+foreach ($id in $excludeSet.Keys | Sort-Object) {
+    $normalizedExcludeIds.Add($id)
 }
 
 # 1. Read active catalog + filter to eligible statuses.
@@ -163,7 +171,7 @@ $result = [PSCustomObject]@{
     ranked         = $rankedOut
     skip_cache     = $skipCacheOut
     skip_cached_ids = @($skipCachedIds)
-    excluded_ids   = @($Exclude)
+    excluded_ids   = @($normalizedExcludeIds)
     auto_skipped   = @($autoSkipped)
     malformed      = @($malformed)
     selected       = $selected

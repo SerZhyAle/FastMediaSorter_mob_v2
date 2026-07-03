@@ -2,10 +2,9 @@
   "mcpServers": {
     "mobile-mcp": {
       "type": "stdio",
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "@mobilenext/mobile-mcp@latest"
+        "C:/Users/serzh/AppData/Roaming/npm/node_modules/@mobilenext/mobile-mcp/lib/index.js"
       ],
       "env": {}
     }

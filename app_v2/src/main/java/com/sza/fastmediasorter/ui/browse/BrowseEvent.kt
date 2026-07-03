@@ -9,6 +9,8 @@ sealed class BrowseEvent {
     data class ShowMessage(val message: String) : BrowseEvent()
     data class ShowUndoToast(val operationType: String) : BrowseEvent()
     data class NavigateToPlayer(val filePath: String, val fileIndex: Int) : BrowseEvent()
+    /** S0783: a favorited live channel was tapped in the favorites list - open it in the stream player. */
+    data class OpenStreamPlayer(val url: String) : BrowseEvent()
     data class ShowCloudAuthenticationRequired(val provider: CloudProvider) : BrowseEvent()
     data class CloudAuthRequired(val provider: String, val message: String) : BrowseEvent()
     data class PermissionRequired(val pendingIntent: PendingIntent) : BrowseEvent()

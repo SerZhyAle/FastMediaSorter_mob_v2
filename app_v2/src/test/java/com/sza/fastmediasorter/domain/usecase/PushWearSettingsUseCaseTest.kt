@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.google.android.gms.wearable.Node
 import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
@@ -51,7 +51,7 @@ class PushWearSettingsUseCaseTest {
 
     @Test
     fun `connected node pushes envelope with settings event type and json bytes`() = runTest {
-        coEvery { repository.getConnectedNodes() } returns listOf(mockk<Node>())
+        coEvery { repository.getConnectedNodes() } returns listOf(WearNode("node-1", "Watch"))
         val pathSlot = slot<String>()
         val envelopeSlot = slot<WearEventEnvelope>()
         coEvery { repository.putEnvelopeDataItem(capture(pathSlot), capture(envelopeSlot)) } just Runs

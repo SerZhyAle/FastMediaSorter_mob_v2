@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
@@ -121,7 +122,18 @@ internal class PlayerVrLaunchManager(
             val returnTarget = buildPlayerReturnTarget(currentFile, snapshot)
             when (val result = startVrPlaybackUseCase(request, returnTarget)) {
                 StartVrPlaybackUseCase.DispatchResult.Started -> {
-                    markPromptDismissed()
+                    // S0895: VR playback already dispatched successfully - finishAndRemoveTask()
+                    // below must run regardless of this settings write's outcome. This was
+                    // previously unguarded: a write failure threw uncaught here, skipping 2D-host
+                    // teardown (duplicate playback alongside the already-started VR session) and
+                    // crashing the app.
+                    try {
+                        markPromptDismissed()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Timber.w(e, "PlayerVrLaunchManager: failed to persist prompt-dismissed flag")
+                    }
                     activity.finishAndRemoveTask()
                 }
                 is StartVrPlaybackUseCase.DispatchResult.Unavailable -> {

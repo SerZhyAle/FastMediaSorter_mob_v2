@@ -10,6 +10,14 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     fun getSettings(): Flow<AppSettings>
     suspend fun updateSettings(settings: AppSettings)
+    /**
+     * S0876: serialized read-modify-write. All callers competing for the same window (e.g. the
+     * Welcome enable-all fan-out's concurrent deliverable-install writers) must go through this
+     * overload instead of their own `getSettings().first()` + `updateSettings(...)` pair - the
+     * implementation guards the whole read+transform+write with a single mutex so a later writer
+     * always folds onto the previous writer's committed result instead of a stale pre-read snapshot.
+     */
+    suspend fun updateSettings(transform: suspend (AppSettings) -> AppSettings)
     suspend fun resetToDefaults()
     suspend fun setPlayerFirstRun(isFirstRun: Boolean)
     suspend fun isPlayerFirstRun(): Boolean

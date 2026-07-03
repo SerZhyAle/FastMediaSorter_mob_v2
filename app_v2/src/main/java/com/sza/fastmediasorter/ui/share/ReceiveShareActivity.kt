@@ -298,7 +298,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             }.getOrNull()
             val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
             Timber.d(
-                "S0211: ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
+                "ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
                 resolvedName ?: "<none>", host,
             )
             Timber.i(

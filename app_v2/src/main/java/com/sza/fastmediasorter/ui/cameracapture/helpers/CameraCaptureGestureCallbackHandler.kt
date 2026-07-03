@@ -1,0 +1,48 @@
+package com.sza.fastmediasorter.ui.cameracapture.helpers
+
+import com.sza.fastmediasorter.ui.cameracapture.FocusRingOverlayView
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+
+/**
+ * S0844: implements [CameraCaptureGestureManager.Callbacks] on behalf of
+ * [com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity] - a standalone object is
+ * substituted for the Activity at the gesture manager's construction site (strategic ADR-1), so
+ * these 5 callback methods no longer count against the Activity's detekt `TooManyFunctions`.
+ */
+class CameraCaptureGestureCallbackHandler(
+    private val flowManager: CameraCaptureFlowManager,
+    private val sessionManager: CameraCaptureSessionManager,
+    private val focusRingOverlay: FocusRingOverlayView,
+    private val zoomControlsManager: CameraZoomControlsManager,
+    private val selectMode: (CameraCaptureMode) -> Unit,
+) : CameraCaptureGestureManager.Callbacks {
+
+    override fun onTapToFocus(x: Float, y: Float) {
+        if (flowManager.onTapToFocus(x, y)) focusRingOverlay.showAt(x, y)
+    }
+
+    override fun onDoubleTapZoom() {
+        flowManager.onDoubleTapZoom()
+        syncZoomSelection()
+    }
+
+    override fun onPinchZoom(scaleFactor: Float) {
+        flowManager.onPinchZoom(scaleFactor)
+        syncZoomSelection()
+    }
+
+    override fun onSwipeLensSwitch() {
+        flowManager.onLensSwitch()
+    }
+
+    override fun onSwipeModeSwitch(toNext: Boolean) {
+        if (!flowManager.allowModeSwitch || sessionManager.isRecording()) return
+        selectMode(if (flowManager.isVideoMode) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO)
+    }
+
+    private fun syncZoomSelection() = zoomControlsManager.syncSelection(
+        flowManager.liveZoomRatio,
+        flowManager.liveLinearZoom,
+        flowManager.currentCapabilities.zoomMultiplier,
+    )
+}

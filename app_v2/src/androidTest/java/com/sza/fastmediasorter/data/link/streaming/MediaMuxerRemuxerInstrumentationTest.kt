@@ -31,7 +31,7 @@ class MediaMuxerRemuxerInstrumentationTest {
     private val remuxer = MediaMuxerRemuxer()
 
     @Test
-    fun `avc_aac fixture remuxes to MP4`() {
+    fun testAvcAacFixtureRemuxesToMp4() {
         val segment = copyFixture("tiny_avc_aac.ts")
         assumeTrue("Fixture is a placeholder - populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
         val output = tempFolder.newFile("out_avc_aac.mp4")
@@ -46,7 +46,7 @@ class MediaMuxerRemuxerInstrumentationTest {
     }
 
     @Test
-    fun `opus fixture reports MuxFailed with codec hint`() {
+    fun testOpusFixtureReportsMuxFailedWithCodecHint() {
         val segment = copyFixture("tiny_opus.webm")
         assumeTrue("Fixture is a placeholder - populate per assets/s0116_fixtures/README.md", isRealFixture(segment))
         val output = tempFolder.newFile("out_opus.mp4")
@@ -64,7 +64,7 @@ class MediaMuxerRemuxerInstrumentationTest {
     }
 
     @Test
-    fun `corrupted segment returns MuxFailed extractor_failed`() {
+    fun testCorruptedSegmentReturnsMuxFailedExtractorFailed() {
         val corrupted = tempFolder.newFile("corrupted.ts").apply { writeBytes(ByteArray(64) { 0xFF.toByte() }) }
         val output = tempFolder.newFile("out_corrupted.mp4")
         val bundle = SegmentBundle(

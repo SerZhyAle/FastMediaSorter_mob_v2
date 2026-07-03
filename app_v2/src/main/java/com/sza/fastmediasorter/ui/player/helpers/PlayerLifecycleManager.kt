@@ -223,10 +223,13 @@ class PlayerLifecycleManager(
         preloadJobs.clear()
         
         // Release VideoPlayerManager
-        try {
+        // S0895: videoPlayerManager is a lazy-getter property, not a lateinit var - it never
+        // throws UninitializedPropertyAccessException, so the try/catch this replaced never fired
+        // its catch and instead lazily constructed a brand-new VideoPlayerManager during teardown
+        // whenever no video was ever played this session. _videoPlayerManager (the nullable backing
+        // field) is the correct guard, matching every other use site in PlayerActivity.kt.
+        if (activity._videoPlayerManager != null) {
             activity.videoPlayerManager.releasePlayer()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
         }
 
         // Cancel overlay auto-hide timer to prevent stale runnables after destroy
@@ -265,7 +268,16 @@ class PlayerLifecycleManager(
         } catch (e: UninitializedPropertyAccessException) {
             // Not initialized, skip
         }
-        
+
+        // S0871: LyricsManager owns a TextToSpeech engine bound to this Activity; release it here.
+        // hideLyricsViewer() (its only other teardown path) runs on back-press/close, which onDestroy
+        // does not traverse, so without this the TTS ServiceConnection leaks past teardown.
+        try {
+            activity.lyricsManager.release()
+        } catch (e: UninitializedPropertyAccessException) {
+            Timber.d("PlayerLifecycleManager: lyricsManager not initialized at teardown, skip")
+        }
+
         // Note: TextViewerManager IS released at line 166
         // Note: Translation cache is NOT cleared here - it's global and managed by TranslationCacheManager
         // Cache is cleared only on app startup and when user clicks "Clear cache" in settings

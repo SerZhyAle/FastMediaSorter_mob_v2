@@ -82,6 +82,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var resourceRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.ResourceRepository>
 
+    // S0869: dereferenced by the onCreate IO warm-up so Room's open + migration ladder run off the
+    // main thread, ahead of MainActivity's ViewModel-construction DB touch. Lazy so the field itself
+    // does not force provideAppDatabase() during Hilt field injection on the main thread.
+    @Inject
+    lateinit var appDatabase: dagger.Lazy<com.sza.fastmediasorter.data.local.db.AppDatabase>
+
     @Inject
     lateinit var unifiedCache: dagger.Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
@@ -162,6 +168,24 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         androidx.media3.common.util.Log.setLogger(media3Logger)
         Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed")
 
+        // S0869: warm-open Room off the main thread at the very start of onCreate. The first .get()
+        // runs provideAppDatabase() - SQLite open + the full 1..38 migration ladder - so doing that
+        // dereference here on Dispatchers.IO keeps it off MainActivity's main-thread ViewModel-
+        // construction path. Deliberately NOT gated on firstFrameSignal (which only fires after
+        // onCreate); the point is to start before MainActivity.onCreate touches the DB. The S0731
+        // corruption-recovery contract inside provideAppDatabase is unchanged. Residual race accepted
+        // (a main-thread .get() that still beats this warm-up blocks on the @Singleton lock) - S0869 §3.
+        applicationScope.launch(Dispatchers.IO) {
+            try {
+                Timber.d("S0869: Room warm-up start (thread=${Thread.currentThread().name})")
+                appDatabase.get()
+            } catch (e: Exception) {
+                // provideAppDatabase already owns backup+reset+notice recovery (S0731); this guard only
+                // stops a genuine rebuild failure from crashing the process via the warm-up coroutine.
+                Timber.e(e, "FastMediaSorterApp: Room warm-up failed")
+            }
+        }
+
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
         // verdict=FAIL events reach the player UI even in non-DEBUG builds.
         com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker.wireDegradationSignal(memoryDegradationSignal)
@@ -203,6 +227,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
+        // S0819: attach the travelling D-pad/TV focus frame to every Activity window (opt-out via
+        // FocusFrameExcluded); one overlay per window, hidden in touch mode.
+        registerActivityLifecycleCallbacks(
+            com.sza.fastmediasorter.core.ui.focus.FocusFrameActivityCallbacks(),
+        )
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
         // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 
@@ -214,11 +243,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Cast SDK is initialised lazily by CastMediaManager.init() when a player opens, not here.
+        // Cast SDK is initialised lazily by CastController.init() (S0403 seam; GMS-backed
+        // CastMediaManagerImpl in the castEnabled source set) when a player opens, not here.
         // Eager init loaded the cast.framework.dynamite module on every cold start - even on sessions
         // that never open a player - which both slowed startup and exposed the process to GMS forcing
         // a SIG 9 restart when it hot-swaps that dynamite module. The only thing lost is warm device
-        // discovery before the first cast tap; CastMediaManager already creates the singleton on demand.
+        // discovery before the first cast tap; the controller already creates the singleton on demand.
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
 

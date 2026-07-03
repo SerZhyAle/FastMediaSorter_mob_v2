@@ -197,6 +197,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private val orientationModeManager = PlayerOrientationModeManager()
     /** Cached from settingsRepository; updated by observeTranslationSettings(). */
     private var cachedTranslationEnabled = true
+
+    /** S0763: cached 3D/VR master-toggle state; updated by observeTranslationSettings(). */
+    private var cached3dVrEnabled = true
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
@@ -439,6 +442,30 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         super.onPause()
     }
 
+    // S0893: API24+ multi-window release edge - release the video codec while backgrounded.
+    // ::viewManager.isInitialized guards the same late-init race documented at onDestroy() below
+    // (S0860 - the probe short-circuit / first-frame destroy can run lifecycle callbacks before
+    // setupViews() assigns viewManager).
+    override fun onStop() {
+        super.onStop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && ::viewManager.isInitialized) {
+            viewManager.onStopVideo()
+        }
+    }
+
+    // S0893: rebuild only the video path - audio/image/document types have nothing to recreate here.
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && ::viewManager.isInitialized &&
+            viewModel.state.value.mediaType == MediaType.VIDEO
+        ) {
+            viewModel.state.value.mediaFile?.let { file ->
+                Timber.d("S0893: StandalonePlayer onStart - rebuilding video released on background")
+                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+            }
+        }
+    }
+
     override fun onDestroy() {
         if (::lifecycleManager.isInitialized) lifecycleManager.onDestroy()
         pipManager?.release()
@@ -449,7 +476,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         standaloneTrackSelectionManager = null
         videoTouchDelegate = null
         playerSettingsManager = null
-        viewManager.release()
+        // S0860: viewManager is assigned late in setupViews(); the probe short-circuit and a
+        // first-frame destroy run onDestroy before that, so guard the release like lifecycleManager.
+        if (::viewManager.isInitialized) viewManager.release()
         super.onDestroy()
     }
 
@@ -976,10 +1005,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
     }
 
-    /** Keeps [cachedTranslationEnabled] in sync with the settings repository. */
+    /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the settings repository. */
     private fun observeTranslationSettings() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             cachedTranslationEnabled = settings.enableTranslation
+            cached3dVrEnabled = !settings.disable3dVr
             // Re-evaluate EPUB button whenever settings change
             updateEpubTranslatorVisibility()
         }
@@ -1025,6 +1055,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    // S0763: gate the dialog's "3D" section on the cached 3D/VR master-toggle state.
+    override val is3dVrEnabled: Boolean get() = cached3dVrEnabled
 
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) =

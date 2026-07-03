@@ -95,7 +95,11 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
         $inFence = -not $inFence
         continue
     }
-    if (-not $inFence -and $line.Contains('...')) {
+    # CLAUDE.md ellipsis rule scopes to docs prose/UI text and NEVER applies to code - strip
+    # inline single-backtick code spans (verbatim snippets/audit quotes) before checking, so a
+    # '...' truncation marker inside a code span does not force editing verbatim-captured text.
+    $strippedLine = $line -replace '`[^`]*`', ''
+    if (-not $inFence -and $strippedLine.Contains('...')) {
         $blockers.Add(("Line {0}: replace three-dot ellipsis with '..' before Approved" -f ($i + 1)))
     }
 }

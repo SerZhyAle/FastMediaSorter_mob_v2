@@ -100,6 +100,11 @@ class MainVoiceCaptureManager(
 
         if (!requestAudioFocus()) {
             Timber.w("quick voice: audio focus not granted")
+            // S0896: audioFocusListener was set inside requestAudioFocus() before the grant result
+            // was known - clear it now. Without this, release()'s guard never reaches cancel()
+            // afterward (pendingTempFile/recordingDialog are both still null at this point), leaking
+            // the dangling listener reference.
+            abandonAudioFocus()
             tempFile.delete()
             pendingTempFile = null
             return
@@ -137,12 +142,17 @@ class MainVoiceCaptureManager(
         abandonAudioFocus()
 
         val tempFile = pendingTempFile ?: return
+        // S0861: clear the field here - the async save below owns 'tempFile' as a local from this
+        // point on. Leaving pendingTempFile set let a backgrounding onPause -> release() -> cancel()
+        // delete the file out from under the in-flight IO copy (silent loss of a just-saved
+        // recording), and let a second recording's own pendingTempFile assignment be clobbered by
+        // this save's old finally block once it completed.
+        pendingTempFile = null
         // A thrown stop() or a near-empty artifact is the signature of a too-short hold / focus-loss
         // race - discard rather than save a truncated file.
         val invalid = lastStopThrew || tempFile.length() < MIN_VALID_RECORDING_BYTES
         if (invalid) {
             tempFile.delete()
-            pendingTempFile = null
             showSnackbar(R.string.mic_recording_cancelled)
             return
         }
@@ -172,8 +182,10 @@ class MainVoiceCaptureManager(
         } catch (e: Exception) {
             Timber.e(e, "quick voice: save failed name=%s", name)
         } finally {
+            // S0861: pendingTempFile ownership was transferred out of the field in stop() before
+            // this coroutine launched - do not touch it here, it may already belong to a newer
+            // in-flight recording.
             tempFile.delete()
-            pendingTempFile = null
         }
         withContext(Dispatchers.Main) {
             if (success) {

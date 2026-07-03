@@ -48,8 +48,10 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -182,6 +184,8 @@ class StandaloneViewManager(
     private var standalonePendingEffects = false
     private var audioServiceController: AudioServiceController? = null
     private var audioFocusManager: AudioFocusManager? = null
+    private var resumeVideoOnResume = false
+    private var resumeAudioOnResume = false
 
     private var _pdfViewerManager: PdfViewerManager? = null
     private val pdfViewerManager: PdfViewerManager
@@ -258,6 +262,11 @@ class StandaloneViewManager(
 
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
+        // S0859: playVideo()/playAudio() are only reachable through here - release any previous
+        // video player / audio controller before dispatching, so folder paging, slideshow and
+        // rename-triggered re-show never orphan a live player (and its bound focus/service).
+        releaseVideoPlayer()
+        releaseAudioController()
         hidePhotoAndPlayerViews()
         when (mediaType) {
             MediaType.IMAGE -> showImage(mediaFile)
@@ -279,11 +288,13 @@ class StandaloneViewManager(
     // ── Lifecycle hooks ──────────────────────────────────────────────────────
 
     fun onResume() {
-        exoPlayer?.playWhenReady = true
-        audioServiceController?.player?.playWhenReady = true
+        exoPlayer?.playWhenReady = resumeVideoOnResume
+        audioServiceController?.player?.playWhenReady = resumeAudioOnResume
     }
 
     fun onPause() {
+        resumeVideoOnResume = exoPlayer?.playWhenReady == true
+        resumeAudioOnResume = audioServiceController?.player?.playWhenReady == true
         exoPlayer?.playWhenReady = false
         audioServiceController?.player?.playWhenReady = false
         lifecycleScope.launch { saveCurrentPosition() }
@@ -298,15 +309,41 @@ class StandaloneViewManager(
         val pos = exoPlayer?.currentPosition ?: -1L
         val dur = exoPlayer?.duration ?: -1L
         if (pathToSave != null && pos > 0L && dur > 0L && pos != lastSavedPosition) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    playbackPositionRepository.savePosition(pathToSave, pos, dur)
-                    Timber.d("StandaloneViewManager: Saved position on release ${pos}ms/${dur}ms")
-                } catch (e: Exception) {
-                    Timber.e(e, "StandaloneViewManager: Failed to save position on release")
-                }
-            }
+            persistPositionOnRelease(pathToSave, pos, dur)
         }
+        releaseVideoPlayer()
+        releaseAudioController()
+        Glide.with(safeViews.photoView).clear(safeViews.photoView)
+        _pdfViewerManager?.close()
+        _pdfViewerManager = null
+        _epubViewerManager?.release()
+        _epubViewerManager = null
+        _textViewerManager?.release()
+        _textViewerManager = null
+    }
+
+    /**
+     * S0893: API24+ multi-window release edge for the video path only - the audio controller and
+     * document viewers are untouched (audio may legitimately continue via AudioPlaybackService;
+     * PDF/EPUB/text hold no comparable OS codec resource). Callers gate this call on
+     * Build.VERSION_CODES.N and rebuild via [show] from their own onStart - only the host Activity
+     * knows which MediaFile is currently active, so no resume state is tracked here.
+     */
+    fun onStopVideo() {
+        if (exoPlayer != null) {
+            Timber.d("StandaloneViewManager: onStopVideo - releasing backgrounded video player")
+            releaseVideoPlayer()
+        }
+    }
+
+    /**
+     * S0859: tear down any live video player and its audio focus request. Called both from
+     * [release] (host destroy) and from [show] before every dispatch (folder paging / slideshow /
+     * rename re-show / swap to a non-video type) - the previous player must never be orphaned.
+     */
+    private fun releaseVideoPlayer() {
+        stopPositionAutoSave()
+        resumeVideoOnResume = false
         audioFocusManager?.releaseFocus()
         audioFocusManager = null
         // Media3 1.2.1: ExoPlayer.release() can block the main thread indefinitely when a
@@ -321,16 +358,20 @@ class StandaloneViewManager(
             player.release()
         }
         exoPlayer = null
+        currentVideoFilePath = null
+    }
+
+    /**
+     * S0859: tear down any live audio controller. Each [AudioServiceController] binds a
+     * MediaController connection to AudioPlaybackService that must be released before the field
+     * is overwritten by the next file, or it leaks a bound ServiceConnection per paging step.
+     */
+    private fun releaseAudioController() {
+        resumeAudioOnResume = false
         // Standalone mode must never continue audio in background - stop before releasing the service controller.
         audioServiceController?.player?.stop()
         audioServiceController?.release()
         audioServiceController = null
-        _pdfViewerManager?.close()
-        _pdfViewerManager = null
-        _epubViewerManager?.release()
-        _epubViewerManager = null
-        _textViewerManager?.release()
-        _textViewerManager = null
     }
 
     // ── Image ───────────────────────────────────────────────────────────────
@@ -340,7 +381,7 @@ class StandaloneViewManager(
         // Container is nullable (config-variant view, absent in some layouts)
         safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
         safeViews.photoView.isVisible = true
-        Glide.with(activity.applicationContext)
+        Glide.with(safeViews.photoView)
             .load(mediaFile.path.toUri())
             .into(safeViews.photoView)
     }
@@ -352,7 +393,7 @@ class StandaloneViewManager(
     fun reloadImage(mediaFile: MediaFile) {
         safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
         safeViews.photoView.isVisible = true
-        Glide.with(activity.applicationContext)
+        Glide.with(safeViews.photoView)
             .load(mediaFile.path.toUri())
             .skipMemoryCache(true)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -363,7 +404,7 @@ class StandaloneViewManager(
     private fun showGif(mediaFile: MediaFile) {
         safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
         safeViews.photoView.isVisible = true
-        Glide.with(activity.applicationContext)
+        Glide.with(safeViews.photoView)
             .asGif()
             .load(mediaFile.path.toUri())
             .into(safeViews.photoView)
@@ -775,14 +816,25 @@ class StandaloneViewManager(
         val position = player.currentPosition
         val duration = player.duration
         if (position == lastSavedPosition || duration <= 0L || position < 0L) return
-        lastSavedPosition = position
         try {
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO + NonCancellable) {
                 playbackPositionRepository.savePosition(path, position, duration)
             }
+            lastSavedPosition = position
             Timber.d("StandaloneViewManager: Saved position ${position}ms/${duration}ms")
         } catch (e: Exception) {
             Timber.e(e, "StandaloneViewManager: Failed to save position")
+        }
+    }
+
+    private fun persistPositionOnRelease(path: String, position: Long, duration: Long) {
+        CoroutineScope(Dispatchers.IO + NonCancellable).launch {
+            try {
+                playbackPositionRepository.savePosition(path, position, duration)
+                Timber.d("StandaloneViewManager: Saved position on release ${position}ms/${duration}ms")
+            } catch (e: Exception) {
+                Timber.e(e, "StandaloneViewManager: Failed to save position on release")
+            }
         }
     }
 

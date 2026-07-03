@@ -89,6 +89,11 @@
     "ru": "Выбирает ресурс-назначение для сохранения записей с микрофона.",
     "uk": "Вибирає ресурс призначення для збереження записів із мікрофона."
   },
+  "btnSelectScreenRecordingDest": {
+    "en": "Selects the destination resource where screen recordings are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения записей экрана.",
+    "uk": "Вибирає ресурс призначення для збереження записів екрана."
+  },
   "btnSelectVideoRecordingDest": {
     "en": "Selects the destination resource where video recordings are saved.",
     "ru": "Выбирает ресурс-назначение для сохранения записанных видеофайлов.",
@@ -178,6 +183,11 @@
     "en": "Automatically copies each captured photo to the clipboard after saving.",
     "ru": "Автоматически копирует каждое снятое фото в буфер обмена после сохранения.",
     "uk": "Автоматично копіює кожне зняте фото в буфер обміну після збереження."
+  },
+  "rowCameraGeotag": {
+    "en": "Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default.",
+    "ru": "Сохраняет ваши GPS-координаты в EXIF фото, снятых встроенной камерой. Требует разрешение на геолокацию; по умолчанию выключено.",
+    "uk": "Зберігає ваші GPS-координати в EXIF фото, знятих вбудованою камерою. Потрібен дозвіл на геолокацію; типово вимкнено."
   },
   "rowCameraOcrOnly": {
     "en": "Runs OCR on the captured photo but skips translation, showing only the recognized text.",
@@ -298,6 +308,11 @@
     "en": "Enables the built-in microphone recording feature.",
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
+  },
+  "rowScreenRecordingEnabled": {
+    "en": "Enables the built-in screen video recording feature.",
+    "ru": "Включает встроенную функцию видеозаписи экрана.",
+    "uk": "Вмикає вбудовану функцію відеозапису екрана."
   },
   "rowOverwriteOnCopy": {
     "en": "Overwrites the existing file at the destination when a name conflict occurs during copying.",
@@ -929,6 +944,11 @@
     "ru": "Назначает приложение видеоплеером по умолчанию на устройстве.",
     "uk": "Призначає застосунок типовим відеоплеєром на пристрої."
   },
+  "rowOpenVideoInFullscreen": {
+    "en": "Launches video playback straight into fullscreen mode when a video is opened from Browse.",
+    "ru": "Запускает воспроизведение видео сразу в полноэкранном режиме при открытии из браузера файлов.",
+    "uk": "Запускає відтворення відео одразу в повноекранному режимі при відкритті з браузера файлів."
+  },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
@@ -1008,5 +1028,15 @@
     "en": "Chooses the folder or resource where captured screenshots are saved.",
     "ru": "Выбирает папку или ресурс, куда сохраняются снятые скриншоты.",
     "uk": "Вибирає теку або ресурс, куди зберігаються зроблені знімки екрана."
+  },
+  "rowShowProgramsPanel": {
+    "en": "Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu.",
+    "ru": "Показывает горизонтальную панель программ и сценариев над списком ресурсов в основном окне, дублируя меню программ.",
+    "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів у головному вікні, дублюючи меню програм."
+  },
+  "rowShowStreamsPanel": {
+    "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
+    "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
+    "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів у головному вікні, із переходом до розділу трансляцій."
   }
 }

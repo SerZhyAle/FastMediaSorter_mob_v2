@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.InlinePlayerState
 import com.sza.fastmediasorter.ui.browse.PlaybackStatus
+import com.sza.fastmediasorter.ui.player.helpers.AudioFocusManager
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,27 @@ class BrowseInlineAudioManager(
     private var player: MediaPlayer? = null
     private val prefetchInProgress = ConcurrentHashMap.newKeySet<String>()
 
+    // S0862: bumped by every inlineStop()/inlineStart() call, captured by inlineStart's own IO
+    // coroutine at launch - the coroutine re-checks it right before publishing 'player' so a
+    // superseded load (screen-leave or rapid track-switch) releases its MediaPlayer instead of
+    // orphaning it. @Volatile since inlineStop() runs on Main while the coroutine reads on IO.
+    @Volatile
+    private var playGeneration = 0
+
+    // S0896: plain android.media.MediaPlayer has no ExoPlayer-style handleAudioFocus, so focus is
+    // requested/abandoned manually here via the shared helper (also used by StandaloneViewManager).
+    // Contract matches AudioFocusManager's ADR-2 default: pause on transient loss, stop on
+    // permanent loss, no auto-resume on regain.
+    private val audioFocusManager = AudioFocusManager(context) { isPermanent ->
+        Timber.d("S0896: BrowseInlineAudioManager reacting to audio focus loss (permanent=$isPermanent)")
+        if (isPermanent) {
+            inlineStop()
+        } else {
+            player?.pause()
+            _inlinePlayerState.value = _inlinePlayerState.value.copy(status = PlaybackStatus.PAUSED)
+        }
+    }
+
     private val _inlinePlayerState = MutableStateFlow(InlinePlayerState())
     val inlinePlayerState: StateFlow<InlinePlayerState> = _inlinePlayerState.asStateFlow()
 
@@ -84,11 +106,15 @@ class BrowseInlineAudioManager(
 
     /** Stop playback and release MediaPlayer resources. */
     fun inlineStop() {
+        playGeneration++
         player?.let {
             try { it.stop() } catch (_: IllegalStateException) {}
             it.release()
         }
         player = null
+        // S0896: harmless no-op if focus was never held - both AudioFocusManager code paths guard
+        // on their own internal state before calling the real AudioManager abandon API.
+        audioFocusManager.releaseFocus()
         _inlinePlayerState.value = InlinePlayerState()
         Timber.d("InlinePlayer: stopped")
     }
@@ -141,12 +167,32 @@ class BrowseInlineAudioManager(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private fun inlineStart(file: MediaFile) {
+        // S0862: captured on the caller's thread before launch, so a concurrent inlineStop() or a
+        // second inlineStart() (rapid track switch) is visible to this coroutine's publish check.
+        val myGeneration = ++playGeneration
+        // S0896: requested synchronously here (not inside the IO coroutine below) so it stays
+        // ordered with inlineStop()'s releaseFocus() across rapid track switches - a
+        // coroutine-deferred request could race a newer inlineStart() and steal/abandon its
+        // already-granted focus instead of its own (both share one AudioFocusManager instance).
+        audioFocusManager.requestFocus()
+        Timber.d("S0896: BrowseInlineAudioManager audio focus request for '${file.name}' granted=${audioFocusManager.hasFocus}")
+        if (!audioFocusManager.hasFocus) {
+            // inlineStop() (called by every inlineStart() caller just before this) already reset
+            // _inlinePlayerState to idle - nothing further to clean up here.
+            return
+        }
         scope.launch(Dispatchers.IO) {
             try {
                 val localPath = resolveLocalPath(file)
                 if (localPath == null) {
                     Timber.e("InlinePlayer: cannot resolve playback path for '${file.name}'")
-                    _inlinePlayerState.value = InlinePlayerState()
+                    // S0896/S0909: only release focus AND reset UI state if still the current generation.
+                    // A newer inlineStart() may have superseded us; clobbering its published state (an
+                    // unconditional reset here) would briefly blank the UI while track B loads/plays.
+                    if (myGeneration == playGeneration) {
+                        audioFocusManager.releaseFocus()
+                        _inlinePlayerState.value = InlinePlayerState()
+                    }
                     return@launch
                 }
 
@@ -157,22 +203,18 @@ class BrowseInlineAudioManager(
                     downloadProgressPercent = 0
                 )
 
-                val newPlayer = MediaPlayer().apply {
-                    try {
-                        setDataSource(localPath)
-                    } catch (e: java.io.IOException) {
-                        val contentUri = file.contentUri
-                        if (contentUri != null) {
-                            Timber.i("InlinePlayer: direct path failed, using content URI for '${file.name}'")
-                            reset()
-                            setDataSource(context, android.net.Uri.parse(contentUri))
-                        } else {
-                            throw e
-                        }
-                    }
-                    prepare()
-                    setOnCompletionListener { inlinePlayNext() }
+                val newPlayer = buildInlineMediaPlayer(file, localPath)
+
+                if (myGeneration != playGeneration) {
+                    // S0862: superseded by inlineStop()/another inlineStart() while this coroutine
+                    // was building/preparing - release without publishing to avoid orphaning it.
+                    // S0896: focus is left alone - the superseding call already re-acquired it
+                    // synchronously for itself; releasing here would abandon its valid grant.
+                    Timber.d("InlinePlayer: '${file.name}' superseded before publish, releasing")
+                    newPlayer.release()
+                    return@launch
                 }
+
                 player = newPlayer
                 _inlinePlayerState.value = InlinePlayerState(
                     playingPath = file.path,
@@ -182,10 +224,46 @@ class BrowseInlineAudioManager(
                 Timber.d("InlinePlayer: started '${file.name}'")
                 saveResumeState()
                 prefetchNextInlineAudio(file.path)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "InlinePlayer: failed to start '${file.name}'")
-                _inlinePlayerState.value = InlinePlayerState()
+                // S0896/S0909: guard both focus release and UI-state reset. A superseding generation
+                // already owns focus and the published state; a stale reset would blank its UI.
+                if (myGeneration == playGeneration) {
+                    audioFocusManager.releaseFocus()
+                    _inlinePlayerState.value = InlinePlayerState()
+                }
             }
+        }
+    }
+
+    /**
+     * S0862: build, set-data-source and prepare a [MediaPlayer] for [localPath]; on any failure
+     * releases the just-constructed native player before rethrowing, since it was never assigned
+     * to [player] and inlineStop() can never reach it otherwise.
+     */
+    private fun buildInlineMediaPlayer(file: MediaFile, localPath: String): MediaPlayer {
+        val newPlayer = MediaPlayer()
+        try {
+            try {
+                newPlayer.setDataSource(localPath)
+            } catch (e: java.io.IOException) {
+                val contentUri = file.contentUri
+                if (contentUri != null) {
+                    Timber.i("InlinePlayer: direct path failed, using content URI for '${file.name}'")
+                    newPlayer.reset()
+                    newPlayer.setDataSource(context, android.net.Uri.parse(contentUri))
+                } else {
+                    throw e
+                }
+            }
+            newPlayer.prepare()
+            newPlayer.setOnCompletionListener { inlinePlayNext() }
+            return newPlayer
+        } catch (e: Exception) {
+            newPlayer.release()
+            throw e
         }
     }
 
@@ -301,6 +379,7 @@ class BrowseInlineAudioManager(
         return when (result) {
             is com.sza.fastmediasorter.data.network.model.SmbResult.Success -> {
                 Timber.d("InlinePlayer: download complete, size=${cacheFile.length()}")
+                evictInlineAudioCacheIfNeeded(cacheFile)
                 if (showProgress) resetDownloadProgress()
                 cacheFile.absolutePath
             }
@@ -343,5 +422,29 @@ class BrowseInlineAudioManager(
                 Timber.e(e, "InlinePlayer: Failed to save resume state")
             }
         }
+    }
+
+    /**
+     * Prune the inline-audio SMB download cache to [INLINE_AUDIO_CACHE_CAP_BYTES], oldest first. Without
+     * a bound the dir grew forever (every played/prefetched track kept in full). Never deletes [keep] (the
+     * file just written); the currently-playing file's descriptor is already open in MediaPlayer, so
+     * evicting its on-disk cache entry is harmless.
+     */
+    private fun evictInlineAudioCacheIfNeeded(keep: java.io.File) {
+        val cacheDir = java.io.File(context.cacheDir, "inline_audio")
+        val files = cacheDir.listFiles()?.filter { it.isFile }.orEmpty()
+        var total = files.sumOf { it.length() }
+        if (total <= INLINE_AUDIO_CACHE_CAP_BYTES) return
+        for (f in files.sortedBy { it.lastModified() }) {
+            if (total <= INLINE_AUDIO_CACHE_CAP_BYTES) break
+            if (f.absolutePath == keep.absolutePath) continue
+            val len = f.length()
+            if (f.delete()) total -= len
+        }
+    }
+
+    private companion object {
+        // Cap the inline-audio SMB download cache; oldest entries are pruned on each new download.
+        const val INLINE_AUDIO_CACHE_CAP_BYTES = 256L * 1024L * 1024L // 256 MB
     }
 }

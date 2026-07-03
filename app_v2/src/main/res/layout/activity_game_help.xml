@@ -45,6 +45,7 @@
             android:paddingTop="@dimen/margin_normal">
 
             <TextView
+                android:id="@+id/txtGameHelpIntro"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/game_help_intro"
@@ -58,7 +59,9 @@
                 android:textSize="@dimen/text_size_normal"
                 android:textStyle="bold" />
 
-            <include layout="@layout/view_game_help_legend" />
+            <include
+                android:id="@+id/gameHelpLegend"
+                layout="@layout/view_game_help_legend" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -69,6 +72,7 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/txtGameHelpRules"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_normal"

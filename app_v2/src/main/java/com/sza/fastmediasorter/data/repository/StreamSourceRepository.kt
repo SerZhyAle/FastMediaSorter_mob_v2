@@ -20,16 +20,22 @@ class StreamSourceRepository @Inject constructor(
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
 
+    /** S0756: pinned channels only, in pin order, for the main-window streams panel. */
+    fun observePinnedSources(): Flow<List<StreamSourceEntity>> = dao.observePinned()
+
     suspend fun add(source: StreamSourceEntity) = dao.upsert(source)
 
     /** Inserts new sources, ignoring duplicates by url; returns how many were actually inserted. */
-    suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int {
-        var inserted = 0
-        for (source in sources) {
-            if (dao.insertIgnore(source) != -1L) inserted++
+    suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int =
+        // One transaction like the sibling mergeCatalog (S0732): a kill mid-import must not leave a
+        // half-inserted playlist that observeSources re-emits as an intermediate state.
+        db.withTransaction {
+            var inserted = 0
+            for (source in sources) {
+                if (dao.insertIgnore(source) != -1L) inserted++
+            }
+            inserted
         }
-        return inserted
-    }
 
     /** Raises a source above all others in the local list (feature-local favorite). */
     suspend fun pinToTop(id: String) {
@@ -38,6 +44,9 @@ class StreamSourceRepository @Inject constructor(
     }
 
     suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
+
+    /** S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept. */
+    suspend fun unpin(id: String) = dao.unpin(id)
 
     /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
     suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
@@ -65,7 +74,7 @@ class StreamSourceRepository @Inject constructor(
      * touched: a url already owned by a user row blocks the catalog insert and is left as-is.
      */
     suspend fun mergeCatalog(entries: List<StreamSourceEntity>): CatalogMergeResult =
-        // S0732: N update/insertIgnore writes plus a final deleteCatalogNotIn were not atomic, so a
+        // S0732: N update/insertIgnore writes plus the final catalog prune were not atomic, so a
         // kill mid-merge left a half-synced catalog and observeSources re-emitted intermediate states.
         // One transaction makes the catalog sync all-or-nothing (single observe* emission).
         db.withTransaction {
@@ -82,7 +91,8 @@ class StreamSourceRepository @Inject constructor(
                         mediaKind = entry.mediaKind,
                         category = entry.category,
                         topic = entry.topic,
-                        language = entry.language
+                        language = entry.language,
+                        country = entry.country
                     )
                     updated++
                 } else if (dao.insertIgnore(entry) != -1L) {
@@ -91,11 +101,22 @@ class StreamSourceRepository @Inject constructor(
                 // insertIgnore == -1 means the url is owned by a non-CATALOG row; leave the user row alone.
             }
 
-            dao.deleteCatalogNotIn(entries.map { it.url })
-            val removed = existingCatalogUrls.count { it !in newUrls }
-            CatalogMergeResult(added = added, updated = updated, removed = removed)
+            // S0821: prune vanished catalog rows without binding the whole new-url set into one
+            // statement. A single DELETE .. NOT IN (:keepUrls) blew past SQLite's bind-variable
+            // limit and aborted the import on large catalogs (release crash, API 29). Both url sets
+            // are already in memory, so delete the (existing - new) delta in bind-safe chunks - same
+            // transaction, identical semantics (only CATALOG rows whose url left the new list).
+            val urlsToDelete = existingCatalogUrls.filter { it !in newUrls }
+            urlsToDelete.chunked(SQLITE_IN_CLAUSE_LIMIT).forEach { dao.deleteCatalogByUrls(it) }
+            CatalogMergeResult(added = added, updated = updated, removed = urlsToDelete.size)
         }
 
     /** S0570: outcome of a [mergeCatalog] run. */
     data class CatalogMergeResult(val added: Int, val updated: Int, val removed: Int)
+
+    private companion object {
+        // SQLite caps host parameters per statement (999 on the API levels we still ship to);
+        // keep delete batches under it. Mirrors FavoritesRepositoryImpl's chunking.
+        const val SQLITE_IN_CLAUSE_LIMIT = 900
+    }
 }

@@ -83,10 +83,12 @@ class WelcomeRemoteSourcesController @Inject constructor(
     // Read-modify-write of the latest snapshot so concurrent toggle taps do not clobber each other's
     // fields. Runs on the application scope so the write survives the page being torn down right after
     // a tap - the settings change must not be lost on navigation.
-    private fun persist(transform: (AppSettings) -> AppSettings) {
+    // S0876: the transform overload is mutex-serialized against every other transform() writer
+    // (see SettingsRepository KDoc) - a plain getSettings().first()+updateSettings() pair here could
+    // race the Welcome enable-all flow's concurrent deliverable-install writers.
+    private fun persist(transform: suspend (AppSettings) -> AppSettings) {
         appScope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(transform(current))
+            settingsRepository.updateSettings(transform)
         }
     }
 }

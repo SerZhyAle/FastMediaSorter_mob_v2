@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.xr
 
 import android.app.PendingIntent
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -10,7 +11,6 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
@@ -32,16 +32,16 @@ import androidx.annotation.Keep
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
-import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
+import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
 import com.sza.fastmediasorter.core.xr.VrMediaType
@@ -50,23 +50,25 @@ import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
+import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
-import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
-import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 enum class ProjectionType(val value: Int) {
     SPHERE_360(0),
@@ -93,6 +95,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
+
+    // S0771: the immersive renderer must agree with the 2D panel on stereo layout. Reuse the panel
+    // player's shared classifier instead of a second, divergent filename parser (see parseFilenameConfig).
+    @Inject lateinit var stereoDetector: StereoDetector
 
     private var renderThread: DiagnosticXrRenderThread? = null
     private lateinit var surfaceView: SurfaceView
@@ -476,36 +482,79 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun parseFilenameConfig(filename: String): RenderConfig {
         val name = filename.lowercase()
-        val projection = when {
-            name.contains("_360") || name.contains("360_") -> ProjectionType.SPHERE_360
-            name.contains("_180") || name.contains("180_") -> ProjectionType.HEMISPHERE_180
-            name.contains("_flat") || name.contains("flat_") -> ProjectionType.FLAT
-            else -> {
-                if (name.contains("panorama") || name.contains("panoramic") || name.contains("equirectangular")) {
+
+        // S0771: route through StereoDetector first so the immersive renderer and the 2D panel agree
+        // on stereo layout. The prior local-only parser lacked the 3dh/3dv/tab/hou tokens and rendered
+        // side-by-side films (e.g. *_180x180_3dh.mp4) as MONO. UNKNOWN falls through to the legacy
+        // token scan below so no previously-recognised name regresses.
+        val detected = stereoDetector.detectFromFilename(filename).toRenderConfigOrNull()
+        val config = detected ?: RenderConfig(
+            projection = when {
+                name.contains("_360") || name.contains("360_") -> ProjectionType.SPHERE_360
+                name.contains("_180") || name.contains("180_") -> ProjectionType.HEMISPHERE_180
+                name.contains("_flat") || name.contains("flat_") -> ProjectionType.FLAT
+                else -> if (
+                    name.contains("panorama") || name.contains("panoramic") ||
+                        name.contains("equirectangular")
+                ) {
                     ProjectionType.SPHERE_360
                 } else {
                     ProjectionType.FLAT
                 }
-            }
-        }
-        // S0290 (owner feedback 2026-05-22): SPECIFIC markers (_sbs, _tb, _lr, _ou) MUST be checked BEFORE the generic `_stereo` fallback. The old order matched `_stereo` first and routed `video_360_stereo_sbs.mp4` to TOP_BOTTOM - observed in logs/current.log at 13:38:53 (index 6 SBS file landed in layout=1). New order: SBS family first, then TB family, then explicit MONO marker, then generic `_stereo` defaults to TB.
-        val layout = when {
-            // Side-by-side family (specific markers, capture-oriented and renderer-oriented).
-            name.contains("_sbs") || name.contains("_sidebyside") || name.contains("_hsbs") ||
-                name.contains("_fsbs") || name.contains("_lr") || name.contains("_rl") ->
-                    StereoLayout.SIDE_BY_SIDE
-            // Top-bottom family (specific markers).
-            name.contains("_tb") || name.contains("_topbottom") || name.contains("_ou") ||
-                name.contains("_overunder") || name.contains("stereo_tb") ->
-                    StereoLayout.TOP_BOTTOM
-            // Explicit mono marker wins over generic `_stereo` fallback below.
-            name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
-            // Generic `_stereo` with no specific layout marker defaults to TB (industry default).
-            name.contains("_stereo") || name.contains("stereo") -> StereoLayout.TOP_BOTTOM
-            else -> StereoLayout.MONO
-        }
-        Timber.d("parseFilenameConfig: $filename -> projection=$projection, layout=$layout")
-        return RenderConfig(projection, layout)
+            },
+            // S0290 (owner feedback 2026-05-22): SPECIFIC markers (_sbs, _tb, _lr, _ou) MUST be
+            // checked BEFORE the generic `_stereo` fallback. The old order matched `_stereo` first
+            // and routed `video_360_stereo_sbs.mp4` to TOP_BOTTOM. Order: SBS family, then TB
+            // family, then explicit MONO marker, then generic `_stereo` defaults to TB.
+            layout = when {
+                // Side-by-side family (specific markers, capture-oriented and renderer-oriented).
+                name.contains("_sbs") || name.contains("_sidebyside") || name.contains("_hsbs") ||
+                    name.contains("_fsbs") || name.contains("_lr") || name.contains("_rl") ->
+                        StereoLayout.SIDE_BY_SIDE
+                // Top-bottom family (specific markers).
+                name.contains("_tb") || name.contains("_topbottom") || name.contains("_ou") ||
+                    name.contains("_overunder") || name.contains("stereo_tb") ->
+                        StereoLayout.TOP_BOTTOM
+                // Explicit mono marker wins over generic `_stereo` fallback below.
+                name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
+                // Generic `_stereo` with no specific layout marker defaults to TB (industry default).
+                name.contains("_stereo") || name.contains("stereo") -> StereoLayout.TOP_BOTTOM
+                else -> StereoLayout.MONO
+            },
+        )
+        Timber.d(
+            "parseFilenameConfig: $filename -> projection=${config.projection}, layout=${config.layout} " +
+                "(source=${if (detected != null) "stereo-detector" else "legacy"})"
+        )
+        Timber.d(
+            "S0771: immersive stereo resolved layout=${config.layout} " +
+                "source=${if (detected != null) "stereo-detector" else "legacy"} file=$filename"
+        )
+        return config
+    }
+
+    /**
+     * S0771: map the shared [StereoDetector] verdict onto the immersive renderer's projection/layout
+     * pair. Returns null for [StereoMode.UNKNOWN] so the caller keeps the legacy filename scan. The XR
+     * projection enum has no fisheye type, so [StereoMode.VR180_FISHEYE_SBS] uses [ProjectionType.HEMISPHERE_180]
+     * (equirect hemisphere) - the same projection the legacy parser already chose for 180 content; only
+     * the stereo layout is corrected here.
+     */
+    private fun StereoMode.toRenderConfigOrNull(): RenderConfig? = when (this) {
+        StereoMode.VR180_FISHEYE_SBS,
+        StereoMode.EQUIRECT_180_SBS -> RenderConfig(ProjectionType.HEMISPHERE_180, StereoLayout.SIDE_BY_SIDE)
+        StereoMode.EQUIRECT_180_MONO,
+        StereoMode.CYLINDER_180 -> RenderConfig(ProjectionType.HEMISPHERE_180, StereoLayout.MONO)
+        StereoMode.EQUIRECT_360_SBS -> RenderConfig(ProjectionType.SPHERE_360, StereoLayout.SIDE_BY_SIDE)
+        StereoMode.EQUIRECT_360_OU -> RenderConfig(ProjectionType.SPHERE_360, StereoLayout.TOP_BOTTOM)
+        StereoMode.EQUIRECT_360_MONO -> RenderConfig(ProjectionType.SPHERE_360, StereoLayout.MONO)
+        StereoMode.SBS_FULL,
+        StereoMode.SBS_HALF -> RenderConfig(ProjectionType.FLAT, StereoLayout.SIDE_BY_SIDE)
+        StereoMode.OU -> RenderConfig(ProjectionType.FLAT, StereoLayout.TOP_BOTTOM)
+        StereoMode.MONO -> RenderConfig(ProjectionType.FLAT, StereoLayout.MONO)
+        // AUTO/UNKNOWN are inconclusive - defer to the legacy filename scan in the caller.
+        StereoMode.AUTO,
+        StereoMode.UNKNOWN -> null
     }
 
     private fun queueErrorHud(filename: String, errorMsg: String) {
@@ -894,7 +943,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         exoPlayer?.stop()
         exoPlayer?.release()
         exoPlayer = null
-        playbackController.updatePlayer(null)
+        if (::playbackController.isInitialized) {
+            playbackController.updatePlayer(null)
+        }
     }
 
     private fun navigateToNextMedia() {

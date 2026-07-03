@@ -2,7 +2,7 @@
 
 Pick highest-priority eligible spec from catalog, hand to `/spec-all`, then loop until no eligible spec remains. Zero-input automation for "just keep working on whatever is most important next."
 
-**Mandate (loop mode).** Keep the machine busy producing *every* piece of work that can be done **without the human**. Bias toward release-blocking tickets first (they rank highest), but the real goal is to exhaust the autonomous backlog: implementation, audits, drift reconciliation, research that resolves from the codebase, and - when a device/emulator is attached - on-device verification of `BlockNeedUserTest` tickets. A ticket that is genuinely blocked on a human (a question, an external resource, a real-device-only check) is *skipped*, not waited on. The loop stops only when nothing remains that the machine can advance alone. Never ask the operator a question mid-loop; defer every human-gated item to the final report.
+**Mandate (loop mode).** Keep the machine busy producing *every* piece of work that can be done **without the human**. Bias toward release-blocking tickets first (they rank highest), but the real goal is to exhaust the autonomous backlog: implementation, audits, drift reconciliation, research that resolves from the codebase, and - when a device/emulator is attached - on-device verification of `BlockNeedUserTest` tickets. **Drive every ticket - `Draft` included - as far as it can go: to readiness (`Implemented`/`Verified`) or to a *real* blocker.** `Draft` is a first-class candidate, not a thing to fear: hand it to `/spec-all` and let that skill push it through research/approval/tech/dev; only when it hits a genuinely human-gated question does it land in `BlockQuestions` - which is the correct "driven to a blocker" outcome, reported at the end. Do **not** pre-emptively skip a `Draft` because its research section looks heavy; research that resolves from the codebase is autonomous work, and only `/spec-all` (not this picker) decides a question truly needs the human. A ticket that ends genuinely blocked on a human (a question, an external resource, a real-device-only check) is *reported*, not waited on. The loop stops only when nothing remains that the machine can advance alone. Never ask the operator a question mid-loop; defer every human-gated item to the final report.
 
 Two output shapes:
 - **Loop / `--once`** - *execution*: advance one spec at a time via `/spec-all`, then (device attached) drain the device-verifiable `BlockNeedUserTest` backlog via `/spec-sweep`.
@@ -73,7 +73,7 @@ One read-only call replaces previous `search.ps1` + manual rank + `skip-cache.ps
 
 - `ranked[]` - eligible set (statuses above), already sorted `priority` desc -> `updated` desc -> `id` asc, with active persistent skip-cache and `-Exclude` round-memory set already removed.
 - `skip_cache` / `skip_cached_ids` - active persistent skips and which ranked ids they removed (informational; no action needed).
-- `auto_skipped[]` - candidates preflight previewed and rejected while walking down to selection. Each `{ id, reason, detail }`, `reason ∈ { tier-5-epic | owner-gate | blocker-not-verified | research-heavy }`.
+- `auto_skipped[]` - candidates preflight previewed and rejected while walking down to selection. Each `{ id, reason, detail }`, `reason ∈ { tier-5-epic | owner-gate | blocker-not-verified }`. These are structural / human gates only; preflight never auto-skips a `Draft`/`Approved` for a heavy research section - `research_open_count` stays informational.
 - `selected` - chosen ticket's full `preview.ps1` payload (`status`, `frontmatter`, `sections`, `tactical_folder`, `last_audit_present`, `timber_tags_kt`, `depends_on`) plus `drift` (`drift-check.ps1` verdict object) and `status_mismatch` (`{catalog,file}` or `null`). `null` when eligible set exhausted.
 
 `-Exclude` carries in-memory `processed` round-memory set (Stage 5) so each loop iteration gets next candidate in one call. First iteration: omit `-Exclude`.
@@ -88,7 +88,7 @@ Preflight is read-only by contract; this skill performs writes it implies:
    ```powershell
    pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <id> -Reason "<reason>"
    ```
-   These close deterministic skip cases (Tier 5 epic-containers, §12 owner-gate, unverified blocker chains, >=3 unresolved §6 research items) with no `AskUserQuestion`.
+   These close deterministic skip cases (Tier 5 epic-containers, §12 owner-gate, unverified blocker chains) with no `AskUserQuestion`. A heavy research section is **not** among them - `Draft`/`Approved` tickets always go to `/spec-all`, which drives them to readiness or a real blocker.
 2. **Resolve status mismatch.** If `selected.status_mismatch` non-null, file is authoritative - sync catalog and log `Sync: <id> catalog <catalog> -> <file> (file authoritative)`:
    ```powershell
    pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <id> -Status <file-status>
@@ -137,6 +137,8 @@ Record final status. Possible terminations for one round:
 | Unchanged from start | `/spec-all` made no progress | Add to `processed`, continue loop |
 
 **Round memory.** Maintain in-memory `processed` set of ticket ids touched during this `/spec-next` invocation. After Stage 5, add just-handled id. Pass whole set to next Stage 1 call via `-Exclude` - prevents infinite re-selection of a spec whose status `/spec-all` could not advance.
+
+**Context management (mid-loop `/compact`).** The loop is designed to run for many rounds and will accumulate context. This is expected - do **not** stop or cut the session short to avoid a large context. When context grows heavy at a **round boundary** (after Stage 5 returns, before the next Stage 1 call), run `/compact` and continue the loop. Never compact mid-`/spec-all` or mid-`/spec-sweep` - only between rounds. When compacting, preserve the session state that lives only in memory so the loop resumes intact: the `processed` round-memory set, the running session tally (processed / verified / blocked), and `DEVICE_ONLINE` + `selectedDevice` from Stage 0. After `/compact` returns, resume at Stage 1 with `-Exclude <processed-csv>` exactly as if the round boundary were uninterrupted.
 
 **`--once` mode.** Skip loop and Stage 5.5. After Stage 5 print final report and exit.
 
@@ -237,7 +239,9 @@ Skip Stages 1..6 entirely in this mode - no preflight, no skip-cache, no loop, n
 
 - **Never edit `PLAN/spec-catalog.jsonl` directly** - only via `update.ps1`, `select.ps1`, `search.ps1`, `spec-next-preflight.ps1` (read-only).
 - **Do not duplicate `/spec-all` logic** - every progress decision delegates to it. This skill's responsibility is *selection*, not *execution*.
-- **No user prompts in loop mode.** A stage detecting unresolvable ambiguity -> skip spec via round memory + persistent skip-cache, continue loop. Final report names all skipped specs. `AskUserQuestion` MUST NOT be invoked from any stage of `/spec-next` - preflight's auto-skip predicates replace every previous owner-gate / tier-5 / VR-child / research-heavy prompt.
+- **No user prompts in loop mode.** A stage detecting unresolvable ambiguity -> skip spec via round memory + persistent skip-cache, continue loop. Final report names all skipped specs. `AskUserQuestion` MUST NOT be invoked from any stage of `/spec-next` - preflight's auto-skip predicates replace every previous owner-gate / tier-5 / VR-child prompt.
+- **Draft is not a blocker.** Never skip a `Draft`/`Approved` because it looks unresearched or heavy. Hand it to `/spec-all`; readiness or a real `Block*` is the only acceptable terminal for it.
+- **Compact between rounds, never mid-delegation.** `/compact` is allowed (and expected on long sessions) only at a round boundary, preserving `processed` + session tally + `DEVICE_ONLINE`. Never compact while `/spec-all` or `/spec-sweep` is running.
 - **Spec status sync is one-way per run.** If Stage 2 syncs catalog from file, do not later flip it back from catalog side mid-run.
 - **No spec file rewrites here.** Sync touches journal, not `.md`. If `.md` malformed (preflight returns it under `malformed`), skip spec and list under "Skipped" in final report.
 - **Round memory is session-scoped.** Resets on every fresh `/spec-next` invocation. Crashes / interruptions do not persist it.

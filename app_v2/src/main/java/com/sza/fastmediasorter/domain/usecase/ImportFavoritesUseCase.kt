@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.net.Uri
+import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.data.local.db.ResourceDao
@@ -23,6 +25,7 @@ private const val SUPPORTED_MAJOR_VERSION = "1"
 
 class ImportFavoritesUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val db: AppDatabase,
     private val favoritesDao: FavoritesDao,
     private val resourceDao: ResourceDao
 ) {
@@ -71,52 +74,57 @@ class ImportFavoritesUseCase @Inject constructor(
             var failed = 0
             var unresolved = 0
 
-            for (exported in model.favorites) {
-                val isDuplicate = exported.uri in existingUris
+            // One transaction: a kill mid-import must not leave a partially imported favorites set.
+            // Per-row try/catch stays (best-effort reporting); FavoritesDao.insert is REPLACE, so
+            // normal duplicates never throw and cannot poison the transaction.
+            db.withTransaction {
+                for (exported in model.favorites) {
+                    val isDuplicate = exported.uri in existingUris
 
-                // Resolve local resource id via path match
-                val localResource = resourcesByPath[exported.resourcePath]
+                    // Resolve local resource id via path match
+                    val localResource = resourcesByPath[exported.resourcePath]
 
-                when {
-                    localResource == null -> {
-                        unresolved++
-                        details += FavoritesImportDetail(
-                            status = FavoritesImportStatus.UNRESOLVED,
-                            displayName = exported.displayName,
-                            resourceName = exported.resourceName,
-                            reason = "Resource not found on this device"
-                        )
-                    }
-
-                    isDuplicate && strategy == FavoritesConflictStrategy.SKIP -> {
-                        skipped++
-                        details += FavoritesImportDetail(
-                            status = FavoritesImportStatus.SKIPPED,
-                            displayName = exported.displayName,
-                            resourceName = exported.resourceName,
-                            reason = "Already in favorites"
-                        )
-                    }
-
-                    else -> {
-                        try {
-                            val entity = exported.toEntity(localResource.id)
-                            favoritesDao.insert(entity)
-                            imported++
+                    when {
+                        localResource == null -> {
+                            unresolved++
                             details += FavoritesImportDetail(
-                                status = FavoritesImportStatus.ADDED,
-                                displayName = exported.displayName,
-                                resourceName = exported.resourceName
-                            )
-                        } catch (e: Exception) {
-                            failed++
-                            Timber.e(e, "Failed to insert favorite: ${exported.displayName}")
-                            details += FavoritesImportDetail(
-                                status = FavoritesImportStatus.FAILED,
+                                status = FavoritesImportStatus.UNRESOLVED,
                                 displayName = exported.displayName,
                                 resourceName = exported.resourceName,
-                                reason = e.message
+                                reason = "Resource not found on this device"
                             )
+                        }
+
+                        isDuplicate && strategy == FavoritesConflictStrategy.SKIP -> {
+                            skipped++
+                            details += FavoritesImportDetail(
+                                status = FavoritesImportStatus.SKIPPED,
+                                displayName = exported.displayName,
+                                resourceName = exported.resourceName,
+                                reason = "Already in favorites"
+                            )
+                        }
+
+                        else -> {
+                            try {
+                                val entity = exported.toEntity(localResource.id)
+                                favoritesDao.insert(entity)
+                                imported++
+                                details += FavoritesImportDetail(
+                                    status = FavoritesImportStatus.ADDED,
+                                    displayName = exported.displayName,
+                                    resourceName = exported.resourceName
+                                )
+                            } catch (e: Exception) {
+                                failed++
+                                Timber.e(e, "Failed to insert favorite: ${exported.displayName}")
+                                details += FavoritesImportDetail(
+                                    status = FavoritesImportStatus.FAILED,
+                                    displayName = exported.displayName,
+                                    resourceName = exported.resourceName,
+                                    reason = e.message
+                                )
+                            }
                         }
                     }
                 }

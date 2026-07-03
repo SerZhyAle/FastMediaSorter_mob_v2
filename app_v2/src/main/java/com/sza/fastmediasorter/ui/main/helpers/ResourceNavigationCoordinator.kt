@@ -25,7 +25,9 @@ import timber.log.Timber
  */
 class ResourceNavigationCoordinator(
     private val context: Context,
-    private val resourceRepository: ResourceRepository,
+    // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
+    // through this coordinator. The only use site (testConnection) is inside a suspend fun -> off-main.
+    private val resourceRepository: dagger.Lazy<ResourceRepository>,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val networkContextAnalyzer: NetworkContextAnalyzer
 ) {
@@ -108,7 +110,7 @@ class ResourceNavigationCoordinator(
         slideshowMode: Boolean
     ): NavigationResult {
         return try {
-            val testResult = resourceRepository.testConnection(resource)
+            val testResult = resourceRepository.get().testConnection(resource)
             
             testResult.fold(
                 onSuccess = { message ->

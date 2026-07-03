@@ -156,6 +156,19 @@ class StreamCatalogCsvParserTest {
     }
 
     @Test
+    fun testCountryColumnParsed() {
+        // S0761: the country column (ISO 3166-1 alpha-2) is parsed and survives into the entry; a row
+        // without the column resolves to "" (mirrors other optional columns).
+        val csv = "url,name,country\n" +
+                "http://test1,Stream1,UA\n" +
+                "http://test2,Stream2,"
+        val results = parser.parse(csv)
+        assertEquals(2, results.size)
+        assertEquals("UA", results[0].country)
+        assertEquals("", results[1].country)
+    }
+
+    @Test
     fun testExtraColumnsTolerated() {
         val csv = "url,name,extra1,extra2\nhttp://test1,Stream1,val1,val2"
         val results = parser.parse(csv)

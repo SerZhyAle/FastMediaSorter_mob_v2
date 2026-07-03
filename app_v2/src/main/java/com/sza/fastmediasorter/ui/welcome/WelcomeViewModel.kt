@@ -293,10 +293,12 @@ class WelcomeViewModel @Inject constructor(
 
     fun enablePrimaryMediaPlayer() {
         viewModelScope.launch {
-            val current = settingsRepository.getSettings().first()
-            if (!current.isPrimaryMediaPlayer) {
-                settingsRepository.updateSettings(current.copy(isPrimaryMediaPlayer = true))
-            }
+            // S0876: transform overload (mutex-serialized read+write) - this fires from the
+            // default-player page, reachable while the enable-all flow's deliverable-install writers
+            // are still in flight; a plain getSettings().first()+updateSettings() pair here could
+            // race them. The old manual "skip if unchanged" guard is redundant - the transform target
+            // (updateSettings(AppSettings)) already no-ops on an equal snapshot (S0018).
+            settingsRepository.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
         }
     }
 
@@ -305,10 +307,9 @@ class WelcomeViewModel @Inject constructor(
      *  Settings split where the UI layer owns the mirror and the ViewModel owns DataStore. */
     fun saveColorTheme(value: String) {
         viewModelScope.launch {
-            val current = settingsRepository.getSettings().first()
-            if (current.colorTheme != value) {
-                settingsRepository.updateSettings(current.copy(colorTheme = value))
-            }
+            // S0876: transform overload (mutex-serialized read+write) - the theme picker is reachable
+            // throughout onboarding, overlapping the enable-all flow's deliverable-install writers.
+            settingsRepository.updateSettings { it.copy(colorTheme = value) }
         }
     }
 

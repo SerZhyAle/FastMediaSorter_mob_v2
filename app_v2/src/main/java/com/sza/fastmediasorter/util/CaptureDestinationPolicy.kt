@@ -16,6 +16,7 @@ import java.io.File
  * - camera photos: selected writable target, else the device camera folder (DCIM/Camera),
  *   falling back to Downloads when that folder is unavailable.
  * - video recordings: selected writable target, else the public Movies folder.
+ * - screen recordings (S0774): selected writable target, else the public Downloads folder.
  * - quick voice notes (S0523, main-menu capture): always the public recordings folder
  *   (Recordings on API 31+, Music below) - no resource selection.
  *
@@ -53,6 +54,14 @@ object CaptureDestinationPolicy {
      */
     fun resolveVideoDestination(selectedResource: MediaResource?): File =
         usableTargetDirectory(selectedResource) ?: publicMoviesDirectory()
+
+    /**
+     * S0774: resolves the target directory for a screen video recording.
+     * Returns the selected resource's folder when it is a usable writable target,
+     * otherwise the public Downloads folder (owner-specified empty-selection fallback).
+     */
+    fun resolveScreenRecordingDestination(selectedResource: MediaResource?): File =
+        usableTargetDirectory(selectedResource) ?: publicDownloadsDirectory()
 
     /**
      * S0523: resolves the target directory for a quick voice note captured from the main overflow

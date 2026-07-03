@@ -29,7 +29,9 @@ import timber.log.Timber
  */
 class ResourceScanCoordinator(
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val resourceRepository: ResourceRepository,
+    // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
+    // through this coordinator. The only use site (testConnection) is inside a suspend fun -> off-main.
+    private val resourceRepository: dagger.Lazy<ResourceRepository>,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
@@ -165,7 +167,7 @@ class ResourceScanCoordinator(
 
         // Test connection/availability
         Timber.d("Testing connection for ${resource.name}...")
-        val testResult = resourceRepository.testConnection(resource)
+        val testResult = resourceRepository.get().testConnection(resource)
         Timber.d("Connection test completed for ${resource.name}")
         
         return testResult.fold(

@@ -315,6 +315,17 @@ class VideoPlayerManager(
     // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 
+    // S0893: the one extra Player.Listener a playback session adds beyond playerListener - either
+    // PauseAwareLoadControl (local/cloud/ftp/sftp/smb) or the per-stream listener (StreamPlaybackHelper).
+    // Tracked here because every add site builds it as a local val; without a field, releasePlayer()/
+    // onDestroy() have no reference to remove it symmetrically.
+    internal var activeExtraPlayerListener: Player.Listener? = null
+
+    // S0893: minimal state to recreate playback after an API24+ onStop release. Set at the top of
+    // playVideo() so onStart() can call playVideo(..) again with the same routing.
+    internal var lastResourceType: ResourceType? = null
+    internal var lastCredentialsId: String? = null
+
     // Counts track changes on the current ExoPlayer instance; triggers recreation at PLAYER_RECREATE_INTERVAL.
     // S0274 Wave 01: widened so VideoPlaybackPreflightHelper can drive the counter.
     var trackChangesSinceRecreate = 0
@@ -598,6 +609,14 @@ class VideoPlayerManager(
     // Public API - Playback dispatch
     // ═══════════════════════════════════════════════════════════════════════
 
+    // S0854: tracks the in-flight playVideo() coroutine. Cancelling it at the top of a new call
+    // serializes playback dispatch - without this, a rapid re-call (fast file switch) while the
+    // previous coroutine is still suspended (position lookup, network TS-probe) let both coroutines
+    // finish and interleave: the second startPositionSaving() call orphaned the first save loop
+    // (P0, retains PlayerActivity) and the same race let a second player be assigned before the
+    // first was released (S0865).
+    private var activeLoadJob: Job? = null
+
     /**
      * Start playback for [path], routing to the correct protocol handler based on [resourceType].
      * Restores a previously saved position and starts the auto-save loop after setup.
@@ -610,6 +629,9 @@ class VideoPlayerManager(
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
+        // S0893: remembered so onStart() can recreate playback after an API24+ onStop release.
+        lastResourceType = resourceType
+        lastCredentialsId = credentialsId
 
         // S0120: establish BASELINE before first media load; endScenario() fires in releasePlayer()
         if (exoPlayer == null) MemoryEnduranceTracker.startScenario("VID-playback")
@@ -617,7 +639,10 @@ class VideoPlayerManager(
         // S0274 Wave 01: per-file pre-flight pipeline lives in VideoPlaybackPreflightHelper.
         preflightHelper.runPreflight(path, resourceType)
 
-        managerScope.launch {
+        // S0854: cancel any in-flight load before starting a new one - see activeLoadJob KDoc.
+        if (activeLoadJob?.isActive == true) Timber.d("S0854: playVideo - cancelling in-flight load job")
+        activeLoadJob?.cancel()
+        activeLoadJob = managerScope.launch {
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
 
@@ -750,6 +775,19 @@ class VideoPlayerManager(
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
     fun releasePlayer() = lifecycleHelper.releasePlayer()
 
+    /**
+     * S0865: belt-and-braces guard against the duplicate-player race - a concurrent playVideo()
+     * call may have raced through releasePlayer() + assignment while this coroutine was
+     * suspended on a network TS-probe. Call immediately before assigning a freshly-built
+     * ExoPlayer so a still-live player from that race gets released instead of orphaned.
+     */
+    internal fun releaseIfRacedPlayer() {
+        if (exoPlayer != null) {
+            Timber.w("VideoPlayerManager: duplicate-player race detected post-suspend - releasing stale player")
+            releasePlayer()
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     // Player-time accounting (S0473 follow-up)
     // ═══════════════════════════════════════════════════════════════════════
@@ -779,6 +817,10 @@ class VideoPlayerManager(
     override fun onPause(owner: LifecycleOwner) = lifecycleHelper.onPause()
 
     override fun onResume(owner: LifecycleOwner) = lifecycleHelper.onResume()
+
+    override fun onStop(owner: LifecycleOwner) = lifecycleHelper.onStop()
+
+    override fun onStart(owner: LifecycleOwner) = lifecycleHelper.onStart()
 
     override fun onDestroy(owner: LifecycleOwner) {
         memoryProfileCoordinator.enter(MemoryScenario.IDLE)

@@ -15,7 +15,8 @@
     android:paddingBottom="8dp">
 
     <!-- S0668: leading channel-logo thumbnail, sliced from the favicon sprite-atlas at bind time.
-         Hidden by default; shown only when the row has a favicon tile (no placeholder -> empty slot). -->
+         Hidden by default; shown only when the row has a favicon tile. S0785: when there is no tile
+         but the channel carries a country, the flag slot below fills the same footprint instead. -->
     <ImageView
         android:id="@+id/ivFavicon"
         android:layout_width="24dp"
@@ -24,6 +25,20 @@
         android:scaleType="fitCenter"
         android:visibility="gone"
         android:contentDescription="@string/streams_favicon" />
+
+    <!-- S0785: country-flag fallback occupying the same 24dp leading slot as the favicon, so a
+         logo-less catalog row keeps its alignment. Mutually exclusive with ivFavicon; both gone for
+         manual rows that carry neither a tile nor a country. -->
+    <TextView
+        android:id="@+id/tvFaviconFlag"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:textSize="18sp"
+        android:visibility="gone"
+        android:contentDescription="@string/streams_country_flag" />
 
     <!-- S0593: local play-status bullet (green/red/amber). Distinct shapes + contentDescription set in
          code carry the meaning, not colour alone. -->
@@ -78,6 +93,22 @@
 
             <TextView
                 android:id="@+id/tvTopic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_stream_chip"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvCountry"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"

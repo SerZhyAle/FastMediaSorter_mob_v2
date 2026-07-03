@@ -1,32 +1,19 @@
 ---
 name: play-capture-family-status
-description: noLegal->Play capture migration - screenshots DONE/Verified; OWNER DECIDED 2026-06-26 to flip edgeGestureOverlay=on + submit visible strip THIS release; QS-tile path device-verified; overlay-strip/grey-strip/swipe need real-device Play demo (emulator can't drive them)
+description: Capture family SHIPPED to Play in 2.60.6270.802 (2026-06-27); specialUse + mediaProjection FGS both ACCEPTED by Play review - precedent for future FGS declarations
 metadata:
   type: project
 ---
 
-State of the "bring the screen-capture family from noLegal to the Google Play standard build" initiative (owner's goal). Two halves:
+Capture-family migration noLegal -> Play standard is COMPLETE. Release `2.60.6270.802` (versionCode `260627080`) passed Play review and went live 2026-06-27 (177 countries / 20,458 devices). S0672/S0724 closed and Archived 2026-06-27; their debug tags are removed.
 
-**1. Screenshots / MEDIA_PROJECTION - DONE & live.** Release `2.60.6251.711` (versionCode `260625171`) - first to declare `FOREGROUND_SERVICE_MEDIA_PROJECTION` on a reviewed track - passed Play review, 100% production rollout (verified 2026-06-26 via `temp/play_status.py`). **S0629 Verified.** The §5.1 demo-video gap was moot (review passed without it).
+Durable precedent facts for future Play submissions:
+- `FOREGROUND_SERVICE_SPECIAL_USE` was ACCEPTED by Play review - despite being the most-rejected FGS type - with a VISIBLE grey strip (ADR-3) + user-initiated/user-perceptible `specialUse` justification wording. No demo video was required.
+- `FOREGROUND_SERVICE_MEDIA_PROJECTION` had already passed earlier (release `2.60.6251.711`, verified 2026-06-26).
+- The Play Console App-content "Foreground service permissions" declaration was filled once by the owner; subsequent API commits pass with no HTTP 403.
+- QS-tile fallback (`ScreenshotGestureTileService`, `src/standardEdgeTile/`, gated `fms.edgeGestureTile=off`) was built as the rejection contingency and never needed - it remains available for future FGS rejections.
+- Shipped flag state: `fms.screenCapture=on` + `fms.edgeGestureOverlay=on` in `gradle.properties` - see [[screencapture-split-standard-vs-nolegal]].
 
-**2. Edge gesture panel / SPECIAL_USE - CODE-COMPLETE, not yet on Play.** Implemented via `/spec-dev S0672` on 2026-06-26, status **BlockNeedUserTest** (all 3 phases Done):
-- Phase 01 - `OverlayHostService` FGS-start guarded against `ForegroundServiceStartNotAllowedException` (Android-15 backstop); the `specialUse` subtype reworded to a user-initiated/user-perceptible justification.
-- Phase 02 - QS-tile fallback `ScreenshotGestureTileService` behind an independent `fms.edgeGestureTile=off` gate (new `src/standardEdgeTile/` source set), launches the capture consent path with no specialUse/overlay - the contingency if Play rejects the strip.
-- Phase 03 - ALL_FEATURES record, catalog regen, noLegal silent-path confirmed untouched.
-- Both triggers gated OFF by default (`fms.edgeGestureOverlay=off`, `fms.edgeGestureTile=off`) - opt-in per build pending Play submission.
+**Why:** what Play review actually accepts for risky FGS types is not derivable from code and saves re-research on the next FGS-affecting submission.
 
-**Visible strip (S0724) - owner-implemented 2026-06-26, BlockNeedUserTest.** Option "Show the left-edge gesture strip" (Settings -> Operations -> Screen gestures), default OFF; when ON the strip becomes opaque grey RGB(128,128,128) instead of transparent. Owner reworked `OverlayHostService.start(context, stripVisible)` + `EXTRA_STRIP_VISIBLE` + `overlayManager.setStripVisible` for live recolour (coexists with the S0672 guard/tag).
-
-**KEY DECISION - ADR-3 (owner, 2026-06-26): submit a VISIBLE grey strip to Play, NOT the invisible one** (revises the original ADR-1 "submit invisible as-is"). A visible overlay is exactly what `research/02` prescribed: it (a) defends the `specialUse` declaration (reviewer sees a user-perceptible strip, not an idle invisible service) and (b) satisfies the Android-15 visible-overlay FGS-start exemption. So the visible strip removes BOTH §1 stop-factors, not just softens them. The Play demo video + submission must show the visible grey strip - i.e. depend on S0724 being enabled in the submission build.
-
-**Why:** owner lost track across many Block* tickets; consolidation (option A) keeps S0672 as the single umbrella. Folded/Archived: S0671 (engine, into S0672), S0629 Verified, S0630/S0621/S0418. `S0680` (gesture crop+share) and `S0713` (existing QS tiles missing the `QS_TILE` bind action - parked then owner-implemented) stay separate.
-
-**How to apply (next steps when owner returns from the audit):**
-- DECISION UPDATE (2026-06-26, release-safety session): owner CONFIRMED flipping `fms.edgeGestureOverlay=on` for THIS release + submitting the visible grey strip (ADR-3), no longer deferred to a vague Release-B. Working-tree `gradle.properties` now: `screenCapture=on`, `edgeGestureOverlay=on`, `edgeGestureTile=off` (tile is the Play-rejection fallback only). Audit-mode parking still ongoing for unrelated tickets, but the capture-family release IS the active target.
-- DEVICE-TEST RESULTS (emulator-5554, v2.60.6261.106): QS-tile fallback path VERIFIED end-to-end (`cmd statusbar add-tile`/`click-tile` -> `S0672: QS tile clicked` -> ScreenCaptureConsentActivity -> disclosure -> MediaProjection consent -> entire-screen capture saved to Pictures/Screenshots -> ScreenCaptureService onDestroy clean; NO ForegroundServiceStartNotAllowedException, no LeakCanary leak). Overlay path confirmed present in the build via aapt2 badging (SYSTEM_ALERT_WINDOW + FOREGROUND_SERVICE_SPECIAL_USE + OverlayHostService specialUse PROPERTY). The emulator CANNOT drive the overlay-enable settings toggle (the "Left-edge screen gestures" collapsible group won't expand on the near-square AVD), the grey-strip recolour, or the TYPE_APPLICATION_OVERLAY swipe - those are the real-device Play-demo session. S0672/S0724 stay BlockNeedUserTest for that session. See [[reference_emulator_capture_family_testing]].
-- Ready external artifacts: `temp/release_external_actions_2026-06-26.md` (Play specialUse declaration text + demo-video script + S0639 Cloud Console restricted-scope checklist).
-- The remaining S0672 work is on-device: build with `-Pfms.edgeGestureOverlay=on` (+ S0724 visible-strip option ON, + optionally `-Pfms.edgeGestureTile=on`) on a real Android-15 device; verify the strip path (logcat `S0672: edge-gesture overlay strip started`) and tile path (`S0672: QS tile clicked`), then record the §6.2 demo video showing the VISIBLE grey strip -> swipe -> consent -> capture.
-- Agent CAN drive + record the video on a real device (build/install/consent/screenrecord); the one unknown is whether `adb input swipe` reaches the `TYPE_APPLICATION_OVERLAY` strip on real hardware (emulator can't) - test with one dry swipe first; if it fails, owner does just the physical swipe while the agent records.
-- SPECIAL_USE is still the most-rejected FGS type (S0672 §7); fallback if rejected = the QS-tile build (`-Pfms.edgeGestureTile=on`, no specialUse), strip back to noLegal.
-- Read-only Play access: [[reference_play_console_api_access]]. Build gotchas hit this session (chaquopy flag breaks noLegal compile; manifest `-P` injection needs `--rerun-tasks`): [[project_build_gotchas]]. Capture-suite flavor nuance: [[project_screencapture_nolegal_only]].
-- Decays fast: re-verify spec statuses + production state before acting.
+**How to apply:** when adding or altering an FGS type / Play-sensitive permission, reuse the visible-affordance + user-initiated-wording playbook above; check rollout state read-only via [[reference_play_console_api_access]].

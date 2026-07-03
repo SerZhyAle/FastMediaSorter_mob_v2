@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerSettingsManager
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
@@ -64,10 +65,18 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
+    // S0774: empty except on standard + noLegal; gates the screen-recording settings rows.
+    @Inject
+    lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
     private val defaultPlayerSettingsManager = DefaultPlayerSettingsManager()
 
     private val gestureActionPickerManager by lazy {
-        ScreenshotGestureActionPickerManager(capabilityAvailability)
+        // S0797: hide the "start screen recording" action where the capture engine is absent.
+        ScreenshotGestureActionPickerManager(
+            capabilityAvailability,
+            screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+        )
     }
 
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
@@ -79,7 +88,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
     private val captureManager by lazy {
         OperationsCaptureManager(
-            binding, viewModel, mediaCapabilities, recordAudioPermissionLauncher,
+            binding, viewModel, mediaCapabilities, screenVideoRecordingControllers.isNotEmpty(),
+            recordAudioPermissionLauncher, locationPermissionLauncher,
             { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel, this
         )
     }
@@ -101,6 +111,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         } else {
             binding.rowMicRecordingEnabled.setCheckedSilently(false)
             Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    // S0766: ACCESS_FINE_LOCATION consent for the opt-in camera geotag toggle. Persist the flag only
+    // on grant so coordinates are never embedded without explicit consent; revert the row on denial.
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = true))
+        } else {
+            binding.rowCameraGeotag.setCheckedSilently(false)
+            Snackbar.make(binding.root, R.string.camera_geotag_permission_denied, Snackbar.LENGTH_LONG).show()
         }
     }
 
@@ -127,6 +150,33 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         scheduledManager.setup()
         observeData()
         scheduledManager.checkAndExpandFromIntent()
+        checkAndExpandSectionFromIntent()
+    }
+
+    /**
+     * S0780: deep-link from the programs-panel "Configure" item - expand the Additional Programs group
+     * and scroll its header into view. The extra is consumed so it does not re-fire on rotation.
+     */
+    private fun checkAndExpandSectionFromIntent() {
+        val intent = requireActivity().intent
+        val sectionId = intent.getStringExtra(SettingsActivity.EXTRA_EXPAND_SECTION) ?: return
+        if (sectionId != SettingsActivity.SECTION_ADDITIONAL_PROGRAMS) return
+        intent.removeExtra(SettingsActivity.EXTRA_EXPAND_SECTION)
+        ensureSectionExpanded(sectionId)
+    }
+
+    /** S0780: expand the named Operations group and scroll its header into view (deep-link target). */
+    fun ensureSectionExpanded(sectionId: String) {
+        val header = when (sectionId) {
+            SettingsActivity.SECTION_ADDITIONAL_PROGRAMS -> binding.headerAdditionalPrograms
+            else -> return
+        }
+        if (!header.isVisible) return
+        header.setExpanded(true, notify = true)
+        header.post {
+            val bounds = android.graphics.Rect(0, 0, header.width, header.height)
+            header.requestRectangleOnScreen(bounds, false)
+        }
     }
 
     // S0535: unified collapsible groups - one orchestrator + consolidated store, default collapsed.
@@ -329,6 +379,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
         }
+        // S0755: main-window programs panel toggle.
+        binding.rowShowProgramsPanel.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showProgramsPanelInMainWindow = isChecked))
+        }
 
         // System apps group rows.
         // S0162: hide rotation row on non-sensor devices.
@@ -464,6 +520,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
+                            }
+                            if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow) {
+                                binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)
                             }
 
                             // SystemApps group (moved from Player tab).

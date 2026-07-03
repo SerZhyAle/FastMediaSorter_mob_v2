@@ -755,4 +755,8 @@
     <dimen name="stream_wait_label_margin_top">56dp</dimen>
     <dimen name="stream_wait_label_gap">8dp</dimen>
 
+    <!-- Travelling D-pad/TV focus frame (S0819): bold, rounded per owner. -->
+    <dimen name="focus_frame_stroke_width">3dp</dimen>
+    <dimen name="focus_frame_corner_radius">12dp</dimen>
+
 </resources>

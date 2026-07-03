@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
+import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -57,6 +58,15 @@ class BrowseEventHandler(
                     errorDisplayManager.showUndoSnackbar(operation)
                 }
             }
+            is BrowseEvent.OpenStreamPlayer -> {
+                // S0783: open a favorited live channel in the stream player. The Streams screen resolves
+                // the channel by URL and applies its own audio/video launch routing.
+                Timber.d("S0783: open favorited channel in stream player url=%s", event.url)
+                viewModel.inlineStop()
+                activity.startActivity(StreamsActivity.createPlayIntent(activity, event.url))
+                @Suppress("DEPRECATION")
+                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
             is BrowseEvent.NavigateToPlayer -> {
                 viewModel.inlineStop()
                 val activityHost = activity as? ComponentActivity
@@ -77,11 +87,19 @@ class BrowseEventHandler(
                     // the same context that previously primed the VR host.
                     val detectedStereoMode = file?.let { detectStereoForLaunch(it) }
                         ?.takeUnless { it == StereoMode.UNKNOWN }
+                    // S0820: launch straight into fullscreen for a video file when the setting is on
+                    // and this resource has no explicit saved showCommandPanel choice yet - an explicit
+                    // choice always wins over the new default.
+                    val enterFullscreenOnOpen = file?.type == MediaType.VIDEO &&
+                        viewModel.settings.value.openVideoInFullscreen &&
+                        viewModel.state.value.resource?.showCommandPanel == null
+                    Timber.d("S0820: enterFullscreenOnOpen=$enterFullscreenOnOpen file=${event.filePath}")
                     val playerIntent = createStandardPlayerIntent(
                         resourceId = resourceId,
                         fileIndex = event.fileIndex,
                         filePath = event.filePath,
                         detectedStereoMode = detectedStereoMode,
+                        enterFullscreen = enterFullscreenOnOpen,
                     )
 
                     Timber.d(
@@ -223,6 +241,7 @@ class BrowseEventHandler(
         fileIndex: Int,
         filePath: String,
         detectedStereoMode: StereoMode? = null,
+        enterFullscreen: Boolean = false,
     ): Intent = PlayerActivity.createPanelIntent(
         context = activity,
         resourceId = resourceId,
@@ -230,6 +249,7 @@ class BrowseEventHandler(
         skipAvailabilityCheck = skipAvailabilityCheck,
         initialFilePath = filePath,
         detectedStereoMode = detectedStereoMode,
+        enterFullscreen = enterFullscreen,
     )
 
     /**

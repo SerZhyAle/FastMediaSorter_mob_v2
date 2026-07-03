@@ -16,6 +16,9 @@
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- S0766: optional GPS geotagging of in-app camera photos (opt-in, default off). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 
     <!-- Network permissions -->
@@ -36,6 +39,9 @@
     <!-- required=false keeps Play Store availability for camera-less devices such as XR headsets. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <!-- S0766: geotag is an opt-in extra; required=false keeps GPS-less devices eligible on Play. -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
@@ -168,9 +174,6 @@
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
 
-        <!-- Google Cast SDK: auto-discover Chromecast devices on the LAN -->
-        <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME" android:value="com.sza.fastmediasorter.core.cast.CastOptionsProvider" />
-
         <!-- Disable automatic WorkManager initialization -->
         <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" android:exported="false" tools:node="merge">
             <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup" tools:node="remove" />
@@ -200,7 +203,7 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="stateHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
@@ -213,7 +216,8 @@
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
-        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter" />
+        <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
+        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="keyboardHidden" android:screenOrientation="portrait" android:theme="@style/Theme.FastMediaSorter" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
@@ -372,14 +376,9 @@
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>
 
-        <!-- Wearable Data Layer - receives sync requests and acks from the watch companion -->
-        <service android:name=".service.PhoneWearListenerService" android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:host="*" android:pathPrefix="/fms/network_sources" android:scheme="wear" />
-            </intent-filter>
-        </service>
+        <!-- Wearable Data Layer service moved to src/wearGms/AndroidManifest.xml (S0403): only
+             Wear-capable flavors register the GMS WearableListenerService; FOSS / non-Wear flavors
+             never declare it. Injected via build.gradle.kts addStaticManifestFile. -->
 
         <!-- Resource Launch Widget -->
         <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true" android:label="@string/widget_resource_launch_label" android:icon="@drawable/ic_widget_resource_launch">
@@ -469,6 +468,12 @@
         <!-- Camera Launch: transparent trampoline that opens the unified camera from a widget tap (S0568) -->
         <activity android:name=".widget.CameraLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- Take-photo edge-gesture trampoline (S0790-S0794): auto-captures a photo, then saves/routes it -->
+        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Screen-recording edge-gesture trampoline (S0797): hosts the MediaProjection consent + permission launchers -->
+        <activity android:name=".widget.ScreenRecordingLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>
@@ -546,6 +551,7 @@
              the .StandaloneTypelessPlayer alias; resolves the real media family and forwards explicitly
              to the matching specialized activity without loading heavy media SDKs. -->
         <activity android:name=".ui.player.dispatch.StandalonePlayerDispatcherActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+        <activity android:name=".ui.player.print.PrintDispatchActivity" android:exported="false" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().

@@ -24,7 +24,12 @@ class PrintShareFallbackManager(
      * FileProvider misconfiguration, security restriction) - caller then shows the plain
      * "print unavailable" notice.
      */
-    fun shareForPrint(file: File, displayName: String, mimeType: String): Boolean {
+    fun shareForPrint(
+        file: File,
+        displayName: String,
+        mimeType: String,
+        chooserTitle: String? = null
+    ): Boolean {
         return try {
             val uri = FileProvider.getUriForFile(
                 activity,
@@ -40,7 +45,7 @@ class PrintShareFallbackManager(
             }
             val chooser = Intent.createChooser(
                 sendIntent,
-                activity.getString(R.string.print_share_chooser_title)
+                chooserTitle ?: activity.getString(R.string.print_share_chooser_title)
             ).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             activity.startActivity(chooser)
             true

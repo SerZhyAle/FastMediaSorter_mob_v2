@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.File
 import java.net.HttpCookie
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,6 +58,12 @@ class CookieFileWriter @Inject constructor(
 
         val file = File(context.filesDir, "ytdlp_cookies_${System.currentTimeMillis()}.txt")
         file.deleteOnExit() // belt-and-suspenders if deleteCookieFile() is not called
+        // S0822: Netscape cookie-file expiry is an ABSOLUTE Unix timestamp (epoch seconds), but
+        // HttpCookie.maxAge is a RELATIVE remaining lifetime in seconds (EncryptedCookieStore
+        // reconstructs it as (expiresAtEpochMillis - now) / 1000). Emitting maxAge verbatim made
+        // yt-dlp read e.g. a one-year sessionid as expiring in 1971, drop it as stale, and fail
+        // authenticated Instagram fetches with "You need to log in" despite cookies=9.
+        val nowEpochSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
         file.bufferedWriter().use { writer ->
             writer.write("# Netscape HTTP Cookie File\n")
             writer.write("# https://curl.se/docs/http-cookies.html\n")
@@ -65,8 +72,9 @@ class CookieFileWriter @Inject constructor(
                 val includeSubdomain = if (cookie.domain?.startsWith('.') == true) "TRUE" else "FALSE"
                 val path = cookie.path ?: "/"
                 val secure = if (cookie.secure) "TRUE" else "FALSE"
-                // maxAge < 0 → session cookie; yt-dlp accepts 0 as session
-                val expiry = if (cookie.maxAge >= 0L) cookie.maxAge else 0L
+                // maxAge < 0 → session cookie; emit 0 (Netscape session marker). Otherwise turn
+                // the remaining lifetime into an absolute epoch-seconds expiry yt-dlp accepts.
+                val expiry = if (cookie.maxAge >= 0L) nowEpochSeconds + cookie.maxAge else 0L
                 val value = cookie.value ?: ""
                 writer.write("$domain\t$includeSubdomain\t$path\t$secure\t$expiry\t${cookie.name}\t$value\n")
             }

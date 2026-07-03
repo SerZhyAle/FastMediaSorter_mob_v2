@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.icon
 
 import androidx.annotation.DrawableRes
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -30,18 +30,12 @@ object ConnectionBadgeMapper {
         // Favorites pseudo-resource also needs no badge
         if (resource.id == -100L) return null
 
+        // S0890: deliberate divergences from ResourceTypeIconMap - local has no network badge,
+        // cloud refines to the provider glyph. Every other type follows the shared map.
         return when (resource.type) {
-            ResourceType.LOCAL -> null // local has no network badge
-            ResourceType.SMB   -> R.drawable.ic_resource_smb
-            ResourceType.SFTP  -> R.drawable.ic_resource_sftp
-            ResourceType.FTP   -> R.drawable.ic_resource_ftp
-            ResourceType.CLOUD -> when (resource.cloudProvider?.name) {
-                "GOOGLE_DRIVE" -> R.drawable.ic_provider_google_drive
-                "ONEDRIVE"     -> R.drawable.ic_provider_onedrive
-                "DROPBOX"      -> R.drawable.ic_provider_dropbox
-                else           -> R.drawable.ic_resource_cloud
-            }
-            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
+            ResourceType.LOCAL -> null
+            ResourceType.CLOUD -> CloudProviderIconMap.iconFor(resource.cloudProvider?.name)
+            else -> ResourceTypeIconMap.iconFor(resource.type)
         }
     }
 }

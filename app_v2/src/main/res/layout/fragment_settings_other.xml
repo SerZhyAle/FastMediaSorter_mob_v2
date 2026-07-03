@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
+            app:str_icon="@drawable/ic_translate"
             app:str_title="@string/enable_translation"
             app:str_subtitle="@string/setting_enable_translation_desc"
             app:str_showHelp="true"
@@ -129,6 +130,7 @@
             android:id="@+id/rowEnableOcr"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:str_icon="@drawable/ic_ocr"
             app:str_title="@string/enable_ocr" />
 
         <TextView

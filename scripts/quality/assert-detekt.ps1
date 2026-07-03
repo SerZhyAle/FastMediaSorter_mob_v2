@@ -36,7 +36,12 @@
 param(
     [ValidateSet('app_v2', 'wear')]
     [string]$Module,
-    [switch]$Gate
+    [switch]$Gate,
+    # S0826: diff-scoped mode. When set, a project-wide detekt failure is re-judged against
+    # only these files (repo-relative or absolute paths) - PASS if none of the NEW findings
+    # land in them. Lets post-change.ps1 close a change on an always-dirty tree without
+    # failing on other tickets' in-flight findings. Release/CI omit it for a full project gate.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -75,6 +80,54 @@ finally {
 
 if ($exit -eq 0) {
     Write-Host "assert-detekt: PASS [$scopeLabel] (no new findings; baselines hold)." -ForegroundColor Green
+    exit 0
+}
+
+# S0826: diff-scoped re-judgement. detekt failed project-wide; if the caller named the
+# changed files, the failure is re-judged against only them - PASS unless a NEW finding
+# actually lands in a changed file. Source the findings from the Checkstyle XML report
+# (a declared task output, restored on cache hits) - NOT stdout, whose per-finding lines
+# vanish on a build-cache hit and would yield a false PASS. detekt's baseline suppresses
+# old findings everywhere, so any file in the report is a genuinely-new finding; a file
+# outside the changed set is another ticket's in-flight WIP, not this change.
+if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+    $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
+    $findingFiles = [System.Collections.Generic.List[string]]::new()
+    foreach ($m in $reportModules) {
+        $reportPath = Join-Path $repoRoot "$m/build/reports/detekt/detekt.xml"
+        if (-not (Test-Path $reportPath)) { continue }
+        try {
+            [xml]$xml = Get-Content -LiteralPath $reportPath -Raw
+            $fileNodes = $xml.checkstyle.file
+            if ($null -ne $fileNodes) {
+                foreach ($fn in $fileNodes) {
+                    if ($fn.error) { $findingFiles.Add((([string]$fn.name) -replace '\\', '/').ToLower()) }
+                }
+            }
+        }
+        catch {
+            Write-Host "assert-detekt: WARN - could not parse $reportPath ($($_.Exception.Message)); not narrowing scope." -ForegroundColor Yellow
+        }
+    }
+    $normChanged = $ChangedFiles |
+        ForEach-Object { (([string]$_) -replace '\\', '/').Trim().Trim('.', '/').ToLower() } |
+        Where-Object { $_ }
+    $mine = $findingFiles | Where-Object {
+        $ff = $_
+        $matched = $false
+        foreach ($cf in $normChanged) { if ($ff -like "*$cf*") { $matched = $true; break } }
+        $matched
+    }
+    if (@($mine).Count -eq 0) {
+        Write-Host "assert-detekt: PASS [scoped] - $(@($findingFiles).Count) file(s) with new findings project-wide, none among changed files." -ForegroundColor Green
+        exit 0
+    }
+    Write-Host "assert-detekt: NEW findings in changed file(s):" -ForegroundColor Red
+    @($mine) | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
+    if ($Gate) {
+        Write-Host "assert-detekt: FAIL [scoped] - fix the detekt finding(s) in your changed files." -ForegroundColor Red
+        exit 1
+    }
     exit 0
 }
 

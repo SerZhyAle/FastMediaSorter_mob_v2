@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.res.Configuration
+import android.view.View
 import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.main.ResourceTab
+import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 
 /**
@@ -21,13 +24,25 @@ import timber.log.Timber
  */
 class MainResourceTabsManager(
     private val tabLayout: TabLayout,
+    private val collapsedStrip: View,
     private val configuration: Configuration,
     private val gate: RemoteSourceAvailabilityGate,
+    private val settingsRepository: SettingsRepository,
+    private val scope: CoroutineScope,
     private val onTabSelected: (ResourceTab) -> Unit,
     private val onFavoritesReselected: () -> Unit,
     private val getActiveTab: () -> ResourceTab,
     private val getPreviousTab: () -> ResourceTab?
 ) {
+
+    /** Drives the expanded(tabs) <-> collapsed(strip) state; mirrors the player copy/move panels. */
+    private val collapseManager = MainResourceTabsCollapseManager(
+        tabLayout = tabLayout,
+        collapsedStrip = collapsedStrip,
+        isPanelAvailable = { gate.anyRemoteEnabled() },
+        settingsRepository = settingsRepository,
+        scope = scope
+    )
 
     /** Tabs in display order, rebuilt by [createTabs]; the single source of truth for index<->tab. */
     private val builtTabs = mutableListOf<ResourceTab>()
@@ -64,6 +79,9 @@ class MainResourceTabsManager(
             tabLayout.tabMode = TabLayout.MODE_FIXED
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         }
+
+        // S0781: (re)bind per-tab long-press to collapse + apply the persisted collapsed state.
+        collapseManager.onTabsRebuilt()
     }
 
     private fun addTab(tab: ResourceTab, textRes: Int, iconRes: Int) {
@@ -100,6 +118,8 @@ class MainResourceTabsManager(
                 }
             }
         })
+        // S0781: wire the collapsed-strip tap + load persisted state. Once, like the tab listener.
+        collapseManager.install()
     }
 
     /** Index of [tab] in the built set; ALL (0) when the tab is not currently built. */

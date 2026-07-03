@@ -12,7 +12,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('app_v2', 'wear')]
-    [string]$Module
+    [string]$Module,
+    # S0848 incremental mode: forwarded to scan.ps1 so git last-touched is recomputed only
+    # for these files. Omitted -> full refresh (unchanged behaviour; render is unaffected).
+    [string[]]$ChangedFiles
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +25,12 @@ $scanScript   = Join-Path $repoRoot 'dev\CATALOG\scripts\scan.ps1'
 $renderScript = Join-Path $repoRoot 'dev\CATALOG\scripts\render.ps1'
 
 Write-Host "[catalog_sync] scan  -> $Module" -ForegroundColor Cyan
-& $scanScript -Module $Module
+if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
+    & $scanScript -Module $Module -ChangedFiles $ChangedFiles
+}
+else {
+    & $scanScript -Module $Module
+}
 if ($LASTEXITCODE -ne 0) { throw "scan.ps1 failed with exit $LASTEXITCODE" }
 
 Write-Host "[catalog_sync] render -> $Module" -ForegroundColor Cyan

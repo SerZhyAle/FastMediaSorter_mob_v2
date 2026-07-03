@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -37,6 +40,7 @@ class SettingsToggleRow @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     private val switchView: MaterialSwitch
+    private val iconView: ImageView
     private val titleView: TextView
     private val subtitleView: TextView
     private val helpIcon: ImageButton
@@ -79,6 +83,7 @@ class SettingsToggleRow @JvmOverloads constructor(
         LayoutInflater.from(context).inflate(R.layout.view_settings_toggle_row, this, true)
 
         switchView = findViewById(R.id.str_switch)
+        iconView = findViewById(R.id.str_icon)
         titleView = findViewById(R.id.str_title)
         subtitleView = findViewById(R.id.str_subtitle)
         helpIcon = findViewById(R.id.str_iconHelp)
@@ -125,6 +130,22 @@ class SettingsToggleRow @JvmOverloads constructor(
      */
     fun setSubtitle(@StringRes resId: Int) {
         setSubtitle(context.getText(resId))
+    }
+
+    /**
+     * Sets an optional leading feature icon. Passing `null` hides the icon slot (S0776).
+     */
+    fun setIcon(icon: Drawable?) {
+        iconView.setImageDrawable(icon)
+        iconView.visibility = if (icon == null) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Sets an optional leading feature icon from a drawable resource (S0776).
+     */
+    fun setIcon(@DrawableRes resId: Int) {
+        iconView.setImageResource(resId)
+        iconView.visibility = View.VISIBLE
     }
 
     /**
@@ -255,6 +276,8 @@ class SettingsToggleRow @JvmOverloads constructor(
             helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
             val initiallyChecked = typedArray.getBoolean(R.styleable.SettingsToggleRow_str_checked, false)
             switchView.isChecked = initiallyChecked
+            val iconRes = typedArray.getResourceId(R.styleable.SettingsToggleRow_str_icon, 0)
+            if (iconRes != 0) setIcon(iconRes)
         }
     }
 

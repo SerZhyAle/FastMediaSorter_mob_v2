@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
+        app:str_icon="@drawable/ic_audio"
         app:str_title="@string/support_audio_description"
         app:str_subtitle="@string/setting_support_audio_desc"
         app:str_showHelp="true"

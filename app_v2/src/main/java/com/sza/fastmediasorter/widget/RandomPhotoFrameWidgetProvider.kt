@@ -8,13 +8,17 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
+import android.widget.RemoteViews
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
-import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.worker.RandomPhotoFrameRefreshWorker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -23,8 +27,17 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         scheduleRefreshWork(context)
-        appWidgetIds.forEach { id ->
-            updateAppWidget(context, appWidgetManager, id)
+        // S0870: updateAppWidget runs a runBlocking Room+gzip+Gson round-trip (refresh()) - defer to
+        // IO and keep the broadcast alive via goAsync(), mirroring ScheduledTasksWidgetProvider (S0727).
+        val pendingResult = goAsync()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                appWidgetIds.forEach { id ->
+                    updateAppWidget(context, appWidgetManager, id)
+                }
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

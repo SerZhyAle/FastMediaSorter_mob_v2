@@ -41,6 +41,7 @@
 14. PowerShell Efficiency: always `-NoProfile`; batch `& { c1; if... }`; literal `$LASTEXITCODE`; use project wrappers.
 15. Lazy optimization: Hilt `dagger.Lazy<T>`; `<ViewStub>` for optional layouts; release player/media resources immediately when paused.
 16. Dead-weight hygiene: delete orphaned classes, resources, string keys, keep rules in same change.
+17. Detekt-clean-first: author touched `.kt` to pass detekt on the first build - log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding. On the always-dirty tree close via `scripts/post-change.ps1 -ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets); omit for release/CI.
 
 ## 6. Workflow Stages (5-Step Engineering Workflow)
 - Step 0 TASK DEFINITION: ask clarifying questions; output RU desc to `dev/`; UI gate checks.
@@ -60,7 +61,9 @@
 ## 8. Scripts Reference
 - Logs: `scripts/utils/search-log.ps1` (`-Summary`, `-Spam`, `-Errors`, `-Warnings`, `-Pattern`, `-Tag`).
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
-- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
+- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
+- Gate batch: `scripts/quality/assert-fast-gates.ps1` runs the fast static gates (no-ticket-logs, flavor-flags, neuroslop, deprecated-pm, listener-symmetry) in one process (`-IncludeDetekt` opt-in).
+- Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; add `-ScopeToFile` for per-change closure on the always-dirty tree (diff-scoped detekt + advisory project-wide ratchets).
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.
 - Tests: `scripts/utils/run-maestro-smoke.ps1`, `run-stress.ps1`, `setup_test_media.ps1`.
 - Utilities: `scripts/utils/commit-push.ps1`, `generate-changelog.ps1`, `check-typo-lint.ps1`, `set-android-string.ps1`, `add_to_dev_log.ps1`, `catalog_sync.ps1`.

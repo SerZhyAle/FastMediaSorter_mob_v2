@@ -188,6 +188,13 @@ class PhotoVideoStandaloneActivity :
             setDisplayedBitmap = { binding.photoView.setImageBitmap(it) },
             onDelete = { fileOperations.deleteCurrentFile() },
             onDrawModeChanged = { drawing -> setBottomPanelsHiddenForDraw(drawing) },
+            // S0837: overwrite the launched screenshot on a default save, but only while the editor is
+            // still on that file - a folder-paged neighbour must not be overwritten.
+            getOverwriteTargetUri = {
+                drawOverwriteSourceUri?.takeIf {
+                    viewModel.state.value.mediaFile?.contentUri == it.toString()
+                }
+            },
         ).also { drawSaveHelper = it }
 
     /**
@@ -431,8 +438,17 @@ class PhotoVideoStandaloneActivity :
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
 
+    /** S0763: cached 3D/VR master-toggle state; updated by the settings collector in [observeData]. */
+    private var cached3dVrEnabled = true
+
     /** One-shot guard so an [EXTRA_AUTO_ACTION] launch fires its action a single time. */
     private var autoActionConsumed = false
+
+    /**
+     * S0837: the launched source URI to overwrite on a default draw save. Non-null only for the
+     * screenshot OPEN_IN_DRAW gesture ([EXTRA_DRAW_OVERWRITE_SOURCE]); null otherwise.
+     */
+    private var drawOverwriteSourceUri: Uri? = null
 
     /** Set by the crop-and-share auto-action; consumed on crop success, cleared on crop cancel. */
     private var pendingShareAfterCrop = false
@@ -734,10 +750,21 @@ class PhotoVideoStandaloneActivity :
             }
             AUTO_ACTION_CROP_AND_SHARE -> {
                 autoActionConsumed = true
-                pendingShareAfterCrop = true
-                Timber.d("S0680: crop-and-share gesture auto-action entered")
-                cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
+                launchCropAndShareAutoAction()
             }
+        }
+    }
+
+    private fun launchCropAndShareAutoAction() {
+        lifecycleScope.launch {
+            Timber.d("S0680: crop-and-share auto-action start")
+            viewModel.ensureEditableImage()
+            if (viewModel.editableImageFile.value == null) {
+                pendingShareAfterCrop = false
+                return@launch
+            }
+            pendingShareAfterCrop = true
+            cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
         }
     }
 
@@ -763,6 +790,10 @@ class PhotoVideoStandaloneActivity :
             Timber.d("PhotoVideoStandalone: ignoring default-player probe URI, finishing")
             finish()
             return
+        }
+        // S0837: remember the screenshot source so a default draw save overwrites it in place.
+        if (intent?.getBooleanExtra(EXTRA_DRAW_OVERWRITE_SOURCE, false) == true) {
+            drawOverwriteSourceUri = uri
         }
         val displayName = try {
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -844,6 +875,10 @@ class PhotoVideoStandaloneActivity :
                 if (enabled) R.string.rotation_toggle_sensor_on_desc
                 else R.string.rotation_toggle_sensor_off_desc
             )
+        }
+        // S0763: keep the 3D/VR master-toggle snapshot current for the playback control dialog.
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            cached3dVrEnabled = !settings.disable3dVr
         }
     }
 
@@ -992,6 +1027,23 @@ class PhotoVideoStandaloneActivity :
         super.onPause()
     }
 
+    // S0893: API24+ multi-window release edge - release the video codec while backgrounded.
+    override fun onStop() {
+        super.onStop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) viewManager.onStopVideo()
+    }
+
+    // S0893: rebuild only the video path - audio/image/document types have nothing to recreate here.
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && viewModel.state.value.mediaType == MediaType.VIDEO) {
+            viewModel.state.value.mediaFile?.let { file ->
+                Timber.d("S0893: PhotoVideoStandalone onStart - rebuilding video released on background")
+                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+            }
+        }
+    }
+
     override fun onDestroy() {
         fullscreenManager?.exitFullscreen()
         fullscreenManager = null
@@ -1061,6 +1113,9 @@ class PhotoVideoStandaloneActivity :
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
+    // S0763: gate the dialog's "3D" section on the cached 3D/VR master-toggle state.
+    override val is3dVrEnabled: Boolean get() = cached3dVrEnabled
+
     override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
     override fun rememberStereoModeForCurrentFile(mode: StereoMode) =
         viewModel.rememberStereoModeForCurrentFile(mode)
@@ -1088,5 +1143,12 @@ class PhotoVideoStandaloneActivity :
         const val AUTO_ACTION_TRANSLATE = "translate"
         const val AUTO_ACTION_SEND_TO = "send_to"
         const val AUTO_ACTION_CROP_AND_SHARE = "crop_and_share"
+
+        /**
+         * S0837: set by the screenshot OPEN_IN_DRAW gesture. When true, a default save inside the draw
+         * editor overwrites the launched source URI in place instead of writing a new file; an explicit
+         * "Save as.." still creates a new file. Never set for photo-edit or the manual draw menu.
+         */
+        const val EXTRA_DRAW_OVERWRITE_SOURCE = "draw_overwrite_source"
     }
 }

@@ -82,6 +82,8 @@ class PlayerMediaLoaderManager(
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
     private var servicePlaybackPlayer: Player? = null
+    // S0851: guards the one-shot order-mode re-arm; reset when a new service player is bound (resume).
+    private var serviceOrderModeReappliedForTimeline = false
     private var audioPrefetchJob: Job? = null
     private var audioPrefetchPath: String? = null
 
@@ -122,6 +124,10 @@ class PlayerMediaLoaderManager(
             Timber.e(error, "PlayerMediaLoaderManager: Audio service playback error - code=${error.errorCode}")
             showMidiPlaybackErrorIfNeeded(error)
             onAudioServicePlaybackError(error)
+        }
+        override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            // S0851: re-arm the persisted order mode when the reconnected controller's timeline syncs.
+            reapplyServiceOrderModeOnTimelineReady()
         }
     }
 
@@ -744,8 +750,28 @@ class PlayerMediaLoaderManager(
             servicePlaybackPlayer?.removeListener(servicePlaybackListener)
             servicePlaybackPlayer = player
             servicePlaybackPlayer?.addListener(servicePlaybackListener)
+            // S0851: a new (reconnected) player starts with an unsynced timeline - re-arm the re-apply.
+            serviceOrderModeReappliedForTimeline = false
         }
         onAudioServicePlaybackChanged(player.isPlaying)
+    }
+
+    /**
+     * S0851: re-apply the persisted playback-order mode once the reconnected service timeline is
+     * populated. On resume a fresh MediaController first reports mediaItemCount <= 1, so the order
+     * mode applied during bind wrongly reads "single item" and disables ExoPlayer shuffle/loop; the
+     * resumed SHUFFLE then advances in list order. Runs at most once per binding (guard flag) so the
+     * shuffle order is not re-rolled on later timeline updates. Single-item timelines (S0549) never
+     * satisfy the multi-item check, so their app-level order model is left untouched.
+     */
+    private fun reapplyServiceOrderModeOnTimelineReady() {
+        val controller = audioServiceController ?: return
+        val player = controller.player ?: return
+        if (serviceOrderModeReappliedForTimeline || player.mediaItemCount <= 1) return
+        serviceOrderModeReappliedForTimeline = true
+        val mode = viewModel.state.value.playbackOrderMode
+        controller.applyPlaybackOrderMode(mode)
+        Timber.d("S0851: re-armed order mode $mode on timeline-ready, items=${player.mediaItemCount}")
     }
 
     private fun unbindServicePlaybackListener() {

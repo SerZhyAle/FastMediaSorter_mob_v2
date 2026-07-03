@@ -1,0 +1,20 @@
+{
+  "_note": "Hand-authored sidecar for S0815 icon legend. Meanings for most icons come from the app strings.xml (resolved via the inventory 'feature' field). This file holds ONLY surface headings, resource-type fallbacks (feature is an enum name, not a string key), and per-key overrides. Do not add a meaning here for an icon whose 'feature' already resolves to a good app string.",
+  "surfaces": {
+    "program-nav": { "en": "Program navigation", "ru": "Навигация по программам", "uk": "Навігація програмами" },
+    "send-to": { "en": "Send to..", "ru": "Отправить в..", "uk": "Надіслати до.." },
+    "player-command": { "en": "Player commands", "ru": "Команды плеера", "uk": "Команди плеєра" },
+    "settings-header": { "en": "Settings sections", "ru": "Разделы настроек", "uk": "Розділи налаштувань" },
+    "settings-row": { "en": "Settings options", "ru": "Параметры настроек", "uk": "Параметри налаштувань" }
+  },
+  "resourceTypes": {
+    "LOCAL": { "en": "Local storage", "ru": "Локальное хранилище", "uk": "Локальне сховище" },
+    "SMB": { "en": "SMB network share", "ru": "Сетевой ресурс SMB", "uk": "Мережевий ресурс SMB" },
+    "SFTP": { "en": "SFTP server", "ru": "Сервер SFTP", "uk": "Сервер SFTP" },
+    "FTP": { "en": "FTP server", "ru": "Сервер FTP", "uk": "Сервер FTP" },
+    "CLOUD": { "en": "Cloud storage", "ru": "Облачное хранилище", "uk": "Хмарне сховище" },
+    "HTTP_STREAM": { "en": "HTTP stream", "ru": "Поток HTTP", "uk": "Потік HTTP" },
+    "RTSP_STREAM": { "en": "RTSP stream", "ru": "Поток RTSP", "uk": "Потік RTSP" }
+  },
+  "overrides": {}
+}

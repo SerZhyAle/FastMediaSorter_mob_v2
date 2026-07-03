@@ -24,6 +24,7 @@ class MainMiniGameMenuManager(
     }
 
     companion object {
-        private const val MENU_ITEM_GAME = 2
+        // S0770: read by MainActivity to map this item to its new-window launch + "Remove" write.
+        const val MENU_ITEM_GAME = 2
     }
 }

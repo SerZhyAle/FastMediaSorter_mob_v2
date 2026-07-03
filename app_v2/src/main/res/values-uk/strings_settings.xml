@@ -240,4 +240,10 @@
     <string name="settings_statistics_collection_title">Збір статистики</string>
     <string name="settings_statistics_collection_summary">Збирається на вашому пристрої. Нічого не надсилається автоматично.</string>
     <string name="settings_category_additional_programs">Додаткові програми та сценарії</string>
+    <string name="settings_screen_recording_enable_title">Відеозапис екрана</string>
+    <string name="settings_screen_recording_enable_desc">Записувати весь екран у відеофайл зі звуком мікрофона. Під час запису доступні кнопка зупинки та таймер.</string>
+    <string name="setting_screen_recording_destination_title">Ресурс для записів екрана</string>
+    <string name="setting_screen_recording_destination_default_downloads">За замовчуванням: тека Downloads</string>
+    <string name="setting_open_video_in_fullscreen_title">Відкривати відеофайли в повноекранному режимі</string>
+    <string name="setting_open_video_in_fullscreen_desc">Відео, відкриті з браузера ресурсів, запускаються одразу в повноекранному режимі</string>
 </resources>

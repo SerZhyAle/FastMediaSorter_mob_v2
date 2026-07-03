@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.net.Uri
 import android.os.Looper
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,6 +42,12 @@ class BackgroundMusicManager @Inject constructor(
 ) {
     private var musicPlayer: ExoPlayer? = null
     private var isPlaying = false
+
+    // S0896: this manager is @Singleton (one instance backs every PlayerActivity window), so in
+    // split-screen/freeform multi-window two windows can share it. Reference-counted so the
+    // first-destroyed window's release() does not tear down the shared player/listeners out from
+    // under a surviving window still using them - only the last release() actually tears down.
+    private var activeHostCount = 0
 
     // State tracking
     private var currentMusicResourceId: Long? = null
@@ -93,10 +102,19 @@ class BackgroundMusicManager @Inject constructor(
     }
     
     private fun initializeInternal() {
+        // S0896: counts acquire calls regardless of whether the player already existed, so a
+        // matching release() (see below) always sees the correct number of active hosts.
+        activeHostCount++
         if (musicPlayer == null) {
-            musicPlayer = ExoPlayer.Builder(context).build().apply {
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA)
+                .build()
+            musicPlayer = ExoPlayer.Builder(context)
+                .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+                .build().apply {
                 // Don't set repeatMode or shuffle here - will be set when loading playlist
-                volume = 0.5f 
+                volume = 0.5f
                 prepare()
                 
                 // Add listener for auto-advance on track completion and error recovery
@@ -119,7 +137,8 @@ class BackgroundMusicManager @Inject constructor(
                         if (isIoError) {
                             Timber.w("BackgroundMusic: IO error on '$currentTrackPath' - silent skip (file moved/unavailable)")
                             currentTrackPath?.let { failedFiles.add(it) }
-                            scope.launch { skipToNextRandomTrack() }
+                            // Keep manager state mutations on Main.
+                            scope.launch(Dispatchers.Main) { skipToNextRandomTrack() }
                             return
                         }
                         Timber.e(error, "BackgroundMusic: ExoPlayer ERROR detected")
@@ -133,44 +152,42 @@ class BackgroundMusicManager @Inject constructor(
                             Timber.w("BackgroundMusic: Marked file as failed: $path (total failed: ${failedFiles.size})")
                         }
                         
-                        // Attempt recovery by skipping to next track
-                        scope.launch {
+                        // Attempt recovery by skipping to next track.
+                        // Main: touches manager state (currentTrackPath/failedFiles/
+                        // loadPlaylistJob/isPlaying) and musicPlayer directly (S0853).
+                        scope.launch(Dispatchers.Main) {
                             try {
                                 delay(500) // Small delay to let error state settle
                                 Timber.w("BackgroundMusic: Attempting auto-recovery - skipping to next track")
-                                
-                                withContext(Dispatchers.Main) {
-                                    musicPlayer?.stop()
-                                }
-                                
+
+                                musicPlayer?.stop()
+
                                 delay(200)
-                                
+
                                 // Skip to next track (excluding failed files)
                                 skipToNextRandomTrack()
-                                
+
                                 Timber.i("BackgroundMusic: Auto-recovery successful - playing next track")
-                                
+
                             } catch (e: Exception) {
                                 Timber.e(e, "BackgroundMusic: Auto-recovery failed, attempting full reinitialization")
-                                
+
                                 // Last resort: reinitialize player
-                                withContext(Dispatchers.Main) {
-                                    try {
-                                        this@BackgroundMusicManager.musicPlayer?.release()
-                                        this@BackgroundMusicManager.musicPlayer = null
-                                        this@BackgroundMusicManager.isPlaying = false
-                                        
-                                        // Reinitialize
-                                        this@BackgroundMusicManager.initialize()
-                                        
-                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restarted_after_error))
-                                        
-                                        Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
-                                        
-                                    } catch (reinitError: Exception) {
-                                        Timber.e(reinitError, "BackgroundMusic: Reinitialization failed - music playback disabled")
-                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restore_failed))
-                                    }
+                                try {
+                                    this@BackgroundMusicManager.musicPlayer?.release()
+                                    this@BackgroundMusicManager.musicPlayer = null
+                                    this@BackgroundMusicManager.isPlaying = false
+
+                                    // Reinitialize
+                                    this@BackgroundMusicManager.initialize()
+
+                                    this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restarted_after_error))
+
+                                    Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
+
+                                } catch (reinitError: Exception) {
+                                    Timber.e(reinitError, "BackgroundMusic: Reinitialization failed - music playback disabled")
+                                    this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restore_failed))
                                 }
                             }
                         }
@@ -184,6 +201,13 @@ class BackgroundMusicManager @Inject constructor(
     }
 
     fun updateState(state: PlayerViewModel.PlayerState) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            scope.launch(Dispatchers.Main) {
+                updateState(state)
+            }
+            return
+        }
+
         val resourceId = state.slideshowMusicResourceId
         val enableBackgroundMusic = state.enableSlideshowBackgroundMusic
         val slideshowActive = state.isSlideShowActive
@@ -286,19 +310,16 @@ class BackgroundMusicManager @Inject constructor(
                 val audioFiles = files.filter { it.type == MediaType.AUDIO }
                 
                 if (audioFiles.isNotEmpty()) {
-                    // Store available files for skip functionality
-                    availableAudioFiles = audioFiles
-                    
                     // Determine adaptive repeat mode
                     val isSingleFile = audioFiles.size == 1
-                    
+
                     // CRITICAL FIX: Select ONE random file instead of loading entire playlist
                     val randomFile = audioFiles.random()
-                    currentTrackPath = randomFile.path
                     Timber.d("BackgroundMusic: Selected random file: ${randomFile.name} from ${audioFiles.size} files")
+                    // Commit manager state only after the media item is ready, on Main.
                     
                     // Check if job was cancelled before starting network operation
-                    if (!coroutineContext.isActive) {
+                    if (!isActive) {
                         Timber.d("BackgroundMusic: Job cancelled before download")
                         return@launch
                     }
@@ -346,9 +367,11 @@ class BackgroundMusicManager @Inject constructor(
                     if (mediaItem != null) {
                         // Extract track name without path and extension
                         val trackName = randomFile.name.substringBeforeLast(".")
-                        currentTrackName = trackName // Save for resume display
-                        
+
                         withContext(Dispatchers.Main) {
+                            availableAudioFiles = audioFiles
+                            currentTrackPath = randomFile.path
+                            currentTrackName = trackName // Save for resume display
                             currentPlaylist = listOf(mediaItem)
                             // Only set to player if player exists
                             musicPlayer?.setMediaItem(mediaItem)
@@ -369,6 +392,10 @@ class BackgroundMusicManager @Inject constructor(
                         onMusicErrorListener?.invoke(context.getString(R.string.no_music_files))
                     }
                 }
+            } catch (e: CancellationException) {
+                // S0896: loadPlaylistJob?.cancel() (updateState clearing the playlist, or a rapid
+                // skipToNextRandomTrack) is normal teardown, not a failure - don't log it as one.
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "BackgroundMusic: Failed to load playlist")
             }
@@ -380,6 +407,13 @@ class BackgroundMusicManager @Inject constructor(
      * Called when user taps on the track name display.
      */
     fun skipToNextRandomTrack() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            scope.launch(Dispatchers.Main) {
+                skipToNextRandomTrack()
+            }
+            return
+        }
+
         if (availableAudioFiles.isEmpty()) {
             Timber.d("BackgroundMusic: No audio files available for skip")
             return
@@ -404,9 +438,18 @@ class BackgroundMusicManager @Inject constructor(
             availableAudioFiles.filter { it.path !in failedFiles }
         }
         
-        val randomFile = candidateFiles.random()
-        currentTrackPath = randomFile.path
-        
+        val randomFile = candidateFiles.randomOrNull()
+        if (randomFile == null) {
+            Timber.w("BackgroundMusic: No candidate track left after filtering failures - clearing failed list")
+            musicPlayer?.stop()
+            isPlaying = false
+            currentTrackName = null
+            failedFiles.clear()
+            onTrackChangedListener?.invoke(null)
+            onMusicErrorListener?.invoke(context.getString(R.string.no_music_files))
+            return
+        }
+
         Timber.d("BackgroundMusic: Skipping to random track: ${randomFile.name}")
         
         loadPlaylistJob?.cancel()
@@ -416,9 +459,10 @@ class BackgroundMusicManager @Inject constructor(
                 
                 if (mediaItem != null) {
                     val trackName = randomFile.name.substringBeforeLast(".")
-                    currentTrackName = trackName // Save for resume display
-                    
+
                     withContext(Dispatchers.Main) {
+                        currentTrackPath = randomFile.path
+                        currentTrackName = trackName // Save for resume display
                         currentPlaylist = listOf(mediaItem)
                         musicPlayer?.setMediaItem(mediaItem)
                         // Adaptive repeat mode: loop single file, auto-advance for multiple files
@@ -430,6 +474,9 @@ class BackgroundMusicManager @Inject constructor(
                         onTrackChangedListener?.invoke(trackName)
                     }
                 }
+            } catch (e: CancellationException) {
+                // S0896: same loadPlaylistJob teardown case as loadAndSetPlaylist() above.
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "BackgroundMusic: Failed to skip track")
             }
@@ -486,40 +533,39 @@ class BackgroundMusicManager @Inject constructor(
         healthCheckJob = scope.launch {
             while (isActive) {
                 delay(60_000) // Check every 60 seconds
-                
-                if (isPlaying) {
-                    val player = musicPlayer
-                    if (player == null) {
-                        Timber.w("BackgroundMusic: Health check - player is null while isPlaying=true")
-                        isPlaying = false
-                        continue
-                    }
-                    
-                    // ExoPlayer MUST be accessed from Main thread
-                    withContext(Dispatchers.Main) {
-                        val playbackState = player.playbackState
-                        val isActuallyPlaying = player.isPlaying
-                        
-                        if (playbackState == Player.STATE_IDLE && isPlaying) {
-                            Timber.w("BackgroundMusic: Health check FAILED - player in IDLE state while should be playing")
-                            Timber.w("BackgroundMusic: Attempting recovery via skip to next track")
-                            
-                            try {
-                                skipToNextRandomTrack()
-                            } catch (e: Exception) {
-                                Timber.e(e, "BackgroundMusic: Health check recovery failed")
-                            }
-                        } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
-                            Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
-                            Timber.w("BackgroundMusic: Attempting to resume playback")
-                            
-                            try {
-                                player.play()
-                            } catch (e: Exception) {
-                                Timber.e(e, "BackgroundMusic: Failed to resume playback")
-                            }
+
+                // Read and mutate manager state only on Main.
+                withContext(Dispatchers.Main) {
+                    if (isPlaying) {
+                        val player = musicPlayer
+                        if (player == null) {
+                            Timber.w("BackgroundMusic: Health check - player is null while isPlaying=true")
+                            isPlaying = false
                         } else {
-                            Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")
+                            val playbackState = player.playbackState
+                            val isActuallyPlaying = player.isPlaying
+
+                            if (playbackState == Player.STATE_IDLE && isPlaying) {
+                                Timber.w("BackgroundMusic: Health check FAILED - player in IDLE state while should be playing")
+                                Timber.w("BackgroundMusic: Attempting recovery via skip to next track")
+
+                                try {
+                                    skipToNextRandomTrack()
+                                } catch (e: Exception) {
+                                    Timber.e(e, "BackgroundMusic: Health check recovery failed")
+                                }
+                            } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
+                                Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
+                                Timber.w("BackgroundMusic: Attempting to resume playback")
+
+                                try {
+                                    player.play()
+                                } catch (e: Exception) {
+                                    Timber.e(e, "BackgroundMusic: Failed to resume playback")
+                                }
+                            } else {
+                                Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")
+                            }
                         }
                     }
                 }
@@ -529,15 +575,25 @@ class BackgroundMusicManager @Inject constructor(
     }
     
     fun release() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            scope.launch(Dispatchers.Main) {
+                release()
+            }
+            return
+        }
+
+        activeHostCount = (activeHostCount - 1).coerceAtLeast(0)
+        if (activeHostCount > 0) {
+            // S0896: another window still owns this singleton - do not tear down its player/listeners.
+            Timber.d("S0896: BackgroundMusicManager release() skipped - $activeHostCount other host(s) still active")
+            return
+        }
+
         healthCheckJob?.cancel()
         loadPlaylistJob?.cancel()
-        
-        // ExoPlayer MUST be released on Main thread
-        scope.launch(Dispatchers.Main) {
-            musicPlayer?.release()
-            musicPlayer = null
-        }
-        
+
+        musicPlayer?.release()
+        musicPlayer = null
         isPlaying = false
         
         // Reset state to ensure fresh load next time

@@ -202,7 +202,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         )
     }
 
-    private val translationManager: TranslationManager by lazy {
+    // S0872: explicit Lazy so onDestroy can release it only when it was actually created.
+    private val translationManagerDelegate = lazy {
         TranslationManager(
             context = this,
             settingsRepository = settingsRepository,
@@ -226,8 +227,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             }
         )
     }
+    private val translationManager: TranslationManager by translationManagerDelegate
 
-    private val textViewerManager: TextViewerManager by lazy {
+    private val textViewerManagerDelegate = lazy {
         TextViewerManager(
             context = this,
             root = binding.root,
@@ -248,6 +250,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             translationManager = translationManager
         )
     }
+    private val textViewerManager: TextViewerManager by textViewerManagerDelegate
 
     private val pagingControls: StandalonePagingControlsBinder by lazy {
         StandalonePagingControlsBinder(
@@ -277,7 +280,6 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     }
 
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
-        Timber.d("S0613: standalone text print dispatched via Send-to receiver")
         documentPrintManager.printCurrentFile(mediaFile)
         return true
     }
@@ -547,7 +549,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     }
 
     override fun onDestroy() {
-        textViewerManager.release()
+        if (textViewerManagerDelegate.isInitialized()) textViewerManager.release()
+        // S0872: TextViewerManager.release() never touches translationManager - release it here, only if built.
+        if (translationManagerDelegate.isInitialized()) translationManager.release()
         super.onDestroy()
     }
 }

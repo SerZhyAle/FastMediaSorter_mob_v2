@@ -68,8 +68,13 @@ if ($updated -match '^\d{4}-\d{2}-\d{2}') {
 
 Push-Location $root
 try {
-    # 1. git commits whose patch contains the spec id marker
-    $rawCommits = git log --since="$gitSince" -S "$Id" --pretty=format:"%H|%ai|%s" 2>$null
+    # 1. git commits whose patch contains the spec id marker.
+    # Exclude chronicle/meta paths: dev/CHANGELOG.md logs "Scaffold strategic spec skeleton
+    # Sxxxx" for every new draft, and .claude/ memory+skill files cite ids as examples -
+    # both flagged fresh Drafts as DRIFT with zero code changed (false positive, 2026-07-03).
+    $rawCommits = git log --since="$gitSince" -S "$Id" --pretty=format:"%H|%ai|%s" -- `
+        '.' ':(exclude)dev/CHANGELOG.md' ':(exclude).claude' ':(exclude)PLAN' `
+        ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md' 2>$null
     $commits = @()
     if ($rawCommits) {
         $commits = @($rawCommits | ForEach-Object {

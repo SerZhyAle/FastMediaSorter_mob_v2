@@ -331,23 +331,104 @@
 
         </LinearLayout>
 
+        <!-- S0809: shared collapsed-panels row. Each collapsed panel (programs / streams / filter) renders a
+             compact chip here, side by side; tapping a chip expands that panel back to its place. When nothing
+             is collapsed all chips are gone and the horizontal row measures to zero height (no gap). -->
+        <LinearLayout
+            android:id="@+id/mainCollapsedPanelsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/main_panel_item_spacing">
+
+            <TextView
+                android:id="@+id/chipProgramsCollapsed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/main_panel_item_spacing"
+                android:background="@color/main_programs_panel_accent"
+                android:clickable="true"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="@string/main_programs_panel_strip"
+                android:textColor="@color/main_panel_accent_foreground"
+                android:textSize="@dimen/text_size_small"
+                android:visibility="gone"
+                app:drawableEndCompat="@drawable/ic_double_arrow_down"
+                app:drawableStartCompat="@drawable/ic_apps"
+                app:drawableTint="@color/main_panel_accent_foreground" />
+
+            <TextView
+                android:id="@+id/chipStreamsCollapsed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/main_panel_item_spacing"
+                android:background="@color/main_streams_panel_accent"
+                android:clickable="true"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="@string/main_streams_panel_strip"
+                android:textColor="@color/main_panel_accent_foreground"
+                android:textSize="@dimen/text_size_small"
+                android:visibility="gone"
+                app:drawableEndCompat="@drawable/ic_double_arrow_down"
+                app:drawableStartCompat="@drawable/ic_cast"
+                app:drawableTint="@color/main_panel_accent_foreground" />
+
+            <TextView
+                android:id="@+id/chipFilterCollapsed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/main_filter_panel_accent"
+                android:clickable="true"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="@string/main_resource_type_filter_strip"
+                android:textColor="@color/main_panel_accent_foreground"
+                android:textSize="@dimen/text_size_small"
+                android:visibility="gone"
+                app:drawableEndCompat="@drawable/ic_double_arrow_down"
+                app:drawableStartCompat="@drawable/ic_tune"
+                app:drawableTint="@color/main_panel_accent_foreground" />
+
+        </LinearLayout>
+
+        <!-- S0755/S0756: programs + streams panels, above the resource-type tabs and the resource list. -->
+        <include
+            android:id="@+id/mainProgramsPanel"
+            layout="@layout/view_main_programs_panel" />
+
+        <include
+            android:id="@+id/mainStreamsPanel"
+            layout="@layout/view_main_streams_panel" />
+
         <!-- Resource Type Tabs -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
+            android:background="@color/main_filter_panel_accent"
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabIndicatorFullWidth="false"
-            app:tabIconTint="?attr/colorControlNormal"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorControlNormal"
+            app:tabIconTint="@color/main_panel_accent_foreground"
+            app:tabSelectedTextColor="@color/main_panel_accent_foreground"
+            app:tabTextColor="@color/main_panel_accent_foreground"
             app:tabInlineLabel="@bool/is_tab_inline"
-            app:tabIndicatorColor="?attr/colorPrimary" />
+            app:tabIndicatorColor="@color/main_panel_accent_foreground" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -536,6 +617,44 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:contentDescription="@string/scan_progress_indicator"
             android:indeterminate="true" />
+    </LinearLayout>
+
+    <!-- S0777: bottom now-playing mini-control for an AUDIO stream played inline from the streams panel.
+         Mirrors the Streams screen control; visibility owned by StreamInlineAudioManager. -->
+    <LinearLayout
+        android:id="@+id/mainStreamMiniControl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="?attr/colorSurface"
+        android:elevation="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvMainMiniTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorOnSurface" />
+
+        <ImageButton
+            android:id="@+id/btnMainMiniPlayStop"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_stop"
+            app:tint="?attr/colorControlNormal"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:nextFocusUp="@id/rvResources"
+            android:contentDescription="@string/streams_stop" />
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

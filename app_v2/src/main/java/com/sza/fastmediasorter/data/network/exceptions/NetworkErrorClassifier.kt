@@ -20,114 +20,204 @@ import javax.net.ssl.SSLException
  */
 object NetworkErrorClassifier {
 
+    data class ClassificationResult(
+        val exception: NetworkException,
+        val usedFallback: Boolean
+    )
+
     /**
      * Map any [Throwable] to its closest [NetworkException] subtype.
      * If the throwable is already a [NetworkException] it is returned as-is.
      */
-    fun classify(throwable: Throwable): NetworkException {
-        if (throwable is LocalNetworkPermissionDeniedException) return throwable
-        if (throwable is NetworkException) return throwable
+    fun classify(throwable: Throwable): NetworkException =
+        classifyInternal(throwable, logUnclassified = true).exception
+
+    /**
+     * Same subtype mapping as [classify], but without emitting the fallback
+     * "unclassified exception" warning as a side effect.
+     */
+    fun classifySilently(throwable: Throwable): NetworkException =
+        classifyInternal(throwable, logUnclassified = false).exception
+
+    /**
+     * Silent classification plus a flag telling the caller whether the mapping
+     * had to fall back to the generic recoverable bucket.
+     */
+    fun classifyDetailedSilently(throwable: Throwable): ClassificationResult =
+        classifyInternal(throwable, logUnclassified = false)
+
+    private fun classifyInternal(
+        throwable: Throwable,
+        logUnclassified: Boolean
+    ): ClassificationResult {
+        if (throwable is LocalNetworkPermissionDeniedException) {
+            return ClassificationResult(throwable, usedFallback = false)
+        }
+        if (throwable is NetworkException) {
+            return ClassificationResult(throwable, usedFallback = false)
+        }
 
         return when {
             // OS-level socket block for missing ACCESS_LOCAL_NETWORK (Android 17+)
             throwable is SecurityException &&
                     (throwable.message?.contains("ACCESS_LOCAL_NETWORK", ignoreCase = true) == true ||
                      throwable.message?.contains("local network permission", ignoreCase = true) == true) ->
-                LocalNetworkPermissionDeniedException(
-                    "Local network access denied by OS: ${throwable.message}",
-                    throwable
+                ClassificationResult(
+                    LocalNetworkPermissionDeniedException(
+                        "Local network access denied by OS: ${throwable.message}",
+                        throwable
+                    ),
+                    usedFallback = false
                 )
 
             throwable is SecurityException &&
                     (throwable.message?.contains("android.permission.ACCESS_LOCAL_NETWORK", ignoreCase = true) == true) ->
-                LocalNetworkPermissionDeniedException(
-                    "Local network access denied by OS: ${throwable.message}",
-                    throwable
+                ClassificationResult(
+                    LocalNetworkPermissionDeniedException(
+                        "Local network access denied by OS: ${throwable.message}",
+                        throwable
+                    ),
+                    usedFallback = false
                 )
 
             // Timeout
             throwable is SocketTimeoutException ->
-                NetworkTimeoutException("Connection timeout: ${throwable.message}", throwable)
+                ClassificationResult(
+                    NetworkTimeoutException("Connection timeout: ${throwable.message}", throwable),
+                    usedFallback = false
+                )
 
             // DNS resolution
             throwable is UnknownHostException ->
-                NetworkTimeoutException("Cannot resolve host: ${throwable.message}", throwable)
+                ClassificationResult(
+                    NetworkTimeoutException("Cannot resolve host: ${throwable.message}", throwable),
+                    usedFallback = false
+                )
 
             // Unreachable / refused
             throwable is ConnectException || throwable is NoRouteToHostException ->
-                NetworkTimeoutException("Server unreachable: ${throwable.message}", throwable)
+                ClassificationResult(
+                    NetworkTimeoutException("Server unreachable: ${throwable.message}", throwable),
+                    usedFallback = false
+                )
 
             // SSL/TLS
             throwable is SSLException ->
-                NetworkAccessDeniedException("SSL error: ${throwable.message}", throwable)
+                ClassificationResult(
+                    NetworkAccessDeniedException("SSL error: ${throwable.message}", throwable),
+                    usedFallback = false
+                )
 
             // File not found
             throwable is FileNotFoundException ->
-                NetworkFileNotFoundException(throwable.message ?: "File not found", throwable)
+                ClassificationResult(
+                    NetworkFileNotFoundException(throwable.message ?: "File not found", throwable),
+                    usedFallback = false
+                )
 
             // SMB
             throwable.isSmbAccessDenied() ->
-                NetworkAccessDeniedException("SMB access denied: ${throwable.extractSmbStatus()}", throwable)
+                ClassificationResult(
+                    NetworkAccessDeniedException("SMB access denied: ${throwable.extractSmbStatus()}", throwable),
+                    usedFallback = false
+                )
 
             throwable.isSmbNotFound() ->
-                NetworkFileNotFoundException("SMB path not found: ${throwable.extractSmbStatus()}", throwable)
+                ClassificationResult(
+                    NetworkFileNotFoundException("SMB path not found: ${throwable.extractSmbStatus()}", throwable),
+                    usedFallback = false
+                )
 
             // Message-based heuristics (fallback)
             throwable.messageContains("access denied", "permission denied", "authentication", "STATUS_ACCESS_DENIED", "401", "403") ->
-                NetworkAccessDeniedException(throwable.message ?: "Access denied", throwable)
+                ClassificationResult(
+                    NetworkAccessDeniedException(throwable.message ?: "Access denied", throwable),
+                    usedFallback = false
+                )
 
             throwable.messageContains("not found", "STATUS_OBJECT_NAME_NOT_FOUND", "STATUS_OBJECT_PATH_NOT_FOUND", "404") ->
-                NetworkFileNotFoundException(throwable.message ?: "Not found", throwable)
+                ClassificationResult(
+                    NetworkFileNotFoundException(throwable.message ?: "Not found", throwable),
+                    usedFallback = false
+                )
 
             throwable.messageContains("rate limit", "rate_limit", "too many requests", "429") ->
-                NetworkRateLimitException(
-                    retryAfterSeconds = throwable.extractRetryAfter(),
-                    message = throwable.message ?: "Rate limit exceeded",
-                    cause = throwable
+                ClassificationResult(
+                    NetworkRateLimitException(
+                        retryAfterSeconds = throwable.extractRetryAfter(),
+                        message = throwable.message ?: "Rate limit exceeded",
+                        cause = throwable
+                    ),
+                    usedFallback = false
                 )
 
             throwable.extractHttpStatus() in 500..599 ->
-                NetworkServerErrorException(
-                    statusCode = throwable.extractHttpStatus(),
-                    message = throwable.message ?: "Server error",
-                    cause = throwable
+                ClassificationResult(
+                    NetworkServerErrorException(
+                        statusCode = throwable.extractHttpStatus(),
+                        message = throwable.message ?: "Server error",
+                        cause = throwable
+                    ),
+                    usedFallback = false
                 )
 
             throwable.messageContains("server error", "internal server error", "service unavailable", "bad gateway", "500", "502", "503", "504") ->
-                NetworkServerErrorException(message = throwable.message ?: "Server error", cause = throwable)
+                ClassificationResult(
+                    NetworkServerErrorException(message = throwable.message ?: "Server error", cause = throwable),
+                    usedFallback = false
+                )
 
             throwable.messageContains("timeout", "timed out") ->
-                NetworkTimeoutException(throwable.message ?: "Timeout", throwable)
+                ClassificationResult(
+                    NetworkTimeoutException(throwable.message ?: "Timeout", throwable),
+                    usedFallback = false
+                )
 
             throwable.messageContains("connection reset", "connection closed", "broken pipe", "connection lost") ->
-                NetworkConnectionLostException(throwable.message ?: "Connection lost", throwable)
+                ClassificationResult(
+                    NetworkConnectionLostException(throwable.message ?: "Connection lost", throwable),
+                    usedFallback = false
+                )
 
             throwable.messageContains("unsupported", "not implemented") ->
-                NetworkUnsupportedOperationException(throwable.message ?: "Unsupported operation", throwable)
+                ClassificationResult(
+                    NetworkUnsupportedOperationException(throwable.message ?: "Unsupported operation", throwable),
+                    usedFallback = false
+                )
 
             // Recurse into cause chain - handles wrapped exceptions where a generic Exception
             // hides a typed one (e.g. IOException("Server unreachable", SocketTimeoutException))
             // so that the caller gets a specific subtype instead of the default fallback.
             throwable.cause.let { c -> c != null && c !== throwable } -> {
-                val causeResult = classify(throwable.cause!!)
-                if (causeResult !is NetworkConnectionLostException) {
+                val causeResult = classifyInternal(throwable.cause!!, logUnclassified)
+                if (causeResult.exception !is NetworkConnectionLostException || !causeResult.usedFallback) {
                     // Cause yielded a more specific classification - use it
                     causeResult
                 } else {
-                    Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
-                    NetworkConnectionLostException(
-                        "Network error: ${throwable.message ?: throwable.javaClass.simpleName}",
-                        throwable
+                    if (logUnclassified) {
+                        Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
+                    }
+                    ClassificationResult(
+                        NetworkConnectionLostException(
+                            "Network error: ${throwable.message ?: throwable.javaClass.simpleName}",
+                            throwable
+                        ),
+                        usedFallback = true
                     )
                 }
             }
 
             // Default: wrap as connection-lost (safest recoverable assumption)
             else -> {
-                Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
-                NetworkConnectionLostException(
-                    "Network error: ${throwable.message ?: throwable.javaClass.simpleName}",
-                    throwable
+                if (logUnclassified) {
+                    Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
+                }
+                ClassificationResult(
+                    NetworkConnectionLostException(
+                        "Network error: ${throwable.message ?: throwable.javaClass.simpleName}",
+                        throwable
+                    ),
+                    usedFallback = true
                 )
             }
         }

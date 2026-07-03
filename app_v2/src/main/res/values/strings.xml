@@ -56,7 +56,7 @@
     <string name="no_files_selected">No files selected</string>
     <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
     <string name="warning_files_may_remain_in_source">Some files may still be in the source folder. Please check both source and destination. Affected: %1$d.</string>
-    <string name="no_supported_files_in_resource">No supported file types in resource</string>
+    <string name="no_supported_files_in_resource">No supported file types here. More selective than we look.</string>
     <string name="process_started">Process started..</string>
     <string name="long_operation_started">Operation in progress, please wait..</string>
     <string name="please_wait">Please wait..</string>
@@ -143,7 +143,7 @@
     <string name="clear_all">Clear All</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
-    <string name="copy_resource">Duplicate Folder Settings</string>
+    <string name="copy_resource">Duplicate Resource Settings</string>
     <string name="exit">Exit</string>
     <string name="sort">Sort</string>
     <string name="toggle_view">View</string>
@@ -156,8 +156,8 @@
     <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="scroll_page_up">Page up</string>
     <string name="scroll_page_down">Page down</string>
-    <string name="empty_state_message">Welcome! 🎉\n\nStart by configuring app settings and adding local device folders to this screen</string>
-    <string name="no_media_files_found">No media files found in this folder</string>
+    <string name="empty_state_message">Welcome! This screen is empty - exactly how we shipped it.\n\nAdd some device folders here and open Settings to get things rolling.</string>
+    <string name="no_media_files_found">No media files in this folder. We looked everywhere, honest.</string>
     <string name="recent_media">Recent Media</string>
     <string name="virtual_all_music">All Music</string>
     <string name="virtual_all_video">All Videos</string>
@@ -175,12 +175,12 @@
     <string name="virtual_resource_added">Resource "%1$s" added</string>
     <string name="rescan_all_virtual_warning_title">Rescan All Resources</string>
     <string name="rescan_all_virtual_warning_message">The list includes virtual aggregate folders (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
-    <string name="no_files_match_criteria">No files match your criteria</string>
+    <string name="no_files_match_criteria">No files match your filters. The bar was set high.</string>
     <string name="connection_failed">Connection failed</string>
     <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test..</string>
     <string name="error_subfolder_does_not_exist">Subfolder \'%1$s\' does not exist on share \'%2$s\'</string>
     <string name="retry">Retry</string>
-    <string name="select_resource_type">Select Folder Type</string>
+    <string name="select_resource_type">Select Resource Type</string>
 
     <!-- Connection Error Messages -->
     <string name="error_connection_timeout">Cannot connect to \"%1$s\" - server %2$s is not responding</string>
@@ -445,12 +445,9 @@ Close the player and try again.</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
     <string name="register_as_destination">Mark for quick sort</string>
 
-    <!-- Edit Folder -->
-    <string name="edit_resource">Edit Folder</string>
-    <string name="edit_resource_with_type">Edit Folder (%1$s)</string>
-    <!-- Add Folder -->
-    <string name="add_resource_title">Add Folder</string>
-    <string name="copy_resource_title">Duplicate Folder Settings</string>
+    <!-- Resource editor (add / duplicate / type) -->
+    <string name="add_resource_title">Add Resource</string>
+    <string name="copy_resource_title">Duplicate Resource Settings</string>
     <string name="resource_type_local">Local</string>
     <string name="resource_type_smb">Network folder SMB</string>
     <string name="resource_type_sftp">SFTP</string>
@@ -458,7 +455,7 @@ Close the player and try again.</string>
     <string name="resource_type_cloud">Cloud</string>
     <string name="scanning_progress">Scanning: %s</string>
     <string name="filters_active">Filters: %s</string>
-    <string name="add_sftp_ftp_title">Add S/FTP Folder</string>
+    <string name="add_sftp_ftp_title">Add S/FTP Resource</string>
     <string name="all_resources_available">All resources available: %1$d writable, %2$d read-only</string>
     <string name="all_resources_unavailable">All resources unavailable</string>
     <string name="resources_checked">Resources checked: %1$d available (%2$d unavailable)</string>
@@ -474,16 +471,14 @@ Close the player and try again.</string>
     <string name="cd_subtitle_track">Subtitles</string>
     <string name="track_unknown">Track %d</string>
     <string name="repeat_mode">Repeat</string>
-    <string name="resource_name">Folder Name</string>
+    <string name="resource_name">Resource Name</string>
     <string name="resource_name_hint">If empty - auto-generated</string>
     <string name="resource_comment">Comment</string>
     <string name="resource_pin_code">PIN Code (Optional)</string>
-    <string name="resource_pin_code_hint">4-6 digits to protect this folder</string>
+    <string name="resource_pin_code_hint">4-6 digits to protect this resource</string>
     <string name="comment">Comment</string>
     <string name="access_pin">Access PIN</string>
     <string name="pin_incorrect">Incorrect PIN</string>
-    <string name="resource_path">Folder Path</string>
-    <string name="resource_type">Folder Type</string>
     <string name="created_date">Created Date</string>
     <string name="last_browse_date">Last Browse Date</string>
     <string name="never_browsed">Never browsed</string>
@@ -540,13 +535,13 @@ Close the player and try again.</string>
     <!-- Audio cache -->
 
     <!-- Empty state -->
-    <string name="no_files_found">No files found</string>
+    <string name="no_files_found">Nothing here. We checked twice.</string>
     <string name="empty_folder">Empty folder</string>
-    <string name="empty_folder_hint">This folder contains no media files</string>
+    <string name="empty_folder_hint">This folder is running on empty - no media files in sight.</string>
     <string name="empty_folder_hint_subdirectories">No files in root folder.\nEnable \"Scan subdirectories\" in resource settings to search in subfolders.</string>
     <string name="empty_folder_with_subfolders">No media files in root folder.\nThis resource contains %d subfolders. Enable \"Scan subdirectories\" in settings to browse them.</string>
     <string name="favorites_empty_title">No Favorites Yet</string>
-    <string name="favorites_empty_hint">Mark files as favorite to see them here</string>
+    <string name="favorites_empty_hint">Star a few files to gather them here. No pressure.</string>
 
     <string name="use_as_destination">Mark for Quick Sort</string>
     <string name="counting">counting..</string>
@@ -806,7 +801,7 @@ Close the player and try again.</string>
     <string name="tooltip_slideshow_music_title">Slideshow Background Music</string>
     <string name="tooltip_slideshow_music_message">When enabled, music files from the selected resource will play in random order during image/GIF slideshows. Choose a resource that contains your music collection.</string>
     <string name="clear_selection">Clear Selection</string>
-    <string name="no_resources_available">No resources available</string>
+    <string name="no_resources_available">No resources yet. Add one to give us something to show.</string>
     <string name="main_select_resource_first">Select a resource first.</string>
     <string name="main_select_resource_to_copy">Select a resource to copy first.</string>
     <string name="main_open_resource_failed">Couldn\'t open that resource. Try again.</string>
@@ -1024,7 +1019,7 @@ Close the player and try again.</string>
     <string name="onedrive_connection_test_success">Connected successfully!</string>
     <string name="onedrive_connection_test_failed">Connection failed: %1$s</string>
 
-    <string name="no_folders_found">No folders found</string>
+    <string name="no_folders_found">No folders found. They might be shy.</string>
     <string name="add_folder">Add Folder</string>
     <string name="add_folders">Add %1$d Folders</string>
     <string name="add_as_destination">Add as destination</string>
@@ -1057,7 +1052,7 @@ Close the player and try again.</string>
     <string name="network_parallelism_summary">Number of parallel threads for network operations (SMB, FTP, SFTP)</string>
 
     <!-- Streaming / Pre-cache settings -->
-    <string name="streaming_cache_empty">Streaming cache is empty.</string>
+    <string name="streaming_cache_empty">Streaming cache is empty. Nothing cached, nothing wasted.</string>
 
     <!-- Prefetch overlay pill -->
 
@@ -1403,7 +1398,7 @@ Close the player and try again.</string>
     <string name="invalid_page_number">Invalid page number. Enter a number from 1 to %1$d</string>
 
     <!-- OCR Feature -->
-    <string name="enable_ocr">Enable text recognition (OCR)</string>
+    <string name="enable_ocr">Enable text recognition</string>
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
     <string name="translation_downloading_wait">Waiting for translation result..</string>
 
@@ -1483,7 +1478,7 @@ Close the player and try again.</string>
     <string name="replace">Replace</string>
     <string name="replace_all">Replace All</string>
     <string name="find_and_replace">Find and Replace</string>
-    <string name="find_no_results">No results</string>
+    <string name="find_no_results">No results. The search came back empty-handed.</string>
     <string name="find_counter">%1$d / %2$d</string>
     <string name="replaced_n_occurrences">Replaced %1$d occurrences</string>
     <string name="draft_restored">Draft restored. Tap Save to keep changes.</string>
@@ -1793,7 +1788,6 @@ Close the player and try again.</string>
     <string name="previous_file">Previous file</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next_file">Next file</string>
-    <string name="add_resource">Add resource</string>
     <string name="reset_general_section">Reset General section</string>
     <string name="reset_media_section">Reset Media section</string>
     <string name="reset_playback_section">Reset Player settings</string>
@@ -1951,12 +1945,12 @@ Close the player and try again.</string>
     <string name="pip_pause">Pause</string>
 
     <!-- Resource Profile Selector -->
-    <string name="label_profile_none">Quick Setup: Custom</string>
-    <string name="label_profile_audio_library">Quick Setup: Audio Library</string>
-    <string name="label_profile_video_library">Quick Setup: Video Library</string>
-    <string name="label_profile_photo_storage">Quick Setup: Photo Storage</string>
-    <string name="label_profile_documents">Quick Setup: Documents</string>
-    <string name="label_profile_all_files">Quick Setup: File Manager Mode</string>
+    <string name="label_profile_none">Custom</string>
+    <string name="label_profile_audio_library">Audio Library</string>
+    <string name="label_profile_video_library">Video Library</string>
+    <string name="label_profile_photo_storage">Photo Storage</string>
+    <string name="label_profile_documents">Documents</string>
+    <string name="label_profile_all_files">File Manager Mode</string>
     <string name="title_select_profile">Quick Setup Profile</string>
     <string name="database_reset_dialog_title">Database reset</string>
     <string name="database_reset_dialog_message">The local database could not be opened or upgraded, so it was reset and the app can keep working. Some saved data (sources, accounts, favorites) may have been lost.\n\nReason: %1$s</string>
@@ -2096,7 +2090,7 @@ Close the player and try again.</string>
     <string name="error_folder_create_failed">Could not create the folder.</string>
     <string name="error_folder_rename_failed">Could not rename the folder.</string>
     <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
-    <string name="operation_completed">Operation completed</string>
+    <string name="operation_completed">Done.</string>
     <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
     <string name="menu_automate_source">Automation..</string>
     <string name="menu_add_receiver">Add to Sort List</string>
@@ -2190,7 +2184,7 @@ Close the player and try again.</string>
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear Companion</string>
     <string name="tooltip_wear_companion_title">Wear Companion</string>
-    <string name="tooltip_wear_companion_message">Send your network folders (SMB, FTP, cloud) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
+    <string name="tooltip_wear_companion_message">Send your network resources (SMB, FTP, cloud) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
     <string name="wear_sync_description">Push network sources to your connected Wear OS watch.</string>
     <string name="wear_last_synced">Last synced: %s</string>
     <string name="wear_push_to_watch">Push to Watch</string>
@@ -2422,6 +2416,23 @@ Close the player and try again.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
     <string name="s0281_google_oauth_only_note">Couldn\'t get this YouTube content. Sign-in isn\'t stored here..</string>
+    <string name="browse_transfer_progress_background">Background</string>
+    <string name="browse_transfer_already_running">A file transfer is already running.</string>
+    <string name="browse_transfer_sent_to_background">Transfer continues in the background.</string>
+    <string name="browse_transfer_notif_channel_name">Browse file transfers</string>
+    <string name="browse_transfer_notif_channel_description">Progress and results for browse copy and move operations</string>
+    <string name="browse_transfer_notif_title_copy">Copying files</string>
+    <string name="browse_transfer_notif_title_move">Moving files</string>
+    <string name="browse_transfer_notif_title_done">File transfer complete</string>
+    <string name="browse_transfer_notif_title_failed">File transfer failed</string>
+    <string name="browse_transfer_notif_title_auth_required">Sign in required</string>
+    <string name="browse_transfer_notif_title_permission_required">Permission required</string>
+    <string name="browse_transfer_notif_text_preparing">Preparing..</string>
+    <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
+    <string name="browse_transfer_notif_text_failed">Open FastMediaSorter for details</string>
+    <string name="browse_transfer_notif_text_auth_required">Open FastMediaSorter to sign in and continue</string>
+    <string name="browse_transfer_notif_text_permission_required">Open FastMediaSorter to grant permission and retry</string>
+    <string name="browse_transfer_notif_action_cancel">Cancel</string>
     <string name="share_to_telegram">Send to Telegram</string>
     <string name="share_to_telegram_failed">Unable to send to Telegram. Try the standard share instead.</string>
     <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
@@ -2505,7 +2516,7 @@ Close the player and try again.</string>
     <string name="ext_uninstall_all_confirm_title">Delete all extensions?</string>
     <string name="ext_uninstall_all_confirm_message">Remove all installed extensions and free up their space? You can download them again later.</string>
     <string name="slideshow_stop">Stop slideshow</string>
-    <string name="open_in_fms_external_file_notice">This file is outside a folder added to the app, so the app home opened instead.</string>
+    <string name="open_in_fms_external_file_notice">This file is outside a resource added to the app, so the app home opened instead.</string>
     <string name="sftp_host_key_fingerprint_hint">Expected host key fingerprint (SHA256, optional)</string>
     <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
     <string name="sftp_host_key_mismatch_title">Couldn’t verify the server</string>
@@ -2586,10 +2597,10 @@ Close the player and try again.</string>
     <string name="setting_screenshot_gesture_action_up_title">Up gesture action</string>
     <string name="setting_screenshot_gesture_action_dialog_title">Gesture action</string>
     <string name="screenshot_gesture_action_silent">Silent screenshot</string>
-    <string name="screenshot_gesture_action_open_player">Open in player</string>
-    <string name="screenshot_gesture_action_open_draw">Open for editing</string>
-    <string name="screenshot_gesture_action_ocr_translate">Send to OCR translation</string>
-    <string name="screenshot_gesture_action_share">Share</string>
+    <string name="screenshot_gesture_action_open_player">Screenshot - view</string>
+    <string name="screenshot_gesture_action_open_draw">Screenshot for editing</string>
+    <string name="screenshot_gesture_action_ocr_translate">Screenshot - OCR translation</string>
+    <string name="screenshot_gesture_action_share">Screenshot - share</string>
     <string name="screenshot_gesture_action_none">Do not use</string>
     <string name="settings_keep_screen_on_player_title">Keep screen on while player is active</string>
     <string name="settings_keep_screen_on_player_summary">Applies only to the player and standalone players, and only when the global keep-screen-on setting is off.</string>
@@ -2624,7 +2635,7 @@ Close the player and try again.</string>
     <string name="screen_capture_copied_to_clipboard">Copied to clipboard</string>
     <string name="setting_copy_screenshot_to_clipboard_title">Save screenshots to clipboard</string>
     <string name="setting_copy_screenshot_to_clipboard_summary">Also copy each captured screenshot to the clipboard, ready to paste</string>
-    <string name="screenshot_gesture_action_send_to">Send to recipients</string>
+    <string name="screenshot_gesture_action_send_to">Screenshot - send to..</string>
     <string name="statistics_title">Statistics</string>
     <string name="settings_statistics_open">Statistics</string>
     <!-- Author contact for "Send to author"; an address, not localizable copy (S0473 §5.1). -->
@@ -2761,6 +2772,7 @@ Close the player and try again.</string>
     <string name="streams_sort_name">By name</string>
     <string name="streams_sort_topic">By topic</string>
     <string name="streams_sort_language">By language</string>
+    <string name="streams_sort_country">By country</string>
     <string name="streams_sort_recent">Recently added</string>
     <string name="streams_filter_all">All</string>
     <string name="ext_section_streams">Streams</string>
@@ -2774,7 +2786,7 @@ Close the player and try again.</string>
     <string name="background_audio_group_title">Background audio playback</string>
     <string name="streams_filter_category">Category</string>
     <string name="streams_filter_language">Language</string>
-    <string name="streams_filter_media_kind">Type</string>
+    <string name="streams_filter_country">Country</string>
     <string name="streams_filter_media_audio">Audio</string>
     <string name="streams_filter_media_video">Video</string>
     <string name="streams_filter_clear">Clear filters</string>
@@ -2787,7 +2799,7 @@ Close the player and try again.</string>
     <string name="programs">Programs</string>
     <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
     <string name="cast_stream_unsupported_protocol">This stream can\'t be cast to Chromecast</string>
-    <string name="screenshot_gesture_action_open_app">Open the app</string>
+    <string name="screenshot_gesture_action_open_app">Open the main app window</string>
     <string name="streams_shortcut_channel_missing">This stream is no longer in your list</string>
     <string name="streams_add_to_home_screen">Add to home screen</string>
     <string name="streams_shortcut_created">Shortcut added to home screen</string>
@@ -2883,4 +2895,81 @@ Close the player and try again.</string>
     <string name="streams_refresh_probing">Checking streams..</string>
     <string name="streams_error_no_network">No network. Connect to Wi-Fi or mobile data to play streams.</string>
     <string name="tile_screenshot_label">Screenshot</string>
+    <string name="camera_control_night">Night mode</string>
+    <string name="camera_lens_front">Front</string>
+    <string name="camera_lens_ultrawide">Ultra-wide</string>
+    <string name="camera_lens_wide">Wide</string>
+    <string name="camera_lens_tele">Tele</string>
+    <string name="camera_control_macro">Macro</string>
+    <string name="exit_background_stopped_toast">Background functions stopped</string>
+    <string name="minimize_to_background">Minimize</string>
+    <string name="setting_camera_geotag_title">Geotag photos</string>
+    <string name="setting_camera_geotag_desc">Save GPS location in photos taken with the in-app camera. Needs location permission; off by default.</string>
+    <string name="camera_geotag_permission_denied">Geotagging needs location permission</string>
+    <string name="setting_show_programs_panel_title">Show programs panel in main window</string>
+    <string name="setting_show_programs_panel_summary">Mirror the programs menu as a horizontal bar above the resource list. Hides the three-dots button.</string>
+    <string name="setting_show_streams_panel_title">Show streams panel in main window</string>
+    <string name="setting_show_streams_panel_summary">Show pinned channels as a horizontal bar above the resource list, with a shortcut to Streams.</string>
+    <string name="panel_remove_title">Remove from panel?</string>
+    <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
+    <string name="panel_remove_channel_message">%1$s will be removed from the panel. The channel stays in your list.</string>
+    <string name="camera_control_send_to">Send to..</string>
+    <string name="camera_settings_title">Camera settings</string>
+    <string name="camera_setting_timer">Self-timer</string>
+    <string name="camera_setting_grid">Grid</string>
+    <string name="camera_setting_aspect">Aspect ratio</string>
+    <string name="camera_setting_resolution">Resolution</string>
+    <string name="camera_setting_exposure">Exposure</string>
+    <string name="camera_setting_white_balance">White balance</string>
+    <string name="camera_setting_iso">ISO</string>
+    <string name="camera_setting_shutter">Shutter</string>
+    <string name="camera_setting_hdr">HDR</string>
+    <string name="camera_setting_manual_sensor">Manual ISO and shutter</string>
+    <string name="camera_setting_wb_auto">Auto</string>
+    <string name="camera_setting_wb_incandescent">Incandescent</string>
+    <string name="camera_setting_wb_fluorescent">Fluorescent</string>
+    <string name="camera_setting_wb_warm_fluorescent">Warm fluorescent</string>
+    <string name="camera_setting_wb_daylight">Daylight</string>
+    <string name="camera_setting_wb_cloudy">Cloudy</string>
+    <string name="camera_setting_wb_twilight">Twilight</string>
+    <string name="camera_setting_wb_shade">Shade</string>
+    <string name="screen_recording_menu_label">Screen video recording</string>
+    <string name="screen_recording_notification_channel">Screen recording</string>
+    <string name="screen_recording_notification_title">Recording screen</string>
+    <string name="screen_recording_notification_text">Tap Stop to finish and save.</string>
+    <string name="screen_recording_notification_stop">Stop</string>
+    <string name="screen_recording_card_title">Recording screen</string>
+    <string name="screen_recording_stop">Stop recording</string>
+    <string name="screen_recording_disclosure_title">Screen video recording</string>
+    <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background.</string>
+    <string name="screen_recording_disclosure_start">Start recording</string>
+    <string name="screen_recording_permission_denied">Microphone and notification permissions are required to record the screen.</string>
+    <string name="screen_recording_saved">Screen recording saved: %1$s</string>
+    <string name="screen_recording_error">Could not save the screen recording.</string>
+    <string name="streams_panel_disable_action">Disable</string>
+    <string name="action_configure">Configure</string>
+    <string name="main_resource_type_filter_strip">Resource type filter</string>
+    <string name="streams_panel_hide_action">Hide panel</string>
+    <string name="streams_add_to_favorites">Add to favorites</string>
+    <string name="streams_remove_from_favorites">Remove from favorites</string>
+    <string name="streams_country_flag">Country flag</string>
+    <string name="perm_group_location">Location</string>
+    <string name="perm_title_location">Location for capture geotag</string>
+    <string name="perm_desc_location">Optional. Adds your location to photos and videos you capture in the app. Decline and your captures simply carry no coordinates.</string>
+    <string name="screenshot_gesture_action_launch_camera">Launch camera</string>
+    <string name="screenshot_gesture_action_start_video_recording">Start video recording</string>
+    <string name="screenshot_gesture_action_start_audio_recording">Start audio recording</string>
+    <string name="screenshot_gesture_action_start_screen_recording">Start screen recording</string>
+    <string name="screenshot_gesture_action_take_photo">Take a photo</string>
+    <string name="screenshot_gesture_action_take_photo_send_to">Take a photo and send to..</string>
+    <string name="screenshot_gesture_action_take_photo_edit">Take a photo and edit</string>
+    <string name="screenshot_gesture_action_take_photo_ocr_translate">Take a photo and OCR-translate</string>
+    <string name="action_open_app_settings">App settings</string>
+    <string name="programs_panel_configure_action">Configure panel</string>
+    <string name="programs_panel_collapse_action">Collapse panel</string>
+    <string name="programs_panel_hide_action">Hide panel</string>
+    <string name="main_programs_panel_strip">Programs and scenarios</string>
+    <string name="streams_panel_collapse_action">Collapse panel</string>
+    <string name="main_streams_panel_strip">Streams..</string>
+    <string name="camera_scenario_ocr_translate">Text recognition</string>
 </resources>

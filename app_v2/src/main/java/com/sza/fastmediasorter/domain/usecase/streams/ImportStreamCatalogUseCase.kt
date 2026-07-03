@@ -74,7 +74,8 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 addedAt = now,
                 category = entry.category.ifBlank { null },
                 topic = entry.topic.ifBlank { null },
-                language = entry.language.ifBlank { null }
+                language = entry.language.ifBlank { null },
+                country = entry.country.ifBlank { null }
             )
         }
 

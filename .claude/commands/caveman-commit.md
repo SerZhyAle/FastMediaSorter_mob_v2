@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Caveman Commit
 
 > **LOCAL DIRECTIVES:**

@@ -36,6 +36,7 @@ class PlayerPlaybackCallbackImpl(
 
     override fun onPlaybackReady() {
         activity.slideshowResourceAvailabilityManager.onPlaybackReady()
+        activity.emitPlayerReadyTraceIfNeeded()
         // S0704: playback ready - drop VIDEO_EXOPLAYER and cancel the playVideo pending show so a
         // fast-starting clip never flashes the spinner over the first frame.
         activity.loadingIndicatorCoordinator.reset(LoadingSource.VIDEO_EXOPLAYER)

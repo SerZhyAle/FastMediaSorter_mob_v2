@@ -68,7 +68,6 @@ class TextViewerManager(
         private const val MAX_FONT_SIZE_SP = 72f
         private const val DEFAULT_TEXT_FONT_SIZE_SP = 14f
         private const val DEFAULT_TRANSLATION_FONT_SIZE_SP = 14f
-        private const val FONT_SIZE_STEP_SP = 2f
 
         // Swipe threshold as percentage of screen dimension
         private const val SWIPE_THRESHOLD_PERCENT = 0.05f // 5% of screen width/height
@@ -233,6 +232,7 @@ class TextViewerManager(
                 hideOcrText()
             } else {
                 // Text file - hide and exit fullscreen
+                ttsManager?.stop()
                 closePager()
                 safeViews.textViewerContainer.isVisible = false
                 safeViews.textScrollView.isVisible = false
@@ -454,11 +454,11 @@ class TextViewerManager(
         } else {
             textFontSizeSp
         }
-        textFontSizeSp = (baseSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
+        textFontSizeSp = FontResizeController.increase(baseSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
-        showFontSizeToast(textFontSizeSp)
+        logFontResizeGesture(textFontSizeSp)
     }
 
     private fun decreaseTextFontSize() {
@@ -467,11 +467,11 @@ class TextViewerManager(
         } else {
             textFontSizeSp
         }
-        textFontSizeSp = (baseSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
+        textFontSizeSp = FontResizeController.decrease(baseSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
-        showFontSizeToast(textFontSizeSp)
+        logFontResizeGesture(textFontSizeSp)
     }
 
     private fun applyTextFontSize() {
@@ -481,16 +481,16 @@ class TextViewerManager(
 
     private fun increaseTranslationFontSize() {
         translationFontSizeSp =
-            (translationFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
+            FontResizeController.increase(translationFontSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
         applyTranslationFontSize()
-        showFontSizeToast(translationFontSizeSp)
+        logFontResizeGesture(translationFontSizeSp)
     }
 
     private fun decreaseTranslationFontSize() {
         translationFontSizeSp =
-            (translationFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
+            FontResizeController.decrease(translationFontSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
         applyTranslationFontSize()
-        showFontSizeToast(translationFontSizeSp)
+        logFontResizeGesture(translationFontSizeSp)
     }
 
     private fun applyTranslationFontSize() {
@@ -502,9 +502,10 @@ class TextViewerManager(
         applyTranslationFontSize()
     }
 
-    private fun showFontSizeToast(sizeSp: Float) {
+    // S0760: the per-step size Toast was removed (it arrived too late to help); the proportional
+    // step is large enough to be self-evident. Gesture analytics are kept.
+    private fun logFontResizeGesture(sizeSp: Float) {
         UserActionLogger.logGesture("FontSizeChange", "TextViewerManager", "size=${sizeSp.toInt()}sp")
-        Toast.makeText(context, "${sizeSp.toInt()}sp", Toast.LENGTH_SHORT).show()
     }
 
     private val viewerLoader by lazy {
@@ -544,6 +545,9 @@ class TextViewerManager(
     }
 
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
+        // Stop in-flight read-aloud before swapping the source (TTS reads originalTextWithoutNumbers).
+        ttsManager?.stop()
+        Timber.d("S0897: file swap - TTS stopped")
         currentFile = mediaFile
         viewerLoader.load(mediaFile, isWritable)
     }
@@ -628,6 +632,8 @@ class TextViewerManager(
         val file = currentLocalFile ?: return
         currentFile ?: return
 
+        // Re-read replaces the buffer TTS is speaking; stop first.
+        ttsManager?.stop()
         closePager()
         currentCharset = charset
 
@@ -701,6 +707,8 @@ class TextViewerManager(
     /** Close text viewer triggered by back button press. Performs complete cleanup for text file viewer (NOT for OCR results). This ensures single back-press exits, not double. Called from PlayerLifecycleManager.setupBackPressHandler() when back is pressed while text viewer is active. */
     fun closeTextViewerFromBackPress() {
         if (currentFile != null) {
+            ttsManager?.stop()
+            Timber.d("S0897: text-viewer close - TTS stopped")
             closePager()
             safeViews.textViewerContainer.isVisible = false
             safeViews.textScrollView.isVisible = false
@@ -941,17 +949,20 @@ class TextViewerManager(
     // ===== OCR / translated text display =====
 
     fun displayOcrText(text: String) {
+        ttsManager?.stop()
         currentFile = null
         originalTextWithoutNumbers = text
         ocrDisplayManager.displayOcrText(text)
     }
 
     fun hideOcrText() {
+        ttsManager?.stop()
         currentFile = null
         ocrDisplayManager.hideOcrText()
     }
 
     fun displayTranslatedText(text: String) {
+        ttsManager?.stop()
         currentFile = null
         ocrDisplayManager.displayTranslatedText(text)
     }

@@ -43,6 +43,12 @@ class FakeSettingsRepository(
         settingsFlow.value = settings
     }
 
+    // S0876: single-threaded fake, so no real race to reproduce - just apply the transform to the
+    // latest emitted value like the real repository's mutex-guarded read+write does.
+    override suspend fun updateSettings(transform: suspend (AppSettings) -> AppSettings) {
+        updateSettings(transform(settingsFlow.value))
+    }
+
     override suspend fun resetToDefaults() {
         resetToDefaultsCalled = true
         settingsFlow.value = AppSettings()

@@ -12,6 +12,7 @@
                     android:id="@+id/headerImages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_image"
                     app:csh_title="@string/settings_category_images" />
 
                 <FrameLayout android:id="@+id/containerImages" android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -26,6 +27,7 @@
                     android:id="@+id/headerVideo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_video"
                     app:csh_title="@string/settings_category_video" />
 
                 <FrameLayout android:id="@+id/containerVideo" android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -50,6 +52,7 @@
                     android:id="@+id/headerVr"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_vr_headset"
                     app:csh_helpMessage="@string/settings_3d_vr_help_message"
                     app:csh_helpTitle="@string/settings_3d_vr_help_title"
                     app:csh_showHelp="true"
@@ -67,6 +70,7 @@
                     android:id="@+id/headerAudio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_audio"
                     app:csh_title="@string/settings_category_audio" />
 
                 <FrameLayout android:id="@+id/containerAudio" android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -81,6 +85,7 @@
                     android:id="@+id/headerDocuments"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_book"
                     app:csh_title="@string/settings_category_documents" />
 
                 <FrameLayout android:id="@+id/containerDocuments" android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -109,6 +114,7 @@
                     android:id="@+id/headerStreams"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_cast"
                     app:csh_title="@string/settings_streams_section" />
 
                 <FrameLayout android:id="@+id/containerStreams" android:layout_width="match_parent" android:layout_height="wrap_content" />

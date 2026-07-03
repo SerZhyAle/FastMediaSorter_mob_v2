@@ -46,4 +46,18 @@
     <string name="game_widget_description">Відкрити «Кривавиця і Чудовисько»</string>
     <string name="game_widget_disabled">Увімкніть у налаштуваннях</string>
     <string name="game_widget_label">Кривавиця</string>
+
+    <!-- S0804: visual modes (skins) -->
+    <string name="game_mode_button_content_description">Режим гри: %1$s</string>
+    <string name="game_mode_picker_title">Режим гри</string>
+    <string name="game_mode_picker_unavailable">Режим гри недоступний.</string>
+    <string name="game_mode_classic">Класика</string>
+    <string name="game_mode_kryvavitsa">Кривавиця</string>
+    <string name="game_help_intro_kryvavitsa">Дійдіть чоловіком до дверей, доки жінка з автоматом та її помічниці з ножами не загнали вас у кут.</string>
+    <string name="game_help_legend_player_kryvavitsa">Чоловік - персонаж, яким ви керуєте</string>
+    <string name="game_help_legend_kryvavitsa_kryvavitsa">Жінка з автоматом - Кривавиця, йде до гравця</string>
+    <string name="game_help_legend_shadow_kryvavitsa">Жінка з ножем - підкривавиця, ходить випадково</string>
+    <string name="game_help_legend_exit_kryvavitsa">Двері - вихід на наступний рівень</string>
+    <string name="game_help_legend_wall_kryvavitsa">Чорна стіна - її можна штовхати</string>
+    <string name="game_help_rules_kryvavitsa">Використовуйте трикутники, клавіатуру, D-pad, свайп або тап по полю, щоб ходити на одну клітинку.\nЖінка з автоматом йде до чоловіка. Її помічниці з ножами рухаються випадково й тупають під час ходьби.\nШтовхайте чорні стіни у вільні клітинки, щоб розчистити шлях. Товста рамка не дає вийти за поле.\nРахунок: -10 за хід, +10 за поштовх стіни, +50 за розчавлену помічницю, +1000 за двері.\nЯкщо ворог опиняється на сусідній або тій самій клітинці, гра закінчується.</string>
 </resources>

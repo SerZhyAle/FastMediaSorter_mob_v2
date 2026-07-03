@@ -1,52 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Generic list-selection dialog (S0567). Title + RecyclerView of selectable items
-  (item_list_selection.xml via ListSelectionAdapter) + Clear/Cancel actions.
+  S0787: generic list-selection dialog. Title + a scrollable, height-capped RecyclerView of
+  selectable rows (item_list_selection.xml via ListSelectionAdapter) + Clear/Cancel actions.
+  ConstraintLayout so the list wraps for a few items but caps at a max height and scrolls when the
+  option set is large (a plain wrap_content RecyclerView ignores maxHeight and overflows off-screen).
   Self-sizing vertical dialog - works in both orientations, no layout-land variant needed.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:padding="@dimen/padding_large"
     android:background="@drawable/bg_copy_dialog">
 
     <TextView
         android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
         android:textAlignment="center"
-        android:paddingBottom="@dimen/margin_large" />
+        android:paddingBottom="@dimen/margin_large"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list_selection_recycler"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:maxHeight="@dimen/dialog_resource_picker_tvTitle_maxHeight"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintHeight_max="@dimen/dialog_resource_picker_tvTitle_maxHeight"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toTopOf="@id/actionBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/actionBar"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="@dimen/margin_large"
-        android:gravity="center">
+        app:layout_constraintTop_toBottomOf="@id/list_selection_recycler"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- S0846: selection picker Clear/Cancel is NOT a confirm/cancel pair (DialogCancel exempt
+             per S0538/S0567), but raw Widget.Material3.* references are banned by the Button
+             Taxonomy - both actions use the named low-emphasis Text role. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/clear_selection"
-            style="@style/Widget.Material3.Button.TextButton" />
+            style="@style/Widget.FastMediaSorter.Button.Text" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@android:string/cancel"
-            style="@style/Widget.Material3.Button.TextButton" />
+            style="@style/Widget.FastMediaSorter.Button.Text" />
     </LinearLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

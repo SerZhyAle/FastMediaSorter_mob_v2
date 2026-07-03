@@ -73,7 +73,7 @@ class AuthSessionRepositoryImpl @Inject constructor(
             refreshFlows()
             val maskedIdentity = identity?.let { it.take(4) + "***" } ?: "<none>"
             Timber.i(
-                "S0211: webview save host=%s reused=%s identity=%s accountId=%s",
+                "webview save host=%s reused=%s identity=%s accountId=%s",
                 host, reusedId != null, maskedIdentity, accountId,
             )
             accountId

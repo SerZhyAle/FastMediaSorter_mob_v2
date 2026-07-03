@@ -16,10 +16,14 @@
     d    - Fast reusable debug build
     db   - Fast reusable debug build (without zip)
     dav  - Debug build with timestamped app version
-    fk   - Fast Kotlin compile check
+    fk   - Fast Kotlin compile check (standard)
+    fkn  - Fast Kotlin compile check (noLegal)
     fr   - Fast resources/manifest check
     fc   - Fast code + resources check
     fu   - Fast full unit-test suite
+    fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
+    mb   - Run standard macrobenchmark suite
+    gbp  - Generate standard baseline profile
     cd   - Clean + Debug + Zip
     cdb  - Clean + Debug (without zip)
     cls  - Clean Gradle caches
@@ -84,9 +88,13 @@ $scripts = @{
     'cd'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{} }
     'cdb'       = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @{ SkipZip = $true } }
     'fk'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code' } }
+    'fkn'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Flavor = 'NoLegal' } }  # S0826: fast noLegal Kotlin compile
     'fr'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources' } }
     'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
     'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
+    'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
+    'mb'        = @{ Path = 'scripts\builders\run-standard-macrobenchmark.ps1'; Args = @{} }
+    'gbp'       = @{ Path = 'scripts\builders\generate-standard-baseline-profile.ps1'; Args = @{} }
     'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @{} }
     'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @{} }
     'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @{} }
@@ -130,10 +138,14 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  dq   - Build Debug quiet (no zip, suppresses known-noise lines)" -ForegroundColor Cyan
     Write-Host "  cd   - Clean + Debug + zip" -ForegroundColor Cyan
     Write-Host "  cdb  - Clean + Debug without zip" -ForegroundColor Cyan
-    Write-Host "  fk   - Fast Kotlin compile check" -ForegroundColor Cyan
+    Write-Host "  fk   - Fast Kotlin compile check (standard)" -ForegroundColor Cyan
+    Write-Host "  fkn  - Fast Kotlin compile check (noLegal)" -ForegroundColor Cyan
     Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
     Write-Host "  fu   - Fast full unit-test suite" -ForegroundColor Cyan
+    Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
+    Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan
+    Write-Host "  gbp  - Generate standard baseline profile" -ForegroundColor Cyan
     Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
     Write-Host "  c    - Commit & Push" -ForegroundColor Cyan
     Write-Host "  ch   - Check Typo/Lint" -ForegroundColor Cyan

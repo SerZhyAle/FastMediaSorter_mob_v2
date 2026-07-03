@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0756 / S0770: one pinned channel chip on the main-window streams panel. The body (channelRoot)
+     shows a favicon and/or short name and plays the channel on tap; channelRoot holds the full channel
+     name as contentDescription regardless of what is visually shown. The trailing three-dots button
+     (S0770) opens the per-channel menu in label mode; long-press on the body opens it in compact mode. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:id="@+id/channelRoot"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:minWidth="@dimen/main_stream_channel_min_width"
+        android:background="?attr/selectableItemBackground"
+        android:focusable="true"
+        android:clickable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/main_panel_item_spacing">
+
+        <ImageView
+            android:id="@+id/ivChannelFavicon"
+            android:layout_width="@dimen/main_panel_favicon_size"
+            android:layout_height="@dimen/main_panel_favicon_size"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            android:contentDescription="@string/streams_favicon" />
+
+        <TextView
+            android:id="@+id/tvChannelLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/main_panel_accent_foreground"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnChannelMenu"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:foreground="@drawable/focus_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        android:contentDescription="@string/more_actions"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingHorizontal="0dp"
+        android:text=""
+        android:visibility="gone"
+        app:icon="@drawable/ic_more_vert"
+        app:iconGravity="textStart"
+        app:iconSize="@dimen/icon_size_normal"
+        app:iconTint="@color/main_panel_accent_foreground" />
+
+</LinearLayout>

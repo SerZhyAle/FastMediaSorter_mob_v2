@@ -7,6 +7,7 @@
     android:padding="@dimen/settings_padding">
 
     <!-- Images + GIF Row Container -->
+    <!-- S0832: landscape intentionally keeps the two support toggles paired on one row; only portrait stacks them. -->
     <LinearLayout
         android:id="@+id/containerImagesGif"
         android:layout_width="match_parent"
@@ -23,6 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/resource_field_margin_end"
             android:layout_weight="1"
+            app:str_icon="@drawable/ic_image"
             app:str_title="@string/support_images_description"
             app:str_subtitle="@string/setting_support_images_desc"
             app:str_showHelp="true"

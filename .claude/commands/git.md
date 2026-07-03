@@ -1,3 +1,7 @@
+---
+model: sonnet
+---
+
 # Git Guide
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**

@@ -76,11 +76,17 @@
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/etSearch"
                 android:nextFocusRight="@id/btnSort"
                 android:nextFocusDown="@id/rvStreams"
-                android:contentDescription="@string/streams_filter" />
+                android:contentDescription="@string/streams_filter">
+
+                <!-- First touch-mode focus parks on Filter, not etSearch, so the soft keyboard
+                     does not auto-open on launch and cover short landscape screens. -->
+                <requestFocus />
+            </ImageButton>
 
             <ImageButton
                 android:id="@+id/btnSort"

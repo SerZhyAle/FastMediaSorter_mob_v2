@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -21,22 +19,25 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
      * Read-modify-write of the latest snapshot so a concurrent profile/preset write is not clobbered.
      * The capability gate implements the "silently skip unavailable" decision: a feature absent from
      * this build/flavor keeps its current value instead of being force-enabled.
+     *
+     * S0876: uses the transform overload (mutex-serialized read+write, see SettingsRepository KDoc) -
+     * the welcome enable-all flow spawns concurrent deliverable-install writers right after this call.
      */
     suspend operator fun invoke() {
-        val current = settingsRepository.getSettings().first()
-        val updated = current.copy(
-            allFiles = true,
-            supportAudio = if (mediaCapabilities.supportsAudio) true else current.supportAudio,
-            supportVideos = if (mediaCapabilities.supportsVideo) true else current.supportVideos,
-            supportText = if (mediaCapabilities.supportsDocuments) true else current.supportText,
-            supportPdf = if (mediaCapabilities.supportsDocuments) true else current.supportPdf,
-            supportOfficeDocuments = if (mediaCapabilities.supportsDocuments) true else current.supportOfficeDocuments,
-            supportEpub = if (mediaCapabilities.supportsEpub) true else current.supportEpub,
-            enablePersistentAudioPlayback = if (mediaCapabilities.supportsAudio) true else current.enablePersistentAudioPlayback,
-            acceptSharedFiles = true,
-            isPrimaryMediaPlayer = true,
-        )
-        settingsRepository.updateSettings(updated)
+        settingsRepository.updateSettings { current ->
+            current.copy(
+                allFiles = true,
+                supportAudio = if (mediaCapabilities.supportsAudio) true else current.supportAudio,
+                supportVideos = if (mediaCapabilities.supportsVideo) true else current.supportVideos,
+                supportText = if (mediaCapabilities.supportsDocuments) true else current.supportText,
+                supportPdf = if (mediaCapabilities.supportsDocuments) true else current.supportPdf,
+                supportOfficeDocuments = if (mediaCapabilities.supportsDocuments) true else current.supportOfficeDocuments,
+                supportEpub = if (mediaCapabilities.supportsEpub) true else current.supportEpub,
+                enablePersistentAudioPlayback = if (mediaCapabilities.supportsAudio) true else current.enablePersistentAudioPlayback,
+                acceptSharedFiles = true,
+                isPrimaryMediaPlayer = true,
+            )
+        }
         Timber.i(
             "ApplyEnableAllSettingsUseCase: enable-all applied (audio=%b video=%b docs=%b)",
             mediaCapabilities.supportsAudio,

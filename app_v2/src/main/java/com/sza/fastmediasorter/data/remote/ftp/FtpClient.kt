@@ -62,17 +62,13 @@ class FtpClient @Inject constructor(
         val transportKey = transportKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
         trackedTransportKeys.add(transportKey)
         idleDisconnectPolicy.touch(transportKey)
-        return exoPlayerPool.getConnectionForExoPlayer(connectionInfo).also {
-            idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
-                cleanupIdleFtpConnections()
-            }
-        }
+        // ExoPlayer FTP connections are created fresh per acquire and disconnected in
+        // releaseExoPlayerConnection; they are never pooled, so there is no idle pool to arm/sweep.
+        return exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
     }
 
     fun releaseExoPlayerConnection(client: FTPClient?) =
         exoPlayerPool.releaseExoPlayerConnection(client)
-
-    fun cleanupIdleFtpConnections() = exoPlayerPool.cleanupIdleFtpConnections()
 
     // endregion
 

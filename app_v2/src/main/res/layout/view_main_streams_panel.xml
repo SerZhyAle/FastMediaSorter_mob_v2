@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0756: horizontal streams panel for the main window. A wide "Streams" entry button leads, then the
+     pinned channels scroll horizontally with fade edges. Visibility owned by MainActivity.
+     S0808: the entry's long-press menu "Collapse panel" swaps the content row for the labelled strip
+     (mirror of the S0781/S0807 collapse); a tap on the strip expands it back. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:id="@+id/streamsPanelContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/main_panel_row_height"
+        android:background="@color/main_streams_panel_accent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/main_panel_item_spacing">
+
+        <!-- S0779: entry button. Label ("Streams") shows in landscape only (width-saving in portrait); the
+             text + min-width are driven from MainStreamsPanelManager.applyShowLabels(). Open / Open-in-new-window
+             / Configure / Collapse / Hide / Disable live on its long-press menu, so the separate three-dots
+             button (S0770) was removed. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStreamsPanelEntry"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/main_panel_row_height"
+            android:layout_marginEnd="@dimen/main_streams_entry_margin_end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:foreground="@drawable/focus_button_background"
+            android:focusable="true"
+            android:clickable="true"
+            android:contentDescription="@string/streams_title"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:gravity="start|center_vertical"
+            android:minWidth="@dimen/main_streams_entry_min_width"
+            android:minHeight="0dp"
+            android:paddingHorizontal="@dimen/main_panel_item_spacing"
+            android:paddingStart="0dp"
+            android:text=""
+            android:textColor="@color/main_panel_accent_foreground"
+            app:icon="@drawable/ic_cast"
+            app:iconGravity="start"
+            app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+            app:iconSize="@dimen/icon_size_normal"
+            app:iconTint="@color/main_panel_accent_foreground" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStreamChannels"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/main_panel_row_height"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fadingEdgeLength="@dimen/main_panel_fading_edge"
+            android:requiresFadingEdge="horizontal"
+            android:nextFocusUp="@id/btnStreamsPanelEntry"
+            tools:listitem="@layout/item_main_stream_channel" />
+
+    </LinearLayout>
+
+</LinearLayout>

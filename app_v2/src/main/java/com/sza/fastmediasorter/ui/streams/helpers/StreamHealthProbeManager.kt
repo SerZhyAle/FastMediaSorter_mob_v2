@@ -10,10 +10,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,7 +67,12 @@ class StreamHealthProbeManager(
                     onStatus(source.id, ok)
                 }
             } finally {
-                withContext(Dispatchers.Main) { onComplete() }
+                // NonCancellable so onComplete still runs when the sweep was cancelled - a plain
+                // withContext(Main) throws in a cancelled coroutine before the block runs (KDoc contract).
+                withContext(NonCancellable + Dispatchers.Main) {
+                    Timber.d("S0900: health sweep onComplete (cancel-safe)")
+                    onComplete()
+                }
             }
         }
     }
@@ -116,6 +123,7 @@ class StreamHealthProbeManager(
                 false
             }
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Timber.w(t, "Stream health probe failed: %s", url)
             false
         } finally {

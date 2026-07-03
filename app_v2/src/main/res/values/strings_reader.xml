@@ -37,7 +37,6 @@
     <string name="epub_e">EPUB (E)</string>
     <string name="epub_exit_fullscreen">Exited fullscreen mode</string>
     <string name="epub_file_not_found">This EPUB file is no longer available.</string>
-    <string name="epub_font_size">Font size: %1$d</string>
     <string name="epub_go_to_chapter_cancel">Cancel</string>
     <string name="epub_go_to_chapter_go">Go</string>
     <string name="epub_go_to_chapter_hint">Chapter number (1-%1$d)</string>

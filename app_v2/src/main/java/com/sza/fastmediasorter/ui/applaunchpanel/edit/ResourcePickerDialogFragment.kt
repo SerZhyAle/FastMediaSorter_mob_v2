@@ -13,6 +13,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogPanelRoutePickerBinding
 import com.sza.fastmediasorter.databinding.ItemAppPickerRowBinding
@@ -70,14 +71,8 @@ class ResourcePickerDialogFragment : DialogFragment() {
             ResourceItem(resource.id, resourceIconRes(resource.type), resource.name)
         }
 
-    private fun resourceIconRes(type: ResourceType): Int = when (type) {
-        ResourceType.LOCAL -> R.drawable.ic_resource_local
-        ResourceType.SMB -> R.drawable.ic_resource_smb
-        ResourceType.SFTP -> R.drawable.ic_resource_sftp
-        ResourceType.FTP -> R.drawable.ic_resource_ftp
-        ResourceType.CLOUD -> R.drawable.ic_resource_cloud
-        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.drawable.ic_cast
-    }
+    // S0890: single source of truth for the type -> icon table.
+    private fun resourceIconRes(type: ResourceType): Int = ResourceTypeIconMap.iconFor(type)
 
     private fun onResourcePicked(item: ResourceItem) {
         setFragmentResult(RESULT_KEY, bundleOf(RESULT_SLOT to slotIndex, RESULT_RESOURCE_ID to item.resourceId))

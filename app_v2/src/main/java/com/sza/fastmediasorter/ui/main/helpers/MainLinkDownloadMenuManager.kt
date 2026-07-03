@@ -28,6 +28,7 @@ class MainLinkDownloadMenuManager(
     }
 
     companion object {
-        private const val MENU_ITEM_LINK_DOWNLOAD = 13
+        // S0770: read by MainActivity to map this item to its "Remove" (disable) settings write.
+        const val MENU_ITEM_LINK_DOWNLOAD = 13
     }
 }

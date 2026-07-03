@@ -10,6 +10,7 @@ import android.service.quicksettings.TileService
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -24,6 +25,7 @@ import timber.log.Timber
  */
 class AudioToggleTileService : TileService() {
 
+    private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
     override fun onStartListening() {
@@ -71,17 +73,45 @@ class AudioToggleTileService : TileService() {
     }
 
     private fun connectToSession() {
-        val token = SessionToken(this, ComponentName(this, AudioPlaybackService::class.java))
+        if (mediaController?.isConnected == true) return
+        if (controllerFuture != null) return
+
+        val token = SessionToken(
+            this,
+            ComponentName(this, AudioPlaybackService::class.java)
+        )
         val future = MediaController.Builder(this, token).buildAsync()
+        controllerFuture = future
+
         future.addListener({
             try {
-                mediaController = future.get()
-                mediaController?.addListener(tilePlayerListener)
-                val playing = mediaController?.isPlaying == true
+                if (future !== controllerFuture) {
+                    try {
+                        future.get().release()
+                    } catch (ignored: Exception) {
+                        // ignore release failures of obsolete controllers
+                    }
+                    return@addListener
+                }
+                val controller = future.get()
+                // Release any prior (stale/disconnected) controller before overwriting. The isConnected
+                // guard in connectToSession only skips the still-connected case, so a dropped controller
+                // would otherwise be replaced here without release - leaking it and its Player.Listener.
+                mediaController?.let {
+                    it.removeListener(tilePlayerListener)
+                    it.release()
+                }
+                mediaController = controller
+                controller.addListener(tilePlayerListener)
+                val playing = controller.isPlaying
                 updateTile(isActive = true, isPlaying = playing)
             } catch (e: Exception) {
                 Timber.w(e, "TileService: failed to connect to MediaSession")
                 updateTile(isActive = false, isPlaying = false)
+            } finally {
+                if (future === controllerFuture) {
+                    controllerFuture = null
+                }
             }
         }, MoreExecutors.directExecutor())
     }
@@ -124,6 +154,8 @@ class AudioToggleTileService : TileService() {
         mediaController?.removeListener(tilePlayerListener)
         mediaController?.release()
         mediaController = null
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controllerFuture = null
     }
 
     override fun onDestroy() {

@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Trace
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
@@ -50,6 +52,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -147,6 +150,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+
+    @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
@@ -168,6 +173,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
     @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
     @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
+    // S0901: application-lifetime scope so a mic recording save survives BrowseActivity teardown.
+    @Inject @ApplicationScope lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -178,6 +185,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0196 Phase 04 measurement hook: one-shot tag emitted on the first non-empty list bind so
     // perf traces can mark "primary content rendered" for the browse surface.
     private var firstListBoundLogged = false
+    private var browseReadyTraceEmitted = false
     private val cloudOperationStrategy by lazy(LazyThreadSafetyMode.NONE) {
         CloudOperationStrategy(
             this,
@@ -271,6 +279,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             activity = this,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
+            appScope = applicationScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
             onRecordingStateChanged = { isRecording ->
                 val tint = if (isRecording) {
@@ -386,6 +395,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binaryFileMenuActions = binaryFileMenuActions,
             browseApkTileBadgeBinder = browseApkTileBadgeBinder,
             reviewRequestManager = reviewRequestManager,
+            browseTransferCoordinator = browseTransferCoordinator,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             mediaCapabilities = mediaCapabilities,
             sendToMenuManager = sendToMenuManager,
@@ -450,6 +460,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.submitList(state.mediaFiles) {
                     if (isSortingSubmit) viewModel.clearSorting()
                     initializer.listSubmitManager.onListSubmitted(state)
+                    emitBrowseReadyTraceIfNeeded(state)
                     // S0196 Phase 04: emit once after the first non-empty list is committed.
                     if (!firstListBoundLogged && state.mediaFiles.isNotEmpty()) {
                         firstListBoundLogged = true
@@ -493,6 +504,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.stateUiUpdater.currentDisplayMode = null
                 initializer.forceUpdateDisplayMode(mode)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::initializer.isInitialized && intent.getBooleanExtra(EXTRA_REATTACH_TRANSFER, false)) {
+            initializer.fileOperationsManager.requestTransferDialogReattach()
         }
     }
 
@@ -610,6 +629,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             initializer.listSubmitManager.shouldScrollToLastViewed = true
             initializer.blackScreenManager.hide()
         }
+        // S0861: no other teardown edge here ever touched the mic manager - a session started with
+        // no finger down (RECORD_AUDIO grant auto-start) could survive past this activity's destroy.
+        if (::micRecordingManager.isInitialized) micRecordingManager.release()
         viewModel.cancelBackgroundThumbnailLoading()
         memoryProfileCoordinator.enter(MemoryScenario.IDLE)
         // Leaving browse is the cheapest stable release point for thumbnail-heavy memory.
@@ -736,11 +758,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         viewModel.openDrawingInEditor(path)
     }
 
+    private fun emitBrowseReadyTraceIfNeeded(state: BrowseState) {
+        val shouldEmitTrace = !browseReadyTraceEmitted &&
+            state.resource != null &&
+            state.loadingProgress == 0
+        if (shouldEmitTrace) {
+            browseReadyTraceEmitted = true
+            Trace.beginSection(FMS_BROWSE_READY)
+            Trace.endSection()
+        }
+    }
+
     companion object {
+        private const val FMS_BROWSE_READY = "FMS_BROWSE_READY"
         const val EXTRA_RESOURCE_ID = "resourceId"
         const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
         const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"
         const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
+        const val EXTRA_REATTACH_TRANSFER = "reattachTransfer"
         const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
         // S0028: multi-window - window identity and tear-off state
         const val EXTRA_WINDOW_ID = "extra_window_id"

@@ -102,6 +102,7 @@
                             android:id="@+id/rowFileManager"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_folder"
                             app:str_subtitle="@string/welcome_func_file_manager_desc"
                             app:str_title="@string/welcome_func_file_manager" />
 
@@ -109,6 +110,7 @@
                             android:id="@+id/rowAudio"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_audio"
                             app:str_subtitle="@string/welcome_func_audio_desc"
                             app:str_title="@string/welcome_func_audio" />
 
@@ -116,6 +118,7 @@
                             android:id="@+id/rowVideo"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_video"
                             app:str_subtitle="@string/welcome_func_video_desc"
                             app:str_title="@string/welcome_func_video" />
 
@@ -123,6 +126,7 @@
                             android:id="@+id/rowStreams"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_cast"
                             app:str_subtitle="@string/welcome_func_streams_desc"
                             app:str_title="@string/welcome_func_streams" />
 
@@ -160,6 +164,7 @@
                             android:id="@+id/rowStatistics"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_history"
                             app:str_subtitle="@string/settings_statistics_collection_summary"
                             app:str_title="@string/settings_statistics_collection_title" />
 
@@ -176,6 +181,7 @@
                             android:id="@+id/rowDocuments"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_book"
                             app:str_subtitle="@string/welcome_func_documents_desc"
                             app:str_title="@string/welcome_func_documents" />
 
@@ -183,6 +189,7 @@
                             android:id="@+id/rowOcr"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_ocr"
                             app:str_subtitle="@string/welcome_func_ocr_desc"
                             app:str_title="@string/welcome_func_ocr" />
 
@@ -220,6 +227,7 @@
                             android:id="@+id/rowTranslation"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_translate"
                             app:str_subtitle="@string/welcome_func_translation_desc"
                             app:str_title="@string/welcome_func_translation" />
 
@@ -257,6 +265,7 @@
                             android:id="@+id/rowGestures"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_gesture"
                             app:str_subtitle="@string/welcome_func_gestures_summary"
                             app:str_title="@string/welcome_func_gestures" />
 

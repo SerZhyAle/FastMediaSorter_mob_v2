@@ -30,7 +30,9 @@ class ExportFavoritesUseCase @Inject constructor(
 
     suspend operator fun invoke(): FavoritesExportResult {
         return try {
-            val favorites = favoritesDao.getAllFavoritesSync()
+            // S0783: export file favorites only; live-channel favorites are not part of the favorites
+            // export/import contract (they live in the streams catalog).
+            val favorites = favoritesDao.getFileFavoritesSync()
             if (favorites.isEmpty()) {
                 return writeToFile(
                     FavoritesExportFile(

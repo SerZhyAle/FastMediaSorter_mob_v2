@@ -3,20 +3,26 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
 import com.sza.fastmediasorter.utils.SafHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
+import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +44,10 @@ data class PendingMoveOperation(
 class BrowseFileOperationsManager(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
+    private val lifecycleOwner: LifecycleOwner,
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator,
     private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
     private val callbacks: FileOperationCallbacks,
     private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
@@ -56,6 +64,9 @@ class BrowseFileOperationsManager(
 
     
     private var pendingMoveOperation: PendingMoveOperation? = null
+    private var activeTransferDialog: FileOperationProgressDialog? = null
+    private var modalDetachedByUser: Boolean = false
+    private var lastAutoAttachPath: String? = null
     
     interface FileOperationCallbacks {
         fun onOperationCompleted()
@@ -67,6 +78,9 @@ class BrowseFileOperationsManager(
         fun onPermissionRequired(pendingIntent: android.app.PendingIntent)
         fun onShowMessage(message: String)
         fun onShowError(message: String, details: String? = null)
+        fun getCurrentResource(): MediaResource?
+        fun getCurrentBrowsePath(): String?
+        fun navigateToFolder(path: String)
         /** Called after a successful Move or Copy operation. [count] = number of processed files. */
         fun onSortOperationSuccess(count: Int) {}
         /** Called when user clicks "Select folder" in the destination dialog. */
@@ -78,6 +92,10 @@ class BrowseFileOperationsManager(
             resource: MediaResource,
             dirItems: List<MediaFile> = emptyList()
         )
+    }
+
+    init {
+        observeBackgroundTransfers()
     }
 
     // Use formatArgs (the per-file reason text) directly as dialog details; fall back to errorRes-formatted
@@ -111,6 +129,150 @@ class BrowseFileOperationsManager(
             return resolved?.substringAfterLast('/')?.takeIf { it.isNotBlank() } ?: normalized
         }
         return destinationPath.substringAfterLast('/').ifBlank { destinationPath }
+    }
+
+    private fun observeBackgroundTransfers() {
+        lifecycleOwner.collectOnLifecycle(browseTransferCoordinator.terminalEvents) { event ->
+            if (!browseTransferCoordinator.isTerminalHandled(event.workId)) {
+                handleTerminalEvent(event, clearStoredMirror = true)
+            }
+        }
+
+        lifecycleOwner.collectOnLifecycle(browseTransferCoordinator.activeTransferFlow()) { state ->
+            if (state.isActive) {
+                state.request?.let { maybeReattachToBrowseFolder(it) }
+                if (activeTransferDialog == null && !modalDetachedByUser) {
+                    state.request?.let { showTransferDialog(it.operationType, showImmediately = true) }
+                }
+                state.progress?.let { activeTransferDialog?.updateSnapshot(it) }
+                return@collectOnLifecycle
+            }
+
+            if (state.isTerminal && state.workId != null && !browseTransferCoordinator.isTerminalHandled(state.workId)) {
+                val stored = browseTransferCoordinator.consumeStoredTerminalEvent()
+                val terminalEvent = stored ?: state.terminalFallback
+                if (terminalEvent != null) {
+                    handleTerminalEvent(terminalEvent, clearStoredMirror = false)
+                }
+            }
+
+            if (!state.isActive) {
+                dismissTransferDialog()
+            }
+        }
+    }
+
+    private fun maybeReattachToBrowseFolder(request: BrowseFileTransferRequest) {
+        val currentResource = callbacks.getCurrentResource() ?: return
+        val targetPath = request.currentBrowsePath ?: return
+        if (currentResource.id != request.sourceResourceId) return
+        if (callbacks.getCurrentBrowsePath() == targetPath) return
+        if (lastAutoAttachPath == targetPath) return
+        lastAutoAttachPath = targetPath
+        callbacks.navigateToFolder(targetPath)
+    }
+
+    private fun showTransferDialog(
+        operationType: FileOperationType,
+        showImmediately: Boolean,
+    ) {
+        if (activeTransferDialog != null) return
+        modalDetachedByUser = false
+        activeTransferDialog = FileOperationProgressDialog.show(
+            context = context,
+            operationType = context.getString(progressTitleRes(operationType)),
+            onCancel = {
+                coroutineScope.launch { browseTransferCoordinator.cancelActiveTransfer() }
+            },
+            onBackground = {
+                modalDetachedByUser = true
+                callbacks.onShowMessage(context.getString(R.string.browse_transfer_sent_to_background))
+            },
+            showImmediately = showImmediately,
+        )
+    }
+
+    private fun dismissTransferDialog() {
+        val dialog = activeTransferDialog ?: return
+        activeTransferDialog = null
+        runCatching { dialog.dismiss() }
+    }
+
+    private fun handleTerminalEvent(
+        event: BrowseFileTransferTerminalEvent,
+        clearStoredMirror: Boolean,
+    ) {
+        dismissTransferDialog()
+        lastAutoAttachPath = null
+        modalDetachedByUser = false
+        if (clearStoredMirror) {
+            browseTransferCoordinator.clearStoredTerminalEvent()
+        }
+        browseTransferCoordinator.markTerminalHandled(event.workId)
+        browseTransferCoordinator.clearTerminalReplay()
+
+        when (event) {
+            is BrowseFileTransferTerminalEvent.Success -> {
+                event.undoOperation?.let(callbacks::saveUndoOperation)
+                callbacks.clearSelection()
+                callbacks.onOperationCompleted()
+                callbacks.onSortOperationSuccess(event.processedCount)
+                callbacks.onShowMessage(context.getString(doneMessageRes(event.operationType), event.processedCount))
+            }
+            is BrowseFileTransferTerminalEvent.PartialSuccess -> {
+                event.undoOperation?.let(callbacks::saveUndoOperation)
+                callbacks.clearSelection()
+                callbacks.onOperationCompleted()
+                if (event.undoOperation != null) {
+                    callbacks.onSortOperationSuccess(event.processedCount)
+                }
+                if (event.processedCount > 0) {
+                    callbacks.onShowMessage(context.getString(doneMessageRes(event.operationType), event.processedCount))
+                }
+                callbacks.onShowError(
+                    context.getString(R.string.error_some_operations_failed, event.failedCount, event.processedCount + event.failedCount),
+                    event.details,
+                )
+            }
+            is BrowseFileTransferTerminalEvent.Failure -> {
+                val fallback = context.getString(failureMessageRes(event.operationType))
+                callbacks.onShowError(event.message.ifBlank { fallback }, event.details)
+            }
+            is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {
+                callbacks.onAuthRequest(event.provider)
+            }
+            is BrowseFileTransferTerminalEvent.PermissionRequired -> {
+                val pendingIntent = event.pendingIntent
+                if (pendingIntent != null) {
+                    callbacks.onPermissionRequired(pendingIntent)
+                } else {
+                    callbacks.onShowError(context.getString(R.string.permission_error_retry))
+                }
+            }
+            is BrowseFileTransferTerminalEvent.Cancelled -> {
+                callbacks.onShowMessage(context.getString(cancelledMessageRes(event.operationType)))
+            }
+        }
+    }
+
+    private fun progressTitleRes(operationType: FileOperationType): Int = when (operationType) {
+        FileOperationType.MOVE -> R.string.moving_files
+        else -> R.string.copying_files
+    }
+
+    private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
+        FileOperationType.MOVE -> R.string.moved_n_files
+        else -> R.string.copied_n_files
+    }
+
+    private fun failureMessageRes(operationType: FileOperationType): Int = when (operationType) {
+        FileOperationType.MOVE -> R.string.move_failed
+        else -> R.string.copy_failed
+    }
+
+    private fun cancelledMessageRes(operationType: FileOperationType): Int = when (operationType) {
+        FileOperationType.MOVE -> R.string.toast_move_cancelled
+        else -> R.string.toast_copy_cancelled
     }
     
     fun hasPendingMoveOperation(): Boolean = pendingMoveOperation != null
@@ -317,6 +479,76 @@ class BrowseFileOperationsManager(
         }
     }
 
+    private fun buildTransferSources(
+        selectedPaths: List<String>,
+        mediaFiles: List<MediaFile>,
+    ): List<BrowseFileTransferSource> {
+        val mediaFilesMap = mediaFiles.associateBy { it.path }
+        return selectedPaths.map { path ->
+            val mediaFile = mediaFilesMap[path]
+            BrowseFileTransferSource(
+                path = path,
+                displayName = mediaFile?.name ?: path.substringAfterLast('/'),
+                size = mediaFile?.size ?: 0L,
+                isDirectory = mediaFile?.isDirectory == true,
+            )
+        }
+    }
+
+    private fun buildTransferRequest(
+        operationType: FileOperationType,
+        selectedPaths: List<String>,
+        mediaFiles: List<MediaFile>,
+        resource: MediaResource,
+        destination: MediaResource,
+        overwriteFiles: Boolean,
+    ): BrowseFileTransferRequest {
+        val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
+            val lastSlashIndex = firstPath.lastIndexOf('/')
+            if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
+        }
+        return BrowseFileTransferRequest(
+            operationType = operationType,
+            sourceResourceId = resource.id,
+            sourceResourceName = resource.name,
+            sourceCredentialsId = resource.credentialsId,
+            currentBrowsePath = currentBrowsePath,
+            destinationPath = destination.path,
+            destinationName = destination.name,
+            overwriteFiles = overwriteFiles,
+            sources = buildTransferSources(selectedPaths, mediaFiles),
+        )
+    }
+
+    private fun reattachExistingTransfer() {
+        modalDetachedByUser = false
+        val request = browseTransferCoordinator.readActiveRequest() ?: return
+        showTransferDialog(request.operationType, showImmediately = true)
+    }
+
+    fun requestTransferDialogReattach() {
+        reattachExistingTransfer()
+    }
+
+    private fun startBackgroundTransfer(request: BrowseFileTransferRequest) {
+        coroutineScope.launch {
+            Timber.d(
+                "S0818: enqueue browse background transfer type=%s items=%d",
+                request.operationType,
+                request.sources.size,
+            )
+            when (val result = browseTransferCoordinator.enqueueIfIdle(request)) {
+                is BrowseFileTransferCoordinator.EnqueueResult.ActiveAlreadyRunning -> {
+                    callbacks.onShowMessage(context.getString(R.string.browse_transfer_already_running))
+                    reattachExistingTransfer()
+                }
+                is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> {
+                    Timber.i("BrowseFileOperationsManager: background transfer enqueued workId=%s", result.workId)
+                }
+            }
+        }
+    }
+
     fun showCopyDialog(
         selectedPaths: List<String>,
         mediaFiles: List<MediaFile>,
@@ -328,106 +560,72 @@ class BrowseFileOperationsManager(
             Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
             return
         }
-        
-        val mediaFilesMap = mediaFiles.associateBy { it.path }
-        val selectedSet = selectedPaths.toSet()
 
-        // Partition into directory items and regular file items
-        val (dirItems, fileItems) = mediaFiles
-            .filter { it.path in selectedSet }
-            .partition { it.isDirectory }
-        val unresolvedPaths = selectedSet - mediaFiles.map { it.path }.toSet()
-        val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
-
-        // Capture destination for directory operations
-        var capturedDestination: MediaResource? = null
-
-        // For network/cloud paths, create File with URI-compatible scheme.
-        // S0266: cloud paths build CloudFileHandle carrying the display-name from MediaFile.name.
-        val selectedFiles = fileOnlyPaths.map { path ->
-            val size = mediaFilesMap[path]?.size ?: 0L
-            when {
-                path.startsWith("cloud://") -> CloudFileHandle(
-                    cloudPath = path,
-                    displayName = mediaFilesMap[path]?.name ?: path.substringAfterLast('/'),
-                    size = size,
-                )
-                path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") -> {
-                    object : File(path) {
-                        override fun getAbsolutePath(): String = path
-                        override fun getPath(): String = path
-                        override fun length(): Long = size
-                    }
-                }
-                else -> File(path)
+        coroutineScope.launch {
+            if (browseTransferCoordinator.hasActiveTransfer()) {
+                callbacks.onShowMessage(context.getString(R.string.browse_transfer_already_running))
+                reattachExistingTransfer()
+                return@launch
             }
-        }
 
-        val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
-            val lastSlashIndex = firstPath.lastIndexOf('/')
-            if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
-        }
+            val mediaFilesMap = mediaFiles.associateBy { it.path }
+            val selectedSet = selectedPaths.toSet()
+            val (dirItems, fileItems) = mediaFiles
+                .filter { it.path in selectedSet }
+                .partition { it.isDirectory }
+            val unresolvedPaths = selectedSet - mediaFiles.map { it.path }.toSet()
+            val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
 
-        val dialog = FileOperationDestinationDialog(
-            context = context,
-            operationType = FileOperationType.COPY,
-            sourceFiles = selectedFiles,
-            sourceFolderName = resource.name,
-            currentResourceId = resource.id,
-            currentBrowsePath = currentBrowsePath,
-            sourceCredentialsId = resource.credentialsId,
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            overwriteFiles = false,
-            showDetailedErrors = settings.showDetailedErrors,
-            onDestinationSelected = { destination -> capturedDestination = destination },
-            onComplete = { undoOp ->
-                undoOp?.let { callbacks.saveUndoOperation(it) }
-                callbacks.clearSelection()
-                // Copy directory items to the captured destination
-                if (dirItems.isNotEmpty() && dirOperationHandler != null) {
-                    val destPath = capturedDestination?.path
-                    if (destPath != null) {
-                        coroutineScope.launch {
-                            var succeeded = 0
-                            var failed = 0
-                            var crossProtocol = false
-                            for (dir in dirItems) {
-                                dirOperationHandler.executeCopyDirectory(dir.path, destPath)
-                                    .onSuccess { succeeded++ }
-                                    .onFailure { e ->
-                                        Timber.e(e, "showCopyDialog: dir copy failed for ${dir.path}")
-                                        if (e is UnsupportedOperationException) crossProtocol = true
-                                        failed++
-                                    }
-                            }
-                            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                if (failed == 0) {
-                                    callbacks.onShowMessage(context.getString(R.string.operation_completed))
-                                } else if (crossProtocol) {
-                                    callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
-                                } else {
-                                    callbacks.onShowError(
-                                        context.getString(R.string.error_some_operations_failed, failed, succeeded + failed)
-                                    )
-                                }
-                            }
+            val selectedFiles = fileOnlyPaths.map { path ->
+                val size = mediaFilesMap[path]?.size ?: 0L
+                when {
+                    path.startsWith("cloud://") -> CloudFileHandle(
+                        cloudPath = path,
+                        displayName = mediaFilesMap[path]?.name ?: path.substringAfterLast('/'),
+                        size = size,
+                    )
+                    path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") -> {
+                        object : File(path) {
+                            override fun getAbsolutePath(): String = path
+                            override fun getPath(): String = path
+                            override fun length(): Long = size
                         }
                     }
+                    else -> File(path)
                 }
-            },
-            onAuthRequest = { provider ->
-                callbacks.onAuthRequest(provider)
-            },
-            onPermissionRequired = { pendingIntent, _ ->
-                // Copy operation shouldn't need delete permission, but handle it anyway
-                callbacks.onPermissionRequired(pendingIntent)
-            },
-            onSelectFolderClicked = { opType, files, credId ->
-                callbacks.onFolderPickerRequested(opType, files, credId, resource.type, resource, dirItems)
             }
-        )
-        dialog.show()
+
+            val dialog = FileOperationDestinationDialog(
+                context = context,
+                operationType = FileOperationType.COPY,
+                sourceFiles = selectedFiles,
+                sourceFolderName = resource.name,
+                currentResourceId = resource.id,
+                currentBrowsePath = callbacks.getCurrentBrowsePath(),
+                sourceCredentialsId = resource.credentialsId,
+                fileOperationUseCase = fileOperationUseCase,
+                getDestinationsUseCase = getDestinationsUseCase,
+                overwriteFiles = false,
+                showDetailedErrors = settings.showDetailedErrors,
+                onComplete = {},
+                onSelectFolderClicked = { opType, files, credId ->
+                    callbacks.onFolderPickerRequested(opType, files, credId, resource.type, resource, dirItems)
+                },
+                onOperationRequested = { destination ->
+                    startBackgroundTransfer(
+                        buildTransferRequest(
+                            operationType = FileOperationType.COPY,
+                            selectedPaths = selectedPaths,
+                            mediaFiles = mediaFiles,
+                            resource = resource,
+                            destination = destination,
+                            overwriteFiles = false,
+                        )
+                    )
+                }
+            )
+            dialog.show()
+        }
     }
     
     fun showMoveDialog(
@@ -441,22 +639,27 @@ class BrowseFileOperationsManager(
             Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
             return
         }
-        
-        // Check Safe Mode for move confirmation
-        val shouldConfirmMove = settings.enableSafeMode && settings.confirmMove
-        
-        if (shouldConfirmMove) {
-            // Show confirmation dialog first
-            MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.confirm_move_title)
-                .setMessage(context.getString(R.string.confirm_move_message, selectedPaths.size, resource.name))
-                .setPositiveButton(R.string.move) { _, _ ->
-                    showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-        } else {
-            showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
+
+        coroutineScope.launch {
+            if (browseTransferCoordinator.hasActiveTransfer()) {
+                callbacks.onShowMessage(context.getString(R.string.browse_transfer_already_running))
+                reattachExistingTransfer()
+                return@launch
+            }
+
+            val shouldConfirmMove = settings.enableSafeMode && settings.confirmMove
+            if (shouldConfirmMove) {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle(R.string.confirm_move_title)
+                    .setMessage(context.getString(R.string.confirm_move_message, selectedPaths.size, resource.name))
+                    .setPositiveButton(R.string.move) { _, _ ->
+                        showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            } else {
+                showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
+            }
         }
     }
     
@@ -468,18 +671,12 @@ class BrowseFileOperationsManager(
     ) {
         val mediaFilesMap = mediaFiles.associateBy { it.path }
         val selectedSet = selectedPaths.toSet()
-
-        // Partition into directory items and regular file items
         val (dirItems, fileItems) = mediaFiles
             .filter { it.path in selectedSet }
             .partition { it.isDirectory }
         val unresolvedPaths = selectedSet - mediaFiles.map { it.path }.toSet()
         val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
 
-        // Capture destination for directory move operations
-        var capturedDestination: MediaResource? = null
-        
-        // S0266: cloud paths build CloudFileHandle carrying the display-name from MediaFile.name.
         val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
             when {
@@ -499,78 +696,33 @@ class BrowseFileOperationsManager(
             }
         }
 
-        val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
-            val lastSlashIndex = firstPath.lastIndexOf('/')
-            if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
-        }
-
         val dialog = FileOperationDestinationDialog(
             context = context,
             operationType = FileOperationType.MOVE,
             sourceFiles = selectedFiles,
             sourceFolderName = resource.name,
             currentResourceId = resource.id,
-            currentBrowsePath = currentBrowsePath,
+            currentBrowsePath = callbacks.getCurrentBrowsePath(),
             sourceCredentialsId = resource.credentialsId,
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
             overwriteFiles = settings.overwriteOnMove,
             showDetailedErrors = settings.showDetailedErrors,
-            onDestinationSelected = { destination -> capturedDestination = destination },
-            onComplete = { undoOp ->
-                // Clear pending operation on success
-                pendingMoveOperation = null
-                undoOp?.let { callbacks.saveUndoOperation(it) }
-                callbacks.clearSelection()
-                // Move directory items to the captured destination
-                if (dirItems.isNotEmpty() && dirOperationHandler != null) {
-                    val destPath = capturedDestination?.path
-                    if (destPath != null) {
-                        coroutineScope.launch {
-                            var succeeded = 0
-                            var failed = 0
-                            var crossProtocol = false
-                            for (dir in dirItems) {
-                                dirOperationHandler.executeMoveDirectory(dir.path, destPath)
-                                    .onSuccess { succeeded++ }
-                                    .onFailure { e ->
-                                        Timber.e(e, "showMoveDialogInternal: dir move failed for ${dir.path}")
-                                        if (e is UnsupportedOperationException) crossProtocol = true
-                                        failed++
-                                    }
-                            }
-                            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                if (failed == 0) {
-                                    callbacks.onShowMessage(context.getString(R.string.operation_completed))
-                                } else if (crossProtocol) {
-                                    callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
-                                } else {
-                                    callbacks.onShowError(
-                                        context.getString(R.string.error_some_operations_failed, failed, succeeded + failed)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            onAuthRequest = { provider ->
-                callbacks.onAuthRequest(provider)
-            },
-            onPermissionRequired = { pendingIntent, destination ->
-                // Save pending operation info for retry after permission grant
-                // destination is the user-selected destination resource
-                if (destination != null) {
-                    Timber.i("Move operation requires permission, saving pending state for retry to ${destination.name}")
-                    pendingMoveOperation = PendingMoveOperation(selectedPaths, mediaFiles, resource, destination, settings)
-                } else {
-                    Timber.w("Move operation requires permission but destination is null")
-                    pendingMoveOperation = null
-                }
-                callbacks.onPermissionRequired(pendingIntent)
-            },
+            onComplete = {},
             onSelectFolderClicked = { opType, files, credId ->
                 callbacks.onFolderPickerRequested(opType, files, credId, resource.type, resource, dirItems)
+            },
+            onOperationRequested = { destination ->
+                startBackgroundTransfer(
+                    buildTransferRequest(
+                        operationType = FileOperationType.MOVE,
+                        selectedPaths = selectedPaths,
+                        mediaFiles = mediaFiles,
+                        resource = resource,
+                        destination = destination,
+                        overwriteFiles = settings.overwriteOnMove,
+                    )
+                )
             }
         )
         dialog.show()
@@ -584,6 +736,6 @@ class BrowseFileOperationsManager(
     ) = shareOperationsHelper.sendFilesToMenu(selectedFiles, resource, settings)
 
     fun cleanup() {
-        // Cancel any pending operations if needed
+        dismissTransferDialog()
     }
 }

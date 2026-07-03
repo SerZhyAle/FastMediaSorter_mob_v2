@@ -9,9 +9,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.IntentCompat
+import kotlinx.coroutines.CompletableDeferred
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import kotlinx.coroutines.CompletableDeferred
 
 object GoogleDriveAuthResolutionTracker {
     private val resultDeferreds = ConcurrentHashMap<String, CompletableDeferred<Boolean>>()

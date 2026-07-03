@@ -32,11 +32,13 @@
 - `/spec-test-device`: on-device verification, UI drive, logcat harvest.
 - `/spec-sweep`: batch device-test sweep over BlockNeedUserTest tickets.
 - `/spec-prerelease`: end-to-end pre-release emulator sweep (clean install, resources, settings, scenario, perf, verdict) gating `/skill-release`.
+- `/release`: full release-campaign runbook (assess -> finish in-flight work -> `/spec-prerelease` -> evaluate -> ready docs incl. "What's New" -> `/skill-release` -> distribute everywhere -> verify). Checklist + work order; `/skill-release` is one step. Terms in `docs/BUILD_VS_RELEASE.md`.
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
 - `/catalog`: class/feature queries, run `scripts/catalog_sync.ps1`.
 - `/doc-update`: docs sync.
 - `/log-reader`: logcat/log analysis.
-- `/build`, `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
+- `/build`: build checklist (work order) + build-system reference. Local "build" flow; terms in `docs/BUILD_VS_RELEASE.md`.
+- `/git`, `/caveman`, `/caveman-commit`, `/caveman-review`.
 
 ### 3.1 Auto-capture of out-of-scope findings (`/spec-draft`)
 - At **any** stage - research, development, audit, code review, device test, log analysis - when you discover a problem meeting ALL three conditions, invoke the `/spec-draft` procedure to park it, without asking:
@@ -69,6 +71,8 @@
 - **Parallel Subagents**: Concurrently run independent tasks (e.g. build + search).
 - **Background long jobs**: Run full/release builds, full test suites, device sweeps via `run_in_background` (harness re-invokes on completion) and continue other work meanwhile. Never foreground-wait a slow build. Still never run >1 gradle build at once.
 - **Initiative**: Do not ask permission for searches, builds, queries. Flag blockers at start.
+- **Cost discipline**: Default to the playbook in `docs/AGENT_COST_PLAYBOOK.md` - prefer inline over a subagent for single-fact lookups (<=3 targeted tool calls), `/compact` at task boundaries and `/clear` on task switch, offload raw artifacts to `temp/` instead of holding them in chat, and restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
+- **Subagent MCP isolation**: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
 
 ## 7. PowerShell Efficiency
 - **Always pass `-NoProfile`** (e.g. `pwsh -NoProfile -File ...`).
@@ -97,7 +101,7 @@
 
 ## 9. Common Commands (a.ps1 launcher)
 - Build: `.\a.ps1 d` (fast reusable debug APK), `db` (fast debug no-zip), `dav` (debug APK with timestamped app version), `dq` (quiet), `cd` (clean debug), `nd`/`nl` (noLegal debug/release), `r` (release AAB - builds in a dedicated git worktree, not the main checkout; driven by `/skill-release`), `bf` (build failure structured digest).
-- Checks: `.\a.ps1 fk` (Kotlin compile), `fr` (resources/manifest), `fc` (code + resources), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
+- Checks: `.\a.ps1 fk` (Kotlin compile, standard), `fkn` (Kotlin compile, noLegal), `fr` (resources/manifest), `fc` (code + resources), `fg` (fast static gates batch - neuroslop+pm+listener+flavor+ticket-log in one process, `-IncludeDetekt` opt-in), `ch` (typos & lint), `ss` (unresolved specs), `ivn` (install noLegal debug APK).
 - Tests: `.\a.ps1 fu` (full unit suite) or `.\gradlew.bat testStandardDebugUnitTest`. kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
 - Device (ad-hoc, ~0 tokens): `scripts/devtest/adb.ps1 <verb>` or `.\a.ps1 adb <verb>` for quick chores against a connected emulator/device - `devices`, `props`, `current`, `launch`, `stop`, `clear`, `install`, `shot`, `log -Tail N -Grep <regex>`, `tap/text/key`, `prefs`, `shell -Cmd`. Auto-discovers adb (not on PATH); supports `-DeviceId`/`-Release`/`-Json` with stable exit codes. Shortcuts: `adb-devices/-shot/-log/-current/-launch/-clear`. Prefer over raw `adb` for one-off work; `mobile-mcp` stays for agent-driven UI walks, Maestro for repeatable flows.
 
@@ -120,7 +124,7 @@
 16. UI consistency: Support keyboard, D-pad/TV, and mouse inputs. Set focusable, clickable, nextFocus*.
 17. System bar safety: Keep UI inside `systemBars` + `displayCutout` safe bounds in portrait/landscape.
 18. Lazy optimization: Use Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources immediately when paused.
-19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`), no typographic long dashes in `.kt` (em-dash `—`/en-dash `–`/horizontal bar `―` -> plain hyphen `-`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`).
+19. Neuroslop avoidance: No trivial comments, no broad/empty catch-blocks, no hex colors in XML layout (use `?attr` or `@color`), no lifecycle-unsafe Flow collection (use `collectOnLifecycle`), no `GlobalScope` (use `viewModelScope`/lifecycle scope/injected `CoroutineScope`), no non-Timber logging (`android.util.Log.*`/`System.out` -> `Timber.*`), no shipped runtime stubs (`TODO()`/`NotImplementedError`), no typographic long dashes in `.kt` (em-dash `—`/en-dash `–`/horizontal bar `―` -> plain hyphen `-`). Mechanical gate: `scripts/quality/assert-neuroslop.ps1` (ratchet baselines, in `post-change.ps1`). **Detekt-clean-first (S0826):** write touched `.kt` to pass the detekt gate on the first build - keep log/probe lines `<=120` chars (wrap args or shorten), avoid bare numeric literals (use `TimeUnit`/companion `const`/reuse an existing const; `ignoreNumbers` is only -1/0/1/2), and never add `@Suppress` to a method that already has a baselined finding (it shifts the baseline signature and surfaces e.g. `FunctionNaming`).
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
 21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
 22. Settings docs sync: Any change to a setting - its presence, behavior, position, or naming - must regenerate the settings manifest (`docs/settings/settings-manifest.json`) and reference (`docs/SETTINGS_REFERENCE*.md`) and update its annotation (`docs/settings/settings-annotations.json`). Mechanical gate: `scripts/quality/assert-settings-doc-sync.ps1` (in `post-change.ps1`).
@@ -134,6 +138,7 @@
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.
 - Mechanical closure: `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<desc>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>]`. Skills SHOULD route mechanical closure through this facade instead of hand-rolling each step.
+- Dirty-tree closure (S0826): add `-ScopeToFile` to diff-scope the detekt gate to `-File` (fails only on findings in this change) and downgrade the project-wide count-ratchet gates (neuroslop / listener-symmetry / flavor-flag / deprecated-pm) to advisory warnings, so the facade closes a clean change without failing on other tickets' in-flight WIP. Omit it for release/CI to get the strict full-project gate.
 - Journaling granularity: one dev-log entry per logical change/ticket, not per touched file (batch multi-file changes via `close-and-log.ps1 -DevLogs`); run `catalog_sync.ps1` once per ticket, not per `.kt` edit.
 - Validation Ladder:
   - Doc: Grep for content.

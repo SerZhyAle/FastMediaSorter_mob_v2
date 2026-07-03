@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0787: list-selection row background. The currently-selected row is filled with a rounded
+     primary-container highlight so the active value is unmistakable; other rows stay transparent
+     and rely on the row's foreground ripple for touch feedback. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorPrimaryContainer" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

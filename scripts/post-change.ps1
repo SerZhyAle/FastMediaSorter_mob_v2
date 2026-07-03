@@ -36,7 +36,14 @@ param(
     [string]$ChangeType,
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
-    [switch]$SkipScan
+    [switch]$SkipScan,
+    # S0826: per-change closure on an always-dirty tree. When set, detekt is diff-scoped to
+    # -File (fails only on findings in THIS change), and every count-ratchet gate (neuroslop,
+    # listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real FATAL delta on
+    # the changed file (growth vs HEAD) instead of a full-project scan - other tickets' WIP no
+    # longer trips them. Only icon-inventory-sync stays advisory (its re-render is repo-wide).
+    # Release/CI omit the switch for the strict full project gate.
+    [switch]$ScopeToFile
 )
 
 $ErrorActionPreference = "Stop"
@@ -105,6 +112,30 @@ function Skip-Step([string]$Label, [string]$Reason) {
     Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
 }
 
+# S0826: like Invoke-Step but non-fatal. A project-wide gate that cannot attribute its
+# failure to THIS change (today only icon-inventory-sync; the count-ratchet gates moved to
+# FATAL per-file deltas in S0848/S0850) is reported as a WARN under -ScopeToFile and the
+# facade keeps going instead of aborting the close. The operator still sees it.
+function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action) {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    try {
+        $global:LASTEXITCODE = 0
+        & $Action
+        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+        $sw.Stop()
+        if ($exitCode -ne 0) {
+            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (project-wide ratchet; not attributed to your change - verify your files manually)"
+        }
+        else {
+            Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+        }
+    }
+    catch {
+        $sw.Stop()
+        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))"
+    }
+}
+
 $resolvedChangeType = if ($PSBoundParameters.ContainsKey('ChangeType')) {
     $ChangeType
 }
@@ -165,11 +196,22 @@ $runsSettingsDocGate = (
 # (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
 # settings-doc composite so a manifest/vocab change re-checks the guides.
 $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
+# S0815 icon-inventory drift gate. Fires only when a Doc/Mixed change touches the
+# generated icon tree (docs/icons/** - inventory, svgs, annotations) or a rendered
+# legend page (docs/ICON_LEGEND*). Re-checks asset coverage, orphans, legend
+# freshness, and cross-locale parity (pure text/file, no gradle). The heavy
+# inventory-vs-source export test stays opt-in / CI-only, so it is NOT run here.
+$runsIconInventoryGate = (
+    ($resolvedChangeType -in @('Doc', 'Mixed')) -and
+    ($normFile -match 'docs/icons/' -or $normFile -match 'docs/ICON_LEGEND')
+)
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
 $runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
+# S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
+$runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -186,7 +228,9 @@ Skip-Step "functionality-log" "skill-owned; evaluate only for user-visible behav
 
 if ($runsCatalogSync) {
     Invoke-Step "catalog-sync" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module
+        # S0848: incremental scan - only the changed file gets a fresh git last-touched;
+        # the rest reuse their prior JSONL date, avoiding a per-file `git log` storm.
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module -ChangedFiles $File
     }
 }
 else {
@@ -225,9 +269,50 @@ else {
     Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
 }
 
+# S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
+# under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
+# the count-ratchet gates all judge FATAL per-file deltas.
+$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
+
+# S0848 Phase 02: start the gradle-backed detekt gate as a background thread job BEFORE the
+# fast lexical/ratchet gates, then join it after them. detekt does not depend on the lexical
+# gates, so overlapping turns wall-clock from (lexical + detekt) into ~max(lexical, detekt).
+# Verdict and exit code stay identical to the serial run. The try/finally below guarantees the
+# job is stopped even when a lexical gate fails and Invoke-Step calls exit (verified: a finally
+# runs before exit propagates), so no orphan detekt/gradle launcher survives a fail-fast close.
+$detektJob = $null
+if ($runsDetektGate) {
+    $detektArgs = @(
+        '-NoProfile'
+        '-File'
+        (Join-Path $root "scripts/quality/assert-detekt.ps1")
+        '-Gate'
+    )
+    if ($PSBoundParameters.ContainsKey('Module')) {
+        $detektArgs += @('-Module', $Module)
+    }
+    if ($ScopeToFile) {
+        # diff-scope to this change: detekt fails only on findings in -File, not on
+        # other tickets' WIP that also sits above baseline on the dirty tree.
+        $detektArgs += @('-ChangedFiles', $File)
+    }
+    $detektJob = Start-ThreadJob -Name 'detekt-gate' -ScriptBlock {
+        param($PwshExe, $Argv)
+        $out = & $PwshExe @Argv 2>&1 | Out-String
+        [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out }
+    } -ArgumentList $pwsh, $detektArgs
+}
+
+try {
+
 if ($runsFlavorFlagGate) {
+    # S0848 Phase 04: under -ScopeToFile this gate now judges a real delta on the changed file
+    # (growth vs HEAD) rather than an advisory full scan, so it stays FATAL - a NEW flavor flag in
+    # this change fails, while other tickets' pre-existing reads no longer trip it.
     Invoke-Step "flavor-flag-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1") -Gate
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
@@ -235,30 +320,17 @@ else {
 }
 
 if ($runsNeuroslopGate) {
+    # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
+    # HEAD) and the gate stays FATAL - a NEW violation in this change fails, while other
+    # tickets' pre-existing findings no longer trip it (mirrors flavor-flags/deprecated-pm).
     Invoke-Step "neuroslop-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-neuroslop.ps1") -Gate
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-neuroslop.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
-}
-
-if ($runsDetektGate) {
-    Invoke-Step "detekt-gate" {
-        $detektArgs = @(
-            '-NoProfile'
-            '-File'
-            (Join-Path $root "scripts/quality/assert-detekt.ps1")
-            '-Gate'
-        )
-        if ($PSBoundParameters.ContainsKey('Module')) {
-            $detektArgs += @('-Module', $Module)
-        }
-        & $pwsh @detektArgs
-    }
-}
-else {
-    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsFgsGate) {
@@ -271,8 +343,13 @@ else {
 }
 
 if ($runsPmFlagsGate) {
+    # S0848 Phase 04: real delta on the changed file under -ScopeToFile (growth vs HEAD), so this
+    # gate stays FATAL - a NEW raw-int PackageManager overload in this change fails, unrelated
+    # pre-existing ones in other files do not.
     Invoke-Step "deprecated-pm-flags-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1") -Gate
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
     }
 }
 else {
@@ -295,6 +372,20 @@ if ($runsDialogCancelGate) {
 }
 else {
     Skip-Step "dialog-cancel-style-gate" "not applicable - touched file is not a dialog/bottom-sheet layout"
+}
+
+if ($runsListenerSymmetryGate) {
+    # S0850: under -ScopeToFile the gate judges per-file imbalance growth vs HEAD and stays
+    # FATAL - an edit that degrades symmetry in this change fails, unrelated pre-existing
+    # imbalance elsewhere does not.
+    Invoke-Step "listener-symmetry-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "listener-symmetry-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsAllFeaturesGate) {
@@ -322,6 +413,44 @@ if ($runsHowToPathGate) {
 }
 else {
     Skip-Step "howto-settings-paths-gate" "not applicable - touched file is not a HOW_TO guide"
+}
+
+if ($runsIconInventoryGate) {
+    # Strict on a full run; advisory under -ScopeToFile because the legend re-render
+    # reads live app strings, so unrelated string WIP on the dirty tree could show as
+    # legend drift that is not attributable to this change.
+    & $ratchetRunner "icon-inventory-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-icon-inventory-sync.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "icon-inventory-sync-gate" "not applicable - touched file is not an icon asset or legend page"
+}
+
+# S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
+# inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
+# after the drain keeps the finally cleanup a no-op once the job has already been received.
+if ($runsDetektGate) {
+    Invoke-Step "detekt-gate" {
+        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
+        $script:detektJob = $null
+        if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
+            Write-Host ($r.Output.TrimEnd())
+        }
+        $global:LASTEXITCODE = if ($r) { [int]$r.ExitCode } else { 1 }
+    }
+}
+else {
+    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+}
+finally {
+    # Guarantee no orphan detekt/gradle launcher survives a fail-fast exit from a lexical gate.
+    if ($detektJob) {
+        try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
+        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+    }
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

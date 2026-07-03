@@ -2,8 +2,6 @@ package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.ui.player.contracts.StereoDetectionFacade
 import com.sza.fastmediasorter.ui.player.contracts.StereoDetectionFacadeImpl
-import com.sza.fastmediasorter.ui.player.entry.PlayerEntryCoordinator
-import com.sza.fastmediasorter.ui.player.entry.PlayerEntryCoordinatorImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -21,9 +19,4 @@ abstract class PlayerContractsModule {
     abstract fun bindStereoDetectionFacade(
         impl: StereoDetectionFacadeImpl
     ): StereoDetectionFacade
-
-    @Binds
-    abstract fun bindPlayerEntryCoordinator(
-        impl: PlayerEntryCoordinatorImpl
-    ): PlayerEntryCoordinator
 }

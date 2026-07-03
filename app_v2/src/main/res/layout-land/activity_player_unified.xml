@@ -229,14 +229,18 @@
 
     <!-- Mini Now Playing bar - must be present in both portrait and landscape layouts so that
          ActivityPlayerUnifiedBinding always generates the miniNowPlayingBar field (non-null).
-         Absence here caused NowPlayingManager to receive a null miniBar on landscape. -->
+         Absence here caused NowPlayingManager to receive a null miniBar on landscape.
+         S0852: anchored ABOVE bottomPanelsContainer for portrait parity - bottom_toBottomOf=parent
+         made the elevated bar cover the Copy/Move destination buttons whenever both bands were
+         visible. A gone/empty container collapses at the parent bottom, so the bar still rests at
+         the screen edge when no sort panels are shown. -->
     <include
         android:id="@+id/miniNowPlayingBar"
         layout="@layout/view_mini_now_playing"
         android:layout_width="match_parent"
         android:layout_height="@dimen/mini_now_playing_height"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomPanelsContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

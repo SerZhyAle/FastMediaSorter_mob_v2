@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.data.preset.DeviceProfilePresetCsvDataSource
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -57,14 +56,20 @@ class ApplyProfilePresetUseCase @Inject constructor(
     suspend fun applySettingsOnly(profileType: DeviceProfileType): Result<Boolean> {
         val overrides = presetDataSource.load()[profileType].orEmpty()
         return try {
-            val current = settingsRepository.getSettings().first()
-            val presetUpdated = overrides.entries.fold(current) { acc, (field, raw) ->
-                presetApplier.applyOverride(acc, field, raw)
+            // S0876: transform overload (mutex-serialized read+write) - Welcome invokes this during
+            // onboarding, overlapping the enable-all flow's concurrent deliverable-install writers.
+            // The write itself is a no-op when unchanged (S0018 idempotency guard in updateSettings),
+            // so the old manual "skip if nothing changed" branch is no longer needed.
+            var changed = false
+            settingsRepository.updateSettings { current ->
+                val presetUpdated = overrides.entries.fold(current) { acc, (field, raw) ->
+                    presetApplier.applyOverride(acc, field, raw)
+                }
+                val updated = vrProfileSettingsSync.align(profileType, presetUpdated)
+                changed = updated != current
+                updated
             }
-            val updated = vrProfileSettingsSync.align(profileType, presetUpdated)
-            if (overrides.isNotEmpty() || updated != current) {
-                settingsRepository.updateSettings(updated)
-            } else {
+            if (!changed) {
                 Timber.i("ApplyProfilePresetUseCase: No settings changes required for $profileType")
             }
             Result.success(overrides.isNotEmpty())

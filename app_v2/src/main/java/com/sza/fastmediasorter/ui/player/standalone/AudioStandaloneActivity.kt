@@ -179,7 +179,7 @@ class AudioStandaloneActivity :
             root = binding.root,
             getCurrentMediaFile = { viewModel.state.value.mediaFile },
             resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
-            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
+            onRenameComplete = ::handleRenameComplete,
             // A SAF rename must keep the background-service playback uninterrupted.
             updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
             batchDeleteLauncher = batchDeleteLauncher,
@@ -539,6 +539,11 @@ class AudioStandaloneActivity :
     }
 
     private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
+
+    private fun handleRenameComplete(newUri: Uri, newName: String) {
+        lastShownPath = newUri.toString()
+        viewModel.onRenameComplete(newUri, newName)
+    }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 

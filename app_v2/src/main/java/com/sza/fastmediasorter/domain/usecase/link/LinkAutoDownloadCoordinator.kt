@@ -89,7 +89,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             // not actually applied. The hint propagation chain is critical for YTMusic
             // audio-share - if this fires with audioOnly=true the hint is being dropped.
             Timber.d(
-                "S0260: session context skipped host=%s reason=%s audioOnly=%b",
+                "session context skipped host=%s reason=%s audioOnly=%b",
                 host,
                 if (resolvedHost == null) "no_resolved_host" else "no_cookies",
                 audioOnly,
@@ -107,7 +107,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 val sessionHost = resolvedHost ?: host
                 sessionContext.set(sessionHost, emptyList(), null, audioOnly = true)
                 Timber.d(
-                    "S0260: LinkAutoDownloadCoordinator.applySessionContext propagate audioOnly hint without cookies sessionHost=%s",
+                    "applySessionContext: propagate audioOnly hint without cookies sessionHost=%s",
                     sessionHost,
                 )
             }
@@ -141,7 +141,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             cookies.size,
         )
         Timber.d(
-            "S0260: session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
+            "session context state host=%s resolvedHost=%s cookies=%d audioOnly=%b",
             host,
             resolvedHost,
             cookies.size,
@@ -165,7 +165,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // an audio-only format.
         val canonical = urlCanonicalizer.canonicalize(url)
         Timber.d(
-            "S0260: canonical orig=%s canonical=%s audioOnly=%b",
+            "canonical orig=%s canonical=%s audioOnly=%b",
             url.take(120),
             canonical.url.take(120),
             canonical.audioOnly,
@@ -242,6 +242,10 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         var openedStream: OpenResult.Stream? = null
         var socialPreviewHost: String? = null
+        // S0822: set when a probe fails with an okhttp redirect loop on a known social host -
+        // the login wall bounced the request in circles, so this is an auth problem (actionable
+        // re-login) rather than a genuine "no media on the page".
+        var loginWallSuspected = false
         try {
             for (strategy in registry.ordered()) {
                 callbacks.onProgress(ProgressState.Probing)
@@ -249,6 +253,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     strategy.probe(url)
                 } catch (throwable: Throwable) {
                     if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+                    if (isLoginWallRedirectLoop(throwable) &&
+                        KnownAuthResources.matchHost(url.toHttpUrlOrNull()?.host) != null
+                    ) {
+                        loginWallSuspected = true
+                    }
                     Timber.w(throwable, "LinkAutoDownloadCoordinator: probe threw for %s", strategy.id)
                     continue
                 }
@@ -333,6 +342,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     }
                     ProbeResult.NotApplicable -> Unit
                     is ProbeResult.TransientError -> {
+                        if (isLoginWallRedirectLoop(probe.cause) &&
+                            KnownAuthResources.matchHost(url.toHttpUrlOrNull()?.host) != null
+                        ) {
+                            loginWallSuspected = true
+                        }
                         Timber.w(probe.cause, "LinkAutoDownloadCoordinator: probe transient for %s", strategy.id)
                     }
                 }
@@ -357,6 +371,16 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         accountId = accountId,
                         accountDisplayName = accountDisplayName,
                     )
+                }
+                if (loginWallSuspected) {
+                    val wallHost = url.toHttpUrlOrNull()?.host ?: url
+                    Timber.i(
+                        "LinkAutoDownloadCoordinator: login-wall redirect loop host=%s account=%s",
+                        wallHost,
+                        accountId ?: "none",
+                    )
+                    Timber.d("S0822: login-wall redirect loop reclassified host=%s", wallHost)
+                    return Result.Failed.AuthRequired(host = wallHost, originalUrl = url)
                 }
                 Timber.i(
                     "[S0166] no real media found after analysis: host=%s accountId=%s",
@@ -756,6 +780,24 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
     private companion object {
         const val DYNAMIC_STRATEGY_ID = "dynamic"
+
+        // S0822: okhttp's RetryAndFollowUpInterceptor throws this exact message once a request
+        // exceeds its redirect cap. On a curated social host with applied cookies that loop is
+        // the login/checkpoint wall bouncing the request in circles, not a transient blip - the
+        // request never reaches real media, so it must surface as an auth problem, not "no media".
+        private const val REDIRECT_LOOP_MARKER = "Too many follow-up requests"
+        private const val MAX_CAUSE_DEPTH = 8
+
+        fun isLoginWallRedirectLoop(throwable: Throwable?): Boolean {
+            var cause = throwable
+            var depth = 0
+            while (cause != null && depth < MAX_CAUSE_DEPTH) {
+                if (cause.message?.contains(REDIRECT_LOOP_MARKER, ignoreCase = true) == true) return true
+                cause = cause.cause
+                depth++
+            }
+            return false
+        }
 
         fun outcomeKindOf(opened: OpenResult): String = when (opened) {
             is OpenResult.Stream -> "stream"

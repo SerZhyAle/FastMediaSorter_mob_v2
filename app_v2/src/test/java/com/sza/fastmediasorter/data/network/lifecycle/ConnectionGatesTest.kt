@@ -1,11 +1,9 @@
 package com.sza.fastmediasorter.data.network.lifecycle
 
 import com.sza.fastmediasorter.data.network.SmbConnectionManager
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
@@ -97,27 +95,13 @@ class ConnectionGatesTest {
     // ── FtpConnectionGate ────────────────────────────────────────────────────
 
     @Test
-    fun `ftp gate closeFor UI cleans idle connections`() {
-        val client = mockk<FtpClient>(relaxed = true)
-        val gate = FtpConnectionGate(client, FtpRecreateTracker(), ConnectionDiagnostics())
+    fun `ftp gate closeFor is a no-op for any consumer`() {
+        // S0904: the ExoPlayer FTP pool was never populated (connections are created per-acquire and
+        // disconnected on release), so closeFor no longer sweeps an idle pool - it must simply not throw.
+        val gate = FtpConnectionGate(FtpRecreateTracker(), ConnectionDiagnostics())
         gate.closeFor(ConsumerType.UI_SCANNER)
-        verify(exactly = 1) { client.cleanupIdleFtpConnections() }
-    }
-
-    @Test
-    fun `ftp gate closeFor worker is a no-op`() {
-        val client = mockk<FtpClient>(relaxed = true)
-        val gate = FtpConnectionGate(client, FtpRecreateTracker(), ConnectionDiagnostics())
         gate.closeFor(ConsumerType.BACKGROUND_WORKER)
-        verify(exactly = 0) { client.cleanupIdleFtpConnections() }
-    }
-
-    @Test
-    fun `ftp gate swallows cleanup failure`() {
-        val client = mockk<FtpClient>()
-        every { client.cleanupIdleFtpConnections() } throws RuntimeException("boom")
-        val gate = FtpConnectionGate(client, FtpRecreateTracker(), ConnectionDiagnostics())
-        gate.closeFor(ConsumerType.UI_PLAYER)
+        assertEquals(NetworkProtocol.FTP, gate.protocol)
     }
 
     // ── CloudConnectionGate ──────────────────────────────────────────────────

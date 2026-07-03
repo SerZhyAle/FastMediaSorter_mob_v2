@@ -67,6 +67,7 @@ open class ListSelectionDialog<T>(
                 dismiss()
                 return@launch
             }
+            Timber.d("S0787: list-selection dialog shown, %d items (scrollable, highlighted selection)", items.size)
             binding.listSelectionRecycler.adapter = ListSelectionAdapter(
                 items = items,
                 formatter = config.formatter,

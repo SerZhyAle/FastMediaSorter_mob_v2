@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0804 Kryvavytsia mode: exit rendered as a door (green frame echoes the classic green exit). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF2E7D32"
+        android:pathData="M12,4 L36,4 L36,45 L12,45 Z" />
+    <path
+        android:fillColor="#FF5D4037"
+        android:pathData="M15,7 L33,7 L33,45 L15,45 Z" />
+    <path
+        android:fillColor="#FF4E342E"
+        android:pathData="M18,11 L30,11 L30,22 L18,22 Z" />
+    <path
+        android:fillColor="#FF4E342E"
+        android:pathData="M18,26 L30,26 L30,40 L18,40 Z" />
+    <path
+        android:fillColor="#FFFFC107"
+        android:pathData="M29,26 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0" />
+</vector>

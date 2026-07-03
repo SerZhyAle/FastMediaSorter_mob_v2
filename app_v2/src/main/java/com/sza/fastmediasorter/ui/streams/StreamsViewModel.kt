@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
@@ -27,9 +29,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -38,6 +40,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -49,6 +52,9 @@ import javax.inject.Inject
  * derive the list the UI renders; filtering/sorting lives here, not in the Activity. Pinned-first is
  * always the primary order key (matches the DAO ordering) before the chosen [SortMode].
  */
+// Pre-existing large state holder (already over the param threshold); S0712 adds the persistent
+// frame store as one more injected dependency. Kept whole - each dep is a distinct stream use case.
+@Suppress("LongParameterList")
 @HiltViewModel
 class StreamsViewModel @Inject constructor(
     observeStreamSources: ObserveStreamSourcesUseCase,
@@ -60,11 +66,15 @@ class StreamsViewModel @Inject constructor(
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
+    // S0783: shared Favorites - add/remove a channel and observe which channels are favorited.
+    private val favoritesUseCase: FavoritesUseCase,
     private val settingsRepository: SettingsRepository,
     private val sessionStore: StreamsSessionStore,
     // S0659: same synchronous Wi-Fi/unmetered check that backs searchAudioCoversOnlyOnWifi -
     // injected so the PERIODIC_WIFI policy never touches ConnectivityManager from the ViewModel.
     private val networkContextAnalyzer: NetworkContextAnalyzer,
+    // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
+    private val streamFramePersistentStore: StreamFramePersistentStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -74,6 +84,11 @@ class StreamsViewModel @Inject constructor(
     // player's behavior. Eager so `.value` is current when the Activity decides the playback path.
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
+    // S0783: URLs of favorited channels, so the per-channel overflow can label its action add vs remove.
+    // Eager so `.value` is current when the Activity pushes the state into the adapters.
+    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     private val _filter = MutableStateFlow(StreamsFilter())
 
@@ -127,6 +142,7 @@ class StreamsViewModel @Inject constructor(
             // user can clear it - no crash, no silent wrong data.
             category = session.lastCategory,
             language = session.lastLanguage,
+            country = session.lastCountry,
             pinnedOnly = session.lastPinnedOnly ?: false,
         )
         val restoredMode = session.lastDisplayMode?.toDisplayMode() ?: DisplayMode.LIST
@@ -219,11 +235,18 @@ class StreamsViewModel @Inject constructor(
     fun onFilter(
         category: String? = null,
         language: String? = null,
+        country: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
         _filter.update {
-            it.copy(category = category, language = language, mediaKind = mediaKind, pinnedOnly = pinnedOnly)
+            it.copy(
+                category = category,
+                language = language,
+                country = country,
+                mediaKind = mediaKind,
+                pinnedOnly = pinnedOnly,
+            )
         }
         persistSession()
     }
@@ -255,6 +278,7 @@ class StreamsViewModel @Inject constructor(
                 query = filter.query,
                 category = filter.category,
                 language = filter.language,
+                country = filter.country,
                 pinnedOnly = filter.pinnedOnly,
             )
         }
@@ -268,6 +292,7 @@ class StreamsViewModel @Inject constructor(
         StreamDefaultSort.NAME -> SortMode.NAME
         StreamDefaultSort.TOPIC -> SortMode.TOPIC
         StreamDefaultSort.LANGUAGE -> SortMode.LANGUAGE
+        StreamDefaultSort.COUNTRY -> SortMode.COUNTRY
         StreamDefaultSort.RECENT -> SortMode.RECENT
     }
 
@@ -287,6 +312,11 @@ class StreamsViewModel @Inject constructor(
     // Decode a persisted DisplayMode name; an unknown/legacy name yields null so the caller falls back to LIST.
     private fun String.toDisplayMode(): DisplayMode? =
         DisplayMode.values().firstOrNull { it.name == this }
+
+    /** S0783: add or remove the channel from the shared Favorites (independent of pin). */
+    fun toggleStreamFavorite(source: StreamSourceEntity) = viewModelScope.launch {
+        favoritesUseCase.toggleStreamFavorite(source)
+    }
 
     /** S0637: resolve a home-screen shortcut URL to its source and ask the Activity to play it. */
     fun playByUrl(url: String) = viewModelScope.launch {
@@ -312,7 +342,11 @@ class StreamsViewModel @Inject constructor(
 
     fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
 
-    fun onRemove(source: StreamSourceEntity) = viewModelScope.launch { removeStreamSource(source) }
+    fun onRemove(source: StreamSourceEntity) = viewModelScope.launch {
+        removeStreamSource(source)
+        // S0712: drop the channel's persisted last-frame thumbnail so removed channels leave no orphan.
+        streamFramePersistentStore.remove(source.url)
+    }
 
     /** S0593: record the inline-audio play outcome (OK on first playing, FAIL on error) for the row bullet. */
     fun recordStreamOutcome(id: String, ok: Boolean) =
@@ -355,6 +389,8 @@ class StreamsViewModel @Inject constructor(
                 val categoryHit = filter.category == null || source.category == filter.category
                 val languageHit = filter.language == null ||
                     source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
+                // Country is a single code, so a plain equality (like category), not token matching.
+                val countryHit = filter.country == null || source.country == filter.country
                 // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
                 val mediaHit = when (filter.mediaKind) {
                     MediaKindFilter.ALL -> true
@@ -366,32 +402,38 @@ class StreamsViewModel @Inject constructor(
                 val topicHit = filter.topic == null || source.topic == filter.topic
                 // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
                 val pinnedHit = !filter.pinnedOnly || source.pinned
-                queryHit && categoryHit && languageHit && mediaHit && topicHit && pinnedHit
+                queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit && pinnedHit
             }
             val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
                 SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
                 SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic }
                 SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+                SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
                 SortMode.RECENT -> compareByDescending { it.addedAt }
             }
             // Pinned-first is the primary key regardless of the chosen secondary order.
             return matched.sortedWith(compareByDescending<StreamSourceEntity> { it.pinned }.then(secondary))
         }
 
-        internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets = StreamsFacets(
-            categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
-            topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
-            // Catalog language cells can be comma-separated (e.g. "russian,ukrainian"); split into
-            // individual language names so each is a separate, single-language facet option.
-            languages = sources.asSequence()
-                .mapNotNull { it.language }
-                .flatMap { it.splitToSequence(',') }
-                .map { it.trim().lowercase() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-                .sorted()
-                .toList(),
-        )
+        internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {
+            val facets = StreamsFacets(
+                categories = sources.mapNotNull { it.category?.takeIf(String::isNotBlank) }.distinct().sorted(),
+                topics = sources.mapNotNull { it.topic?.takeIf(String::isNotBlank) }.distinct().sorted(),
+                // Catalog language cells can be comma-separated (e.g. "russian,ukrainian"); split into
+                // individual language names so each is a separate, single-language facet option.
+                languages = sources.asSequence()
+                    .mapNotNull { it.language }
+                    .flatMap { it.splitToSequence(',') }
+                    .map { it.trim().lowercase() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .sorted()
+                    .toList(),
+                // Country is a single ISO 3166-1 alpha-2 code per row (never comma-split, unlike language).
+                countries = sources.mapNotNull { it.country?.takeIf(String::isNotBlank) }.distinct().sorted(),
+            )
+            return facets
+        }
     }
 
     data class StreamsUiState(
@@ -410,6 +452,7 @@ class StreamsViewModel @Inject constructor(
         val categories: List<String> = emptyList(),
         val topics: List<String> = emptyList(),
         val languages: List<String> = emptyList(),
+        val countries: List<String> = emptyList(),
     )
 
     data class StreamsFilter(
@@ -417,13 +460,14 @@ class StreamsViewModel @Inject constructor(
         val category: String? = null,
         val topic: String? = null,
         val language: String? = null,
+        val country: String? = null,
         val mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         // S0696: when true, keep only the streams the user personally pinned.
         val pinnedOnly: Boolean = false,
         val sort: SortMode = SortMode.NAME,
     )
 
-    enum class SortMode { NAME, TOPIC, LANGUAGE, RECENT }
+    enum class SortMode { NAME, TOPIC, LANGUAGE, COUNTRY, RECENT }
 
     /** Media-kind facet: ALL passes everything, AUDIO matches audio rows, VIDEO matches VIDEO + RTSP rows. */
     enum class MediaKindFilter { ALL, AUDIO, VIDEO }

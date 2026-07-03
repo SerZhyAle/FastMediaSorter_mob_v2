@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.game.GameEnemyType
 import com.sza.fastmediasorter.domain.game.GameEvent
 import com.sza.fastmediasorter.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.domain.game.GameLevelState
+import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.domain.game.GameRulesEngine
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.game.GameStateSnapshot
@@ -34,6 +35,7 @@ class GameViewModel @Inject constructor(
 
     internal var seedProvider: () -> Long = { System.nanoTime() xor System.currentTimeMillis() }
     private var seedNonce = 0L
+    private var currentMode = GameMode.CLASSIC
 
     init {
         resumeGame()
@@ -43,6 +45,8 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = GameUiState.Loading
             try {
+                currentMode = gameStateRepository.loadMode()
+                Timber.d("S0804: resumed with mode=$currentMode")
                 val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
                 _state.value = ensurePlayableOnResume(readyFromSnapshot(snapshot))
             } catch (exception: RuntimeException) {
@@ -55,7 +59,19 @@ class GameViewModel @Inject constructor(
     fun startNewGame() {
         viewModelScope.launch {
             val levelState = boardGenerator.createInitialState(defaultConfig())
-            publishAndPersist(GameUiState.Ready(levelState = levelState))
+            publishAndPersist(GameUiState.Ready(levelState = levelState, mode = currentMode))
+        }
+    }
+
+    // S0804: mode is presentational, so switching re-skins the live board without touching the snapshot.
+    fun setMode(mode: GameMode) {
+        viewModelScope.launch {
+            if (mode == currentMode) return@launch
+            currentMode = mode
+            gameStateRepository.saveMode(mode)
+            Timber.d("S0804: mode switched to $mode")
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            _state.value = ready.copy(mode = mode)
         }
     }
 
@@ -174,6 +190,7 @@ class GameViewModel @Inject constructor(
         val levelState = snapshot.toLevelState()
         return GameUiState.Ready(
             levelState = levelState,
+            mode = currentMode,
             customBoard = snapshot.customBoard,
             unreadableBoardWarning = shouldWarnForUnreadableBoard(levelState.config, snapshot.customBoard)
         )
@@ -194,10 +211,13 @@ class GameViewModel @Inject constructor(
         )
     }
 
-    // Board grows by one cell per level (level 1 -> 8x8), capped at 20x20 so cells stay readable.
-    // Wall count stays proportional to the cell count inside the generator.
-    private fun boardSizeForLevel(levelNumber: Int): Int =
-        (levelNumber + BOARD_SIZE_LEVEL_OFFSET).coerceIn(BOARD_SIZE_MIN, BOARD_SIZE_MAX)
+    // S0803: field size = BASE + level/divisor with integer division (level 1..2 -> 8, 3..5 -> 9, ..),
+    // capped at MAX so cells stay readable. Wall count stays proportional to cell count in the generator.
+    private fun boardSizeForLevel(levelNumber: Int): Int {
+        val size = (BOARD_SIZE_BASE + levelNumber / BOARD_SIZE_GROWTH_DIVISOR).coerceAtMost(BOARD_SIZE_MAX)
+        Timber.d("S0803: field size for level=$levelNumber -> $size")
+        return size
+    }
 
     private fun nextSeed(levelNumber: Int): Long {
         // The nonce prevents identical boards when several games start inside one clock tick.
@@ -236,8 +256,8 @@ class GameViewModel @Inject constructor(
     }
 
     companion object {
-        private const val BOARD_SIZE_LEVEL_OFFSET = 7
-        private const val BOARD_SIZE_MIN = 8
+        private const val BOARD_SIZE_BASE = 8
+        private const val BOARD_SIZE_GROWTH_DIVISOR = 3
         private const val BOARD_SIZE_MAX = 20
         private const val LARGE_CUSTOM_BOARD_SIZE = 18
         private const val SEED_NONCE_STEP = 104729L

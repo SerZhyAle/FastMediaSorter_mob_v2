@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-24*
+*Last updated: 2026-06-29*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -34,6 +34,7 @@ This document is the curated showcase of standout user-facing features. The comp
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
+- **Send browse transfers to the background** `[Standard / VR]`: While a long copy or move runs from the file browser, tap *Background* to dismiss the modal dialog, keep the transfer running in a notification, and return to the same browser context later.
 - **Duplicate file finder** `[Standard / VR]`: Scans storage to locate and remove identical files using a 3-phase matching engine (Size -> Hash -> SHA-256) with auto-delete or manual review options.
 - **Direct Camera & Voice capture** `[Standard / VR]`: Take photos, record voice notes, or capture videos with the system/in-app camera directly to local, network, or cloud folders.
 - **Samsung-style in-app camera** `[Standard]`: A built-in camera with a single entry point and an in-screen photo/video switch - frame the shot, take stills or record video, and save straight to your target folder without leaving the app.
@@ -136,4 +137,5 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Live stream casting** `[Standard / Legacy / noLegal]`: Cast a live video stream to a Chromecast device straight from the stream player.
 - **Home-screen shortcut & card actions** `[Standard / Legacy / noLegal / VR]`: Pin a stream to the home screen for one-tap launch, and open a per-card actions menu directly from the streams list.
 - **Stream defaults & input parity** `[Standard / Legacy / noLegal / VR]`: Set a default sort order and media-type filter for the streams list, with full TV-remote and mouse navigation parity.
-
+- **Fullscreen stream player & landscape grid** `[Standard / Photos / Legacy / noLegal / VR]`: Watch a live channel full-screen, browse streams as a multi-column grid with per-tile status dots in landscape, and the list remembers your filter, sort and scroll position.
+- **Resilient stream playback** `[Standard / Legacy / noLegal / VR]`: A health probe and bandwidth-adaptive buffering smooth startup, with distinct buffering and reconnecting states.
