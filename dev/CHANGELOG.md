@@ -21261,3 +21261,4 @@ Format: | datetime | file | target | description |
 | 2026-07-03 12:30:28 | `app_v2/src/main/res/layout/activity_main.xml` | `spec-all` | S0914: per-panel accent colours + collapsed-chip icons for the main-window collapsible panels (programs/streams/filter), across portrait/land/w600dp [branch: DEBUG-v020] |
 | 2026-07-03 12:33:50 | `PLAN/S0915_mainactivity-loc-extraction.md` | `spec-draft` | Park finding: MainActivity 1487/1500 LOC extraction (from S0914 research) [branch: DEBUG-v020] |
 | 2026-07-03 13:20:13 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7031.316 - plateau merge from DEBUG-v020 [branch: DEBUG-v020] |
+| 2026-07-03 13:28:54 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7031.316 from ALL_FEATURES diff [branch: DEBUG-v021] |

@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-06-29*
+*Last updated: 2026-07-03*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -41,9 +41,10 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Soft delete & Trash restore** `[Standard / VR]`: Deleted files move to a per-folder trash snapshot instead of vanishing; undo restores them in one tap and old trash clears automatically in the background.
 - **Download by link** `[Standard]`: Paste a URL into the Download-by-link dialog and the file downloads straight to your chosen folder, no browser needed.
 - **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
-- **Screen capture** `[Standard]`: Take a screenshot of the device screen from the Operations settings, or with an edge gesture, using Android's system capture consent, and save it to your chosen folder.
+- **Screen capture: photo, video and audio recording** `[Standard]`: Take a screenshot, record the screen with microphone audio (stoppable from the notification or an in-app timer card), or start a quick audio recording - from Operations settings or an edge gesture, using Android's system capture consent.
 - **App panel: system shortcuts and app features** `[Standard]`: The quick-launch panel can now hold not only other apps but also parts of the operating system and the app's own features and resources (calculator, mini-game, photo-OCR-translate, streams, a specific resource), and it arrives pre-filled with a useful set by default.
-- **Edge-gesture actions** `[Standard]`: Assign an edge swipe to open the app or its quick-launch panel, in addition to the screenshot gesture.
+- **Edge-gesture quick actions** `[Standard]`: Assign a left-edge swipe to auto-capture a photo (plain, or straight into edit, Send to, or OCR-translate), start video/audio/screen recording, or open the app/quick-launch panel; repeating a recording gesture stops and saves it.
+- **Camera zoom, night mode & GPS geotagging** `[Standard / Lite / Photos / Legacy]`: Zoom presets (0.5x-30x) with a draggable slider, a device-gated night mode, fixed on-screen controls with a Send To action for the latest capture, and opt-in EXIF GPS geotagging.
 - **Copy or move an opened file** `[Standard]`: When you open a file from another app, copy or move it straight to a configured destination folder from within the viewer.
 
 ## 4. Destination Management
@@ -69,6 +70,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Video frame to clipboard** `[Standard / VR]`: Optionally copy each captured video frame to the system clipboard alongside saving it, ready to paste into another app.
 - **Player gesture controls** `[Standard / VR]`: Swipe vertical sliders for brightness and volume, and customize the 3x3 grid of tap zones that map to player actions.
 - **Auto-fullscreen on landscape** `[Standard / Lite / Photos / Legacy]`: Rotating the device to landscape switches the player to fullscreen automatically and surfaces the command panel; rotating back restores the windowed view.
+- **Open in fullscreen from Browse** `[Standard / Lite / Photos / Legacy]`: Video files opened from Browse can launch straight into fullscreen playback, controlled by a Video Settings toggle - on by default for every device profile except Audio Player and E-book Reader.
 
 ## 8. VR Edition & OpenXR
 - **Dedicated VR build & OpenXR engine** `[VR Only]`: Immersive stereoscopic rendering (SBS/OU, VR180, 360°), virtual cinema screen for flat files, head tracking HUD, and passthrough snapshot capture on Quest 3.
@@ -120,12 +122,14 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Full gamepad & joystick navigation** `[Standard]`: Drive every screen with a gamepad or joystick, with remappable browser actions for controller users.
 - **Settings reference page** `[Standard]`: Browse an in-app reference describing every setting, searchable from the settings screen.
 - **Collapsible settings groups** `[Standard / VR]`: Settings sections fold into tidy collapsible groups so long screens stay easy to scan.
+- **Exit button minimizes when background functions are active** `[Standard / Lite / Photos / Legacy]`: The top-left exit button minimizes the app instead of closing it while background music, recording, or scheduled file operations are running; it fully closes only when nothing runs in the background, and a long-press always force-closes.
+- **Travelling D-pad / TV focus frame** `[Standard / Lite / Photos / Legacy]`: A single highlighted frame follows keyboard, D-pad and gamepad focus across every screen, form and dialog, shown only under remote/gamepad control, not touch.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity - files sorted, space freed, time in the player and more - stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.
 
 ## 18. Bonus Mini-Game
-- **Kryvavitsa and the Monster** `[Standard]`: A hidden, opt-in turn-based grid puzzle - enable it in Settings, then guide the monster to the exit past roaming enemies across levels with score and a turn counter. Launch it from the menu or a home-screen widget; plays with touch, keyboard, D-pad, or swipe.
+- **Kryvavitsa and the Monster** `[Standard / Lite / Photos / Legacy]`: A hidden, opt-in turn-based grid puzzle with switchable visual modes (Classic abstract shapes or the Kryvavitsa skin) - enable it in Settings, then guide the monster to the exit past roaming enemies across levels with score and a turn counter. Launch it from the menu or a home-screen widget; plays with touch, keyboard, D-pad, or swipe.
 
 ## 19. Internet Streams
 - **Internet Streams** `[Standard / Legacy / noLegal / VR / Lite (progressive-audio only)]`: Dedicated Streams screen for internet audio, video, and RTSP sources. Add a stream URL manually, import a remote `.m3u` playlist, or download a curated station catalog via Extensions.
@@ -139,3 +143,12 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Stream defaults & input parity** `[Standard / Legacy / noLegal / VR]`: Set a default sort order and media-type filter for the streams list, with full TV-remote and mouse navigation parity.
 - **Fullscreen stream player & landscape grid** `[Standard / Photos / Legacy / noLegal / VR]`: Watch a live channel full-screen, browse streams as a multi-column grid with per-tile status dots in landscape, and the list remembers your filter, sort and scroll position.
 - **Resilient stream playback** `[Standard / Legacy / noLegal / VR]`: A health probe and bandwidth-adaptive buffering smooth startup, with distinct buffering and reconnecting states.
+- **Persistent last-frame stream thumbnails** `[Standard / Legacy / noLegal / VR]`: Grid mode saves each captured live-stream frame to app-private storage, so a channel shows its last known frame immediately on next launch instead of a blank tile.
+- **Stream country metadata with filter and sort** `[Standard / Legacy / VR / noLegal]`: Shows each catalog channel's country as a flag+code chip and lets you filter and sort the stream list by country.
+- **Favorite live channels** `[Standard / Legacy / noLegal / VR]`: Add a live channel to the shared Favorites list, independent of pinning.
+
+## 20. Main Window Panels
+- **Programs panel on the main window** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: An optional horizontal panel above the resource list mirroring the programs menu - icons in portrait, icons plus labels in landscape - with its own header menu to configure, collapse, or hide it.
+- **Streams panel on the main window** `[Standard / Legacy / noLegal]`: An optional horizontal panel above the resource list showing pinned live channels with favicon thumbnails. Tapping a radio channel plays it inline with a bottom now-playing bar without opening the streams screen; tapping a video channel opens the streams screen. Its own menu lets you configure, collapse, or hide the panel.
+- **Colour-coded, collapsible panels** `[Standard / Lite / Photos / Legacy]`: Each main-window panel (programs, streams, resource-type filter) has its own accent colour and can collapse into a labelled chip; collapsed panels group together in one compact row.
+- **Panel item context menu & long-press names** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Each panel item or channel chip opens a menu to launch in a separate window (where supported) or remove/unpin it; long-press also reveals item names as tooltips.
