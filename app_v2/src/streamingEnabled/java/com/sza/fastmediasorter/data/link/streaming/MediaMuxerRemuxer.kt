@@ -55,6 +55,8 @@ class MediaMuxerRemuxer @Inject constructor() {
                 try {
                     extractor.setDataSource(segment.absolutePath)
                 } catch (t: Throwable) {
+                    // The processing block's finally never runs on this early return; release here.
+                    runCatching { extractor.release() }
                     return RemuxResult.MuxFailed(codec = "extractor_failed:${segment.name}")
                 }
                 try {

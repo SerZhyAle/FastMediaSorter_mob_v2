@@ -77,6 +77,7 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
         .build()
 
     exoPlayer?.addListener(loadControl)
+    activeExtraPlayerListener = loadControl
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 

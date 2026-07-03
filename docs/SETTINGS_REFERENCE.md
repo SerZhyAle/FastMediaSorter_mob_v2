@@ -8,7 +8,7 @@ permalink: /docs/SETTINGS_REFERENCE.html
 
 _Generated from the app. Do not edit by hand._
 
-## General
+## <img src="icons/doc/ic_settings.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> General
 
 | Setting | What it does |
 |---|---|
@@ -78,7 +78,7 @@ _Generated from the app. Do not edit by hand._
 | Color theme | Selects the color theme applied across the app interface. |
 | Language/Язык/Мова | Selects the language used for the app interface. |
 
-## Images
+## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
 _Available in: Standard, Lite, Photos, Legacy_
 
@@ -93,7 +93,7 @@ _Available in: Standard, Lite, Photos, Legacy_
 | Support GIF animation | Enables animated GIF playback in the image viewer. |
 | Support static images | Enables support for static image formats (JPEG, PNG, WebP, etc.) in the file browser and viewer. |
 
-## Video
+## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
 _Available in: Standard, Lite, Legacy_
 
@@ -108,7 +108,7 @@ _Available in: Standard, Lite, Legacy_
 | Support video | Enables video file support so videos appear in the file browser and can be played. |
 | Save video frames to clipboard | Automatically copies the captured video frame snapshot to the clipboard. |
 
-## Audio
+## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
 _Available in: Standard, Legacy_
 
@@ -123,7 +123,7 @@ _Available in: Standard, Legacy_
 | Search only on Wi-Fi | Restricts online cover art search to Wi-Fi connections only, saving mobile data. |
 | Support audio | Enables audio file support so audio tracks appear in the file browser and can be played. |
 
-## Documents
+## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
 _Available in: Standard, Legacy_
 
@@ -137,7 +137,7 @@ _Available in: Standard, Legacy_
 | Support PDF documents | Enables viewing of PDF files in the built-in document viewer. |
 | Support text files (.txt, .md, .log, .json, .xml) | Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer. |
 
-## Streams
+## <img src="icons/doc/ic_cast.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
 
 | Setting | What it does |
 |---|---|
@@ -149,7 +149,7 @@ _Available in: Standard, Legacy_
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 | Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 
-## Other
+## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
 | Setting | What it does |
 |---|---|
@@ -165,7 +165,7 @@ _Available in: Standard, Legacy_
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
 
-## Playback
+## <img src="icons/doc/ic_play.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Playback
 
 | Setting | What it does |
 |---|---|
@@ -197,7 +197,7 @@ _Available in: Standard, Legacy_
 | Compact player buttons | Uses smaller, more compact player control buttons to save screen space. |
 | Default sort mode | Sets the default order in which files are sorted when a folder opens. |
 
-## Destinations
+## <img src="icons/doc/ic_folder.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Destinations
 
 | Setting | What it does |
 |---|---|

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.net.Uri
 import android.os.Looper
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,6 +42,12 @@ class BackgroundMusicManager @Inject constructor(
 ) {
     private var musicPlayer: ExoPlayer? = null
     private var isPlaying = false
+
+    // S0896: this manager is @Singleton (one instance backs every PlayerActivity window), so in
+    // split-screen/freeform multi-window two windows can share it. Reference-counted so the
+    // first-destroyed window's release() does not tear down the shared player/listeners out from
+    // under a surviving window still using them - only the last release() actually tears down.
+    private var activeHostCount = 0
 
     // State tracking
     private var currentMusicResourceId: Long? = null
@@ -93,10 +102,19 @@ class BackgroundMusicManager @Inject constructor(
     }
     
     private fun initializeInternal() {
+        // S0896: counts acquire calls regardless of whether the player already existed, so a
+        // matching release() (see below) always sees the correct number of active hosts.
+        activeHostCount++
         if (musicPlayer == null) {
-            musicPlayer = ExoPlayer.Builder(context).build().apply {
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA)
+                .build()
+            musicPlayer = ExoPlayer.Builder(context)
+                .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+                .build().apply {
                 // Don't set repeatMode or shuffle here - will be set when loading playlist
-                volume = 0.5f 
+                volume = 0.5f
                 prepare()
                 
                 // Add listener for auto-advance on track completion and error recovery
@@ -374,6 +392,10 @@ class BackgroundMusicManager @Inject constructor(
                         onMusicErrorListener?.invoke(context.getString(R.string.no_music_files))
                     }
                 }
+            } catch (e: CancellationException) {
+                // S0896: loadPlaylistJob?.cancel() (updateState clearing the playlist, or a rapid
+                // skipToNextRandomTrack) is normal teardown, not a failure - don't log it as one.
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "BackgroundMusic: Failed to load playlist")
             }
@@ -452,6 +474,9 @@ class BackgroundMusicManager @Inject constructor(
                         onTrackChangedListener?.invoke(trackName)
                     }
                 }
+            } catch (e: CancellationException) {
+                // S0896: same loadPlaylistJob teardown case as loadAndSetPlaylist() above.
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "BackgroundMusic: Failed to skip track")
             }
@@ -554,6 +579,13 @@ class BackgroundMusicManager @Inject constructor(
             scope.launch(Dispatchers.Main) {
                 release()
             }
+            return
+        }
+
+        activeHostCount = (activeHostCount - 1).coerceAtLeast(0)
+        if (activeHostCount > 0) {
+            // S0896: another window still owns this singleton - do not tear down its player/listeners.
+            Timber.d("S0896: BackgroundMusicManager release() skipped - $activeHostCount other host(s) still active")
             return
         }
 

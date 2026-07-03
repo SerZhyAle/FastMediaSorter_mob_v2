@@ -26,13 +26,16 @@ class StreamSourceRepository @Inject constructor(
     suspend fun add(source: StreamSourceEntity) = dao.upsert(source)
 
     /** Inserts new sources, ignoring duplicates by url; returns how many were actually inserted. */
-    suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int {
-        var inserted = 0
-        for (source in sources) {
-            if (dao.insertIgnore(source) != -1L) inserted++
+    suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int =
+        // One transaction like the sibling mergeCatalog (S0732): a kill mid-import must not leave a
+        // half-inserted playlist that observeSources re-emits as an intermediate state.
+        db.withTransaction {
+            var inserted = 0
+            for (source in sources) {
+                if (dao.insertIgnore(source) != -1L) inserted++
+            }
+            inserted
         }
-        return inserted
-    }
 
     /** Raises a source above all others in the local list (feature-local favorite). */
     suspend fun pinToTop(id: String) {

@@ -315,6 +315,17 @@ class VideoPlayerManager(
     // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 
+    // S0893: the one extra Player.Listener a playback session adds beyond playerListener - either
+    // PauseAwareLoadControl (local/cloud/ftp/sftp/smb) or the per-stream listener (StreamPlaybackHelper).
+    // Tracked here because every add site builds it as a local val; without a field, releasePlayer()/
+    // onDestroy() have no reference to remove it symmetrically.
+    internal var activeExtraPlayerListener: Player.Listener? = null
+
+    // S0893: minimal state to recreate playback after an API24+ onStop release. Set at the top of
+    // playVideo() so onStart() can call playVideo(..) again with the same routing.
+    internal var lastResourceType: ResourceType? = null
+    internal var lastCredentialsId: String? = null
+
     // Counts track changes on the current ExoPlayer instance; triggers recreation at PLAYER_RECREATE_INTERVAL.
     // S0274 Wave 01: widened so VideoPlaybackPreflightHelper can drive the counter.
     var trackChangesSinceRecreate = 0
@@ -618,6 +629,9 @@ class VideoPlayerManager(
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
+        // S0893: remembered so onStart() can recreate playback after an API24+ onStop release.
+        lastResourceType = resourceType
+        lastCredentialsId = credentialsId
 
         // S0120: establish BASELINE before first media load; endScenario() fires in releasePlayer()
         if (exoPlayer == null) MemoryEnduranceTracker.startScenario("VID-playback")
@@ -803,6 +817,10 @@ class VideoPlayerManager(
     override fun onPause(owner: LifecycleOwner) = lifecycleHelper.onPause()
 
     override fun onResume(owner: LifecycleOwner) = lifecycleHelper.onResume()
+
+    override fun onStop(owner: LifecycleOwner) = lifecycleHelper.onStop()
+
+    override fun onStart(owner: LifecycleOwner) = lifecycleHelper.onStart()
 
     override fun onDestroy(owner: LifecycleOwner) {
         memoryProfileCoordinator.enter(MemoryScenario.IDLE)

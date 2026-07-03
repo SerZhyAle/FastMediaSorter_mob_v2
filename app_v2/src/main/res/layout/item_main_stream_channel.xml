@@ -38,7 +38,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?attr/colorControlNormal"
+            android:textColor="@color/main_panel_accent_foreground"
             android:visibility="gone" />
 
     </LinearLayout>
@@ -65,6 +65,6 @@
         app:icon="@drawable/ic_more_vert"
         app:iconGravity="textStart"
         app:iconSize="@dimen/icon_size_normal"
-        app:iconTint="?attr/colorControlNormal" />
+        app:iconTint="@color/main_panel_accent_foreground" />
 
 </LinearLayout>

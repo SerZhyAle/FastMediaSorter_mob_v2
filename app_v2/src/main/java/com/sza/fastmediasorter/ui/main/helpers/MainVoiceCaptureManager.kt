@@ -100,6 +100,11 @@ class MainVoiceCaptureManager(
 
         if (!requestAudioFocus()) {
             Timber.w("quick voice: audio focus not granted")
+            // S0896: audioFocusListener was set inside requestAudioFocus() before the grant result
+            // was known - clear it now. Without this, release()'s guard never reaches cancel()
+            // afterward (pendingTempFile/recordingDialog are both still null at this point), leaking
+            // the dangling listener reference.
+            abandonAudioFocus()
             tempFile.delete()
             pendingTempFile = null
             return

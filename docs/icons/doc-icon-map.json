@@ -1,0 +1,61 @@
+{
+  "_comment": "S0889 - maps every FEATURE emoji slot in docs/site to the nearest existing app drawable (owner decision 2026-07-03: 'nearest app drawable for all'). Addendum (2026-07-03, same day): the 16 meta/nav/legal landing cards - What's New, Quick Start Guide, FAQ, Troubleshooting, How-To & Scenarios, APK Editions & Mirrors, Documentation Map, Settings Reference, User Manual, Technical Specification, Architecture Overview, Terminology Reference, Development Roadmap, GitHub Repository, Privacy Policy, Terms of Service - go text-only instead (owner reversal); they are intentionally absent from `landing` below and their card-icon span was removed from index*.html by scripts/docs/strip-landing-meta-icons.ps1 (one-time; not regenerated). Consumed by export-doc-icon-pngs.ps1 (asset gen) and apply-doc-icons.ps1 (content rewrite). Landing is order-indexed (index*.html cards share order across locales). Never hand-embed icons; regenerate.",
+  "landing": [
+    { "title": "Viewing & Playback", "drawable": "ic_play" },
+    { "title": "Capture & Create", "drawable": "ic_shutter_photo" },
+    { "title": "File Management", "drawable": "ic_folder" },
+    { "title": "Text & Utilities", "drawable": "ic_calculator" },
+    { "title": "Digital Photo Frame", "drawable": "ic_profile_photo_frame" },
+    { "title": "In-Car Music", "drawable": "ic_profile_car_head_unit" },
+    { "title": "Internet Radio & Streams", "drawable": "ic_cast" },
+    { "title": "Home Cinema & VR", "drawable": "ic_profile_media_player" },
+    { "title": "Download Organizer", "drawable": "ic_sort" },
+    { "title": "Scheduled Camera Backup", "drawable": "ic_camera_capture" },
+    { "title": "SMB Network Setup", "drawable": "ic_resource_smb" },
+    { "title": "Offline Travel Folder", "drawable": "ic_virtual_docs" },
+    { "title": "Cloud Documents & EPUB", "drawable": "ic_book" },
+    { "title": "OCR Translation", "drawable": "ic_camera_ocr_translate" },
+    { "title": "NAS Media Shelf for TV", "drawable": "ic_display" },
+    { "title": "Duplicate Cleanup", "drawable": "ic_sort_random" },
+    { "title": "Chromecast Playback", "drawable": "ic_cast" },
+    { "title": "Home-Screen Smart Widgets", "drawable": "ic_widget_resource_launch" },
+    { "title": "OpenXR VR Immersive Cinema", "drawable": "ic_vr_headset" },
+    { "title": "Quick Math & Calculations", "drawable": "ic_calculator" },
+    { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit_20" }
+  ],
+  "howto": [
+    { "emoji": "📷", "drawable": "ic_camera_capture" },
+    { "emoji": "🍿", "drawable": "ic_profile_media_player" },
+    { "emoji": "🖼️", "drawable": "ic_profile_photo_frame" },
+    { "emoji": "🚗", "drawable": "ic_profile_car_head_unit" },
+    { "emoji": "📻", "drawable": "ic_cast" },
+    { "emoji": "🧹", "drawable": "ic_sort" },
+    { "emoji": "🖥️", "drawable": "ic_resource_smb" },
+    { "emoji": "📱", "drawable": "ic_widget_resource_launch" },
+    { "emoji": "🕶️", "drawable": "ic_vr_headset" },
+    { "emoji": "🧮", "drawable": "ic_calculator" },
+    { "emoji": "📝", "drawable": "ic_edit_20" },
+    { "emoji": "📖", "drawable": "ic_book" },
+    { "emoji": "🧭", "drawable": "ic_info" }
+  ],
+  "docsMap": [
+    { "emoji": "🗺️", "drawable": "ic_book" },
+    { "emoji": "🚀", "drawable": "ic_play" },
+    { "emoji": "🌍", "drawable": "ic_info" },
+    { "emoji": "🥽", "drawable": "ic_vr_headset" },
+    { "emoji": "⌚", "drawable": "ic_display" },
+    { "emoji": "⚖️", "drawable": "ic_info" },
+    { "emoji": "🛠️", "drawable": "ic_settings" }
+  ],
+  "settingsSections": {
+    "general": "ic_settings",
+    "images": "ic_image",
+    "video": "ic_video",
+    "audio": "ic_audio",
+    "documents": "ic_book",
+    "streams": "ic_cast",
+    "other": "ic_camera_capture",
+    "playback": "ic_play",
+    "destinations": "ic_folder"
+  }
+}

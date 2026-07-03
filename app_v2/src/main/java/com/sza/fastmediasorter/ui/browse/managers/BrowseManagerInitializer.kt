@@ -62,6 +62,7 @@ import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -549,13 +550,11 @@ class BrowseManagerInitializer(
         }
         buttonSetupHelper.setupAllButtons(buttonCallbacks)
         
-        // Warm up the cache used by onOverflowMenuClick for synchronous access.
-        lifecycleScope.launch {
-            settingsRepository.getSettings().collect { latestSettings = it }
-        }
-        lifecycleScope.launch {
-            getDestinationsUseCase().collect { latestHasDestinations = it.isNotEmpty() }
-        }
+        // Warm up the cache used by onOverflowMenuClick for synchronous access. Bound to the STARTED
+        // lifecycle so the DataStore/Room upstreams stop collecting while BrowseActivity sits stopped in
+        // the back stack (they re-collect and refresh on restart).
+        activity.collectOnLifecycle(settingsRepository.getSettings()) { latestSettings = it }
+        activity.collectOnLifecycle(getDestinationsUseCase()) { latestHasDestinations = it.isNotEmpty() }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
 

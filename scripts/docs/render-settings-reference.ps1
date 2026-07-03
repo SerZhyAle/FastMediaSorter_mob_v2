@@ -29,6 +29,13 @@ $flavorDir    = Join-Path $RepoRoot 'app_v2/src'
 $entries = (Get-Content $manifestPath -Raw | ConvertFrom-Json).entries
 $annot   = Get-Content $annotPath -Raw | ConvertFrom-Json
 
+# S0889: per-section leading icon (owner decision - every section carries one; the 3
+# groupings without a settings-header icon get a nearest app drawable). Assets generated
+# by export-doc-icon-pngs.ps1 under docs/icons/doc/.
+$docIconMap = Get-Content (Join-Path $RepoRoot 'docs/icons/doc-icon-map.json') -Raw | ConvertFrom-Json
+$sectionIcon = @{}
+foreach ($p in $docIconMap.settingsSections.PSObject.Properties) { $sectionIcon[$p.Name] = $p.Value }
+
 # --- Parse per-flavor SupportedMediaSection contributions from source ----------
 function Get-FlavorSections([string] $flavor) {
     $file = Join-Path $flavorDir "$flavor/java/com/sza/fastmediasorter/di/${flavor}SettingsSearchAvailabilityModule.kt"
@@ -96,7 +103,11 @@ function Render-Doc([string] $locale, [string[]] $flavorScope, [bool] $isNoLegal
             $inFamily = @($flavorScope | Where-Object { $sec -in $flavorMedia[$_] })
             if (-not $inFamily.Count) { continue }
         }
-        [void]$sb.Append("`n## $($sectionLabel[$sec][$locale])`n")
+        $secIconMd = ''
+        if ($sectionIcon.ContainsKey($sec)) {
+            $secIconMd = '<img src="icons/doc/' + $sectionIcon[$sec] + '.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> '
+        }
+        [void]$sb.Append("`n## $secIconMd$($sectionLabel[$sec][$locale])`n")
         if ($sec -in $mediaSections) {
             if ($isNoLegal) {
                 $names = @($flavorName['noLegal'])

@@ -94,6 +94,13 @@ class AudioToggleTileService : TileService() {
                     return@addListener
                 }
                 val controller = future.get()
+                // Release any prior (stale/disconnected) controller before overwriting. The isConnected
+                // guard in connectToSession only skips the still-connected case, so a dropped controller
+                // would otherwise be replaced here without release - leaking it and its Player.Listener.
+                mediaController?.let {
+                    it.removeListener(tilePlayerListener)
+                    it.release()
+                }
                 mediaController = controller
                 controller.addListener(tilePlayerListener)
                 val playing = controller.isPlaying

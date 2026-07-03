@@ -12,6 +12,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
@@ -34,6 +35,8 @@ class WebViewAuthDialogFragment : DialogFragment() {
     private val viewModel: WebViewAuthViewModel by viewModels()
     private var webView: WebView? = null
     private var saveButton: MaterialButton? = null
+    // S0892: held so the account-name dialog is dismissed on view teardown (no WindowLeaked on config change).
+    private var accountNameDialog: AlertDialog? = null
     private var targetHost: String = ""
     // In harvest mode the dialog opens the content URL directly and auto-closes once a CDN
     // video URL is intercepted. The user just needs to scroll/tap play on the page.
@@ -88,6 +91,18 @@ class WebViewAuthDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // S0892: resume WebView timers/media/rendering when the host returns to the foreground.
+        webView?.onResume()
+    }
+
+    override fun onPause() {
+        // S0892: suspend the JS-enabled page (timers, playback, network) while the host is backgrounded.
+        webView?.onPause()
+        super.onPause()
     }
 
     /**
@@ -215,7 +230,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
             setText(hint ?: defaultAccountName)
             setHint(R.string.s0155_name_account_hint)
         }
-        MaterialAlertDialogBuilder(requireContext())
+        accountNameDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.s0155_name_account_title)
             .setView(nameInput)
             .setPositiveButton(R.string.s0155_name_account_positive) { _, _ ->
@@ -325,9 +340,20 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
-        webView?.destroy()
+        // S0892: detach + quiesce before destroy() - destroy() on a still-attached / mid-load WebView
+        // can crash its native renderer or leak. Order: stop load, blank out, remove from parent, destroy.
+        Timber.d("S0892: webview teardown")
+        webView?.let { web ->
+            web.stopLoading()
+            web.loadUrl("about:blank")
+            (web.parent as? ViewGroup)?.removeView(web)
+            web.removeAllViews()
+            web.destroy()
+        }
         webView = null
         saveButton = null
+        accountNameDialog?.dismiss()
+        accountNameDialog = null
         super.onDestroyView()
     }
 

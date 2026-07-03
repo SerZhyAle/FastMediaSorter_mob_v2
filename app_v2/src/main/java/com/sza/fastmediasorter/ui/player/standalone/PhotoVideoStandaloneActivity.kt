@@ -1027,6 +1027,23 @@ class PhotoVideoStandaloneActivity :
         super.onPause()
     }
 
+    // S0893: API24+ multi-window release edge - release the video codec while backgrounded.
+    override fun onStop() {
+        super.onStop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) viewManager.onStopVideo()
+    }
+
+    // S0893: rebuild only the video path - audio/image/document types have nothing to recreate here.
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && viewModel.state.value.mediaType == MediaType.VIDEO) {
+            viewModel.state.value.mediaFile?.let { file ->
+                Timber.d("S0893: PhotoVideoStandalone onStart - rebuilding video released on background")
+                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+            }
+        }
+    }
+
     override fun onDestroy() {
         fullscreenManager?.exitFullscreen()
         fullscreenManager = null

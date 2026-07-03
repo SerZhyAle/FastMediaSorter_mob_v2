@@ -1138,7 +1138,17 @@ if (isNoLegalBuild) {
                     // to prefer Android client which typically bypasses PoToken requirements.
                     // 2026-06-17: bumped 2026.3.17 → 2026.6.9 (latest stable on PyPI) for
                     // continued YouTube extractor maintenance.
-                    install("yt-dlp==2026.6.9")
+                    // 2026-07-03: stable channel had no newer release than 2026.6.9, but the
+                    // Instagram extractor was returning "empty media response" for reels/video
+                    // (photos still worked via the HTML/structured sniffer, which does not use
+                    // yt-dlp). The nightly channel 2026.07.02.234458 ships "Instagram: Rework
+                    // extractor" (#17075) which fixes this. Nightly is NOT on PyPI, so we pin the
+                    // GitHub sdist tarball directly. Trade-off: nightly is less battle-tested for
+                    // other sites than a stable release - revisit on the next stable bump.
+                    install(
+                        "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
+                            "releases/download/2026.07.02.234458/yt-dlp.tar.gz",
+                    )
                 }
             }
         }

@@ -4,7 +4,9 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import androidx.room.withTransaction
 import com.google.gson.Gson
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
@@ -17,7 +19,10 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -34,6 +39,7 @@ class ImportFavoritesUseCaseTest {
 
     private val context = mockk<Context>()
     private val contentResolver = mockk<ContentResolver>()
+    private val db = mockk<AppDatabase>(relaxed = true)
     private val favoritesDao = mockk<FavoritesDao>(relaxed = true)
     private val resourceDao = mockk<ResourceDao>()
     private val uri = mockk<Uri>(relaxed = true)
@@ -42,8 +48,19 @@ class ImportFavoritesUseCaseTest {
     @Before
     fun setup() {
         every { context.contentResolver } returns contentResolver
-        useCase = ImportFavoritesUseCase(context, favoritesDao, resourceDao)
+        // invoke() wraps the import loop in db.withTransaction; make the mock run the block.
+        mockkStatic("androidx.room.RoomDatabaseKt")
+        // withTransaction is an extension fn: mockk indexes the receiver as arg 0, so the block is not
+        // firstArg. Pick the function argument and run it so the wrapped import loop actually executes.
+        coEvery { db.withTransaction<Any?>(any()) } coAnswers {
+            @Suppress("UNCHECKED_CAST")
+            (args.first { it is Function<*> } as suspend () -> Any?).invoke()
+        }
+        useCase = ImportFavoritesUseCase(context, db, favoritesDao, resourceDao)
     }
+
+    @After
+    fun tearDown() = unmockkAll()
 
     private fun feedJson(json: String, size: Long = json.length.toLong()) {
         val pfd = mockk<ParcelFileDescriptor>(relaxed = true)

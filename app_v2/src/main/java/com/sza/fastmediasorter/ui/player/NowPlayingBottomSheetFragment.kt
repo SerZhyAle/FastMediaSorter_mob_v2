@@ -80,6 +80,14 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
         // traversal without a false Enter-confirm. Play/Pause is the natural default focus.
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
         btnPlayPause.requestFocus()
+        // S0895: gates the 500ms position poll to when this sheet is actually visible.
+        viewModel.onHostStart()
+    }
+
+    override fun onStop() {
+        // S0895: stop polling immediately on background/dismiss - see onStart().
+        viewModel.onHostStop()
+        super.onStop()
     }
 
     override fun onDestroyView() {

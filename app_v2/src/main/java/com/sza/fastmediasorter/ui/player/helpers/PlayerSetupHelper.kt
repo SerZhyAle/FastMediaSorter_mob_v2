@@ -4,6 +4,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
@@ -25,7 +26,13 @@ import timber.log.Timber
  * Resets the video-effects pipeline so previously active effects are re-applied
  * to the fresh instance (avoids silent reset on config changes / player recreation).
  */
-internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Boolean = false): ExoPlayer {
+internal fun VideoPlayerManager.createPlayer(
+    playerView: PlayerView,
+    isAudio: Boolean = false,
+    // S0895: lets callers with a non-standard extraction pipeline (BD-TS local playback) reuse
+    // every bookkeeping step below instead of hand-building a second ExoPlayer that skips it.
+    mediaSourceFactory: MediaSource.Factory? = null,
+): ExoPlayer {
     releasePlayer()
 
     val loadControl = PrefetchLoadControlFactory.build(
@@ -43,13 +50,15 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Bo
 
     val renderersFactory = createPlaybackRenderersFactory(context)
 
-    val player = ExoPlayer.Builder(context, renderersFactory)
+    val playerBuilder = ExoPlayer.Builder(context, renderersFactory)
         .setLoadControl(loadControl)
         .setAudioAttributes(audioAttributes, true) // handleAudioFocus=true
-        .build()
+    mediaSourceFactory?.let { playerBuilder.setMediaSourceFactory(it) }
+    val player = playerBuilder.build()
 
     player.addListener(playerListener)
     player.addListener(loadControl)
+    activeExtraPlayerListener = loadControl
     playerView.player = player
     currentPlayerView = playerView
     exoPlayer = player

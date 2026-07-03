@@ -403,11 +403,18 @@ class AudioPlaybackService : MediaSessionService() {
         val finalDur = p?.duration ?: -1L
         stopPositionSaving()
         if (path != null && finalDur > 0 && finalPos >= 0) {
-            serviceScope.launch(Dispatchers.IO) {
+            // S0895: serviceScope.cancel() runs on the very next statement below, which would
+            // cancel a coroutine launched on serviceScope before the IO dispatcher even starts it -
+            // the destroy-edge save was dead in practice. A dedicated scope (not GlobalScope - Rule
+            // 19) survives that cancel(); it cancels itself once the write completes or fails.
+            val finalSaveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            finalSaveScope.launch {
                 try {
                     playbackPositionRepository.savePosition(path, finalPos, finalDur)
                 } catch (e: Exception) {
                     Timber.e(e, "AudioPlaybackService: onDestroy save position failed")
+                } finally {
+                    finalSaveScope.cancel()
                 }
             }
         }

@@ -240,9 +240,15 @@
     <!-- Action panels -->
     <color name="player_panel_copy">#CC004D00</color>
     <color name="player_panel_move">#CC00004D</color>
-    <!-- S0781: main-window resource-type filter strip (collapsed). Distinct teal in the action-panel family. -->
-    <color name="main_resource_filter_strip_background">#CC004D4D</color>
-    <color name="main_resource_filter_strip_foreground">@color/white</color>
+    <!-- S0914: per-panel accent backgrounds for the three main-window collapsible panels (programs /
+         streams / resource-type filter). The same accent colours a panel's expanded body AND its collapsed
+         chip, so each panel is recognisable by colour in both states. Distinct hues in the #CC action-panel
+         family (generalises the S0781 filter-strip teal). Fixed, theme-independent by design (mirrors
+         player_panel_*); the shared white foreground keeps text/icons legible on every accent. -->
+    <color name="main_programs_panel_accent">#CC4D4D00</color>
+    <color name="main_streams_panel_accent">#CC4D004D</color>
+    <color name="main_filter_panel_accent">#CC004D4D</color>
+    <color name="main_panel_accent_foreground">@color/white</color>
 
     <!-- ============================================================ -->
     <!-- PLAYER COLOR ALIASES (mapped to base colors) -->

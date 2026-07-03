@@ -117,6 +117,9 @@ class ScreenVideoRecordingService : Service() {
 
     private fun startRecording(intent: Intent?) {
         Timber.d("S0774: screen recording service startRecording")
+        // Clear the finalize latch: a fresh recording must be stoppable even if it starts during/after a
+        // prior recording's finalization (else stopAndSave's `if (isFinalizing) return` strands it).
+        isFinalizing = false
         startForegroundCompat()
 
         val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)

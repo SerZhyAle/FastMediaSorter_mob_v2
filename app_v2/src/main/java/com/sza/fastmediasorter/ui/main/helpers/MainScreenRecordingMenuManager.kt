@@ -8,6 +8,9 @@ import com.sza.fastmediasorter.R
  * passes enabled = (settings toggle AND a bound ScreenVideoRecordingController), so flavors without the
  * capture engine never surface it. Id 16 stays clear of the existing menu ids
  * (1 calculator, 2 game, 9 camera-OCR, 10 quick-voice, 12 quick-camera, 13 link, 14 streams, 15 panel).
+ *
+ * S0913: the item icon is ic_display - the same drawable the settings toggle row uses (str_icon on
+ * rowScreenRecordingEnabled) - so the programs menu/panel entry reads as the same feature as its setting.
  */
 class MainScreenRecordingMenuManager(
     private val onScreenRecording: () -> Unit,
@@ -18,7 +21,7 @@ class MainScreenRecordingMenuManager(
     fun populate(popup: PopupMenu, enabled: Boolean, order: Int): Int {
         if (!enabled) return 0
         popup.menu.add(0, MENU_ITEM_SCREEN_RECORDING, order, R.string.screen_recording_menu_label)
-            .setIcon(R.drawable.ic_video)
+            .setIcon(R.drawable.ic_display)
         return 1
     }
 

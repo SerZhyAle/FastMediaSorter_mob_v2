@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.input
 
+import androidx.room.withTransaction
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.InputBinding
 import com.sza.fastmediasorter.domain.input.InputTrigger
@@ -9,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class InputBindingRepository @Inject constructor(
+    private val db: AppDatabase,
     private val dao: InputBindingDao,
     private val defaultsMapLoader: DefaultsMapLoader
 ) {
@@ -53,20 +56,24 @@ class InputBindingRepository @Inject constructor(
     suspend fun hasOverrides(): Boolean = dao.observeAll().first().isNotEmpty()
 
     suspend fun insertAllAsOverrides(bindings: List<InputBinding>) {
-        bindings.forEach { binding ->
-            val device = when (binding.trigger) {
-                is InputTrigger.Key -> "keyboard"
-                is InputTrigger.MouseButton -> "mouse"
-                is InputTrigger.GamepadButton, is InputTrigger.GamepadAxis -> "gamepad"
-                is InputTrigger.VrEvent -> "vr"
+        // One transaction so a kill mid-seed can't leave a partial override set: a partial apply would
+        // flip hasOverrides() to true permanently and skip the startup seed (AppStartupInitializer).
+        db.withTransaction {
+            bindings.forEach { binding ->
+                val device = when (binding.trigger) {
+                    is InputTrigger.Key -> "keyboard"
+                    is InputTrigger.MouseButton -> "mouse"
+                    is InputTrigger.GamepadButton, is InputTrigger.GamepadAxis -> "gamepad"
+                    is InputTrigger.VrEvent -> "vr"
+                }
+                dao.upsert(InputBindingEntity(
+                    commandId = binding.commandId,
+                    device = device,
+                    slot = 0,
+                    trigger = binding.trigger.serialize(),
+                    updatedAt = System.currentTimeMillis()
+                ))
             }
-            dao.upsert(InputBindingEntity(
-                commandId = binding.commandId,
-                device = device,
-                slot = 0,
-                trigger = binding.trigger.serialize(),
-                updatedAt = System.currentTimeMillis()
-            ))
         }
     }
 

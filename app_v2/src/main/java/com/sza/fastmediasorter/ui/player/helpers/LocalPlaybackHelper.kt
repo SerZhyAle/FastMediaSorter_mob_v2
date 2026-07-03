@@ -3,13 +3,10 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.ContentUris
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSourceFactory
-import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -91,20 +88,22 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             }
         }
         if (format != TsPacketFormat.STANDARD_188) {
-            releasePlayer()
-            val localFactory: DataSource.Factory = DefaultDataSourceFactory(context)
-            val audioAttr = AudioAttributes.Builder()
-                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                .setUsage(C.USAGE_MEDIA)
-                .build()
-            exoPlayer = ExoPlayer.Builder(context)
-                .setMediaSourceFactory(
-                    localFactory.buildBdTsMediaSourceFactory(TsPacketFormat.BD_192)
+            // S0895: routed through createPlayer() (was a hand-built ExoPlayer.Builder that skipped
+            // the tuned load control + its listener tracking, effects-pipeline reset and
+            // onPlayerCreated callback every other creation path gets - see
+            // PlayerSetupHelper.createPlayer()). The BD-TS extractor pipeline is supplied as a
+            // mediaSourceFactory override instead of being built by hand.
+            val playerView = currentPlayerView
+            if (playerView != null) {
+                val localFactory: DataSource.Factory = DefaultDataSourceFactory(context)
+                createPlayer(
+                    playerView,
+                    isAudio = isAudio,
+                    mediaSourceFactory = localFactory.buildBdTsMediaSourceFactory(TsPacketFormat.BD_192)
                 )
-                .setAudioAttributes(audioAttr, true)
-                .build()
-            exoPlayer?.addListener(playerListener)
-            currentPlayerView?.player = exoPlayer
+            } else {
+                Timber.w("VideoPlayerManager: BD-TS playback requested with no currentPlayerView bound")
+            }
         }
     }
 

@@ -6,10 +6,14 @@ import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.os.Build
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.delivery.DeliveredAudioVisualizationSource
 import timber.log.Timber
@@ -41,8 +45,11 @@ class AudioEmptyStateController(
     private val barsView: AudioBreathingBarsView,
     private val videoView: TextureView,
     private val wavesView: AudioWaveParticleView,
-    private val deliveredSource: DeliveredAudioVisualizationSource
-) {
+    private val deliveredSource: DeliveredAudioVisualizationSource,
+    // S0893: self-registers so onStop()/onStart() release/rebuild the video-visualization codec on
+    // the API24+ multi-window edge, mirroring VideoPlayerManager's own DefaultLifecycleObserver use.
+    private val lifecycle: Lifecycle
+) : DefaultLifecycleObserver {
 
     companion object {
         const val MODE_NONE = "NONE"
@@ -68,6 +75,10 @@ class AudioEmptyStateController(
     // hides the video view -> the looping background never renders (S0407). onPrepared is the sole
     // entry point for the initial start; external start() calls only resume after a pause.
     private var isPrepared = false
+
+    init {
+        lifecycle.addObserver(this)
+    }
 
     // ────────────────────────── Public API ──────────────────────────
 
@@ -109,6 +120,9 @@ class AudioEmptyStateController(
         stopWaves()
         releaseMediaPlayer()
         videoView.isVisible = false
+        // S0893: symmetric with release() - without this, a stale listener (closing over the
+        // just-finished track's file) stays attached past the point video visualization is done.
+        videoView.surfaceTextureListener = null
         // audioCoverArtView visibility managed by ImageLoadingManager
     }
 
@@ -127,13 +141,18 @@ class AudioEmptyStateController(
                     // Skip until prepared; onPrepared starts playback honoring the latest isPlaying.
                     // S0863: symmetric with the pause() guard below - start() throws on an Error-state
                     // player (onError no longer leaves it half-alive, but guard defensively per fix hint).
-                    if (isPrepared) {
-                        try {
-                            mediaPlayer?.start()
-                        } catch (e: IllegalStateException) {
-                            Timber.w(e, "AudioEmptyStateController: start() failed on Error-state player")
-                            releaseMediaPlayer()
+                    when {
+                        isPrepared -> {
+                            try {
+                                mediaPlayer?.start()
+                            } catch (e: IllegalStateException) {
+                                Timber.w(e, "AudioEmptyStateController: start() failed on Error-state player")
+                                releaseMediaPlayer()
+                            }
                         }
+                        // S0893: released by onStop() while backgrounded-and-paused; rebuild now that
+                        // playback resumed (onStart() only rebuilds when isPlaying was already true).
+                        !videoActive -> showVideo()
                     }
                 } else {
                     mediaPlayer?.let { mp ->
@@ -144,7 +163,7 @@ class AudioEmptyStateController(
         }
     }
 
-    fun onPause() {
+    override fun onPause(owner: LifecycleOwner) {
         Timber.d("AudioEmptyStateController: onPause()")
         barsView.pauseAnimation()
         wavesView.pauseAnimation()
@@ -155,7 +174,7 @@ class AudioEmptyStateController(
         }
     }
 
-    fun onResume() {
+    override fun onResume(owner: LifecycleOwner) {
         Timber.d("AudioEmptyStateController: onResume()")
         if (isPlaying && (currentMode == MODE_CANVAS_BARS || currentMode == MODE_AVD_PULSE)) {
             barsView.startAnimation()
@@ -176,6 +195,30 @@ class AudioEmptyStateController(
         }
     }
 
+    // S0893: API24+ release edge - the prepared video MediaPlayer (hardware codec) must not be
+    // retained for the unbounded duration the host sits stopped in background (CODE_AUDIT_PROTOCOL
+    // contract item 2, "Player/Glide ownership"). Only the video path is released; bars/waves hold
+    // no OS resource. videoActive=false lets a later show()/onIsPlayingChanged() know a rebuild is due.
+    override fun onStop(owner: LifecycleOwner) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        Timber.d("S0893: AudioEmptyStateController onStop()")
+        if (currentMode.isVideoMode()) {
+            releaseMediaPlayer()
+            videoActive = false
+        }
+    }
+
+    // S0893: rebuild only if the video background was actually playing when the host stopped - a
+    // paused-then-backgrounded session waits for the next onIsPlayingChanged(true) instead (its
+    // !videoActive branch above), avoiding an eager rebuild of a still-paused background.
+    override fun onStart(owner: LifecycleOwner) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        if (isPlaying && currentMode.isVideoMode() && !videoActive) {
+            Timber.d("S0893: AudioEmptyStateController onStart() - rebuilding video background")
+            showVideo()
+        }
+    }
+
     fun release() {
         Timber.d("AudioEmptyStateController: release()")
         videoActive = false
@@ -183,6 +226,7 @@ class AudioEmptyStateController(
         wavesView.stopAndReset()
         releaseMediaPlayer()
         videoView.surfaceTextureListener = null
+        lifecycle.removeObserver(this)
     }
 
     // ────────────────────────── Private ──────────────────────────
@@ -266,7 +310,14 @@ class AudioEmptyStateController(
                 }
                 override fun onSurfaceTextureDestroyed(t: SurfaceTexture): Boolean {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureDestroyed")
-                    return false
+                    // S0893: the TextureView is tearing down its surface - release the MediaPlayer
+                    // bound to it now (its Surface would otherwise decode into a dead target) and
+                    // return true so the TextureView releases the SurfaceTexture itself. Returning
+                    // false claims manual-release ownership per the SurfaceTextureListener contract,
+                    // but no code path ever called SurfaceTexture.release() - a real leak.
+                    releaseMediaPlayer()
+                    videoActive = false
+                    return true
                 }
                 override fun onSurfaceTextureUpdated(t: SurfaceTexture) {}
             }
@@ -277,8 +328,14 @@ class AudioEmptyStateController(
         releaseMediaPlayer()
         currentSurface = surface
         Timber.d("AudioEmptyStateController: startMediaPlayer file=${file.absolutePath}, surface.isValid=${surface.isValid}")
+        // S0893: hold the reference outside the field assignment - if any apply{} statement throws
+        // (setDataSource/prepareAsync), `mediaPlayer` (the field) never gets assigned, but this local
+        // `player` still points at the constructed instance so the catch block can release it instead
+        // of orphaning it (previously only the Surface was released on such a throw).
+        var player: MediaPlayer? = null
         try {
-            mediaPlayer = MediaPlayer().apply {
+            player = MediaPlayer()
+            player.apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -336,7 +393,9 @@ class AudioEmptyStateController(
                 prepareAsync()
                 Timber.d("AudioEmptyStateController: prepareAsync() called")
             }
+            mediaPlayer = player
         } catch (e: Exception) {
+            player?.release()
             surface.release()
             currentSurface = null
             videoActive = false

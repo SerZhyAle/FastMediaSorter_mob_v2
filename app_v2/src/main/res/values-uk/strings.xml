@@ -2754,7 +2754,7 @@
     <string name="statistics_metric_ocr_scans">Розпізнано текстів</string>
     <string name="app_launch_panel_route_calculator">Калькулятор</string>
     <string name="app_launch_panel_route_game">Міні-гра</string>
-    <string name="app_launch_panel_route_ocr">Фото-переклад OCR</string>
+    <string name="app_launch_panel_route_ocr">Фото-OCR-переклад</string>
     <string name="app_launch_panel_route_streams">Трансляції</string>
     <string name="app_launch_panel_route_favorites">Вибране</string>
     <string name="app_launch_panel_os_settings">Налаштування</string>

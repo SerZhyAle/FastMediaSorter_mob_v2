@@ -29,7 +29,10 @@ class MainProgramsMenuCoordinator(
     private val confirmRemoveProgram: (Int, (AppSettings) -> AppSettings) -> Unit,
 ) {
 
-    /** Resolved per-scenario visibility for one menu build - MainActivity folds in its runtime flags + media capabilities. */
+    /**
+     * Resolved per-scenario visibility for one menu build - MainActivity folds in its runtime flags +
+     * media capabilities.
+     */
     data class ProgramsMenuGate(
         val streams: Boolean,
         val quickVoice: Boolean,
@@ -54,9 +57,10 @@ class MainProgramsMenuCoordinator(
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
     fun populate(popup: PopupMenu, excludeStreams: Boolean, gate: ProgramsMenuGate): Int {
         popup.menu.clear()
-        // S0758: each item's explicit order = its canonical position in the owner's programs menu order
-        // (Streams, [quick-launch panel = S0757, slot 2], camera, voice, calculator, camera-OCR,
-        // link download, mini-game). Slot 2 stays empty until S0757 adds its entry; the gap renders fine.
+        // S0758: each item's explicit order = its canonical position in the owner's programs menu order.
+        // Sorted display order after S0913: Streams, quick-launch panel [S0757], quick-capture,
+        // calculator, camera-OCR, screen recording [S0913 - right after camera-OCR], link download,
+        // mini-game. The panel mirrors this menu (single source of truth), so the order carries there too.
         streamsMenuManager.populate(popup, !excludeStreams && gate.streams, MENU_ORDER_STREAMS)
         // S0757: Quick Launch Panel - always present (no on/off; also reachable via tile/gesture/widget).
         popup.menu.add(
@@ -175,9 +179,9 @@ class MainProgramsMenuCoordinator(
         private const val MENU_ORDER_STREAMS = 1
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 2
         private const val MENU_ORDER_QUICK_CAPTURE = 3
-        private const val MENU_ORDER_SCREEN_RECORDING = 4
-        private const val MENU_ORDER_CALCULATOR = 5
-        private const val MENU_ORDER_CAMERA_OCR = 6
+        private const val MENU_ORDER_CALCULATOR = 4
+        private const val MENU_ORDER_CAMERA_OCR = 5
+        private const val MENU_ORDER_SCREEN_RECORDING = 6
         private const val MENU_ORDER_LINK_DOWNLOAD = 7
         private const val MENU_ORDER_MINI_GAME = 8
     }

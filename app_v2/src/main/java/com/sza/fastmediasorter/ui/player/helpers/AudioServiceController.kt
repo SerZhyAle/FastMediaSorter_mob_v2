@@ -36,6 +36,13 @@ class AudioServiceController(
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
+    // S0895: MemoryEnduranceTracker is a single-slot global singleton (one active scenario at a
+    // time, no per-caller stack) - only end the scenario this instance actually started, or
+    // release() (which can fire even when this controller never connected, e.g. an eager/defensive
+    // construction with no playback) would clobber an unrelated subsystem's in-flight scenario
+    // (e.g. VideoPlayerManager's own tracked scenario).
+    private var ownsEnduranceScenario = false
+
     /** Whether the controller is currently connected to the service */
     val isConnected: Boolean
         get() = synchronized(controllerLock) { mediaController?.isConnected == true }
@@ -70,6 +77,7 @@ class AudioServiceController(
                     ControllerStoreResult.StoredNew -> {
                         // S0120: record BASELINE for AUD-playback endurance session on first connection
                         MemoryEnduranceTracker.startScenario("AUD-playback")
+                        ownsEnduranceScenario = true
                         Timber.d("AudioServiceController: connected successfully")
                     }
                     ControllerStoreResult.ReusedExisting -> Unit
@@ -316,8 +324,11 @@ class AudioServiceController(
      * Must be called when the Activity is destroyed.
      */
     fun release() {
-        // S0120: emit AUD-playback SUMMARY and schedule cooldown checkpoint
-        MemoryEnduranceTracker.endScenario()
+        if (ownsEnduranceScenario) {
+            // S0120: emit AUD-playback SUMMARY and schedule cooldown checkpoint
+            MemoryEnduranceTracker.endScenario()
+            ownsEnduranceScenario = false
+        }
         Timber.d("AudioServiceController: releasing")
         synchronized(controllerLock) {
             controllerFuture?.let { MediaController.releaseFuture(it) }

@@ -142,15 +142,15 @@ class SafUriExtractor(private val context: Context) {
             var frameRate: Double? = null
             
             // Use MediaExtractor for detailed codec info
+            val extractor = MediaExtractor()
             try {
-                val extractor = MediaExtractor()
                 context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
                     extractor.setDataSource(pfd.fileDescriptor)
-                    
+
                     for (i in 0 until extractor.trackCount) {
                         val format = extractor.getTrackFormat(i)
                         val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
-                        
+
                         when {
                             mime.startsWith("video/") -> {
                                 videoCodec = mime.substringAfter("video/").uppercase()
@@ -169,10 +169,12 @@ class SafUriExtractor(private val context: Context) {
                             }
                         }
                     }
-                    extractor.release()
                 }
             } catch (e: Exception) {
                 Timber.w(e, "MediaExtractor failed for SAF URI, using basic metadata only")
+            } finally {
+                // Release on every path: null fd (use skipped), setDataSource/getTrackFormat throw.
+                extractor.release()
             }
             
             return DetailedMediaInfo(
@@ -209,14 +211,11 @@ class SafUriExtractor(private val context: Context) {
         val uri = android.net.Uri.parse(uriPath)
 
         val pageCount: Int? = try {
-            val pfd = context.contentResolver.openFileDescriptor(uri, "r")
-            if (pfd != null) {
-                val pdfRenderer = android.graphics.pdf.PdfRenderer(pfd)
-                val count = pdfRenderer.pageCount
-                pdfRenderer.close()
-                pfd.close()
-                count
-            } else null
+            // .use on both: if the PdfRenderer constructor throws (corrupt/password PDF), the outer
+            // pfd.use still closes the descriptor - no ParcelFileDescriptor leak.
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                android.graphics.pdf.PdfRenderer(pfd).use { renderer -> renderer.pageCount }
+            }
         } catch (e: Exception) {
             Timber.w(e, "Failed to read PDF page count from URI: $uriPath")
             null

@@ -6,6 +6,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
@@ -140,9 +142,18 @@ class StreamInlineAudioManager(
             // The Icy-MetaData request header keeps ICY now-playing flowing on the in-app player too.
             val httpFactory = DefaultHttpDataSource.Factory()
                 .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
+            // S0896: this OFF-mode local player had no audio-focus/becoming-noisy handling, unlike
+            // its service-mode twin (audioController.playAudioWithMetadata -> AudioPlaybackService).
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA)
+                .build()
             val local = ExoPlayer.Builder(miniControl.context)
                 .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+                .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+                .setHandleAudioBecomingNoisy(true)
                 .build()
+            Timber.d("S0896: StreamInlineAudioManager OFF-mode player built with handleAudioFocus")
             local.setMediaItem(MediaItem.fromUri(source.url))
             local.addListener(playerListener)
             local.prepare()
@@ -186,8 +197,15 @@ class StreamInlineAudioManager(
             local.release()
             localPlayer = null
         } else {
-            // Service player: stop playback but keep the controller connected for the next play().
-            player?.stop()
+            // Service player: quiesce it (stop + drop playWhenReady + clear the playlist) but keep the
+            // controller connected for the next play(). This lets AudioPlaybackService.onTaskRemoved's
+            // no-active-playback heuristic (!playWhenReady || mediaItemCount == 0) stopSelf() the service.
+            player?.let { p ->
+                p.playWhenReady = false
+                p.stop()
+                p.clearMediaItems()
+                Timber.d("S0900: service player quiesced on stop")
+            }
         }
         player = null
         usingService = false

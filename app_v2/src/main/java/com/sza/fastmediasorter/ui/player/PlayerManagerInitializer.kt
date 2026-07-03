@@ -443,7 +443,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             barsView = activity.activityBinding.audioBarsView,
             videoView = activity.activityBinding.audioVideoView,
             wavesView = activity.activityBinding.audioWaveParticleView,
-            deliveredSource = activity.deliveredAudioVisualizationSource
+            deliveredSource = activity.deliveredAudioVisualizationSource,
+            lifecycle = activity.lifecycle
         )
         activity.imageLoadingManager.setAudioEmptyStateController(activity.audioEmptyStateController!!)
     }
@@ -565,43 +566,54 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         // Observe stereoMode StateFlow and apply GL effects to the player whenever it changes.
         // Runs on Main dispatcher (lifecycleScope default) - safe for ExoPlayer.setVideoEffects().
+        // S0895: repeatOnLifecycle(STARTED) - was a bare collect that kept applying GL effects
+        // while the Activity was stopped (baselined in the unsafe-collect neuroslop gate).
         activity.lifecycleScope.launch {
-            activity.viewModel.stereoMode
-                .filter { it != StereoMode.AUTO }
-                .collect { mode ->
-                    activity.videoPlayerManager.applyStereoEffect(mode)
-                }
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activity.viewModel.stereoMode
+                    .filter { it != StereoMode.AUTO }
+                    .collect { mode ->
+                        activity.videoPlayerManager.applyStereoEffect(mode)
+                    }
+            }
         }
 
         // Observe stereoMode changes for image stereo crop (3D tab mode switch while viewing an image).
         // When the user changes the mode via the dialog, re-render the current image with the new crop.
+        // S0895: repeatOnLifecycle(STARTED) - was a bare collect that kept re-rendering the image
+        // while the Activity was stopped.
         activity.lifecycleScope.launch {
-            activity.viewModel.stereoMode.collect { mode ->
-                val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
-                if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
-                    currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
-                    activity.imageLoadingManager.setStereoMode(mode)
-                    // Re-display the current image so the new crop takes effect.
-                    val path = currentFile.path
-                    activity.imageLoadingManager.displayImage(path)
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activity.viewModel.stereoMode.collect { mode ->
+                    val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
+                    if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
+                        currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                        activity.imageLoadingManager.setStereoMode(mode)
+                        // Re-display the current image so the new crop takes effect.
+                        val path = currentFile.path
+                        activity.imageLoadingManager.displayImage(path)
+                    }
                 }
             }
         }
 
         // Observe panelStereoSingleEye flag - toggle stereo crop on the currently displayed image
         // without a fresh navigation (spec_panel-stereo-single-eye §3.1.1).
+        // S0895: repeatOnLifecycle(STARTED) - same unsafe-collect fix as the two collectors above.
         activity.lifecycleScope.launch {
-            activity.settingsRepository.getSettings()
-                .map { it.panelStereoSingleEye }
-                .distinctUntilChanged()
-                .collect { enabled ->
-                    activity.imageLoadingManager.setPanelStereoSingleEyeEnabled(enabled)
-                    val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
-                    if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
-                        currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
-                        activity.imageLoadingManager.displayImage(currentFile.path)
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activity.settingsRepository.getSettings()
+                    .map { it.panelStereoSingleEye }
+                    .distinctUntilChanged()
+                    .collect { enabled ->
+                        activity.imageLoadingManager.setPanelStereoSingleEyeEnabled(enabled)
+                        val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
+                        if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
+                            currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                            activity.imageLoadingManager.displayImage(currentFile.path)
+                        }
                     }
-                }
+            }
         }
 
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(

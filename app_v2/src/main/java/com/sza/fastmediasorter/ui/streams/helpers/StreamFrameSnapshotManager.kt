@@ -17,6 +17,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +103,12 @@ class StreamFrameSnapshotManager(
     private suspend fun drainOne() {
         val url = queue.poll() ?: return
         semaphore.withPermit {
+            // cancelAll() clears `pending`; if our url is gone, the grid was left/stopped while we were
+            // parked on the semaphore - skip the expensive ExoPlayer capture instead of launching it late.
+            if (synchronized(pending) { url !in pending }) {
+                Timber.d("S0900: capture skipped, grid left")
+                return@withPermit
+            }
             val job = scope.launch {
                 val bitmap = capture(url)
                 withContext(Dispatchers.Main) {
@@ -198,6 +205,7 @@ class StreamFrameSnapshotManager(
             scope.launch { persistentStore.save(url, bitmap) }
             bitmap
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Timber.w(t, "Stream snapshot failed: %s", url)
             null
         } finally {

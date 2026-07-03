@@ -1,14 +1,14 @@
 ---
 layout: default
-title: "🗺️ Project Documentation Map"
+title: "<img src="icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Project Documentation Map"
 permalink: /docs/DOCS_MAP.html
 ---
 
-# 🗺️ Project Documentation Map
+# <img src="icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Project Documentation Map
 
 This file serves as a central index for all documentation available in the project, categorized by purpose and target audience. The public entry points are the Markdown docs in this folder; use [FEATURES.md](FEATURES.md) as the canonical flavor and capability inventory.
 
-## 🚀 User Guides & Manuals
+## <img src="icons/doc/ic_play.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> User Guides & Manuals
 
 Essential reading for end-users to install, configure, and use the application. The current public entry points are the Markdown docs in this folder: [README.md](README.md), [QUICK_START.md](QUICK_START.md), [HOW_TO.md](HOW_TO.md), [FAQ.md](FAQ.md), [TROUBLESHOOTING.md](TROUBLESHOOTING.md), [LIMITATIONS.md](LIMITATIONS.md), [MODULE_SELECTION.md](MODULE_SELECTION.md), and [FEATURES.md](FEATURES.md).
 
@@ -29,12 +29,12 @@ Essential reading for end-users to install, configure, and use the application. 
 
 > Authoring convention: user docs show the real interface icons (not emoji). Convention, regen pipeline, and drift gate: [icons/README.md](icons/README.md). The inventory, SVGs, and legend are generated - never hand-edited.
 
-### 🌍 Multi-language Support
+### <img src="icons/doc/ic_info.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Multi-language Support
 Most guides are available in Russian and Ukrainian:
 - **Russian**: [What's New](WHATS_NEW_RU.md), [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md), [Features](FEATURES_RU.md)
 - **Ukrainian**: [What's New](WHATS_NEW_UK.md), [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md), [Features](FEATURES_UK.md)
 
-### 🥽 VR / XR (noLegal) Edition
+### <img src="icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> VR / XR (noLegal) Edition
 
 User-facing guides for the VR / XR headset edition. Each guide is available in English, Russian, and Ukrainian:
 - **VR Edition**: [EN](VR_EDITION.md), [RU](VR_EDITION_RU.md), [UK](VR_EDITION_UK.md)
@@ -43,7 +43,7 @@ User-facing guides for the VR / XR headset edition. Each guide is available in E
 
 ---
 
-## ⌚ Wear OS Companion
+## <img src="icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Wear OS Companion
 
 Documentation for the Wear OS version of the application.
 
@@ -59,7 +59,7 @@ Documentation for the Wear OS version of the application.
 
 ---
 
-## ⚖️ Legal & Downloads
+## <img src="icons/doc/ic_info.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Legal & Downloads
 
 | Document | Description | Last Updated |
 |---|---|---|
@@ -69,7 +69,7 @@ Documentation for the Wear OS version of the application.
 
 ---
 
-## 🛠️ Developer & Technical Documentation
+## <img src="icons/doc/ic_settings.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Developer & Technical Documentation
 
 Resources for developers, QA, and contributors.
 

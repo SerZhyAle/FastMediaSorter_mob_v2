@@ -223,10 +223,13 @@ class PlayerLifecycleManager(
         preloadJobs.clear()
         
         // Release VideoPlayerManager
-        try {
+        // S0895: videoPlayerManager is a lazy-getter property, not a lateinit var - it never
+        // throws UninitializedPropertyAccessException, so the try/catch this replaced never fired
+        // its catch and instead lazily constructed a brand-new VideoPlayerManager during teardown
+        // whenever no video was ever played this session. _videoPlayerManager (the nullable backing
+        // field) is the correct guard, matching every other use site in PlayerActivity.kt.
+        if (activity._videoPlayerManager != null) {
             activity.videoPlayerManager.releasePlayer()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
         }
 
         // Cancel overlay auto-hide timer to prevent stale runnables after destroy

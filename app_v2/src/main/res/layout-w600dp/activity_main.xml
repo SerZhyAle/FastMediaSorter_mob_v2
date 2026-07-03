@@ -347,7 +347,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/main_panel_item_spacing"
-                android:background="@color/main_resource_filter_strip_background"
+                android:background="@color/main_programs_panel_accent"
                 android:clickable="true"
                 android:drawablePadding="6dp"
                 android:focusable="true"
@@ -355,18 +355,19 @@
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_programs_panel_strip"
-                android:textColor="@color/main_resource_filter_strip_foreground"
+                android:textColor="@color/main_panel_accent_foreground"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
                 app:drawableEndCompat="@drawable/ic_double_arrow_down"
-                app:drawableTint="@color/main_resource_filter_strip_foreground" />
+                app:drawableStartCompat="@drawable/ic_apps"
+                app:drawableTint="@color/main_panel_accent_foreground" />
 
             <TextView
                 android:id="@+id/chipStreamsCollapsed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/main_panel_item_spacing"
-                android:background="@color/main_resource_filter_strip_background"
+                android:background="@color/main_streams_panel_accent"
                 android:clickable="true"
                 android:drawablePadding="6dp"
                 android:focusable="true"
@@ -374,17 +375,18 @@
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_streams_panel_strip"
-                android:textColor="@color/main_resource_filter_strip_foreground"
+                android:textColor="@color/main_panel_accent_foreground"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
                 app:drawableEndCompat="@drawable/ic_double_arrow_down"
-                app:drawableTint="@color/main_resource_filter_strip_foreground" />
+                app:drawableStartCompat="@drawable/ic_cast"
+                app:drawableTint="@color/main_panel_accent_foreground" />
 
             <TextView
                 android:id="@+id/chipFilterCollapsed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@color/main_resource_filter_strip_background"
+                android:background="@color/main_filter_panel_accent"
                 android:clickable="true"
                 android:drawablePadding="6dp"
                 android:focusable="true"
@@ -392,11 +394,12 @@
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_resource_type_filter_strip"
-                android:textColor="@color/main_resource_filter_strip_foreground"
+                android:textColor="@color/main_panel_accent_foreground"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
                 app:drawableEndCompat="@drawable/ic_double_arrow_down"
-                app:drawableTint="@color/main_resource_filter_strip_foreground" />
+                app:drawableStartCompat="@drawable/ic_tune"
+                app:drawableTint="@color/main_panel_accent_foreground" />
 
         </LinearLayout>
 
@@ -414,18 +417,18 @@
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
+            android:background="@color/main_filter_panel_accent"
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabIndicatorFullWidth="false"
-            app:tabIconTint="?attr/colorControlNormal"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorControlNormal"
+            app:tabIconTint="@color/main_panel_accent_foreground"
+            app:tabSelectedTextColor="@color/main_panel_accent_foreground"
+            app:tabTextColor="@color/main_panel_accent_foreground"
             app:tabInlineLabel="@bool/is_tab_inline"
-            app:tabIndicatorColor="?attr/colorPrimary" />
+            app:tabIndicatorColor="@color/main_panel_accent_foreground" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

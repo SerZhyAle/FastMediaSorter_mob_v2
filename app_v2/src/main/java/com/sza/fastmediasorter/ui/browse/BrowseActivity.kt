@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
@@ -172,6 +173,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
     @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
     @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
+    // S0901: application-lifetime scope so a mic recording save survives BrowseActivity teardown.
+    @Inject @ApplicationScope lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -276,6 +279,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             activity = this,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
+            appScope = applicationScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
             onRecordingStateChanged = { isRecording ->
                 val tint = if (isRecording) {

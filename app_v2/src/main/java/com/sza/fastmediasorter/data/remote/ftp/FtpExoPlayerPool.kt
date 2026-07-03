@@ -8,7 +8,6 @@ import org.apache.commons.net.ftp.FTPReply
 import timber.log.Timber
 import java.io.IOException
 import java.time.Duration
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 
 /**
@@ -19,16 +18,11 @@ import java.util.concurrent.Semaphore
  * interleaving (e.g. PASV expects 227 but receives NOOP 200). The semaphore caps total
  * concurrent FTP sockets system-wide.
  *
- * The idle pool tracking remains intact for parity with the previous implementation but is
- * currently dormant - `getConnectionForExoPlayer` always creates a fresh client.
- *
  * Extracted to keep FtpClient below the 1000-line cap.
  */
 class FtpExoPlayerPool {
 
-    private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledFtpConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
-    private val poolMutex = Any()
 
     /** ExoPlayer-facing connection info (full credentials carry through to each acquire). */
     data class FtpConnectionInfo(
@@ -40,13 +34,6 @@ class FtpExoPlayerPool {
 
     /** Wrapper handed back to ExoPlayer DataSources. The client is owned by the pool - do not disconnect. */
     data class ExoPlayerFtpConnection(val client: FTPClient)
-
-    private data class ConnectionKey(val host: String, val port: Int, val username: String)
-
-    private data class PooledFtpConnection(
-        val client: FTPClient,
-        var lastUsed: Long = System.currentTimeMillis()
-    )
 
     /**
      * Get a connection for an ExoPlayer DataSource. BLOCKING (not suspend) because
@@ -128,37 +115,10 @@ class FtpExoPlayerPool {
         connectionSemaphore.release()
     }
 
-    /** Walk the idle pool and disconnect entries past [IDLE_TIMEOUT_MS]. */
-    fun cleanupIdleFtpConnections() {
-        val now = System.currentTimeMillis()
-        val keysToRemove = connectionPool.filter { (_, conn) ->
-            now - conn.lastUsed > IDLE_TIMEOUT_MS
-        }.keys
-
-        if (keysToRemove.isEmpty()) return
-
-        synchronized(poolMutex) {
-            keysToRemove.forEach { key ->
-                connectionPool.remove(key)?.let { pooled ->
-                    try {
-                        if (pooled.client.isConnected) {
-                            pooled.client.logout()
-                            pooled.client.disconnect()
-                        }
-                        Timber.d("FTP: Closed idle connection to ${key.host}")
-                    } catch (e: Exception) {
-                        Timber.w("FTP: Error closing idle connection: ${e.message}")
-                    }
-                }
-            }
-        }
-    }
-
     companion object {
         private const val CONNECT_TIMEOUT = 10_000
         private const val SOCKET_TIMEOUT = 30_000
         private const val KEEPALIVE_TIMEOUT = 15L
         private const val MAX_CONCURRENT_CONNECTIONS = 10
-        private const val IDLE_TIMEOUT_MS = 25_000L
     }
 }

@@ -126,6 +126,7 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
         .build()
 
     exoPlayer?.addListener(loadControl)
+    activeExtraPlayerListener = loadControl
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 

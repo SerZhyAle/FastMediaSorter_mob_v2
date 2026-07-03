@@ -442,6 +442,30 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         super.onPause()
     }
 
+    // S0893: API24+ multi-window release edge - release the video codec while backgrounded.
+    // ::viewManager.isInitialized guards the same late-init race documented at onDestroy() below
+    // (S0860 - the probe short-circuit / first-frame destroy can run lifecycle callbacks before
+    // setupViews() assigns viewManager).
+    override fun onStop() {
+        super.onStop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && ::viewManager.isInitialized) {
+            viewManager.onStopVideo()
+        }
+    }
+
+    // S0893: rebuild only the video path - audio/image/document types have nothing to recreate here.
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && ::viewManager.isInitialized &&
+            viewModel.state.value.mediaType == MediaType.VIDEO
+        ) {
+            viewModel.state.value.mediaFile?.let { file ->
+                Timber.d("S0893: StandalonePlayer onStart - rebuilding video released on background")
+                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+            }
+        }
+    }
+
     override fun onDestroy() {
         if (::lifecycleManager.isInitialized) lifecycleManager.onDestroy()
         pipManager?.release()

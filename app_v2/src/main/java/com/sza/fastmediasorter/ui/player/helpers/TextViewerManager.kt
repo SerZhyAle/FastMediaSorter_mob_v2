@@ -232,6 +232,7 @@ class TextViewerManager(
                 hideOcrText()
             } else {
                 // Text file - hide and exit fullscreen
+                ttsManager?.stop()
                 closePager()
                 safeViews.textViewerContainer.isVisible = false
                 safeViews.textScrollView.isVisible = false
@@ -544,6 +545,9 @@ class TextViewerManager(
     }
 
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
+        // Stop in-flight read-aloud before swapping the source (TTS reads originalTextWithoutNumbers).
+        ttsManager?.stop()
+        Timber.d("S0897: file swap - TTS stopped")
         currentFile = mediaFile
         viewerLoader.load(mediaFile, isWritable)
     }
@@ -628,6 +632,8 @@ class TextViewerManager(
         val file = currentLocalFile ?: return
         currentFile ?: return
 
+        // Re-read replaces the buffer TTS is speaking; stop first.
+        ttsManager?.stop()
         closePager()
         currentCharset = charset
 
@@ -701,6 +707,8 @@ class TextViewerManager(
     /** Close text viewer triggered by back button press. Performs complete cleanup for text file viewer (NOT for OCR results). This ensures single back-press exits, not double. Called from PlayerLifecycleManager.setupBackPressHandler() when back is pressed while text viewer is active. */
     fun closeTextViewerFromBackPress() {
         if (currentFile != null) {
+            ttsManager?.stop()
+            Timber.d("S0897: text-viewer close - TTS stopped")
             closePager()
             safeViews.textViewerContainer.isVisible = false
             safeViews.textScrollView.isVisible = false
@@ -941,17 +949,20 @@ class TextViewerManager(
     // ===== OCR / translated text display =====
 
     fun displayOcrText(text: String) {
+        ttsManager?.stop()
         currentFile = null
         originalTextWithoutNumbers = text
         ocrDisplayManager.displayOcrText(text)
     }
 
     fun hideOcrText() {
+        ttsManager?.stop()
         currentFile = null
         ocrDisplayManager.hideOcrText()
     }
 
     fun displayTranslatedText(text: String) {
+        ttsManager?.stop()
         currentFile = null
         ocrDisplayManager.displayTranslatedText(text)
     }

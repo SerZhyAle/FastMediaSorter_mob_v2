@@ -100,6 +100,7 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
         .build()
 
     exoPlayer?.addListener(loadControl)
+    activeExtraPlayerListener = loadControl
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 
