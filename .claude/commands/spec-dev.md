@@ -59,6 +59,7 @@ For each step in plan order:
    - File in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
    - **Flavor isolation guard:** see Hard Stops #14 - abort on a `src/main/java/**` flavor guard; do not silently rewrite, push back through `/spec-update`.
 6. **Flip step to `[~] in progress`** in phase file.
+6a. **CODE.LOCK (CLAUDE.md Rule 23).** Only when this step touches `app_v2/`/`wear/` source (`.kt`/`.java`/`.xml`/`build.gradle.kts`) - run `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/spec-dev <Sxxxx> step <NN.M>"` before the edit. If it warns about a live `BUILD.LOCK`, that's informational only (don't start a build now; editing itself is unaffected). Skip for doc/spec-only steps. Released automatically by `post-change.ps1` at step 10 - no explicit release needed here.
 7. **Apply the edit** - `Edit` or `Write` per Prompt. Scope strictly to what prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If edit adds/changes user-visible strings, verify against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking step done.
 7b. **Android string edit shortcut.** For `<string>` work prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving) over manual XML editing. Update existing value in one locale: `-Action set -Module <module> -Locale en|ru|uk -Key <key> -Value <text>` (add `-ExpectedOldValue` to guard, `-CreateIfMissing` to upsert). New key across all three locales at once: `-Action add -Key <key> -En <text> -Ru <text> -Uk <text>` (parity-enforced, fails if key exists). Lookup/lifecycle across all `strings*.xml`: `-Action get|remove|rename|list`. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
@@ -143,7 +144,7 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 2. **Verification FAIL** after edit - step left `[~]`. User investigates.
 3. **Read-only zone touch.**
 4. **Line budget violation** - projected >1500 lines.
-5. **Build FAIL** - `.\build-debug.PS1` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt.
+5. **Build FAIL** - `.\build-debug.PS1` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt. If the excerpt is a `BUILD.LOCK held` refusal (another agent session mid-build, CLAUDE.md Rule 23), this is not a code regression - note it distinctly, wait/retry once the holder finishes rather than debugging the source.
 6. **Room schema change** - prompt mentions bumping `@Database(version)` or adding `Migration`. Stop only if step does **not** specify new version number and migration class name explicitly. If both named → proceed automatically, note in chat.
 7. **Hilt module graph change** - adds `@Module`, `@Provides`, or modifies Hilt graph beyond a single `@Inject constructor`. Stop only if scope/qualifier not explicit in prompt. If scope named → proceed automatically, note in chat.
 8. **Missing symbol** - prompt names class/method not found at stated path and prompt does not also create it.

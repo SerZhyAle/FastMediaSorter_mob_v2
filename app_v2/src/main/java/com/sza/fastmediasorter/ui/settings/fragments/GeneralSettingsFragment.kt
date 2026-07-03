@@ -183,7 +183,9 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
     }
     private val observersHelper by lazy {
-        GeneralSettingsObserversHelper(binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it })
+        GeneralSettingsObserversHelper(
+            binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it }, capabilityAvailability,
+        )
     }
     private val viewSetupHelper by lazy {
         GeneralSettingsViewSetupHelper(
@@ -321,6 +323,11 @@ class GeneralSettingsFragment : Fragment() {
             sectionsManager.register(header, container, key, defaultExpanded = false)
         }
         register(binding.headerInterface, binding.containerInterface, "general__interface")
+        register(
+            binding.headerMainWindowInterface,
+            binding.containerMainWindowInterface,
+            "general__main_window_interface",
+        )
         register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
         register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
         register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")

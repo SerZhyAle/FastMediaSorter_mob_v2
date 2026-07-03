@@ -21,6 +21,7 @@ $utilsPath = $scriptPath
 $scriptsPath = Split-Path -Parent $utilsPath
 $projectRoot = Split-Path -Parent $scriptsPath
 $tempDir = Join-Path $projectRoot "temp"
+. (Join-Path $projectRoot "scripts/utils/agent-lock.ps1")
 
 if (-not (Test-Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir | Out-Null
@@ -106,8 +107,14 @@ try {
     if (-not $SkipLint) {
         Write-Section "GRADLE LINT"
         Write-Host "Running .\\gradlew.bat $LintTask ..." -ForegroundColor Yellow
-        & .\gradlew.bat $LintTask
-        $lintExitCode = $LASTEXITCODE
+        Enter-BuildLockOrExit -Reason "check-typo-lint.ps1 ($LintTask)"
+        try {
+            & .\gradlew.bat $LintTask
+            $lintExitCode = $LASTEXITCODE
+        }
+        finally {
+            Exit-AgentLock -Name Build
+        }
 
         if ($lintExitCode -ne 0) {
             Write-Host "Gradle lint failed with exit code: $lintExitCode" -ForegroundColor Red

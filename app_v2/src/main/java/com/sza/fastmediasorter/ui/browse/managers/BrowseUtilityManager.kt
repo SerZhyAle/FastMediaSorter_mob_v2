@@ -68,21 +68,31 @@ class BrowseUtilityManager(
         }
         
         // Show breadcrumb in subfolder mode, otherwise show normalized resource path
-        val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let { currentPath ->
-            // Build breadcrumb: "Root > Folder1 > Folder2"
-            buildBreadcrumb(resource.path, currentPath)
-        } ?: buildRootPathDisplay(resource.path, resource.name)
+        val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let {
+            buildBreadcrumb(state)
+        } ?: buildRootPathDisplay(resource.path, resource.name, state.isCloudResource)
         
         val modeLabel = if (resource.allFiles) {
             " • " + context.getString(R.string.all_files)
         } else {
             ""
         }
-        
-        return "${resource.name}$fileCount • $pathDisplay • $sortMode$modeLabel$selected"
+
+        // S0906: pathDisplay is blank for a cloud resource at root (no meaningful hierarchical
+        // path to show) - omit its bullet segment instead of leaving a dangling "• •".
+        val pathSegment = pathDisplay.takeIf { it.isNotBlank() }?.let { "$it • " } ?: ""
+        return "${resource.name}$fileCount • $pathSegment$sortMode$modeLabel$selected"
     }
 
-    private fun buildRootPathDisplay(resourcePath: String, resourceName: String): String {
+    // S0906: a cloud resource's path is an opaque provider id (e.g. "cloud://google_drive/<id>"),
+    // not a hierarchical filesystem path - there is no meaningful "parent path" to show, and the
+    // segment-matching logic below always misses (the last segment is an id, never the real
+    // name), which used to leak the raw id string. Omit the path segment entirely for cloud.
+    private fun buildRootPathDisplay(resourcePath: String, resourceName: String, isCloudResource: Boolean): String {
+        if (isCloudResource) {
+            return ""
+        }
+
         val normalizedPath = resourcePath.trimEnd('/', '\\')
         if (normalizedPath.isEmpty()) {
             return resourcePath
@@ -101,17 +111,14 @@ class BrowseUtilityManager(
      * Builds a breadcrumb string for subfolder navigation.
      * Example: "Root > Photos > 2024"
      */
-    private fun buildBreadcrumb(rootPath: String, currentPath: String): String {
-        if (!currentPath.startsWith(rootPath)) {
-            return currentPath
-        }
-        
-        val relativePath = currentPath.removePrefix(rootPath).trimStart('/', '\\')
-        if (relativePath.isEmpty()) {
+    // S0906: reads the real folder-name stack tracked on BrowseState instead of re-deriving
+    // a name from currentPath - a path segment is not a folder name for cloud resources
+    // (opaque provider id).
+    private fun buildBreadcrumb(state: BrowseState): String {
+        val parts = state.folderNameStack + listOfNotNull(state.currentFolderName)
+        if (parts.isEmpty()) {
             return "📁 Root"
         }
-        
-        val parts = relativePath.split("/", "\\").filter { it.isNotEmpty() }
         return "📁 " + listOf("Root").plus(parts).joinToString(" > ")
     }
     

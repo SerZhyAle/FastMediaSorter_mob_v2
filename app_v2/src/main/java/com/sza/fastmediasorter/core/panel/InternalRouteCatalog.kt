@@ -32,6 +32,10 @@ object InternalRouteCatalog {
     const val KEY_OCR = "ocr"
     const val KEY_STREAMS = "streams"
     const val KEY_FAVORITES = "favorites"
+    const val KEY_QUICK_CAMERA = "quick_camera"
+    const val KEY_QUICK_VOICE = "quick_voice"
+    const val KEY_SCREEN_RECORDING = "screen_recording"
+    const val KEY_LINK_DOWNLOAD = "link_download"
 
     private val routes: List<Route> = listOf(
         Route(
@@ -64,6 +68,32 @@ object InternalRouteCatalog {
             labelRes = R.string.app_launch_panel_route_favorites,
             iconRes = R.drawable.ic_resource_favorites,
             intent = AppLaunchPanelRouteIntents::favorites,
+        ),
+        // S0912: the four routes below reuse the exact label/icon the Programs-and-Scenarios main-menu
+        // entry already uses for the same feature, so the panel picker never drifts from that wording.
+        Route(
+            key = KEY_QUICK_CAMERA,
+            labelRes = R.string.quick_camera_menu_label,
+            iconRes = R.drawable.ic_camera_capture,
+            intent = AppLaunchPanelRouteIntents::quickCamera,
+        ),
+        Route(
+            key = KEY_QUICK_VOICE,
+            labelRes = R.string.quick_voice_menu_label,
+            iconRes = R.drawable.ic_microphone,
+            intent = AppLaunchPanelRouteIntents::quickVoice,
+        ),
+        Route(
+            key = KEY_SCREEN_RECORDING,
+            labelRes = R.string.screen_recording_menu_label,
+            iconRes = R.drawable.ic_display,
+            intent = AppLaunchPanelRouteIntents::screenRecording,
+        ),
+        Route(
+            key = KEY_LINK_DOWNLOAD,
+            labelRes = R.string.download_by_link_menu_label,
+            iconRes = R.drawable.ic_cloud_download,
+            intent = AppLaunchPanelRouteIntents::linkDownload,
         ),
     )
 

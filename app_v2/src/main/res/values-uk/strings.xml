@@ -2826,7 +2826,7 @@
     <string name="setting_camera_geotag_title">Геотегування фото</string>
     <string name="setting_camera_geotag_desc">Зберігати GPS-координати у фото, знятих вбудованою камерою. Потрібен дозвіл на геолокацію; типово вимкнено.</string>
     <string name="camera_geotag_permission_denied">Для геотегування потрібен дозвіл на геолокацію</string>
-    <string name="setting_show_programs_panel_title">Показувати панель програм у головному вікні</string>
+    <string name="setting_show_programs_panel_title">Панель програм</string>
     <string name="setting_show_programs_panel_summary">Дублювати меню програм горизонтальною смугою над списком ресурсів. Приховує кнопку «три крапки».</string>
     <string name="setting_show_streams_panel_title">Показувати панель трансляцій у головному вікні</string>
     <string name="setting_show_streams_panel_summary">Показувати закріплені канали горизонтальною смугою над списком ресурсів, із переходом до трансляцій.</string>
@@ -2898,4 +2898,7 @@
     <string name="music_resource_unavailable">Ресурс з музикою недоступний</string>
     <string name="sza_resources_imported">Ресурси SZA імпортовано</string>
     <string name="remove_resource">Видалити ресурс</string>
+    <string name="recording_pause">Призупинити запис</string>
+    <string name="recording_resume">Продовжити запис</string>
+    <string name="settings_category_main_window_interface">Інтерфейс головного вікна</string>
 </resources>

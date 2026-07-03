@@ -2,6 +2,10 @@
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "clean-gradle-caches.ps1"
+try {
+
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 
 Write-Host "Cleaning Gradle caches and build artifacts..." -ForegroundColor Cyan
@@ -33,3 +37,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Gradle cache cleanup completed." -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

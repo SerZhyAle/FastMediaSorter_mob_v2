@@ -26,7 +26,7 @@ Examples:
 
 On `$ARGUMENTS`:
 - Step 1 - Parse. Empty -> **execute** the Build Checklist below in order; do not just print it. A specific topic -> skip execution and answer from the reference.
-- Step 2 - For empty input: walk the checklist steps, running each command and recording `expected: X | actual: Y`. Build standard debug first, then noLegal debug - sequentially, never two gradle builds at once (daemon OOM). Report a terse one-line verdict per build (PASS/FAIL + APK path or failure digest).
+- Step 2 - For empty input: walk the checklist steps, running each command and recording `expected: X | actual: Y`. Build standard debug first, then noLegal debug - sequentially, never two gradle builds at once (daemon OOM) - this is hard-enforced by `temp/BUILD.LOCK` (see Cross-Agent Build Lock below), not just a convention. Report a terse one-line verdict per build (PASS/FAIL + APK path or failure digest).
 - Step 3 - For a specific question: answer from the reference below (authoritative for build/script/versioning). Don't search the codebase unless the question requires it.
 
 ---
@@ -42,7 +42,7 @@ The order of work for a single local build, so nothing is dropped. None of this 
    - `.\a.ps1 fc` - code + resources (when XML/strings/layouts touched).
    - `.\a.ps1 fu` - unit suite, when logic changed (note pre-existing failures; verify own work per-class).
 4. **Build standard debug.** `.\a.ps1 dq` (fast, quiet) or `.\a.ps1 d` (zipped reusable APK). `.\a.ps1 cd` only when a clean build is genuinely needed.
-4b. **Build noLegal debug.** `.\a.ps1 nd` (`scripts/builders/build-nolegal-debug.ps1`). Run only after Step 4 finishes - never two gradle builds concurrently (daemon OOM). noLegal mounts `src/noLegal/` + VR/streaming source sets the standard flavor skips, so it catches flavor-isolation breakage standard cannot.
+4b. **Build noLegal debug.** `.\a.ps1 nd` (`scripts/builders/build-nolegal-debug.ps1`). Run only after Step 4 finishes - never two gradle builds concurrently (daemon OOM); a second attempt while `temp/BUILD.LOCK` is live refuses on its own (see below). noLegal mounts `src/noLegal/` + VR/streaming source sets the standard flavor skips, so it catches flavor-isolation breakage standard cannot.
 5. **Verify locally.** Install + drive on a device/emulator when the change is user-visible (`/run`, `/verify`, or `.\a.ps1 id`). A compile-only change can stop at Step 3.
 6. **Clean up the touched files.** Resolve lint/neuroslop warnings in files you edited; Timber only (no `Log.d`); landscape layout parity if a `res/layout/` file changed.
 7. **Record the change.** Dev log per logical change (`scripts/post-change.ps1` facade, or `add_to_dev_log.ps1`); catalog sync once per ticket after `.kt` edits.
@@ -81,6 +81,23 @@ Build failed? `.\a.ps1 bf` (last failure block) or `.\a.ps1 bfd` (structured dig
 - `Note: [1] Wrote GeneratedAppGlideModule`, kapt processor-option notes, `Using the build cache is enabled`
 
 Errors, FAIL/SUCCESS verdict lines, final task list, any unknown warning: always printed. Total suppression count reported at end - nothing hidden silently. Update pattern list in `scripts/builders/build-debug.PS1` when adding intentional warnings; never use it to mask real failures.
+
+---
+
+### Cross-Agent Build Lock (CLAUDE.md Rule 23)
+
+Every builder script (and any gradle-backed quality gate: `assert-detekt.ps1`, `assert-settings-doc-sync.ps1`, `assert-icon-inventory-sync.ps1 -IncludeExportTest`) acquires `temp/BUILD.LOCK` before invoking `gradlew`/`gradlew.bat` and releases it after, success or failure - via `scripts/utils/agent-lock.ps1`. If a second agent session tries to build while one is live, the script refuses immediately:
+
+```
+BUILD.LOCK held - refusing to start a second gradle build.
+  Holder PID: 12345  age: 47s  reason: 'build-debug.PS1'  host: MARK
+```
+
+This is not a guessed timeout - staleness is judged by whether the holder PID is still alive, so a genuinely long build (release AAB, full unit suite, an OOM-recovery cascade) is never force-unlocked out from under it. A dead holder (crashed/killed process) is reclaimed automatically on the next attempt.
+
+Check status without trying to build: `pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build` (exit 0 = free, 1 = held; add `-Json` for machine-readable output). If refused, wait for the holder to finish (or work on something else) rather than retrying in a loop.
+
+Before a multi-file source edit, skills also acquire `temp/CODE.LOCK` (`scripts/utils/enter-code-lock.ps1`) - advisory only, so a live build only warns about it, it never refuses.
 
 ---
 

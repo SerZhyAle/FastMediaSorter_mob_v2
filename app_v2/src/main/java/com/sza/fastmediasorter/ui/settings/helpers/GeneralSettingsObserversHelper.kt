@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -20,6 +21,7 @@ class GeneralSettingsObserversHelper(
     private val fragment: Fragment,
     private val getIsUpdatingSpinner: () -> Boolean,
     private val setIsUpdatingSpinner: (Boolean) -> Unit,
+    private val capabilityAvailability: CapabilityAvailability,
 ) {
     private var manualSyncProgressDialog: MaterialProgressDialog? = null
 
@@ -56,6 +58,15 @@ class GeneralSettingsObserversHelper(
                 binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
                 binding.rowCompactElements?.setCheckedSilently(settings.useCompactElements)
+            // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
+            if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow)
+                binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)
+            // S0911: main-window streams panel toggle (moved from Media > Streams). Visibility
+            // replicates the gate it had while nested in streamsDefaultsGroup - capability AND master toggle.
+            if (binding.rowShowStreamsPanel.isChecked != settings.showStreamsPanelInMainWindow)
+                binding.rowShowStreamsPanel.setCheckedSilently(settings.showStreamsPanelInMainWindow)
+            binding.rowShowStreamsPanel.visibility =
+                if (capabilityAvailability.isStreamsAvailable() && settings.enableStreams) View.VISIBLE else View.GONE
             // S0160: resource ops overflow toggle
             if (binding.rowResourceOpsInOverflowMenu?.isChecked != settings.resourceOpsInOverflowMenu)
                 binding.rowResourceOpsInOverflowMenu?.setCheckedSilently(settings.resourceOpsInOverflowMenu)

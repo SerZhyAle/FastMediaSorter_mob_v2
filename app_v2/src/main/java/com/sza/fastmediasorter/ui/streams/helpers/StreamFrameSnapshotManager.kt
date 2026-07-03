@@ -263,7 +263,13 @@ class StreamFrameSnapshotManager(
         // S0700: live HLS on a software decoder needs well over the old 6 s to fetch the manifest, pull a
         // segment, decode and render the first frame; 6 s timed out before any thumbnail appeared.
         const val CAPTURE_TIMEOUT_MS = 12_000L
-        const val MAX_CONCURRENT_CAPTURES = 2
+
+        // S0900: device logs (Samsung SM-S731B, Android 16) showed a native process kill the instant GRID
+        // opened with 2 concurrent muted ExoPlayer sessions decoding live HLS into an offscreen ImageReader -
+        // no Java exception, no crash-report file (LoggingHelper's uncaught-handler never fired), only the
+        // enqueue log line before the process died. Serializing captures to 1-at-a-time halves peak
+        // simultaneous decoder sessions during the grid's initial capture burst.
+        const val MAX_CONCURRENT_CAPTURES = 1
 
         // Thumbnail capture size (16:9). The decoder scales into this offscreen reader; the grid tile is
         // ~518x291 px on the test device, so this matches without over-allocating full-frame buffers.

@@ -936,15 +936,6 @@
                     <!-- Left column: Fast camera translation + nested Recognition only (S0320). -->
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
 
-                        <!-- S0755: surface the programs menu as a horizontal panel on the main window. -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowShowProgramsPanel"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:str_title="@string/setting_show_programs_panel_title"
-                            app:str_subtitle="@string/setting_show_programs_panel_summary" />
-
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraOcrTranslationEnabled"
                             android:layout_width="match_parent"

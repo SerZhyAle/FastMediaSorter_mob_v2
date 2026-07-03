@@ -20,6 +20,7 @@ $TempDir = Join-Path $ProjectRoot "temp"
 $LogFile = Join-Path $TempDir "stress_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 $CrashLog = Join-Path $TempDir "crash_monitor.log"
 $ReportFile = Join-Path $TempDir "stress_report_$(Get-Date -Format 'yyyyMMdd_HHmmss').html"
+. (Join-Path $ProjectRoot "scripts/utils/agent-lock.ps1")
 
 # Ensure temp directory exists
 if (-not (Test-Path $TempDir)) { New-Item -ItemType Directory -Path $TempDir -Force | Out-Null }
@@ -449,7 +450,13 @@ $appInstalled = & $adbPath shell pm list packages | Select-String "com.sza.fastm
 if (-not $appInstalled) {
     if (-not $SkipBuild) {
         Write-Host "⚠ App not installed, building..." -ForegroundColor Yellow
-        & "$ProjectRoot\gradlew.bat" assembleStandardDebug
+        Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)'
+        try {
+            & "$ProjectRoot\gradlew.bat" assembleStandardDebug
+        }
+        finally {
+            Exit-AgentLock -Name Build
+        }
         $apk = Get-ChildItem -Path "$ProjectRoot\app_v2\build\outputs\apk\standard\debug" -Filter "*.apk" | Select-Object -First 1
         if ($apk) {
             & $adbPath install -r $apk.FullName

@@ -224,6 +224,11 @@ class CameraQuickCaptureLaunchManager(
     }
 
     private fun loadTarget(): CameraCaptureTarget? {
+        // S0912: the app-launch panel has no real appWidgetId and no target-config step - it always
+        // captures to the default camera folder, so it short-circuits before the per-widget prefs lookup.
+        if (appWidgetId == PANEL_APP_WIDGET_ID) {
+            return CameraCaptureTarget.CameraFolder
+        }
         val prefs = activity.getSharedPreferences(
             CameraQuickCaptureWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE,
         )
@@ -267,5 +272,12 @@ class CameraQuickCaptureLaunchManager(
     private fun toastAndFinish(msgRes: Int) {
         toast(activity.getString(msgRes))
         finish()
+    }
+
+    companion object {
+        // S0912: reserved id for the app-launch panel's quick-camera tile - AppWidgetManager never
+        // assigns a negative id, and it differs from AppWidgetManager.INVALID_APPWIDGET_ID (0), so the
+        // trampoline's existing "missing extra" guard still only rejects a truly absent appWidgetId.
+        const val PANEL_APP_WIDGET_ID = -1000
     }
 }

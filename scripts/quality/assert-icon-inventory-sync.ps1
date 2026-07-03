@@ -39,6 +39,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
 
 $invPath = Join-Path $RepoRoot 'docs/icons/icon-inventory.json'
 $svgDir  = Join-Path $RepoRoot 'docs/icons/svg'
@@ -172,12 +173,13 @@ if ($parityReadable) {
 
 # --- Check 5: inventory-vs-source freshness (opt-in, JVM) ----------------------
 if ($IncludeExportTest) {
+    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest)"
     Push-Location $RepoRoot
     try {
         & '.\gradlew.bat' ':app_v2:testStandardDebugUnitTest' '--tests' '*IconInventoryExportTest' | Out-Null
         $testExit = $LASTEXITCODE
     }
-    finally { Pop-Location }
+    finally { Pop-Location; Exit-AgentLock -Name Build }
     if ($testExit -ne 0) {
         Add-Fail 'inventory-fresh' 'committed docs/icons/icon-inventory.json differs from the live app registries - regenerate with the export test in generate mode (-Dicon.inventory.generate=true)'
     }

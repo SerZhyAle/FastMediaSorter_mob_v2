@@ -614,6 +614,11 @@
     "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
   },
+  "headerMainWindowInterface": {
+    "en": "Settings that control which optional panels and menus appear on the main window.",
+    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
+    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються на головному вікні."
+  },
   "headerRemoteSources": {
     "en": "Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage.",
     "ru": "Настройки подключения к удалённым источникам файлов: SMB-ресурсам, FTP/SFTP-серверам и облачному хранилищу.",

@@ -53,6 +53,7 @@ _Generated from the app. Do not edit by hand._
 | Debug logs and test tools | Tools for viewing logs, running integration tests, and diagnosing app issues. |
 | File browser interface | Settings that control the layout and behavior of the file browser. |
 | General interface settings | Settings that control the overall look and interaction style of the app. |
+| Main window interface | Settings that control which optional panels and menus appear on the main window. |
 | Remote resources (SMB/(S)FTP/Cloud) | Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage. |
 | Background sync, network and cache | Settings for background sync, network connection limits, and local cache management. |
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
@@ -69,6 +70,8 @@ _Generated from the app. Do not edit by hand._
 | Statistics | Opens the usage statistics screen. |
 | Show resource actions in menu ⋮ | Moves resource-level actions (add, edit, remove resource) into the overflow menu. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
+| Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
+| Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 | Show subfolders separately | Lists subfolders as individual items in the file browser instead of navigating into them directly. |
 | In cloud resources | Enables adding cloud storage (Google Drive, etc.) as remote resources. |
 | Computer on the internet (S)FTP | Enables adding internet-accessible FTP/SFTP servers as remote resources. |
@@ -147,7 +150,6 @@ _Available in: Standard, Legacy_
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
 | Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
-| Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 
 ## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
@@ -264,7 +266,6 @@ _Available in: Standard, Legacy_
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |
 | Right gesture action | Chooses the action triggered by the rightward screen gesture. |
 | Up gesture action | Chooses the action triggered by the upward screen gesture. |
-| Show programs panel in main window | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |

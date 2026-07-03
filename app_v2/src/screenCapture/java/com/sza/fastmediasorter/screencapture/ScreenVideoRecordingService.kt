@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.screencapture
 
 import android.app.Activity
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -21,6 +22,7 @@ import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
@@ -40,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,6 +82,7 @@ class ScreenVideoRecordingService : Service() {
     private var mediaRecorder: MediaRecorder? = null
     private var pendingTempFile: File? = null
     private var isRecording = false
+    private var isPaused = false
     private var isFinalizing = false
 
     private val projectionCallback = object : MediaProjection.Callback() {
@@ -92,12 +96,14 @@ class ScreenVideoRecordingService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) {
-            stopAndSave()
-            return START_NOT_STICKY
+        // Every branch returns START_NOT_STICKY - a single exit point keeps this within detekt's
+        // ReturnCount limit as pause/resume actions join the existing stop/start dispatch.
+        when (intent?.action) {
+            ACTION_STOP -> stopAndSave()
+            ACTION_PAUSE -> pauseRecording()
+            ACTION_RESUME -> resumeRecording()
+            else -> if (!isRecording) startRecording(intent)
         }
-        if (isRecording) return START_NOT_STICKY
-        startRecording(intent)
         return START_NOT_STICKY
     }
 
@@ -109,17 +115,21 @@ class ScreenVideoRecordingService : Service() {
             pendingTempFile?.delete()
             pendingTempFile = null
         }
+        isPaused = false
         releaseRecordingResources()
         stateController.markStopped()
         serviceScope.cancel()
         super.onDestroy()
     }
 
+    // Guard-clause early returns for each consent/file/recorder setup failure - clearer than nesting
+    // the whole method body under successive non-null checks.
+    @Suppress("ReturnCount")
     private fun startRecording(intent: Intent?) {
-        Timber.d("S0774: screen recording service startRecording")
         // Clear the finalize latch: a fresh recording must be stoppable even if it starts during/after a
         // prior recording's finalization (else stopAndSave's `if (isFinalizing) return` strands it).
         isFinalizing = false
+        isPaused = false
         startForegroundCompat()
 
         val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
@@ -171,12 +181,15 @@ class ScreenVideoRecordingService : Service() {
             recorder.start()
             isRecording = true
             stateController.markStarted()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Timber.e(e, "ScreenVideoRecordingService: recorder.start() failed")
             finishWithError()
         }
     }
 
+    // MediaRecorder.stop()'s too-short-recording failure is a bare, unqualified RuntimeException in
+    // the platform implementation (no narrower documented subtype exists to catch instead).
+    @Suppress("TooGenericExceptionCaught")
     private fun stopAndSave() {
         if (isFinalizing) return
         isFinalizing = true
@@ -186,14 +199,17 @@ class ScreenVideoRecordingService : Service() {
         if (isRecording) {
             try {
                 mediaRecorder?.stop()
-            } catch (e: Exception) {
-                // A too-short recording (or an encoder error) throws on stop() and leaves a truncated
-                // file; classify as invalid and discard rather than save a corrupt MP4.
+            } catch (e: RuntimeException) {
+                // A too-short recording throws plain RuntimeException here (documented MediaRecorder
+                // behavior, not IllegalStateException); an encoder error is IllegalStateException,
+                // which RuntimeException also covers. Leaves a truncated file either way; classify as
+                // invalid and discard rather than save a corrupt MP4.
                 stopThrew = true
                 Timber.w(e, "ScreenVideoRecordingService: recorder.stop() threw - discarding recording")
             }
         }
         isRecording = false
+        isPaused = false
         releaseRecordingResources()
         stateController.markStopped()
 
@@ -207,6 +223,41 @@ class ScreenVideoRecordingService : Service() {
         serviceScope.launch { saveRecording(tempFile) }
     }
 
+    private fun pauseRecording() {
+        if (!isRecording || isPaused) return
+        Timber.d("S0774: screen recording pause requested")
+        try {
+            mediaRecorder?.pause()
+        } catch (e: IllegalStateException) {
+            // Wrong encoder state (e.g. already stopping) - leave the session running unpaused
+            // rather than desync the UI from the actual recorder state.
+            Timber.e(e, "ScreenVideoRecordingService: recorder.pause() failed")
+            return
+        }
+        isPaused = true
+        stateController.markPaused()
+        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = true))
+    }
+
+    private fun resumeRecording() {
+        if (!isRecording || !isPaused) return
+        Timber.d("S0774: screen recording resume requested")
+        try {
+            mediaRecorder?.resume()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "ScreenVideoRecordingService: recorder.resume() failed")
+            return
+        }
+        isPaused = false
+        stateController.markResumed()
+        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = false))
+    }
+
+    // Spans settings read + Room resource lookup + device write - each throws a different exception
+    // family (Room/SQLite, Flow), so a single specific catch would miss a real failure mode. This is
+    // the operation's own top-level boundary (background save, no caller to propagate to); it always
+    // recovers to a "not saved" state with a correct-level log, so a broad catch here is intentional.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun saveRecording(tempFile: File) {
         var savedName: String? = null
         try {
@@ -245,7 +296,7 @@ class ScreenVideoRecordingService : Service() {
             try {
                 tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
                 sink.commit().isSuccess
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 Timber.e(e, "ScreenVideoRecordingService: streaming failed for %s", absolutePath)
                 sink.abort()
                 false
@@ -256,11 +307,15 @@ class ScreenVideoRecordingService : Service() {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val dir = getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir
         File(dir, "SCR_$timestamp.mp4").also { it.createNewFile() }
-    } catch (e: Exception) {
+    } catch (e: IOException) {
         Timber.e(e, "ScreenVideoRecordingService: temp file creation failed")
         null
     }
 
+    // The setters throw IllegalStateException, prepare() throws IOException as well - two unrelated
+    // exception families with no narrower common supertype, so a broad catch is the precise option
+    // here, not a shortcut.
+    @Suppress("TooGenericExceptionCaught")
     private fun buildRecorder(output: File, spec: CaptureSpec): MediaRecorder? {
         @Suppress("DEPRECATION")
         val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -278,8 +333,8 @@ class ScreenVideoRecordingService : Service() {
             recorder.setVideoFrameRate(VIDEO_FRAME_RATE)
             recorder.setVideoEncodingBitRate(videoBitRate(spec.width, spec.height))
             recorder.setAudioChannels(1)
-            recorder.setAudioSamplingRate(44_100)
-            recorder.setAudioEncodingBitRate(128_000)
+            recorder.setAudioSamplingRate(AUDIO_SAMPLE_RATE_HZ)
+            recorder.setAudioEncodingBitRate(AUDIO_BIT_RATE)
             recorder.setOutputFile(output.absolutePath)
             recorder.prepare()
             recorder
@@ -338,6 +393,7 @@ class ScreenVideoRecordingService : Service() {
         pendingTempFile?.delete()
         pendingTempFile = null
         isRecording = false
+        isPaused = false
         stateController.markStopped()
         toast(getString(R.string.screen_recording_error), Toast.LENGTH_LONG)
         finishService()
@@ -345,26 +401,49 @@ class ScreenVideoRecordingService : Service() {
 
     private fun startForegroundCompat() {
         createChannel()
-        val stopIntent = Intent(this, ScreenVideoRecordingService::class.java).apply { action = ACTION_STOP }
-        val stopPending = PendingIntent.getService(
-            this,
-            0,
-            stopIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_screen_capture)
-            .setContentTitle(getString(R.string.screen_recording_notification_title))
-            .setContentText(getString(R.string.screen_recording_notification_text))
-            .setOngoing(true)
-            .setSilent(true)
-            .addAction(0, getString(R.string.screen_recording_notification_stop), stopPending)
-            .build()
+        val notification = buildNotification(paused = false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+    }
+
+    /** Rebuilt (not re-started) on every pause/resume toggle so the action label tracks live state. */
+    private fun buildNotification(paused: Boolean): Notification {
+        val stopPending = servicePendingIntent(ACTION_STOP, requestCode = 0)
+        val pauseResumeAction = if (paused) {
+            NotificationCompat.Action(
+                0,
+                getString(R.string.recording_resume),
+                servicePendingIntent(ACTION_RESUME, requestCode = 1)
+            )
+        } else {
+            NotificationCompat.Action(
+                0,
+                getString(R.string.recording_pause),
+                servicePendingIntent(ACTION_PAUSE, requestCode = 2)
+            )
+        }
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification_screen_capture)
+            .setContentTitle(getString(R.string.screen_recording_notification_title))
+            .setContentText(getString(R.string.screen_recording_notification_text))
+            .setOngoing(true)
+            .setSilent(true)
+            .addAction(pauseResumeAction)
+            .addAction(0, getString(R.string.screen_recording_notification_stop), stopPending)
+            .build()
+    }
+
+    private fun servicePendingIntent(serviceAction: String, requestCode: Int): PendingIntent {
+        val intent = Intent(this, ScreenVideoRecordingService::class.java).apply { action = serviceAction }
+        return PendingIntent.getService(
+            this,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
     }
 
     private fun stopForegroundCompat() {
@@ -376,6 +455,9 @@ class ScreenVideoRecordingService : Service() {
         }
     }
 
+    // Guard-clause early returns (unsupported API level / manager unavailable / channel already
+    // exists) - clearer than nesting the channel-creation body under successive checks.
+    @Suppress("ReturnCount")
     private fun createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = getSystemService(NotificationManager::class.java) ?: return
@@ -410,6 +492,8 @@ class ScreenVideoRecordingService : Service() {
         const val EXTRA_RESULT_CODE = "screen_recording_result_code"
         const val EXTRA_RESULT_DATA = "screen_recording_result_data"
         const val ACTION_STOP = "com.sza.fastmediasorter.screencapture.action.STOP_SCREEN_RECORDING"
+        const val ACTION_PAUSE = "com.sza.fastmediasorter.screencapture.action.PAUSE_SCREEN_RECORDING"
+        const val ACTION_RESUME = "com.sza.fastmediasorter.screencapture.action.RESUME_SCREEN_RECORDING"
 
         private const val CHANNEL_ID = "screen_recording_service"
         private const val NOTIFICATION_ID = 0x4054
@@ -419,6 +503,8 @@ class ScreenVideoRecordingService : Service() {
         private const val MIN_BITRATE = 2_000_000L
         private const val MAX_BITRATE = 16_000_000L
         private const val MIN_VALID_BYTES = 1024L
+        private const val AUDIO_SAMPLE_RATE_HZ = 44_100
+        private const val AUDIO_BIT_RATE = 128_000
 
         fun start(context: Context, resultCode: Int, resultData: Intent) {
             val intent = Intent(context, ScreenVideoRecordingService::class.java).apply {
@@ -430,6 +516,16 @@ class ScreenVideoRecordingService : Service() {
 
         fun stop(context: Context) {
             val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_STOP }
+            ContextCompat.startForegroundService(context, intent)
+        }
+
+        fun pause(context: Context) {
+            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_PAUSE }
+            ContextCompat.startForegroundService(context, intent)
+        }
+
+        fun resume(context: Context) {
+            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_RESUME }
             ContextCompat.startForegroundService(context, intent)
         }
     }

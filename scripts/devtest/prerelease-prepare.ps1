@@ -40,6 +40,7 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot     = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage = 'com.sza.fastmediasorter.debug'
+. (Join-Path $RepoRoot 'scripts/utils/agent-lock.ps1')
 
 $result = [ordered]@{
     ready          = $false
@@ -127,10 +128,16 @@ Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 # `adb logcat` whose inherited output handle deadlocks this parent process under `*> $null`
 # redirection. Build leanly via gradle, then install through adb.ps1 (no side effects).
 $gradlew = Join-Path $RepoRoot 'gradlew.bat'
-& $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' --console=plain *> $null
-if ($LASTEXITCODE -ne 0) {
-    Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
-    Complete-Run 10
+Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)'
+try {
+    & $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' --console=plain *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
+        Complete-Run 10
+    }
+}
+finally {
+    Exit-AgentLock -Name Build
 }
 $instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard', '-DeviceId', $TargetDevice)
 & pwsh @instArgs *> $null

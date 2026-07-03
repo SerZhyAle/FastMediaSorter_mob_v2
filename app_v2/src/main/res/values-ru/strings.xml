@@ -2859,7 +2859,7 @@
     <string name="setting_camera_geotag_title">Геотегирование фото</string>
     <string name="setting_camera_geotag_desc">Сохранять GPS-координаты в фото, снятых встроенной камерой. Нужно разрешение на геолокацию; по умолчанию выключено.</string>
     <string name="camera_geotag_permission_denied">Для геотегирования нужно разрешение на геолокацию</string>
-    <string name="setting_show_programs_panel_title">Показывать панель программ в основном окне</string>
+    <string name="setting_show_programs_panel_title">Панель программ</string>
     <string name="setting_show_programs_panel_summary">Дублировать меню программ горизонтальной полосой над списком ресурсов. Скрывает кнопку «три точки».</string>
     <string name="setting_show_streams_panel_title">Показывать панель трансляций в основном окне</string>
     <string name="setting_show_streams_panel_summary">Показывать закреплённые каналы горизонтальной полосой над списком ресурсов, с переходом к трансляциям.</string>
@@ -2926,4 +2926,7 @@
     <string name="main_streams_panel_strip">Трансляции..</string>
     <string name="camera_scenario_ocr_translate">Распознавание текста</string>
     <string name="remove_resource">Удалить ресурс</string>
+    <string name="recording_pause">Приостановить запись</string>
+    <string name="recording_resume">Продолжить запись</string>
+    <string name="settings_category_main_window_interface">Интерфейс главного окна</string>
 </resources>

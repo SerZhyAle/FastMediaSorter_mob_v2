@@ -422,6 +422,9 @@ class PhotoVideoStandaloneActivity :
     }
     private var trackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
+
+    // S0908: kept so onDestroy() can remove this exact instance before viewManager.release().
+    private var tracksChangedListener: Player.Listener? = null
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
     private lateinit var keyboardHandler: PlayerKeyboardHandler
 
@@ -984,14 +987,16 @@ class PhotoVideoStandaloneActivity :
             lifecycleScope = lifecycleScope
         )
 
-        viewManager.getExoPlayer()?.addListener(object : Player.Listener {
+        val tracksListener = object : Player.Listener {
             override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
                 controlsManager.updateTrackButtonsVisibility(
                     hasMultipleAudio = trackManager.hasMultipleAudioTracks(),
                     hasSubtitles = trackManager.hasSubtitleTracks()
                 )
             }
-        })
+        }
+        tracksChangedListener = tracksListener
+        viewManager.getExoPlayer()?.addListener(tracksListener)
 
         val touchDelegate = StandaloneVideoTouchDelegate(
             activity = this,
@@ -1053,6 +1058,8 @@ class PhotoVideoStandaloneActivity :
         playerSettingsManager = null
         pipManager?.release()
         pipManager = null
+        viewManager.getExoPlayer()?.let { player -> tracksChangedListener?.let(player::removeListener) }
+        tracksChangedListener = null
         viewManager.release()
         super.onDestroy()
     }

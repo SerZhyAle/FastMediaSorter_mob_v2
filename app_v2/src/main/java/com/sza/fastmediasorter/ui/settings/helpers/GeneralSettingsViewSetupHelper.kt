@@ -150,6 +150,20 @@ class GeneralSettingsViewSetupHelper(
                     .show()
             }
         }
+        // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
+        binding.rowShowProgramsPanel.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.showProgramsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(showProgramsPanelInMainWindow = isChecked))
+        }
+        // S0911: main-window streams panel toggle (moved from Media > Streams).
+        binding.rowShowStreamsPanel.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.showStreamsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(showStreamsPanelInMainWindow = isChecked))
+        }
         // S0160: resource ops overflow toggle
         binding.rowResourceOpsInOverflowMenu?.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener

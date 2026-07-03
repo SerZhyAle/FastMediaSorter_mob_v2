@@ -2,6 +2,10 @@ param(
     [switch]$AutoVersion
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-standard-debug.ps1"
+try {
+
 Write-Host "Building Standard Debug APK.." -ForegroundColor Cyan
 Write-Host "Features: Full (cloud, EPUB, translation, OCR)" -ForegroundColor Yellow
 if ($AutoVersion) {
@@ -138,3 +142,8 @@ if (!(Test-Path -Path $tcDir)) {
 }
 Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

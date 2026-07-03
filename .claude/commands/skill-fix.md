@@ -52,6 +52,7 @@ Examples:
 - Still diffuse after one routing hop → stop: `/skill-fix не подходит - нужен более широкий разбор.`
 
 **Step 2 - Make smallest grounded edit.**
+- **CODE.LOCK (CLAUDE.md Rule 23).** Before the edit, if it touches `app_v2/`/`wear/` source: `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/skill-fix: <short desc>"`. A warning about a live `BUILD.LOCK` is informational only - editing itself is unaffected. Since Step 5 skips `post-change.ps1` (the usual auto-release point), release it explicitly in Step 6 via `pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1` - this is the one lock-hygiene call that is NOT bureaucracy to skip.
 - Read inline comments / KDoc in touched area first; treat as requirements.
 - New logic comment only if genuinely needed: English-only, WHY-focused (non-obvious business logic, handled edge-case, workaround) - never restate what code does.
 - Patch narrowest code path that directly controls bug.
@@ -86,7 +87,7 @@ Only place `/skill-fix` touches device. No dev log, feature inventory, or spec/j
 - Do **not** inspect git history/status/diff unless user explicitly asks.
 - Do **not** run `/build` or any full compile pipeline.
 
-**Step 6 - Report.** Short technical closeout: what was fixed, where, which focused local validation passed/failed. No plan sections, no process recap, no changelog prose.
+**Step 6 - Report.** If Step 2 acquired `CODE.LOCK`, release it first: `pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1`. Then short technical closeout: what was fixed, where, which focused local validation passed/failed. No plan sections, no process recap, no changelog prose.
 
 ---
 

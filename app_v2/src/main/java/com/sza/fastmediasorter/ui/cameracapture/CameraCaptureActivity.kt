@@ -30,13 +30,13 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionMana
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationManager
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraZoomControlsManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -118,7 +118,7 @@ class CameraCaptureActivity :
     private lateinit var sessionManager: CameraCaptureSessionManager
     private lateinit var flowManager: CameraCaptureFlowManager
     private lateinit var gestureManager: CameraCaptureGestureManager
-    private lateinit var recordingTimer: CameraRecordingTimer
+    private lateinit var recordingTimer: RecordingElapsedTimer
     private lateinit var orientationManager: CameraOrientationManager
     private lateinit var rotationManager: CameraOverlayRotationManager
     private lateinit var zoomControlsManager: CameraZoomControlsManager
@@ -152,7 +152,7 @@ class CameraCaptureActivity :
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         sessionManager = CameraCaptureSessionManager(this)
         flowManager = CameraCaptureFlowManager(intent, this, sessionManager)
-        recordingTimer = CameraRecordingTimer { formatted -> binding.txtRecordingTimer.text = formatted }
+        recordingTimer = RecordingElapsedTimer { formatted -> binding.txtRecordingTimer.text = formatted }
         initializeHelperManagers()
         binding.cameraTopBar.applySystemBarInsetPadding(applyBottom = false)
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)

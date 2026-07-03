@@ -474,6 +474,9 @@
         <!-- Screen-recording edge-gesture trampoline (S0797): hosts the MediaProjection consent + permission launchers -->
         <activity android:name=".widget.ScreenRecordingLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- Link-download panel trampoline (S0912): hosts the clipboard-prefilled confirm dialog for the app-launch panel -->
+        <activity android:name=".widget.LinkDownloadLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>

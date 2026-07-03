@@ -55,6 +55,7 @@ trap { Write-Host "ERROR: $_" -ForegroundColor Red; exit 2 }
 $repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $buildGradle = Join-Path $repoRoot 'app_v2/build.gradle.kts'
 $pkg = 'com.sza.fastmediasorter'
+. (Join-Path $repoRoot 'scripts/utils/agent-lock.ps1')
 
 function Write-Verdict {
     param([string]$Mode, [bool]$Pass, $Detail, [int]$ExitCode)
@@ -121,9 +122,13 @@ if ($ApkPath) {
     if ($Build) {
         $keystore = (Test-Path (Join-Path $repoRoot '.secrets/keystore.properties')) -or (Test-Path (Join-Path $repoRoot 'keystore.properties'))
         if (-not $keystore) { Write-Verdict 'smoke' $false @('release keystore absent (.secrets/keystore.properties) - cannot build standardRelease') 2 }
+        Enter-BuildLockOrExit -Reason 'standard-release-smoke.ps1 (assembleStandardRelease)'
         Push-Location $repoRoot
         try { & (Join-Path $repoRoot 'gradlew.bat') assembleStandardRelease '-Pchaquopy.enabled=false' | Out-Null }
-        finally { Pop-Location }
+        finally {
+            Pop-Location
+            Exit-AgentLock -Name Build
+        }
     }
     $meta = Join-Path $apkDir 'output-metadata.json'
     if (Test-Path $meta) {

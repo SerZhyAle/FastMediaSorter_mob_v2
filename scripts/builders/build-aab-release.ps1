@@ -54,6 +54,9 @@ $gradlew = "$projectRoot\gradlew.bat"
 # release worktree) would silently build the wrong project. The previous
 # "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-aab-release.ps1"
+
 Push-Location $projectRoot
 try {
 
@@ -229,4 +232,5 @@ Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
 }
 finally {
     Pop-Location
+    Exit-AgentLock -Name Build
 }

@@ -2906,7 +2906,7 @@ Close the player and try again.</string>
     <string name="setting_camera_geotag_title">Geotag photos</string>
     <string name="setting_camera_geotag_desc">Save GPS location in photos taken with the in-app camera. Needs location permission; off by default.</string>
     <string name="camera_geotag_permission_denied">Geotagging needs location permission</string>
-    <string name="setting_show_programs_panel_title">Show programs panel in main window</string>
+    <string name="setting_show_programs_panel_title">Programs panel</string>
     <string name="setting_show_programs_panel_summary">Mirror the programs menu as a horizontal bar above the resource list. Hides the three-dots button.</string>
     <string name="setting_show_streams_panel_title">Show streams panel in main window</string>
     <string name="setting_show_streams_panel_summary">Show pinned channels as a horizontal bar above the resource list, with a shortcut to Streams.</string>
@@ -2972,4 +2972,7 @@ Close the player and try again.</string>
     <string name="streams_panel_collapse_action">Collapse panel</string>
     <string name="main_streams_panel_strip">Streams..</string>
     <string name="camera_scenario_ocr_translate">Text recognition</string>
+    <string name="recording_pause">Pause recording</string>
+    <string name="recording_resume">Resume recording</string>
+    <string name="settings_category_main_window_interface">Main window interface</string>
 </resources>

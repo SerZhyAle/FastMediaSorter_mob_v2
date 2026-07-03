@@ -67,14 +67,25 @@ class BrowseNavigationManager(
         val currentPath = stateFlow.value.currentPath ?: stateFlow.value.resource?.path
         Timber.d("BrowseNavigationManager.navigateToFolder: from='$currentPath' to='$folderPath'")
 
+        // S0906: best-effort name lookup in the already-loaded listing for this path-only
+        // overload (no MediaFile available here) - falls back to the pre-existing path-derived
+        // name only when the target isn't in the current listing (rare reattach-after-restart).
+        val currentName = stateFlow.value.currentFolderName
+        val resolvedName = stateFlow.value.mediaFiles.firstOrNull { it.path == folderPath }?.name
+            ?: File(folderPath).name
+
         scope.launch(ioDispatcher) {
             val newStack = stateFlow.value.pathStack.toMutableList()
             if (currentPath != null) newStack.add(currentPath)
+            val newNameStack = stateFlow.value.folderNameStack.toMutableList()
+            if (currentName != null) newNameStack.add(currentName)
 
             updateState {
                 it.copy(
                     currentPath = folderPath,
                     pathStack = newStack,
+                    currentFolderName = resolvedName,
+                    folderNameStack = newNameStack,
                     isSubfolderMode = true,
                     mediaFiles = emptyList(),
                     selectedFiles = emptySet()
@@ -95,12 +106,20 @@ class BrowseNavigationManager(
 
         val currentPath = stateFlow.value.currentPath
         val newStack = if (currentPath != null) stateFlow.value.pathStack + currentPath else emptyList()
+        val currentName = stateFlow.value.currentFolderName
+        val newNameStack = if (currentName != null) stateFlow.value.folderNameStack + currentName else emptyList()
 
         Timber.d("BrowseNavigationManager.navigateToFolder: ${folder.path}, stack=${newStack.size}")
 
         cancelLoad()
         updateState {
-            it.copy(currentPath = folder.path, pathStack = newStack, isSubfolderMode = true)
+            it.copy(
+                currentPath = folder.path,
+                pathStack = newStack,
+                currentFolderName = folder.name,
+                folderNameStack = newNameStack,
+                isSubfolderMode = true
+            )
         }
         scope.launch(ioDispatcher) {
             loadDirectoryContents(folder.path)
@@ -122,6 +141,9 @@ class BrowseNavigationManager(
 
         val parentPath = pathStack.last()
         val newStack = pathStack.dropLast(1)
+        val nameStack = stateFlow.value.folderNameStack
+        val parentName = nameStack.lastOrNull()
+        val newNameStack = nameStack.dropLast(1)
         Timber.d("BrowseNavigationManager.navigateBack: → '$parentPath', stack=${newStack.size}")
 
         scope.launch(ioDispatcher) {
@@ -129,6 +151,8 @@ class BrowseNavigationManager(
                 it.copy(
                     currentPath = if (newStack.isEmpty()) null else parentPath,
                     pathStack = newStack,
+                    currentFolderName = if (newStack.isEmpty()) null else parentName,
+                    folderNameStack = newNameStack,
                     isSubfolderMode = newStack.isNotEmpty(),
                     mediaFiles = emptyList(),
                     selectedFiles = emptySet()
@@ -158,6 +182,9 @@ class BrowseNavigationManager(
         val stack = stateFlow.value.pathStack
         val newPath = stack.lastOrNull()
         val newStack = if (stack.isNotEmpty()) stack.dropLast(1) else emptyList()
+        val nameStack = stateFlow.value.folderNameStack
+        val newName = nameStack.lastOrNull()
+        val newNameStack = if (nameStack.isNotEmpty()) nameStack.dropLast(1) else emptyList()
 
         Timber.d("BrowseNavigationManager.navigateUp: → ${newPath ?: "root"}, stack=${newStack.size}")
 
@@ -169,6 +196,12 @@ class BrowseNavigationManager(
             it.copy(
                 currentPath = finalPath,
                 pathStack = newStack,
+                // S0906: unlike currentPath (needs a real path to reload), null is the
+                // universal "at root" sentinel for the name field - never fall back to
+                // resource.name here, or it becomes indistinguishable from an actual
+                // one-level-deep folder that happens to share the resource's name.
+                currentFolderName = newName,
+                folderNameStack = newNameStack,
                 isSubfolderMode = isStillInSubfolderMode
             )
         }
@@ -182,7 +215,15 @@ class BrowseNavigationManager(
     fun resetToRoot() {
         if (!stateFlow.value.isSubfolderMode) return
         Timber.d("BrowseNavigationManager.resetToRoot")
-        updateState { it.copy(currentPath = null, pathStack = emptyList(), isSubfolderMode = false) }
+        updateState {
+            it.copy(
+                currentPath = null,
+                pathStack = emptyList(),
+                currentFolderName = null,
+                folderNameStack = emptyList(),
+                isSubfolderMode = false
+            )
+        }
         onLoadMediaFiles()
     }
 
@@ -199,6 +240,8 @@ class BrowseNavigationManager(
                     isSubfolderMode = true,
                     currentPath = resourcePath,
                     pathStack = emptyList(),
+                    currentFolderName = null,
+                    folderNameStack = emptyList(),
                     mediaFiles = emptyList()
                 )
             }
@@ -212,7 +255,15 @@ class BrowseNavigationManager(
     fun disableSubfolderMode() {
         Timber.d("BrowseNavigationManager.disableSubfolderMode")
         scope.launch(ioDispatcher) {
-            updateState { it.copy(isSubfolderMode = false, currentPath = null, pathStack = emptyList()) }
+            updateState {
+                it.copy(
+                    isSubfolderMode = false,
+                    currentPath = null,
+                    pathStack = emptyList(),
+                    currentFolderName = null,
+                    folderNameStack = emptyList()
+                )
+            }
             onLoadResource()
         }
     }
@@ -269,68 +320,58 @@ class BrowseNavigationManager(
             }
         }
 
+        // S0906: pathParts are real folder names here (this branch only runs for hierarchical
+        // local/network paths, where a path segment IS the folder name - see the cloud
+        // early-return above, tracked separately as S0917), so the name stack can be sliced
+        // the same way as the path stack, no extra lookup needed.
+        val newNameStack = if (depth == 0) emptyList() else pathParts.take(depth - 1)
+        val newFolderName = if (depth == 0) null else pathParts.getOrNull(depth - 1)
+
         Timber.d("BrowseNavigationManager.navigateToDepth: depth=$depth → $targetPath, stack=${newStack.size}")
-        updateState { it.copy(currentPath = targetPath, pathStack = newStack, isSubfolderMode = true) }
+        updateState {
+            it.copy(
+                currentPath = targetPath,
+                pathStack = newStack,
+                currentFolderName = newFolderName,
+                folderNameStack = newNameStack,
+                isSubfolderMode = true
+            )
+        }
         scope.launch(ioDispatcher) { loadDirectoryContents(targetPath) }
     }
 
     // ── Breadcrumb helpers ────────────────────────────────────────────────────
 
+    // S0906: all 4 getters below read the real-name stack tracked alongside pathStack/
+    // currentPath (see the navigation methods above) instead of re-deriving a name from the
+    // path string - a path segment is not a folder name for cloud resources (opaque provider
+    // id), so string-parsing currentPath used to leak the id for cloud, while working only
+    // by coincidence for local/network hierarchical paths.
+
     /** Returns the relative path from resource root to current folder (e.g. "Folder/Sub"). */
     fun getCurrentBreadcrumb(): String {
-        val resourcePath = stateFlow.value.resource?.path ?: return ""
-        val currentPath = stateFlow.value.currentPath ?: return ""
-        return if (currentPath.startsWith(resourcePath)) {
-            currentPath.removePrefix(resourcePath).trimStart('/', '\\')
-        } else {
-            File(currentPath).name
-        }
+        val s = stateFlow.value
+        return (s.folderNameStack + listOfNotNull(s.currentFolderName)).joinToString("/")
     }
 
     /** Returns the current folder name, or `null` if at root. */
-    fun getCurrentFolderName(): String? {
-        val currentPath = stateFlow.value.currentPath ?: return null
-        return File(currentPath).name
-    }
+    fun getCurrentFolderName(): String? = stateFlow.value.currentFolderName
 
     /** Returns a display string like "Resource / Folder1 / Folder2". */
     fun getBreadcrumbPath(): String {
-        val resource = stateFlow.value.resource ?: return ""
-        val currentPath = stateFlow.value.currentPath ?: return resource.name
-
-        val resourcePath = resource.path
-        val relativePath = if (currentPath.startsWith(resourcePath)) {
-            currentPath.removePrefix(resourcePath).trimStart('/', '\\')
-        } else {
-            return "${resource.name} / ${File(currentPath).name}"
-        }
-
-        if (relativePath.isEmpty()) return resource.name
-
-        val pathParts = relativePath.split("/", "\\").filter { it.isNotEmpty() }
-        return (listOf(resource.name) + pathParts).joinToString(" / ")
+        val s = stateFlow.value
+        val resource = s.resource ?: return ""
+        return (listOf(resource.name) + s.folderNameStack + listOfNotNull(s.currentFolderName))
+            .joinToString(" / ")
     }
 
     /**
      * Returns breadcrumb as (resourceName, [folder1, folder2, ...]) for interactive breadcrumb UI.
      */
     fun getBreadcrumbParts(): Pair<String, List<String>> {
-        val resource = stateFlow.value.resource ?: return Pair("", emptyList())
-        val currentPath = stateFlow.value.currentPath
-
-        if (currentPath == null || currentPath == resource.path) return Pair(resource.name, emptyList())
-
-        val resourcePath = resource.path
-        val relativePath = if (currentPath.startsWith(resourcePath)) {
-            currentPath.removePrefix(resourcePath).trimStart('/', '\\')
-        } else {
-            return Pair(resource.name, listOf(File(currentPath).name))
-        }
-
-        if (relativePath.isEmpty()) return Pair(resource.name, emptyList())
-
-        val pathParts = relativePath.split("/", "\\").filter { it.isNotEmpty() }
-        return Pair(resource.name, pathParts)
+        val s = stateFlow.value
+        val resource = s.resource ?: return Pair("", emptyList())
+        return Pair(resource.name, s.folderNameStack + listOfNotNull(s.currentFolderName))
     }
 
     // ── Directory cache management ────────────────────────────────────────────

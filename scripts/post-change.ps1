@@ -451,6 +451,17 @@ finally {
         try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
     }
+    # Tier-2 coordination lock (CLAUDE.md Rule 23): post-change.ps1 is the "logical change is
+    # done" checkpoint every code-editing skill already calls, so releasing CODE.LOCK here makes
+    # release automatic - skills only need to acquire it (scripts/utils/enter-code-lock.ps1)
+    # before their first source edit. Safe no-op if nothing was ever acquired in this run.
+    try {
+        . (Join-Path $root "scripts/utils/agent-lock.ps1")
+        Exit-AgentLock -Name Code
+    }
+    catch {
+        Write-Host "  [code-lock-release] WARN - could not release CODE.LOCK: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
 }
 
 Skip-Step "spec-catalog-sync" "skill-owned; run only on spec status transition"

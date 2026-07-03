@@ -1,6 +1,10 @@
 # Release build script
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-release.ps1"
+try {
+
 Write-Host "Building release APK (auto-versioned)..." -ForegroundColor Cyan
 
 # Generate version
@@ -133,3 +137,8 @@ if (!(Test-Path -Path $tcDir)) {
 }
 Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

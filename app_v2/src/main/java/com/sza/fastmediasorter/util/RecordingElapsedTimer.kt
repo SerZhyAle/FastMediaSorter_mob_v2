@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.cameracapture.helpers
+package com.sza.fastmediasorter.util
 
 import android.os.Handler
 import android.os.Looper
@@ -6,11 +6,12 @@ import android.os.SystemClock
 import java.util.Locale
 
 /**
- * S0566: elapsed-time ticker for the recording overlay. Counts wall-clock time while a recording is
- * active, freezing the accumulated total across pause/resume so the displayed `mm:ss` matches the
- * file duration. Main-thread Handler based; the host calls [stop] on pause/destroy so no work leaks.
+ * S0566/S0774: elapsed-time ticker shared by every in-app recording indicator (camera video capture,
+ * screen video recording, quick voice capture). Counts wall-clock time while a recording is active,
+ * freezing the accumulated total across pause/resume so the displayed `mm:ss` matches the file
+ * duration. Main-thread Handler based; the host calls [stop] on pause/destroy so no work leaks.
  */
-class CameraRecordingTimer(
+class RecordingElapsedTimer(
     private val onTick: (formatted: String) -> Unit,
 ) {
 

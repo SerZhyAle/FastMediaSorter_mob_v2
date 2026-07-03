@@ -87,6 +87,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $gradlew     = Join-Path $projectRoot "gradlew.bat"
 $appGradle   = Join-Path $projectRoot "app_v2\build.gradle.kts"
 $wearGradle  = Join-Path $projectRoot "wear\build.gradle.kts"
+. (Join-Path $projectRoot 'scripts/utils/agent-lock.ps1')
 
 # ----------------------------------------------------------------------
 # Stamp one version into a module's build.gradle.kts.
@@ -163,6 +164,7 @@ if ($SkipBuild) {
 # Two-pass release build. CWD pinned to $projectRoot so Gradle resolves the
 # correct project directory regardless of how this script was invoked.
 # ----------------------------------------------------------------------
+Enter-BuildLockOrExit -Reason 'build-release-spectrum.ps1'
 Push-Location $projectRoot
 try {
     # Pass 1: selected app flavors (Chaquopy off) + wear, if requested.
@@ -190,6 +192,7 @@ try {
 }
 finally {
     Pop-Location
+    Exit-AgentLock -Name Build
 }
 
 Write-Host "`nBuild Successful! Release spectrum at version $versionName." -ForegroundColor Green

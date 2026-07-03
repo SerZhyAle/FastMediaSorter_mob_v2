@@ -329,8 +329,10 @@
                 android:background="@color/main_programs_panel_accent"
                 android:clickable="true"
                 android:drawablePadding="6dp"
+                android:ellipsize="end"
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
+                android:maxLines="1"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_programs_panel_strip"
@@ -349,8 +351,10 @@
                 android:background="@color/main_streams_panel_accent"
                 android:clickable="true"
                 android:drawablePadding="6dp"
+                android:ellipsize="end"
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
+                android:maxLines="1"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_streams_panel_strip"
@@ -361,24 +365,29 @@
                 app:drawableStartCompat="@drawable/ic_cast"
                 app:drawableTint="@color/main_panel_accent_foreground" />
 
+            <!-- S0914-R1: filter chip stays on the form's own colorSurface (no accent) - owner decision
+                 2026-07-03 after the S0809/S0914 device-test screenshot showed the accent-styled chip; only
+                 programs/streams keep a distinct accent. -->
             <TextView
                 android:id="@+id/chipFilterCollapsed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@color/main_filter_panel_accent"
+                android:background="?attr/colorSurface"
                 android:clickable="true"
                 android:drawablePadding="6dp"
+                android:ellipsize="end"
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
+                android:maxLines="1"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/main_resource_type_filter_strip"
-                android:textColor="@color/main_panel_accent_foreground"
+                android:textColor="?attr/colorControlNormal"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
                 app:drawableEndCompat="@drawable/ic_double_arrow_down"
                 app:drawableStartCompat="@drawable/ic_tune"
-                app:drawableTint="@color/main_panel_accent_foreground" />
+                app:drawableTint="?attr/colorControlNormal" />
 
         </LinearLayout>
 
@@ -391,22 +400,19 @@
             android:id="@+id/mainStreamsPanel"
             layout="@layout/view_main_streams_panel" />
 
-        <!-- Resource Type Tabs -->
+        <!-- Resource Type Tabs. S0914-R1: no accent (form's colorSurface, theme-default tab colours) -
+             owner decision 2026-07-03; programs/streams panels keep their accent, filter does not. -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/main_filter_panel_accent"
+            android:background="?attr/colorSurface"
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
             app:tabMode="fixed"
             app:tabIndicatorFullWidth="false"
-            app:tabIconTint="@color/main_panel_accent_foreground"
-            app:tabSelectedTextColor="@color/main_panel_accent_foreground"
-            app:tabTextColor="@color/main_panel_accent_foreground"
-            app:tabInlineLabel="@bool/is_tab_inline"
-            app:tabIndicatorColor="@color/main_panel_accent_foreground" />
+            app:tabInlineLabel="@bool/is_tab_inline" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -634,6 +640,19 @@
             android:nextFocusUp="@id/rvResources"
             android:contentDescription="@string/streams_stop" />
     </LinearLayout>
+
+    <!-- S0774 rework: shared compact recording indicator (screen video recording + voice capture),
+         mounted here so it floats above whichever panel is visible. Top-inset offset applied at
+         runtime by RecordingIndicatorOverlayManager (systemBars/cutout safe bounds, Rule 17). -->
+    <include
+        android:id="@+id/recordingIndicatorContainer"
+        layout="@layout/view_recording_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

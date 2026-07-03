@@ -26,16 +26,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- S0756: show pinned channels as a horizontal panel on the main window. -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowShowStreamsPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:clickable="true"
-            app:str_title="@string/setting_show_streams_panel_title"
-            app:str_subtitle="@string/setting_show_streams_panel_summary" />
-
         <!-- S0835: portrait - each selector on its own full-width row with title+value on one
              inline line (sdr_inline), mirroring the canonical Language/Color-theme rows in
              fragment_settings_general.xml. -->

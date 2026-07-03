@@ -711,16 +711,6 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowShowProgramsPanel",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show programs panel in main window",
-      "titleRu": "Показывать панель программ в основном окне",
-      "titleUk": "Показувати панель програм у головному вікні"
-    },
-    {
       "key": "rowUseTrash",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1231,6 +1221,16 @@
       "titleUk": "Загальні налаштування інтерфейсу"
     },
     {
+      "key": "headerMainWindowInterface",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Main window interface",
+      "titleRu": "Интерфейс главного окна",
+      "titleUk": "Інтерфейс головного вікна"
+    },
+    {
       "key": "headerRemoteSources",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1389,6 +1389,26 @@
       "titleEn": "Show hidden files",
       "titleRu": "Показывать скрытые файлы",
       "titleUk": "Показувати приховані файли"
+    },
+    {
+      "key": "rowShowProgramsPanel",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Programs panel",
+      "titleRu": "Панель программ",
+      "titleUk": "Панель програм"
+    },
+    {
+      "key": "rowShowStreamsPanel",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show streams panel in main window",
+      "titleRu": "Показывать панель трансляций в основном окне",
+      "titleUk": "Показувати панель трансляцій у головному вікні"
     },
     {
       "key": "rowShowSubfoldersAsItems",
@@ -1989,16 +2009,6 @@
       "titleEn": "Enable Streams",
       "titleRu": "Включить трансляции",
       "titleUk": "Увімкнути трансляції"
-    },
-    {
-      "key": "rowShowStreamsPanel",
-      "sectionId": "streams",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_streams",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show streams panel in main window",
-      "titleRu": "Показывать панель трансляций в основном окне",
-      "titleUk": "Показувати панель трансляцій у головному вікні"
     },
     {
       "key": "btnClearSnapshotResource",

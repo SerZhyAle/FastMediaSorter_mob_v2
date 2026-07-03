@@ -24,6 +24,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
 
 function Fail([string] $stage, [string] $detail) {
     Write-Host "settings-doc-sync: FAIL at stage '$stage'" -ForegroundColor Red
@@ -37,11 +38,12 @@ if ($LASTEXITCODE -ne 0) { Fail 'catalog-complete' 'a settings layout with rows 
 
 # Stage 2 - manifest freshness (verify-mode test) -------------------------------
 if (-not $SkipManifestTest) {
+    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)"
     Push-Location $RepoRoot
     try {
         & ".\gradlew.bat" ":app_v2:testStandardDebugUnitTest" "--tests" "*SettingsManifestExportTest" | Out-Null
         $manifestExit = $LASTEXITCODE
-    } finally { Pop-Location }
+    } finally { Pop-Location; Exit-AgentLock -Name Build }
     if ($manifestExit -ne 0) { Fail 'manifest-fresh' 'committed settings-manifest.json differs from the live scan - regenerate with -Dsettings.manifest.generate=true' }
 } else {
     Write-Host "settings-doc-sync: manifest test skipped (-SkipManifestTest)" -ForegroundColor Yellow

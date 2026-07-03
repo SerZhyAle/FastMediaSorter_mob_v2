@@ -28,7 +28,12 @@ data class BrowseState(
     // Subfolder navigation state
     val currentPath: String? = null, // Current browsed path (null = root of resource)
     val pathStack: List<String> = emptyList(), // Stack of visited paths for back navigation
-    val isSubfolderMode: Boolean = false // True when subfolder navigation is enabled
+    val isSubfolderMode: Boolean = false, // True when subfolder navigation is enabled
+    // S0906: real display name at each depth, parallel to currentPath/pathStack - a path
+    // segment is not a folder name for cloud resources (opaque provider id), so the name
+    // must be tracked alongside the path instead of re-derived from it.
+    val currentFolderName: String? = null,
+    val folderNameStack: List<String> = emptyList()
 )
 
 data class ExtractionState(

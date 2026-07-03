@@ -14,6 +14,10 @@ param(
     [switch]$Device
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-universal.ps1"
+try {
+
 Write-Host "=== FastMediaSorter Universal Build Script ===" -ForegroundColor Cyan
 Write-Host "Flavor: $Flavor" -ForegroundColor Yellow
 Write-Host "Build Type: $BuildType" -ForegroundColor Yellow
@@ -130,4 +134,9 @@ if ($Device) {
     }
 
     Write-Host "`nApp installed and launched!" -ForegroundColor Green
+}
+
+}
+finally {
+    Exit-AgentLock -Name Build
 }

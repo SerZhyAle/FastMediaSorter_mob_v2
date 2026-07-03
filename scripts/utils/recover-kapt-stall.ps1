@@ -36,6 +36,7 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = (Resolve-Path "$PSScriptRoot\..\..").Path
 $gradleWrapper = Join-Path $projectRoot "gradlew.bat"
+. (Join-Path $projectRoot "scripts/utils/agent-lock.ps1")
 
 if (-not (Test-Path -Path $gradleWrapper)) {
     Write-Host "Error: gradlew.bat not found at $gradleWrapper" -ForegroundColor Red
@@ -72,58 +73,64 @@ function Get-LatestGradleVersionDir {
 
 Write-Host "KAPT stall recovery starting.." -ForegroundColor Cyan
 
-Stop-GradleDaemons
+Enter-BuildLockOrExit -Reason 'recover-kapt-stall.ps1'
+try {
+    Stop-GradleDaemons
 
-# Volatile dirs whose stale state is the usual cause of the silent stall.
-# Order matters only insofar as we want feedback per item; each removal is independent.
-$relativePathsToClean = @(
-    "app_v2\build\tmp\kapt3",
-    "app_v2\build\generated\source\kapt",
-    "app_v2\build\generated\source\kaptKotlin",
-    "app_v2\build\kotlin",
-    "app_v2\build\tmp\kotlin-classes"
-)
+    # Volatile dirs whose stale state is the usual cause of the silent stall.
+    # Order matters only insofar as we want feedback per item; each removal is independent.
+    $relativePathsToClean = @(
+        "app_v2\build\tmp\kapt3",
+        "app_v2\build\generated\source\kapt",
+        "app_v2\build\generated\source\kaptKotlin",
+        "app_v2\build\kotlin",
+        "app_v2\build\tmp\kotlin-classes"
+    )
 
-$removedAny = $false
-foreach ($relPath in $relativePathsToClean) {
-    if (Remove-PathIfExists -RelativePath $relPath) { $removedAny = $true }
+    $removedAny = $false
+    foreach ($relPath in $relativePathsToClean) {
+        if (Remove-PathIfExists -RelativePath $relPath) { $removedAny = $true }
+    }
+
+    $gradleVersionDir = Get-LatestGradleVersionDir
+    if ($null -ne $gradleVersionDir) {
+        $executionHistoryRel = ".gradle\$($gradleVersionDir.Name)\executionHistory"
+        if (Remove-PathIfExists -RelativePath $executionHistoryRel) { $removedAny = $true }
+    }
+
+    if (-not $removedAny) {
+        Write-Host "No volatile kapt/kotlin/executionHistory directories were present." -ForegroundColor DarkGray
+    }
+
+    if ($SkipRetry -or [string]::IsNullOrWhiteSpace($Task)) {
+        Write-Host "KAPT stall recovery complete. Re-run your build/test command manually." -ForegroundColor Green
+        exit 0
+    }
+
+    Write-Host "Retrying target task once with --no-daemon: $Task" -ForegroundColor Cyan
+
+    # Chaquopy gate: noLegal flavor requires the plugin, every other flavor must turn it off
+    # so the Chaquopy beforeVariants block does not hide non-noLegal variants (see
+    # project_build_gotchas memory entry - S0174 / S0175 follow-up).
+    $chaquopyFlag = if ($Task -match '(?i)noLegal') { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
+    $gradleArgs = @($Task, $chaquopyFlag, "--no-daemon", "--no-build-cache")
+    if ($Task -match '(?i)noLegal') {
+        $gradleArgs += "--no-configuration-cache"
+    }
+
+    & $gradleWrapper @gradleArgs
+
+    $retryExit = $LASTEXITCODE
+    if ($retryExit -ne 0) {
+        Write-Host "Retry failed with exit code $retryExit." -ForegroundColor Red
+        Write-Host "If the retry stalled again rather than failing, abort it and run:" -ForegroundColor Yellow
+        Write-Host "    pwsh -File scripts/builders/clean-gradle-caches.ps1" -ForegroundColor Yellow
+        Write-Host "Then retry the original command." -ForegroundColor Yellow
+        exit $retryExit
+    }
 }
-
-$gradleVersionDir = Get-LatestGradleVersionDir
-if ($null -ne $gradleVersionDir) {
-    $executionHistoryRel = ".gradle\$($gradleVersionDir.Name)\executionHistory"
-    if (Remove-PathIfExists -RelativePath $executionHistoryRel) { $removedAny = $true }
-}
-
-if (-not $removedAny) {
-    Write-Host "No volatile kapt/kotlin/executionHistory directories were present." -ForegroundColor DarkGray
-}
-
-if ($SkipRetry -or [string]::IsNullOrWhiteSpace($Task)) {
-    Write-Host "KAPT stall recovery complete. Re-run your build/test command manually." -ForegroundColor Green
-    exit 0
-}
-
-Write-Host "Retrying target task once with --no-daemon: $Task" -ForegroundColor Cyan
-
-# Chaquopy gate: noLegal flavor requires the plugin, every other flavor must turn it off
-# so the Chaquopy beforeVariants block does not hide non-noLegal variants (see
-# project_build_gotchas memory entry - S0174 / S0175 follow-up).
-$chaquopyFlag = if ($Task -match '(?i)noLegal') { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
-$gradleArgs = @($Task, $chaquopyFlag, "--no-daemon", "--no-build-cache")
-if ($Task -match '(?i)noLegal') {
-    $gradleArgs += "--no-configuration-cache"
-}
-
-& $gradleWrapper @gradleArgs
-
-$retryExit = $LASTEXITCODE
-if ($retryExit -ne 0) {
-    Write-Host "Retry failed with exit code $retryExit." -ForegroundColor Red
-    Write-Host "If the retry stalled again rather than failing, abort it and run:" -ForegroundColor Yellow
-    Write-Host "    pwsh -File scripts/builders/clean-gradle-caches.ps1" -ForegroundColor Yellow
-    Write-Host "Then retry the original command." -ForegroundColor Yellow
-    exit $retryExit
+finally {
+    Exit-AgentLock -Name Build
 }
 
 Write-Host "Retry succeeded after KAPT stall recovery." -ForegroundColor Green
