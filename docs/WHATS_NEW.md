@@ -6,7 +6,40 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.6270.802** (June 2026)
+**Current release: 2.60.7031.316** (July 2026)
+
+> Changes since version 2.60.6270.802
+
+---
+
+## What's New
+
+- **Main-window panels** - Programs and Streams panels, collapsible panel groups, colour-coded panels, header and context menus, configure shortcut.
+- **Streams upgrades** - inline audio playback, favoriting live channels, country metadata with filter/sort, persistent last-frame thumbnails.
+- **Screen Capture edge gestures** - quick photo (plain, edit, send-to, OCR-translate) and one-tap start for audio/video/screen recording.
+- **Camera controls** - zoom presets and slider, night mode, opt-in GPS geotagging, fixed controls with Send To and capability-driven settings.
+- **Player interface** - fullscreen video by default, redesigned player settings dialog, travelling D-pad/TV focus frame.
+- **Background/inline audio** - proper audio focus handling; survives split-screen multi-window instead of stopping.
+- **Mini-game visual modes** - alternate visual styles for the built-in mini-game.
+- **Browse background mode** - copy and move operations continue while browsing elsewhere.
+- **Exit button minimizes** - minimizes instead of closing while background functions are active.
+
+## What's Fixed
+
+- Browser sign-in no longer risks a crash when the screen rotates mid-save.
+- Standalone document viewer no longer leaks a PdfRenderer, file descriptor or WebView.
+- Read Aloud (TTS) no longer keeps playing or leaks its engine on screen recreation.
+- SMB connection-degradation recovery now reacts correctly under parallel load.
+- Network video thumbnail suspension no longer clears early, causing a false permanent-failure state.
+- Enable-all onboarding no longer silently reverts OCR/translation toggles.
+- Deprecated standalone player no longer crashes on teardown.
+- Standalone player pause survives background/resume; SAF rename no longer restarts playback.
+- Player correctness fixes: BD-TS local video, Now Playing polling, VR launch, stream recovery.
+- Double-tapping the same inline audio stream no longer orphans a background player.
+
+---
+
+## Previous Release: 2.60.6270.802 (June 2026)
 
 > Changes since version 2.60.6251.711
 
