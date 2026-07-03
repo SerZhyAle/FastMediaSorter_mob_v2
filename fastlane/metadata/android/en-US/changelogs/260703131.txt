@@ -1,0 +1,4 @@
+• Main-window panels - Programs and Streams panels, collapsible panel groups, colour-coded panels, header and context menus, configure shortcut.
+• Streams upgrades - inline audio playback, favoriting live channels, country metadata with filter/sort, persistent last-frame thumbnails.
+• Screen Capture edge gestures - quick photo (plain, edit, send-to, OCR-translate) and one-tap start for audio/video/screen recording.
+..
