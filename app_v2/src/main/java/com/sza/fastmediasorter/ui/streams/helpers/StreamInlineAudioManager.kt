@@ -97,9 +97,7 @@ class StreamInlineAudioManager(
      * side cutout is covered too. Wiring lives here, not in the Activity (Rule 3).
      */
     fun applyWindowInsets() {
-        miniControl.applySystemBarInsetPadding(applyTop = false) { left, top, right, bottom ->
-            Timber.d("S0778: now-playing panel insets t=$top b=$bottom l=$left r=$right")
-        }
+        miniControl.applySystemBarInsetPadding(applyTop = false)
     }
 
     /** Returns the id of the source currently playing inline, or null. */

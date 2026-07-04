@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Renders the stream catalog. Row tap launches playback ([onPlay]); the pin affordance promotes the
@@ -228,7 +227,6 @@ class StreamSourceAdapter(
                 binding.tvFaviconFlag.visibility = View.GONE
                 return
             }
-            Timber.d("S0785: streams-list favicon fallback -> country flag $code")
             binding.ivFavicon.visibility = View.GONE
             binding.tvFaviconFlag.visibility = View.VISIBLE
         }

@@ -436,7 +436,6 @@ class PrintDispatchActivity : AppCompatActivity() {
             cancellationSignal: CancellationSignal,
             callback: WriteResultCallback,
         ) {
-            Timber.d("S0828: PDF spool onWrite via structured cancellable copy")
             // Proactively abort when the platform signals cancel; closing the stream unblocks read().
             cancellationSignal.setOnCancelListener { cancelActiveCopy() }
             adapterScope.launch {

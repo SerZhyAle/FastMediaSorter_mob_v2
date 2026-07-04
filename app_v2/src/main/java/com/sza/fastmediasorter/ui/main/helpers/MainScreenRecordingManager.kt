@@ -3,8 +3,6 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -13,8 +11,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import java.util.Locale
 
 /**
  * S0774: host-neutral in-app driver for screen video recording. Checks RECORD_AUDIO and (API 33+)
@@ -35,18 +33,11 @@ class MainScreenRecordingManager(
 ) {
 
     private val indicator = RecordingIndicatorOverlayManager(activity)
-    private val timerHandler = Handler(Looper.getMainLooper())
+    private val recordingElapsedTimer = RecordingElapsedTimer(
+        onTick = indicator::updateTimer,
+        elapsedTimeSourceMs = stateController::elapsedMs,
+    )
     private var indicatorShown = false
-    private val timerTick = object : Runnable {
-        override fun run() {
-            if (!indicatorShown) return
-            val totalSec = (stateController.elapsedMs() / MILLIS_PER_SECOND).toInt()
-            indicator.updateTimer(
-                String.format(Locale.US, "%02d:%02d", totalSec / SECONDS_PER_MINUTE, totalSec % SECONDS_PER_MINUTE)
-            )
-            timerHandler.postDelayed(this, MILLIS_PER_SECOND)
-        }
-    }
 
     /** Observe recording state for the host lifecycle and manage the indicator. Call once from the host. */
     fun bind(lifecycleOwner: LifecycleOwner) {
@@ -111,18 +102,23 @@ class MainScreenRecordingManager(
             },
             onStop = { controller?.requestStop(activity) },
         )
+        recordingElapsedTimer.start()
         applyPausedState(stateController.isPaused.value)
-        timerHandler.post(timerTick)
     }
 
     private fun dismissRecordingIndicator() {
         if (!indicatorShown) return
         indicatorShown = false
-        timerHandler.removeCallbacks(timerTick)
+        recordingElapsedTimer.stop()
         indicator.dismiss()
     }
 
     private fun applyPausedState(paused: Boolean) {
+        if (paused) {
+            recordingElapsedTimer.pause()
+        } else {
+            recordingElapsedTimer.resume()
+        }
         indicator.setPaused(
             paused,
             pauseCd = activity.getString(R.string.recording_pause),
@@ -136,10 +132,5 @@ class MainScreenRecordingManager(
             R.string.screen_recording_permission_denied,
             Snackbar.LENGTH_LONG
         ).show()
-    }
-
-    private companion object {
-        const val MILLIS_PER_SECOND = 1000L
-        const val SECONDS_PER_MINUTE = 60
     }
 }

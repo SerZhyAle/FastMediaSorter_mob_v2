@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.cameracapture
 
 import android.app.Dialog
-import android.content.res.Configuration
 import android.hardware.camera2.CameraMetadata
 import android.os.Bundle
 import android.util.Size
@@ -14,7 +13,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
@@ -59,9 +57,6 @@ class CameraSettingsDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogCameraSettingsBinding.inflate(layoutInflater)
-        val orientation = resources.configuration.orientation
-        val orientationLabel = if (orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"
-        Timber.d("S0813: camera settings dialog inflated orientation=$orientationLabel")
         draft = initialSettings.copy()
 
         bindCanonicalDropdowns()

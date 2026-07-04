@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +63,9 @@ class QuickAudioRecorderService : Service() {
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
     @Inject lateinit var cloudOperationStrategy: CloudOperationStrategy
+    // S0930: empty on flavors without the draw-over-apps permission - degrades to the existing
+    // notification Stop action and the S0796 repeat-gesture toggle when no controller is bound.
+    @Inject lateinit var indicatorControllers: Set<@JvmSuppressWildcards QuickRecorderIndicatorController>
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -69,6 +73,8 @@ class QuickAudioRecorderService : Service() {
     private var recorderStarted = false
     private var outputFile: File? = null
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var activeIndicator: QuickRecorderIndicatorController? = null
+    private val elapsedTimer = RecordingElapsedTimer { formatted -> activeIndicator?.updateElapsed(formatted) }
 
     // S0858: the finished clip's save (network upload with local fallback) runs async while the
     // service stays foreground - guards the reentrancy window where a widget tap could start a
@@ -125,6 +131,13 @@ class QuickAudioRecorderService : Service() {
             recorderStarted = true
             isRecording = true
             QuickAudioRecorderWidgetProvider.updateAllWidgets(this, true)
+            val controller = indicatorControllers.firstOrNull { it.isAvailable(this) }
+            if (controller != null) {
+                Timber.d("S0930: showing floating stop indicator for quick audio recording")
+                controller.show(this) { stopAndSave() }
+                activeIndicator = controller
+                elapsedTimer.start()
+            }
         } catch (e: Exception) {
             Timber.e(e, "QuickAudioRecorder: failed to prepare/start recorder")
             failAndStop()
@@ -155,6 +168,9 @@ class QuickAudioRecorderService : Service() {
         abandonFocus()
         isRecording = false
         QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
+        elapsedTimer.stop()
+        activeIndicator?.hide()
+        activeIndicator = null
 
         if (captured && file != null) {
             // S0526: hand the finished clip to the shared saver. Stay in the foreground until the
@@ -228,6 +244,9 @@ class QuickAudioRecorderService : Service() {
             releaseRecorder()
             abandonFocus()
             isRecording = false
+            elapsedTimer.stop()
+            activeIndicator?.hide()
+            activeIndicator = null
         }
         super.onDestroy()
     }
@@ -239,6 +258,9 @@ class QuickAudioRecorderService : Service() {
         outputFile = null
         isRecording = false
         QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
+        elapsedTimer.stop()
+        activeIndicator?.hide()
+        activeIndicator = null
         toast(getString(R.string.quick_recorder_error))
         stopForegroundCompat()
         stopSelf()

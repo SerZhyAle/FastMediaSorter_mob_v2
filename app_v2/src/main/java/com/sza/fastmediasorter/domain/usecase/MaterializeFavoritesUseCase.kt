@@ -30,9 +30,6 @@ class MaterializeFavoritesUseCase @Inject constructor(
             } else {
                 emptyMap()
             }
-        if (streamFavorites > 0) {
-            timber.log.Timber.d("S0783: materialize $streamFavorites stream fav; catalog=${catalogTitles.size}")
-        }
         return favorites.map { entity ->
             MediaFile(
                 path = entity.uri,

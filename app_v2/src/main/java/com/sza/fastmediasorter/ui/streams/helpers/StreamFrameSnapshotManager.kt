@@ -299,11 +299,18 @@ class StreamFrameSnapshotManager(
     }
 
     private companion object {
-        // S0700/S0900 (2026-07-03): kill switch for [request] - see the WHY comment there. Re-enabled to
-        // test the layout-settle-delay experiment in [capture] - owner reports live grid thumbnails worked
-        // before today's changes, so a full disable is a last resort, not the first one. If this crashes
-        // again, flip back to false and stop guessing blind until a real native trace is available.
-        const val CAPTURE_ENABLED = true
+        // S0700 (2026-07-04): kill switch for [request]. DISABLED - root cause now known from real logs and
+        // the ImageReader capture path is not viable on all hardware:
+        //   - Emulator/software codec: the decoder renders YUV_420_888 (0x23) into this RGBA_8888 (0x1)
+        //     reader, so acquire throws a Java UnsupportedOperationException (caught in [readFrame], but the
+        //     frame is unusable -> favicon fallback anyway).
+        //   - Samsung Exynos / Android 16 (API 36): a NATIVE process kill during the decoder/Surface setup,
+        //     before any Java callback - the session log dies mid enqueue-burst with no exception. A Java
+        //     try/catch cannot catch a native abort, so capture cannot be made safe by guarding alone.
+        // Until capture is reworked to a mechanism that survives both (e.g. YUV->RGB, or the older
+        // TextureView + PixelCopy path that did not native-crash on the S21), the grid uses the favicon
+        // atlas (S0785) as the thumbnail. Re-enable only together with that rework.
+        const val CAPTURE_ENABLED = false
 
         // S0700/S0900 (2026-07-03): delay before the risky ImageReader/ExoPlayer setup in [capture] - see
         // the WHY comment there. Long enough to clear a couple of frames past the grid's initial

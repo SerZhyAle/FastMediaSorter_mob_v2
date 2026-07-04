@@ -4,14 +4,18 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  * S0566/S0774: elapsed-time ticker shared by every in-app recording indicator (camera video capture,
  * screen video recording, quick voice capture). Counts wall-clock time while a recording is active,
  * freezing the accumulated total across pause/resume so the displayed `mm:ss` matches the file
- * duration. Main-thread Handler based; the host calls [stop] on pause/destroy so no work leaks.
+ * duration. Hosts whose recordings outlive the current Activity can instead supply
+ * [elapsedTimeSourceMs] so the timer re-renders from an external source of truth. Main-thread
+ * Handler based; the host calls [stop] on pause/destroy so no work leaks.
  */
 class RecordingElapsedTimer(
+    private val elapsedTimeSourceMs: (() -> Long)? = null,
     private val onTick: (formatted: String) -> Unit,
 ) {
 
@@ -30,26 +34,32 @@ class RecordingElapsedTimer(
     }
 
     fun start() {
-        accumulatedMs = 0L
-        lastResumeAt = SystemClock.elapsedRealtime()
+        if (elapsedTimeSourceMs == null) {
+            accumulatedMs = 0L
+            lastResumeAt = SystemClock.elapsedRealtime()
+        }
         running = true
         paused = false
-        onTick(format(0L))
+        onTick(format(currentElapsedMs()))
         handler.removeCallbacks(ticker)
         handler.postDelayed(ticker, TICK_INTERVAL_MS)
     }
 
     fun pause() {
         if (!running || paused) return
-        accumulatedMs += SystemClock.elapsedRealtime() - lastResumeAt
+        if (elapsedTimeSourceMs == null) {
+            accumulatedMs += SystemClock.elapsedRealtime() - lastResumeAt
+        }
         paused = true
         handler.removeCallbacks(ticker)
-        onTick(format(accumulatedMs))
+        onTick(format(currentElapsedMs()))
     }
 
     fun resume() {
         if (!running || !paused) return
-        lastResumeAt = SystemClock.elapsedRealtime()
+        if (elapsedTimeSourceMs == null) {
+            lastResumeAt = SystemClock.elapsedRealtime()
+        }
         paused = false
         handler.removeCallbacks(ticker)
         handler.postDelayed(ticker, TICK_INTERVAL_MS)
@@ -62,13 +72,17 @@ class RecordingElapsedTimer(
     }
 
     private fun currentElapsedMs(): Long =
-        if (paused) accumulatedMs else accumulatedMs + (SystemClock.elapsedRealtime() - lastResumeAt)
+        elapsedTimeSourceMs?.invoke() ?: if (paused) {
+            accumulatedMs
+        } else {
+            accumulatedMs + (SystemClock.elapsedRealtime() - lastResumeAt)
+        }
 
     private fun format(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val seconds = totalSeconds % 60
-        val minutes = (totalSeconds / 60) % 60
-        val hours = totalSeconds / 3600
+        val totalSeconds = ms / MILLIS_PER_SECOND
+        val seconds = totalSeconds % SECONDS_PER_MINUTE
+        val minutes = (totalSeconds / SECONDS_PER_MINUTE) % MINUTES_PER_HOUR
+        val hours = totalSeconds / SECONDS_PER_HOUR
         return if (hours > 0) {
             String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
         } else {
@@ -77,6 +91,10 @@ class RecordingElapsedTimer(
     }
 
     private companion object {
+        val MILLIS_PER_SECOND = TimeUnit.SECONDS.toMillis(1L)
+        val SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1L)
+        val MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1L)
+        val SECONDS_PER_HOUR = TimeUnit.HOURS.toSeconds(1L)
         const val TICK_INTERVAL_MS = 250L
     }
 }

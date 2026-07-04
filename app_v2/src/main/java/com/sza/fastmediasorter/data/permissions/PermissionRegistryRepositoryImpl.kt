@@ -146,7 +146,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             entry.minSdk <= Build.VERSION.SDK_INT &&
             entry.maxSdk >= Build.VERSION.SDK_INT &&
             evaluateFlavorGates(entry.flavorGates)
-        }.also { Timber.d("S0786: permission registry built %d entries incl location", it.size) }
+        }
 
     override fun getWelcomeEntries(): List<PermissionEntry> {
         // Show every permission this build can request; the user decides which to grant. No narrowing by

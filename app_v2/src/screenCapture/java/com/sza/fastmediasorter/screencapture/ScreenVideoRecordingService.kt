@@ -225,7 +225,6 @@ class ScreenVideoRecordingService : Service() {
 
     private fun pauseRecording() {
         if (!isRecording || isPaused) return
-        Timber.d("S0774: screen recording pause requested")
         try {
             mediaRecorder?.pause()
         } catch (e: IllegalStateException) {
@@ -241,7 +240,6 @@ class ScreenVideoRecordingService : Service() {
 
     private fun resumeRecording() {
         if (!isRecording || !isPaused) return
-        Timber.d("S0774: screen recording resume requested")
         try {
             mediaRecorder?.resume()
         } catch (e: IllegalStateException) {

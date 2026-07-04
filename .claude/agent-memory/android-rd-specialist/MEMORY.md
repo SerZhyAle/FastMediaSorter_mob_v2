@@ -90,6 +90,7 @@
 - [Player progressBar owner](project_player_progressbar_single_owner.md) - PlayerLoadingIndicatorCoordinator; PdfViewer rogue writer
 - [Shared-state audit tool](reference_shared_state_audit_tool.md) - audit-shared-state-writers.ps1
 - [Camera capture permission-free](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE
+- [Headless capture + noHistory trap](project_headless_camera_capture_trampoline.md) - take-photo gestures use ImageCapture-only (no Preview); noHistory+startActivityForResult loses result (S0790-S0794)
 
 ## Spec lifecycle & catalog
 - [Release scope 2026-07](project_release_scope_2026_07.md) - 11 gating tickets S0846..S0891; S0878 may inflate scope; verify statuses live

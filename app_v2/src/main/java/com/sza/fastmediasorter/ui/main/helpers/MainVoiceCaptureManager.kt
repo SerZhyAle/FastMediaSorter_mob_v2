@@ -173,7 +173,6 @@ class MainVoiceCaptureManager(
     /** Wired to the indicator's pause/resume button; guarded so a stray call while idle is a no-op. */
     fun pause() {
         if (!isRecorderStarted || isPaused) return
-        Timber.d("S0774: voice capture pause requested")
         try {
             mediaRecorder?.pause()
         } catch (e: IllegalStateException) {
@@ -187,7 +186,6 @@ class MainVoiceCaptureManager(
 
     fun resume() {
         if (!isRecorderStarted || !isPaused) return
-        Timber.d("S0774: voice capture resume requested")
         try {
             mediaRecorder?.resume()
         } catch (e: IllegalStateException) {

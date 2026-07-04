@@ -61,22 +61,18 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO -> {
-            Timber.d("S0790: edge-gesture take photo")
             launchPhotoCapture(context, autoAction = null)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_SEND_TO -> {
-            Timber.d("S0791: edge-gesture take photo + send to")
             launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_EDIT -> {
-            Timber.d("S0792: edge-gesture take photo + edit")
             launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> {
-            Timber.d("S0794: edge-gesture take photo + OCR translate")
             val action = if (capabilityAvailability.isTranslationAvailable()) {
                 PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE
             } else {

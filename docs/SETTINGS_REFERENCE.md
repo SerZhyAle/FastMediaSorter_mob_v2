@@ -205,7 +205,7 @@ _Available in: Standard, Legacy_
 |---|---|
 | + Add | Adds a new Quick Sort destination folder to the list. |
 | Edit app panel | Opens the editor for the app panel, where you choose and arrange the apps shown on it. |
-| Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. |
+| Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. This enables silent screenshots only - screen video recording always asks Android for its own permission (the 'this app / entire screen' chooser) at the start of every recording, and that step cannot be skipped. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |

@@ -110,7 +110,6 @@ class PhotoCaptureLaunchManager(
         } else {
             null
         }
-        Timber.d("S0790: headless photo capture autoAction=%s geotag=%s", autoAction, location != null)
         capturer.capture(
             outputFile = captured,
             location = location,

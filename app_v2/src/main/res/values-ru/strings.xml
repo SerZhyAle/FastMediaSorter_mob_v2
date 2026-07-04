@@ -2524,7 +2524,7 @@
     <string name="settings_remote_source_cloud_help_message">Доступ к файлам в облачных хранилищах - Google Drive, OneDrive и Dropbox. Подключите аккаунт, чтобы открывать свои папки прямо в приложении.</string>
     <string name="settings_remote_source_disable_confirm_title">Скрыть эти папки?</string>
     <string name="settings_remote_source_disable_confirm_message">Папки этого источника будут скрыты, а не удалены. Сохранённые ресурсы останутся и появятся снова, когда вы включите источник.</string>
-    <string name="screenshot_accessibility_service_description">Позволяет FastMediaSorter снимать экран краевым жестом и сохранять снимок без диалога на каждый снимок.</string>
+    <string name="screenshot_accessibility_service_description">Позволяет FastMediaSorter делать скриншоты краевым жестом и сохранять их без диалога на каждый снимок. Это касается только скриншотов - видеозапись экрана отдельная и в начале каждой записи запрашивает разрешение Android.</string>
     <string name="screenshot_accessibility_permission_rationale">Чтобы делать скриншоты краевым жестом, включите службу спецвозможностей FastMediaSorter:\n\n1. Нажмите «Открыть настройки» и включите FastMediaSorter в списке спецвозможностей.\n2. Если показано Controlled by restricted setting или App was denied access: откройте это приложение в «О приложении», нажмите меню (3 точки), выберите Allow restricted settings, подтвердите и вернитесь, чтобы включить.\n\nНе удаётся включить? Нажмите «Старый способ» - версия, которая запрашивает разрешение на каждый снимок.</string>
     <string name="screen_capture_rate_limited">Слишком частый снимок, попробуйте ещё раз</string>
     <string name="screenshot_gesture_permission_dialog_title">Включение жестов экрана</string>
@@ -2545,7 +2545,7 @@
     <string name="reset_operations_section_message">Сбросить только настройки страницы «Управление» к значениям по умолчанию?</string>
     <string name="reset_operations_section_success">Настройки управления сброшены</string>
     <string name="ocr_engines_damaged">Данные OCR повреждены. Переустановите их в разделе «Загружаемые расширения».</string>
-    <string name="setting_screenshot_accessibility_shortcut_hint">Жесты-скриншоты используют службу спец-возможностей. Если Android её отключил, включите её снова здесь.</string>
+    <string name="setting_screenshot_accessibility_shortcut_hint">Жесты-скриншоты используют службу спец-возможностей. Если Android её отключил, включите её снова здесь. Это работает только для скриншотов - видеозапись экрана каждый раз запрашивает разрешение Android.</string>
     <string name="setting_screenshot_accessibility_shortcut_button">Открыть спец-возможности</string>
     <string name="setting_screenshot_gesture_action_down_title">Действие жеста вниз</string>
     <string name="setting_screenshot_gesture_action_right_title">Действие жеста вправо</string>
@@ -2894,7 +2894,7 @@
     <string name="screen_recording_card_title">Идёт запись экрана</string>
     <string name="screen_recording_stop">Остановить запись</string>
     <string name="screen_recording_disclosure_title">Видеозапись экрана</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне.</string>
+    <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне. В начале каждой записи Android просит выбрать это приложение или весь экран, и этот шаг нельзя пропустить.</string>
     <string name="screen_recording_disclosure_start">Начать запись</string>
     <string name="screen_recording_permission_denied">Для записи экрана нужны разрешения на микрофон и уведомления.</string>
     <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>

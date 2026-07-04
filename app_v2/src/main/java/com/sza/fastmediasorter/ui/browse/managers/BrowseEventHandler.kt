@@ -92,7 +92,6 @@ class BrowseEventHandler(
                     val enterFullscreenOnOpen = file?.type == MediaType.VIDEO &&
                         viewModel.settings.value.openVideoInFullscreen &&
                         viewModel.state.value.resource?.showCommandPanel == null
-                    Timber.d("S0820: enterFullscreenOnOpen=$enterFullscreenOnOpen file=${event.filePath}")
                     val playerIntent = createStandardPlayerIntent(
                         resourceId = resourceId,
                         fileIndex = event.fileIndex,

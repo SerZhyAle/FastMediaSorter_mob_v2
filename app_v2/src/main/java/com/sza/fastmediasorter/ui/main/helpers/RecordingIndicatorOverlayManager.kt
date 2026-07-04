@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S0774 rework: shared, non-modal recording indicator - a small corner pill (dot + timer + pause/resume
@@ -40,7 +39,6 @@ class RecordingIndicatorOverlayManager(private val activity: FragmentActivity) {
         onCancel: (() -> Unit)? = null,
         cancelCd: String? = null,
     ) {
-        Timber.d("S0774: compact recording indicator shown")
         applySafeBoundsInsetsOnce()
         root.contentDescription = accessibleLabel
         pauseResumeButton.setOnClickListener { onPauseResume() }
