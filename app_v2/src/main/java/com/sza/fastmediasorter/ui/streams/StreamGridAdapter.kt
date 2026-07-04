@@ -27,9 +27,10 @@ import kotlinx.coroutines.launch
  * [requestCapture]. The favicon plumbing mirrors [StreamSourceAdapter] (rebind-safe with a boundUrl
  * guard). [repaintUrl] lets the snapshot engine's `onCaptured` callback refresh just one tile.
  *
- * S0700: the snapshot is captured offscreen by [StreamFrameSnapshotManager] (its own ImageReader
- * surface, decoupled from this cell's views), so [requestCapture] no longer hands over a TextureView.
- * On completion the manager calls back into [repaintUrl], which re-binds only the tile whose bound url
+ * S0700/S0933: the snapshot is captured offscreen by [StreamFrameSnapshotManager] (into its own
+ * window-attached off-screen TextureView, decoupled from this cell's views), so [requestCapture] never
+ * hands over this cell's own views. On completion the manager calls back into [repaintUrl], which
+ * re-binds only the tile whose bound url
  * matches - a recycled/scrolled cell that now shows a different url is never repainted with a stale
  * frame, and the cell carries no live capture surface.
  *

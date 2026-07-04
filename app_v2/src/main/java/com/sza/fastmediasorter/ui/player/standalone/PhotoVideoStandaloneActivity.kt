@@ -569,6 +569,8 @@ class PhotoVideoStandaloneActivity :
 
     private fun setupWindowAndInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
         // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->

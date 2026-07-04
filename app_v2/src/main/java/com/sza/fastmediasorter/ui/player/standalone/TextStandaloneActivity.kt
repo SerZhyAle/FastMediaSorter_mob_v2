@@ -297,6 +297,11 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         setupBackPressHandler()
         setupFileOperationButtons()
         textViewerManager.setupControls()
+        // S0920: the standalone text host always shows its own top command panel (with Back), so the
+        // shared text-viewer's floating close button is redundant here and only hides the text. It is
+        // meant solely for the in-app fullscreen text overlay; keep it hidden by staying in panel mode.
+        textViewerManager.updateCloseButtonVisibility(showCommandPanel = true)
+        Timber.d("S0920: standalone text close-button hidden")
         setupTextActionButtons()
         pagingControls.setupClicks()
         setupKeyboardHandler()
@@ -383,6 +388,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
 
     private fun setupWindowAndInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val top = insets.getInsets(
                 WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()

@@ -107,7 +107,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S0675: short-lived snapshot engine for grid mode; built lazily so Hilt field injection (the cache)
     // has run. Uses applicationContext so a config-change does not leak the Activity into a capture.
     private val snapshotManager by lazy {
-        StreamFrameSnapshotManager(applicationContext, streamFrameCache, lifecycleScope, streamFramePersistentStore)
+        // S0933: the ExoPlayer/decoder still uses applicationContext (no Activity leak), but the capture
+        // TextureView needs a window-attached host - the off-screen streamCaptureHost in this layout.
+        StreamFrameSnapshotManager(
+            applicationContext,
+            streamFrameCache,
+            lifecycleScope,
+            streamFramePersistentStore,
+            hostProvider = { binding.streamCaptureHost },
+        )
     }
 
     // S0675: grid-mode adapter mirroring the list adapter's favicon plumbing; the cached frame is the
