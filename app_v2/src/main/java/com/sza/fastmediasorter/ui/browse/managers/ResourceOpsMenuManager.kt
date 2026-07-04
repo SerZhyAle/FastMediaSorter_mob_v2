@@ -29,7 +29,6 @@ import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
-import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -188,7 +187,6 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 // S0806: reach the main app settings window without going back to the home window.
                 R.id.action_open_app_settings -> {
-                    Timber.d("S0806: open app settings from browse overflow menu")
                     context.startActivity(Intent(context, SettingsActivity::class.java))
                     true
                 }

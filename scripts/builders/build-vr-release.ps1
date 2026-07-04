@@ -19,6 +19,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-vr-release.ps1"
+try {
+
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = Join-Path $projectRoot "gradlew.bat"
 $buildGradlePath = Join-Path $projectRoot "app_v2\build.gradle.kts"
@@ -118,3 +122,8 @@ Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
 exit 0
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

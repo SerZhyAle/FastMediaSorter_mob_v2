@@ -70,7 +70,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
@@ -546,7 +545,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     private fun initEnterFullscreenOnLaunch(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) return
         if (!intent.getBooleanExtra(EXTRA_ENTER_FULLSCREEN, false)) return
-        Timber.d("S0820: initEnterFullscreenOnLaunch entering fullscreen on fresh launch")
         viewModel.enterFullscreenMode()
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }

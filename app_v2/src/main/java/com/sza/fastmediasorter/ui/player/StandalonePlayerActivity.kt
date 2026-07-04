@@ -190,6 +190,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private var standaloneTrackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
+
+    // S0908: kept so onDestroy() can remove this exact instance before viewManager.release().
+    private var tracksChangedListener: Player.Listener? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
     private var searchControlsManager: SearchControlsManager? = null
 
@@ -478,7 +481,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         playerSettingsManager = null
         // S0860: viewManager is assigned late in setupViews(); the probe short-circuit and a
         // first-frame destroy run onDestroy before that, so guard the release like lifecycleManager.
-        if (::viewManager.isInitialized) viewManager.release()
+        if (::viewManager.isInitialized) {
+            viewManager.getExoPlayer()?.let { player -> tracksChangedListener?.let(player::removeListener) }
+            viewManager.release()
+        }
+        tracksChangedListener = null
         super.onDestroy()
     }
 
@@ -879,14 +886,16 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val controlsManager = videoControlsManager ?: return
 
         // Detect track availability once media is ready via a listener
-        viewManager.getExoPlayer()?.addListener(object : androidx.media3.common.Player.Listener {
+        val tracksListener = object : Player.Listener {
             override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
                 controlsManager.updateTrackButtonsVisibility(
                     hasMultipleAudio = trackManager.hasMultipleAudioTracks(),
                     hasSubtitles = trackManager.hasSubtitleTracks()
                 )
             }
-        })
+        }
+        tracksChangedListener = tracksListener
+        viewManager.getExoPlayer()?.addListener(tracksListener)
 
         val touchDelegate = StandaloneVideoTouchDelegate(
             activity = this,

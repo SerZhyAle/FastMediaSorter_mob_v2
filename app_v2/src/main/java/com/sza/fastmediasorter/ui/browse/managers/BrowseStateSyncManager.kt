@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.MaterializeFavoritesUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +28,7 @@ import timber.log.Timber
  */
 class BrowseStateSyncManager(
     private val favoritesUseCase: FavoritesUseCase,
+    private val materializeFavoritesUseCase: MaterializeFavoritesUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
     private val resourceId: Long,
     private val scope: CoroutineScope,
@@ -46,20 +47,8 @@ class BrowseStateSyncManager(
             favoritesUseCase.getAllFavorites().collect { favorites ->
                 Timber.d("BrowseStateSyncManager.loadFavorites: Received ${favorites.size} favorites")
 
-                val mediaFiles = favorites.map { entity ->
-                    MediaFile(
-                        path = entity.uri,
-                        name = entity.displayName,
-                        type = MediaType.entries.getOrElse(entity.mediaType) { MediaType.IMAGE },
-                        size = entity.size,
-                        createdDate = entity.dateModified,
-                        isFavorite = true,
-                        resourceId = entity.resourceId,
-                        width = 0,
-                        height = 0,
-                        duration = 0
-                    )
-                }
+                // S0783: STREAM rows get their display name from the live catalog (MaterializeFavoritesUseCase).
+                val mediaFiles = materializeFavoritesUseCase.toMediaFiles(favorites)
 
                 MediaFilesCacheManager.setCachedList(FAVORITES_RESOURCE_ID, mediaFiles)
 

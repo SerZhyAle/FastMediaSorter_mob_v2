@@ -188,6 +188,18 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## Standalone Player Toolbar Order (MANDATORY)
+
+The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
+
+Canonical order: `Back -> [paging: Prev, Next, Random, Slideshow] -> Delete -> Favorite -> Share -> Info -> Rename -> [type-specific actions] -> Overflow`.
+
+Rules:
+
+- Rename comes BEFORE the type-specific cluster (Crop/Rotate for image/video, Search/Translate/Copy/Edit for text, PDF/EPUB/Text tools for documents), never after it.
+- Type-specific buttons are the only per-host variation; everything before Rename and the trailing Overflow are fixed.
+- Keep `layout/` and `layout-land/` in the same order (Rule 11).
+
 ## Internet Streams Subsystem
 
 Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries:

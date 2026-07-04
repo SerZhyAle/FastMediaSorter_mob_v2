@@ -40,6 +40,9 @@
 
             <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@drawable/ic_info" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
 
+            <!-- S0920: Rename before the type-specific cluster, matching the photo/video/document/audio hosts. -->
+            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
             <ImageButton android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
             <ImageButton android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
@@ -48,8 +51,6 @@
             <ImageButton android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
             <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
-
-            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
 
         </LinearLayout>
 

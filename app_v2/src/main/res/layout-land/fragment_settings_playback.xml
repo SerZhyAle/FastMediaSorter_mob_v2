@@ -93,6 +93,7 @@
                             android:layout_marginEnd="@dimen/dialog_field_spacing"
                             android:nextFocusRight="@id/rowAllowDelete"
                             app:str_title="@string/allow_rename"
+                            app:str_icon="@drawable/ic_rename"
                             app:str_subtitle="@string/setting_allow_rename_desc" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -105,6 +106,7 @@
                             android:nextFocusLeft="@id/rowAllowRename"
                             android:nextFocusRight="@id/rowConfirmDelete"
                             app:str_title="@string/allow_delete"
+                            app:str_icon="@drawable/ic_delete"
                             app:str_subtitle="@string/setting_allow_delete_desc" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -202,6 +204,7 @@
                             android:layout_marginEnd="@dimen/dialog_field_spacing"
                             android:nextFocusRight="@id/rowEnablePip"
                             app:str_title="@string/settings_black_screen_button_title"
+                            app:str_icon="@drawable/ic_black_screen"
                             app:str_subtitle="@string/settings_black_screen_button_desc" />
 
                         <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
@@ -213,6 +216,7 @@
                                 android:layout_height="wrap_content"
                                 android:nextFocusLeft="@id/rowShowBlackScreenButton"
                                 app:str_title="@string/setting_enable_pip"
+                                app:str_icon="@drawable/ic_picture_in_picture"
                                 app:str_subtitle="@string/setting_enable_pip_desc" />
 
                         </LinearLayout>

@@ -170,6 +170,16 @@ class WelcomePermissionsManager @Inject constructor(
         startGrantAllRun()
     }
 
+    /** Re-wire the grant-all completion callback after this manager was re-created (rotation/process
+     *  death, S0910) mid-run - [grantAllOnComplete] is a transient field and does not survive
+     *  recreation, so a caller resuming an in-progress run must restore it explicitly. No-op when no
+     *  run is in progress, so a caller cannot accidentally arm a callback for a run that never starts. */
+    fun reattachGrantAllCallback(onComplete: () -> Unit) {
+        if (grantAllInProgress) {
+            grantAllOnComplete = onComplete
+        }
+    }
+
     private fun startGrantAllRun() {
         val act = activity ?: return
         // Start a fresh run: regular permissions first (one batch dialog), then each denied special

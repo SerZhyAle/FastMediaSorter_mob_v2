@@ -47,11 +47,12 @@ else {
 
 # name -> extra args (beyond -Gate). Order matters: cheapest/most-deterministic first.
 $gates = [ordered]@{
-    'assert-no-ticket-logs.ps1'           = @('-Quiet')
-    'assert-flavor-flags-not-growing.ps1' = @()
-    'assert-neuroslop.ps1'                = @()
-    'assert-deprecated-pm-flags.ps1'      = @()
-    'assert-listener-symmetry.ps1'        = @()
+    'assert-no-ticket-logs.ps1'                 = @('-Quiet')
+    'assert-flavor-flags-not-growing.ps1'       = @()
+    'assert-neuroslop.ps1'                       = @()
+    'assert-deprecated-pm-flags.ps1'            = @()
+    'assert-listener-symmetry.ps1'              = @()
+    'assert-orientation-implied-feature.ps1'    = @()
 }
 
 $results = [System.Collections.Generic.List[object]]::new()

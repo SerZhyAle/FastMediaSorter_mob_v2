@@ -373,6 +373,8 @@ class AudioStandaloneActivity :
 
     private fun setupWindowAndInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
         // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
@@ -409,6 +411,8 @@ class AudioStandaloneActivity :
     }
 
     private fun setupFileOperationButtons() {
+        // S0920: wire the Copy/Move panel headers so a header tap expands/collapses its grid.
+        destinationButtonsManager.bindHeaderToggles()
         binding.btnDeleteCmd.isVisible = true
         binding.btnDeleteCmd.setOnClickListener { fileOperations.deleteCurrentFile() }
         binding.btnShareCmd.isVisible = true
@@ -425,7 +429,7 @@ class AudioStandaloneActivity :
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S0393: shared menu - hide image/video-only items; keep audio items (YouTube/lyrics/sleep).
-            listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
+            listOf(R.id.menu_draw_overlay, R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame)
                 .forEach { popup.menu.findItem(it)?.isVisible = false }

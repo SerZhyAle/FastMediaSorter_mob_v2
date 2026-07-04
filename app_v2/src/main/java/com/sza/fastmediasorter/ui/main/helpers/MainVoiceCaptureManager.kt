@@ -7,14 +7,9 @@ import android.media.AudioManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
@@ -23,6 +18,7 @@ import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,9 +33,11 @@ import java.util.Locale
  * S0523: host-neutral quick voice capture launched from the main-screen overflow menu. Records a
  * microphone note (mirroring the proven [com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager]
  * recorder + audio-focus + too-short-artifact guard) and writes it straight to the phone's public
- * recordings folder via the MediaStore-aware writer - never into a sorting resource. The start/stop
- * UX is a modal recording dialog (owner-confirmed); permission and the recorder are released on host
- * pause through [release].
+ * recordings folder via the MediaStore-aware writer - never into a sorting resource. The start/stop UX
+ * is the shared, non-modal [RecordingIndicatorOverlayManager] (timer + pause/resume + stop + discard) -
+ * also used by [MainScreenRecordingManager] for a consistent UX between both programs-panel recording
+ * scenarios (S0774 rework 2026-07-03, replacing a full-screen modal dialog). Permission and the recorder
+ * are released on host pause through [release].
  */
 class MainVoiceCaptureManager(
     private val activity: FragmentActivity,
@@ -55,20 +53,17 @@ class MainVoiceCaptureManager(
     private var pendingTempFile: File? = null
     private var mediaRecorder: MediaRecorder? = null
     private var isRecorderStarted = false
+    private var isPaused = false
     private var lastStopThrew = false
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
 
-    private var recordingDialog: AlertDialog? = null
-    private val timerHandler = Handler(Looper.getMainLooper())
-    private var recordingStartedAtMs = 0L
-    private val timerTick = object : Runnable {
-        override fun run() {
-            val dialog = recordingDialog ?: return
-            val totalSec = ((SystemClock.elapsedRealtime() - recordingStartedAtMs) / 1000).toInt()
-            dialog.setMessage(String.format(Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60))
-            timerHandler.postDelayed(this, 1000)
-        }
-    }
+    private val indicator = RecordingIndicatorOverlayManager(activity)
+    private var indicatorShown = false
+
+    // No foreground service backs this recording (Activity-scoped, released on host pause), so the
+    // elapsed timer accumulates in-memory rather than recomputing from a shared singleton's instants
+    // (contrast MainScreenRecordingManager, which must survive Activity recreation).
+    private val recordingElapsedTimer = RecordingElapsedTimer { formatted -> indicator.updateTimer(formatted) }
 
     fun start() {
         if (isRecorderStarted) return
@@ -102,8 +97,8 @@ class MainVoiceCaptureManager(
             Timber.w("quick voice: audio focus not granted")
             // S0896: audioFocusListener was set inside requestAudioFocus() before the grant result
             // was known - clear it now. Without this, release()'s guard never reaches cancel()
-            // afterward (pendingTempFile/recordingDialog are both still null at this point), leaking
-            // the dangling listener reference.
+            // afterward (pendingTempFile is null and the indicator was never shown at this point),
+            // leaking the dangling listener reference.
             abandonAudioFocus()
             tempFile.delete()
             pendingTempFile = null
@@ -128,7 +123,8 @@ class MainVoiceCaptureManager(
             recorder.prepare()
             recorder.start()
             isRecorderStarted = true
-            showRecordingDialog()
+            isPaused = false
+            showRecordingIndicator()
         } catch (e: Exception) {
             Timber.e(e, "quick voice: failed to prepare/start recorder")
             cancel()
@@ -137,7 +133,7 @@ class MainVoiceCaptureManager(
     }
 
     fun stop() {
-        dismissRecordingDialog()
+        dismissRecordingIndicator()
         releaseRecorder()
         abandonAudioFocus()
 
@@ -160,7 +156,7 @@ class MainVoiceCaptureManager(
     }
 
     fun cancel() {
-        dismissRecordingDialog()
+        dismissRecordingIndicator()
         releaseRecorder()
         abandonAudioFocus()
         pendingTempFile?.delete()
@@ -169,9 +165,36 @@ class MainVoiceCaptureManager(
 
     /** Host onPause hook: never leave the mic open after the screen is backgrounded. */
     fun release() {
-        if (isRecorderStarted || pendingTempFile != null || recordingDialog != null) {
+        if (isRecorderStarted || pendingTempFile != null || indicatorShown) {
             cancel()
         }
+    }
+
+    /** Wired to the indicator's pause/resume button; guarded so a stray call while idle is a no-op. */
+    fun pause() {
+        if (!isRecorderStarted || isPaused) return
+        try {
+            mediaRecorder?.pause()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "quick voice: recorder.pause() failed")
+            return
+        }
+        isPaused = true
+        recordingElapsedTimer.pause()
+        applyPausedState()
+    }
+
+    fun resume() {
+        if (!isRecorderStarted || !isPaused) return
+        try {
+            mediaRecorder?.resume()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "quick voice: recorder.resume() failed")
+            return
+        }
+        isPaused = false
+        recordingElapsedTimer.resume()
+        applyPausedState()
     }
 
     private suspend fun save(tempFile: File, name: String) {
@@ -265,26 +288,39 @@ class MainVoiceCaptureManager(
             }
         }
         isRecorderStarted = false
+        isPaused = false
         mediaRecorder?.release()
         mediaRecorder = null
     }
 
-    private fun showRecordingDialog() {
-        recordingStartedAtMs = SystemClock.elapsedRealtime()
-        recordingDialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.quick_voice_recording_dialog_title)
-            .setMessage("00:00")
-            .setCancelable(false)
-            .setPositiveButton(R.string.quick_voice_recording_stop) { _, _ -> stop() }
-            .setNegativeButton(R.string.cancel) { _, _ -> cancel() }
-            .show()
-        timerHandler.post(timerTick)
+    private fun showRecordingIndicator() {
+        if (indicatorShown) return
+        indicatorShown = true
+        indicator.show(
+            accessibleLabel = activity.getString(R.string.quick_voice_recording_dialog_title),
+            stopCd = activity.getString(R.string.quick_voice_recording_stop),
+            onPauseResume = { if (isPaused) resume() else pause() },
+            onStop = { stop() },
+            onCancel = { cancel() },
+            cancelCd = activity.getString(R.string.cancel),
+        )
+        applyPausedState()
+        recordingElapsedTimer.start()
     }
 
-    private fun dismissRecordingDialog() {
-        timerHandler.removeCallbacks(timerTick)
-        recordingDialog?.dismiss()
-        recordingDialog = null
+    private fun dismissRecordingIndicator() {
+        if (!indicatorShown) return
+        indicatorShown = false
+        recordingElapsedTimer.stop()
+        indicator.dismiss()
+    }
+
+    private fun applyPausedState() {
+        indicator.setPaused(
+            isPaused,
+            pauseCd = activity.getString(R.string.recording_pause),
+            resumeCd = activity.getString(R.string.recording_resume),
+        )
     }
 
     private fun showSnackbar(msgRes: Int) {

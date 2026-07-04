@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.hardware.camera2.CameraMetadata
 import androidx.fragment.app.FragmentManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraSettingsDialogFragment
-import timber.log.Timber
 
 /**
  * S0844: implements [CameraSettingsDialogFragment.Callbacks] and owns showing the dialog on behalf
@@ -50,7 +49,6 @@ class CameraSettingsCallbackHandler(
     }
 
     override fun onCameraSettingsApplied(state: CameraSettingsDialogFragment.CameraSettingsState) {
-        Timber.d("S0754: applying camera settings dialog state")
         onCameraSettingsPreviewChanged(state)
         flowManager.setSelfTimerSeconds(state.selfTimerSeconds)
         flowManager.setGridEnabled(state.gridEnabled)

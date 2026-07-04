@@ -11,6 +11,10 @@ param(
     [switch]$AutoVersion = $true
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-nolegal-debug.ps1"
+try {
+
 Write-Host "Building NoLegal Debug APK.." -ForegroundColor Cyan
 Write-Host "Features: Standard runtime + sideload-only extras (NewPipe, etc.)" -ForegroundColor Yellow
 Write-Host "Distribution: ADB sideload only - not for any public store." -ForegroundColor Magenta
@@ -153,3 +157,8 @@ if (!(Test-Path -Path $tcDir)) {
 }
 Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

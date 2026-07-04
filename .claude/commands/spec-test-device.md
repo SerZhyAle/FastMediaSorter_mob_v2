@@ -64,7 +64,7 @@ Read strategic spec §2 (Goals), §11 (Criteria), §3.2 (Constraints). If tactic
 - **Scenario steps** - ordered list. Each step: `goal`, `mobile-mcp action(s)`, `expected screen text or element id`, `expected log line(s)` (if any). Atomic - one user-visible state change per step.
 - **Pre-conditions** - required app state (e.g. specific resource registered, specific setting OFF). If unmeetable without manual setup, list them and stop before execution.
 
-Write to `temp/<Sxxxx>_mobile_test_scenario_<YYYYMMDD_HHmm>.md`. Include `## Run log` placeholder section.
+Write to `temp/<Sxxxx>/mobile_test_scenario_<YYYYMMDD_HHmm>.md`. Include `## Run log` placeholder section.
 
 If `--dry-run`, stop here and report path.
 
@@ -118,7 +118,7 @@ Confirm runtime build identifier matches just-built - read Settings footer (`tvV
 
 ```powershell
 adb -s <id> logcat -c
-adb -s <id> logcat -v time *:V > temp/<Sxxxx>_run_<YYYYMMDD_HHmm>.log
+adb -s <id> logcat -v time *:V > temp/<Sxxxx>/run_<YYYYMMDD_HHmm>.log
 ```
 
 Run logcat in **background** (`run_in_background: true`). Record start timestamp in scenario.
@@ -135,7 +135,7 @@ Walk scenario steps in order. Per step:
    - target element present / absent
    - element text matches expected substring
    - Toast / Snackbar text appears (re-list within 2 s - toasts auto-dismiss)
-4. Evidence: `mobile_save_screenshot saveTo=temp/<Sxxxx>_screens/step_<NN>.png` - writes PNG to disk, does NOT load image into context. One per step, zero token cost.
+4. Evidence: `mobile_save_screenshot saveTo=temp/<Sxxxx>/screens/step_<NN>.png` - writes PNG to disk, does NOT load image into context. One per step, zero token cost.
 5. Record one row in scenario `## Run log` table: `step | action | result (PASS/FAIL/INCONCLUSIVE) | evidence (screenshot path + log lines)`.
 
 Use `mobile_take_screenshot` (inline image, costs context) ONLY when text tree cannot answer:
@@ -164,15 +164,15 @@ Kill background `adb logcat` process. Record end timestamp.
 Run log analyser against captured file:
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Summary
-.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Errors -Unique -Stats -AppOnly
-.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Exceptions
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>/run_<TS>.log" -Summary
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>/run_<TS>.log" -Errors -Unique -Stats -AppOnly
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>/run_<TS>.log" -Exceptions
 ```
 
 First grep for spec's own debug verification tags - primary "code path exercised" signal (spec is in `BlockNeedUserTest`, so per CLAUDE.md "Debug Verification Tags" it carries `Timber.d("<Sxxxx>: …")` lines). Only debug-level hits count as valid probes; `I/W/E` lines with `<Sxxxx>:` are invalid instrumentation - report separately, do not count as exercised:
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>/run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
 ```
 
 For every `<Sxxxx>:` line found, mark corresponding criterion / changed flow **exercised on-device** in `## Log findings`. Flow whose tag never appeared = not exercised by scenario (note as coverage gap, not necessarily FAIL).
@@ -186,7 +186,7 @@ pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -PathMatches 
 Per class returned:
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Tag "<ClassName>" -AppOnly
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>/run_<TS>.log" -Tag "<ClassName>" -AppOnly
 ```
 
 Append `## Log findings`: counts per level, top error messages with line refs, any exception block. Cross-reference each finding to scenario step running at that timestamp (use per-step start time from step 6).
@@ -208,14 +208,14 @@ Open `PLAN/Sxxxx_<slug>.md`, find `## Last Audit` block. Inside it, locate `### 
 
 For every checklist item this run actually exercised:
 - `PASS` -> flip `[ ]` to `[x]`, append ` - verified on-device <YYYY-MM-DD>`.
-- `FAIL` -> flip `[ ]` to `[!]` (custom marker audit recognises), append ` - failed on-device <YYYY-MM-DD>; see temp/<Sxxxx>_mobile_test_scenario_<TS>.md`.
+- `FAIL` -> flip `[ ]` to `[!]` (custom marker audit recognises), append ` - failed on-device <YYYY-MM-DD>; see temp/<Sxxxx>/mobile_test_scenario_<TS>.md`.
 - `SKIPPED` / `INCONCLUSIVE` -> leave line unchanged.
 
 Append one line to spec's `## Revision History` (create section if missing):
 
 ```markdown
 - **<YYYY-MM-DD>** - by `/spec-test-device` (`<model-id>`, device: <id> <Android version>)
-  - Scenario: temp/<Sxxxx>_mobile_test_scenario_<TS>.md · PASS/FAIL/SKIPPED N/N/N · Errors in log: N
+  - Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md · PASS/FAIL/SKIPPED N/N/N · Errors in log: N
 ```
 
 Touch journal `updated` **without changing status**:
@@ -237,7 +237,7 @@ If strategic spec untouched (zero checklist items recognised), still record run 
 Single line:
 
 ```
-<Sxxxx>: device <id>, PASS/FAIL/SKIPPED N/N/N, log errors N. Scenario: temp/<Sxxxx>_mobile_test_scenario_<TS>.md
+<Sxxxx>: device <id>, PASS/FAIL/SKIPPED N/N/N, log errors N. Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md
 ```
 
 Then one-line follow-up offer if `/spec-fix` or fresh `/spec` is obvious next step.
@@ -278,7 +278,7 @@ Then one-line follow-up offer if `/spec-fix` or fresh `/spec` is obvious next st
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or slug.
 - **Status transition.** Never. Only `updated` touched (`pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`).
-- **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; deleting screenshots from previous runs (accumulate in `temp/<Sxxxx>_screens/`, may be useful for diff).
+- **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; deleting screenshots from previous runs (accumulate in `temp/<Sxxxx>/screens/`, may be useful for diff).
 
 ---
 
@@ -286,8 +286,8 @@ Then one-line follow-up offer if `/spec-fix` or fresh `/spec` is obvious next st
 
 | Path | Purpose |
 | --- | --- |
-| `temp/<Sxxxx>_mobile_test_scenario_<TS>.md` | Scenario + run log + log findings + follow-ups |
-| `temp/<Sxxxx>_screens/step_<NN>.png` | Per-step evidence (via `mobile_save_screenshot`, off-context) |
-| `temp/<Sxxxx>_run_<TS>.log` | Captured logcat for the run window |
+| `temp/<Sxxxx>/mobile_test_scenario_<TS>.md` | Scenario + run log + log findings + follow-ups |
+| `temp/<Sxxxx>/screens/step_<NN>.png` | Per-step evidence (via `mobile_save_screenshot`, off-context) |
+| `temp/<Sxxxx>/run_<TS>.log` | Captured logcat for the run window |
 | `PLAN/Sxxxx_<slug>.md` | Strategic spec - `## Last Audit` Manual block updated, `## Revision History` line appended |
 | `dev/CHANGELOG.md` | One row via `add_to_dev_log.ps1` |

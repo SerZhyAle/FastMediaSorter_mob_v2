@@ -4,6 +4,10 @@
 # On Quest:  launches MainActivity as 2D panel (full VR bridge available).
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-nolegal-device.ps1"
+try {
+
 # ADB path
 $adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
 
@@ -154,4 +158,9 @@ if (Test-Path -Path $7zipPath) {
 else {
     Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
     Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+}
+
+}
+finally {
+    Exit-AgentLock -Name Build
 }

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.common.dragselect
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import androidx.recyclerview.widget.RecyclerView
-import timber.log.Timber
 import kotlin.math.abs
 
 /**
@@ -165,7 +164,6 @@ class DragSelectTouchListener(
         startPosition = position
         lastPosition = position
         hostRecyclerView = rv
-        Timber.d("S0817: drag-select committed pos=$position")
         callback.onSelectionStart(position)
         callback.onSelectionRangeChanged(position, position)
     }

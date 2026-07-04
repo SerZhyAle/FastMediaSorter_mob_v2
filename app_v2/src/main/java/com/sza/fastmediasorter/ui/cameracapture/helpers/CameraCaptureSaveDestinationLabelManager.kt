@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * S0844: resolves and renders the save-destination and calling-scenario labels overlaid on
@@ -45,7 +44,6 @@ class CameraCaptureSaveDestinationLabelManager(
 
     fun renderScenario() {
         val scenario = CameraCaptureContract.readScenario(intent)
-        Timber.d("S0812: render scenario label ${scenario.name}")
         if (scenario.labelRes == 0) {
             scenarioLabel.visibility = View.GONE
         } else {
@@ -56,6 +54,12 @@ class CameraCaptureSaveDestinationLabelManager(
     }
 
     private suspend fun resolveSaveDestinationName(): String? {
+        // S0754: a caller that already knows the real save target (Browse, quick-capture widget)
+        // passes it explicitly - the scratch output file's parent folder name is not the destination
+        // (e.g. an app-private "Pictures" staging dir while the shot actually lands in "Downloads").
+        CameraCaptureContract.readDestinationLabel(intent)?.let {
+            return it
+        }
         val fixedOutputParent = flowManager.currentOutputFile()?.parentFile?.name
         if (!flowManager.multiCapture) return fixedOutputParent
         val settings = settingsRepository.getSettings().first()

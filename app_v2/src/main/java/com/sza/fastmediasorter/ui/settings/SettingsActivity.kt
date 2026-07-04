@@ -200,8 +200,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
-        if (BuildConfig.DEBUG) Timber.d("S0776: settings context icons active")
-
         val adapter = SettingsPagerAdapter(this, settingsTabExtensions)
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})")
 

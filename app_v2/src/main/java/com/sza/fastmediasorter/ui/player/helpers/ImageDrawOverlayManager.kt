@@ -369,7 +369,6 @@ class ImageDrawOverlayManager(
                 menuInflater.inflate(com.sza.fastmediasorter.R.menu.menu_draw_overflow, menu)
                 val canUndo = drawCanvasView?.hasActions() == true ||
                     drawCanvasView?.hasPendingCropUndo() == true
-                Timber.d("S0679: draw-undo menu canUndo=$canUndo")
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_last)
                     ?.isEnabled = canUndo
                 menu.findItem(com.sza.fastmediasorter.R.id.draw_overflow_undo_all)

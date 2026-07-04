@@ -5,6 +5,10 @@ param(
     [switch]$AutoVersion
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-debug-device.ps1"
+try {
+
 # ADB path
 $adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
 
@@ -169,3 +173,8 @@ Write-Host "Starting logcat capture in background to $logFile..." -ForegroundCol
 $logcatProcess = Start-Process -FilePath $adb -ArgumentList "logcat", "-v", "threadtime" -RedirectStandardOutput $logFile -NoNewWindow -PassThru
 Write-Host "Logcat capture running in background (PID: $($logcatProcess.Id))" -ForegroundColor Green
 Write-Host "To stop: Stop-Process -Id $($logcatProcess.Id)" -ForegroundColor Cyan
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

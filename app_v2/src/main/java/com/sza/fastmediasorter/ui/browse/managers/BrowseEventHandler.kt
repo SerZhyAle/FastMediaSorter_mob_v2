@@ -61,7 +61,6 @@ class BrowseEventHandler(
             is BrowseEvent.OpenStreamPlayer -> {
                 // S0783: open a favorited live channel in the stream player. The Streams screen resolves
                 // the channel by URL and applies its own audio/video launch routing.
-                Timber.d("S0783: open favorited channel in stream player url=%s", event.url)
                 viewModel.inlineStop()
                 activity.startActivity(StreamsActivity.createPlayIntent(activity, event.url))
                 @Suppress("DEPRECATION")
@@ -93,7 +92,6 @@ class BrowseEventHandler(
                     val enterFullscreenOnOpen = file?.type == MediaType.VIDEO &&
                         viewModel.settings.value.openVideoInFullscreen &&
                         viewModel.state.value.resource?.showCommandPanel == null
-                    Timber.d("S0820: enterFullscreenOnOpen=$enterFullscreenOnOpen file=${event.filePath}")
                     val playerIntent = createStandardPlayerIntent(
                         resourceId = resourceId,
                         fileIndex = event.fileIndex,

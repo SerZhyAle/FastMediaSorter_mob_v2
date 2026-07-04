@@ -12,6 +12,7 @@
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.
 - Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Temp layout (CLAUDE.md Rule 10.1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/done/`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
 - No Activity logic (delegate to `helpers/*Manager.kt`).
 - Timber only (no `Log.d()`). `Sxxxx` ticket ids only in `BlockNeedUserTest` temporary debug logs.
 - Strings: prefer `scripts/utils/set-android-string.ps1`.
@@ -43,9 +44,10 @@
 - After changes (except `/skill-fix`): run `.\scripts\add_to_dev_log.ps1`.
 - Kotlin changes: sync catalog via `scripts/catalog_sync.ps1 -Module <app_v2|wear>`.
 - Mechanical closure: prefer `scripts/post-change.ps1 -File <p> -Target <t> -Description <d> -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed>` (chains dev-log + catalog-sync + quality gates). On the always-dirty tree add `-ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets); omit for release/CI.
+- Concurrent-agent locks (CLAUDE.md Rule 23): every script invoking `gradlew`/`gradlew.bat` acquires `temp/BUILD.LOCK` via `scripts/utils/agent-lock.ps1` and refuses a second concurrent build (staleness judged by PID liveness, not a timeout). Before a multi-file source edit, acquire `temp/CODE.LOCK` (`scripts/utils/enter-code-lock.ps1 -Reason "..."`) and check `scripts/utils/lock-status.ps1 -Name Build` first; `post-change.ps1` auto-releases `CODE.LOCK`. `CODE.LOCK` is advisory only (no hook enforcement) - a build warns on it, never refuses.
 - Detekt-clean-first: author touched `.kt` to pass detekt on the first build - log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding (shifts baseline). CLAUDE.md Rule 19.
 - PowerShell: Always `-NoProfile`. Batch: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`. Use literal `$LASTEXITCODE`. Use project wrappers.
-- Cost discipline: follow `docs/AGENT_COST_PLAYBOOK.md` - inline over subagent for single-fact lookups (<=3 tool calls), `/compact` at task boundaries, `/clear` on task switch, offload raw artifacts to `temp/`, restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
+- Cost discipline: follow `docs/AGENT_COST_PLAYBOOK.md` - inline over subagent for single-fact lookups (<=3 tool calls), `/compact` at task boundaries, `/clear` on task switch, offload raw artifacts to `temp/Sxxxx/` (or `temp/scratch/`), restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
 - Subagent MCP isolation: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
 
 ## 7. Validation

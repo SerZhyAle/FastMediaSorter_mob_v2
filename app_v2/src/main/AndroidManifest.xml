@@ -42,6 +42,13 @@
     <!-- S0766: geotag is an opt-in extra; required=false keeps GPS-less devices eligible on Play. -->
     <uses-feature android:name="android.hardware.location" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <!-- S0918: CameraCaptureActivity is portrait-locked (S0754). A portrait screenOrientation makes
+         Android imply android.hardware.screen.portrait as required=true, which filters out every
+         landscape-only device (TVs, some tablets/auto displays) on Play - a ~2958-device regression
+         first shipped in 2.60.7031. Declaring both screen orientations not-required keeps the portrait
+         lock while restoring full device reach; symmetric landscape entry pre-empts the mirror bug. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
+    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
@@ -468,11 +475,17 @@
         <!-- Camera Launch: transparent trampoline that opens the unified camera from a widget tap (S0568) -->
         <activity android:name=".widget.CameraLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
-        <!-- Take-photo edge-gesture trampoline (S0790-S0794): auto-captures a photo, then saves/routes it -->
-        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+        <!-- Take-photo edge-gesture trampoline (S0790-S0794): headless CameraX capture in this activity's
+             own lifecycle, then saves/routes the photo. No android:noHistory here (unlike the sibling
+             trampolines): the shot is taken in-process, so the activity must survive the first-use CAMERA
+             permission dialog - noHistory destroyed it mid-capture and the photo was lost. -->
+        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
 
         <!-- Screen-recording edge-gesture trampoline (S0797): hosts the MediaProjection consent + permission launchers -->
         <activity android:name=".widget.ScreenRecordingLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Link-download panel trampoline (S0912): hosts the clipboard-prefilled confirm dialog for the app-launch panel -->
+        <activity android:name=".widget.LinkDownloadLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">

@@ -98,15 +98,15 @@ Run config is `scripts/devtest/prerelease.config.psd1` (resource picks + reachab
 
 ### 3 - Drive core scenario
 
-Start background logcat capture into `temp/s0484_run_<TS>.log` first (clear, then `adb logcat -v threadtime *:V`). **Use `threadtime`, not `time`** - `search-log.ps1` (and verdict's error count built on it) only parse `threadtime` line shape (pid+tid+package columns); a `-v time` capture parses to zero rows, so verdict silently reads `actionableErrors=0` and a screen full of red error toasts passes as clean log. Run revived Maestro capability suite as deterministic regression layer:
+Start background logcat capture into `temp/S0484/run_<TS>.log` first (clear, then `adb logcat -v threadtime *:V`). **Use `threadtime`, not `time`** - `search-log.ps1` (and verdict's error count built on it) only parse `threadtime` line shape (pid+tid+package columns); a `-v time` capture parses to zero rows, so verdict silently reads `actionableErrors=0` and a screen full of red error toasts passes as clean log. Run revived Maestro capability suite as deterministic regression layer:
 
 ```powershell
 $ts = Get-Date -Format yyyyMMdd_HHmmss
-$maestroResults = "temp/maestro_suite_$ts.json"
+$maestroResults = "temp/S0484/maestro_suite_$ts.json"
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -DeviceId $dev -Json > $maestroResults
 ```
 
-Suite output off-context except compact JSON verdict. Treat non-zero runner exit as FAIL finding and keep `$maestroResults` as evidence for step 4. **Exception:** exit `4` with every flow logging `Device <id> was requested, but it is not connected` is infrastructure failure (phantom offline siblings - see 1.0), not app defects; clear devices, re-run suite, do not park `/spec-draft` for it. A quick `-Suite smoke` first confirms Maestro can drive device before full run. Use mobile-mcp only for new or exploratory paths without a Maestro flow; resolve every target from `mobile_list_elements_on_screen` immediately before acting. Capture screenshots only on FAIL to `temp/s0484_screens/` as evidence; screenshots no longer a pass gate.
+Suite output off-context except compact JSON verdict. Treat non-zero runner exit as FAIL finding and keep `$maestroResults` as evidence for step 4. **Exception:** exit `4` with every flow logging `Device <id> was requested, but it is not connected` is infrastructure failure (phantom offline siblings - see 1.0), not app defects; clear devices, re-run suite, do not park `/spec-draft` for it. A quick `-Suite smoke` first confirms Maestro can drive device before full run. Use mobile-mcp only for new or exploratory paths without a Maestro flow; resolve every target from `mobile_list_elements_on_screen` immediately before acting. Capture screenshots only on FAIL to `temp/S0484/screens/` as evidence; screenshots no longer a pass gate.
 
 Perf checkpoints still run where suite or exploratory path exercises surface:
 
@@ -119,7 +119,7 @@ Perf checkpoints still run where suite or exploratory path exercises surface:
 4. **Network listing** - when reachable network resource is part of run, pass its measured listing open time to
    `prerelease-measure.ps1 -Checkpoint network-listing -ElapsedMs <n> -Json`.
 
-Stop background logcat capture at end. Write each measure record to `temp/s0484_metrics_<TS>.json` (array consumed by verdict aggregator).
+Stop background logcat capture at end. Write each measure record to `temp/S0484/metrics_<TS>.json` (array consumed by verdict aggregator).
 
 ### 4 - Aggregate verdict and branch on PASS
 
@@ -127,14 +127,14 @@ Run verdict aggregator over run window:
 
 ```powershell
 pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
-    -LogFile temp/s0484_run_<TS>.log `
-    -MetricsFile temp/s0484_metrics_<TS>.json `
-    -MaestroResults temp/maestro_suite_<TS>.json `
-    -ScreensDir temp/s0484_screens `
+    -LogFile temp/S0484/run_<TS>.log `
+    -MetricsFile temp/S0484/metrics_<TS>.json `
+    -MaestroResults temp/S0484/maestro_suite_<TS>.json `
+    -ScreensDir temp/S0484/screens `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/s0484_prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `log AND perf AND maestro`; screenshots evidence-only.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `log AND perf AND maestro`; screenshots evidence-only.
 
 Verdict is coarse gate: produces one error count, hard-stops only on crashes/ANR. Does **not** enumerate which app errors fired, so a green verdict alone never proves run was clean. Always run detailed log audit below before trusting a PASS.
 
@@ -143,7 +143,7 @@ Verdict is coarse gate: produces one error count, hard-stops only on crashes/ANR
 Verdict's log signal is a single number; red toasts and handled-but-loud failures hide behind it. Run deep audit over same log:
 
 ```powershell
-pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/s0484_run_<TS>.log -Json
+pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/S0484/run_<TS>.log -Json
 ```
 
 Parses both logcat formats, keeps app-process lines, folds stack traces into throwing cluster, then splits clusters into **benign** (known emulator/capability fallbacks - Cast/Dynamite absent, `WifiRequiredException`, emulator GPU noise) and **actionable**, separately flags user-facing error surfaces (toast / snackbar / `showError`). Exit `0` = clean, `1` = actionable clusters and/or error toasts present (triage), `2` = log unreadable.
@@ -163,5 +163,5 @@ For pending-test tickets (`BlockNeedUserTest`) whose flow this sweep exercised, 
 
 ### Final report
 
-One line: `spec-prerelease: device <id>, verdict PASS/FAIL, report temp/s0484_prerelease_<TS>.md`
+One line: `spec-prerelease: device <id>, verdict PASS/FAIL, report temp/S0484/prerelease_<TS>.md`
 - on PASS append `/skill-release` proposal; on FAIL append parked ids + tickets routed to `/spec-check`. Append `stream-catalog: +N appended, M would-prune, re-upload <done|n.a.>` segment (or `stream-catalog: skipped (--dry-run)`).

@@ -17,8 +17,6 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
-
 /**
  * S0756: owns the main-window streams panel - a wide "Streams" entry button leading a horizontally
  * scrolling row of pinned channels. The pinned list comes from the existing pin source
@@ -94,7 +92,6 @@ class MainStreamsPanelManager(
         }
 
         lifecycleOwner.collectOnLifecycle(observePinnedStreamSources()) { sources ->
-            Timber.d("S0756: streams panel pinned channels=${sources.size}")
             adapter.submitList(sources)
         }
     }
@@ -161,7 +158,6 @@ class MainStreamsPanelManager(
 
     /** S0770: per-channel menu - Open, optional Open-in-new-window, Remove (unpin). */
     private fun showChannelMenu(channel: StreamSourceEntity, anchor: View) {
-        Timber.d("S0770: streams panel channel menu id=${channel.id}")
         val actions = mutableListOf<PanelItemContextMenu.Action>()
         actions += PanelItemContextMenu.Action(R.string.action_open) { playChannel(channel) }
         if (menuActions.isNewWindowAvailable()) {
@@ -189,8 +185,6 @@ class MainStreamsPanelManager(
      * (turns off the Streams master toggle entirely). No Remove: the entry is navigation, not a pinned channel.
      */
     private fun showEntryMenu(anchor: View) {
-        Timber.d("S0779: streams panel entry menu")
-        Timber.d("S0782: streams panel entry menu opened (Hide panel item present)")
         val actions = mutableListOf<PanelItemContextMenu.Action>()
         actions += PanelItemContextMenu.Action(R.string.action_open) { onOpenStreams() }
         if (menuActions.isNewWindowAvailable()) {
@@ -200,12 +194,10 @@ class MainStreamsPanelManager(
         }
         // S0780: jump straight to the Streams settings group.
         actions += PanelItemContextMenu.Action(R.string.action_configure) {
-            Timber.d("S0780: streams panel configure tapped")
             menuActions.onConfigureStreams()
         }
         // S0808: collapse the panel into its labelled strip (mirror of the programs panel's Collapse).
         actions += PanelItemContextMenu.Action(R.string.streams_panel_collapse_action) {
-            Timber.d("S0808: streams panel collapse tapped")
             setCollapsed(true)
         }
         // S0782: hide only this panel (Streams stays enabled, entry returns to the programs panel/menu).

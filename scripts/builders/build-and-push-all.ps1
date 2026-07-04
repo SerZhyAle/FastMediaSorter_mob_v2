@@ -24,6 +24,10 @@ $maxRetries = 2
 $retryCount = 0
 $buildSuccess = $false
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-and-push-all.ps1"
+try {
+
 while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
     try {
         if ($retryCount -gt 0) {
@@ -76,6 +80,11 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             exit 1
         }
     }
+}
+
+}
+finally {
+    Exit-AgentLock -Name Build
 }
 
 if (-not $buildSuccess) {

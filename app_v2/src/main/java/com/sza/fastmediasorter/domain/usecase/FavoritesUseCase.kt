@@ -78,7 +78,6 @@ class FavoritesUseCase @Inject constructor(
      * favorites screen can list it by name and open it in the stream player.
      */
     suspend fun toggleStreamFavorite(source: StreamSourceEntity) {
-        timber.log.Timber.d("S0783: toggleStreamFavorite url=${source.url} kind=${source.mediaKind}")
         if (favoritesRepository.isFavoriteSync(source.url)) {
             favoritesRepository.removeFavorite(source.url)
             statsSink.record(StatsEvent.Favorite(added = false))

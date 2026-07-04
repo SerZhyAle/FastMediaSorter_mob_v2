@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
+import android.os.Build
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
@@ -103,9 +104,67 @@ class DeliveredNativeLibraryLoader @Inject constructor(
             }
         }
 
+        // S0923: warm-load via System.load(absolutePath) resolves by path and therefore succeeds even when
+        // injectNativeLibraryDirectory did not take effect on this device/OS. That masks the injection
+        // failure: the engines' own static initializers call System.loadLibrary(soname), which resolves by
+        // NAME and can fall through to a forbidden platform copy (e.g. /system/lib64/libjpeg.so) and crash
+        // with an UnsatisfiedLinkError before any consumer catch runs. Assert each delivered .so is now
+        // name-resolvable into setDir; if not, degrade like an incompatible payload instead of crashing later.
+        for (payloadFile in soFiles) {
+            if (!resolvesIntoDelivered(set, setDir, payloadFile.fileName)) {
+                throw DeliveredNativeLibraryIncompatibleException(
+                    set, "name resolution for ${payloadFile.fileName} did not reach ${setDir.absolutePath}",
+                )
+            }
+        }
+
         loadedSets.add(set)
         Timber.i("DeliveredNativeLibraryLoader: attached native set %s from %s", set, setDir.absolutePath)
     }
+
+    /**
+     * True when `System.loadLibrary(soname)` for [fileName] would resolve to the delivered copy in
+     * [setDir]. When the name cannot be verified (not a `lib*.so`, no dex classloader, or `findLibrary`
+     * unavailable) the check is skipped (returns true) and the engine-boundary `LinkageError` guard is
+     * left as the crash backstop; only a name that resolves to a foreign copy fails the check.
+     */
+    private fun resolvesIntoDelivered(set: DeliverableSet, setDir: File, fileName: String): Boolean {
+        val resolved = resolvedLibraryPath(fileName) ?: return true
+        val ok = File(resolved).parentFile?.absolutePath == setDir.absolutePath
+        if (!ok) {
+            Timber.w(
+                "DeliveredNativeLibraryLoader: set %s attached but %s resolves by name to %s, not %s; " +
+                    "native path injection ineffective (API %d)",
+                set, fileName, resolved, setDir.absolutePath, Build.VERSION.SDK_INT,
+            )
+        }
+        return ok
+    }
+
+    /**
+     * Absolute path `System.loadLibrary` would resolve for [fileName]'s soname via the classloader's
+     * native search path, or null when it cannot be determined (non `lib*.so`, no [BaseDexClassLoader],
+     * or `findLibrary` blocked by hidden-API).
+     */
+    private fun resolvedLibraryPath(fileName: String): String? {
+        val shortName = shortLibName(fileName)
+        val cl = javaClass.classLoader as? BaseDexClassLoader
+        if (shortName == null || cl == null) return null
+        return try {
+            cl.findLibrary(shortName)
+        } catch (e: LinkageError) {
+            Timber.w(e, "findLibrary unavailable, skipping name-resolution check for %s", fileName)
+            null
+        }
+    }
+
+    /** `libjpeg.so` -> `jpeg`; null for anything that is not a `lib*.so` shared object. */
+    private fun shortLibName(fileName: String): String? =
+        if (fileName.startsWith("lib") && fileName.endsWith(".so")) {
+            fileName.removePrefix("lib").removeSuffix(".so")
+        } else {
+            null
+        }
 
     /**
      * Drop the corrupt payload and clear the persisted install flag (S0432) so the set stops

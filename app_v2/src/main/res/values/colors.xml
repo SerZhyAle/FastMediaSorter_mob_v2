@@ -240,14 +240,16 @@
     <!-- Action panels -->
     <color name="player_panel_copy">#CC004D00</color>
     <color name="player_panel_move">#CC00004D</color>
-    <!-- S0914: per-panel accent backgrounds for the three main-window collapsible panels (programs /
-         streams / resource-type filter). The same accent colours a panel's expanded body AND its collapsed
-         chip, so each panel is recognisable by colour in both states. Distinct hues in the #CC action-panel
-         family (generalises the S0781 filter-strip teal). Fixed, theme-independent by design (mirrors
-         player_panel_*); the shared white foreground keeps text/icons legible on every accent. -->
+    <!-- S0914: per-panel accent backgrounds for two of the three main-window collapsible panels
+         (programs / streams). The same accent colours a panel's expanded body AND its collapsed chip, so
+         each panel is recognisable by colour in both states. Distinct hues in the #CC action-panel family
+         (originally generalised the S0781 filter-strip teal). Fixed, theme-independent by design (mirrors
+         player_panel_*); the shared white foreground keeps text/icons legible on every accent.
+         S0914-R1 (2026-07-03): the resource-type filter panel dropped its accent (owner decision after the
+         S0809/S0914 device-test screenshot) - it now sits on the form's own ?attr/colorSurface with
+         ?attr/colorControlNormal content, so main_filter_panel_accent was removed as unused. -->
     <color name="main_programs_panel_accent">#CC4D4D00</color>
     <color name="main_streams_panel_accent">#CC4D004D</color>
-    <color name="main_filter_panel_accent">#CC004D4D</color>
     <color name="main_panel_accent_foreground">@color/white</color>
 
     <!-- ============================================================ -->

@@ -3,30 +3,26 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
-import java.util.Locale
 
 /**
  * S0774: host-neutral in-app driver for screen video recording. Checks RECORD_AUDIO and (API 33+)
  * POST_NOTIFICATIONS via host-owned launchers, then starts the consent + recording foreground service
  * through the bound [ScreenVideoRecordingController]. While [ScreenRecordingStateController.isRecording]
- * is true and the host is foreground it shows a non-modal recording card (timer + Stop) mirroring the
- * voice-recorder dialog; the card is dismissed when the host is backgrounded (the recording keeps going
- * in the foreground service, controllable from its notification) and re-shown on return.
+ * is true and the host is foreground it shows the shared, non-modal [RecordingIndicatorOverlayManager]
+ * (timer + pause/resume + stop) - also used by [MainVoiceCaptureManager] for a consistent UX between
+ * both programs-panel recording scenarios. The indicator is dismissed when the host is backgrounded
+ * (the recording keeps going in the foreground service, controllable from its notification) and
+ * re-shown on return.
  */
 class MainScreenRecordingManager(
     private val activity: FragmentActivity,
@@ -36,34 +32,34 @@ class MainScreenRecordingManager(
     private val requestPostNotificationsPermission: () -> Unit,
 ) {
 
-    private var recordingDialog: AlertDialog? = null
-    private val timerHandler = Handler(Looper.getMainLooper())
-    private val timerTick = object : Runnable {
-        override fun run() {
-            val dialog = recordingDialog ?: return
-            val totalSec =
-                ((SystemClock.elapsedRealtime() - stateController.startedAtElapsedRealtimeMs) / 1000).toInt()
-            dialog.setMessage(String.format(Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60))
-            timerHandler.postDelayed(this, 1000)
-        }
-    }
+    private val indicator = RecordingIndicatorOverlayManager(activity)
+    private val recordingElapsedTimer = RecordingElapsedTimer(
+        onTick = indicator::updateTimer,
+        elapsedTimeSourceMs = stateController::elapsedMs,
+    )
+    private var indicatorShown = false
 
-    /** Observe recording state for the host lifecycle and manage the card. Call once from the host. */
+    /** Observe recording state for the host lifecycle and manage the indicator. Call once from the host. */
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(stateController.isRecording) { recording ->
-            if (recording) showRecordingCard() else dismissRecordingCard()
+            if (recording) showRecordingIndicator() else dismissRecordingIndicator()
+        }
+        lifecycleOwner.collectOnLifecycle(stateController.isPaused) { paused ->
+            if (indicatorShown) applyPausedState(paused)
         }
         lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStop(owner: LifecycleOwner) {
-                // The recording outlives the Activity in the foreground service; drop the modal card
+                // The recording outlives the Activity in the foreground service; drop the indicator
                 // while backgrounded so it is not stuck invisible, and re-show it on return.
-                dismissRecordingCard()
+                dismissRecordingIndicator()
             }
         })
     }
 
+    // Guard-clause early returns (no controller / missing RECORD_AUDIO / missing POST_NOTIFICATIONS) -
+    // clearer than nesting the launch call under successive checks.
+    @Suppress("ReturnCount")
     fun start() {
-        Timber.d("S0774: in-app screen recording start requested")
         if (controller == null) return
         if (!hasPermission(Manifest.permission.RECORD_AUDIO)) {
             requestRecordAudioPermission()
@@ -91,21 +87,43 @@ class MainScreenRecordingManager(
     private fun hasPermission(permission: String): Boolean =
         ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
 
-    private fun showRecordingCard() {
-        if (recordingDialog != null) return
-        recordingDialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.screen_recording_card_title)
-            .setMessage("00:00")
-            .setCancelable(false)
-            .setPositiveButton(R.string.screen_recording_stop) { _, _ -> controller?.requestStop(activity) }
-            .show()
-        timerHandler.post(timerTick)
+    private fun showRecordingIndicator() {
+        if (indicatorShown) return
+        indicatorShown = true
+        indicator.show(
+            accessibleLabel = activity.getString(R.string.screen_recording_card_title),
+            stopCd = activity.getString(R.string.screen_recording_stop),
+            onPauseResume = {
+                if (stateController.isPaused.value) {
+                    controller?.requestResume(activity)
+                } else {
+                    controller?.requestPause(activity)
+                }
+            },
+            onStop = { controller?.requestStop(activity) },
+        )
+        recordingElapsedTimer.start()
+        applyPausedState(stateController.isPaused.value)
     }
 
-    private fun dismissRecordingCard() {
-        timerHandler.removeCallbacks(timerTick)
-        recordingDialog?.dismiss()
-        recordingDialog = null
+    private fun dismissRecordingIndicator() {
+        if (!indicatorShown) return
+        indicatorShown = false
+        recordingElapsedTimer.stop()
+        indicator.dismiss()
+    }
+
+    private fun applyPausedState(paused: Boolean) {
+        if (paused) {
+            recordingElapsedTimer.pause()
+        } else {
+            recordingElapsedTimer.resume()
+        }
+        indicator.setPaused(
+            paused,
+            pauseCd = activity.getString(R.string.recording_pause),
+            resumeCd = activity.getString(R.string.recording_resume),
+        )
     }
 
     private fun showPermissionDenied() {

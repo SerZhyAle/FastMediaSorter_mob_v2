@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCas
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -63,6 +64,7 @@ class StreamsViewModel @Inject constructor(
     private val importStreamPlaylist: ImportStreamPlaylistUseCase,
     private val importStreamCatalog: ImportStreamCatalogUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
+    private val unpinStreamSource: UnpinStreamSourceUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
@@ -340,7 +342,12 @@ class StreamsViewModel @Inject constructor(
         if (position >= 0) sessionStore.writeScrollPosition(position)
     }
 
-    fun onPin(id: String) = viewModelScope.launch { pinStreamSource(id) }
+    // S0695: the pin affordance is a toggle - re-tapping a pinned channel unpins it (the icon already
+    // flips filled/outline on rebind, so the gesture is self-evident). Without this a pinned row could
+    // only be unpinned via the overflow menu, contradicting the documented long-press toggle.
+    fun onPin(source: StreamSourceEntity) = viewModelScope.launch {
+        if (source.pinned) unpinStreamSource(source.id) else pinStreamSource(source.id)
+    }
 
     fun onRemove(source: StreamSourceEntity) = viewModelScope.launch {
         removeStreamSource(source)

@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -150,11 +151,14 @@ class CameraQuickCaptureLaunchManager(
             toastAndFinish(R.string.camera_capture_error_save_generic)
             return
         }
-        val intent = CameraCaptureActivity.createIntent(
+        // S0754: the widget's bound target is already resolved (loadTarget() ran in start()), so the
+        // in-camera header label can show it directly instead of the scratch temp-file's parent name.
+        val intent = CameraCaptureContract.createIntent(
             activity,
             uri,
             tempFile.absolutePath,
             if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
+            destinationLabel = (target as? CameraCaptureTarget.Resource)?.name,
         )
         launchCapture(intent)
     }
@@ -224,6 +228,11 @@ class CameraQuickCaptureLaunchManager(
     }
 
     private fun loadTarget(): CameraCaptureTarget? {
+        // S0912: the app-launch panel has no real appWidgetId and no target-config step - it always
+        // captures to the default camera folder, so it short-circuits before the per-widget prefs lookup.
+        if (appWidgetId == PANEL_APP_WIDGET_ID) {
+            return CameraCaptureTarget.CameraFolder
+        }
         val prefs = activity.getSharedPreferences(
             CameraQuickCaptureWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE,
         )
@@ -267,5 +276,12 @@ class CameraQuickCaptureLaunchManager(
     private fun toastAndFinish(msgRes: Int) {
         toast(activity.getString(msgRes))
         finish()
+    }
+
+    companion object {
+        // S0912: reserved id for the app-launch panel's quick-camera tile - AppWidgetManager never
+        // assigns a negative id, and it differs from AppWidgetManager.INVALID_APPWIDGET_ID (0), so the
+        // trampoline's existing "missing extra" guard still only rejects a truly absent appWidgetId.
+        const val PANEL_APP_WIDGET_ID = -1000
     }
 }

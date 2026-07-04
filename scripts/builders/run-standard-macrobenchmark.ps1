@@ -6,6 +6,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "run-standard-macrobenchmark.ps1"
+try {
+
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 Set-Location $projectRoot
 
@@ -26,3 +30,8 @@ if ($DryRun) {
 
 & "$projectRoot\gradlew.bat" @gradleCommand
 exit $LASTEXITCODE
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

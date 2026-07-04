@@ -55,6 +55,10 @@ if (-not (Test-Path $gradlew)) {
     exit 2
 }
 
+$lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
+. (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
+Enter-BuildLockOrExit -Reason $lockReason
+
 Push-Location $repoRoot
 try {
     $tasks = if ($PSBoundParameters.ContainsKey('Module')) {
@@ -76,6 +80,7 @@ try {
 }
 finally {
     Pop-Location
+    Exit-AgentLock -Name Build
 }
 
 if ($exit -eq 0) {

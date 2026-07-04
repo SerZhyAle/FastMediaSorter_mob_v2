@@ -30,13 +30,13 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionMana
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationManager
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraRecordingTimer
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraZoomControlsManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -118,7 +118,7 @@ class CameraCaptureActivity :
     private lateinit var sessionManager: CameraCaptureSessionManager
     private lateinit var flowManager: CameraCaptureFlowManager
     private lateinit var gestureManager: CameraCaptureGestureManager
-    private lateinit var recordingTimer: CameraRecordingTimer
+    private lateinit var recordingTimer: RecordingElapsedTimer
     private lateinit var orientationManager: CameraOrientationManager
     private lateinit var rotationManager: CameraOverlayRotationManager
     private lateinit var zoomControlsManager: CameraZoomControlsManager
@@ -152,7 +152,7 @@ class CameraCaptureActivity :
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         sessionManager = CameraCaptureSessionManager(this)
         flowManager = CameraCaptureFlowManager(intent, this, sessionManager)
-        recordingTimer = CameraRecordingTimer { formatted -> binding.txtRecordingTimer.text = formatted }
+        recordingTimer = RecordingElapsedTimer { formatted -> binding.txtRecordingTimer.text = formatted }
         initializeHelperManagers()
         binding.cameraTopBar.applySystemBarInsetPadding(applyBottom = false)
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)
@@ -263,7 +263,6 @@ class CameraCaptureActivity :
     // OCR capture entry resumes the host inside that window; the previous raw onResume() override
     // crashed on the uninitialised manager.
     override fun onResumeWithViews() {
-        Timber.d("S0801: camera onResumeWithViews after deferred setup; orientationManager ready")
         orientationManager.enable()
     }
 
@@ -323,11 +322,12 @@ class CameraCaptureActivity :
         )
     }
 
-    // S0790: edge-gesture "take photo" opens this screen in auto-capture mode - fire the shutter once
-    // the preview is ready and finish with the result, so the trampoline can save or route the photo.
+    // S0790: auto-capture opens this screen and fires once the preview is ready - PHOTO takes a shot and
+    // finishes; S0926: VIDEO auto-starts recording ("start video recording" gesture), user stops it.
     private fun maybeAutoCapture() {
         if (!flowManager.autoCapture || autoCaptureFired) return
         autoCaptureFired = true
+        if (flowManager.isVideoMode) Timber.d("S0926: auto-start video recording on preview ready")
         triggerCapture()
     }
 

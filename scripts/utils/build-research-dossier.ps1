@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Builds a markdown research dossier in temp/ for repeatable investigation loops.
+    Builds a markdown research dossier under temp/scratch/ for repeatable investigation loops.
 
 .DESCRIPTION
     Collects the first-pass research context for a topic across the documented routing stack,
@@ -83,7 +83,12 @@ function Resolve-DossierOutputPath {
         if (-not $slug) {
             $slug = 'topic'
         }
-        return Join-Path $TempRoot ("research_dossier_{0}_{1}.md" -f $slug, (Get-Date -Format 'yyyyMMdd_HHmmss'))
+        # No-ticket scratch convention (CLAUDE.md Rule 10.1): dossiers land under temp/scratch/.
+        $scratchRoot = Join-Path $TempRoot 'scratch'
+        if (-not (Test-Path $scratchRoot)) {
+            New-Item -ItemType Directory -Path $scratchRoot -Force | Out-Null
+        }
+        return Join-Path $scratchRoot ("research_dossier_{0}_{1}.md" -f $slug, (Get-Date -Format 'yyyyMMdd_HHmmss'))
     }
 
     $candidate = if ([System.IO.Path]::IsPathRooted($RequestedPath)) {

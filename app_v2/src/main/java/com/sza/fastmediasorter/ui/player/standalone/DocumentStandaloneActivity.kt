@@ -518,6 +518,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     private fun setupWindowAndInsets() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val top = insets.getInsets(
                 WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
@@ -561,6 +563,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     private fun setupFileOperationButtons() {
+        // S0920: wire the Copy/Move panel headers so a header tap expands/collapses its grid.
+        destinationButtonsManager.bindHeaderToggles()
         binding.btnDeleteCmd.isVisible = true
         binding.btnDeleteCmd.setOnClickListener { fileOperations.deleteCurrentFile() }
         binding.btnShareCmd.isVisible = true

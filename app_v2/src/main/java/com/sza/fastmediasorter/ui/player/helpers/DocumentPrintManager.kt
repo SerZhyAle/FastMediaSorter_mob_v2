@@ -1,9 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.lifecycle.lifecycleScope
-import androidx.print.PrintHelper
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -19,10 +16,9 @@ private const val MAX_PRINT_FILE_SIZE_BYTES = 30L * 1024 * 1024 // 30 MB
 
 /**
  * Manages document printing for a print host (the in-app player or a standalone document/text player,
- * see [DocumentPrintHost]). IMAGE still prints inline through PrintHelper; PDF/TEXT route through
- * [PrintDispatchActivity] so Samsung/One UI hosts wrapped by BaseActivity still reach the system
- * print UI without tripping the "Can print only from an activity" check. OFFICE prints through the
- * host's internal viewer.
+ * see [DocumentPrintHost]). IMAGE/PDF/TEXT route through [PrintDispatchActivity] so Samsung/One UI
+ * hosts wrapped by BaseActivity still reach the system print UI without tripping the "Can print only
+ * from an activity" check. OFFICE prints through the host's internal viewer.
  *
  * Works for any resource type - local files, content:// URIs, SMB/SFTP/FTP, Google Drive,
  * Dropbox, OneDrive. All non-local paths are materialised to a local readable File via
@@ -137,30 +133,21 @@ class DocumentPrintManager(
 
     // ─── IMAGE ────────────────────────────────────────────────────────────────
 
-    private suspend fun printImage(file: File, jobLabel: String, sourceName: String) {
-        val bitmap: Bitmap? = withContext(Dispatchers.IO) {
-            try {
-                BitmapFactory.decodeFile(file.absolutePath)
-            } catch (e: Exception) {
-                Timber.e(e, "DocumentPrintManager: error decoding image bitmap")
-                null
-            }
-        }
-        if (bitmap == null) {
-            Timber.e("DocumentPrintManager: BitmapFactory returned null for ${file.absolutePath}")
-            showMessage(host.printHostActivity.getString(R.string.error_print_download_failed))
-            return
-        }
-        host.printHostActivity.runOnUiThread {
-            if (host.printHostActivity.isFinishing || host.printHostActivity.isDestroyed) return@runOnUiThread
-            try {
-                PrintHelper(host.printHostActivity).apply {
-                    scaleMode = PrintHelper.SCALE_MODE_FIT
-                }.printBitmap(jobLabel, bitmap)
-            } catch (e: Exception) {
-                Timber.e(e, "DocumentPrintManager: PrintHelper.printBitmap failed (${e.javaClass.simpleName}: ${e.message})")
-                showPrintFailedMessage(file, sourceName, "image/*")
-            }
+    // S0919: route through PrintDispatchActivity (clean Activity context) so One UI reaches the system
+    // print UI instead of "Can print only from an activity". The trampoline decodes [file] and owns the
+    // share-for-print fallback; this file is cache/LRU-managed and must not be deleted here.
+    private fun printImage(file: File, jobLabel: String, sourceName: String) {
+        if (!PrintDispatchActivity.startImage(
+                context = host.printHostActivity,
+                file = file,
+                jobLabel = jobLabel,
+                displayName = sourceName,
+                chooserTitle = host.printHostActivity.getString(R.string.print_share_chooser_title),
+                fallbackMessage = host.printHostActivity.getString(R.string.print_fallback_to_share),
+                unavailableMessage = host.printHostActivity.getString(R.string.error_print_unavailable),
+            )
+        ) {
+            showPrintFailedMessage(file, sourceName, "image/*")
         }
     }
 

@@ -6,6 +6,10 @@ param(
     [switch]$AutoVersion
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-debug-clean.PS1"
+try {
+
 Write-Host "Cleaning caches and building debug APK.." -ForegroundColor Cyan
 if ($AutoVersion) {
     Write-Host "Mode: auto-versioned artifact build" -ForegroundColor Yellow
@@ -176,4 +180,9 @@ else {
         Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
         Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
     }
+}
+
+}
+finally {
+    Exit-AgentLock -Name Build
 }

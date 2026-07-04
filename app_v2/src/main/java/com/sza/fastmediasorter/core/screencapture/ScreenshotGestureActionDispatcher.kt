@@ -61,22 +61,18 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO -> {
-            Timber.d("S0790: edge-gesture take photo")
             launchPhotoCapture(context, autoAction = null)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_SEND_TO -> {
-            Timber.d("S0791: edge-gesture take photo + send to")
             launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_EDIT -> {
-            Timber.d("S0792: edge-gesture take photo + edit")
             launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> {
-            Timber.d("S0794: edge-gesture take photo + OCR translate")
             val action = if (capabilityAvailability.isTranslationAvailable()) {
                 PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE
             } else {
@@ -120,7 +116,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         // S0788: reuse the widget's no-UI camera trampoline - it resolves the default capture
         // destination, handles the CAMERA permission and opens the in-app camera. The dispatcher runs in
         // a Service with no task of its own, so the transparent launcher needs FLAG_ACTIVITY_NEW_TASK.
-        Timber.d("S0788: edge-gesture launch camera")
         val intent = Intent(context, CameraLaunchActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }

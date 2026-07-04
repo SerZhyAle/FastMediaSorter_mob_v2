@@ -70,9 +70,9 @@
     "uk": "Додає нову теку призначення для швидкого сортування."
   },
   "btnOpenAccessibilitySettings": {
-    "en": "Opens the Android accessibility settings, needed to grant gesture overlay permission.",
-    "ru": "Открывает системные настройки специальных возможностей Android для выдачи разрешения на оверлей жестов.",
-    "uk": "Відкриває системні налаштування спеціальних можливостей Android для надання дозволу на оверлей жестів."
+    "en": "Opens the Android accessibility settings, needed to grant gesture overlay permission. This enables silent screenshots only - screen video recording always asks Android for its own permission (the 'this app / entire screen' chooser) at the start of every recording, and that step cannot be skipped.",
+    "ru": "Открывает системные настройки специальных возможностей Android для выдачи разрешения на оверлей жестов. Это включает только тихие скриншоты - видеозапись экрана в начале каждой записи отдельно запрашивает разрешение Android (выбор 'это приложение / весь экран'), и этот шаг нельзя пропустить.",
+    "uk": "Відкриває системні налаштування спеціальних можливостей Android для надання дозволу на оверлей жестів. Це вмикає лише тихі знімки - відеозапис екрана на початку кожного запису окремо запитує дозвіл Android (вибір 'цей застосунок / весь екран'), і цей крок не можна пропустити."
   },
   "btnResetOperationsSection": {
     "en": "Restores all Management settings in this section to their factory defaults.",
@@ -613,6 +613,11 @@
     "en": "Settings that control the overall look and interaction style of the app.",
     "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
+  },
+  "headerMainWindowInterface": {
+    "en": "Settings that control which optional panels and menus appear on the main window.",
+    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
+    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються на головному вікні."
   },
   "headerRemoteSources": {
     "en": "Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage.",

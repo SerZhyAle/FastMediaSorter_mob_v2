@@ -19,4 +19,12 @@ class ScreenVideoRecordingControllerImpl @Inject constructor() : ScreenVideoReco
     override fun requestStop(context: Context) {
         ScreenVideoRecordingService.stop(context)
     }
+
+    override fun requestPause(context: Context) {
+        ScreenVideoRecordingService.pause(context)
+    }
+
+    override fun requestResume(context: Context) {
+        ScreenVideoRecordingService.resume(context)
+    }
 }

@@ -1,6 +1,10 @@
 # Build Standard Release APK
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-standard-release.ps1"
+try {
+
 Write-Host "Building Standard Release APK (auto-versioned)..." -ForegroundColor Cyan
 Write-Host "Features: Full (cloud, EPUB, translation, OCR)" -ForegroundColor Yellow
 
@@ -131,3 +135,8 @@ if (!(Test-Path -Path $tcDir)) {
 }
 Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

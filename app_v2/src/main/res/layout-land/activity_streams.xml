@@ -290,4 +290,16 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- S0933: window-attached but off-screen host for the transient grid frame-capture TextureView.
+         Kept in the hierarchy (drawn, so the SurfaceTexture receives frames) but translated far off the
+         viewport; holds no persistent child and never intercepts touches or focus. -->
+    <FrameLayout
+        android:id="@+id/streamCaptureHost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:translationX="-10000dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="noHideDescendants" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

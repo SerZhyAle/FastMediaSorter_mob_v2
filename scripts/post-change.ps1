@@ -212,6 +212,10 @@ $runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
 $runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
+# activity that pins screenOrientation implies a required screen.* hardware feature,
+# which shrinks Google Play device reach unless src/main declares it not-required.
+$runsOrientationFeatureGate = ($normFile -match 'AndroidManifest\.xml$')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -333,6 +337,15 @@ else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
+if ($runsOrientationFeatureGate) {
+    Invoke-Step "orientation-implied-feature-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "orientation-implied-feature-gate" "not applicable - touched file is not an AndroidManifest.xml"
+}
+
 if ($runsFgsGate) {
     Invoke-Step "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
@@ -450,6 +463,17 @@ finally {
     if ($detektJob) {
         try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+    }
+    # Tier-2 coordination lock (CLAUDE.md Rule 23): post-change.ps1 is the "logical change is
+    # done" checkpoint every code-editing skill already calls, so releasing CODE.LOCK here makes
+    # release automatic - skills only need to acquire it (scripts/utils/enter-code-lock.ps1)
+    # before their first source edit. Safe no-op if nothing was ever acquired in this run.
+    try {
+        . (Join-Path $root "scripts/utils/agent-lock.ps1")
+        Exit-AgentLock -Name Code
+    }
+    catch {
+        Write-Host "  [code-lock-release] WARN - could not release CODE.LOCK: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
 

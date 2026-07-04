@@ -532,11 +532,6 @@ class BrowseFileOperationsManager(
 
     private fun startBackgroundTransfer(request: BrowseFileTransferRequest) {
         coroutineScope.launch {
-            Timber.d(
-                "S0818: enqueue browse background transfer type=%s items=%d",
-                request.operationType,
-                request.sources.size,
-            )
             when (val result = browseTransferCoordinator.enqueueIfIdle(request)) {
                 is BrowseFileTransferCoordinator.EnqueueResult.ActiveAlreadyRunning -> {
                     callbacks.onShowMessage(context.getString(R.string.browse_transfer_already_running))

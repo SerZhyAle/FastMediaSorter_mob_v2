@@ -2569,7 +2569,7 @@ Close the player and try again.</string>
     <string name="settings_remote_source_cloud_help_message">Open files in cloud storage - Google Drive, OneDrive, and Dropbox. Connect an account to browse your cloud folders right inside the app.</string>
     <string name="settings_remote_source_disable_confirm_title">Hide these folders?</string>
     <string name="settings_remote_source_disable_confirm_message">The folders for this source will be hidden, not deleted. Your saved resources stay and reappear when you turn the source back on.</string>
-    <string name="screenshot_accessibility_service_description">Lets FastMediaSorter capture the screen with an edge gesture and save it, with no per-shot dialog.</string>
+    <string name="screenshot_accessibility_service_description">Lets FastMediaSorter take screenshots with an edge gesture and save them, with no per-shot dialog. This covers screenshots only - screen video recording is separate and asks Android for permission at the start of every recording.</string>
     <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the FastMediaSorter accessibility service:\n\n1. Tap Open settings, then enable FastMediaSorter in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
     <string name="screen_capture_rate_limited">Screenshot was too fast, try again</string>
     <string name="screenshot_gesture_permission_dialog_title">Enable screen gestures</string>
@@ -2590,7 +2590,7 @@ Close the player and try again.</string>
     <string name="reset_operations_section_message">Reset only Management tab settings to default values?</string>
     <string name="reset_operations_section_success">Management settings reset completed</string>
     <string name="ocr_engines_damaged">OCR data is damaged. Reinstall it from Downloadable Extensions.</string>
-    <string name="setting_screenshot_accessibility_shortcut_hint">Screenshot gestures use the accessibility service. If Android turns it off, turn it back on here.</string>
+    <string name="setting_screenshot_accessibility_shortcut_hint">Screenshot gestures use the accessibility service. If Android turns it off, turn it back on here. It applies to screenshots only - screen video recording always asks Android for permission each time.</string>
     <string name="setting_screenshot_accessibility_shortcut_button">Open accessibility settings</string>
     <string name="setting_screenshot_gesture_action_down_title">Down gesture action</string>
     <string name="setting_screenshot_gesture_action_right_title">Right gesture action</string>
@@ -2906,7 +2906,7 @@ Close the player and try again.</string>
     <string name="setting_camera_geotag_title">Geotag photos</string>
     <string name="setting_camera_geotag_desc">Save GPS location in photos taken with the in-app camera. Needs location permission; off by default.</string>
     <string name="camera_geotag_permission_denied">Geotagging needs location permission</string>
-    <string name="setting_show_programs_panel_title">Show programs panel in main window</string>
+    <string name="setting_show_programs_panel_title">Programs panel</string>
     <string name="setting_show_programs_panel_summary">Mirror the programs menu as a horizontal bar above the resource list. Hides the three-dots button.</string>
     <string name="setting_show_streams_panel_title">Show streams panel in main window</string>
     <string name="setting_show_streams_panel_summary">Show pinned channels as a horizontal bar above the resource list, with a shortcut to Streams.</string>
@@ -2941,7 +2941,7 @@ Close the player and try again.</string>
     <string name="screen_recording_card_title">Recording screen</string>
     <string name="screen_recording_stop">Stop recording</string>
     <string name="screen_recording_disclosure_title">Screen video recording</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background.</string>
+    <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
     <string name="screen_recording_disclosure_start">Start recording</string>
     <string name="screen_recording_permission_denied">Microphone and notification permissions are required to record the screen.</string>
     <string name="screen_recording_saved">Screen recording saved: %1$s</string>
@@ -2972,4 +2972,7 @@ Close the player and try again.</string>
     <string name="streams_panel_collapse_action">Collapse panel</string>
     <string name="main_streams_panel_strip">Streams..</string>
     <string name="camera_scenario_ocr_translate">Text recognition</string>
+    <string name="recording_pause">Pause recording</string>
+    <string name="recording_resume">Resume recording</string>
+    <string name="settings_category_main_window_interface">Main window interface</string>
 </resources>

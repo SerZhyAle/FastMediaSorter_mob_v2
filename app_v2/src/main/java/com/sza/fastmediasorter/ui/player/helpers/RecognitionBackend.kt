@@ -76,6 +76,7 @@ class RecognitionBackend(
             Timber.i("OCR engines not installed - recognition unavailable")
             return null
         }
+        Timber.d("S0923: camera OCR-translate recognition entry")
 
         var paddlePayloadMissing = false
         try {

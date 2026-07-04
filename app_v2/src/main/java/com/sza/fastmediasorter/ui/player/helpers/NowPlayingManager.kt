@@ -170,7 +170,6 @@ class NowPlayingManager(
                 }
                 // Service alive and playing - show and populate bar
                 miniBar.root.isVisible = true
-                Timber.d("S0852: mini bar shown - must sit above Copy/Move panels in landscape")
                 Timber.d("NowPlayingManager: updateBarVisibility - showing bar (playbackState=$state)")
                 val meta = player.mediaMetadata
                 miniBar.miniTitle.text = meta.title?.toString()

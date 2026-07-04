@@ -56,6 +56,9 @@ Read `$ARGUMENTS`. Задача выходит за рамки «очень не
 Класс/файл → `dev/CATALOG/scripts/query.ps1` (CLAUDE.md §Research Order). XML/ресурсы → прямой путь либо `Glob`/`Grep`. Никаких глубоких аудитов.
 
 **Step 3 - Read целевой файл, внести правку через `Edit`.**
+
+> **⚠ CODE.LOCK (CLAUDE.md Rule 23):** только если правка трогает `app_v2/`/`wear/` исходники (Kotlin/XML/`build.gradle.kts`, т.е. ожидаемый `ChangeType` = `Xml`/`Kotlin`/`Mixed`) - перед `Edit` выполнить `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/quick: <target>"`. Если внутри выведет предупреждение про живой `BUILD.LOCK` - сборка идёт в другой сессии, эта правка всё равно допустима (совпадение с half-written состоянием не про XML/строки), но не запускать билд сейчас. Освобождение автоматическое через `post-change.ps1` (Step 4). Для `Doc`/`Script`/`Config`-правок (не app-исходники) этот шаг пропустить.
+
 Author style: `..` не `...`, `ё`/`Ё` в русских строках. Английский в коде/комментариях, русский в UI-строках.
 
 > **⚠ COMMUNICATION_POLICY:** правка пользовательского текста (toast, dialog, empty state, error, snackbar, CTA) - сверить с `docs/COMMUNICATION_POLICY.md` §2 (формулы) и §6 (чек-лист тона). Не проходит → переформулировать.
@@ -97,7 +100,7 @@ Skip (тихо), если:
 
 **Step 4b - On-device проверка (только при `--verify-device`).** Сразу после `post-change.ps1`:
 1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → залогировать причину в чат, пропустить шаг (не блокировать `/quick`).
-2. `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты в `temp/verify_*` - `/quick` их не трогает.
+2. `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты в `temp/scratch/verify_*` - `/quick` их не трогает.
 3. В отчёт хвост: `verify: PASS/FAIL, errors N`.
 
 Этот шаг **не**:

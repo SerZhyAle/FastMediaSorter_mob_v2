@@ -108,6 +108,10 @@ class BrowseManagerInitializer(
     private val mediaCapabilities: MediaCapabilities,
     private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
     private val openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler,
+    // S0783: favicon sprite-atlas plumbing for STREAM favorites rows, sourced from BrowseActivity. No-op
+    // defaults keep any other construction path (e.g. tests) unaffected.
+    private val faviconResolver: (String) -> Int? = { null },
+    private val faviconTileLoader: suspend (Int) -> android.graphics.Bitmap? = { null },
 ) {
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -207,7 +211,10 @@ class BrowseManagerInitializer(
             onOverflowMenuClick = { file, anchor -> showPerFileOverflowMenu(anchor, file) },
             apkTileBadgeBinder = browseApkTileBadgeBinder,
             getShowVideoThumbnails = showVideoThumbnailsGetter,
-            getShowPdfThumbnails = showPdfThumbnailsGetter
+            getShowPdfThumbnails = showPdfThumbnailsGetter,
+            faviconResolver = faviconResolver,
+            faviconTileLoader = faviconTileLoader,
+            faviconScope = lifecycleScope
         )
 
         mediaFileAdapter.setBinaryThumbnailGenerator(com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(activity))

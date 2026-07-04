@@ -11,6 +11,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "check-standard-fast.ps1"
+try {
+
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 Set-Location $projectRoot
 
@@ -64,3 +68,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nFast check passed." -ForegroundColor Green
+
+}
+finally {
+    Exit-AgentLock -Name Build
+}

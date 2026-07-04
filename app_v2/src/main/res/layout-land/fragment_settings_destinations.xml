@@ -15,132 +15,6 @@
         android:orientation="vertical"
         android:paddingBottom="@dimen/settings_fragment_padding">
 
-            <!-- SAFETY & CONFIRMATION SECTION -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/settings_margin_standard"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
-                app:contentPadding="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-                        android:id="@+id/headerSafety"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:csh_title="@string/settings_category_safety" />
-
-                    <LinearLayout
-                        android:id="@+id/containerSafety"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingStart="@dimen/settings_margin_standard"
-                        android:paddingEnd="@dimen/settings_margin_standard"
-                        android:paddingBottom="@dimen/settings_margin_standard">
-
-                        <LinearLayout
-                            android:id="@+id/layoutEnableSafeMode"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_tiny"
-                            android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowEnableSafeMode"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/enable_safe_mode"
-                                app:str_subtitle="@string/setting_safe_mode_desc" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/containerConfirm"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/settings_nested_margin_start"
-                            android:layout_marginBottom="@dimen/margin_tiny"
-                            android:baselineAligned="false"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:id="@+id/layoutConfirmDelete"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="@dimen/margin_tiny"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                    android:id="@+id/rowConfirmDelete"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:str_title="@string/confirm_delete_safe_mode"
-                                    app:str_subtitle="@string/setting_confirm_delete_desc"
-                                    app:str_showHelp="true"
-                                    app:str_helpTitle="@string/tooltip_safe_mode_title"
-                                    app:str_helpMessage="@string/tooltip_safe_mode_message" />
-
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:id="@+id/layoutConfirmMove"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="@dimen/margin_tiny"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                    android:id="@+id/rowConfirmMove"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:str_title="@string/confirm_move_safe_mode"
-                                    app:str_subtitle="@string/setting_confirm_move_desc" />
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/layoutUseTrash"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_tiny"
-                            android:orientation="vertical">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowUseTrash"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:str_title="@string/use_trash"
-                                app:str_subtitle="@string/use_trash_summary"
-                                app:str_showHelp="true"
-                                app:str_helpTitle="@string/tooltip_use_trash_title"
-                                app:str_helpMessage="@string/tooltip_use_trash_message" />
-
-                            <ImageButton
-                                android:id="@+id/btnClearTrash"
-                                android:layout_width="@dimen/settings_help_icon_size"
-                                android:layout_height="@dimen/settings_help_icon_size"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/clear_trash"
-                                android:src="@drawable/ic_delete"
-                                android:visibility="gone"
-                                app:tint="@color/text_color_secondary" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- COPY & MOVE SECTION -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -273,6 +147,132 @@
                                     app:str_subtitle="@string/setting_overwrite_on_move_desc" />
 
                             </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- SAFETY & CONFIRMATION SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/settings_margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="2dp"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                        android:id="@+id/headerSafety"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:csh_title="@string/settings_category_safety" />
+
+                    <LinearLayout
+                        android:id="@+id/containerSafety"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="@dimen/settings_margin_standard"
+                        android:paddingEnd="@dimen/settings_margin_standard"
+                        android:paddingBottom="@dimen/settings_margin_standard">
+
+                        <LinearLayout
+                            android:id="@+id/layoutEnableSafeMode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowEnableSafeMode"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/enable_safe_mode"
+                                app:str_subtitle="@string/setting_safe_mode_desc" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/containerConfirm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/settings_nested_margin_start"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:id="@+id/layoutConfirmDelete"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/margin_tiny"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                    android:id="@+id/rowConfirmDelete"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:str_title="@string/confirm_delete_safe_mode"
+                                    app:str_subtitle="@string/setting_confirm_delete_desc"
+                                    app:str_showHelp="true"
+                                    app:str_helpTitle="@string/tooltip_safe_mode_title"
+                                    app:str_helpMessage="@string/tooltip_safe_mode_message" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layoutConfirmMove"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/margin_tiny"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                    android:id="@+id/rowConfirmMove"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:str_title="@string/confirm_move_safe_mode"
+                                    app:str_subtitle="@string/setting_confirm_move_desc" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layoutUseTrash"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            android:orientation="vertical">
+
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                                android:id="@+id/rowUseTrash"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:str_title="@string/use_trash"
+                                app:str_subtitle="@string/use_trash_summary"
+                                app:str_showHelp="true"
+                                app:str_helpTitle="@string/tooltip_use_trash_title"
+                                app:str_helpMessage="@string/tooltip_use_trash_message" />
+
+                            <ImageButton
+                                android:id="@+id/btnClearTrash"
+                                android:layout_width="@dimen/settings_help_icon_size"
+                                android:layout_height="@dimen/settings_help_icon_size"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/clear_trash"
+                                android:src="@drawable/ic_delete"
+                                android:visibility="gone"
+                                app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -935,15 +935,6 @@
 
                     <!-- Left column: Fast camera translation + nested Recognition only (S0320). -->
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
-
-                        <!-- S0755: surface the programs menu as a horizontal panel on the main window. -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowShowProgramsPanel"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:str_title="@string/setting_show_programs_panel_title"
-                            app:str_subtitle="@string/setting_show_programs_panel_summary" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraOcrTranslationEnabled"

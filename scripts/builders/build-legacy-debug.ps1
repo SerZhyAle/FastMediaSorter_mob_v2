@@ -1,6 +1,10 @@
 # Build Legacy Debug APK
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-legacy-debug.ps1"
+try {
+
 Write-Host "Building Legacy Debug APK (auto-versioned)..." -ForegroundColor Cyan
 Write-Host "Features: Full (Android 6.0+ compatibility)" -ForegroundColor Yellow
 
@@ -132,3 +136,7 @@ if (!(Test-Path -Path $tcDir)) {
 }
 Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+}
+finally {
+    Exit-AgentLock -Name Build
+}

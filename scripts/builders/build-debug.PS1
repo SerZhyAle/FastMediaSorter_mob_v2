@@ -15,6 +15,10 @@ param(
     [switch]$Quiet
 )
 
+. "$PSScriptRoot\..\utils\agent-lock.ps1"
+Enter-BuildLockOrExit -Reason "build-debug.PS1"
+try {
+
 # Patterns that are suppressed in -Quiet mode. Order: most-frequent first.
 # Update this list when adding intentional warnings; do NOT use it to hide real failures.
 $script:QuietSuppressPatterns = @(
@@ -334,4 +338,9 @@ else {
         Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
         Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
     }
+}
+
+}
+finally {
+    Exit-AgentLock -Name Build
 }

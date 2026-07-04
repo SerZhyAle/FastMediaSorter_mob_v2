@@ -379,12 +379,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
         }
-        // S0755: main-window programs panel toggle.
-        binding.rowShowProgramsPanel.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showProgramsPanelInMainWindow = isChecked))
-        }
 
         // System apps group rows.
         // S0162: hide rotation row on non-sensor devices.
@@ -520,9 +514,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
-                            }
-                            if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow) {
-                                binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)
                             }
 
                             // SystemApps group (moved from Player tab).

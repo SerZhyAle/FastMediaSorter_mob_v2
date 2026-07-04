@@ -9,8 +9,6 @@ import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.QuickAudioRecorderService
 import com.sza.fastmediasorter.worker.ScheduledOperationsWorker
-import timber.log.Timber
-
 /**
  * S0759 - drives the top-left exit button so it minimizes (instead of closing) the app whenever a
  * background function is live, and only fully closes when nothing is running in the background.
@@ -65,11 +63,6 @@ class MainExitButtonManager(
 
     private fun handleClick() {
         val minimize = isBackgroundActive()
-        Timber.d(
-            "S0759: exit tap minimize=$minimize music=${AudioPlaybackService.isRunning} " +
-                "rec=${QuickAudioRecorderService.isRecording} sched=${ScheduledOperationsWorker.isRunning} " +
-                "edge=$gestureOverlayEnabled",
-        )
         if (minimize) {
             // Minimize keeps every foreground service alive (the core S0759 contract).
             onMinimize()

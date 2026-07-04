@@ -33,7 +33,7 @@ On `$ARGUMENTS`:
 
 **Step 1 - Resolve target log file.** Fallback order, stop at first existing:
 1. A `.log` path explicitly in `$ARGUMENTS`
-2. An existing path in `$ARGUMENTS` under `logs/` or `temp/`
+2. An existing path in `$ARGUMENTS` under `logs/`, `temp/`, or `temp/scratch/`
 3. `logs/current.log`
 4. `temp/current.log`
 
@@ -159,7 +159,7 @@ For known exception types also run:
 Save full crash dump:
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "<file>" -Exceptions -OutFile "temp/crashes.txt"
+.\scripts\utils\search-log.ps1 -LogFile "<file>" -Exceptions -OutFile "temp/scratch/crashes.txt"
 ```
 
 ---
@@ -382,7 +382,7 @@ FastMediaSorter-specific tags to look for:
 
 # Crash / exception blocks with full stack traces
 .\scripts\utils\search-log.ps1 -LogFile "<f>" -Exceptions
-.\scripts\utils\search-log.ps1 -LogFile "<f>" -Exceptions -OutFile "temp/crashes.txt"
+.\scripts\utils\search-log.ps1 -LogFile "<f>" -Exceptions -OutFile "temp/scratch/crashes.txt"
 
 # Warnings + errors
 .\scripts\utils\search-log.ps1 -LogFile "<f>" -Warnings -AppOnly
@@ -416,8 +416,8 @@ FastMediaSorter-specific tags to look for:
 .\scripts\utils\search-log.ps1 -LogFile "<f>" -Spam -Top 25
 
 # Save results (works in ALL modes: Summary, Errors, Exceptions, Flow, Context, etc.)
-.\scripts\utils\search-log.ps1 -LogFile "<f>" -Errors -OutFile "temp/errors_analysis.txt"
-.\scripts\utils\search-log.ps1 -LogFile "<f>" -Summary -OutFile "temp/summary.txt"
+.\scripts\utils\search-log.ps1 -LogFile "<f>" -Errors -OutFile "temp/scratch/errors_analysis.txt"
+.\scripts\utils\search-log.ps1 -LogFile "<f>" -Summary -OutFile "temp/scratch/summary.txt"
 
 # Pull fresh logs from device (full harvest: logcat + prefs + device info)
 .\scripts\utils\extract-device-logs.ps1

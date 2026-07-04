@@ -161,7 +161,7 @@ Follow `/spec-dev` executing all phases from first non-done step.
 
 1. Invoke `/build` -> `standard debug`. Use `a.ps1 dq` (quiet debug - same `assembleStandardDebug`, suppresses UP-TO-DATE / deprecated-DSL / known-acceptable warnings) for resume-mode iteration builds; use `a.ps1 d` only when investigating build failure needing full Gradle output.
 2. PASS -> tick criterion `[x] (auto-build - PASS)`, continue `--resume`.
-3. FAIL -> fix minimal error. Retry up to MAX_BUILD_RETRIES.
+3. FAIL -> fix minimal error. Retry up to MAX_BUILD_RETRIES. Exception: a `BUILD.LOCK held` refusal (CLAUDE.md Rule 23, another agent session mid-build) is not a code error - it still counts against MAX_BUILD_RETRIES, but don't attempt a source "fix" for it, just retry (the lock self-clears when the other build finishes or goes stale).
 4. Still failing -> hard-stop -> final report as Blocked.
 5. Any `src/vr/` file modified: also run `vr debug` after standard passes.
 
@@ -172,7 +172,7 @@ Follow `/spec-dev` executing all phases from first non-done step.
 - Missing symbol/wrong path -> Grep/Glob actual location; patch spec; resume.
 - Verification fail -> re-read file, correct edit, re-run predicates.
 - Trilingual gap -> add `<!-- TODO translate: <EN text> -->` in missing locale; continue.
-- Line budget warning (>500 LOC) -> timestamped backup in `temp/`; continue.
+- Line budget warning (>500 LOC) -> timestamped backup under `temp/<Sxxxx>/`; continue.
 - Ambiguous step (placeholder, missing name) -> attempt to resolve from codebase; resolved -> patch step, continue; still ambiguous after 1 attempt -> mark `[DEFERRED - ambiguous]`, add to manual list, skip to next step. Never stop pipeline for one ambiguous step when others unblocked.
 - Unresolvable after 2 attempts -> mark `[DEFERRED]`, add to manual list, continue with remaining steps.
 

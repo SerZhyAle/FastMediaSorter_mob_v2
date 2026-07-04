@@ -69,9 +69,9 @@
 ## 6. Proactive Research & Parallelism
 - **Web Search**: Use developer.android.com, kotlinlang.org, GitHub issues, StackOverflow without asking.
 - **Parallel Subagents**: Concurrently run independent tasks (e.g. build + search).
-- **Background long jobs**: Run full/release builds, full test suites, device sweeps via `run_in_background` (harness re-invokes on completion) and continue other work meanwhile. Never foreground-wait a slow build. Still never run >1 gradle build at once.
+- **Background long jobs**: Run full/release builds, full test suites, device sweeps via `run_in_background` (harness re-invokes on completion) and continue other work meanwhile. Never foreground-wait a slow build. Still never run >1 gradle build at once - enforced by `temp/BUILD.LOCK` (Rule 23), not just convention.
 - **Initiative**: Do not ask permission for searches, builds, queries. Flag blockers at start.
-- **Cost discipline**: Default to the playbook in `docs/AGENT_COST_PLAYBOOK.md` - prefer inline over a subagent for single-fact lookups (<=3 targeted tool calls), `/compact` at task boundaries and `/clear` on task switch, offload raw artifacts to `temp/` instead of holding them in chat, and restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
+- **Cost discipline**: Default to the playbook in `docs/AGENT_COST_PLAYBOOK.md` - prefer inline over a subagent for single-fact lookups (<=3 targeted tool calls), `/compact` at task boundaries and `/clear` on task switch, offload raw artifacts to `temp/Sxxxx/` (or `temp/scratch/` when no ticket) instead of holding them in chat, and restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
 - **Subagent MCP isolation**: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
 
 ## 7. PowerShell Efficiency
@@ -106,11 +106,11 @@
 - Device (ad-hoc, ~0 tokens): `scripts/devtest/adb.ps1 <verb>` or `.\a.ps1 adb <verb>` for quick chores against a connected emulator/device - `devices`, `props`, `current`, `launch`, `stop`, `clear`, `install`, `shot`, `log -Tail N -Grep <regex>`, `tap/text/key`, `prefs`, `shell -Cmd`. Auto-discovers adb (not on PATH); supports `-DeviceId`/`-Release`/`-Json` with stable exit codes. Shortcuts: `adb-devices/-shot/-log/-current/-launch/-clear`. Prefer over raw `adb` for one-off work; `mobile-mcp` stays for agent-driven UI walks, Maestro for repeatable flows.
 
 ## 10. Strict Rules
-1. No root writes. Use `temp/`.
+1. No root writes; all scratch/artifacts under `temp/`, organized by ticket. **Ticket-bound work -> `temp/Sxxxx/`** (per-ticket subdir; replaces the old flat `temp/Sxxxx_*` prefix). **No active ticket -> `temp/scratch/`**. Fixed infrastructure stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/done/` (spec-arc archive), `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files (`temp/stream-catalog-liveness.csv`, `temp/stream-catalog.zip`).
 2. File size limit: 1500 LOC. Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic. Delegate to Manager/Helper classes.
 4. Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-5. Backups: Timestamped copy in `temp/` before editing file >500 LOC.
+5. Backups: Timestamped copy under `temp/Sxxxx/` (or `temp/scratch/` when no ticket) before editing file >500 LOC.
 6. Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 7. Lint: Fix warnings in touched files.
 8. Read comments/KDoc in affected area before editing.
@@ -128,6 +128,7 @@
 20. Dead-weight hygiene: Delete orphaned classes, resources, string keys, and keep rules in the same change. Verify on release/target-variant builds.
 21. Deprecated PackageManager flags: No raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` overloads in `src/main` (deprecated API 33). Use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Mechanical gate: `scripts/quality/assert-deprecated-pm-flags.ps1` (in `post-change.ps1`).
 22. Settings docs sync: Any change to a setting - its presence, behavior, position, or naming - must regenerate the settings manifest (`docs/settings/settings-manifest.json`) and reference (`docs/SETTINGS_REFERENCE*.md`) and update its annotation (`docs/settings/settings-annotations.json`). Mechanical gate: `scripts/quality/assert-settings-doc-sync.ps1` (in `post-change.ps1`).
+23. Concurrent-agent build/code locks: every script that invokes `gradlew`/`gradlew.bat` directly acquires `temp/BUILD.LOCK` before the call and releases it after (success or failure) via `scripts/utils/agent-lock.ps1` (`Enter-BuildLockOrExit` / `Exit-AgentLock`) - a second gradle-backed invocation refuses, reporting the holder's PID/age/reason. Staleness is judged by PID liveness (never by a guessed timeout while the holder process is actually alive), with a generous safety-net ceiling for edge cases. Before a multi-file source edit (Kotlin/XML/build-file), acquire `temp/CODE.LOCK` via `scripts/utils/enter-code-lock.ps1 -Reason "<ticket/skill>"` and check `scripts/utils/lock-status.ps1 -Name Build` first - if a build is live, do non-code work or wait rather than editing. `CODE.LOCK` auto-releases from `post-change.ps1`'s closure; skills that skip it (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` themselves when the edit is done. `CODE.LOCK` is advisory only (Tier 2, no hook enforcement - the agent owns the decision, same model as `dirty-tree-guard.ps1`) - a build script that finds it fresh warns but does not refuse.
 
 ## 11. Feature & UI Policies
 - **Feature inventory**: `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of every shipped capability (one JSONL record each), written via `scripts/all_features/add.ps1` and validated by `scripts/all_features/validate.ps1`. It replaced `dev/FUNCTIONALITY.log` (retired); chronology comes from git history + release diffs. `noLegal`-only records go to gitignored `docs/ALL_FEATURES_noLegal.jsonl`. Specs record their delivered capability here.

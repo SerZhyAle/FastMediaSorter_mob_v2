@@ -8,8 +8,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
-
 /**
  * Owns the two visual states of the main-window resource-type filter row: expanded (the full
  * [tabLayout]) and collapsed (the narrow labelled [collapsedStrip]). Long-press a tab to collapse,
@@ -62,12 +60,10 @@ class MainResourceTabsCollapseManager(
     }
 
     private fun collapse() {
-        Timber.d("S0781: collapse (tab long-press)")
         setCollapsed(true)
     }
 
     private fun expand() {
-        Timber.d("S0781: expand (strip tap)")
         setCollapsed(false)
     }
 

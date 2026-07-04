@@ -15,8 +15,12 @@ import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
  * S0542: shows the "Link to download" single-line dialog (prefilled from the clipboard) and routes
  * the entered string into the existing external-link download path, without touching the download
  * engine, auth or progress UI directly.
+ *
+ * [onClosed] fires on every dismissal path (Ok, Cancel, tap-outside, back) - the default no-op keeps
+ * `MainActivity`'s call site (which stays open regardless) unchanged; the panel's trampoline Activity
+ * (S0912) uses it to finish itself once the dialog is gone.
  */
-class MainLinkDownloadManager(private val activity: Activity) {
+class MainLinkDownloadManager(private val activity: Activity, private val onClosed: () -> Unit = {}) {
 
     fun show() {
         if (activity.isFinishing || activity.isDestroyed) return
@@ -41,6 +45,7 @@ class MainLinkDownloadManager(private val activity: Activity) {
                 if (link.isNotEmpty()) dispatchToReceiver(link)
             }
             .setNegativeButton(android.R.string.cancel, null)
+            .setOnDismissListener { onClosed() }
             .show()
     }
 

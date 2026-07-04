@@ -156,6 +156,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
+    // S0783: favicon sprite-atlas sidecar (shared with the streams catalog) so the Favorites list can
+    // paint a live channel's logo on its STREAM rows, mirroring StreamsActivity.
+    @Inject lateinit var faviconAtlasStore: com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
@@ -175,6 +178,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
     // S0901: application-lifetime scope so a mic recording save survives BrowseActivity teardown.
     @Inject @ApplicationScope lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
+
+    // S0783: decodes a favicon atlas tile index into a bitmap, re-reading the atlas file on each decode.
+    // Lazy so it is built after Hilt field injection (mirrors StreamsActivity).
+    private val faviconSlicer by lazy {
+        com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
+    }
+    // S0783: the loaded url->tile-index map, read on the bind-time resolver lambda. Volatile so a load
+    // completing after the list is bound is visible to later binds without further synchronisation.
+    @Volatile
+    private var faviconCoords: Map<String, Int> = emptyMap()
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -400,9 +413,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             mediaCapabilities = mediaCapabilities,
             sendToMenuManager = sendToMenuManager,
             openInShareTargetHandler = openInShareTargetHandler,
+            // S0783: STREAM favorites rows resolve their channel logo from the shared favicon atlas.
+            faviconResolver = { url -> faviconCoords[url] },
+            faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         )
 
         initializer.initialize()
+        loadFaviconCoords()
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -429,6 +446,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             finish()
             @Suppress("DEPRECATION")
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
+    }
+
+    // S0783: load the url->atlas-tile-index map for STREAM favorites rows, then repaint the bound list so
+    // an already-shown Favorites list picks up channel logos without waiting for a scroll/rebind.
+    private fun loadFaviconCoords() {
+        lifecycleScope.launch {
+            faviconCoords = faviconAtlasStore.coords()
+            if (::initializer.isInitialized) {
+                val adapter = initializer.mediaFileAdapter
+                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            }
         }
     }
 

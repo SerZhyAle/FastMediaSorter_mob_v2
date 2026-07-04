@@ -29,9 +29,9 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -165,6 +165,9 @@ class StandaloneViewManager(
     }
 
     private var exoPlayer: ExoPlayer? = null
+
+    // S0908: kept so releaseVideoPlayer() can remove this exact instance before release().
+    private var videoErrorListener: Player.Listener? = null
     private val playbackControlPrefs =
         activity.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
     private val videoColorProcessor = VideoColorProcessor(
@@ -313,7 +316,11 @@ class StandaloneViewManager(
         }
         releaseVideoPlayer()
         releaseAudioController()
-        Glide.with(safeViews.photoView).clear(safeViews.photoView)
+        // Activity-scoped Glide.with() crashes here: Activity.performDestroy() flips isDestroyed()
+        // to true BEFORE invoking onDestroy(), so assertNotDestroyed() always throws on this path.
+        // applicationContext skips that check entirely; clear() still finds/cancels the request
+        // that was registered under the activity-scoped RequestManager.
+        Glide.with(activity.applicationContext).clear(safeViews.photoView)
         _pdfViewerManager?.close()
         _pdfViewerManager = null
         _epubViewerManager?.release()
@@ -352,12 +359,14 @@ class StandaloneViewManager(
         // detach the output surface first so the GL pipeline terminates while EGL is still valid,
         // then stop before release. Otherwise the next activity never gets a window -> input ANR.
         exoPlayer?.let { player ->
+            listOfNotNull(videoErrorListener).forEach(player::removeListener)
             player.setVideoEffects(emptyList())
             player.clearVideoSurface()
             player.stop()
             player.release()
         }
         exoPlayer = null
+        videoErrorListener = null
         currentVideoFilePath = null
     }
 
@@ -422,7 +431,9 @@ class StandaloneViewManager(
         exoPlayer = player
         playerView.player = player
         applyVideoColorEffects()
-        player.addListener(createPlayerErrorListener())
+        val errorListener = createPlayerErrorListener()
+        videoErrorListener = errorListener
+        player.addListener(errorListener)
         audioFocusManager = AudioFocusManager(activity) { isPermanent ->
             if (isPermanent) player.stop() else player.pause()
         }

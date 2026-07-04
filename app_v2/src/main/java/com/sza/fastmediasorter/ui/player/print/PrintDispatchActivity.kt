@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.print
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
@@ -10,6 +11,7 @@ import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.print.PrintHelper
 import com.sza.fastmediasorter.ui.player.helpers.PrintShareFallbackManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +69,7 @@ class PrintDispatchActivity : AppCompatActivity() {
             when (request?.mode) {
                 PrintMode.PDF -> dispatchPdf()
                 PrintMode.TEXT -> dispatchText()
+                PrintMode.IMAGE -> dispatchImage()
                 null -> finish()
             }
         }
@@ -197,6 +200,41 @@ class PrintDispatchActivity : AppCompatActivity() {
         }
     }
 
+    // S0610/S0919: image print is routed here so One UI reaches PrintManager.print() from a clean
+    // Activity context (BaseActivity's createConfigurationContext wrapper trips "Can print only from
+    // an activity"). BitmapFactory.decodeFile can throw OOM/format errors on hostile files.
+    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    private fun dispatchImage() {
+        val current = request ?: return finish()
+        val file = File(current.filePath)
+        if (!file.exists()) {
+            showUnavailableAndFinish(current)
+            return
+        }
+        val bitmap = try {
+            BitmapFactory.decodeFile(file.absolutePath)
+        } catch (error: Exception) {
+            Timber.e(error, "PrintDispatchActivity: image decode failed (${error.javaClass.simpleName})")
+            null
+        }
+        if (bitmap == null) {
+            fallbackToShareOrFail(file, current, "image/*")
+            return
+        }
+        runCatching {
+            PrintHelper(this).apply { scaleMode = PrintHelper.SCALE_MODE_FIT }
+                .printBitmap(current.jobLabel, bitmap)
+        }.onSuccess {
+            awaitingExternalReturn = true
+        }.onFailure { error ->
+            Timber.e(
+                error,
+                "PrintDispatchActivity: image dispatch failed (${error.javaClass.simpleName}: ${error.message})"
+            )
+            fallbackToShareOrFail(file, current, "image/*")
+        }
+    }
+
     private fun fallbackToShareOrFail(file: File, current: PrintRequest, mimeType: String) {
         if (printFallbackManager.shareForPrint(file, current.displayName, mimeType, current.chooserTitle)) {
             android.widget.Toast.makeText(this, current.fallbackMessage, android.widget.Toast.LENGTH_LONG).show()
@@ -214,6 +252,7 @@ class PrintDispatchActivity : AppCompatActivity() {
     private enum class PrintMode {
         PDF,
         TEXT,
+        IMAGE,
     }
 
     private data class PrintRequest(
@@ -306,6 +345,27 @@ class PrintDispatchActivity : AppCompatActivity() {
             unavailableMessage = unavailableMessage,
         )
 
+        // S0919: [file] must be a decodable image on disk (the standalone host stages the on-screen
+        // bitmap to a private temp PNG; the document host passes its materialised image file).
+        fun startImage(
+            context: android.content.Context,
+            file: File,
+            jobLabel: String,
+            displayName: String,
+            chooserTitle: String,
+            fallbackMessage: String,
+            unavailableMessage: String,
+        ): Boolean = start(
+            context = context,
+            mode = PrintMode.IMAGE,
+            file = file,
+            jobLabel = jobLabel,
+            displayName = displayName,
+            chooserTitle = chooserTitle,
+            fallbackMessage = fallbackMessage,
+            unavailableMessage = unavailableMessage,
+        )
+
         // Params mirror the intent extras 1:1; a param object would only shuffle the same fields.
         @Suppress("LongParameterList")
         private fun start(
@@ -376,7 +436,6 @@ class PrintDispatchActivity : AppCompatActivity() {
             cancellationSignal: CancellationSignal,
             callback: WriteResultCallback,
         ) {
-            Timber.d("S0828: PDF spool onWrite via structured cancellable copy")
             // Proactively abort when the platform signals cancel; closing the stream unblocks read().
             cancellationSignal.setOnCancelListener { cancelActiveCopy() }
             adapterScope.launch {

@@ -64,7 +64,7 @@ Gate: verdict must be **PASS** with a clean (or triaged) log audit. On FAIL, `/s
 
 ### Step 3 - Evaluate the result
 
-- Read `temp/s0484_prerelease_<TS>.md` (verdict breakdown, perf, evidence).
+- Read `temp/S0484/prerelease_<TS>.md` (verdict breakdown, perf, evidence).
 - Confirm every actionable log-audit cluster and every error toast is either fixed or a known benign emulator fallback.
 - Confirm no release-coverage regression (countries / age / device reach: minSdk, ABI, uses-feature, flavor set) versus the previous release.
 - Decision: GO or back to Step 1. A GO here is the entry condition for publication.

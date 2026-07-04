@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.panel
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
@@ -8,6 +9,11 @@ import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
+import com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager
+import com.sza.fastmediasorter.widget.LinkDownloadLaunchActivity
+import com.sza.fastmediasorter.widget.QuickAudioRecorderActivity
+import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
 
 /**
  * Builds the launch [Intent] for each panel internal route, reusing the exact entry points the
@@ -35,6 +41,23 @@ object AppLaunchPanelRouteIntents {
 
     fun resource(context: Context, resourceId: Long): Intent =
         BrowseActivity.createIntent(context, resourceId).withPanelFlags()
+
+    fun quickCamera(context: Context): Intent =
+        Intent(context, CameraQuickCaptureActivity::class.java).apply {
+            action = CameraQuickCaptureActivity.ACTION_CAPTURE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, CameraQuickCaptureLaunchManager.PANEL_APP_WIDGET_ID)
+        }.withPanelFlags()
+
+    fun quickVoice(context: Context): Intent =
+        Intent(context, QuickAudioRecorderActivity::class.java)
+            .setAction(QuickAudioRecorderActivity.ACTION_TOGGLE)
+            .withPanelFlags()
+
+    fun screenRecording(context: Context): Intent =
+        Intent(context, ScreenRecordingLaunchActivity::class.java).withPanelFlags()
+
+    fun linkDownload(context: Context): Intent =
+        Intent(context, LinkDownloadLaunchActivity::class.java).withPanelFlags()
 
     private fun Intent.withPanelFlags(): Intent = addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 

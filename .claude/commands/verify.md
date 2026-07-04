@@ -79,13 +79,13 @@ Builder matching the flavor:
 | Other flavor debug device | `.\scripts\builders\build-<flavor>-device.ps1` |
 | `standard` release | `.\scripts\builders\build-standard-release.ps1` then `adb install -r <apk>` |
 
-On build failure: capture last 80 lines of builder output into `temp/verify_<TS>.md` `## Build log` and abort. Do not proceed.
+On build failure: capture last 80 lines of builder output into `temp/scratch/verify_<TS>.md` `## Build log` and abort. Do not proceed.
 
 Skip this step when `--build` not set. Pre-flight will have validated the package is installed (or not, in which case ask user whether to rebuild).
 
 ### 4 - Author the scenario
 
-Write `temp/verify_<TS>.md` with header (device id, model, density, flavor, package, versionName) and an ordered scenario.
+Write `temp/scratch/verify_<TS>.md` with header (device id, model, density, flavor, package, versionName) and an ordered scenario.
 
 Scenario sources, in priority order:
 
@@ -104,7 +104,7 @@ If `--dry-run`, stop here and report the path.
 
 ```powershell
 adb -s <id> logcat -c
-adb -s <id> logcat -v time *:V > temp/verify_run_<TS>.log
+adb -s <id> logcat -v time *:V > temp/scratch/verify_run_<TS>.log
 ```
 
 Background process (streaming capture - keep raw `adb logcat` here; `adb.ps1 log` is a `-d`
@@ -118,7 +118,7 @@ For out-of-loop chores prefer the swiss-army over raw `adb`: `scripts/devtest/ad
 
 Walk each step:
 
-1. `mobile_take_screenshot` -> `temp/verify_screens/step_NN_before.png`
+1. `mobile_take_screenshot` -> `temp/scratch/verify_screens/step_NN_before.png`
 2. `mobile_list_elements_on_screen` -> resolve element coordinates fresh (never reuse coords across runs).
 3. Perform action (click / type / swipe / press button / open_url).
 4. `mobile_take_screenshot` -> `step_NN_after.png`
@@ -136,14 +136,14 @@ Kill background `adb logcat` process. Record end timestamp.
 ### 8 - Log analysis
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "temp/verify_run_<TS>.log" -Errors -Unique -AppOnly
-.\scripts\utils\search-log.ps1 -LogFile "temp/verify_run_<TS>.log" -Exceptions
+.\scripts\utils\search-log.ps1 -LogFile "temp/scratch/verify_run_<TS>.log" -Errors -Unique -AppOnly
+.\scripts\utils\search-log.ps1 -LogFile "temp/scratch/verify_run_<TS>.log" -Exceptions
 ```
 
 If the scenario was built from an `Sxxxx` currently `BlockNeedUserTest`, additionally grep for the spec's debug verification tags:
 
 ```powershell
-.\scripts\utils\search-log.ps1 -LogFile "temp/verify_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
+.\scripts\utils\search-log.ps1 -LogFile "temp/scratch/verify_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
 ```
 
 Each tag hit at `D/` level = "code path exercised". `I`/`W`/`E` lines containing the ticket id are instrumentation bugs (CLAUDE.md "Persistent log lines must not contain Sxxxx") - report them, but do not count as PASS evidence.
@@ -155,7 +155,7 @@ Append `## Log findings` to scenario file: counts per level, top 3 errors with l
 Single line:
 
 ```
-verify: device <id>, PASS/FAIL/SKIPPED N/N/N, log errors N, crashes K. Scenario: temp/verify_<TS>.md
+verify: device <id>, PASS/FAIL/SKIPPED N/N/N, log errors N, crashes K. Scenario: temp/scratch/verify_<TS>.md
 ```
 
 Recommended next-step (one line, optional):
@@ -172,7 +172,7 @@ Recommended next-step (one line, optional):
 - **Read-only on specs.** Never touch `PLAN/Sxxxx_*.md`. `## Last Audit`, `## Revision History`, `[manual]` boxes owned by `/spec-test-device` / `/spec-check`.
 - **No dev log.** `/verify` is a diagnostic, not a change. `dev/CHANGELOG.md` stays untouched. Skill-internal exception: if `/verify` is invoked as the final step of `/skill-fix` or `/quick`, the parent skill writes its own dev log entry; `/verify` itself still does not.
 - **No commits.** Committing is the user's call - `/verify` never commits, and does not lean on git history to read state (the live files + device are the truth).
-- **Outputs land in `temp/` only.** Screenshots, scenario, captured log - all under `temp/verify_*` and `temp/verify_screens/`. Never write to project root.
+- **Outputs land in `temp/scratch/` only.** Screenshots, scenario, captured log - all under `temp/scratch/verify_*` and `temp/scratch/verify_screens/`. Never write to project root.
 - **Never run `gradlew.bat` directly.** Always go through `scripts/builders/build-*-device.ps1`.
 - **Never read full logcat into context** when > 2 MB - use `search-log.ps1`, quote line numbers.
 - **Never hardcode element coordinates** - re-list elements before each click.
@@ -190,8 +190,8 @@ Recommended next-step (one line, optional):
 
 | Path | Purpose |
 | --- | --- |
-| `temp/verify_<TS>.md` | Scenario header + run log table + log findings + final verdict |
-| `temp/verify_screens/step_NN_{before,after}.png` | Per-step evidence |
-| `temp/verify_run_<TS>.log` | Captured logcat for the run window |
+| `temp/scratch/verify_<TS>.md` | Scenario header + run log table + log findings + final verdict |
+| `temp/scratch/verify_screens/step_NN_{before,after}.png` | Per-step evidence |
+| `temp/scratch/verify_run_<TS>.log` | Captured logcat for the run window |
 
 No other paths are written. No project files are modified.

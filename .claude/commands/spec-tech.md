@@ -77,9 +77,10 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 
 **If ALL pass → PRIMITIVE path** (skip steps 3–8):
 
+0. **CODE.LOCK (CLAUDE.md Rule 23).** Before touching source: `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/spec-tech <Sxxxx>: primitive path"`. This path lists post-change's constituent steps manually rather than calling the `post-change.ps1` facade, so release is not automatic - free it explicitly in step 3 below.
 1. Implement changes directly in source identified in step 2.
 2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry - per CLAUDE.md "Debug Verification Tags", ticket about to enter `BlockNeedUserTest`, tags must be present. One tag per flow entry, not per modified line. `Sxxxx:` prefix reserved for temporary probes; never reuse in `Timber.i/w/e` or any persisted message.
-3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
+3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable. Then release the lock: `pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1`.
 4. Advance to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest -StatusNote '<what the user must verify on device>'`. Step-2 tags stay until ticket leaves this status (removed by `/spec-check` on `Verified`, or `/spec-update` on re-open).
 5. Chat output: `<Sxxxx> - Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 

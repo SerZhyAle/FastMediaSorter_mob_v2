@@ -2,11 +2,8 @@ package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.PixelFormat
-import android.media.ImageReader
-import android.os.Handler
-import android.os.HandlerThread
-import android.view.Surface
+import android.view.TextureView
+import android.view.ViewGroup
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -38,14 +35,16 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * The player and its offscreen surface are always torn down in a `finally`, so a hung stream never
  * leaks a decoder session or a graphics buffer.
  *
- * S0700: the capture is decoupled from the RecyclerView view hierarchy. The grid cell's TextureView
- * was released together with the cell ~450 ms after the player started - before the first HLS segment
- * decoded onto its SurfaceTexture - so onRenderedFirstFrame never fired and the tile stayed black. The
- * player now renders into an offscreen [ImageReader] surface owned by this manager (not any View); the
- * first decoded frame is read straight off the reader into a Bitmap and cached, and the grid adapter
- * repaints the tile from the cache. ImageReader (not a bare SurfaceTexture + PixelCopy) is used because
- * reading back a SurfaceTexture-backed Surface needs a GL context + glReadPixels, whereas an
- * ImageReader hands the decoded RGBA buffer to the CPU directly with no GL plumbing.
+ * S0933: the frame is captured through a window-attached but off-screen [TextureView] rendered by the
+ * muted ExoPlayer, then read via [TextureView.getBitmap] after the first decoded frame. This replaced an
+ * offscreen [android.media.ImageReader] surface (S0700): that path threw [UnsupportedOperationException]
+ * on a YUV-producing software codec (S0900) and, worse, native-killed the process during decoder/Surface
+ * setup on some HW decoders (Samsung Exynos / API36) before any Java callback - uncatchable. A TextureView
+ * renders through the normal GPU path, which did NOT native-crash on the S21 device test (2026-06-27); its
+ * only prior failure was releasing before the first frame landed, fixed here by awaiting
+ * onRenderedFirstFrame before the grab. [hostProvider] supplies the Activity-owned off-screen container
+ * the transient capture view is added to; a null host (no streams UI) skips capture and the tile keeps
+ * its favicon.
  */
 @UnstableApi
 class StreamFrameSnapshotManager(
@@ -54,6 +53,9 @@ class StreamFrameSnapshotManager(
     private val scope: CoroutineScope,
     // S0712: persist each captured grid frame so a known channel shows its last frame on next launch.
     private val persistentStore: StreamFramePersistentStore,
+    // S0933: window-attached off-screen ViewGroup hosting the transient capture TextureView (an Activity
+    // view; null when no streams UI is attached, so capture is skipped and the favicon stays).
+    private val hostProvider: () -> ViewGroup? = { null },
 ) {
 
     /** Invoked on the main thread after a successful capture so the adapter can repaint that url's tile. */
@@ -80,9 +82,15 @@ class StreamFrameSnapshotManager(
      * aborts or misdirects the result (the adapter keys the repaint on the cached url, not on a View).
      */
     fun request(url: String, force: Boolean = false) {
-        // S0700: entry point of the grid-capture flow (offscreen ImageReader capture per visible tile).
+        // S0700: entry point of the grid-capture flow (offscreen TextureView capture per visible tile).
+        // Logged unconditionally (even while disabled below) so future test logs still show the call
+        // site was reached - distinguishes "adapter never asked" from "asked but gated off".
         Timber.d("S0700: snapshot request enqueued for %s", url)
-        if (!force && cache.isFresh(url)) return
+        // S0700/S0900 (2026-07-03): [CAPTURE_ENABLED] is the kill switch if this crashes again - real
+        // capture killed the process natively on-device (Samsung SM-S731B, Android 16) regardless of
+        // MAX_CONCURRENT_CAPTURES (tried 2, then 1, identical crash). See [capture]'s layout-settle-delay
+        // comment for the current experiment and S0700's 2026-07-03 19:05 audit for the failed attempts.
+        if (!CAPTURE_ENABLED || (!force && cache.isFresh(url))) return
         synchronized(pending) {
             if (!pending.add(url)) return
         }
@@ -127,41 +135,30 @@ class StreamFrameSnapshotManager(
     }
 
     /**
-     * Open [url] in a minimal muted ExoPlayer that renders into an offscreen [ImageReader], await the
-     * first decoded frame (or time out), copy that frame into a Bitmap, cache it, and release. Returns
-     * the bitmap, or null on timeout/error. ExoPlayer must be built and driven on the main looper; the
-     * ImageReader callback runs on its own handler, the Bitmap copy is CPU-side and View-free.
+     * Open [url] in a minimal muted ExoPlayer rendering into a transient off-screen [TextureView] added to
+     * the [hostProvider] container, await the first decoded frame (or time out), grab it via
+     * [TextureView.getBitmap], cache it, and release. Returns the bitmap, or null on no-host/timeout/error.
+     * Everything runs on the main looper: ExoPlayer, the view add/remove, and the getBitmap grab.
      */
     suspend fun capture(url: String): Bitmap? = withContext(Dispatchers.Main) {
+        val host = hostProvider()
+        if (host == null) {
+            Timber.i("Stream snapshot: no capture host - favicon fallback: %s", url)
+            return@withContext null
+        }
+        Timber.d("S0933: TextureView capture start %s", url)
         var player: ExoPlayer? = null
-        var imageReader: ImageReader? = null
-        var surface: Surface? = null
-        val firstFrame = CompletableDeferred<Bitmap?>()
+        var textureView: TextureView? = null
+        // true once the first frame is rendered, false on a player error; a timeout leaves it uncompleted.
+        val firstFrame = CompletableDeferred<Boolean>()
         try {
-            // A fixed-size offscreen reader: the decoder scales each frame into the thumbnail size, so the
-            // capture never allocates full-resolution buffers and needs no late resize on the real size.
-            val reader = ImageReader.newInstance(
-                CAPTURE_WIDTH_PX,
-                CAPTURE_HEIGHT_PX,
-                PixelFormat.RGBA_8888,
-                MAX_BUFFERED_IMAGES,
-            )
-            imageReader = reader
-            val readerSurface = reader.surface
-            surface = readerSurface
-            reader.setOnImageAvailableListener({ r ->
-                if (firstFrame.isCompleted) {
-                    // S0875: dispatched message can outlive capture()'s main-thread reader.close() - benign race.
-                    try {
-                        r.acquireLatestImage()?.close()
-                    } catch (e: IllegalStateException) {
-                        Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
-                    }
-                    return@setOnImageAvailableListener
-                }
-                val bitmap = readFrame(r)
-                if (!firstFrame.isCompleted) firstFrame.complete(bitmap)
-            }, readerHandler)
+            val tv = TextureView(host.context).apply {
+                layoutParams = ViewGroup.LayoutParams(CAPTURE_WIDTH_PX, CAPTURE_HEIGHT_PX)
+                // Kept drawn (so the SurfaceTexture receives frames) but pushed off the visible viewport.
+                translationX = OFFSCREEN_TRANSLATION_PX
+            }
+            textureView = tv
+            host.addView(tv)
 
             // Smaller live buffer than the full-screen stream player: a snapshot only needs the first
             // decoded frame, so a long backlog just wastes RAM/network on a budget device.
@@ -176,11 +173,15 @@ class StreamFrameSnapshotManager(
                 .build()
             player = built
             built.volume = 0f
-            built.setVideoSurface(readerSurface)
+            built.setVideoTextureView(tv)
             built.addListener(object : Player.Listener {
+                override fun onRenderedFirstFrame() {
+                    if (!firstFrame.isCompleted) firstFrame.complete(true)
+                }
+
                 override fun onPlayerError(error: PlaybackException) {
                     Timber.w(error, "Stream snapshot error - falling back to favicon: %s", url)
-                    if (!firstFrame.isCompleted) firstFrame.complete(null)
+                    if (!firstFrame.isCompleted) firstFrame.complete(false)
                 }
             })
             val liveConfiguration = MediaItem.LiveConfiguration.Builder()
@@ -193,9 +194,14 @@ class StreamFrameSnapshotManager(
             built.prepare()
             built.playWhenReady = true
 
-            val bitmap = withTimeoutOrNull(CAPTURE_TIMEOUT_MS) { firstFrame.await() }
-            if (bitmap == null) {
+            val rendered = withTimeoutOrNull(CAPTURE_TIMEOUT_MS) { firstFrame.await() }
+            if (rendered != true) {
                 Timber.i("Stream snapshot timed out or produced no frame: %s", url)
+                return@withContext null
+            }
+            val bitmap = tv.getBitmap(CAPTURE_WIDTH_PX, CAPTURE_HEIGHT_PX)
+            if (bitmap == null) {
+                Timber.i("Stream snapshot TextureView returned no bitmap: %s", url)
                 return@withContext null
             }
             cache.put(url, bitmap)
@@ -209,71 +215,35 @@ class StreamFrameSnapshotManager(
             Timber.w(t, "Stream snapshot failed: %s", url)
             null
         } finally {
-            // S0700 release contract: detach the surface before releasing the player, then release the
-            // player, the Surface and the ImageReader so no decoder session or graphics buffer leaks.
-            player?.setVideoSurface(null)
+            // S0700/S0933 release contract: detach the video output before releasing the player, then
+            // release the player and remove the transient view so no decoder session or view leaks.
+            player?.setVideoTextureView(null)
             player?.release()
-            surface?.release()
-            imageReader?.setOnImageAvailableListener(null, null)
-            imageReader?.close()
-        }
-    }
-
-    /**
-     * Copy the latest decoded frame out of [reader] into an ARGB_8888 Bitmap. The RGBA_8888 plane can be
-     * row-padded (rowStride > width * pixelStride), so the buffer is read into a padded bitmap and cropped
-     * back to the capture size. Returns null if no image is available or the copy fails.
-     */
-    private fun readFrame(reader: ImageReader): Bitmap? {
-        // S0875: acquire raced main-thread capture() teardown (reader closed) - benign, skip this frame.
-        val image = try {
-            reader.acquireLatestImage()
-        } catch (e: IllegalStateException) {
-            Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
-            null
-        } ?: return null
-        return try {
-            val plane = image.planes.firstOrNull()
-            if (plane == null) {
-                null
-            } else {
-                val pixelStride = plane.pixelStride
-                val rowStride = plane.rowStride
-                val rowPadding = rowStride - pixelStride * image.width
-                val paddedWidth = image.width + rowPadding / pixelStride
-                val padded = Bitmap.createBitmap(paddedWidth, image.height, Bitmap.Config.ARGB_8888)
-                padded.copyPixelsFromBuffer(plane.buffer)
-                if (rowPadding == 0) {
-                    padded
-                } else {
-                    val cropped = Bitmap.createBitmap(padded, 0, 0, image.width, image.height)
-                    if (cropped !== padded) padded.recycle()
-                    cropped
-                }
-            }
-        } catch (t: Throwable) {
-            Timber.w(t, "Stream snapshot frame readback failed")
-            null
-        } finally {
-            image.close()
+            textureView?.let { host.removeView(it) }
         }
     }
 
     private companion object {
+        // S0933: gates all grid frame capture. Re-enabled with the TextureView path (see class KDoc) - the
+        // offscreen-ImageReader engine native-killed the process on some HW decoders (S0700), which a Java
+        // guard could not catch. A null [hostProvider] still skips capture, so it is a no-op without UI.
+        const val CAPTURE_ENABLED = true
+
         // S0700: live HLS on a software decoder needs well over the old 6 s to fetch the manifest, pull a
         // segment, decode and render the first frame; 6 s timed out before any thumbnail appeared.
         const val CAPTURE_TIMEOUT_MS = 12_000L
-        const val MAX_CONCURRENT_CAPTURES = 2
 
-        // Thumbnail capture size (16:9). The decoder scales into this offscreen reader; the grid tile is
+        // One capture at a time keeps a single transient TextureView in the host and one live decoder
+        // session during the grid's initial sweep.
+        const val MAX_CONCURRENT_CAPTURES = 1
+
+        // Thumbnail capture size (16:9). The decoder scales into the TextureView; the grid tile is
         // ~518x291 px on the test device, so this matches without over-allocating full-frame buffers.
         const val CAPTURE_WIDTH_PX = 640
         const val CAPTURE_HEIGHT_PX = 360
-        const val MAX_BUFFERED_IMAGES = 2
 
-        // ImageReader callbacks (and the CPU-side pixel copy) run on a dedicated background looper so the
-        // ~1 MB RGBA readback never touches the main thread. One shared thread serves all captures.
-        val readerHandler: Handler =
-            Handler(HandlerThread("StreamFrameReader").apply { start() }.looper)
+        // S0933: the capture TextureView stays drawn (SurfaceTexture keeps receiving frames) but is pushed
+        // far off the visible viewport so it never appears over the grid.
+        const val OFFSCREEN_TRANSLATION_PX = -10_000f
     }
 }

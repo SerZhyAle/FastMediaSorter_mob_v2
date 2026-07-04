@@ -25,11 +25,11 @@
 - Packages: `ui/` (no business logic), `domain/`, `data/`, `di/`, `core/`, `util/`, `utils/`, `worker/`, `widget/`.
 
 ## 5. Strict Constraints
-1. No root writes. Use `temp/` for logs/backups.
+1. No root writes; use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files). See CLAUDE.md Rule 10.1.
 2. File size limit 1500 LOC. Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic. Delegate to Manager/Helper classes.
 4. Timber only (no `Log.d()`). No `Sxxxx` ticket in permanent logs.
-5. Safety backup: timestamped copy in `temp/` before editing file >500 LOC.
+5. Safety backup: timestamped copy under `temp/Sxxxx/` (or `temp/scratch/` when no ticket) before editing file >500 LOC.
 6. Changelog: run `.\scripts\add_to_dev_log.ps1` after every change (except `/skill-fix`).
 7. Feature docs: update `docs/FEATURES*.md` on new features.
 8. Comment discipline: EN-only, WHY not WHAT, no trivial comments.
@@ -45,7 +45,7 @@
 
 ## 6. Workflow Stages (5-Step Engineering Workflow)
 - Step 0 TASK DEFINITION: ask clarifying questions; output RU desc to `dev/`; UI gate checks.
-- Step 1 RESEARCH: analyze AS-IS; collect exact lines/files/paths to `temp/`.
+- Step 1 RESEARCH: analyze AS-IS; collect exact lines/files/paths to `temp/Sxxxx/` (or `temp/scratch/`).
 - Step 2 DESIGN: C4 design; output RU design to `dev/`; wait for human review.
 - Step 3 PLANNING: EN execution plan as markdown checklist.
 - Step 4 IMPLEMENTATION: execute step-by-step; build/commit after each step; update features inventory.

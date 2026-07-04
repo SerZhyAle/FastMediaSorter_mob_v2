@@ -36,7 +36,9 @@ import javax.inject.Inject
  * Field-injected into WelcomeActivity (Hilt deps) and [attach]ed to it so it can own an
  * ActivityResultLauncher. [attach] re-wires the host references on every recreation; the default-player
  * stage progress (in-progress flag + current type index) survives rotation via
- * [onSaveInstanceState]/[onRestoreInstanceState], mirroring [WelcomePermissionsManager].
+ * [onSaveInstanceState]/[onRestoreInstanceState], mirroring [WelcomePermissionsManager]. A recreation
+ * mid permissions-stage also re-arms [WelcomePermissionsManager.reattachGrantAllCallback] so the finished
+ * permissions run still chains into this stage instead of silently stalling (S0910).
  */
 class WelcomeEnableAllManager @Inject constructor(
     private val enableAllSettingsUseCase: ApplyEnableAllSettingsUseCase,
@@ -61,6 +63,12 @@ class WelcomeEnableAllManager @Inject constructor(
     private var inProgress = false
     private var currentTypeIndex = 0
 
+    // True once beginDefaultPlayerStage() has run at least once in this sequence. Distinguishes, on
+    // recreation, "still mid permissions stage" (needs its completion callback reattached, S0910) from
+    // "already walking the default-player types" (resume already works via currentTypeIndex + the
+    // re-registered defaultPlayerLauncher).
+    private var defaultPlayerStageStarted = false
+
     /** Wire the manager to its host. Called from setupViews on every (re)creation so the launcher and
      *  host references are valid again after a configuration change. */
     fun attach(
@@ -84,12 +92,22 @@ class WelcomeEnableAllManager @Inject constructor(
     fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(STATE_IN_PROGRESS, inProgress)
         outState.putInt(STATE_TYPE_INDEX, currentTypeIndex)
+        outState.putBoolean(STATE_DEFAULT_PLAYER_STAGE_STARTED, defaultPlayerStageStarted)
     }
 
     fun onRestoreInstanceState(state: Bundle?) {
         state ?: return
         inProgress = state.getBoolean(STATE_IN_PROGRESS, false)
         currentTypeIndex = state.getInt(STATE_TYPE_INDEX, 0)
+        defaultPlayerStageStarted = state.getBoolean(STATE_DEFAULT_PLAYER_STAGE_STARTED, false)
+        // S0910: a recreation mid permissions-stage loses WelcomePermissionsManager's transient
+        // completion callback - reattach it here so the finished run still chains into this stage
+        // instead of silently stalling. Runs after WelcomeActivity has already restored the
+        // permissions manager's own state (its onRestoreInstanceState is called before this one), so
+        // grantAllInProgress is already correct when reattachGrantAllCallback checks it.
+        if (inProgress && !defaultPlayerStageStarted) {
+            permissionsManager?.reattachGrantAllCallback { beginDefaultPlayerStage() }
+        }
     }
 
     /** Kick off the full sequence. [applyProfileOther] sets the device profile to OTHER and persists it
@@ -116,6 +134,7 @@ class WelcomeEnableAllManager @Inject constructor(
     }
 
     private fun beginDefaultPlayerStage() {
+        defaultPlayerStageStarted = true
         // lite and other builds without default-player support skip straight to completion (S0409 crit. 9).
         if (!mediaCapabilities.supportsDefaultPlayer) {
             finishSequence()
@@ -144,6 +163,7 @@ class WelcomeEnableAllManager @Inject constructor(
     private fun finishSequence() {
         inProgress = false
         currentTypeIndex = 0
+        defaultPlayerStageStarted = false
         onFinished?.invoke()
     }
 
@@ -197,6 +217,7 @@ class WelcomeEnableAllManager @Inject constructor(
     companion object {
         private const val STATE_IN_PROGRESS = "welcome_enable_all_in_progress"
         private const val STATE_TYPE_INDEX = "welcome_enable_all_type_index"
+        private const val STATE_DEFAULT_PLAYER_STAGE_STARTED = "welcome_enable_all_default_player_stage_started"
         private const val KEY_DEFAULT_PLAYER = "welcome_enable_all_default_player"
     }
 }

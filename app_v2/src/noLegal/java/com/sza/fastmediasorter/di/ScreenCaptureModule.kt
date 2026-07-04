@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.screencapture.ScreenGestureOverlayControllerImpl
+import com.sza.fastmediasorter.widget.QuickRecorderIndicatorController
+import com.sza.fastmediasorter.widget.QuickRecorderIndicatorControllerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +19,10 @@ abstract class ScreenCaptureModule {
     abstract fun bindController(
         impl: ScreenGestureOverlayControllerImpl
     ): ScreenGestureOverlayController
+
+    @Binds
+    @IntoSet
+    abstract fun bindQuickRecorderIndicatorController(
+        impl: QuickRecorderIndicatorControllerImpl
+    ): QuickRecorderIndicatorController
 }
