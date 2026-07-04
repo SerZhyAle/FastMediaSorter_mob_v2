@@ -355,7 +355,6 @@ class StreamsViewModel @Inject constructor(
 
     /** S0938: move a pinned channel within the pinned set; the ordered DAO queries re-emit the new order. */
     fun onMovePinned(source: StreamSourceEntity, move: PinnedStreamMove) = viewModelScope.launch {
-        Timber.d("S0938: reorder pinned ${source.id} move=$move")
         reorderPinnedStream(source.id, move)
     }
 

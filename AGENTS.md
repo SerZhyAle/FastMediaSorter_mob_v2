@@ -6,7 +6,7 @@
 
 ## 2. Communication
 - Chat: RU. Code, docs, logs, commits, changelog: EN. Dry, concise.
-- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): `..` (never `...`), plain hyphen `-` (never em-dash `—`, en-dash `–`, or horizontal bar `―`), Russian Ё/ё where grammatically correct. Never enforce these typography rules in code, technical/tactical specs, commands, logs, or chat.
+- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): `..` (never `...`), plain hyphen `-` (never em-dash `-`, en-dash `–`, or horizontal bar `―`), Russian Ё/ё where grammatically correct. Never enforce these typography rules in code, technical/tactical specs, commands, logs, or chat.
 - Timestamps: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
 
 ## 3. Core Rules

@@ -260,7 +260,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         )
         val launchLandscape =
             resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("S0940: setup placement, landscape=$launchLandscape")
         controlsPlacement.applyForOrientation(launchLandscape)
 
         // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
@@ -752,7 +751,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // bar (portrait) live on rotation, since the window is not recreated here.
         if (::controlsPlacement.isInitialized) {
             val landscape = newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-            Timber.d("S0940: rotation placement, landscape=$landscape")
             controlsPlacement.applyForOrientation(landscape)
         }
     }

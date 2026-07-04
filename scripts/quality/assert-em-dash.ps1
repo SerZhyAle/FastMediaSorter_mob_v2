@@ -6,7 +6,7 @@
 .DESCRIPTION
     Part of the neuroslop hygiene family (CLAUDE.md Rule 19). The project writing
     standard is the plain ASCII hyphen-minus `-`, never the typographic long
-    dashes. AI-generated text routinely emits the em-dash `—` (U+2014), en-dash
+    dashes. AI-generated text routinely emits the em-dash `-` (U+2014), en-dash
     `–` (U+2013) and horizontal bar `―` (U+2015) it was trained on. In code,
     comments and KDoc these are pure stylistic residue that must be replaced with
     a hyphen `-`.
@@ -17,7 +17,7 @@
 
     Matches three code points as one count:
       - U+2013 en-dash  `–`
-      - U+2014 em-dash  `—`
+      - U+2014 em-dash  `-`
       - U+2015 horizontal bar `―`
 
     Baseline lives in scripts/quality/em-dash-baseline.txt (single int).
@@ -52,7 +52,7 @@ $mainRoot = Join-Path $repoRoot 'app_v2/src/main'
 $baselineFile = Join-Path $PSScriptRoot 'em-dash-baseline.txt'
 
 # Long-dash code points that must be a plain hyphen-minus in code/comments.
-$rx = [regex]'[–—―]'
+$rx = [regex]'[–-―]'
 
 # S0850: delta mode - same regex as the full scan, applied per changed file (working vs HEAD),
 # mirroring the flavor-flags/deprecated-pm wiring from S0848 Phase 04.

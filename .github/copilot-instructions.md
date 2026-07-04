@@ -5,7 +5,7 @@
 
 ## 2. Style & Communication
 - Chat: RU. Code/Docs/Logs/Commits: EN. Dry, concise.
-- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): use `..` (never `...`), plain hyphen `-` (never `—`, `–`, `―`), and RU Ё/ё where grammatically correct. Never enforce these typography rules in code, technical specs, commands, logs, or chat.
+- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): use `..` (never `...`), plain hyphen `-` (never `-`, `–`, `―`), and RU Ё/ё where grammatically correct. Never enforce these typography rules in code, technical specs, commands, logs, or chat.
 - Caveman Mode: trigger `/caveman` / `be brief`. RU chat, EN code, drop filler.
 - Spec Writing: lists over tables (tables only 3+ columns); no pseudographics; no self-evident links; one idea per bullet; no section summaries; Draft specs exempt.
 

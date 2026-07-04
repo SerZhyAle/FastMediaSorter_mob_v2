@@ -122,7 +122,6 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             val ready = _state.value as? GameUiState.Ready ?: return@launch
             if (!ready.canAcceptMoves) return@launch
-            Timber.d("S0928: skipTurn turns=${ready.turns}")
 
             val result = rulesEngine.applySkipTurn(ready.levelState)
             if (!result.accepted) {

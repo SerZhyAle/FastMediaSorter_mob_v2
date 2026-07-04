@@ -128,7 +128,6 @@ class PlayerGestureCallbackImpl(
      */
     private fun isPageSwipeSuppressed(): Boolean {
         val suppressed = viewModel.settings.value.gestureOverlayEnabled
-        if (suppressed) Timber.d("S0927: page-swipe suppressed (gesture overlay on)")
         return suppressed
     }
 

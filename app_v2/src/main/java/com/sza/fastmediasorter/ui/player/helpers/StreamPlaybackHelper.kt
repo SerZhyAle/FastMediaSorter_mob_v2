@@ -134,6 +134,9 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
             Timber.d("Stream state=%s reconnecting=%b path=%s", streamStateLabel(playbackState), reconnecting, path)
             when (playbackState) {
                 Player.STATE_BUFFERING -> {
+                    // S0936: arm the buffering-without-ready timeout - a live stall can present as
+                    // BUFFERING that never returns to READY, with no PlaybackException to recover from.
+                    armStreamBufferingTimeout()
                     playerCallback.onBuffering(true)
                     playerCallback.onStreamWaitPhase(
                         if (reconnecting) VideoPlayerManager.StreamWaitPhase.RECONNECTING
@@ -146,12 +149,18 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                     behindLiveRecoveries = 0
                     transientRetries = 0
                     reconnecting = false
+                    // S0936: (re)start the position-stall poll; also clears any pending
+                    // buffering-timeout runnable armed above (cancelStreamStallWatchdog is called first).
+                    startStreamStallWatchdog()
                     playerCallback.onBuffering(false)
                     playerCallback.onStreamWaitPhase(null)
                     playerCallback.onPlaybackReady()
                 }
-                Player.STATE_ENDED -> playerCallback.onPlaybackEnded()
-                Player.STATE_IDLE -> Unit
+                Player.STATE_ENDED -> {
+                    cancelStreamStallWatchdog()
+                    playerCallback.onPlaybackEnded()
+                }
+                Player.STATE_IDLE -> cancelStreamStallWatchdog()
             }
         }
 

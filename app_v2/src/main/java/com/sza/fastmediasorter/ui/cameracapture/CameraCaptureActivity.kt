@@ -327,7 +327,6 @@ class CameraCaptureActivity :
     private fun maybeAutoCapture() {
         if (!flowManager.autoCapture || autoCaptureFired) return
         autoCaptureFired = true
-        if (flowManager.isVideoMode) Timber.d("S0926: auto-start video recording on preview ready")
         triggerCapture()
     }
 

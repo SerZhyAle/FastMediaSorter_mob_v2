@@ -143,7 +143,6 @@ class StreamFrameSnapshotManager(
             Timber.i("Stream snapshot: no capture host - favicon fallback: %s", url)
             return@withContext null
         }
-        Timber.d("S0933: TextureView capture start %s", url)
         var player: ExoPlayer? = null
         var textureView: TextureView? = null
         // true once the first frame is rendered, false on a player error; a timeout leaves it uncompleted.

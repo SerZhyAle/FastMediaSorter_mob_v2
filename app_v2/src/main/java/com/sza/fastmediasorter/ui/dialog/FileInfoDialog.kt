@@ -517,7 +517,6 @@ class FileInfoDialog(
         // Image EXIF fallback - S0929: local photos carry null MediaFile.exif* (MediaStore path),
         // so fill capture time + clickable geotag from the async detailed read.
         if (mediaFile.type == MediaType.IMAGE || mediaFile.type == MediaType.GIF) {
-            timber.log.Timber.d("S0929: image exif fill date=${details.dateTimeTaken} gps=${details.latitude}")
             if (mediaFile.exifDateTime == null && details.dateTimeTaken != null) {
                 binding.tvExifDateTime.text = context.getString(
                     R.string.exif_datetime_label,
@@ -642,7 +641,6 @@ class FileInfoDialog(
         view.isClickable = true
         view.isFocusable = true
         view.setOnClickListener {
-            timber.log.Timber.d("S0929: geotag tap $latitude,$longitude")
             launchManager.openLocationInMaps(latitude, longitude)
         }
     }
