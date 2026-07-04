@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.res.Configuration
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.ui.main.MainState
 import timber.log.Timber
 
 /**
@@ -126,6 +128,69 @@ class MainLayoutChromeManager(
             }
             gridSpacingDecoration = dec
             binding.rvResources.addItemDecoration(dec)
+        }
+    }
+
+    /**
+     * S0289: rebuild the horizontal focus chain across only the currently-visible control-bar buttons.
+     * Skipped (GONE) buttons drop out of nextFocusLeft/nextFocusRight so the chain stays contiguous.
+     */
+    fun restitchControlBarFocusChain() {
+        val candidates = listOf(
+            binding.btnExit,
+            binding.btnAddResource,
+            binding.btnFilter,
+            binding.btnRefresh,
+            binding.btnMainDropdownMenu,
+            binding.btnSettings,
+            binding.btnToggleView,
+            binding.btnFavorites,
+            binding.btnStartPlayer
+        ).filter { it.visibility == View.VISIBLE }
+        if (candidates.isEmpty()) return
+        candidates.forEachIndexed { i, btn ->
+            val prev = if (i > 0) candidates[i - 1].id else View.NO_ID
+            val next = if (i < candidates.lastIndex) candidates[i + 1].id else View.NO_ID
+            btn.nextFocusLeftId = prev
+            btn.nextFocusRightId = next
+        }
+    }
+
+    /**
+     * RecyclerView bottom inset so the last item clears the nav bar. Runs inside setupViews' post{},
+     * so it re-requests insets after the initial dispatch was already missed.
+     */
+    fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
+            (view as? android.view.ViewGroup)?.clipToPadding = false
+            insets
+        }
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
+    }
+
+    /** Filter-active banner: show a summary of the active type/media/name filters, or hide when none. */
+    fun updateFilterWarning(state: MainState) {
+        val hasFilters = state.filterByType != null ||
+            state.filterByMediaType != null ||
+            !state.filterByName.isNullOrBlank()
+
+        if (hasFilters) {
+            val parts = mutableListOf<String>()
+            state.filterByType?.let { types ->
+                parts.add("Type: ${types.joinToString(", ")}")
+            }
+            state.filterByMediaType?.let { mediaTypes ->
+                parts.add("Media: ${mediaTypes.joinToString(", ")}")
+            }
+            state.filterByName?.takeIf { it.isNotBlank() }?.let { name ->
+                parts.add("Name: '$name'")
+            }
+            binding.tvFilterWarning.text = activity.getString(R.string.filters_active, parts.joinToString(" | "))
+            binding.tvFilterWarning.isVisible = true
+        } else {
+            binding.tvFilterWarning.isVisible = false
         }
     }
 }

@@ -99,25 +99,10 @@
     "ru": "Выбирает ресурс-назначение для сохранения записанных видеофайлов.",
     "uk": "Вибирає ресурс призначення для збереження записаних відеофайлів."
   },
-  "btnSettingsDefaultPlayerAudio": {
-    "en": "Sets which app opens audio files by default when tapped from outside this app.",
-    "ru": "Определяет, какое приложение открывает аудиофайлы по умолчанию при запуске извне.",
-    "uk": "Визначає, який застосунок відкриває аудіофайли за замовчуванням при запуску ззовні."
-  },
-  "btnSettingsDefaultPlayerDocs": {
-    "en": "Sets which app opens document files by default when tapped from outside this app.",
-    "ru": "Определяет, какое приложение открывает документы по умолчанию при запуске извне.",
-    "uk": "Визначає, який застосунок відкриває документи за замовчуванням при запуску ззовні."
-  },
-  "btnSettingsDefaultPlayerImages": {
-    "en": "Sets which app opens image files by default when tapped from outside this app.",
-    "ru": "Определяет, какое приложение открывает изображения по умолчанию при запуске извне.",
-    "uk": "Визначає, який застосунок відкриває зображення за замовчуванням при запуску ззовні."
-  },
-  "btnSettingsDefaultPlayerVideo": {
-    "en": "Sets which app opens video files by default when tapped from outside this app.",
-    "ru": "Определяет, какое приложение открывает видеофайлы по умолчанию при запуске извне.",
-    "uk": "Визначає, який застосунок відкриває відеофайли за замовчуванням при запуску ззовні."
+  "btnOpenDefaultAppsDialog": {
+    "en": "Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents.",
+    "ru": "Открывает диалог «Приложение по умолчанию», где можно назначить это приложение обработчиком изображений, аудио, видео и документов по умолчанию.",
+    "uk": "Відкриває діалог «Застосунок за замовчуванням», де можна призначити цей застосунок обробником зображень, аудіо, відео та документів за замовчуванням."
   },
   "etMaxRecipients": {
     "en": "Sets the maximum number of recipients (1-30) when sharing files.",
@@ -144,10 +129,25 @@
     "ru": "Папки и ресурсы, используемые как назначения при быстрой сортировке файлов.",
     "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
-  "headerOtherFeatures": {
-    "en": "Settings for capturing photos and videos, recording voice notes, and other supplementary features.",
-    "ru": "Настройки съёмки фото и видео, записи с диктофона и прочего дополнительного функционала.",
-    "uk": "Налаштування зйомки фото та відео, запису з диктофона та інших додаткових функцій."
+  "headerCameraPhotos": {
+    "en": "Settings for taking photos with the in-app camera and choosing where captured photos are saved.",
+    "ru": "Настройки съёмки фото встроенной камерой и выбора папки для сохранения снимков.",
+    "uk": "Налаштування зйомки фото вбудованою камерою та вибору теки для збереження знімків."
+  },
+  "headerVideoCapture": {
+    "en": "Settings for recording video with the in-app camera and choosing where recordings are saved.",
+    "ru": "Настройки записи видео встроенной камерой и выбора папки для сохранения записей.",
+    "uk": "Налаштування запису відео вбудованою камерою та вибору теки для збереження записів."
+  },
+  "headerMicRecording": {
+    "en": "Settings for recording voice notes with the microphone and choosing where recordings are saved.",
+    "ru": "Настройки записи с микрофона (диктофон) и выбора папки для сохранения записей.",
+    "uk": "Налаштування запису з мікрофона (диктофон) та вибору теки для збереження записів."
+  },
+  "headerScreenRecording": {
+    "en": "Settings for recording video of the screen and choosing where recordings are saved.",
+    "ru": "Настройки записи видео с экрана и выбора папки для сохранения записей.",
+    "uk": "Налаштування запису відео з екрана та вибору теки для збереження записів."
   },
   "headerSafety": {
     "en": "Settings that control how files are deleted and whether a trash folder is used.",
@@ -168,11 +168,6 @@
     "en": "Settings that control how the app integrates with the Android operating system.",
     "ru": "Настройки взаимодействия приложения с операционной системой Android.",
     "uk": "Налаштування взаємодії застосунку з операційною системою Android."
-  },
-  "rowAcceptSharedFiles": {
-    "en": "Allows other apps to share files directly into this app via the Android share sheet.",
-    "ru": "Разрешает другим приложениям передавать файлы в это приложение через меню «Поделиться».",
-    "uk": "Дозволяє іншим застосункам передавати файли в цей застосунок через меню «Поділитися»."
   },
   "rowCameraAskFilename": {
     "en": "Prompts you to enter a name for each photo immediately after it is captured.",
@@ -328,11 +323,6 @@
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
     "ru": "Не даёт устройству уйти в спящий режим, пока приложение активно на переднем плане.",
     "uk": "Не дає пристрою перейти в сплячий режим, поки застосунок активний на передньому плані."
-  },
-  "rowPrimaryMediaPlayer": {
-    "en": "Registers this app as a system-level media handler so it receives media intents from other apps.",
-    "ru": "Регистрирует приложение как системный обработчик медиафайлов для получения запросов от других приложений.",
-    "uk": "Реєструє застосунок як системний обробник медіафайлів для отримання запитів від інших застосунків."
   },
   "rowResumeOnNextLaunch": {
     "en": "Resumes playback from where it was stopped the next time you open the app.",

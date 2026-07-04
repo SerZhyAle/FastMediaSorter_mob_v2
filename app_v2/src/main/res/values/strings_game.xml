@@ -60,4 +60,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Door - exit to the next level</string>
     <string name="game_help_legend_wall_kryvavitsa">Black wall - can be pushed</string>
     <string name="game_help_rules_kryvavitsa">Use arrows, keyboard, D-pad, swipe, or tap the board to move one cell.\nThe woman with the machine gun hunts the man. Her knife-wielding helpers wander randomly, stomping as they move.\nPush black walls into free cells to clear a path. The thick border blocks leaving the board.\nScore: -10 per move, +10 for pushing a wall, +50 for crushing a helper, +1000 for reaching the door.\nIf any enemy reaches the same or neighboring cell, the game ends.</string>
+    <string name="game_skip_turn">Skip turn</string>
 </resources>

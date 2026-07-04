@@ -134,7 +134,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private fun launchVideoCamera(context: Context) {
         // S0795: reuse the S0788 camera trampoline but force video mode - the user frames and taps
         // record, then the clip is saved to the public Movies folder like the camera widget.
-        Timber.d("S0795: edge-gesture start video recording")
         val intent = CameraLaunchActivity.videoIntent(context)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
@@ -155,7 +154,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         // S0797: reuse the screen-recording controller via a transparent trampoline that owns the
         // FragmentActivity + permission launchers controller.launch() requires. The action is offered
         // only where the capture engine is present, so the trampoline no-ops on other flavors.
-        Timber.d("S0797: edge-gesture toggle screen recording")
         val intent = Intent(context, ScreenRecordingLaunchActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }

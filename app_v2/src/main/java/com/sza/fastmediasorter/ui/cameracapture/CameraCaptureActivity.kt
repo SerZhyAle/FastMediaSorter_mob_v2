@@ -626,7 +626,6 @@ class CameraCaptureActivity :
         } else {
             null
         }
-        Timber.d("S0766: geotag enabled=%s perm=%s loc=%s", geotagEnabled, hasLocationPermission(), location != null)
 
         sessionManager.capture(
             previewView = binding.previewViewCamera,

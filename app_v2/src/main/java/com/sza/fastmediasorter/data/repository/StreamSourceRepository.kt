@@ -43,6 +43,19 @@ class StreamSourceRepository @Inject constructor(
         dao.pin(id, newSortIndex)
     }
 
+    /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
+    suspend fun pinnedSnapshot(): List<StreamSourceEntity> = dao.pinnedSnapshot()
+
+    /**
+     * S0938: persist a new pinned order by renumbering the whole set contiguously (0..N-1) in one
+     * transaction, so a kill mid-renumber cannot leave a partially reordered list. The caller owns the
+     * move math; this only writes the id order it is given.
+     */
+    suspend fun reorderPinned(orderedIds: List<String>) =
+        db.withTransaction {
+            orderedIds.forEachIndexed { index, id -> dao.setSortIndex(id, index) }
+        }
+
     suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
 
     /** S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept. */

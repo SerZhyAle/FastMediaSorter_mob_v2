@@ -172,6 +172,21 @@ class StreamsFilterTest {
     }
 
     @Test
+    fun `pinned rows keep manual order while unpinned follow the chosen sort`() {
+        // S0938: pinned block preserves its incoming (sortIndex) order; only unpinned rows sort by NAME.
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("p2", title = "B", pinned = true),
+                source("p1", title = "A", pinned = true),
+                source("u2", title = "D", pinned = false),
+                source("u1", title = "C", pinned = false),
+            ),
+            StreamsFilter(sort = SortMode.NAME),
+        )
+        assertEquals(listOf("p2", "p1", "u1", "u2"), result.map { it.id })
+    }
+
+    @Test
     fun `country sort places unknown-country rows last`() {
         val result = StreamsViewModel.applyFilter(
             listOf(

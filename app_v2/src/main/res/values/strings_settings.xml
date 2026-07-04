@@ -22,7 +22,6 @@
     <string name="settings_category_images">Images, GIFs and slideshow</string>
     <string name="settings_category_interface">General interface settings</string>
     <string name="settings_category_other">Translation, digitization (OCR)</string>
-    <string name="settings_category_other_features">Photo, Video, Voice recorder</string>
     <string name="settings_category_other_functionality">Other functionality</string>
     <string name="settings_category_permissions">Permissions &amp; Access</string>
     <string name="settings_category_player_ui">Player interface and commands</string>
@@ -229,7 +228,6 @@
     <string name="setting_video_recording_destination_title">Video recordings destination</string>
     <string name="setting_video_recording_destination_default_movies">Default: if current resource is unavailable, device Movies folder</string>
     <string name="setting_select_destination">Select resource..</string>
-    <string name="setting_subgroup_default_player_title">Default app</string>
     <string name="settings_default_player_btn_images">Default image viewer</string>
     <string name="settings_default_player_btn_audio">Default audio player</string>
     <string name="settings_default_player_btn_video">Default video player</string>
@@ -246,4 +244,10 @@
     <string name="setting_screen_recording_destination_default_downloads">Default: Downloads folder</string>
     <string name="setting_open_video_in_fullscreen_title">Open video files in fullscreen mode</string>
     <string name="setting_open_video_in_fullscreen_desc">Videos opened from Browse launch straight into fullscreen playback</string>
+    <string name="settings_group_photography">Photography</string>
+    <string name="settings_group_video_recording">Video recording</string>
+    <string name="settings_group_voice_recorder">Voice recorder</string>
+    <string name="settings_group_screen_recording">Screen recording</string>
+    <string name="settings_open_default_apps_dialog">Set as default</string>
+    <string name="default_apps_dialog_title">Default app</string>
 </resources>

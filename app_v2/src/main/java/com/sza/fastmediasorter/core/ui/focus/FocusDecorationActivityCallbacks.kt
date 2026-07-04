@@ -7,30 +7,30 @@ import androidx.fragment.app.FragmentActivity
 import java.util.WeakHashMap
 
 /**
- * S0819: attaches one [FocusFrameController] to every Activity window, registered once in
+ * S0943: attaches one [FocusDecorationController] to every Activity window, registered once in
  * `FastMediaSorterApp`. This blankets all screens (every `BaseActivity` subclass and direct
- * `AppCompatActivity`) with the travelling D-pad/TV focus frame without per-Activity edits.
+ * `AppCompatActivity`) with the in-place D-pad/TV focus decoration without per-Activity edits.
  *
  * A [WeakHashMap] keyed by Activity avoids retaining a destroyed Activity if `onActivityDestroyed`
  * is ever skipped; the controller is still explicitly detached there to remove its listeners.
  */
-class FocusFrameActivityCallbacks : Application.ActivityLifecycleCallbacks {
+class FocusDecorationActivityCallbacks : Application.ActivityLifecycleCallbacks {
 
-    private val controllers = WeakHashMap<Activity, FocusFrameController>()
+    private val controllers = WeakHashMap<Activity, FocusDecorationController>()
 
     // One fragment-callbacks registration per FragmentActivity so DialogFragment / bottom-sheet
-    // windows (their own Window) also get the frame; kept to unregister symmetrically on destroy.
-    private val fragmentCallbacks = WeakHashMap<Activity, FocusFrameFragmentCallbacks>()
+    // windows (their own Window) also get decorated; kept to unregister symmetrically on destroy.
+    private val fragmentCallbacks = WeakHashMap<Activity, FocusDecorationFragmentCallbacks>()
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        // Opt-out for screens that manage their own focus surface (e.g. VR), see FocusFrameExcluded.
-        if (activity is FocusFrameExcluded) return
-        val controller = FocusFrameController(activity.window)
+        // Opt-out for screens that manage their own focus surface (e.g. VR), see FocusDecorationExcluded.
+        if (activity is FocusDecorationExcluded) return
+        val controller = FocusDecorationController(activity.window)
         controller.attach()
         controllers[activity] = controller
 
         if (activity is FragmentActivity) {
-            val callbacks = FocusFrameFragmentCallbacks()
+            val callbacks = FocusDecorationFragmentCallbacks()
             activity.supportFragmentManager.registerFragmentLifecycleCallbacks(callbacks, true)
             fragmentCallbacks[activity] = callbacks
         }

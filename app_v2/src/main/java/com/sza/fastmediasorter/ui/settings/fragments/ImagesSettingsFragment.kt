@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -113,6 +114,8 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         }
 
         // Select music source button
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(binding.btnSelectMusicSource, binding.btnSelectMusicSource.contentDescription)
         binding.btnSelectMusicSource.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.ResourcePickerDialog(
                 context = requireContext(),

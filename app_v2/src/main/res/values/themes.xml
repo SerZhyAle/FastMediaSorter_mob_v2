@@ -40,12 +40,6 @@
 
         <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
-
-        <!-- S0819: travelling focus-frame tokens. Colour tracks the active accent via ?attr/colorPrimary,
-             so each of the six accent overlays re-tints the frame with no per-overlay edit. -->
-        <item name="focusFrameColor">?attr/colorPrimary</item>
-        <item name="focusFrameStrokeWidth">@dimen/focus_frame_stroke_width</item>
-        <item name="focusFrameCornerRadius">@dimen/focus_frame_corner_radius</item>
     </style>
 
     <!-- S0538: applied via theme.applyStyle() in BaseActivity when compact mode is on. -->

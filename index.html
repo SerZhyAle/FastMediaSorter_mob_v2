@@ -749,17 +749,17 @@
             <!-- Dashboard Variant Switcher (S0387) -->
             <div class="variant-switcher">
                 <span class="variant-title">Dashboard:</span>
-                <button class="variant-btn active" id="var-btn-v1">🗂️ Categories</button>
-                <button class="variant-btn" id="var-btn-v2">🗺️ Media Map</button>
-                <button class="variant-btn" id="var-btn-v3">✨ Highlights / All</button>
-                <button class="variant-btn" id="var-btn-v4">🎯 Scenarios</button>
+                <button class="variant-btn active" id="var-btn-v1">Categories</button>
+                <button class="variant-btn" id="var-btn-v2">Media Map</button>
+                <button class="variant-btn" id="var-btn-v3">Highlights / All</button>
+                <button class="variant-btn" id="var-btn-v4">Scenarios</button>
             </div>
 
             <div class="explorer-controls">
                 <div class="explorer-tabs">
-                    <button class="tab-btn active" id="tab-all">🌟 Highlights</button>
-                    <button class="tab-btn" id="tab-standard">📱 Standard (Mobile / TV / Car)</button>
-                    <button class="tab-btn vr-tab" id="tab-vr">🥽 VR Edition (Meta Quest / XR)</button>
+                    <button class="tab-btn active" id="tab-all">Highlights</button>
+                    <button class="tab-btn" id="tab-standard">Standard (Mobile / TV / Car)</button>
+                    <button class="tab-btn vr-tab" id="tab-vr">VR Edition (Meta Quest / XR)</button>
                 </div>
                 <div class="search-wrapper">
                     <span class="search-icon">🔍</span>
@@ -770,8 +770,8 @@
             <!-- Additional controls for Variant 3 (Highlights / All toggle) -->
             <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
                 <div class="toggle-v3-group">
-                    <button class="toggle-v3-btn active" id="toggle-v3-key">✨ Highlights</button>
-                    <button class="toggle-v3-btn" id="toggle-v3-all">📋 All Features</button>
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">Highlights</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">All Features</button>
                 </div>
             </div>
 
@@ -795,7 +795,7 @@
 
         <!-- Full Feature List (SEO fallback details panel) -->
         <details class="full-features-panel">
-            <summary>📋 Canonical Feature Inventory (Jekyll Markdown)</summary>
+            <summary>Canonical Feature Inventory (Jekyll Markdown)</summary>
             <div id="full-features-content" class="full-features-content">
                 <em>Loading canonical feature list..</em>
             </div>
@@ -1127,40 +1127,40 @@
             };
 
             var majorCategories = [
-                { id: 'network', label: '🌐 Network & Cloud' },
-                { id: 'players', label: '🎬 Players & Slideshow' },
-                { id: 'filemanager', label: '📂 File Manager' },
-                { id: 'notes', label: '📝 Notes, Editors & OCR' },
-                { id: 'widgets', label: '🧩 Widgets & Integration' },
-                { id: 'setup', label: '⚙️ Setup & Navigation' },
-                { id: 'vr', label: '🥽 VR Mode' }
+                { id: 'network', label: 'Network & Cloud' },
+                { id: 'players', label: 'Players & Slideshow' },
+                { id: 'filemanager', label: 'File Manager' },
+                { id: 'notes', label: 'Notes, Editors & OCR' },
+                { id: 'widgets', label: 'Widgets & Integration' },
+                { id: 'setup', label: 'Setup & Navigation' },
+                { id: 'vr', label: 'VR Mode' }
             ];
 
             var dashboardColumns = [
-                { id: 'sources', label: '📡 Sources', categories: [1, 14] },
-                { id: 'processing', label: '⚙️ Processing', categories: [2, 3, 4, 6] },
-                { id: 'viewers', label: '🍿 Viewers', categories: [5, 7, 9, 10, 11, 12, 13] },
-                { id: 'platforms', label: '📱 Platforms', categories: [0, 8, 15, 16] }
+                { id: 'sources', label: 'Sources', categories: [1, 14] },
+                { id: 'processing', label: 'Processing', categories: [2, 3, 4, 6] },
+                { id: 'viewers', label: 'Viewers', categories: [5, 7, 9, 10, 11, 12, 13] },
+                { id: 'platforms', label: 'Platforms', categories: [0, 8, 15, 16] }
             ];
 
             var scenariosList = [
-                { id: 'all', label: '🌟 All Scenarios' },
-                { id: 'photo', label: '🖼️ Photo Frame' },
-                { id: 'music', label: '🚗 In-Car Music' },
-                { id: 'video', label: '🍿 Home Cinema' },
-                { id: 'smb', label: '📡 SMB Setup' },
-                { id: 'backup', label: '📷 Camera Backup' },
-                { id: 'download', label: '🧹 Download Organizer' },
-                { id: 'offline', label: '🧳 Offline Travel' },
-                { id: 'docs', label: '📚 Cloud Documents' },
-                { id: 'ocr', label: '🔎 OCR Translation' },
-                { id: 'tv', label: '🛋️ NAS Media Shelf' },
-                { id: 'duplicates', label: '🧬 Duplicate Cleanup' },
-                { id: 'chromecast', label: '📺 Chromecast' },
-                { id: 'widgets', label: '📱 Smart Widgets' },
-                { id: 'vrcinema', label: '🕶️ Immersive Cinema' },
-                { id: 'calculator', label: '🧮 Quick Calculations' },
-                { id: 'cloudnotes', label: '📝 Cloud & Markdown Notes' }
+                { id: 'all', label: 'All Scenarios' },
+                { id: 'photo', label: 'Photo Frame' },
+                { id: 'music', label: 'In-Car Music' },
+                { id: 'video', label: 'Home Cinema' },
+                { id: 'smb', label: 'SMB Setup' },
+                { id: 'backup', label: 'Camera Backup' },
+                { id: 'download', label: 'Download Organizer' },
+                { id: 'offline', label: 'Offline Travel' },
+                { id: 'docs', label: 'Cloud Documents' },
+                { id: 'ocr', label: 'OCR Translation' },
+                { id: 'tv', label: 'NAS Media Shelf' },
+                { id: 'duplicates', label: 'Duplicate Cleanup' },
+                { id: 'chromecast', label: 'Chromecast' },
+                { id: 'widgets', label: 'Smart Widgets' },
+                { id: 'vrcinema', label: 'Immersive Cinema' },
+                { id: 'calculator', label: 'Quick Calculations' },
+                { id: 'cloudnotes', label: 'Cloud & Markdown Notes' }
             ];
 
             // Scenario Links Mapper
@@ -1190,52 +1190,52 @@
                 var links = [];
 
                 if (text.indexOf('slideshow') !== -1 || text.indexOf('photo') !== -1 || text.indexOf('frame') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-photo-frame.html', label: '🖼️ Scenario: Photo Frame' });
+                    links.push({ url: 'docs/howto/scenario-photo-frame.html', label: 'Scenario: Photo Frame' });
                 }
                 if (text.indexOf('music') !== -1 || text.indexOf('audio') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('wheel') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-car-music.html', label: '🚗 Scenario: In-Car Music' });
+                    links.push({ url: 'docs/howto/scenario-car-music.html', label: 'Scenario: In-Car Music' });
                 }
                 if (text.indexOf('video') !== -1 || text.indexOf('movie') !== -1 || text.indexOf('exoplayer') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('cinema') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-home-cinema.html', label: '🍿 Scenario: Home Cinema' });
+                    links.push({ url: 'docs/howto/scenario-home-cinema.html', label: 'Scenario: Home Cinema' });
                 }
                 if (text.indexOf('smb') !== -1 || text.indexOf('network') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('host') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-smb-setup.html', label: '📡 SMB Setup Guide' });
+                    links.push({ url: 'docs/howto/scenario-smb-setup.html', label: 'SMB Setup Guide' });
                 }
                 if (text.indexOf('backup') !== -1 || text.indexOf('copy') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-camera-backup.html', label: '📷 Camera Backup' });
+                    links.push({ url: 'docs/howto/scenario-camera-backup.html', label: 'Camera Backup' });
                 }
                 if (text.indexOf('download') !== -1 || text.indexOf('organizer') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('move') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-download-organizer.html', label: '🧹 Download Organizer' });
+                    links.push({ url: 'docs/howto/scenario-download-organizer.html', label: 'Download Organizer' });
                 }
                 if (text.indexOf('offline') !== -1 || text.indexOf('travel') !== -1 || text.indexOf('local folder') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet', label: '🧳 Offline Travel Folder' });
+                    links.push({ url: 'docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet', label: 'Offline Travel Folder' });
                 }
                 if (text.indexOf('document') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('reading') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go', label: '📚 Cloud Documents' });
+                    links.push({ url: 'docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go', label: 'Cloud Documents' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('translation') !== -1 || text.indexOf('translate') !== -1 || text.indexOf('tesseract') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr', label: '🔎 OCR Translation' });
+                    links.push({ url: 'docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr', label: 'OCR Translation' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('living-room') !== -1 || text.indexOf('living room') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf', label: '🛋️ NAS Media Shelf' });
+                    links.push({ url: 'docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf', label: 'NAS Media Shelf' });
                 }
                 if (text.indexOf('duplicate') !== -1 || text.indexOf('sha-256') !== -1) {
-                    links.push({ url: 'docs/FEATURES.html#3-file-operations', label: '🧬 Duplicate Cleanup' });
+                    links.push({ url: 'docs/FEATURES.html#3-file-operations', label: 'Duplicate Cleanup' });
                 }
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast ') !== -1 || text.indexOf('cast-compatible') !== -1) {
-                    links.push({ url: 'docs/FEATURES.html#9-audio-player', label: '📺 Chromecast Playback' });
+                    links.push({ url: 'docs/FEATURES.html#9-audio-player', label: 'Chromecast Playback' });
                 }
                 if (text.indexOf('widgets') !== -1 || text.indexOf('widget') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#home-screen-smart-widgets', label: '📱 Smart Widgets' });
+                    links.push({ url: 'docs/HOW_TO.html#home-screen-smart-widgets', label: 'Smart Widgets' });
                 }
                 if (text.indexOf('vrcinema') !== -1 || text.indexOf('immersive cinema') !== -1 || text.indexOf('openxr') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#openxr-vr-immersive-cinema', label: '🕶️ Immersive Cinema' });
+                    links.push({ url: 'docs/HOW_TO.html#openxr-vr-immersive-cinema', label: 'Immersive Cinema' });
                 }
                 if (text.indexOf('calculator') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1 || text.indexOf('scientific') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#quick-math-and-text-calculations', label: '🧮 Quick Calculations' });
+                    links.push({ url: 'docs/HOW_TO.html#quick-math-and-text-calculations', label: 'Quick Calculations' });
                 }
                 if (text.indexOf('cloudnotes') !== -1 || text.indexOf('note') !== -1 || text.indexOf('markdown') !== -1) {
-                    links.push({ url: 'docs/HOW_TO.html#cloud-markdown-and-code-notes', label: '📝 Cloud & Markdown Notes' });
+                    links.push({ url: 'docs/HOW_TO.html#cloud-markdown-and-code-notes', label: 'Cloud & Markdown Notes' });
                 }
 
                 return links;
@@ -1413,7 +1413,7 @@
                     if (minorList.length > 0) {
                         var minorTitle = document.createElement('h3');
                         minorTitle.className = 'v1-accordion-title';
-                        minorTitle.innerText = '📋 Other Features';
+                        minorTitle.innerText = 'Other Features';
                         content.appendChild(minorTitle);
 
                         var minorGrid = document.createElement('div');

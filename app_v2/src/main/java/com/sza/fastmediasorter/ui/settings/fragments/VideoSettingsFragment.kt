@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.TooltipCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -127,6 +128,8 @@ class VideoSettingsFragment : BaseSettingsFragment() {
 
     private fun setupSnapshotResourcePicker() {
         // Open destination-only resource picker
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(binding.btnSelectSnapshotResource, binding.btnSelectSnapshotResource.contentDescription)
         binding.btnSelectSnapshotResource.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog(
                 context = requireContext(),

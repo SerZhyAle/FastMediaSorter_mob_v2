@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatSeekBar
+import timber.log.Timber
 
 /**
  * A SeekBar that is vertical in portrait and falls back to the standard horizontal behaviour
@@ -57,12 +58,19 @@ class VerticalSeekBar @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!isEnabled) return false
         if (!isVertical) return super.onTouchEvent(event)
-        // Remap: localX = (height - touchY) so bottom=0, top=max; localY = touchX (unused).
+        if (event.action == MotionEvent.ACTION_DOWN) Timber.d("S0941: VerticalSeekBar vertical touch down")
+        // AbsSeekBar.trackTouchEvent derives progress from getWidth() (the 56dp thickness), while the
+        // track is drawn along the swapped height (160dp). Remapping touchY straight into 0..height
+        // overshot getWidth() and saturated the value near the top. Scale the vertical touch into the
+        // horizontal getWidth() domain so progress stays linear across the whole track: bottom=min,
+        // top=max. localY = touchX is unused by progress (hotspot only).
+        val trackHeight = height
+        val remappedX = if (trackHeight > 0) (trackHeight - event.y) / trackHeight * width else 0f
         val remapped = MotionEvent.obtain(
             event.downTime,
             event.eventTime,
             event.action,
-            height - event.y,
+            remappedX,
             event.x,
             event.metaState
         )

@@ -21,6 +21,7 @@ class PlayerGestureCallbackImpl(
 ) : PlayerGestureHelper.GestureCallback {
 
     override fun onSwipeLeft() {
+        if (isPageSwipeSuppressed()) return
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
             MediaType.PDF -> {
@@ -46,6 +47,7 @@ class PlayerGestureCallbackImpl(
     }
 
     override fun onSwipeRight() {
+        if (isPageSwipeSuppressed()) return
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
             MediaType.PDF -> {
@@ -118,7 +120,18 @@ class PlayerGestureCallbackImpl(
     override fun onTouchZone(zone: PlayerGestureHelper.TouchZone) {
         activity.navigationManager.handleTouchZoneNavigation(zone)
     }
-    
+
+    /**
+     * S0927: the left-edge screen-gesture overlay sits over the app and owns edge swipes, so a
+     * horizontal page-swipe collides with the capture gesture. When the overlay is enabled we
+     * suppress horizontal paging (file / PDF page / EPUB chapter); vertical swipes and taps stay.
+     */
+    private fun isPageSwipeSuppressed(): Boolean {
+        val suppressed = viewModel.settings.value.gestureOverlayEnabled
+        if (suppressed) Timber.d("S0927: page-swipe suppressed (gesture overlay on)")
+        return suppressed
+    }
+
     fun setPhotoViewZoom(scale: Float) {
         val currentFile = viewModel.state.value.currentFile
         val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF

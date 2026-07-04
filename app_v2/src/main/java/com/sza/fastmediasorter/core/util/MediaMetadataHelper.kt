@@ -19,6 +19,9 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 data class DetailedMediaInfo(
     val width: Int? = null,
@@ -40,6 +43,7 @@ data class DetailedMediaInfo(
     val frameRate: Double? = null, // frames per second
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val dateTimeTaken: Long? = null, // EXIF capture time (millis) - S0929
     // Audio metadata
     val audioTitle: String? = null,
     val audioArtist: String? = null,
@@ -179,6 +183,7 @@ class MediaMetadataHelper(
         var colorSpace: String? = null
         var latitude: Double? = null
         var longitude: Double? = null
+        var dateTimeTaken: Long? = null
 
         try {
             val exif = ExifInterface(file.absolutePath)
@@ -219,6 +224,12 @@ class MediaMetadataHelper(
                 latitude = latLong[0].toDouble()
                 longitude = latLong[1].toDouble()
             }
+
+            // Capture time - S0929: prefer the original-capture tag, fall back to file datetime.
+            dateTimeTaken = parseExifDateTimeMillis(
+                exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                    ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+            )
         } catch (e: Exception) {
             Timber.w("Error reading EXIF: ${e.message}")
         }
@@ -234,8 +245,22 @@ class MediaMetadataHelper(
             focalLength = focal,
             colorSpace = colorSpace,
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            dateTimeTaken = dateTimeTaken
         )
+    }
+
+    /** Parse an EXIF datetime string ("yyyy:MM:dd HH:mm:ss") to epoch millis. S0929. */
+    private fun parseExifDateTimeMillis(value: String?): Long? {
+        if (value.isNullOrBlank()) return null
+        return try {
+            SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
+                .apply { timeZone = TimeZone.getDefault() }
+                .parse(value)?.time
+        } catch (e: Exception) {
+            Timber.w("Failed to parse EXIF datetime: $value")
+            null
+        }
     }
 
     private fun extractGifInfo(file: File, totalFileSize: Long, isPartialDownload: Boolean): DetailedMediaInfo {

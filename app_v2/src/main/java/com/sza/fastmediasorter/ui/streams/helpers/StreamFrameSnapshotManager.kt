@@ -83,9 +83,6 @@ class StreamFrameSnapshotManager(
      */
     fun request(url: String, force: Boolean = false) {
         // S0700: entry point of the grid-capture flow (offscreen TextureView capture per visible tile).
-        // Logged unconditionally (even while disabled below) so future test logs still show the call
-        // site was reached - distinguishes "adapter never asked" from "asked but gated off".
-        Timber.d("S0700: snapshot request enqueued for %s", url)
         // S0700/S0900 (2026-07-03): [CAPTURE_ENABLED] is the kill switch if this crashes again - real
         // capture killed the process natively on-device (Samsung SM-S731B, Android 16) regardless of
         // MAX_CONCURRENT_CAPTURES (tried 2, then 1, identical crash). See [capture]'s layout-settle-delay
@@ -207,7 +204,6 @@ class StreamFrameSnapshotManager(
             cache.put(url, bitmap)
             // S0712: write the low-res thumbnail to disk off the main thread; best-effort, never blocks
             // the capture result. Reuses this manager's scope so it is cancelled with the grid.
-            Timber.d("S0712: persist captured frame %s", url)
             scope.launch { persistentStore.save(url, bitmap) }
             bitmap
         } catch (t: Throwable) {

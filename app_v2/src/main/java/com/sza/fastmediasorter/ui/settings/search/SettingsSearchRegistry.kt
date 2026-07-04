@@ -40,11 +40,9 @@ class SettingsSearchRegistry @Inject constructor(
         }
 
     private fun isCapabilityAvailable(key: String): Boolean = when (key) {
-        "rowPrimaryMediaPlayer", "rowAcceptSharedFiles" -> mediaCapabilities.supportsDefaultPlayer
-        "btnSettingsDefaultPlayerImages" -> mediaCapabilities.supportsDefaultPlayer && mediaCapabilities.supportsImages
-        "btnSettingsDefaultPlayerAudio" -> mediaCapabilities.supportsDefaultPlayer && mediaCapabilities.supportsAudio
-        "btnSettingsDefaultPlayerVideo" -> mediaCapabilities.supportsDefaultPlayer && mediaCapabilities.supportsVideo
-        "btnSettingsDefaultPlayerDocs" -> mediaCapabilities.supportsDefaultPlayer && mediaCapabilities.supportsDocuments
+        // S0880: the per-type registration buttons + toggles moved into DefaultAppsDialogFragment (not
+        // scanned by the layout source); only the launcher remains searchable in the settings screen.
+        "btnOpenDefaultAppsDialog" -> mediaCapabilities.supportsDefaultPlayer
         else -> true
     }
 

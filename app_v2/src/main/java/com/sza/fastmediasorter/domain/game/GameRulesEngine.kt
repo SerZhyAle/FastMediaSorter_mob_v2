@@ -60,6 +60,22 @@ class GameRulesEngine(
         return GameTurnResult(nextState, accepted = true, events = events)
     }
 
+    // S0928: a skipped turn keeps the player in place but still advances the world - the turn counter
+    // ticks (with the normal per-turn penalty) and enemies take their move, capture rules intact.
+    fun applySkipTurn(
+        state: GameLevelState,
+        shadowOrderSeed: Long = state.config.seed + state.stats.turns
+    ): GameTurnResult {
+        if (state.status != GameStatus.PLAYING) {
+            return GameTurnResult(state, accepted = false, rejectReason = GameMoveRejectReason.NOT_PLAYING)
+        }
+        val ticked = state.copy(
+            stats = scoring.afterAcceptedTurn(state.stats, wallPushed = false, shadowsCrushed = 0)
+        )
+        val enemyTurn = moveEnemies(ticked, shadowOrderSeed)
+        return GameTurnResult(enemyTurn.state, accepted = true, events = enemyTurn.events)
+    }
+
     fun advanceLevel(completedState: GameLevelState, nextLevel: GameLevelState): GameLevelState {
         require(completedState.status == GameStatus.LEVEL_WON) { "current level is not completed" }
         return nextLevel.copy(

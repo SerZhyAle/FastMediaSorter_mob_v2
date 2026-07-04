@@ -19,7 +19,7 @@
 - [gh CLI location](reference_gh_cli_location.md) - gh.exe at C:\Program Files\GitHub CLI, not on PATH; prepend for publish scripts
 - [Play FGS precedent](project_play_release_in_review.md) - specialUse+mediaProjection ACCEPTED by review; capture family live 2.60.6270.802
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP if countries/age/device reach shrinks
-- [Device-reach: implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies required screen.*; diagnose via aapt2 badging on universal APK (S0918)
+- [Device-reach: implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies required screen.*; diagnose via aapt2 badging (S0918); Android 16/17 large-screen override + targetSdk-36 opt-out (S0934)
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew; gitignored PLAN/ empties Step 12a diff
 - [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md) - real device wipes config; FAIL = harness, trust toastCount
 - [Emulator capture testing](reference_emulator_capture_family_testing.md) + [MediaProjection](reference_emulator_mediaprojection_capture.md) - cmd statusbar+aapt2; overlay not drivable; non-VR AVD verifies menu-screenshot
@@ -59,6 +59,7 @@
 - [Check binding field types](feedback_check_generated_binding_types.md) - .bind(root) downcasts; Button vs MaterialButton crashes
 
 ## UI conventions
+- [Focus indicator + S0943 umbrella](project_focus_frame_infra.md) - TV/D-pad focus = in-place per-view decoration (FocusDecorationController); overlay S0819 archived; never coordinate-compute a focus overlay
 - [Bounded UI](feedback_no_edge_to_edge_ui_elements.md) + [insets](feedback_respect_system_insets_safe_bounds.md) - bounded W+H, dropdowns 240/280; systemBars+cutout safe rect
 - [Landscape buttons](feedback_no_fullwidth_buttons_landscape.md) + [multi-column](feedback_landscape_multicolumn_settings.md) - wrap_content+gravity; toggles 2-up, buttons 3-4+ Flow
 - [configChanges no recreate](project_streams_activity_config_changes_rotation.md) - recompute spans in onConfigurationChanged
@@ -118,6 +119,7 @@
 
 ## PowerShell / shell traps
 - [PowerShell efficiency](feedback_pwsh_efficiency.md) - never plain pwsh -File; chain scripts in one process
+- [LOC: Measure-Object -Line undercounts](feedback_pwsh_loc_measure_object.md) - use (Get-Content).Count; -Line gave 1330 for a 1483-line file (misdiagnosis)
 - [CLI wrappers first](feedback_cli_project_wrappers_first.md) - prefer repo scripts / temp .ps1 over nested quoting
 - [Check existing tooling first](feedback_check_existing_tooling.md) - grep scripts/+utils/+skills before authoring new
 - [Cyrillic bash->pwsh boundary](feedback_cyrillic_bash_pwsh_boundary.md) - never pass RU/UK as pwsh CLI args from Bash; author .ps1

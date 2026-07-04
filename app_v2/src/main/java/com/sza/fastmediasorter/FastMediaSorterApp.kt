@@ -227,10 +227,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
-        // S0819: attach the travelling D-pad/TV focus frame to every Activity window (opt-out via
-        // FocusFrameExcluded); one overlay per window, hidden in touch mode.
+        // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
+        // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(
-            com.sza.fastmediasorter.core.ui.focus.FocusFrameActivityCallbacks(),
+            com.sza.fastmediasorter.core.ui.focus.FocusDecorationActivityCallbacks(),
         )
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
         // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.

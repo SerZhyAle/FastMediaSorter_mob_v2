@@ -37,8 +37,6 @@
     <integer name="animation_duration_short">100</integer>
     <integer name="animation_duration_normal">200</integer>
     <integer name="animation_duration_long">300</integer>
-    <!-- S0819: travelling focus-frame travel duration, read by FocusFrameOverlay.kt. -->
-    <integer name="focus_frame_anim_ms">140</integer>
     <integer name="scroll_threshold_dp">10</integer>
     <integer name="default_player_quality">720</integer>
     <integer name="min_player_quality">480</integer>

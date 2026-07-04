@@ -111,6 +111,16 @@
       "titleUk": "Відкрити спеціальні можливості"
     },
     {
+      "key": "btnOpenDefaultAppsDialog",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Set as default",
+      "titleRu": "Задать по-умолчанию",
+      "titleUk": "Задати за замовчуванням"
+    },
+    {
       "key": "btnResetOperationsSection",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -181,46 +191,6 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
-      "key": "btnSettingsDefaultPlayerAudio",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Default audio player",
-      "titleRu": "Аудиоплеер по умолчанию",
-      "titleUk": "Аудіоплеєр за замовчуванням"
-    },
-    {
-      "key": "btnSettingsDefaultPlayerDocs",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Default document viewer",
-      "titleRu": "Программа для просмотра документов по умолчанию",
-      "titleUk": "Програма для перегляду документів за замовчуванням"
-    },
-    {
-      "key": "btnSettingsDefaultPlayerImages",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Default image viewer",
-      "titleRu": "Просмотр изображений по умолчанию",
-      "titleUk": "Перегляд зображень за замовчуванням"
-    },
-    {
-      "key": "btnSettingsDefaultPlayerVideo",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Default video player",
-      "titleRu": "Видеоплеер по умолчанию",
-      "titleUk": "Відеоплеєр за замовчуванням"
-    },
-    {
       "key": "btnTakeScreenshotNow",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -261,6 +231,16 @@
       "titleUk": "Поведінка й правила програми"
     },
     {
+      "key": "headerCameraPhotos",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Photography",
+      "titleRu": "Фотографирование",
+      "titleUk": "Фотографування"
+    },
+    {
       "key": "headerCopyMove",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -281,14 +261,14 @@
       "titleUk": "Призначення швидкого сортування"
     },
     {
-      "key": "headerOtherFeatures",
+      "key": "headerMicRecording",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SECTION_HEADER",
-      "titleEn": "Photo, Video, Voice recorder",
-      "titleRu": "Фото, Видео, Диктофон",
-      "titleUk": "Фото, Відео, Диктофон"
+      "titleEn": "Voice recorder",
+      "titleRu": "Диктофон",
+      "titleUk": "Диктофон"
     },
     {
       "key": "headerSafety",
@@ -321,6 +301,16 @@
       "titleUk": "Жести з лівого краю екрана"
     },
     {
+      "key": "headerScreenRecording",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Screen recording",
+      "titleRu": "Запись видео с экрана",
+      "titleUk": "Запис відео з екрана"
+    },
+    {
       "key": "headerSystemApps",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -331,14 +321,14 @@
       "titleUk": "Взаємодія з операційною системою"
     },
     {
-      "key": "rowAcceptSharedFiles",
+      "key": "headerVideoCapture",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Accept shared files",
-      "titleRu": "Принимать общие файлы",
-      "titleUk": "Приймати спільні файли"
+      "kind": "SECTION_HEADER",
+      "titleEn": "Video recording",
+      "titleRu": "Видеосъёмка",
+      "titleUk": "Відеозйомка"
     },
     {
       "key": "rowCameraAskFilename",
@@ -649,16 +639,6 @@
       "titleEn": "Prevent sleep",
       "titleRu": "Запретить сон устройства",
       "titleUk": "Заборонити сон пристрою"
-    },
-    {
-      "key": "rowPrimaryMediaPlayer",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "System media handler",
-      "titleRu": "Системный обработчик медиа",
-      "titleUk": "Системний обробник медіа"
     },
     {
       "key": "rowResumeOnNextLaunch",

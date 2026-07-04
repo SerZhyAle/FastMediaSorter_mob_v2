@@ -244,7 +244,6 @@ class WorkManagerScheduler @Inject constructor(
     /** Cancel ALL scheduled operation workers (e.g. when the user clears the table). */
     fun cancelAllScheduledOperations() {
         try {
-            Timber.d("S0768: cancelAllScheduledOperations via tag=$TAG_SCHEDULED_OP")
             WorkManager.getInstance(context).cancelAllWorkByTag(TAG_SCHEDULED_OP)
             Timber.i("WorkManagerScheduler: cancelled all scheduled operations")
         } catch (e: Exception) {

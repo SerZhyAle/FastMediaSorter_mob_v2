@@ -25,6 +25,14 @@ interface StreamSourceDao {
     @Query("SELECT * FROM stream_sources WHERE pinned = 1 ORDER BY sortIndex ASC, addedAt DESC")
     fun observePinned(): Flow<List<StreamSourceEntity>>
 
+    /** S0938: one-shot snapshot of the pinned set in display order, for computing a reorder move. */
+    @Query("SELECT * FROM stream_sources WHERE pinned = 1 ORDER BY sortIndex ASC, addedAt DESC")
+    suspend fun pinnedSnapshot(): List<StreamSourceEntity>
+
+    /** S0938: rewrite a single pinned row's local order index during a reorder renumber. */
+    @Query("UPDATE stream_sources SET sortIndex = :sortIndex WHERE id = :id")
+    suspend fun setSortIndex(id: String, sortIndex: Int)
+
     /** Import path: ignores duplicates so a re-imported list keeps the existing local order. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(source: StreamSourceEntity): Long

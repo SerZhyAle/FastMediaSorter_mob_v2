@@ -28,6 +28,5 @@ object StandaloneSystemBars {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
-        Timber.d("S0920: standalone status bar shown + light system-bar icons")
     }
 }

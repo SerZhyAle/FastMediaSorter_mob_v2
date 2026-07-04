@@ -21,13 +21,14 @@ import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.db.DatabaseResetNotice
-import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -65,15 +66,13 @@ import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainMiniGameMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainPanelItemActionsManager
-import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
-import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsPanelManager
-import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
-import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
+import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
@@ -89,7 +88,6 @@ import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
-import com.sza.fastmediasorter.util.AppErrorNotifier
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -128,6 +126,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var screenRecordingManager: MainScreenRecordingManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
+
     // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
     private lateinit var panelItemActions: MainPanelItemActionsManager
     private var startupFullyDrawnReported = false
@@ -140,6 +139,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isQuickPhotoEnabled = false
     private var isLinkDownloadEnabled = false
     private var isStreamsEnabled = false
+
     // S0774: settings toggle AND a bound ScreenVideoRecordingController (capability present).
     private var isScreenRecordingEnabled = false
 
@@ -174,7 +174,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val screenRecordingPostNotificationsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (::screenRecordingManager.isInitialized) screenRecordingManager.onPostNotificationsResult(granted) }
+    ) { granted ->
+        if (::screenRecordingManager.isInitialized) {
+            screenRecordingManager.onPostNotificationsResult(granted)
+        }
+    }
 
     // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
 
@@ -644,28 +648,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (resourceId > 0L) lastPlayedResourceId = resourceId
     }
 
-    /** S0289: rebuild the horizontal focus chain across only the currently-visible control-bar buttons. Skipped buttons (View.GONE) drop out of nextFocusLeft / nextFocusRight so the chain stays contiguous after a state-driven visibility flip. */
-    private fun restitchControlBarFocusChain() {
-        val candidates = listOf(
-            binding.btnExit,
-            binding.btnAddResource,
-            binding.btnFilter,
-            binding.btnRefresh,
-            binding.btnMainDropdownMenu,
-            binding.btnSettings,
-            binding.btnToggleView,
-            binding.btnFavorites,
-            binding.btnStartPlayer
-        ).filter { it.visibility == View.VISIBLE }
-        if (candidates.isEmpty()) return
-        candidates.forEachIndexed { i, btn ->
-            val prev = if (i > 0) candidates[i - 1].id else View.NO_ID
-            val next = if (i < candidates.lastIndex) candidates[i + 1].id else View.NO_ID
-            btn.nextFocusLeftId = prev
-            btn.nextFocusRightId = next
-        }
-    }
-
     private fun setupMainWindowDropdownMenu() {
         refreshMainWindowDropdownMenuVisibility()
         binding.btnMainDropdownMenu.setOnClickListenerDebounced {
@@ -681,7 +663,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (visibilityChanged) {
             binding.layoutMainDropdownMenu.isVisible = shouldShowMenuButton
             binding.btnMainDropdownMenu.isVisible = shouldShowMenuButton
-            restitchControlBarFocusChain()
+            layoutChrome.restitchControlBarFocusChain()
         }
     }
 
@@ -757,7 +739,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun setupViews() {
         // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
-        applyEdgeToEdgeInsets()
+        layoutChrome.applyEdgeToEdgeInsets()
 
         miniGameMenuManager = MainMiniGameMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
@@ -884,7 +866,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
         MainCommandBarTooltipManager.apply(binding)
         setupMainWindowDropdownMenu()
-        restitchControlBarFocusChain()
+        layoutChrome.restitchControlBarFocusChain()
 
         // S0293 Phase 08: effective multi-window availability = persistent preference OR runtime
         // capability. S0727: seed from the non-blocking runtime capability only; the persisted
@@ -1068,18 +1050,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun applyEdgeToEdgeInsets() {
-        // RecyclerView needs bottom padding so last item isn't behind nav bar
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
-            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
-            (view as? android.view.ViewGroup)?.clipToPadding = false
-            insets
-        }
-        // setupViews() runs inside post{} - initial insets dispatch was already missed.
-        androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
-    }
-
     override fun observeData() {
 
         collectOnLifecycle(viewModel.state) { state ->
@@ -1103,14 +1073,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
 
             binding.btnToggleView.isVisible = true
-            restitchControlBarFocusChain()
+            layoutChrome.restitchControlBarFocusChain()
 
             // Enable Play button if any resources exist (auto-selects last used or first)
             binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()
 
             // Use state.resources.size instead of adapter.itemCount
             // because submitList() updates itemCount asynchronously
-            updateFilterWarning(state)
+            layoutChrome.updateFilterWarning(state)
 
             // Sync TabLayout selection with ViewModel state
             // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
@@ -1152,9 +1122,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activity = this,
             binding = binding,
             viewModel = viewModel,
+            settingsRepository = settingsRepository,
             passwordManager = passwordManager,
-            onShowError = ::showError,
-            onShowInfo = ::showInfo,
             onOpenSettings = ::openSettings,
             onRecordLastPlayed = ::recordLastPlayedResource,
         )
@@ -1227,39 +1196,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             if (panelInputsChanged) {
                 refreshPanels()
             }
-            restitchControlBarFocusChain()
+            layoutChrome.restitchControlBarFocusChain()
         }
     }
 
     private fun openSettings() {
         startActivity(Intent(this, SettingsActivity::class.java))
-    }
-
-    private fun updateFilterWarning(state: MainState) {
-        val hasFilters = state.filterByType != null ||
-                         state.filterByMediaType != null ||
-                         !state.filterByName.isNullOrBlank()
-
-        if (hasFilters) {
-            val parts = mutableListOf<String>()
-
-            state.filterByType?.let { types ->
-                parts.add("Type: ${types.joinToString(", ")}")
-            }
-
-            state.filterByMediaType?.let { mediaTypes ->
-                parts.add("Media: ${mediaTypes.joinToString(", ")}")
-            }
-
-            state.filterByName?.takeIf { it.isNotBlank() }?.let { name ->
-                parts.add("Name: '$name'")
-            }
-
-            binding.tvFilterWarning.text = getString(R.string.filters_active, parts.joinToString(" | "))
-            binding.tvFilterWarning.isVisible = true
-        } else {
-            binding.tvFilterWarning.isVisible = false
-        }
     }
 
     /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
@@ -1274,48 +1216,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0755/S0756: re-apply the orientation/width-driven label rule + programs-panel overflow.
         if (::programsPanelManager.isInitialized) programsPanelManager.refresh()
         if (::streamsPanelManager.isInitialized) streamsPanelManager.onConfigurationChanged()
-    }
-
-    /** Show error message respecting showDetailedErrors setting If showDetailedErrors=true: shows ScrollableTextDialog with copyable text and detailed info If showDetailedErrors=false: shows Toast (short notification) */
-    private fun showError(message: String, details: String?) {
-        lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            if (settings.showDetailedErrors) {
-                // Use ScrollableTextDialog with full details
-                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
-                    context = this@MainActivity,
-                    title = getString(com.sza.fastmediasorter.R.string.error),
-                    message = message,
-                    details = details
-                )
-            } else {
-                AppErrorNotifier.show(
-                    activity = this@MainActivity,
-                    message = message,
-                    severity = ErrorSeverity.CRITICAL,
-                    showDetailedErrors = false
-                )
-            }
-        }
-    }
-
-    /** Show informational message (not an error, just info about empty folders, etc.) If showDetailedErrors=true: shows ScrollableTextDialog with "Information" title If showDetailedErrors=false: shows Toast */
-    private fun showInfo(message: String, details: String?) {
-        lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            if (settings.showDetailedErrors) {
-                // Use ScrollableTextDialog but with Information title
-                com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
-                    context = this@MainActivity,
-                    title = getString(com.sza.fastmediasorter.R.string.information),
-                    message = message,
-                    details = details
-                )
-            } else {
-                // Simple toast for users who don't want details
-                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {

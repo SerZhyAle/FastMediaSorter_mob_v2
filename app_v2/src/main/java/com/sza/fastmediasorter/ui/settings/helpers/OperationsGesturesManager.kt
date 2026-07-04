@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -75,6 +76,8 @@ class OperationsGesturesManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
         }
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(binding.btnSelectScreenshotDestination, binding.btnSelectScreenshotDestination.contentDescription)
         binding.btnSelectScreenshotDestination.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()

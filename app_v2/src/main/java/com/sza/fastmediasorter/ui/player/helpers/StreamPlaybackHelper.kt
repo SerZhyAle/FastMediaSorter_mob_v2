@@ -59,7 +59,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // never reaches this control, so no radio-vs-live split applies here (S0689 archived as obsolete).
     val bandwidthMeter = DefaultBandwidthMeter.Builder(context).build()
     val loadControl = BandwidthAdaptiveLoadControl.create(bandwidthMeter)
-    Timber.d("S0688: stream load control bandwidth-adaptive (rtsp=%s) path=%s", isRtsp, path)
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -128,6 +127,11 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) return
+            // S0937: log every stream state transition so a silent stall (stuck BUFFERING with no
+            // PlaybackException, so no recovery fires) shows up in a plain Timber harvest, not only a
+            // full system logcat. States are low-frequency (not per-frame) - permanent Timber.d adds no
+            // hot-path spam. Mirrors VideoPlayerManager.playerListener, which the stream path bypasses.
+            Timber.d("Stream state=%s reconnecting=%b path=%s", streamStateLabel(playbackState), reconnecting, path)
             when (playbackState) {
                 Player.STATE_BUFFERING -> {
                     playerCallback.onBuffering(true)
@@ -152,6 +156,9 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            // S0937: pairs with the state log above - a silent stall reads as isPlaying=false while the
+            // state never returns to READY, distinguishing a genuine freeze from a normal pause/buffer.
+            Timber.d("Stream isPlaying=%b path=%s", isPlaying, path)
             playerCallback.onPlaybackStateChanged(isPlaying)
         }
 
@@ -249,6 +256,15 @@ private fun isRetryableHttpStatus(error: PlaybackException): Boolean {
         cause = cause.cause
     }
     return false
+}
+
+/** S0937: human-readable label for a Media3 [Player] playback state - keeps stream state logs greppable. */
+private fun streamStateLabel(state: Int): String = when (state) {
+    Player.STATE_IDLE -> "IDLE"
+    Player.STATE_BUFFERING -> "BUFFERING"
+    Player.STATE_READY -> "READY"
+    Player.STATE_ENDED -> "ENDED"
+    else -> "UNKNOWN($state)"
 }
 
 /**

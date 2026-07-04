@@ -22,7 +22,9 @@ import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
@@ -65,6 +67,8 @@ class StreamsViewModel @Inject constructor(
     private val importStreamCatalog: ImportStreamCatalogUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
     private val unpinStreamSource: UnpinStreamSourceUseCase,
+    // S0938: relative reorder of a pinned channel (up / down / to top) within the pinned set.
+    private val reorderPinnedStream: ReorderPinnedStreamUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     private val getStreamSourceByUrl: GetStreamSourceByUrlUseCase,
@@ -349,6 +353,12 @@ class StreamsViewModel @Inject constructor(
         if (source.pinned) unpinStreamSource(source.id) else pinStreamSource(source.id)
     }
 
+    /** S0938: move a pinned channel within the pinned set; the ordered DAO queries re-emit the new order. */
+    fun onMovePinned(source: StreamSourceEntity, move: PinnedStreamMove) = viewModelScope.launch {
+        Timber.d("S0938: reorder pinned ${source.id} move=$move")
+        reorderPinnedStream(source.id, move)
+    }
+
     fun onRemove(source: StreamSourceEntity) = viewModelScope.launch {
         removeStreamSource(source)
         // S0712: drop the channel's persisted last-frame thumbnail so removed channels leave no orphan.
@@ -418,8 +428,11 @@ class StreamsViewModel @Inject constructor(
                 SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
                 SortMode.RECENT -> compareByDescending { it.addedAt }
             }
-            // Pinned-first is the primary key regardless of the chosen secondary order.
-            return matched.sortedWith(compareByDescending<StreamSourceEntity> { it.pinned }.then(secondary))
+            // S0938: pinned rows keep their manual order (the incoming list is already sortIndex-ordered
+            // within pinned by the DAO), so the reorder menu commands are visible here; only the unpinned
+            // catalog rows follow the chosen secondary sort. `partition` preserves the input order.
+            val (pinned, unpinned) = matched.partition { it.pinned }
+            return pinned + unpinned.sortedWith(secondary)
         }
 
         internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {

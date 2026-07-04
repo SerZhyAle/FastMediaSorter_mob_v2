@@ -756,17 +756,17 @@
             <!-- Перемикач варіантів дашборду (S0387) -->
             <div class="variant-switcher">
                 <span class="variant-title">Вигляд дашборду:</span>
-                <button class="variant-btn active" id="var-btn-v1">🗂️ Рубрикатор</button>
-                <button class="variant-btn" id="var-btn-v2">🗺️ Карта медіа</button>
-                <button class="variant-btn" id="var-btn-v3">✨ Головне / Все</button>
-                <button class="variant-btn" id="var-btn-v4">🎯 Сценарії</button>
+                <button class="variant-btn active" id="var-btn-v1">Рубрикатор</button>
+                <button class="variant-btn" id="var-btn-v2">Карта медіа</button>
+                <button class="variant-btn" id="var-btn-v3">Головне / Все</button>
+                <button class="variant-btn" id="var-btn-v4">Сценарії</button>
             </div>
 
             <div class="explorer-controls">
                 <div class="explorer-tabs">
-                    <button class="tab-btn active" id="tab-all">🌟 Ключові функції</button>
-                    <button class="tab-btn" id="tab-standard">📱 Standard (Мобільні / TV / Авто)</button>
-                    <button class="tab-btn vr-tab" id="tab-vr">🥽 VR-редакція (Meta Quest / XR)</button>
+                    <button class="tab-btn active" id="tab-all">Ключові функції</button>
+                    <button class="tab-btn" id="tab-standard">Standard (Мобільні / TV / Авто)</button>
+                    <button class="tab-btn vr-tab" id="tab-vr">VR-редакція (Meta Quest / XR)</button>
                 </div>
                 <div class="search-wrapper">
                     <span class="search-icon">🔍</span>
@@ -777,8 +777,8 @@
             <!-- Додаткові контролі для Варіанта 3 (дворівневий перемикач) -->
             <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
                 <div class="toggle-v3-group">
-                    <button class="toggle-v3-btn active" id="toggle-v3-key">✨ Головне</button>
-                    <button class="toggle-v3-btn" id="toggle-v3-all">📋 Всі функції</button>
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">Головне</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">Всі функції</button>
                 </div>
             </div>
 
@@ -802,7 +802,7 @@
 
         <!-- Повний список функцій (прихований SEO-резерв) -->
         <details class="full-features-panel">
-            <summary>📋 Канонічний перелік можливостей (Jekyll Markdown)</summary>
+            <summary>Канонічний перелік можливостей (Jekyll Markdown)</summary>
             <div id="full-features-content" class="full-features-content">
                 <em>Завантаження канонічного переліку можливостей..</em>
             </div>
@@ -1137,40 +1137,40 @@
             };
 
             var majorCategories = [
-                { id: 'network', label: '🌐 Мережеві технології та Хмари' },
-                { id: 'players', label: '🎬 Плеєри та Слайд-шоу' },
-                { id: 'filemanager', label: '📂 Файловий менеджер' },
-                { id: 'notes', label: '📝 Нотатки, Редактори та OCR' },
-                { id: 'widgets', label: '🧩 Віджети та Інтеграція' },
-                { id: 'setup', label: '⚙️ Налаштування та Навігація' },
-                { id: 'vr', label: '🥽 VR-режим' }
+                { id: 'network', label: 'Мережеві технології та Хмари' },
+                { id: 'players', label: 'Плеєри та Слайд-шоу' },
+                { id: 'filemanager', label: 'Файловий менеджер' },
+                { id: 'notes', label: 'Нотатки, Редактори та OCR' },
+                { id: 'widgets', label: 'Віджети та Інтеграція' },
+                { id: 'setup', label: 'Налаштування та Навігація' },
+                { id: 'vr', label: 'VR-режим' }
             ];
 
             var dashboardColumns = [
-                { id: 'sources', label: '📡 Джерела', categories: [1, 14] },
-                { id: 'processing', label: '⚙️ Обробка', categories: [2, 3, 4, 6] },
-                { id: 'viewers', label: '🍿 Перегляд', categories: [5, 7, 9, 10, 11, 12, 13] },
-                { id: 'platforms', label: '📱 Середовища', categories: [0, 8, 15, 16] }
+                { id: 'sources', label: 'Джерела', categories: [1, 14] },
+                { id: 'processing', label: 'Обробка', categories: [2, 3, 4, 6] },
+                { id: 'viewers', label: 'Перегляд', categories: [5, 7, 9, 10, 11, 12, 13] },
+                { id: 'platforms', label: 'Середовища', categories: [0, 8, 15, 16] }
             ];
 
             var scenariosList = [
-                { id: 'all', label: '🌟 Всі сценарії' },
-                { id: 'photo', label: '🖼️ Фоторамка' },
-                { id: 'music', label: '🚗 В авто' },
-                { id: 'video', label: '🍿 Кінотеатр' },
-                { id: 'smb', label: '📡 Налаштування SMB' },
-                { id: 'backup', label: '📷 Автобекап' },
-                { id: 'download', label: '🧹 Органайзер' },
-                { id: 'offline', label: '🧳 Офлайн-папка' },
-                { id: 'docs', label: '📚 Документи з хмари' },
-                { id: 'ocr', label: '🔎 OCR-переклад' },
-                { id: 'tv', label: '🛋️ NAS для TV' },
-                { id: 'duplicates', label: '🧬 Очищення дублікатів' },
-                { id: 'chromecast', label: '📺 Chromecast' },
-                { id: 'widgets', label: '📱 Розумні віджети' },
-                { id: 'vrcinema', label: '🕶️ Іммерсивний кінотеатр' },
-                { id: 'calculator', label: '🧮 Швидкі обчислення' },
-                { id: 'cloudnotes', label: '📝 Хмарні нотатки' }
+                { id: 'all', label: 'Всі сценарії' },
+                { id: 'photo', label: 'Фоторамка' },
+                { id: 'music', label: 'В авто' },
+                { id: 'video', label: 'Кінотеатр' },
+                { id: 'smb', label: 'Налаштування SMB' },
+                { id: 'backup', label: 'Автобекап' },
+                { id: 'download', label: 'Органайзер' },
+                { id: 'offline', label: 'Офлайн-папка' },
+                { id: 'docs', label: 'Документи з хмари' },
+                { id: 'ocr', label: 'OCR-переклад' },
+                { id: 'tv', label: 'NAS для TV' },
+                { id: 'duplicates', label: 'Очищення дублікатів' },
+                { id: 'chromecast', label: 'Chromecast' },
+                { id: 'widgets', label: 'Розумні віджети' },
+                { id: 'vrcinema', label: 'Іммерсивний кінотеатр' },
+                { id: 'calculator', label: 'Швидкі обчислення' },
+                { id: 'cloudnotes', label: 'Хмарні нотатки' }
             ];
 
             // Селектори сценаріїв
@@ -1200,52 +1200,52 @@
                 var links = [];
 
                 if (text.indexOf('слайд-шоу') !== -1 || text.indexOf('фоторамк') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-photo-frame-uk.html', label: '🖼️ Сценарій: Фоторамка' });
+                    links.push({ url: 'docs/howto/scenario-photo-frame-uk.html', label: 'Сценарій: Фоторамка' });
                 }
                 if (text.indexOf('музик') !== -1 || text.indexOf('аудіо') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('керм') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-car-music-uk.html', label: '🚗 Сценарій: В авто' });
+                    links.push({ url: 'docs/howto/scenario-car-music-uk.html', label: 'Сценарій: В авто' });
                 }
                 if (text.indexOf('відео') !== -1 || text.indexOf('фільм') !== -1 || text.indexOf('серіал') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('кінотеатр') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-home-cinema-uk.html', label: '🍿 Сценарій: Кінотеатр' });
+                    links.push({ url: 'docs/howto/scenario-home-cinema-uk.html', label: 'Сценарій: Кінотеатр' });
                 }
                 if (text.indexOf('smb') !== -1 || text.indexOf('мереж') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('хост') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-smb-setup-uk.html', label: '📡 Налаштування SMB' });
+                    links.push({ url: 'docs/howto/scenario-smb-setup-uk.html', label: 'Налаштування SMB' });
                 }
                 if (text.indexOf('бекап') !== -1 || text.indexOf('резерв') !== -1 || text.indexOf('копіюв') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-camera-backup-uk.html', label: '📷 Автобекап' });
+                    links.push({ url: 'docs/howto/scenario-camera-backup-uk.html', label: 'Автобекап' });
                 }
                 if (text.indexOf('завантаж') !== -1 || text.indexOf('кошик') !== -1 || text.indexOf('видален') !== -1 || text.indexOf('переміщ') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-download-organizer-uk.html', label: '🧹 Органайзер' });
+                    links.push({ url: 'docs/howto/scenario-download-organizer-uk.html', label: 'Органайзер' });
                 }
                 if (text.indexOf('офлайн') !== -1 || text.indexOf('подорож') !== -1 || text.indexOf('локальн') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#підготуйте-папку-для-подорожі-без-стабільного-інтернету', label: '🧳 Офлайн-папка' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#підготуйте-папку-для-подорожі-без-стабільного-інтернету', label: 'Офлайн-папка' });
                 }
                 if (text.indexOf('документ') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('читан') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#читайте-хмарні-документи-й-epub-у-дорозі', label: '📚 Документи з хмари' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#читайте-хмарні-документи-й-epub-у-дорозі', label: 'Документи з хмари' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('переклад') !== -1 || text.indexOf('tesseract') !== -1 || text.indexOf('розпізнав') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#перекладайте-вивіски-скани-та-скриншоти-через-ocr', label: '🔎 OCR-переклад' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#перекладайте-вивіски-скани-та-скриншоти-через-ocr', label: 'OCR-переклад' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('вітальн') !== -1 || text.indexOf('телевіз') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#перетворіть-nas-на-медіаполицю-для-вітальні', label: '🛋️ NAS для TV' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#перетворіть-nas-на-медіаполицю-для-вітальні', label: 'NAS для TV' });
                 }
                 if (text.indexOf('дублікат') !== -1 || text.indexOf('sha-256') !== -1) {
-                    links.push({ url: 'docs/FEATURES_UK.html#3-файлові-операції', label: '🧬 Очищення дублікатів' });
+                    links.push({ url: 'docs/FEATURES_UK.html#3-файлові-операції', label: 'Очищення дублікатів' });
                 }
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast') !== -1) {
-                    links.push({ url: 'docs/FEATURES_UK.html#9-аудіопрогравач', label: '📺 Chromecast' });
+                    links.push({ url: 'docs/FEATURES_UK.html#9-аудіопрогравач', label: 'Chromecast' });
                 }
                 if (text.indexOf('віджет') !== -1 || text.indexOf('widget') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#розумні-віджети-домашнього-екрана', label: '📱 Розумні віджети' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#розумні-віджети-домашнього-екрана', label: 'Розумні віджети' });
                 }
                 if (text.indexOf('vrcinema') !== -1 || text.indexOf('кінотеатр') !== -1 || text.indexOf('openxr') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#іммерсивний-кінотеатр-openxr-vr', label: '🕶️ Іммерсивний кінотеатр' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#іммерсивний-кінотеатр-openxr-vr', label: 'Іммерсивний кінотеатр' });
                 }
                 if (text.indexOf('обчислен') !== -1 || text.indexOf('формул') !== -1 || text.indexOf('калькулятор') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#швидкі-обчислення-з-тексту-та-ocr', label: '🧮 Швидкі обчислення' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#швидкі-обчислення-з-тексту-та-ocr', label: 'Швидкі обчислення' });
                 }
                 if (text.indexOf('cloudnotes') !== -1 || text.indexOf('нотатк') !== -1 || text.indexOf('markdown') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_UK.html#хмарні-нотатки-markdown-та-код', label: '📝 Хмарні нотатки' });
+                    links.push({ url: 'docs/HOW_TO_UK.html#хмарні-нотатки-markdown-та-код', label: 'Хмарні нотатки' });
                 }
 
                 return links;
@@ -1423,7 +1423,7 @@
                     if (minorList.length > 0) {
                         var minorTitle = document.createElement('h3');
                         minorTitle.className = 'v1-accordion-title';
-                        minorTitle.innerText = '📋 Інші функції';
+                        minorTitle.innerText = 'Інші функції';
                         content.appendChild(minorTitle);
 
                         var minorGrid = document.createElement('div');

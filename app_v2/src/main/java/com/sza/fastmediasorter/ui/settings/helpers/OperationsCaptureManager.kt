@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -75,6 +76,8 @@ class OperationsCaptureManager(
             }
             viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = isChecked))
         }
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(binding.btnSelectCameraPhotosDest, binding.btnSelectCameraPhotosDest.contentDescription)
         binding.btnSelectCameraPhotosDest.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.cameraPhotosDestinationResourceId?.toLongOrNull()
@@ -97,6 +100,8 @@ class OperationsCaptureManager(
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(videoCaptureOpenInPlayer = isChecked))
         }
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(binding.btnSelectVideoRecordingDest, binding.btnSelectVideoRecordingDest.contentDescription)
         binding.btnSelectVideoRecordingDest.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.videoRecordingDestinationResourceId?.toLongOrNull()
@@ -132,6 +137,8 @@ class OperationsCaptureManager(
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
             }
+            // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+            TooltipCompat.setTooltipText(binding.btnSelectMicRecordingDest, binding.btnSelectMicRecordingDest.contentDescription)
             binding.btnSelectMicRecordingDest.setOnClickListener {
                 pickDestination(
                     viewModel.settings.value.micRecordingDestinationResourceId?.toLongOrNull()
@@ -152,6 +159,8 @@ class OperationsCaptureManager(
                 viewModel.updateSettings(viewModel.settings.value.copy(screenRecordingEnabled = isChecked))
                 binding.layoutScreenRecordingDestSelector.isVisible = isChecked
             }
+            // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+            TooltipCompat.setTooltipText(binding.btnSelectScreenRecordingDest, binding.btnSelectScreenRecordingDest.contentDescription)
             binding.btnSelectScreenRecordingDest.setOnClickListener {
                 pickDestination(
                     viewModel.settings.value.screenRecordingDestinationResourceId?.toLongOrNull()

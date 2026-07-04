@@ -28,7 +28,11 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Дисплей |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Вибране |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |
-| <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Фото-переклад OCR |
+| <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Завантажити за посиланням |
+| <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Фото-OCR-переклад |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Камера |
+| <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Запис із диктофона |
+| <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Звук |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Сховище |
@@ -42,27 +46,34 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Додаткові програми та сценарії |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудіо, обкладинки й фонові візуалізації |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення аудіо |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фотографування |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Перегляд тексту, PDF, EPUB і Office |
 | <img src="icons/svg/ic_folder.svg" alt="ic_folder" width="24" height="24"> | Інтерфейс браузера файлів |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Зображення, GIF і слайд-шоу |
-| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фото, Відео, Диктофон |
+| <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Диктофон |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Віддалені ресурси (SMB/(S)FTP/Хмара) |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Заплановані операції за розкладом |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з лівого краю екрана |
+| <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування програвача |
+| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відеозйомка |
 
 ## Параметри налаштувань
 
 | Значок | Значення |
 |---|---|
+| <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Дозволити видалення |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Дозволити перейменування |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Швидкий переклад з камери |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Увімкнути зйомку фото |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мінігра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
+| <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Увімкнути обране |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Дозволити розпізнавання тексту |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення |
+| <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Використовувати операції за розкладом |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Увімкнути трансляції |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Увімкнути переклад |
@@ -70,6 +81,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Увімкнути запис із мікрофона |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |
+| <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показувати кнопку «Чорний екран» |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | У хмарних ресурсах |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Комп'ютер в інтернеті (S)FTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Локальна мережа (Ethernet) SMB |

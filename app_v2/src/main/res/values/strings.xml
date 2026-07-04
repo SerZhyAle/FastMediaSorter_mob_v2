@@ -2975,4 +2975,7 @@ Close the player and try again.</string>
     <string name="recording_pause">Pause recording</string>
     <string name="recording_resume">Resume recording</string>
     <string name="settings_category_main_window_interface">Main window interface</string>
+    <string name="streams_move_up">Move up</string>
+    <string name="streams_move_down">Move down</string>
+    <string name="streams_move_to_top">Move to top</string>
 </resources>

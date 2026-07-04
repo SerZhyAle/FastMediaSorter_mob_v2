@@ -117,6 +117,31 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    // S0928: player forgoes movement; the rules engine still ticks the turn and moves the enemies.
+    fun skipTurn() {
+        viewModelScope.launch {
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            if (!ready.canAcceptMoves) return@launch
+            Timber.d("S0928: skipTurn turns=${ready.turns}")
+
+            val result = rulesEngine.applySkipTurn(ready.levelState)
+            if (!result.accepted) {
+                _state.value = ready.copy(lastRejectReason = result.rejectReason, turnMoves = emptyList())
+                return@launch
+            }
+
+            publishAndPersist(
+                ready.copy(
+                    levelState = result.state,
+                    unreadableBoardWarning = shouldWarnForUnreadableBoard(result.state.config, ready.customBoard),
+                    defeatConnection = result.defeatConnection(),
+                    lastRejectReason = null,
+                    turnMoves = result.toActorMoves()
+                )
+            )
+        }
+    }
+
     fun advanceLevel() {
         viewModelScope.launch {
             val ready = _state.value as? GameUiState.Ready ?: return@launch

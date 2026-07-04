@@ -379,7 +379,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         wallHost,
                         accountId ?: "none",
                     )
-                    Timber.d("S0822: login-wall redirect loop reclassified host=%s", wallHost)
                     return Result.Failed.AuthRequired(host = wallHost, originalUrl = url)
                 }
                 Timber.i(

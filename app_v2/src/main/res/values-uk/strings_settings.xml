@@ -22,7 +22,6 @@
     <string name="settings_category_images">Зображення, GIF і слайд-шоу</string>
     <string name="settings_category_interface">Загальні налаштування інтерфейсу</string>
     <string name="settings_category_other">Переклад, оцифрування (OCR)</string>
-    <string name="settings_category_other_features">Фото, Відео, Диктофон</string>
     <string name="settings_category_other_functionality">Інші функції</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
     <string name="settings_category_player_ui">Інтерфейс і команди програвача</string>
@@ -229,7 +228,6 @@
     <string name="setting_video_recording_destination_title">Ресурс для запису відео</string>
     <string name="setting_video_recording_destination_default_movies">За замовчуванням: якщо поточний ресурс недоступний, папка Movies пристрою</string>
     <string name="setting_select_destination">Вибрати ресурс..</string>
-    <string name="setting_subgroup_default_player_title">Програма за замовчуванням</string>
     <string name="settings_default_player_btn_images">Перегляд зображень за замовчуванням</string>
     <string name="settings_default_player_btn_audio">Аудіоплеєр за замовчуванням</string>
     <string name="settings_default_player_btn_video">Відеоплеєр за замовчуванням</string>
@@ -246,4 +244,10 @@
     <string name="setting_screen_recording_destination_default_downloads">За замовчуванням: тека Downloads</string>
     <string name="setting_open_video_in_fullscreen_title">Відкривати відеофайли в повноекранному режимі</string>
     <string name="setting_open_video_in_fullscreen_desc">Відео, відкриті з браузера ресурсів, запускаються одразу в повноекранному режимі</string>
+    <string name="settings_group_photography">Фотографування</string>
+    <string name="settings_group_video_recording">Відеозйомка</string>
+    <string name="settings_group_voice_recorder">Диктофон</string>
+    <string name="settings_group_screen_recording">Запис відео з екрана</string>
+    <string name="settings_open_default_apps_dialog">Задати за замовчуванням</string>
+    <string name="default_apps_dialog_title">Застосунок за замовчуванням</string>
 </resources>

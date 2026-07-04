@@ -90,6 +90,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
             right = binding.btnGameRight
         )
         inputManager.bindPrimaryAction(binding.btnGameReset)
+        binding.btnGameSkip.setOnClickListener { viewModel.skipTurn() } // S0928
         modeMenuManager = GameModeMenuManager(this, this)
         binding.btnGameBack.setOnClickListener { finish() }
         binding.btnGameMode.setOnClickListener {

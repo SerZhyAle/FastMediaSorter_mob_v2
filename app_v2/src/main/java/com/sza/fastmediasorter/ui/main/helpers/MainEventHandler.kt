@@ -3,33 +3,39 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.Intent
 import android.view.View
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.main.MainEvent
 import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
+import com.sza.fastmediasorter.util.AppErrorNotifier
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /** MainActivity event-bus dispatcher; extracted from observeData() to keep the host Activity below the 1000-LOC budget. */
 internal class MainEventHandler(
     private val activity: MainActivity,
     private val binding: ActivityMainBinding,
     private val viewModel: MainViewModel,
+    private val settingsRepository: SettingsRepository,
     private val passwordManager: ResourcePasswordManager,
-    private val onShowError: (String, String?) -> Unit,
-    private val onShowInfo: (String, String?) -> Unit,
     private val onOpenSettings: () -> Unit,
     private val onRecordLastPlayed: (Long) -> Unit,
 ) {
 
     fun handle(event: MainEvent) {
         when (event) {
-            is MainEvent.ShowError -> onShowError(event.message, event.details)
-            is MainEvent.ShowInfo -> onShowInfo(event.message, event.details)
+            is MainEvent.ShowError -> showError(event.message, event.details)
+            is MainEvent.ShowInfo -> showInfo(event.message, event.details)
             is MainEvent.ShowMessage ->
                 Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
             is MainEvent.ShowResourceMessage ->
@@ -102,6 +108,45 @@ internal class MainEventHandler(
                     .show()
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
+        }
+    }
+
+    /** Show error: detailed copyable ScrollableTextDialog when showDetailedErrors is on, else a critical notifier. */
+    private fun showError(message: String, details: String?) {
+        activity.lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            if (settings.showDetailedErrors) {
+                ScrollableTextDialog.show(
+                    context = activity,
+                    title = activity.getString(R.string.error),
+                    message = message,
+                    details = details
+                )
+            } else {
+                AppErrorNotifier.show(
+                    activity = activity,
+                    message = message,
+                    severity = ErrorSeverity.CRITICAL,
+                    showDetailedErrors = false
+                )
+            }
+        }
+    }
+
+    /** Show an info message: ScrollableTextDialog when showDetailedErrors is on, else a short toast. */
+    private fun showInfo(message: String, details: String?) {
+        activity.lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            if (settings.showDetailedErrors) {
+                ScrollableTextDialog.show(
+                    context = activity,
+                    title = activity.getString(R.string.information),
+                    message = message,
+                    details = details
+                )
+            } else {
+                Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

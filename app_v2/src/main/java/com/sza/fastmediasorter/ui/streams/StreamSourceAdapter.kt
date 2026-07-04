@@ -44,6 +44,11 @@ class StreamSourceAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
     private val onPin: (StreamSourceEntity) -> Unit,
     private val onRemove: (StreamSourceEntity) -> Unit,
+    // S0938: reorder a pinned channel within the pinned set. Shown only for a pinned row; disabled at
+    // the edges (top row: no up / no to-top; bottom row: no down).
+    private val onMoveUp: (StreamSourceEntity) -> Unit = {},
+    private val onMoveDown: (StreamSourceEntity) -> Unit = {},
+    private val onMoveToTop: (StreamSourceEntity) -> Unit = {},
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
@@ -150,6 +155,18 @@ class StreamSourceAdapter(
             binding.btnPin.setOnClickListener { onPin(source) }
             binding.btnOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
+                    // S0938: reorder commands lead the menu for a pinned row when more than one channel
+                    // is pinned. Edge commands are disabled at the ends of the pinned block.
+                    val pinnedRows = currentList.filter { it.pinned }
+                    if (source.pinned && pinnedRows.size > 1) {
+                        val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
+                        menu.add(Menu.NONE, ID_MOVE_UP, Menu.NONE, R.string.streams_move_up)
+                            .isEnabled = pinnedIndex > 0
+                        menu.add(Menu.NONE, ID_MOVE_DOWN, Menu.NONE, R.string.streams_move_down)
+                            .isEnabled = pinnedIndex < pinnedRows.lastIndex
+                        menu.add(Menu.NONE, ID_MOVE_TO_TOP, Menu.NONE, R.string.streams_move_to_top)
+                            .isEnabled = pinnedIndex > 0
+                    }
                     // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
                     if (favoritesEnabled()) {
                         val favLabel = if (isFavorite(source)) {
@@ -171,6 +188,9 @@ class StreamSourceAdapter(
                     menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
+                            ID_MOVE_UP -> { onMoveUp(source); true }
+                            ID_MOVE_DOWN -> { onMoveDown(source); true }
+                            ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
                             ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
                             ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
                             ID_EDIT -> { onEdit(source); true }
@@ -300,6 +320,9 @@ class StreamSourceAdapter(
         const val ID_EDIT = 3
         const val ID_SHARE_LINK = 4
         const val ID_TOGGLE_FAVORITE = 5 // S0783
+        const val ID_MOVE_UP = 6 // S0938
+        const val ID_MOVE_DOWN = 7 // S0938
+        const val ID_MOVE_TO_TOP = 8 // S0938
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

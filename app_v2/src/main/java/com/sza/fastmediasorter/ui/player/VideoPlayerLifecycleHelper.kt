@@ -72,6 +72,17 @@ internal class VideoPlayerLifecycleHelper(
     }
 
     fun onPause() {
+        // S0942: entering PiP dispatches ON_PAUSE to this observer while the media must keep
+        // playing inside the PiP window. The host activity's onPause() already gates its own
+        // togglePause() on isInPictureInPictureMode, but this observer pauses the player on a
+        // separate path - so streams (and local video) hosted by PlayerActivity froze on PiP
+        // entry and never resumed (onResume is not dispatched while in PiP). Skip the lifecycle
+        // pause while the host is in PiP; a real background transition later fires onStop(),
+        // which releases the player. The standalone hosts already apply the same guard.
+        if (isHostInPictureInPictureMode()) {
+            Timber.d("S0942: onPause skipped - host in PiP, keeping playback")
+            return
+        }
         // Player no longer on screen: bank player time so background time is not counted.
         manager.flushWatchClock()
         wasPlayingBeforePause = manager.exoPlayer?.isPlaying == true ||
@@ -79,6 +90,13 @@ internal class VideoPlayerLifecycleHelper(
         manager.pause()
         manager.stopPositionSaving()
     }
+
+    // S0942: the host activity backing this player (PlayerActivity / standalone hosts) is passed in
+    // as [VideoPlayerManager.context]. isInPictureInPictureMode exists since API 24, matching the
+    // onStop() guard below.
+    private fun isHostInPictureInPictureMode(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            (manager.context as? android.app.Activity)?.isInPictureInPictureMode == true
 
     fun onResume() {
         // Resume player-time accounting if a media player is still loaded after returning to foreground.
