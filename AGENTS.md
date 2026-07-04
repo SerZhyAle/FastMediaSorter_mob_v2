@@ -14,6 +14,7 @@
 - Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Temp layout (CLAUDE.md Rule 10.1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/done/`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
 - No Activity logic (delegate to `helpers/*Manager.kt`).
+- Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. Reason: on Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles. Enforced by the global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1`.
 - Timber only (no `Log.d()`). `Sxxxx` ticket ids only in `BlockNeedUserTest` temporary debug logs.
 - Strings: prefer `scripts/utils/set-android-string.ps1`.
 - Layouts: portrait edit requires landscape (`res/layout-land/`) edit.

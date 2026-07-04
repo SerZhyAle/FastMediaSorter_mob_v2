@@ -42,6 +42,7 @@
 15. Lazy optimization: Hilt `dagger.Lazy<T>`; `<ViewStub>` for optional layouts; release player/media resources immediately when paused.
 16. Dead-weight hygiene: delete orphaned classes, resources, string keys, keep rules in same change.
 17. Detekt-clean-first: author touched `.kt` to pass detekt on the first build - log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding. On the always-dirty tree close via `scripts/post-change.ps1 -ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets); omit for release/CI.
+18. Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. On Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles. Enforced by the global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1`.
 
 ## 6. Workflow Stages (5-Step Engineering Workflow)
 - Step 0 TASK DEFINITION: ask clarifying questions; output RU desc to `dev/`; UI gate checks.
