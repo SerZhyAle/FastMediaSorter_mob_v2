@@ -31,7 +31,7 @@ import javax.inject.Singleton
 /**
  * S0116 §5.4: graceful-degradation instrumentation suite. Asserts that S0003
  * baseline behaviour (direct file download) survives any single new component
- * throwing — no `Throwable` propagates out of `coordinator.handle`.
+ * throwing - no `Throwable` propagates out of `coordinator.handle`.
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)

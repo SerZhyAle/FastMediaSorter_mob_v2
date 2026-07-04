@@ -410,7 +410,20 @@ class YtDlpExtractionStrategy @Inject constructor(
                         // S0187: YouTube PoToken/JS-challenge failure - format selection raises
                         // DownloadError instead of returning an empty list. Return NotFound so
                         // the extraction cascade continues to NewPipeSiteExtractionStrategy.
-                        msg.contains("Requested format is not available", ignoreCase = true)) {
+                        msg.contains("Requested format is not available", ignoreCase = true) ||
+                        // S0935: open() runs extract_info(download=false), so ANY yt-dlp
+                        // extraction failure here means "this strategy could not get the media"
+                        // - the correct signal is NotFound (cascade tries site/html/dynamic),
+                        // never Error (which terminates via LinkAutoDownloadCoordinator ->
+                        // mapIoError). Device test 2026-07-04 confirmed: the downstream cascade
+                        // recovers real Instagram reels that yt-dlp 404s AND 500s on. Match every
+                        // HTTP status (403/404/410/429/5xx) and yt-dlp's own DownloadError/
+                        // ExtractorError. Genuinely unexpected exceptions carry none of these
+                        // markers and still fall to the else branch as Error.
+                        msg.contains("HTTP Error", ignoreCase = true) ||
+                        msg.contains("DownloadError", ignoreCase = true) ||
+                        msg.contains("ExtractorError", ignoreCase = true)) {
+                        Timber.d("S0935: ytdlp extraction failed - fallthrough to cascade")
                         Timber.d(
                             "YtDlpExtractionStrategy: not applicable url=%s reason=%s",
                             url, msg.take(100)

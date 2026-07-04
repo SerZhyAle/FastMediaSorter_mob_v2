@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -17,30 +18,30 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
+import com.sza.fastmediasorter.ui.settings.DefaultAppsDialogFragment
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
-import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerSettingsManager
-import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
-import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -68,8 +69,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     // S0774: empty except on standard + noLegal; gates the screen-recording settings rows.
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
-
-    private val defaultPlayerSettingsManager = DefaultPlayerSettingsManager()
 
     private val gestureActionPickerManager by lazy {
         // S0797: hide the "start screen recording" action where the capture engine is absent.
@@ -195,7 +194,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.containerScheduled.isVisible = false
         }
         register(binding.headerBehaviour, binding.containerBehaviour, "operations__behaviour")
-        register(binding.headerOtherFeatures, binding.containerOtherFeatures, "operations__other_features")
+        register(binding.headerCameraPhotos, binding.containerCameraPhotos, "operations__photography")
+        register(binding.headerVideoCapture, binding.containerVideoCapture, "operations__video_recording")
+        register(binding.headerMicRecording, binding.containerMicRecording, "operations__voice_recorder")
+        register(binding.headerScreenRecording, binding.containerScreenRecording, "operations__screen_recording")
         register(binding.headerAdditionalPrograms, binding.containerAdditionalPrograms, "operations__additional_programs")
         register(binding.headerSystemApps, binding.containerSystemApps, "operations__system_apps")
         register(binding.headerScreenGestures, binding.containerScreenGestures, "operations__screen_gestures")
@@ -327,10 +329,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // Screen-gesture overlay group (noLegal-only capability).
         gesturesManager.setup()
 
-        // Default-player registration buttons inside containerSystemApps.
-        defaultPlayerSettingsManager.bind(this, binding, mediaCapabilities)
+        // S0880: default-player registration UI now lives in DefaultAppsDialogFragment; this is its launcher.
+        binding.btnOpenDefaultAppsDialog.setOnClickListener {
+            DefaultAppsDialogFragment().show(childFragmentManager, DefaultAppsDialogFragment.TAG)
+        }
 
-        // OCR/Translation toggles (containerOtherFeatures).
+        // OCR/Translation toggles (containerAdditionalPrograms).
         binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -392,22 +396,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
             }
         }
-        // S0602: visibility and persisted-state reset of the default-player toggles are owned by
-        // applyFlavorRestrictions(); here we only attach listeners on flavors that support them.
-        if (mediaCapabilities.supportsDefaultPlayer) {
-            binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked, mediaCapabilities)
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = isChecked))
-            }
-            binding.rowAcceptSharedFiles.setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked, mediaCapabilities)
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(acceptSharedFiles = isChecked))
-            }
-        }
+        // S0880: default-player toggle listeners moved into DefaultAppsDialogFragment.
         binding.rowLinkAutodownloadEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -420,6 +409,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
+        // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
+        TooltipCompat.setTooltipText(
+            binding.btnSelectLinkAutodownloadResource,
+            binding.btnSelectLinkAutodownloadResource.contentDescription,
+        )
+        Timber.d("S0842: link-autodownload dest picker is icon-only")
         binding.btnSelectLinkAutodownloadResource.setOnClickListener {
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
@@ -520,14 +515,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             if (binding.rowFollowSystemRotation.isChecked != settings.programFollowSystemRotation) {
                                 binding.rowFollowSystemRotation.setCheckedSilently(settings.programFollowSystemRotation)
                             }
-                            if (mediaCapabilities.supportsDefaultPlayer) {
-                                if (binding.rowPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
-                                    binding.rowPrimaryMediaPlayer.setCheckedSilently(settings.isPrimaryMediaPlayer)
-                                }
-                                if (binding.rowAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
-                                    binding.rowAcceptSharedFiles.setCheckedSilently(settings.acceptSharedFiles)
-                                }
-                            }
+                            // S0880: default-player toggle state is rendered inside DefaultAppsDialogFragment.
                             if (binding.rowLinkAutodownloadEnabled.isChecked != settings.linkAutoDownloadEnabled) {
                                 binding.rowLinkAutodownloadEnabled.setCheckedSilently(settings.linkAutoDownloadEnabled)
                             }
@@ -593,13 +581,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             }
         }
 
+        // S0880: the toggle UI moved into DefaultAppsDialogFragment; the launcher carries the same gate.
         val supportsDefaultPlayer = mediaCapabilities.supportsDefaultPlayer
-        binding.rowPrimaryMediaPlayer.isVisible = supportsDefaultPlayer
-        binding.rowAcceptSharedFiles.isVisible = supportsDefaultPlayer
-        binding.layoutDefaultPlayerToggles.isVisible = supportsDefaultPlayer
+        binding.btnOpenDefaultAppsDialog.isVisible = supportsDefaultPlayer
         if (!supportsDefaultPlayer) {
-            binding.rowPrimaryMediaPlayer.setCheckedSilently(false)
-            binding.rowAcceptSharedFiles.setCheckedSilently(false)
+            // S0602: keep default-player state cleared on flavors that cannot register as default. The
+            // dialog is unreachable here (launcher hidden), so this reset must stay in the fragment.
             val current = viewModel.settings.value
             if (current.isPrimaryMediaPlayer || current.acceptSharedFiles) {
                 viewModel.updateSettings(current.copy(

@@ -5,6 +5,7 @@ import androidx.lifecycle.Lifecycle
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
+import com.sza.fastmediasorter.ui.player.helpers.cancelStreamStallWatchdog
 import com.sza.fastmediasorter.ui.player.helpers.releaseMediaPlayer
 import com.sza.fastmediasorter.ui.player.helpers.saveCurrentPosition
 import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
@@ -61,6 +62,9 @@ internal class VideoPlayerLifecycleHelper(
 
         manager.releaseMediaPlayer()
         manager.cancelPlaybackHealthCheck()
+        // S0936: the watchdog is a de-facto listener side-channel on activeExtraPlayerListener's
+        // player - cancel it on the same teardown edge that listener is removed above.
+        manager.cancelStreamStallWatchdog()
 
         manager.activeResourceKey?.let { key ->
             ConnectionThrottleManager.deactivateVideoPlayerMode(key)
@@ -72,6 +76,16 @@ internal class VideoPlayerLifecycleHelper(
     }
 
     fun onPause() {
+        // S0942: entering PiP dispatches ON_PAUSE to this observer while the media must keep
+        // playing inside the PiP window. The host activity's onPause() already gates its own
+        // togglePause() on isInPictureInPictureMode, but this observer pauses the player on a
+        // separate path - so streams (and local video) hosted by PlayerActivity froze on PiP
+        // entry and never resumed (onResume is not dispatched while in PiP). Skip the lifecycle
+        // pause while the host is in PiP; a real background transition later fires onStop(),
+        // which releases the player. The standalone hosts already apply the same guard.
+        if (isHostInPictureInPictureMode()) {
+            return
+        }
         // Player no longer on screen: bank player time so background time is not counted.
         manager.flushWatchClock()
         wasPlayingBeforePause = manager.exoPlayer?.isPlaying == true ||
@@ -79,6 +93,13 @@ internal class VideoPlayerLifecycleHelper(
         manager.pause()
         manager.stopPositionSaving()
     }
+
+    // S0942: the host activity backing this player (PlayerActivity / standalone hosts) is passed in
+    // as [VideoPlayerManager.context]. isInPictureInPictureMode exists since API 24, matching the
+    // onStop() guard below.
+    private fun isHostInPictureInPictureMode(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            (manager.context as? android.app.Activity)?.isInPictureInPictureMode == true
 
     fun onResume() {
         // Resume player-time accounting if a media player is still loaded after returning to foreground.
@@ -113,8 +134,7 @@ internal class VideoPlayerLifecycleHelper(
 
     // S0893: recreate only what was actually torn down by onStop() above.
     fun onStart() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
-        if (!wasLoadedBeforeStop) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !wasLoadedBeforeStop) return
         wasLoadedBeforeStop = false
         val path = manager.currentFilePath
         val resourceType = manager.lastResourceType
@@ -151,6 +171,9 @@ internal class VideoPlayerLifecycleHelper(
         }
 
         manager.cancelPlaybackHealthCheck()
+        // S0936: same rationale as releasePlayer() above - onDestroy() is a distinct teardown
+        // path (below API 24 the player survives until here, not released on onStop()).
+        manager.cancelStreamStallWatchdog()
 
         manager.activeResourceKey?.let { key ->
             ConnectionThrottleManager.deactivateVideoPlayerMode(key)

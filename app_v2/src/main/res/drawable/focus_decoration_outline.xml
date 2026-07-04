@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0943: accent focus outline applied in-place to the focused view (as its foreground) by
+  FocusDecorationController in non-touch mode. Drawn inside the view's own bounds, so it can never be
+  offset from the view - the platform-standard per-view focus affordance, not a coordinate-computed
+  overlay. Colour tracks the active accent via ?attr/colorPrimary; inset keeps the stroke fully visible.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="2dp"
+    android:insetTop="2dp"
+    android:insetRight="2dp"
+    android:insetBottom="2dp">
+    <shape android:shape="rectangle">
+        <stroke
+            android:width="@dimen/focus_decoration_stroke_width"
+            android:color="?attr/colorPrimary" />
+        <corners android:radius="@dimen/focus_decoration_corner_radius" />
+        <solid android:color="@android:color/transparent" />
+    </shape>
+</inset>

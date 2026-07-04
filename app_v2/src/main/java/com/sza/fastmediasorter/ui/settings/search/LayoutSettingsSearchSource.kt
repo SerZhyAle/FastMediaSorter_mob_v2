@@ -155,6 +155,21 @@ class LayoutSettingsSearchSource @Inject constructor(
                 if (titleResId == null) {
                     inlineTitle = XmlAttributeReader.attrStringValue(parser, XmlAttributeReader.ANDROID_NS, "text")
                 }
+                // S0842: these specific "select resource" buttons went icon-only (contentDescription
+                // instead of android:text); fall back to it so they stay searchable. Scoped by id
+                // (mirrors TEXTVIEW_PICKER_IDS below) rather than a blanket BUTTON fallback, so every
+                // pre-existing icon-only help/action button does not newly surface as an unannotated
+                // search result.
+                if (titleResId == null && inlineTitle == null && viewId in CD_TITLED_BUTTON_IDS) {
+                    titleResId = XmlAttributeReader.attrResourceValue(
+                        parser, XmlAttributeReader.ANDROID_NS, "contentDescription"
+                    )
+                    if (titleResId == null) {
+                        inlineTitle = XmlAttributeReader.attrStringValue(
+                            parser, XmlAttributeReader.ANDROID_NS, "contentDescription"
+                        )
+                    }
+                }
             }
             EntryKind.TEXT_INPUT, EntryKind.SPINNER -> {
                 hintResId = XmlAttributeReader.attrResourceValue(parser, XmlAttributeReader.ANDROID_NS, "hint")
@@ -244,6 +259,19 @@ class LayoutSettingsSearchSource @Inject constructor(
         val TEXTVIEW_PICKER_IDS: Set<Int> = setOf(
             R.id.spinnerTranslationSourceLanguage,
             R.id.spinnerTranslationTargetLanguage
+        )
+
+        // S0842: icon-only "select resource" buttons whose title now lives in contentDescription
+        // (android:text was dropped in favor of an icon + tooltip). See EntryKind.BUTTON above.
+        val CD_TITLED_BUTTON_IDS: Set<Int> = setOf(
+            R.id.btnSelectCameraPhotosDest,
+            R.id.btnSelectVideoRecordingDest,
+            R.id.btnSelectMicRecordingDest,
+            R.id.btnSelectScreenRecordingDest,
+            R.id.btnSelectLinkAutodownloadResource,
+            R.id.btnSelectScreenshotDestination,
+            R.id.btnSelectSnapshotResource,
+            R.id.btnSelectMusicSource
         )
 
         // Transient permission-prompt action buttons gated purely by mutable runtime state (a

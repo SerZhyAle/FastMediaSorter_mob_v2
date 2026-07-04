@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0880: hosts the default-player registration subgroup moved out of fragment_settings_destinations.
+     Ids mirror the former settings subgroup (DefaultPlayerSettingsManager + SettingsSearchRegistry rely on
+     them). Every view id must mirror layout-land/dialog_default_apps.xml (one ViewBinding). -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_normal">
+
+        <!-- Header: title + close (DialogCancel taxonomy, S0538). All actions apply immediately, so Close is the only action. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/default_apps_dialog_title"
+                android:textSize="@dimen/text_size_title_dialog"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClose"
+                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:text="@string/close" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutDefaultPlayerSubgroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Hint copy set in code from welcome_default_player_hint (HTML) to stay in sync with the welcome page. Muted colour so it reads as instructions, not a link. -->
+            <TextView
+                android:id="@+id/tvDefaultPlayerSettingsHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:textColor="@color/text_color_secondary"
+                android:textSize="@dimen/text_size_small" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsDefaultPlayerImages"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:text="@string/settings_default_player_btn_images"
+                android:textAllCaps="false" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsDefaultPlayerAudio"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:text="@string/settings_default_player_btn_audio"
+                android:textAllCaps="false" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsDefaultPlayerVideo"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:text="@string/settings_default_player_btn_video"
+                android:textAllCaps="false" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsDefaultPlayerDocs"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:text="@string/settings_default_player_btn_docs"
+                android:textAllCaps="false" />
+
+            <!-- S0435: system media handler + accept shared files. Portrait stacks these vertically (narrow width crowds two side-by-side toggles). -->
+            <LinearLayout
+                android:id="@+id/layoutDefaultPlayerToggles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowPrimaryMediaPlayer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_title="@string/settings_primary_media_player"
+                    app:str_subtitle="@string/setting_primary_media_player_desc" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowAcceptSharedFiles"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:str_title="@string/settings_accept_shared_files"
+                    app:str_subtitle="@string/setting_accept_shared_files_desc" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

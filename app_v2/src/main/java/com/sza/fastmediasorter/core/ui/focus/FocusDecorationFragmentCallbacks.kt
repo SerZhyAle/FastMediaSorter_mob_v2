@@ -6,15 +6,15 @@ import androidx.fragment.app.FragmentManager
 import java.util.WeakHashMap
 
 /**
- * S0819: extends the travelling focus frame to [DialogFragment] / bottom-sheet windows.
+ * S0943: extends the in-place focus decoration to [DialogFragment] / bottom-sheet windows.
  *
  * These own a separate [android.view.Window] that the host Activity's decor listener cannot see, so
- * each gets its own [FocusFrameController]. Non-dialog fragments render into the Activity window
- * (already covered by [FocusFrameActivityCallbacks]) and are skipped.
+ * each gets its own [FocusDecorationController]. Non-dialog fragments render into the Activity window
+ * (already covered by [FocusDecorationActivityCallbacks]) and are skipped.
  */
-class FocusFrameFragmentCallbacks : FragmentManager.FragmentLifecycleCallbacks() {
+class FocusDecorationFragmentCallbacks : FragmentManager.FragmentLifecycleCallbacks() {
 
-    private val controllers = WeakHashMap<Fragment, FocusFrameController>()
+    private val controllers = WeakHashMap<Fragment, FocusDecorationController>()
 
     override fun onFragmentStarted(fragmentManager: FragmentManager, fragment: Fragment) {
         if (fragment !is DialogFragment) return
@@ -24,7 +24,7 @@ class FocusFrameFragmentCallbacks : FragmentManager.FragmentLifecycleCallbacks()
         if (window == null || window === fragment.activity?.window || controllers.containsKey(fragment)) {
             return
         }
-        val controller = FocusFrameController(window)
+        val controller = FocusDecorationController(window)
         controller.attach()
         controllers[fragment] = controller
     }

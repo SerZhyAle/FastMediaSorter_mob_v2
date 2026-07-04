@@ -6,7 +6,26 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7040.526** (July 2026)
+**Current release: 2.60.7042.357** (July 2026)
+
+> Changes since version 2.60.7040.526
+
+---
+
+## What's New
+
+- **Reorder pinned streams** - move a favorite up, down or to top from the streams list or grid menu.
+- **TV/D-pad navigation** - every focused control is now highlighted, and the first remote press always lands on a real control.
+
+## What's Fixed
+
+- Streams landscape view no longer wastes vertical space on a separate control bar.
+- Playback-control sliders (volume, hue, brightness, speed) now track the finger correctly in portrait.
+- Live streams keep playing instead of pausing when entering Picture-in-Picture.
+
+---
+
+## Previous Release: 2.60.7040.526 (July 2026)
 
 > Changes since version 2.60.7031.316
 

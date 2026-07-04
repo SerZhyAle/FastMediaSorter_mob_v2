@@ -509,11 +509,9 @@ class DestinationButtonsManager(
      */
     fun bindHeaderToggles() {
         safeViews.copyToPanelHeader.setOnExpandedChangeListener { expanded ->
-            Timber.d("S0920: standalone copy panel header toggled expanded=$expanded")
             setCopyPanelExpanded(expanded)
         }
         safeViews.moveToPanelHeader.setOnExpandedChangeListener { expanded ->
-            Timber.d("S0920: standalone move panel header toggled expanded=$expanded")
             setMovePanelExpanded(expanded)
         }
     }

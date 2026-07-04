@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.ui.dialog.helpers
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
@@ -83,6 +86,40 @@ class FileInfoLaunchManager(
                 ),
                 Toast.LENGTH_SHORT
             ).show()
+        }
+    }
+
+    /**
+     * Open a geo-coordinate. S0929: a `geo:` intent is handled only by map apps, so it honours
+     * the user's default maps app first; on no handler we fall back to an https maps URL any
+     * browser can render, then a Toast when neither resolves.
+     */
+    fun openLocationInMaps(latitude: Double, longitude: Double) {
+        val coords = "$latitude,$longitude"
+        val geoIntent = Intent(Intent.ACTION_VIEW, "geo:$coords?q=$coords".toUri())
+        if (tryStart(geoIntent)) return
+
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            "https://www.google.com/maps/search/?api=1&query=$coords".toUri()
+        )
+        if (tryStart(webIntent)) return
+
+        Toast.makeText(
+            context,
+            context.getString(R.string.no_maps_app_available),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun tryStart(intent: Intent): Boolean {
+        if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            Timber.w(e, "openLocationInMaps: no handler for ${intent.data}")
+            false
         }
     }
 

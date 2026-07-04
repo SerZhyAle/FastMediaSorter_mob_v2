@@ -206,6 +206,7 @@ _Available in: Standard, Legacy_
 | + Add | Adds a new Quick Sort destination folder to the list. |
 | Edit app panel | Opens the editor for the app panel, where you choose and arrange the apps shown on it. |
 | Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. This enables silent screenshots only - screen video recording always asks Android for its own permission (the 'this app / entire screen' chooser) at the start of every recording, and that step cannot be skipped. |
+| Set as default | Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
@@ -213,22 +214,20 @@ _Available in: Standard, Legacy_
 | Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
-| Default audio player | Sets which app opens audio files by default when tapped from outside this app. |
-| Default document viewer | Sets which app opens document files by default when tapped from outside this app. |
-| Default image viewer | Sets which app opens image files by default when tapped from outside this app. |
-| Default video player | Sets which app opens video files by default when tapped from outside this app. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
+| Photography | Settings for taking photos with the in-app camera and choosing where captured photos are saved. |
 | Copy, move and overwrite behavior | Settings that control what happens when files are copied, moved, or a name conflict occurs. |
 | Quick Sort destinations | Folders and resources used as Quick Sort targets when sorting files. |
-| Photo, Video, Voice recorder | Settings for capturing photos and videos, recording voice notes, and other supplementary features. |
+| Voice recorder | Settings for recording voice notes with the microphone and choosing where recordings are saved. |
 | File deletion and trash | Settings that control how files are deleted and whether a trash folder is used. |
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
 | Left-edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
+| Screen recording | Settings for recording video of the screen and choosing where recordings are saved. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
-| Accept shared files | Allows other apps to share files directly into this app via the Android share sheet. |
+| Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
 | Ask for each photo name | Prompts you to enter a name for each photo immediately after it is captured. |
 | Save photos to clipboard | Automatically copies each captured photo to the clipboard after saving. |
 | Geotag photos | Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default. |
@@ -260,7 +259,6 @@ _Available in: Standard, Legacy_
 | Overwrite existing file when copying | Overwrites the existing file at the destination when a name conflict occurs during copying. |
 | Overwrite existing file when moving | Overwrites the existing file at the destination when a name conflict occurs during moving. |
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
-| System media handler | Registers this app as a system-level media handler so it receives media intents from other apps. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
 | Screen video recording | Enables the built-in screen video recording feature. |
 | Down gesture action | Chooses the action triggered by the downward screen gesture. |

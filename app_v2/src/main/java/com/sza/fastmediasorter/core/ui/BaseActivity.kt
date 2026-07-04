@@ -168,7 +168,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             // so D-pad/keyboard focus never parks on a bare container with the controls unreachable.
             val needsInitialFocus = shouldRequestInitialFocus()
             if (needsInitialFocus) {
-                getInitialFocusView()?.let { FocusTargetResolver.resolveToLeafFocusable(it) ?: it }
+                // S0944: fall back to the content root when a screen declares no explicit initial
+                // focus, so every screen lands focus on a real control (resolver skips scroll
+                // containers / EditText) instead of leaving a dead screen with the first key wasted.
+                (getInitialFocusView() ?: _binding?.root)
+                    ?.let { FocusTargetResolver.resolveToLeafFocusable(it) ?: it }
                     ?.requestFocus()
             }
             showGmsWarningIfNeeded()

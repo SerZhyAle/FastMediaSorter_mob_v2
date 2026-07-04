@@ -312,6 +312,14 @@ class VideoPlayerManager(
     internal var lastCheckedPosition = 0L
     internal var playbackStuckCount = 0
 
+    // Stream stall watchdog (S0936): detects a silent freeze the stream-listener's error-driven
+    // recovery cannot see (no PlaybackException thrown). This phase only detects and logs;
+    // Phase 02 turns a confirmed stall into bounded recovery once device-repro + owner ratify it.
+    internal var streamStallRunnable: Runnable? = null
+    internal var streamStallLastPosition = 0L
+    internal var streamStallPolls = 0
+    internal var streamBufferingSince = 0L
+
     // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 

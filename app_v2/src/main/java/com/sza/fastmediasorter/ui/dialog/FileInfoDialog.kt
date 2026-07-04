@@ -1,12 +1,11 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Dialog
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
-import android.widget.Toast
+import android.widget.TextView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -19,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -193,13 +191,9 @@ class FileInfoDialog(
             binding.tvExifOrientation.visibility = View.GONE
         }
 
-        // EXIF GPS
+        // EXIF GPS - S0929: clickable maps link (fast path: network files with populated exif*)
         if (mediaFile.exifLatitude != null && mediaFile.exifLongitude != null) {
-            binding.tvExifGPS.text = context.getString(
-                R.string.exif_gps_label,
-                formatGPS(mediaFile.exifLatitude, mediaFile.exifLongitude)
-            )
-            binding.tvExifGPS.visibility = View.VISIBLE
+            showExifGpsLink(mediaFile.exifLatitude, mediaFile.exifLongitude)
         } else {
             binding.tvExifGPS.visibility = View.GONE
         }
@@ -508,29 +502,33 @@ class FileInfoDialog(
             binding.tvVideoFrameRate.visibility = View.VISIBLE
         }
         
-        // GPS Location
-        if (details.latitude != null && details.longitude != null) {
-            val locationText = context.getString(
+        // GPS Location - S0929: video geotag lives in the video section; image geotag is rendered
+        // in the EXIF section (below). Both route through the shared maps launcher.
+        if (details.latitude != null && details.longitude != null && mediaFile.type == MediaType.VIDEO) {
+            binding.tvGpsLocation.text = context.getString(
                 R.string.gps_location_label,
                 String.format(Locale.getDefault(), "%.6f", details.latitude),
                 String.format(Locale.getDefault(), "%.6f", details.longitude)
             )
-            binding.tvGpsLocation.text = locationText
             binding.tvGpsLocation.visibility = View.VISIBLE
-            
-            // Make clickable to open Google Maps
-            binding.tvGpsLocation.setOnClickListener {
-                val uri = "https://www.google.com/maps?q=${details.latitude},${details.longitude}"
-                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
-                try {
-                    context.startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    timber.log.Timber.w(e, "FileInfoDialog: no maps app available")
-                    Toast.makeText(context, context.getString(R.string.no_maps_app_available), Toast.LENGTH_SHORT).show()
-                }
+            bindGpsLink(binding.tvGpsLocation, details.latitude, details.longitude)
+        }
+
+        // Image EXIF fallback - S0929: local photos carry null MediaFile.exif* (MediaStore path),
+        // so fill capture time + clickable geotag from the async detailed read.
+        if (mediaFile.type == MediaType.IMAGE || mediaFile.type == MediaType.GIF) {
+            if (mediaFile.exifDateTime == null && details.dateTimeTaken != null) {
+                binding.tvExifDateTime.text = context.getString(
+                    R.string.exif_datetime_label,
+                    formatDate(details.dateTimeTaken)
+                )
+                binding.tvExifDateTime.visibility = View.VISIBLE
+            }
+            if (details.latitude != null && details.longitude != null) {
+                showExifGpsLink(details.latitude, details.longitude)
             }
         }
-        
+
         // Document Metadata (PDF/TXT/EPUB)
         updateDocumentInfo(details)
     }
@@ -624,6 +622,26 @@ class FileInfoDialog(
         if (details.encoding != null) {
             binding.tvDocEncoding.text = context.getString(R.string.doc_encoding_label, details.encoding)
             binding.tvDocEncoding.visibility = View.VISIBLE
+        }
+    }
+
+    /** Render [tvExifGPS] as a tappable maps link. S0929. */
+    private fun showExifGpsLink(latitude: Double, longitude: Double) {
+        binding.tvExifGPS.text = context.getString(
+            R.string.exif_gps_label,
+            formatGPS(latitude, longitude)
+        )
+        binding.tvExifGPS.visibility = View.VISIBLE
+        bindGpsLink(binding.tvExifGPS, latitude, longitude)
+    }
+
+    /** Wire a coordinate TextView as a focusable, tappable maps link. S0929. */
+    private fun bindGpsLink(view: TextView, latitude: Double, longitude: Double) {
+        view.setTextIsSelectable(false)
+        view.isClickable = true
+        view.isFocusable = true
+        view.setOnClickListener {
+            launchManager.openLocationInMaps(latitude, longitude)
         }
     }
 

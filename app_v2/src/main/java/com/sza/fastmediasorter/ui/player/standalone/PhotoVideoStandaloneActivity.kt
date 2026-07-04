@@ -1020,7 +1020,6 @@ class PhotoVideoStandaloneActivity :
         // (commands mode). An edge-swipe restores the panel via setupTransientBarsExitCallback below.
         lifecycleScope.launch {
             val openFullscreen = settingsRepository.getSettings().first().openVideoInFullscreen
-            Timber.d("S0920: standalone video open, openVideoInFullscreen=$openFullscreen")
             if (openFullscreen) {
                 fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {}
             }

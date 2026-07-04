@@ -22,7 +22,6 @@
     <string name="settings_category_images">Изображения, GIF и слайд-шоу</string>
     <string name="settings_category_interface">Общие настройки интерфейса</string>
     <string name="settings_category_other">Перевод, оцифровка (OCR)</string>
-    <string name="settings_category_other_features">Фото, Видео, Диктофон</string>
     <string name="settings_category_other_functionality">Прочий функционал</string>
     <string name="settings_category_permissions">Разрешения и доступ</string>
     <string name="settings_category_player_ui">Интерфейс и команды плеера</string>
@@ -229,7 +228,6 @@
     <string name="setting_video_recording_destination_title">Ресурс для записи видео</string>
     <string name="setting_video_recording_destination_default_movies">По умолчанию: если текущий ресурс недоступен, папка Movies устройства</string>
     <string name="setting_select_destination">Выбрать ресурс..</string>
-    <string name="setting_subgroup_default_player_title">Программа по умолчанию</string>
     <string name="settings_default_player_btn_images">Просмотр изображений по умолчанию</string>
     <string name="settings_default_player_btn_audio">Аудиоплеер по умолчанию</string>
     <string name="settings_default_player_btn_video">Видеоплеер по умолчанию</string>
@@ -246,4 +244,10 @@
     <string name="setting_screen_recording_destination_default_downloads">По умолчанию: папка Downloads</string>
     <string name="setting_open_video_in_fullscreen_title">Открывать видеофайлы в полноэкранном режиме</string>
     <string name="setting_open_video_in_fullscreen_desc">Видео, открытые из браузера ресурсов, запускаются сразу в полноэкранном режиме</string>
+    <string name="settings_group_photography">Фотографирование</string>
+    <string name="settings_group_video_recording">Видеосъёмка</string>
+    <string name="settings_group_voice_recorder">Диктофон</string>
+    <string name="settings_group_screen_recording">Запись видео с экрана</string>
+    <string name="settings_open_default_apps_dialog">Задать по-умолчанию</string>
+    <string name="default_apps_dialog_title">Приложение по умолчанию</string>
 </resources>

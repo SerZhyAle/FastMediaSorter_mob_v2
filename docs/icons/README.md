@@ -57,11 +57,16 @@ Steps 2 and 3 are idempotent - a re-run is byte-identical when nothing changed.
 ## Drift gate
 
 `scripts/quality/assert-icon-inventory-sync.ps1` locks the tree against drift: it checks
-asset coverage (every public vector has its SVG, framework icons have none), rejects
-orphan SVGs, byte-diffs a fresh legend re-render against the committed pages, and enforces
-cross-locale parity. Pass `-IncludeExportTest` to also re-run the inventory export test in
-assert mode (heavy - CI / opt-in).
+cheap settings-source freshness (`fragment_settings_*.xml` vs the committed
+`settings-header`/`settings-row` subset), asset coverage (every public vector has its SVG,
+framework icons have none), rejects orphan SVGs, byte-diffs a fresh legend re-render
+against the committed pages, and enforces cross-locale parity. Pass `-IncludeExportTest`
+to also re-run the full inventory export test in assert mode (heavy - CI / opt-in).
 
-The gate runs automatically from `scripts/post-change.ps1` for a `Doc`/`Mixed` change that
-touches `docs/icons/` or `docs/ICON_LEGEND*`. If it fails with a "stale" or "missing SVG"
-message, re-run the matching stage above and commit the regenerated files.
+The gate runs automatically from `scripts/post-change.ps1` for:
+- `docs/icons/**` and `docs/ICON_LEGEND*` edits
+- `app_v2/src/main/res/layout/fragment_settings_*.xml` edits
+- `app_v2/src/main/res/values*/strings*.xml` edits
+
+If it fails with a "stale", "settings-source", or "missing SVG" message, re-run the
+matching stage above and commit the regenerated files.

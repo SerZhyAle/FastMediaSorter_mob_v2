@@ -165,9 +165,23 @@
                 app:strokeColor="?attr/colorPrimary"
                 app:strokeWidth="@dimen/stroke_width_normal" />
 
-            <Space
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGameSkip"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="@dimen/game_control_button_size"
-                android:layout_height="@dimen/game_control_button_size" />
+                android:layout_height="@dimen/game_control_button_size"
+                android:contentDescription="@string/game_skip_turn"
+                android:minWidth="@dimen/game_control_button_size"
+                android:minHeight="@dimen/game_control_button_size"
+                android:padding="@dimen/padding_small"
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_skip_next"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="@dimen/game_control_icon_size"
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="@dimen/stroke_width_normal" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGameRight"

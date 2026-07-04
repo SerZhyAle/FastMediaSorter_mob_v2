@@ -756,17 +756,17 @@
             <!-- Переключатель вариантов дашборда (S0387) -->
             <div class="variant-switcher">
                 <span class="variant-title">Вид дашборда:</span>
-                <button class="variant-btn active" id="var-btn-v1">🗂️ Рубрикатор</button>
-                <button class="variant-btn" id="var-btn-v2">🗺️ Карта медиа</button>
-                <button class="variant-btn" id="var-btn-v3">✨ Главное / Все</button>
-                <button class="variant-btn" id="var-btn-v4">🎯 Сценарии</button>
+                <button class="variant-btn active" id="var-btn-v1">Рубрикатор</button>
+                <button class="variant-btn" id="var-btn-v2">Карта медиа</button>
+                <button class="variant-btn" id="var-btn-v3">Главное / Все</button>
+                <button class="variant-btn" id="var-btn-v4">Сценарии</button>
             </div>
 
             <div class="explorer-controls">
                 <div class="explorer-tabs">
-                    <button class="tab-btn active" id="tab-all">🌟 Ключевые функции</button>
-                    <button class="tab-btn" id="tab-standard">📱 Standard (Мобильные / TV / Авто)</button>
-                    <button class="tab-btn vr-tab" id="tab-vr">🥽 VR-редакция (Meta Quest / XR)</button>
+                    <button class="tab-btn active" id="tab-all">Ключевые функции</button>
+                    <button class="tab-btn" id="tab-standard">Standard (Мобильные / TV / Авто)</button>
+                    <button class="tab-btn vr-tab" id="tab-vr">VR-редакция (Meta Quest / XR)</button>
                 </div>
                 <div class="search-wrapper">
                     <span class="search-icon">🔍</span>
@@ -777,8 +777,8 @@
             <!-- Дополнительные контроли для Варианта 3 (двухуровневый переключатель) -->
             <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
                 <div class="toggle-v3-group">
-                    <button class="toggle-v3-btn active" id="toggle-v3-key">✨ Главное</button>
-                    <button class="toggle-v3-btn" id="toggle-v3-all">📋 Все функции</button>
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">Главное</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">Все функции</button>
                 </div>
             </div>
 
@@ -802,7 +802,7 @@
 
         <!-- Полный список функций (скрытый SEO-резерв) -->
         <details class="full-features-panel">
-            <summary>📋 Канонический перечень возможностей (Jekyll Markdown)</summary>
+            <summary>Канонический перечень возможностей (Jekyll Markdown)</summary>
             <div id="full-features-content" class="full-features-content">
                 <em>Загрузка канонического перечня возможностей..</em>
             </div>
@@ -1137,40 +1137,40 @@
             };
 
             var majorCategories = [
-                { id: 'network', label: '🌐 Сетевые технологии и Облако' },
-                { id: 'players', label: '🎬 Плееры и Слайд-шоу' },
-                { id: 'filemanager', label: '📂 Файловый менеджер' },
-                { id: 'notes', label: '📝 Заметки, Редакторы и OCR' },
-                { id: 'widgets', label: '🧩 Виджеты и Интеграция' },
-                { id: 'setup', label: '⚙️ Настройка и Навигация' },
-                { id: 'vr', label: '🥽 VR-режим' }
+                { id: 'network', label: 'Сетевые технологии и Облако' },
+                { id: 'players', label: 'Плееры и Слайд-шоу' },
+                { id: 'filemanager', label: 'Файловый менеджер' },
+                { id: 'notes', label: 'Заметки, Редакторы и OCR' },
+                { id: 'widgets', label: 'Виджеты и Интеграция' },
+                { id: 'setup', label: 'Настройка и Навигация' },
+                { id: 'vr', label: 'VR-режим' }
             ];
 
             var dashboardColumns = [
-                { id: 'sources', label: '📡 Источники', categories: [1, 14] },
-                { id: 'processing', label: '⚙️ Обработка', categories: [2, 3, 4, 6] },
-                { id: 'viewers', label: '🍿 Просмотр', categories: [5, 7, 9, 10, 11, 12, 13] },
-                { id: 'platforms', label: '📱 Среды', categories: [0, 8, 15, 16] }
+                { id: 'sources', label: 'Источники', categories: [1, 14] },
+                { id: 'processing', label: 'Обработка', categories: [2, 3, 4, 6] },
+                { id: 'viewers', label: 'Просмотр', categories: [5, 7, 9, 10, 11, 12, 13] },
+                { id: 'platforms', label: 'Среды', categories: [0, 8, 15, 16] }
             ];
 
             var scenariosList = [
-                { id: 'all', label: '🌟 Все сценарии' },
-                { id: 'photo', label: '🖼️ Фоторамка' },
-                { id: 'music', label: '🚗 В авто' },
-                { id: 'video', label: '🍿 Кинотеатр' },
-                { id: 'smb', label: '📡 Настройка SMB' },
-                { id: 'backup', label: '📷 Автобэкап' },
-                { id: 'download', label: '🧹 Органайзер' },
-                { id: 'offline', label: '🧳 Офлайн-папка' },
-                { id: 'docs', label: '📚 Документы из облака' },
-                { id: 'ocr', label: '🔎 OCR-перевод' },
-                { id: 'tv', label: '🛋️ NAS для TV' },
-                { id: 'duplicates', label: '🧬 Очистка дубликатов' },
-                { id: 'chromecast', label: '📺 Chromecast' },
-                { id: 'widgets', label: '📱 Умные виджеты' },
-                { id: 'vrcinema', label: '🕶️ Иммерсивный кинотеатр' },
-                { id: 'calculator', label: '🧮 Быстрые вычисления' },
-                { id: 'cloudnotes', label: '📝 Облачные заметки' }
+                { id: 'all', label: 'Все сценарии' },
+                { id: 'photo', label: 'Фоторамка' },
+                { id: 'music', label: 'В авто' },
+                { id: 'video', label: 'Кинотеатр' },
+                { id: 'smb', label: 'Настройка SMB' },
+                { id: 'backup', label: 'Автобэкап' },
+                { id: 'download', label: 'Органайзер' },
+                { id: 'offline', label: 'Офлайн-папка' },
+                { id: 'docs', label: 'Документы из облака' },
+                { id: 'ocr', label: 'OCR-перевод' },
+                { id: 'tv', label: 'NAS для TV' },
+                { id: 'duplicates', label: 'Очистка дубликатов' },
+                { id: 'chromecast', label: 'Chromecast' },
+                { id: 'widgets', label: 'Умные виджеты' },
+                { id: 'vrcinema', label: 'Иммерсивный кинотеатр' },
+                { id: 'calculator', label: 'Быстрые вычисления' },
+                { id: 'cloudnotes', label: 'Облачные заметки' }
             ];
 
             // Селекторы сценариев
@@ -1200,52 +1200,52 @@
                 var links = [];
 
                 if (text.indexOf('слайд-шоу') !== -1 || text.indexOf('фоторамк') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-photo-frame-ru.html', label: '🖼️ Сценарий: Фоторамка' });
+                    links.push({ url: 'docs/howto/scenario-photo-frame-ru.html', label: 'Сценарий: Фоторамка' });
                 }
                 if (text.indexOf('музык') !== -1 || text.indexOf('аудио') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('рул') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-car-music-ru.html', label: '🚗 Сценарий: В авто' });
+                    links.push({ url: 'docs/howto/scenario-car-music-ru.html', label: 'Сценарий: В авто' });
                 }
                 if (text.indexOf('видео') !== -1 || text.indexOf('фильм') !== -1 || text.indexOf('сериал') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('кинотеатр') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-home-cinema-ru.html', label: '🍿 Сценарий: Кинотеатр' });
+                    links.push({ url: 'docs/howto/scenario-home-cinema-ru.html', label: 'Сценарий: Кинотеатр' });
                 }
                 if (text.indexOf('smb') !== -1 || text.indexOf('сетев') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('хост') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-smb-setup-ru.html', label: '📡 Настройка SMB' });
+                    links.push({ url: 'docs/howto/scenario-smb-setup-ru.html', label: 'Настройка SMB' });
                 }
                 if (text.indexOf('бэкап') !== -1 || text.indexOf('резерв') !== -1 || text.indexOf('копир') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-camera-backup-ru.html', label: '📷 Автобэкап' });
+                    links.push({ url: 'docs/howto/scenario-camera-backup-ru.html', label: 'Автобэкап' });
                 }
                 if (text.indexOf('загруз') !== -1 || text.indexOf('козин') !== -1 || text.indexOf('удален') !== -1 || text.indexOf('перемещ') !== -1) {
-                    links.push({ url: 'docs/howto/scenario-download-organizer-ru.html', label: '🧹 Органайзер' });
+                    links.push({ url: 'docs/howto/scenario-download-organizer-ru.html', label: 'Органайзер' });
                 }
                 if (text.indexOf('офлайн') !== -1 || text.indexOf('поезд') !== -1 || text.indexOf('локальн') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#подготовьте-папку-для-поездки-без-стабильного-интернета', label: '🧳 Офлайн-папка' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#подготовьте-папку-для-поездки-без-стабильного-интернета', label: 'Офлайн-папка' });
                 }
                 if (text.indexOf('документ') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('чтен') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#читайте-облачные-документы-и-epub-в-дороге', label: '📚 Документы из облака' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#читайте-облачные-документы-и-epub-в-дороге', label: 'Документы из облака' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('перевод') !== -1 || text.indexOf('tesseract') !== -1 || text.indexOf('распознав') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#переводите-вывески-сканы-и-скриншоты-через-ocr', label: '🔎 OCR-перевод' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#переводите-вывески-сканы-и-скриншоты-через-ocr', label: 'OCR-перевод' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('гостин') !== -1 || text.indexOf('телевиз') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#превратите-nas-в-медиаполку-для-гостиной', label: '🛋️ NAS для TV' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#превратите-nas-в-медиаполку-для-гостиной', label: 'NAS для TV' });
                 }
                 if (text.indexOf('дублик') !== -1 || text.indexOf('sha-256') !== -1) {
-                    links.push({ url: 'docs/FEATURES_RU.html#3-файловые-операции', label: '🧬 Очистка дубликатов' });
+                    links.push({ url: 'docs/FEATURES_RU.html#3-файловые-операции', label: 'Очистка дубликатов' });
                 }
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast') !== -1) {
-                    links.push({ url: 'docs/FEATURES_RU.html#9-аудиоплеер', label: '📺 Chromecast' });
+                    links.push({ url: 'docs/FEATURES_RU.html#9-аудиоплеер', label: 'Chromecast' });
                 }
                 if (text.indexOf('виджет') !== -1 || text.indexOf('widget') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#умные-виджеты-домашнего-экрана', label: '📱 Умные виджеты' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#умные-виджеты-домашнего-экрана', label: 'Умные виджеты' });
                 }
                 if (text.indexOf('vrcinema') !== -1 || text.indexOf('кинотеатр') !== -1 || text.indexOf('openxr') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#иммерсивный-кинотеатр-openxr-vr', label: '🕶️ Иммерсивный кинотеатр' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#иммерсивный-кинотеатр-openxr-vr', label: 'Иммерсивный кинотеатр' });
                 }
                 if (text.indexOf('вычислен') !== -1 || text.indexOf('формул') !== -1 || text.indexOf('калькулятор') !== -1 || text.indexOf('расчёт') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#быстрые-вычисления-из-текста-и-ocr', label: '🧮 Быстрые вычисления' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#быстрые-вычисления-из-текста-и-ocr', label: 'Быстрые вычисления' });
                 }
                 if (text.indexOf('cloudnotes') !== -1 || text.indexOf('заметк') !== -1 || text.indexOf('markdown') !== -1) {
-                    links.push({ url: 'docs/HOW_TO_RU.html#облачные-заметки-markdown-и-код', label: '📝 Облачные заметки' });
+                    links.push({ url: 'docs/HOW_TO_RU.html#облачные-заметки-markdown-и-код', label: 'Облачные заметки' });
                 }
 
                 return links;
@@ -1423,7 +1423,7 @@
                     if (minorList.length > 0) {
                         var minorTitle = document.createElement('h3');
                         minorTitle.className = 'v1-accordion-title';
-                        minorTitle.innerText = '📋 Другие функции';
+                        minorTitle.innerText = 'Другие функции';
                         content.appendChild(minorTitle);
 
                         var minorGrid = document.createElement('div');

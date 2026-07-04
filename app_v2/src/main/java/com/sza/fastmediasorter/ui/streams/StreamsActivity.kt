@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -39,6 +40,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
@@ -93,6 +95,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onPlay = ::onPlay,
         onPin = { viewModel.onPin(it) },
         onRemove = ::confirmRemove,
+        onMoveUp = { viewModel.onMovePinned(it, PinnedStreamMove.UP) },
+        onMoveDown = { viewModel.onMovePinned(it, PinnedStreamMove.DOWN) },
+        onMoveToTop = { viewModel.onMovePinned(it, PinnedStreamMove.TO_TOP) },
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
@@ -125,6 +130,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onPlay = ::onPlay,
             onPin = { viewModel.onPin(it) },
             onRemove = ::confirmRemove,
+            onMoveUp = { viewModel.onMovePinned(it, PinnedStreamMove.UP) },
+            onMoveDown = { viewModel.onMovePinned(it, PinnedStreamMove.DOWN) },
+            onMoveToTop = { viewModel.onMovePinned(it, PinnedStreamMove.TO_TOP) },
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,
             onShareLink = ::onShareLink,
@@ -140,6 +148,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private lateinit var gridModeManager: StreamGridModeManager
+
+    private lateinit var controlsPlacement: StreamsControlsPlacementManager
 
     private lateinit var inlineAudio: StreamInlineAudioManager
 
@@ -240,6 +250,17 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         binding.btnFilter.setOnClickListener { cancelHealthProbe(); showFilterDialog() }
         binding.btnSort.setOnClickListener { cancelHealthProbe(); showSortDialog() }
+
+        // S0940: in landscape the search/filter/sort group moves into the toolbar header to free
+        // vertical space for the list/grid; place it for the launch orientation here, then keep it
+        // in sync from onConfigurationChanged (this window does not recreate on rotation, S0692).
+        controlsPlacement = StreamsControlsPlacementManager(
+            controls = binding.streamControls,
+            headerHost = binding.headerControlsHost,
+        )
+        val launchLandscape =
+            resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        controlsPlacement.applyForOrientation(launchLandscape)
 
         // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
         // e.g. the S0699 position restore, settle without DRAGGING so they do not cancel it).
@@ -726,6 +747,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S0692: this Activity handles orientation config changes itself (manifest configChanges), so the
         // list/grid column span must be recomputed here rather than via an Activity recreate.
         if (::gridModeManager.isInitialized) gridModeManager.onConfigurationChanged()
+        // S0940: relocate the search/filter/sort group between header (landscape) and the below-toolbar
+        // bar (portrait) live on rotation, since the window is not recreated here.
+        if (::controlsPlacement.isInitialized) {
+            val landscape = newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            controlsPlacement.applyForOrientation(landscape)
+        }
     }
 
     override fun onStop() {

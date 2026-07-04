@@ -67,6 +67,11 @@
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <!-- S0934: symmetric opt-out from the API-36 large-screen orientation/resizability ignore
+                 (mirror of the standard CameraCaptureActivity opt-out). This diagnostic panel is a
+                 deliberately landscape-locked, non-resizable VR surface; keep the compat behavior so a
+                 HorizonOS/large-screen host reporting sw>=600dp cannot reshape it. Inert until targetSdk 36. -->
+            <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="com.oculus.intent.category.VR" />

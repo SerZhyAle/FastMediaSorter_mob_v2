@@ -196,14 +196,22 @@ $runsSettingsDocGate = (
 # (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
 # settings-doc composite so a manifest/vocab change re-checks the guides.
 $runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
-# S0815 icon-inventory drift gate. Fires only when a Doc/Mixed change touches the
-# generated icon tree (docs/icons/** - inventory, svgs, annotations) or a rendered
-# legend page (docs/ICON_LEGEND*). Re-checks asset coverage, orphans, legend
-# freshness, and cross-locale parity (pure text/file, no gradle). The heavy
+# S0815/S0939 icon-inventory drift gate. Fires for generated icon docs AND for
+# settings-source files that can stale the committed inventory/legend:
+# - docs/icons/**, docs/ICON_LEGEND*
+# - app_v2/src/main/res/layout/fragment_settings_*.xml
+# - app_v2/src/main/res/values*/strings*.xml
+# Re-checks the cheap settings-source freshness scan, asset coverage, orphans,
+# legend freshness, and cross-locale parity (pure text/file, no gradle). The heavy
 # inventory-vs-source export test stays opt-in / CI-only, so it is NOT run here.
 $runsIconInventoryGate = (
-    ($resolvedChangeType -in @('Doc', 'Mixed')) -and
-    ($normFile -match 'docs/icons/' -or $normFile -match 'docs/ICON_LEGEND')
+    ($resolvedChangeType -in @('Doc', 'Xml', 'Mixed')) -and
+    (
+        $normFile -match 'docs/icons/' -or
+        $normFile -match 'docs/ICON_LEGEND' -or
+        $normFile -match 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$' -or
+        $normFile -match 'app_v2/src/main/res/values[^/]*/strings.*\.xml$'
+    )
 )
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
@@ -437,7 +445,7 @@ if ($runsIconInventoryGate) {
     }
 }
 else {
-    Skip-Step "icon-inventory-sync-gate" "not applicable - touched file is not an icon asset or legend page"
+    Skip-Step "icon-inventory-sync-gate" "not applicable - touched file is not icon docs or a settings icon/title source"
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old

@@ -5,14 +5,14 @@ import android.view.View
 /**
  * Reflects keyboard/D-pad focus as the view's activated state.
  *
- * S0819: the visible focus ring is now drawn app-wide by the window-level `FocusFrameOverlay`, so this
- * helper no longer paints its own foreground ring - that would stack a second ring under the overlay.
- * It keeps only the `isActivated` toggle that selection-state selectors still key off, so callers
- * (e.g. [com.sza.fastmediasorter.ui.common.FocusManager]) need no change.
+ * S0943: the visible focus outline is now applied app-wide in-place by the window-level
+ * `FocusDecorationController`, so this helper no longer paints its own foreground ring. It keeps only
+ * the `isActivated` toggle that selection-state selectors still key off, so callers (e.g.
+ * [com.sza.fastmediasorter.ui.common.FocusManager]) need no change.
  */
 object FocusRingHelper {
 
-    /** Reflect [focused] as the view's activated state; the app-wide overlay draws the ring itself. */
+    /** Reflect [focused] as the view's activated state; the app-wide decorator draws the outline itself. */
     fun setFocused(view: View, focused: Boolean) {
         view.isActivated = focused
     }

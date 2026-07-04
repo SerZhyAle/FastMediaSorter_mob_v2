@@ -179,21 +179,9 @@ class PlayerKeyboardHandler(
             return handleCommand(fixedCommandId)
         }
 
-        // S0819: a bare D-pad direction resolves to no player command now, so it falls through here
-        // and the platform performs focus traversal among the visible transport controls.
-        if (isBareDpadDirection(keyCode)) {
-            Timber.d("S0819: player DPAD %d fell through to focus traversal", keyCode)
-        }
-
+        // A bare D-pad direction resolves to no player command, so it falls through here and the
+        // platform performs focus traversal among the visible transport controls.
         return false
-    }
-
-    private fun isBareDpadDirection(keyCode: Int): Boolean = when (keyCode) {
-        KeyEvent.KEYCODE_DPAD_LEFT,
-        KeyEvent.KEYCODE_DPAD_RIGHT,
-        KeyEvent.KEYCODE_DPAD_UP,
-        KeyEvent.KEYCODE_DPAD_DOWN -> true
-        else -> false
     }
 
     /**

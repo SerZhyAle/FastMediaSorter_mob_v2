@@ -100,7 +100,6 @@ class CollapsibleSectionStateMigration(private val context: Context) {
                 "destinations_list_expanded" to "operations__destinations",
                 "scheduled_ops_expanded" to "operations__scheduled",
                 "mgmt_behaviour_expanded" to "operations__behaviour",
-                "mgmt_other_features_expanded" to "operations__other_features",
                 "mgmt_system_apps_expanded" to "operations__system_apps",
                 "mgmt_screen_gestures_expanded" to "operations__screen_gestures",
             ),

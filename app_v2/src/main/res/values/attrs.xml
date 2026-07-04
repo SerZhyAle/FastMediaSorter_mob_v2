@@ -14,12 +14,6 @@
     <attr name="dialogActionButtonMinHeight" format="dimension|reference" />
     <attr name="dialogActionButtonGap" format="dimension|reference" />
 
-    <!-- S0819: travelling D-pad/TV focus-frame styling. Centralized so each accent theme overrides
-         focusFrameColor via ?attr/colorPrimary; consumed by FocusFrameOverlay.kt. -->
-    <attr name="focusFrameColor" format="color" />
-    <attr name="focusFrameStrokeWidth" format="dimension" />
-    <attr name="focusFrameCornerRadius" format="dimension" />
-
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />

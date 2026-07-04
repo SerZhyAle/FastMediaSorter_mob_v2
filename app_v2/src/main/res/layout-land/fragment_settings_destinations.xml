@@ -596,20 +596,20 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Other features (S0318) - camera capture + black screen, moved from Behaviour -->
+        <!-- GROUP: Photography (S0882) - split from former Other features (S0318). -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-                    android:id="@+id/headerOtherFeatures"
+                    android:id="@+id/headerCameraPhotos"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:csh_icon="@drawable/ic_camera_capture"
                     app:csh_showHelp="false"
-                    app:csh_title="@string/settings_category_other_features" />
+                    app:csh_title="@string/settings_group_photography" />
 
-                <LinearLayout android:id="@+id/containerOtherFeatures" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerCameraPhotos" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- S0649: Camera OCR translation rows moved to the Additional-programs group below. -->
 
@@ -705,14 +705,34 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnSelectCameraPhotosDest"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    style="@style/Widget.Material3.Button.IconButton.Outlined"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/setting_select_destination"
-                                    android:textAllCaps="false" />
+                                    android:contentDescription="@string/setting_select_destination"
+                                    app:icon="@drawable/ic_resource"
+                                    app:iconTint="?attr/colorOnSurface" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Video recording (S0882) - split from former Other features (S0318). -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerVideoCapture"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_video"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_group_video_recording" />
+
+                <LinearLayout android:id="@+id/containerVideoCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- S0371: Video recording block. Sibling of camera photos; master toggle stored inverted. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -777,14 +797,34 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnSelectVideoRecordingDest"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    style="@style/Widget.Material3.Button.IconButton.Outlined"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/setting_select_destination"
-                                    android:textAllCaps="false" />
+                                    android:contentDescription="@string/setting_select_destination"
+                                    app:icon="@drawable/ic_resource"
+                                    app:iconTint="?attr/colorOnSurface" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Voice recorder (S0882) - split from former Other features (S0318). -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerMicRecording"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_microphone"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_group_voice_recorder" />
+
+                <LinearLayout android:id="@+id/containerMicRecording" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- S0367: Microphone recording block (moved from Media → Audio). Row ids preserved for settings-search continuity. -->
                     <!-- S0651: parent "Enable microphone recording" + child "Ask file name" share one row here, which conveys subordination in landscape (portrait uses an indent instead). -->
@@ -849,13 +889,33 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSelectMicRecordingDest"
-                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                style="@style/Widget.Material3.Button.IconButton.Outlined"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/setting_select_destination"
-                                android:textAllCaps="false" />
+                                android:contentDescription="@string/setting_select_destination"
+                                app:icon="@drawable/ic_resource"
+                                app:iconTint="?attr/colorOnSurface" />
                         </LinearLayout>
                     </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GROUP: Screen recording (S0882) - split from former Other features (S0318). -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerScreenRecording"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_display"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_group_screen_recording" />
+
+                <LinearLayout android:id="@+id/containerScreenRecording" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- S0774: Screen video recording block. Empty destination = public Downloads. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -904,11 +964,12 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSelectScreenRecordingDest"
-                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                style="@style/Widget.Material3.Button.IconButton.Outlined"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/setting_select_destination"
-                                android:textAllCaps="false" />
+                                android:contentDescription="@string/setting_select_destination"
+                                app:icon="@drawable/ic_resource"
+                                app:iconTint="?attr/colorOnSurface" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -1050,54 +1111,17 @@
 
                     </LinearLayout>
 
-                    <!-- S0435: Default-player subgroup. Whole block gated by supportsDefaultPlayer; each button by media type. Landscape: two columns. -->
-                    <LinearLayout android:id="@+id/layoutDefaultPlayerSubgroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/setting_subgroup_default_player_title" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
-
-                        <!-- Hint copy set in code from welcome_default_player_hint (HTML) to stay in sync with the welcome page. Muted colour so it reads as instructions, not a link. -->
-                        <TextView android:id="@+id/tvDefaultPlayerSettingsHint" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerImages" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/settings_default_player_btn_images" android:textAllCaps="false" />
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerAudio" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_default_player_btn_audio" android:textAllCaps="false" />
-
-                        </LinearLayout>
-
-                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerVideo" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/settings_default_player_btn_video" android:textAllCaps="false" />
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSettingsDefaultPlayerDocs" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_default_player_btn_docs" android:textAllCaps="false" />
-
-                        </LinearLayout>
-
-                        <!-- S0435: system media handler + accept shared files (moved from Behaviour into this group). -->
-                        <LinearLayout android:id="@+id/layoutDefaultPlayerToggles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowPrimaryMediaPlayer"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="@dimen/margin_small"
-                                app:str_title="@string/settings_primary_media_player"
-                                app:str_subtitle="@string/setting_primary_media_player_desc" />
-
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                                android:id="@+id/rowAcceptSharedFiles"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="@dimen/margin_small"
-                                app:str_title="@string/settings_accept_shared_files"
-                                app:str_subtitle="@string/setting_accept_shared_files_desc" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
+                    <!-- S0880: launcher for the default-player registration dialog (DefaultAppsDialogFragment). Same supportsDefaultPlayer gate as the moved subgroup. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenDefaultAppsDialog"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/settings_open_default_apps_dialog"
+                        android:textAllCaps="false" />
 
                     <!-- S0435: Incoming-links subgroup (moved from Behaviour). Landscape: resource + open-in-player on one row. -->
                     <LinearLayout android:id="@+id/layoutIncomingLinksSubgroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1150,11 +1174,12 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnSelectLinkAutodownloadResource"
-                                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                    style="@style/Widget.Material3.Button.IconButton.Outlined"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/setting_select_destination"
-                                    android:textAllCaps="false" />
+                                    android:contentDescription="@string/setting_select_destination"
+                                    app:icon="@drawable/ic_resource"
+                                    app:iconTint="?attr/colorOnSurface" />
                             </LinearLayout>
                         </LinearLayout>
 
@@ -1320,11 +1345,12 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSelectScreenshotDestination"
-                                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                                style="@style/Widget.Material3.Button.IconButton.Outlined"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/setting_select_destination"
-                                android:textAllCaps="false" />
+                                android:contentDescription="@string/setting_select_destination"
+                                app:icon="@drawable/ic_resource"
+                                app:iconTint="?attr/colorOnSurface" />
                         </LinearLayout>
                     </LinearLayout>
 

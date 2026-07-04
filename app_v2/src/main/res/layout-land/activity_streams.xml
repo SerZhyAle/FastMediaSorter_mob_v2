@@ -21,7 +21,19 @@
             app:navigationIconTint="?attr/colorOnPrimary"
             app:menu="@menu/menu_streams"
             app:title="@string/streams_title"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:titleTextColor="?attr/colorOnPrimary">
+
+            <!-- S0940: in-landscape host for the relocated search/filter/sort control group.
+                 Empty and gone in portrait; StreamsControlsPlacementManager reparents the
+                 streamControls group into here in landscape to free vertical space. -->
+            <FrameLayout
+                android:id="@+id/headerControlsHost"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:visibility="gone" />
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -5,21 +5,22 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
+import com.sza.fastmediasorter.databinding.DialogDefaultAppsBinding
 
 /**
- * Wires the "Default app" subgroup in settings: gates the four registration buttons by the
- * flavor capability surface and dispatches each tap into the shared [DefaultPlayerHelper] flow (the
- * same OS-registration path the welcome screen uses). Buttons are not auto-hidden when already
- * default - settings keep every supported type reachable for re-registration.
+ * Wires the "Default app" subgroup: gates the four registration buttons by the flavor capability
+ * surface and dispatches each tap into the shared [DefaultPlayerHelper] flow (the same OS-registration
+ * path the welcome screen uses). Buttons are not auto-hidden when already default - the subgroup keeps
+ * every supported type reachable for re-registration.
  *
- * The subgroup lives in the Management tab (containerSystemApps) after S0442 Phase 03 moved it.
+ * S0880: the subgroup lives in [DefaultAppsDialogFragment], reached from a launcher button in the
+ * Management tab (previously it was inline in fragment_settings_destinations).
  */
 class DefaultPlayerSettingsManager {
 
     fun bind(
         fragment: Fragment,
-        binding: FragmentSettingsDestinationsBinding,
+        binding: DialogDefaultAppsBinding,
         capabilities: MediaCapabilities,
     ) {
         bindViews(

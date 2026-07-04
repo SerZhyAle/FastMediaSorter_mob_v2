@@ -127,15 +127,13 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectSnapshotResource"
-                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_small"
-                android:maxWidth="140dp"
-                android:maxLines="2"
-                android:breakStrategy="balanced"
-                android:text="@string/select_snapshot_destination"
-                android:textAllCaps="false" />
+                android:contentDescription="@string/select_snapshot_destination"
+                app:icon="@drawable/ic_resource"
+                app:iconTint="?attr/colorOnSurface" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearSnapshotResource"

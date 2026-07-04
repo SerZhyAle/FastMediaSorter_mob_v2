@@ -170,7 +170,6 @@ class LocalOperationStrategy @Inject constructor(
         // scheduled MOVE with that permission granted loops forever - it re-uploads the originals each
         // run and then fails to delete them via the consent path (S0710).
         if (canDeleteDirectly()) {
-            Timber.d("S0710: direct delete permitted (MANAGE_MEDIA or All-Files-Access) for $filePath")
             return@withContext directDeleteAndUnindex(filePath)
         }
         

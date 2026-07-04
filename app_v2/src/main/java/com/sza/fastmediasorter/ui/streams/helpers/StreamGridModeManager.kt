@@ -166,7 +166,6 @@ class StreamGridModeManager(
                 if (!isCaptureableVideo(source) || cache.hasEntry(source.url)) continue
                 val bitmap = persistentStore.load(source.url) ?: continue
                 if (!isActive || currentMode != DisplayMode.GRID || cache.hasEntry(source.url)) continue
-                Timber.d("S0712: restored persisted frame %s", source.url)
                 cache.putRestored(source.url, bitmap)
                 gridAdapter.repaintUrl(source.url)
             }
@@ -205,7 +204,6 @@ class StreamGridModeManager(
                 if (currentMode != DisplayMode.GRID) break
                 // S0784: refresh stale visible frames in place - the destructive invalidate+rebind that
                 // reverted tiles to the favicon for the whole ~12 s re-capture window is gone.
-                Timber.d("S0784: periodic grid frame refresh (in place, no atlas revert)")
                 requestVisibleCaptures(force = false)
             }
         }

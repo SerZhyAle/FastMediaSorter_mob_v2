@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-03*
+*Last updated: 2026-07-04*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -109,6 +109,7 @@ This document is the curated showcase of standout user-facing features. The comp
 
 ## 15. Smart Widgets & Integration
 - **Icon-style home widgets** `[Standard / VR]`: 1x1 quick launch buttons (Quick Audio Recorder, Quick capture, Camera OCR), resizable widgets (Scheduled tasks, Audio Now Playing, Photo Frame), and settings integration.
+- **Quick-launch app panel scenarios** `[Standard / Lite / Photos / Legacy]`: The quick-launch app panel can also hold quick camera capture, quick voice recording, screen recording, and download-by-link - the same actions as the main window's Programs and Scenarios menu, each gated by the same device and build rules as its main-window counterpart.
 
 ## 16. Settings & Navigation
 - **Email crash report to author** `[Standard / VR]`: When a real error - not a routine "unavailable" message - is shown in the error dialog, a button emails the error details to the author with the app log attached, so a problem can be reported in one step.

@@ -553,9 +553,41 @@
   },
   {
     "surface": "program-nav",
+    "key": "link_download",
+    "feature": "download_by_link_menu_label",
+    "drawable": "ic_cloud_download",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "ocr",
     "feature": "app_launch_panel_route_ocr",
     "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "quick_camera",
+    "feature": "quick_camera_menu_label",
+    "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "quick_voice",
+    "feature": "quick_voice_menu_label",
+    "drawable": "ic_microphone",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "screen_recording",
+    "feature": "screen_recording_menu_label",
+    "drawable": "ic_display",
     "assetFormat": "vector",
     "public": true
   },
@@ -705,6 +737,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerCameraPhotos",
+    "feature": "settings_group_photography",
+    "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerDocuments",
     "feature": "settings_category_documents",
     "drawable": "ic_book",
@@ -729,9 +769,9 @@
   },
   {
     "surface": "settings-header",
-    "key": "headerOtherFeatures",
-    "feature": "settings_category_other_features",
-    "drawable": "ic_camera_capture",
+    "key": "headerMicRecording",
+    "feature": "settings_group_voice_recorder",
+    "drawable": "ic_microphone",
     "assetFormat": "vector",
     "public": true
   },
@@ -761,6 +801,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerScreenRecording",
+    "feature": "settings_group_screen_recording",
+    "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerSendCommands",
     "feature": "settings_send_commands_group",
     "drawable": "ic_share",
@@ -785,11 +833,35 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerVideoCapture",
+    "feature": "settings_group_video_recording",
+    "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerVr",
     "feature": "vr_settings_block_title",
     "drawable": "ic_vr_headset",
     "assetFormat": "vector",
     "public": false
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowAllowDelete",
+    "feature": "allow_delete",
+    "drawable": "ic_delete",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowAllowRename",
+    "feature": "allow_rename",
+    "drawable": "ic_rename",
+    "assetFormat": "vector",
+    "public": true
   },
   {
     "surface": "settings-row",
@@ -825,6 +897,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableFavorites",
+    "feature": "enable_favorites",
+    "drawable": "ic_resource_favorites",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableOcr",
     "feature": "enable_ocr",
     "drawable": "ic_ocr",
@@ -836,6 +916,14 @@
     "key": "rowEnablePersistentAudioPlayback",
     "feature": "background_audio_setting_title",
     "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnablePip",
+    "feature": "setting_enable_pip",
+    "drawable": "ic_picture_in_picture",
     "assetFormat": "vector",
     "public": true
   },
@@ -892,6 +980,14 @@
     "key": "rowScreenRecordingEnabled",
     "feature": "settings_screen_recording_enable_title",
     "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowShowBlackScreenButton",
+    "feature": "settings_black_screen_button_title",
+    "drawable": "ic_black_screen",
     "assetFormat": "vector",
     "public": true
   },

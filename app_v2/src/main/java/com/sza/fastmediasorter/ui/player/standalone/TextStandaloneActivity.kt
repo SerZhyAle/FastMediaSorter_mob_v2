@@ -301,7 +301,6 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         // shared text-viewer's floating close button is redundant here and only hides the text. It is
         // meant solely for the in-app fullscreen text overlay; keep it hidden by staying in panel mode.
         textViewerManager.updateCloseButtonVisibility(showCommandPanel = true)
-        Timber.d("S0920: standalone text close-button hidden")
         setupTextActionButtons()
         pagingControls.setupClicks()
         setupKeyboardHandler()
