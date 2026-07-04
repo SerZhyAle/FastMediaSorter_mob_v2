@@ -54,7 +54,7 @@ For each step in plan order:
 4. **Ambiguity check.** Prompt contains `<TODO>`, `<choose ..>`, `???`, or any unresolved placeholder → abort, request spec update via `/spec-update`. If requires user input, set status `BlockQuestions` and stop.
 5. **Pre-edit guards:**
    - Read-only zone (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) → abort.
-   - File >500 lines and not yet backed up → create timestamped copy in `temp/` first.
+   - File >500 lines and not yet backed up → create timestamped copy under `temp/<Sxxxx>/` first.
    - Projected post-edit size >1500 lines → abort: "line budget violation, split via Manager pattern."
    - File in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
    - **Flavor isolation guard:** see Hard Stops #14 - abort on a `src/main/java/**` flavor guard; do not silently rewrite, push back through `/spec-update`.
@@ -85,9 +85,9 @@ After all planned steps in current phase complete:
 
 After all phases done:
 
-- **Optional verification smoke (only when `--verify-smoke`).** Before flipping strategic status, run `/verify --build` once with no scenario arg. Skill writes artefacts under `temp/verify_*`; do not touch them. Read single-line verdict:
+- **Optional verification smoke (only when `--verify-smoke`).** Before flipping strategic status, run `/verify --build` once with no scenario arg. Skill writes artefacts under `temp/scratch/verify_*`; do not touch them. Read single-line verdict:
   - `verify: ... PASS/SKIPPED ...` with `log errors 0` and `crashes 0` → proceed with status flip below as normal.
-  - Any FAIL row in run table, any `crashes K > 0`, or any `log errors` with fresh exception from package under test → **abort status flip**. Leave ticket at `In Progress`. Append one `VERIFY-SMOKE FAIL` line to last phase's `## Step Log` pointing at scenario path in `temp/verify_*.md`. Stop with: `<Sxxxx>: verify-smoke FAIL, status not advanced. See temp/verify_<TS>.md.`
+  - Any FAIL row in run table, any `crashes K > 0`, or any `log errors` with fresh exception from package under test → **abort status flip**. Leave ticket at `In Progress`. Append one `VERIFY-SMOKE FAIL` line to last phase's `## Step Log` pointing at scenario path in `temp/scratch/verify_*.md`. Stop with: `<Sxxxx>: verify-smoke FAIL, status not advanced. See temp/scratch/verify_<TS>.md.`
   - `device-ready.ps1` exit ≠ 0 (no device, mobile-mcp missing) → **do not** abort: log skip in chat (`verify-smoke skipped: <reason>`) and proceed with original status flip. Smoke is a bonus, never a hard gate when no device present.
 - **No on-device gate** → flip strategic `Status:` to `Implemented`, add `**Implemented date:** <YYYY-MM-DD>`. No debug tags. Per-phase builds already validated compilation.
 - **On-device verification is part of acceptance** → `Timber.d("Sxxxx:")` tags already inserted before final phase's `Project compiles` build (see "Final-phase debug-tag insertion") and validated by that single build. Here just flip journal status to `BlockNeedUserTest` and run a dev log line for each file that gained a tag. Do not insert tags or rebuild at this point.

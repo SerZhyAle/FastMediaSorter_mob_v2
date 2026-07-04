@@ -40,7 +40,7 @@ On `$ARGUMENTS`:
 pwsh -NoProfile -File scripts/utils/build-research-dossier.ps1 -Topic "<topic>" -Module <app_v2|wear|all> [-Flavor <flavor>]
 ```
 
-Writes Markdown dossier to `temp/` with: recommended first docs · matching `dev/CATALOG` classes · matching `dev/ACTIVITY_CATALOG` entries · matching `PLAN` specs/files · matching `docs/` and `dev/` files · suggested next reads.
+Writes Markdown dossier to `temp/scratch/` with: recommended first docs · matching `dev/CATALOG` classes · matching `dev/ACTIVITY_CATALOG` entries · matching `PLAN` specs/files · matching `docs/` and `dev/` files · suggested next reads.
 
 **Step 3 - Follow routing stack in order** (unless dossier shows tighter first read):
 
@@ -61,13 +61,13 @@ Use `/catalog` after dossier for class-level lookup, DI consumers, or post-chang
 **Step 5 - Persist findings (ticket-bound runs only).**
 - Write curated findings - conclusions, chosen option, rejected options with reasons, affected areas - to `PLAN/<Sxxxx>_<slug>/research/<NN>__<topic-slug>.md`. `NN` = matching strategic §6 item number; next free number for questions outside §6. Create folder if missing.
 - Update strategic §6 item: flip `Статус:` to Resolved, add `**Артефакт:**` link.
-- `temp/` dossier stays scratch. Artifact is durable result `/spec-tech` consumes when ordering phases - raw grep dumps stay out of it.
+- `temp/scratch/` dossier stays scratch. Artifact is durable result `/spec-tech` consumes when ordering phases - raw grep dumps stay out of it.
 
 ---
 
 ## Output
 
-- Report dossier path in `temp/`.
+- Report dossier path in `temp/scratch/`.
 - Ticket-bound: report artifact path in `PLAN/<Sxxxx>_<slug>/research/`.
 - List next 3-6 high-value reads.
 - Answer any direct research question after dossier-backed reads.

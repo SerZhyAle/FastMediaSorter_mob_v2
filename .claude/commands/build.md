@@ -235,7 +235,7 @@ app_v2/build/outputs/apk/standard/release/
 .\scripts\utils\search-log.ps1 -Pattern "keyword"
 ```
 
-Extracted logs land in `temp/` (never project root).
+Extracted logs land under `temp/Sxxxx/` (ticket-bound) or `temp/scratch/` (no ticket), never project root. Script-owned digests keep their fixed paths (e.g. `temp/build-failure-digest.json`).
 
 
 ---
@@ -327,7 +327,7 @@ Appends timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` directl
 
 ### Quality Rules
 
-- Temp artifacts, APK copies, backups → `temp/`, never project root.
-- File size limit 1500 lines. Files >500 lines need timestamped backup in `temp/` before modification.
+- Temp artifacts, APK copies, backups → `temp/Sxxxx/` (ticket-bound) or `temp/scratch/` (no ticket), never project root. Fixed infra (locks, `temp/done/`, caches, script-owned digests) stays at `temp/` root - see CLAUDE.md Rule 10.1.
+- File size limit 1500 lines. Files >500 lines need timestamped backup under `temp/Sxxxx/` (or `temp/scratch/`) before modification.
 - Never `Log.d()` - use `Timber` only.
 - Activity/Fragment logic delegated to `helpers/*Manager.kt`.

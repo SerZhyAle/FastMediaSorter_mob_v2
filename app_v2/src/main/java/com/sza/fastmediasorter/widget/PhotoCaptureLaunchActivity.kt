@@ -10,14 +10,21 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
+import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 /**
  * S0790-S0794 - transparent, no-UI trampoline for the edge-gesture "take photo" family. Hosts the
- * CAMERA permission + capture-result launchers and forwards every decision to
+ * CAMERA permission launcher and the headless [HeadlessPhotoCapturer], and forwards every decision to
  * [PhotoCaptureLaunchManager] (Rule 3 - no business logic here). The optional auto-action extra selects
  * the post-capture route (null = save + toast; otherwise the standalone-viewer auto-action).
+ *
+ * The photo is captured headlessly (CameraX [androidx.camera.core.ImageCapture] bound to this
+ * activity's lifecycle, no preview, no second activity), so there is no camera screen and no activity
+ * result to lose - the trampoline stays `android:noHistory`-free so the first-use permission dialog
+ * can return here.
  */
 @AndroidEntryPoint
 class PhotoCaptureLaunchActivity : AppCompatActivity() {
@@ -27,17 +34,16 @@ class PhotoCaptureLaunchActivity : AppCompatActivity() {
     @Inject lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
 
     private lateinit var launchManager: PhotoCaptureLaunchManager
+    private val locationProvider = CameraLocationProvider()
+    private lateinit var capturer: HeadlessPhotoCapturer
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> launchManager.onPermissionResult(granted) }
 
-    private val captureLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result -> launchManager.onCaptureResult(result.resultCode, result.data) }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        capturer = HeadlessPhotoCapturer(lifecycleOwner = this, context = this)
         launchManager = PhotoCaptureLaunchManager(
             activity = this,
             settingsRepository = settingsRepository,
@@ -45,11 +51,20 @@ class PhotoCaptureLaunchActivity : AppCompatActivity() {
             saveCapturedMedia = saveCapturedMedia,
             coroutineScope = lifecycleScope,
             autoAction = intent?.getStringExtra(EXTRA_AUTO_ACTION),
+            capturer = capturer,
+            locationProvider = locationProvider,
             requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
-            launchCapture = { intent -> captureLauncher.launch(intent) },
             finish = { finish() },
         )
         launchManager.start()
+    }
+
+    override fun onDestroy() {
+        // Symmetric teardown: release the camera device and the S0766 location listener the manager
+        // warmed. Idempotent, so an early destroy (before capture) is safe.
+        capturer.release()
+        locationProvider.stop()
+        super.onDestroy()
     }
 
     companion object {

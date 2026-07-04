@@ -46,7 +46,6 @@ class GameViewModel @Inject constructor(
             _state.value = GameUiState.Loading
             try {
                 currentMode = gameStateRepository.loadMode()
-                Timber.d("S0804: resumed with mode=$currentMode")
                 val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
                 _state.value = ensurePlayableOnResume(readyFromSnapshot(snapshot))
             } catch (exception: RuntimeException) {
@@ -69,7 +68,6 @@ class GameViewModel @Inject constructor(
             if (mode == currentMode) return@launch
             currentMode = mode
             gameStateRepository.saveMode(mode)
-            Timber.d("S0804: mode switched to $mode")
             val ready = _state.value as? GameUiState.Ready ?: return@launch
             _state.value = ready.copy(mode = mode)
         }
@@ -215,7 +213,6 @@ class GameViewModel @Inject constructor(
     // capped at MAX so cells stay readable. Wall count stays proportional to cell count in the generator.
     private fun boardSizeForLevel(levelNumber: Int): Int {
         val size = (BOARD_SIZE_BASE + levelNumber / BOARD_SIZE_GROWTH_DIVISOR).coerceAtMost(BOARD_SIZE_MAX)
-        Timber.d("S0803: field size for level=$levelNumber -> $size")
         return size
     }
 

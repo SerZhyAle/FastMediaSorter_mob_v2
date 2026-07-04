@@ -36,6 +36,7 @@ class GetMediaFilesUseCaseTest {
     private lateinit var useCase: GetMediaFilesUseCase
     private val mediaScannerFactory: MediaScannerFactory = mockk()
     private val favoritesRepository: FavoritesRepository = mockk()
+    private val materializeFavoritesUseCase: MaterializeFavoritesUseCase = mockk()
     private val credentialsRepository: NetworkCredentialsRepository = mockk()
     private val cachedFileListRepository: CachedFileListRepository = mockk()
     private val scanDispatcher: ScanDispatcher = ScanDispatcher(ScanSettings())
@@ -49,6 +50,7 @@ class GetMediaFilesUseCaseTest {
         useCase = GetMediaFilesUseCase(
             mediaScannerFactory,
             favoritesRepository,
+            materializeFavoritesUseCase,
             credentialsRepository,
             cachedFileListRepository,
             scanDispatcher,
@@ -59,6 +61,7 @@ class GetMediaFilesUseCaseTest {
         // Default mocks
         every { mediaScannerFactory.getScanner(ResourceType.SMB) } returns smbScanner
         coEvery { favoritesRepository.getAllFavorites() } returns flowOf(emptyList())
+        coEvery { materializeFavoritesUseCase.toMediaFiles(any()) } returns emptyList()
         coEvery { cachedFileListRepository.getEntityByResourceId(any()) } returns null
         coEvery { cachedFileListRepository.getCachedFiles(any()) } returns null
         coEvery { cachedFileListRepository.saveCachedFiles(any(), any(), any(), any()) } returns Unit

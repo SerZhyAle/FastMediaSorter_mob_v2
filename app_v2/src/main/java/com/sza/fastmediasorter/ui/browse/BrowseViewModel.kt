@@ -74,6 +74,7 @@ class BrowseViewModel @Inject constructor(
     private val dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>,
     private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
+    private val materializeFavoritesUseCase: com.sza.fastmediasorter.domain.usecase.MaterializeFavoritesUseCase,
     private val statsSink: com.sza.fastmediasorter.domain.stats.StatsSink,
     private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
@@ -364,6 +365,7 @@ class BrowseViewModel @Inject constructor(
     // This manager keeps only favorites loading + resource-settings-changed reload.
     private val stateSyncManager = com.sza.fastmediasorter.ui.browse.managers.BrowseStateSyncManager(
         favoritesUseCase = favoritesUseCase,
+        materializeFavoritesUseCase = materializeFavoritesUseCase,
         getResourcesUseCase = getResourcesUseCase,
         resourceId = resourceId,
         scope = viewModelScope,

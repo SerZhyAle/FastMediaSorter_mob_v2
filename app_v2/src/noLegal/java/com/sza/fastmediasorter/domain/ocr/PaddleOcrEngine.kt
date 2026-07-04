@@ -90,12 +90,21 @@ class PaddleOcrEngine @Inject constructor(@ApplicationContext private val contex
     }
 
     private fun createPredictor(modelPath: String): PaddlePredictor? {
-        val config = MobileConfig().apply {
-            setModelFromFile(modelPath)
-            setThreads(PADDLE_THREADS)
-            setPowerMode(PowerMode.LITE_POWER_HIGH)
+        // S0923: MobileConfig()/createPaddlePredictor trigger the PaddleLite native static initializer
+        // (System.loadLibrary paddle_lite_jni). If the delivered .so is not name-resolvable on this
+        // device it throws UnsatisfiedLinkError - a LinkageError, not an Exception - so guard it here and
+        // degrade to init-failure (null) instead of crashing the process.
+        return try {
+            val config = MobileConfig().apply {
+                setModelFromFile(modelPath)
+                setThreads(PADDLE_THREADS)
+                setPowerMode(PowerMode.LITE_POWER_HIGH)
+            }
+            PaddlePredictor.createPaddlePredictor(config)
+        } catch (e: LinkageError) {
+            Timber.w(e, "PaddleOCR native library unavailable on this device")
+            null
         }
-        return PaddlePredictor.createPaddlePredictor(config)
     }
 
     private fun runPredictor(predictor: PaddlePredictor?, prepared: PreparedTensor): Boolean {

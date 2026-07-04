@@ -8,7 +8,7 @@
   own device tooling (no new device logic):
     1. device-ready.ps1 pre-flight (adb + online device + package installed).
     2. adb.ps1 launch (explicit MainActivity - bypasses the LeakCanary launcher trap).
-    3. adb.ps1 shot (screenshot to temp/).
+    3. adb.ps1 shot (screenshot to temp/scratch/).
     4. adb.ps1 log scan for FATAL / crash / ANR in the launch window.
 
   Assumes the build is already installed (run scripts/builders/build-standard-device.ps1
@@ -67,5 +67,5 @@ $log = Invoke-Adb @('log', '-Tail', '200', '-Grep', 'FATAL|beginning of crash|AN
 if ("$log" -match 'FATAL|beginning of crash|ANR in') {
     Write-Host 'FAIL crash/FATAL/ANR detected in launch window'; exit 12
 }
-Write-Host "SMOKE OK - $Pkg launched on $(if ($DeviceId) { $DeviceId } else { 'the online device' }), no crash. Screenshot under temp/."
+Write-Host "SMOKE OK - $Pkg launched on $(if ($DeviceId) { $DeviceId } else { 'the online device' }), no crash. Screenshot under temp/scratch/."
 exit 0

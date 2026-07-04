@@ -417,6 +417,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     }
 
     private fun setupFileOperationButtons() {
+        // S0920: wire the Copy/Move panel headers so a header tap expands/collapses its grid.
+        destinationButtonsManager.bindHeaderToggles()
         binding.btnDeleteCmd.isVisible = true
         binding.btnDeleteCmd.setOnClickListener { fileOperations.deleteCurrentFile() }
         binding.btnShareCmd.isVisible = true
@@ -434,7 +436,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
             // S0459 §11.7: "Send to Keep" is dropped from the overflow - the unified Send-to menu
             // (btnShareCmd -> SendToMenuManager) already offers the Keep-text receiver for TEXT content.
-            listOf(R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
+            listOf(R.id.menu_draw_overlay, R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
                 R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)

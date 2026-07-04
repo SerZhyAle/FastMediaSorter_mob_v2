@@ -450,7 +450,6 @@ class DestinationButtonsManager(
         lifecycleScope.launch {
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.copyPanelCollapsed
-            Timber.d("S0613: toggleCopyPanel collapsed=$newCollapsedState")
 
             // S0613: update the cache BEFORE the Room write. updateSettings() emits on the settings
             // Flow, which re-triggers populateDestinationButtons() on another coroutine; if the cache
@@ -501,7 +500,24 @@ class DestinationButtonsManager(
             updateMovePanelVisibility(newCollapsedState)
         }
     }
-    
+
+    /**
+     * S0920: bind the Copy/Move section-header taps to the panel expand/collapse actions.
+     * Standalone hosts have no CommandPanelController (the in-app path that normally wires this),
+     * so without this call a header tap only rotates the chevron and never toggles the buttons grid.
+     * Idempotent - safe to call once per host during setup.
+     */
+    fun bindHeaderToggles() {
+        safeViews.copyToPanelHeader.setOnExpandedChangeListener { expanded ->
+            Timber.d("S0920: standalone copy panel header toggled expanded=$expanded")
+            setCopyPanelExpanded(expanded)
+        }
+        safeViews.moveToPanelHeader.setOnExpandedChangeListener { expanded ->
+            Timber.d("S0920: standalone move panel header toggled expanded=$expanded")
+            setMovePanelExpanded(expanded)
+        }
+    }
+
     /**
      * Update Copy to panel buttons visibility and keep the header prefix in sync.
      */

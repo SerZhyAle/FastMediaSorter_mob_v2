@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -150,11 +151,14 @@ class CameraQuickCaptureLaunchManager(
             toastAndFinish(R.string.camera_capture_error_save_generic)
             return
         }
-        val intent = CameraCaptureActivity.createIntent(
+        // S0754: the widget's bound target is already resolved (loadTarget() ran in start()), so the
+        // in-camera header label can show it directly instead of the scratch temp-file's parent name.
+        val intent = CameraCaptureContract.createIntent(
             activity,
             uri,
             tempFile.absolutePath,
             if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
+            destinationLabel = (target as? CameraCaptureTarget.Resource)?.name,
         )
         launchCapture(intent)
     }

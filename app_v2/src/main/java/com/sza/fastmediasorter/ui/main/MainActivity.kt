@@ -881,11 +881,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             collapsedChip = binding.chipStreamsCollapsed,
         )
         streamsPanelManager.setup()
-        // S0809: the three panels' collapsed representations now share one row above the resource list.
-        Timber.d("S0809: collapsed-panels shared row wired")
         // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
         MainCommandBarTooltipManager.apply(binding)
-        Timber.d("S0810: command-bar tooltips applied")
         setupMainWindowDropdownMenu()
         restitchControlBarFocusChain()
 

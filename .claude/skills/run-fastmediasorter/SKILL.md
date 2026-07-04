@@ -39,7 +39,7 @@ pwsh -NoProfile -File scripts/builders/build-standard-device.ps1
 
 ## Run - agent path (driver)
 
-One command: pre-flight → launch the explicit MainActivity → screenshot to `temp/` → scan the
+One command: pre-flight → launch the explicit MainActivity → screenshot to `temp/scratch/` → scan the
 launch window for FATAL/crash/ANR. Exit 0 = alive and rendering.
 
 ```bash
@@ -47,14 +47,14 @@ pwsh -NoProfile -File .claude/skills/run-fastmediasorter/smoke.ps1
 ```
 
 Add `-Build` to build+install first, `-DeviceId <id>` to pin a device. Screenshot lands at
-`temp/<device>_<TS>.png`.
+`temp/scratch/<device>_<TS>.png`.
 
 Ad-hoc interaction afterwards via the project's adb swiss-army (resolve targets, don't guess
 coordinates):
 
 ```bash
 pwsh -NoProfile -File scripts/devtest/adb.ps1 launch          # explicit MainActivity
-pwsh -NoProfile -File scripts/devtest/adb.ps1 shot            # screenshot -> temp/
+pwsh -NoProfile -File scripts/devtest/adb.ps1 shot            # screenshot -> temp/scratch/
 pwsh -NoProfile -File scripts/devtest/adb.ps1 current         # focused activity
 pwsh -NoProfile -File scripts/devtest/adb.ps1 log -Tail 200 -Grep "FATAL|Exception"
 ```

@@ -91,7 +91,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val adapter = StreamSourceAdapter(
         onPlay = ::onPlay,
-        onPin = { viewModel.onPin(it.id) },
+        onPin = { viewModel.onPin(it) },
         onRemove = ::confirmRemove,
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
@@ -115,7 +115,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val gridAdapter by lazy {
         StreamGridAdapter(
             onPlay = ::onPlay,
-            onPin = { viewModel.onPin(it.id) },
+            onPin = { viewModel.onPin(it) },
             onRemove = ::confirmRemove,
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,

@@ -16,8 +16,10 @@
 - [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md) - adb.ps1 / .\a.ps1 adb; adb not on PATH; pkg *.debug
 - [setup_test_media.ps1](reference_setup_test_media.md) - seeds test-media; source c:\Common\test_media
 - [Play Console API read-only](reference_play_console_api_access.md) - read states; CANNOT see review verdicts
+- [gh CLI location](reference_gh_cli_location.md) - gh.exe at C:\Program Files\GitHub CLI, not on PATH; prepend for publish scripts
 - [Play FGS precedent](project_play_release_in_review.md) - specialUse+mediaProjection ACCEPTED by review; capture family live 2.60.6270.802
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP if countries/age/device reach shrinks
+- [Device-reach: implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies required screen.*; diagnose via aapt2 badging on universal APK (S0918)
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew; gitignored PLAN/ empties Step 12a diff
 - [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md) - real device wipes config; FAIL = harness, trust toastCount
 - [Emulator capture testing](reference_emulator_capture_family_testing.md) + [MediaProjection](reference_emulator_mediaprojection_capture.md) - cmd statusbar+aapt2; overlay not drivable; non-VR AVD verifies menu-screenshot
@@ -33,6 +35,7 @@
 - [legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - legacy=full, photos=cloud+net, lite=no-cloud
 - [Third-party branding not a blocker](feedback_third_party_branding_not_a_blocker.md) - producer logo by its content = ok
 - [photos/lite OCR src sets](project_photos_flavor_ocr_break.md) - Tesseract src/ocrEnabled, NoOp src/ocrDisabled
+- [S0386 native-attach broken API36](project_s0386_native_attach_broken_api36.md) - de-bundled .so injection fails on real arm64/API36 -> OCR crash; S0923 guards it, Layer 2 pending device-log
 - [screenCapture standard vs noLegal](project_screencapture_nolegal_only.md) - BOTH flags on: capture+edge gestures ship in standard; noLegal adds silent path
 - [screenCapture gates gesture](project_screencapture_gates_gesture_capability.md) - fms.screenCapture=on default; plain standard build covers twin, no -P
 - [manifest.srcFile overrides flavor](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - use addStaticManifestFile
@@ -47,6 +50,8 @@
 ## detekt / gates / logging
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - full detekt slow, ratchet; filter own files; post-change.ps1 -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120, const nums; +1 ctor param = NEW; ASCII order, --rerun-tasks
+- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) - warm daemon serves stale baseline; `gradlew --stop` fixes it, --rerun-tasks --no-config-cache makes it worse
+- [Scoped gate surfaces untouched debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - editing a never-baselined file fails scoped gate on its old findings; report stale -> `:app_v2:detekt --rerun-tasks`
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after a gate, add DON'T rule to CLAUDE.md + skills
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed gate; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
@@ -74,6 +79,8 @@
 
 ## Streams / VR / players
 - [Stream catalog: all channels](feedback_stream_catalog_all_live_channels.md) + [publish](reference_stream_catalog_publish.md) - ship EVERY reachable; collect-stream-candidates.ps1 -WithFavicons -Publish
+- [Favicon atlas delivery](project_stream_favicon_atlas_delivery.md) - streams all-flags-no-icons = zip missing favicon-atlas.png; re-publish; S0925 guards silent CSV-only
+- [Favicon atlas publish](project_stream_catalog_atlas_publish.md) - atlas ships in stream-catalog.zip; publish w/o it wipes all favicons (S0925 guard); re-bundle -CatalogOnly -SkipLiveness -Publish
 - [Streams device-test gate](project_streams_device_test_gate.md) - enableStreams gates menu; net kill via svc wifi/data
 - [Stream radio vs video](project_stream_radio_vs_video_player_split.md) - radio(AUDIO)->InlineAudio; video/RTSP->BandwidthAdaptive; never shared
 - [VR inclusion hierarchy](project_vr_inclusion_hierarchy.md) - noLegal all-inclusive sideload-VR; vrUnlicensed archived
@@ -132,3 +139,4 @@
 - [Workflow vs 5h limit](feedback_workflow_session_limit_budget.md) - LOW parallelism default, cap ~6-8 agents; ultracode doesn't lift it; owner GO above, never silent-resume
 - [Verify with full evidence](feedback_verify_full_evidence.md) - skeptics read verbatim finding, address every mechanism; split vote -> tie-break by reading code myself
 - [No ellipsis edits in code spans](feedback_no_ellipsis_edits_in_verbatim_code_spans.md) - `...` rule exempts code/specs; gate script fixed to skip backticks
+- [Edit line-delete splice](feedback_edit_line_delete_splice.md) - old_string="\n..X" glues CRLF neighbours; match full next line, splice-sweep before compile

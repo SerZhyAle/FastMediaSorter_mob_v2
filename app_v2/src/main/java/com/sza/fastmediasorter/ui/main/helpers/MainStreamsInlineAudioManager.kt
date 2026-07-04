@@ -10,8 +10,6 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
-import timber.log.Timber
-
 /**
  * S0777: plays an AUDIO channel tapped on the main-window streams panel inline, right in the home
  * window, instead of launching the Streams list screen. Reuses the exact inline-radio engine the
@@ -52,7 +50,6 @@ class MainStreamsInlineAudioManager(
 
     /** Routes a panel channel tap: AUDIO plays inline (toggle off when already playing), the rest defers. */
     fun playChannel(channel: StreamSourceEntity) {
-        Timber.d("S0777: main panel play kind=%s id=%s", channel.mediaKind, channel.id)
         if (channel.mediaKind != AUDIO_KIND) {
             // VIDEO / RTSP need a video surface - keep the existing behavior (host opens the Streams screen).
             onPlayVideo(channel)

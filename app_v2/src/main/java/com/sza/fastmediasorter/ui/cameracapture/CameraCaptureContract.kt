@@ -42,8 +42,10 @@ object CameraCaptureContract {
     const val EXTRA_MULTI_CAPTURE = "multi_capture"
 
     /**
-     * S0790: fire the shutter automatically once the preview is ready, then finish (edge-gesture "take
-     * photo" family). Photo-only single shot; ignored for video. Default false keeps manual callers.
+     * S0790: fire the shutter automatically once the preview is ready. In PHOTO mode this takes one shot
+     * then finishes (edge-gesture "take photo" family). S0926: in VIDEO mode it instead auto-starts
+     * recording (edge-gesture "start video recording"), leaving the user to stop it. Default false keeps
+     * manual callers.
      */
     const val EXTRA_AUTO_CAPTURE = "auto_capture"
 
@@ -52,6 +54,15 @@ object CameraCaptureContract {
      * show a context label. Absent extra / [CameraScenario.NONE] means no label (generic capture).
      */
     const val EXTRA_SCENARIO = "scenario"
+
+    /**
+     * S0754: caller-resolved save-destination display name for the in-camera header label. The
+     * caller (e.g. Browse) knows the real target resource before capture starts; without this extra
+     * the label falls back to deriving a name from the scratch output file's parent folder, which is
+     * wrong whenever the scratch file lives outside the actual save target (e.g. an app-private
+     * "Pictures" staging dir while the shot actually saves into the browsed "Downloads" resource).
+     */
+    const val EXTRA_DESTINATION_LABEL = "destination_label"
 
     /** Scratch dir the host writes into when [EXTRA_ALLOW_MODE_SWITCH] is set (mode picks the extension). */
     const val EXTRA_OUTPUT_DIR = "output_dir"
@@ -75,6 +86,7 @@ object CameraCaptureContract {
         mode: CameraCaptureMode = CameraCaptureMode.PHOTO,
         microphoneDefault: Boolean = true,
         scenario: CameraScenario = CameraScenario.NONE,
+        destinationLabel: String? = null,
     ): Intent =
         Intent(context, CameraCaptureActivity::class.java)
             .putExtra(EXTRA_OUTPUT, outputUri)
@@ -82,6 +94,7 @@ object CameraCaptureContract {
             .putExtra(EXTRA_MICROPHONE_DEFAULT, microphoneDefault)
             .putExtra(EXTRA_SCENARIO, scenario.name)
             .apply { outputPath?.let { putExtra(EXTRA_OUTPUT_PATH, it) } }
+            .apply { destinationLabel?.let { putExtra(EXTRA_DESTINATION_LABEL, it) } }
 
     /**
      * Switchable "Camera" entry (S0563): the host owns the output file. The caller provides a scratch
@@ -98,6 +111,8 @@ object CameraCaptureContract {
         microphoneDefault: Boolean = true,
         // S0566: the general entry stays open and saves each capture itself (default true here).
         multiCapture: Boolean = true,
+        // S0926: auto-start recording once the preview is ready (VIDEO "start video recording" gesture).
+        autoCapture: Boolean = false,
     ): Intent =
         Intent(context, CameraCaptureActivity::class.java)
             .putExtra(EXTRA_OUTPUT_DIR, outputDir)
@@ -106,24 +121,7 @@ object CameraCaptureContract {
             .putExtra(EXTRA_ALLOW_MODE_SWITCH, allowModeSwitch)
             .putExtra(EXTRA_MICROPHONE_DEFAULT, microphoneDefault)
             .putExtra(EXTRA_MULTI_CAPTURE, multiCapture)
-
-    /**
-     * S0790: auto-capture entry - opens the host in PHOTO mode, fires the shutter once the preview is
-     * ready, then finishes with the captured file path (single shot, no mode switch). The caller owns
-     * the scratch [outputDir] + extension-less [outputBaseName]; the host writes dir/base.jpg.
-     */
-    fun createAutoCaptureIntent(
-        context: Context,
-        outputDir: String,
-        outputBaseName: String,
-    ): Intent =
-        Intent(context, CameraCaptureActivity::class.java)
-            .putExtra(EXTRA_OUTPUT_DIR, outputDir)
-            .putExtra(EXTRA_OUTPUT_BASENAME, outputBaseName)
-            .putExtra(EXTRA_CAPTURE_MODE, CameraCaptureMode.PHOTO.name)
-            .putExtra(EXTRA_ALLOW_MODE_SWITCH, false)
-            .putExtra(EXTRA_MULTI_CAPTURE, false)
-            .putExtra(EXTRA_AUTO_CAPTURE, true)
+            .putExtra(EXTRA_AUTO_CAPTURE, autoCapture)
 
     fun readAutoCapture(intent: Intent): Boolean =
         intent.getBooleanExtra(EXTRA_AUTO_CAPTURE, false)
@@ -148,6 +146,8 @@ object CameraCaptureContract {
         intent.getBooleanExtra(EXTRA_MICROPHONE_DEFAULT, true)
 
     fun readOutputPath(intent: Intent): String? = intent.getStringExtra(EXTRA_OUTPUT_PATH)
+
+    fun readDestinationLabel(intent: Intent): String? = intent.getStringExtra(EXTRA_DESTINATION_LABEL)
 
     @Suppress("DEPRECATION")
     fun readOutputUri(intent: Intent): Uri? =

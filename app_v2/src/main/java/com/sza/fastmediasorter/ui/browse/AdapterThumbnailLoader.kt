@@ -25,11 +25,15 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.utils.GlideCacheStats
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
@@ -47,8 +51,20 @@ class AdapterThumbnailLoader(
     private val getCredentialsId: () -> String?,
     private val getShowVideoThumbnails: () -> Boolean,
     private val getShowPdfThumbnails: () -> Boolean,
-    private val getBinaryGenerator: () -> BinaryFileThumbnailGenerator?
+    private val getBinaryGenerator: () -> BinaryFileThumbnailGenerator?,
+    // S0783: favicon sprite-atlas plumbing for STREAM favorites rows (live channels in the Favorites
+    // list). Mirrors the streams catalog (StreamSourceAdapter.bindFavicon): [faviconResolver] maps a
+    // channel url -> its atlas tile index, [faviconTileLoader] decodes that index into a bitmap off the
+    // main thread. The no-op defaults render the generic kind placeholder, so non-favorites screens that
+    // build this loader without an atlas are unaffected.
+    private val faviconResolver: (String) -> Int? = { null },
+    private val faviconTileLoader: suspend (Int) -> Bitmap? = { null },
+    private val faviconScope: CoroutineScope? = null
 ) {
+
+    // Main-thread-only map of the in-flight favicon decode per target ImageView, so a rebind/recycle can
+    // cancel the stale decode before it paints a previous channel's logo (the adapter binds on main).
+    private val faviconJobs = HashMap<ImageView, Job>()
 
     private val decodeFormatResolver by lazy {
         com.sza.fastmediasorter.FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
@@ -89,6 +105,16 @@ class AdapterThumbnailLoader(
         val binarySizePx = binaryGeneratorSizePx ?: CACHED_THUMBNAIL_SIZE
         val context = imageView.context
         val isScrolling = getIsScrolling()
+
+        // S0783: a rebind/recycle of this view cancels any in-flight favicon decode targeting it.
+        cancelFavicon(imageView)
+        // STREAM favorites (live channels in the Favorites list) render the channel's favicon-atlas tile
+        // like the streams catalog - their url is not a decodable file path. Checked before the AUDIO
+        // branch so audio channels also get the favicon rather than an extension bitmap.
+        if (file.resourceId == SyntheticResourceIds.STREAM) {
+            loadStreamFavicon(imageView, file)
+            return null
+        }
 
         // AUDIO: extension bitmap only; cover art loads exclusively in Player
         if (file.type == MediaType.AUDIO) {
@@ -172,6 +198,34 @@ class AdapterThumbnailLoader(
         }
         // S0110: return null during scroll so lastLoadedKey stays unset → full reload fires on scroll stop
         return if (isScrolling) null else newKey
+    }
+
+    // ─── Stream favicon (S0783) ───────────────────────────────────────────────
+
+    /** S0783: cancel the in-flight favicon decode (if any) targeting [imageView]. */
+    fun cancelFavicon(imageView: ImageView) {
+        faviconJobs.remove(imageView)?.cancel()
+    }
+
+    /**
+     * S0783: render a STREAM favorite's leading thumbnail from the favicon sprite-atlas, mirroring
+     * [com.sza.fastmediasorter.ui.streams.StreamSourceAdapter] bindFavicon. A generic kind icon shows
+     * immediately; the atlas tile replaces it when the async decode resolves. Rebind-safety comes from
+     * [cancelFavicon] at the top of [load]: the prior job is cancelled before the next bind launches, so a
+     * cancelled decode never paints a stale channel logo onto a recycled row.
+     */
+    private fun loadStreamFavicon(imageView: ImageView, file: MediaFile) {
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        val kindIcon = if (file.type == MediaType.AUDIO) R.drawable.ic_audio else R.drawable.ic_video
+        imageView.setImageResource(kindIcon)
+        applyPlaceholderStyle(imageView, file.type)
+        val scope = faviconScope ?: return
+        val index = faviconResolver(file.path) ?: return
+        faviconJobs[imageView] = scope.launch {
+            val tile = faviconTileLoader(index) ?: return@launch
+            resetThumbnailStyle(imageView)
+            imageView.setImageBitmap(tile)
+        }
     }
 
     // ─── Style utilities (formerly companion object / ViewHolder statics) ─────

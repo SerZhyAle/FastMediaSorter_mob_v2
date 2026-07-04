@@ -87,6 +87,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_small"
                         app:str_title="@string/allow_rename"
+                        app:str_icon="@drawable/ic_rename"
                         app:str_subtitle="@string/setting_allow_rename_desc" />
 
                     <!-- Delete + ConfirmDelete Row Container -->
@@ -98,6 +99,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/allow_delete"
+                            app:str_icon="@drawable/ic_delete"
                             app:str_subtitle="@string/setting_allow_delete_desc" />
 
                         <LinearLayout
@@ -178,6 +180,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/settings_black_screen_button_title"
+                        app:str_icon="@drawable/ic_black_screen"
                         app:str_subtitle="@string/settings_black_screen_button_desc" />
 
                     <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
@@ -189,6 +192,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
                             app:str_title="@string/setting_enable_pip"
+                            app:str_icon="@drawable/ic_picture_in_picture"
                             app:str_subtitle="@string/setting_enable_pip_desc" />
 
                     </LinearLayout>

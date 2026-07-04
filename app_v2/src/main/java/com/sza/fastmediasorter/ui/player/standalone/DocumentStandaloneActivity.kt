@@ -561,6 +561,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     private fun setupFileOperationButtons() {
+        // S0920: wire the Copy/Move panel headers so a header tap expands/collapses its grid.
+        destinationButtonsManager.bindHeaderToggles()
         binding.btnDeleteCmd.isVisible = true
         binding.btnDeleteCmd.setOnClickListener { fileOperations.deleteCurrentFile() }
         binding.btnShareCmd.isVisible = true

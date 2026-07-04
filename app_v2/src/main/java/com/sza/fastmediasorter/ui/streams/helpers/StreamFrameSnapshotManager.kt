@@ -22,6 +22,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -46,6 +47,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * repaints the tile from the cache. ImageReader (not a bare SurfaceTexture + PixelCopy) is used because
  * reading back a SurfaceTexture-backed Surface needs a GL context + glReadPixels, whereas an
  * ImageReader hands the decoded RGBA buffer to the CPU directly with no GL plumbing.
+ *
+ * S0900: the RGBA readback only works on codecs that render RGBA_8888 into the reader. Some decoders
+ * push YUV_420_888 instead, and the acquire throws [UnsupportedOperationException] on the reader thread
+ * (a hard process kill before this was caught). Such frames are dropped so capture() falls back to the
+ * channel favicon/flag rather than crashing - a live thumbnail is simply unavailable on those devices.
  */
 @UnstableApi
 class StreamFrameSnapshotManager(
@@ -81,8 +87,14 @@ class StreamFrameSnapshotManager(
      */
     fun request(url: String, force: Boolean = false) {
         // S0700: entry point of the grid-capture flow (offscreen ImageReader capture per visible tile).
+        // Logged unconditionally (even while disabled below) so future test logs still show the call
+        // site was reached - distinguishes "adapter never asked" from "asked but gated off".
         Timber.d("S0700: snapshot request enqueued for %s", url)
-        if (!force && cache.isFresh(url)) return
+        // S0700/S0900 (2026-07-03): [CAPTURE_ENABLED] is the kill switch if this crashes again - real
+        // capture killed the process natively on-device (Samsung SM-S731B, Android 16) regardless of
+        // MAX_CONCURRENT_CAPTURES (tried 2, then 1, identical crash). See [capture]'s layout-settle-delay
+        // comment for the current experiment and S0700's 2026-07-03 19:05 audit for the failed attempts.
+        if (!CAPTURE_ENABLED || (!force && cache.isFresh(url))) return
         synchronized(pending) {
             if (!pending.add(url)) return
         }
@@ -138,6 +150,16 @@ class StreamFrameSnapshotManager(
         var surface: Surface? = null
         val firstFrame = CompletableDeferred<Bitmap?>()
         try {
+            // S0700/S0900 experiment (2026-07-03): a native process kill reproduced on-device (Samsung
+            // SM-S731B, Android 16) the instant the FIRST capture of a GRID session builds its
+            // ImageReader+ExoPlayer, independent of MAX_CONCURRENT_CAPTURES (tried 2, then 1 - identical
+            // crash both times). Both attempts happen synchronously right on top of the grid's own
+            // RecyclerView layout/bind burst (19 tiles laid out in the same frame the grid appears).
+            // Untested variable: a Surface/BufferQueue setup race with that layout burst, not a per-attempt
+            // incompatibility. This delay pushes the real ImageReader/ExoPlayer setup safely past the
+            // grid's initial layout+draw settling before doing anything risky. If this still crashes,
+            // stop guessing blind - get a real native trace (tombstone/adb logcat) before another attempt.
+            delay(POST_LAYOUT_SETTLE_DELAY_MS)
             // A fixed-size offscreen reader: the decoder scales each frame into the thumbnail size, so the
             // capture never allocates full-resolution buffers and needs no late resize on the real size.
             val reader = ImageReader.newInstance(
@@ -150,17 +172,28 @@ class StreamFrameSnapshotManager(
             val readerSurface = reader.surface
             surface = readerSurface
             reader.setOnImageAvailableListener({ r ->
-                if (firstFrame.isCompleted) {
-                    // S0875: dispatched message can outlive capture()'s main-thread reader.close() - benign race.
-                    try {
-                        r.acquireLatestImage()?.close()
-                    } catch (e: IllegalStateException) {
-                        Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
+                // This callback runs on the ImageReader's own HandlerThread, where ANY uncaught throw
+                // kills the whole process (the GRID crash: an acquire on a YUV producer threw here).
+                // capture()'s own try/catch only guards the main-thread coroutine, not this thread, so the
+                // entire body is wrapped: every failure becomes a logged null-frame and capture() falls
+                // back to the channel favicon instead of crashing.
+                try {
+                    if (firstFrame.isCompleted) {
+                        // S0875: dispatched message can outlive capture()'s main-thread reader.close();
+                        // the reader-closed race is benign and stays a quiet debug, not a warning.
+                        try {
+                            r.acquireLatestImage()?.close()
+                        } catch (e: IllegalStateException) {
+                            Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
+                        }
+                        return@setOnImageAvailableListener
                     }
-                    return@setOnImageAvailableListener
+                    val bitmap = readFrame(r)
+                    if (!firstFrame.isCompleted) firstFrame.complete(bitmap)
+                } catch (t: Throwable) {
+                    Timber.w(t, "Stream snapshot callback failed on reader thread - favicon fallback")
+                    if (!firstFrame.isCompleted) firstFrame.complete(null)
                 }
-                val bitmap = readFrame(r)
-                if (!firstFrame.isCompleted) firstFrame.complete(bitmap)
             }, readerHandler)
 
             // Smaller live buffer than the full-screen stream player: a snapshot only needs the first
@@ -231,6 +264,12 @@ class StreamFrameSnapshotManager(
         } catch (e: IllegalStateException) {
             Timber.d(e, "Stream snapshot acquire raced reader close - drop frame")
             null
+        } catch (e: UnsupportedOperationException) {
+            // S0900: some codecs render YUV_420_888 (0x23) into the surface while this reader is
+            // RGBA_8888 (0x1); acquire then throws on the ImageReader thread and killed the process.
+            // Treat as an unusable frame so capture() times out into the favicon fallback, never crashes.
+            Timber.i(e, "Stream snapshot: producer frame format unsupported by RGBA reader - favicon fallback")
+            null
         } ?: return null
         return try {
             val plane = image.planes.firstOrNull()
@@ -260,6 +299,18 @@ class StreamFrameSnapshotManager(
     }
 
     private companion object {
+        // S0700/S0900 (2026-07-03): kill switch for [request] - see the WHY comment there. Re-enabled to
+        // test the layout-settle-delay experiment in [capture] - owner reports live grid thumbnails worked
+        // before today's changes, so a full disable is a last resort, not the first one. If this crashes
+        // again, flip back to false and stop guessing blind until a real native trace is available.
+        const val CAPTURE_ENABLED = true
+
+        // S0700/S0900 (2026-07-03): delay before the risky ImageReader/ExoPlayer setup in [capture] - see
+        // the WHY comment there. Long enough to clear a couple of frames past the grid's initial
+        // layout/draw burst, short enough not to meaningfully add to the up-to-CAPTURE_TIMEOUT_MS wait for
+        // a thumbnail to appear.
+        const val POST_LAYOUT_SETTLE_DELAY_MS = 500L
+
         // S0700: live HLS on a software decoder needs well over the old 6 s to fetch the manifest, pull a
         // segment, decode and render the first frame; 6 s timed out before any thumbnail appeared.
         const val CAPTURE_TIMEOUT_MS = 12_000L
@@ -267,8 +318,9 @@ class StreamFrameSnapshotManager(
         // S0900: device logs (Samsung SM-S731B, Android 16) showed a native process kill the instant GRID
         // opened with 2 concurrent muted ExoPlayer sessions decoding live HLS into an offscreen ImageReader -
         // no Java exception, no crash-report file (LoggingHelper's uncaught-handler never fired), only the
-        // enqueue log line before the process died. Serializing captures to 1-at-a-time halves peak
-        // simultaneous decoder sessions during the grid's initial capture burst.
+        // enqueue log line before the process died. Dropping to 1-at-a-time did NOT stop the crash (see
+        // S0700 2026-07-03 19:05 audit) - concurrency is ruled out as the cause. Left at 1 (harmless) since
+        // [CAPTURE_ENABLED] gates all real capture off regardless until root-caused.
         const val MAX_CONCURRENT_CAPTURES = 1
 
         // Thumbnail capture size (16:9). The decoder scales into this offscreen reader; the grid tile is

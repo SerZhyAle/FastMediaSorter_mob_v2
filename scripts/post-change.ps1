@@ -212,6 +212,10 @@ $runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     ($normFile -match 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
 $runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
+# activity that pins screenOrientation implies a required screen.* hardware feature,
+# which shrinks Google Play device reach unless src/main declares it not-required.
+$runsOrientationFeatureGate = ($normFile -match 'AndroidManifest\.xml$')
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -331,6 +335,15 @@ if ($runsNeuroslopGate) {
 }
 else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsOrientationFeatureGate) {
+    Invoke-Step "orientation-implied-feature-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "orientation-implied-feature-gate" "not applicable - touched file is not an AndroidManifest.xml"
 }
 
 if ($runsFgsGate) {

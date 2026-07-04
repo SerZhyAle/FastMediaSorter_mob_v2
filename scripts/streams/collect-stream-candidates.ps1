@@ -74,6 +74,11 @@ param(
     # run mutates (or, in catalog mode, after maintenance over) the catalog on disk.
     [switch]$Publish,
     [string]$PublishTag = 'delivery-so-v1',
+    # S0925 guard: publishing a CSV that carries favicon_index values WITHOUT bundling the atlas ships a
+    # broken artifact - the app's null-atlas import path wipes favicons for everyone (portrait then shows
+    # text, not icons). Publish refuses that combination unless this switch acknowledges it (intentional
+    # over-cap / favicon-less publish).
+    [switch]$AllowFaviconlessPublish,
 
     # Favicon sprite-atlas build (S0668). When set, fetch each catalog row's favicon from its
     # homepage, pack tiles into one grid PNG, and write the per-row tile ordinal into favicon_index.
@@ -1071,6 +1076,17 @@ function Invoke-PublishCatalog {
         else {
             Write-Warning ("Favicon atlas {0} is {1:N1} KB > cap {2:N1} KB (30s import callTimeout budget, S0583); publishing CSV-only." -f `
                     (Split-Path -Leaf $AtlasFile), ($atlasBytes / 1KB), ($MaxAtlasBytes / 1KB))
+        }
+    }
+
+    # S0925: never ship a favicon-indexed CSV without the matching atlas. The app's null-atlas import
+    # path (FaviconAtlasStore.write(null, coords)) discards every favicon, so all channels degrade to
+    # text (portrait icon-only chips show no icon at all). Fail loudly unless explicitly acknowledged.
+    if (-not $bundledAtlas) {
+        $csvFaviconIndexed = @(Import-Csv $CsvPath | Where-Object { $_.favicon_index -match '^\d+$' }).Count
+        if ($csvFaviconIndexed -gt 0 -and -not $AllowFaviconlessPublish) {
+            throw ("Refusing to publish: {0} row(s) carry favicon_index but no atlas is bundled (missing '{1}' or over the {2:N1} KB cap). The app would wipe all favicons. Restore/rebuild the atlas (-WithFavicons), or pass -AllowFaviconlessPublish to ship CSV-only intentionally." -f `
+                    $csvFaviconIndexed, $AtlasFile, ($MaxAtlasBytes / 1KB))
         }
     }
 

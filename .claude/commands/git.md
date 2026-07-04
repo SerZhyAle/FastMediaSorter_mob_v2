@@ -331,7 +331,7 @@ Never stage these paths:
 
 | Path | Reason |
 |------|--------|
-| `temp/` | Local artifacts, APK backups, pre-modification backups |
+| `temp/` | Local artifacts (per-ticket `temp/Sxxxx/`, no-ticket `temp/scratch/`), APK backups, pre-modification backups |
 | `logs/` | Device logcat output |
 | `app_v2/build/` | Gradle build output |
 | `.gradle/` | Gradle cache |

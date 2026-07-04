@@ -127,7 +127,6 @@ class StandaloneDrawSaveHelper(
         // S0837: a default save (no chosen filename) overwrites the launched screenshot in place;
         // "Save as.." (filename != null) always falls through to the new-file path below.
         val overwriteUri = if (filename == null) getOverwriteTargetUri() else null
-        if (overwriteUri != null) Timber.d("S0837: screenshot draw default-save overwriting source in place")
         lifecycleScope.launch {
             // Wrap the whole pipeline: a crop-geometry edge case, a merge failure, or a scoped-storage
             // write denial must surface a toast, never crash the activity. Default target is MediaStore

@@ -120,7 +120,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         // S0788: reuse the widget's no-UI camera trampoline - it resolves the default capture
         // destination, handles the CAMERA permission and opens the in-app camera. The dispatcher runs in
         // a Service with no task of its own, so the transparent launcher needs FLAG_ACTIVITY_NEW_TASK.
-        Timber.d("S0788: edge-gesture launch camera")
         val intent = Intent(context, CameraLaunchActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }

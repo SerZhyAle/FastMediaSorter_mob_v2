@@ -106,6 +106,7 @@ interface MediaScanner {
 class GetMediaFilesUseCase @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val favoritesRepository: FavoritesRepository,
+    private val materializeFavoritesUseCase: MaterializeFavoritesUseCase,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val cachedFileListRepository: CachedFileListRepository,
     private val scanDispatcher: ScanDispatcher,
@@ -159,19 +160,8 @@ class GetMediaFilesUseCase @Inject constructor(
         if (resource.id == -100L) {
             StructuredLogger.d("Loading Favorites from repository")
             val favorites = favoritesRepository.getAllFavorites().first()
-            val favoriteFiles = favorites.map { entity ->
-                MediaFile(
-                    path = entity.uri,
-                    name = entity.displayName,
-                    type = MediaType.entries.getOrElse(entity.mediaType) { MediaType.IMAGE },
-                    size = entity.size,
-                    createdDate = entity.dateModified,
-                    resourceId = entity.resourceId,
-                    isFavorite = true,
-                    // Default values for other fields
-                    width = 0, height = 0, duration = 0
-                )
-            }
+            // S0783: STREAM rows get their display name from the live catalog (MaterializeFavoritesUseCase).
+            val favoriteFiles = materializeFavoritesUseCase.toMediaFiles(favorites)
             // Apply flavor-specific media type restrictions to favorites
             val flavorAllowedTypes = applyFlavorMediaTypeRestrictions(MediaType.entries.toSet())
             val filteredFavorites = favoriteFiles.filter { it.type in flavorAllowedTypes }

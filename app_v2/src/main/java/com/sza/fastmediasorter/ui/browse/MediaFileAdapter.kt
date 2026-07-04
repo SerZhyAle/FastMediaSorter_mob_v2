@@ -73,7 +73,12 @@ class MediaFileAdapter(
     private var useCompactElements: Boolean = false, // Global 0.5x scaling mode
     private val getShowVideoThumbnails: () -> Boolean = { false }, // Callback to get current setting
     private val getShowPdfThumbnails: () -> Boolean = { false }, // Callback to get PDF thumbnail setting
-    private var disableThumbnails: Boolean = false // Skip thumbnail loading, show extension icons only
+    private var disableThumbnails: Boolean = false, // Skip thumbnail loading, show extension icons only
+    // S0783: favicon sprite-atlas plumbing forwarded to AdapterThumbnailLoader so STREAM favorites rows
+    // (live channels in the Favorites list) show the channel logo. No-op defaults keep other screens as-is.
+    private val faviconResolver: (String) -> Int? = { null },
+    private val faviconTileLoader: suspend (Int) -> android.graphics.Bitmap? = { null },
+    private val faviconScope: kotlinx.coroutines.CoroutineScope? = null
 ) : ListAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
 
     private var selectedPaths = setOf<String>()
@@ -94,7 +99,10 @@ class MediaFileAdapter(
         getCredentialsId = { credentialsId },
         getShowVideoThumbnails = getShowVideoThumbnails,
         getShowPdfThumbnails = getShowPdfThumbnails,
-        getBinaryGenerator = { binaryThumbnailGenerator }
+        getBinaryGenerator = { binaryThumbnailGenerator },
+        faviconResolver = faviconResolver,
+        faviconTileLoader = faviconTileLoader,
+        faviconScope = faviconScope
     )
 
     // ── Drag-to-reorder (MANUAL sort mode) ───────────────────────────────────
@@ -587,6 +595,8 @@ class MediaFileAdapter(
         }
 
         fun clearImage() {
+            // S0783: cancel any in-flight stream-favicon decode targeting this row before recycle.
+            thumbnailLoader.cancelFavicon(binding.ivThumbnail)
             // Check if the context (activity) is still valid before clearing Glide request
             val context = binding.ivThumbnail.context
             if (context is android.app.Activity && context.isDestroyed) {
@@ -961,6 +971,8 @@ class MediaFileAdapter(
         }
 
         fun clearImage() {
+            // S0783: cancel any in-flight stream-favicon decode targeting this row before recycle.
+            thumbnailLoader.cancelFavicon(binding.ivThumbnail)
             // Check if the context (activity) is still valid before clearing Glide request
             val context = binding.ivThumbnail.context
             if (context is android.app.Activity && context.isDestroyed) {

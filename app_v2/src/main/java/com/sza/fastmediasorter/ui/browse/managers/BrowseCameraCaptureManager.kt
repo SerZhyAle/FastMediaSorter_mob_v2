@@ -27,7 +27,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
+import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
@@ -153,11 +153,12 @@ class BrowseCameraCaptureManager(
         Timber.i("launch FileProvider uri=%s", uri)
 
         // In-app photo capture removes the OEM confirmation step before returning to Browse.
-        val intent = CameraCaptureActivity.createIntent(
+        val intent = CameraCaptureContract.createIntent(
             activity,
             uri,
             tempFile.absolutePath,
             CameraCaptureMode.PHOTO,
+            destinationLabel = destinationLabelFor(resource),
         )
         try {
             Timber.i("launch dispatching launcher.launch(intent) action=%s", action)
@@ -235,11 +236,12 @@ class BrowseCameraCaptureManager(
         }
 
         // S0545: in-app video capture (unified host in VIDEO mode) replaces the external system intent.
-        val intent = CameraCaptureActivity.createIntent(
+        val intent = CameraCaptureContract.createIntent(
             activity,
             uri,
             tempFile.absolutePath,
             CameraCaptureMode.VIDEO,
+            destinationLabel = destinationLabelFor(resource),
         )
         try {
             launcher.launch(intent)
@@ -470,6 +472,16 @@ class BrowseCameraCaptureManager(
     // endregion
 
     // region Helpers
+
+    /**
+     * S0754: best-effort save-destination name shown in the camera header before capture starts.
+     * Mirrors the primary (non-redirected) branch of [resolveCameraSaveTarget]/[resolveVideoSaveTarget]
+     * without their suspend settings/repository lookup - a real, writable browsed folder always saves
+     * into itself, so its name is known synchronously. A virtual/camera-pseudo browsed resource (rare)
+     * returns null, degrading to the pre-fix scratch-file-derived label - unchanged for that edge case.
+     */
+    private fun destinationLabelFor(resource: MediaResource): String? =
+        resource.name.takeIf { CaptureDestinationPolicy.isUsableTarget(resource) }
 
     /**
      * S0367: pick the resource the capture should be saved into.

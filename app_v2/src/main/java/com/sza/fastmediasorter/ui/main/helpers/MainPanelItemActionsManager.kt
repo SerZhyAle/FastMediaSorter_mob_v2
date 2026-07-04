@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.UUID
 
 /**
@@ -97,7 +96,6 @@ class MainPanelItemActionsManager(
 
     /** S0770: confirm, then unpin the channel; the pinned-sources flow drops it from the streams panel. */
     fun confirmRemoveChannel(channel: StreamSourceEntity) {
-        Timber.d("S0831: confirmRemoveChannel via extracted MainPanelItemActionsManager")
         if (activity.isFinishing || activity.isDestroyed) return
         val name = StreamTitleFormatter.display(channel.title)
         MaterialAlertDialogBuilder(activity)

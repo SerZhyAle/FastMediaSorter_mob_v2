@@ -22,13 +22,13 @@
     clear                pm clear (reset app data)
     install              install -r -d an APK (-Apk <path>, or newest debug APK for -Flavor)
     uninstall            uninstall the resolved package
-    shot                 screenshot to temp/<device>_<TS>.png (screencap on device, then pull)
+    shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then pull)
     log                  logcat -d tail for the app: -Tail N (default 200), -Grep <regex>;
-                         full capture also written to temp/
+                         full capture also written to temp/scratch/
     tap                  input tap -X <x> -Y <y>
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
-    prefs                pull app_settings.xml via run-as to temp/ (debuggable build only)
+    prefs                pull app_settings.xml via run-as to temp/scratch/ (debuggable build only)
     shell                arbitrary passthrough: -Cmd "<adb shell command>"
 
   Package resolution (verbs that act on the app): default debug id
@@ -53,7 +53,7 @@
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 shot -DeviceId emulator-5554
-  Grab a screenshot from a specific device into temp/.
+  Grab a screenshot from a specific device into temp/scratch/.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 log -Tail 400 -Grep "S0035|Network"
@@ -204,8 +204,9 @@ function Resolve-Package {
 }
 
 function Get-TempDir {
+    # Ad-hoc CLI outputs are no-ticket scratch by nature (CLAUDE.md Rule 10.1) -> temp/scratch/.
     $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
-    $tempDir  = Join-Path $repoRoot 'temp'
+    $tempDir  = Join-Path (Join-Path $repoRoot 'temp') 'scratch'
     if (-not (Test-Path -Path $tempDir -PathType Container)) {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
     }
@@ -233,12 +234,12 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  clear      pm clear (reset app data)" -ForegroundColor White
         Write-Host "  install    install -r -d (-Apk <path> | -Flavor <std|lite|photos|legacy|noLegal>)" -ForegroundColor White
         Write-Host "  uninstall  uninstall resolved package" -ForegroundColor White
-        Write-Host "  shot       screenshot to temp/" -ForegroundColor White
+        Write-Host "  shot       screenshot to temp/scratch/" -ForegroundColor White
         Write-Host "  log        logcat -d app tail (-Tail N, -Grep regex)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
         Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
-        Write-Host "  prefs      pull app_settings.xml to temp/ (run-as)" -ForegroundColor White
+        Write-Host "  prefs      pull app_settings.xml to temp/scratch/ (run-as)" -ForegroundColor White
         Write-Host "  shell      passthrough -Cmd <adb shell command>" -ForegroundColor White
         Write-Host ""
         Write-Host "Common options: -DeviceId <id> -Release -Package <id> -Json" -ForegroundColor Gray

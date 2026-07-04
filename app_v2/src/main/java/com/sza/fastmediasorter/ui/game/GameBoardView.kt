@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardTheme
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
-import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -294,7 +293,6 @@ class GameBoardView @JvmOverloads constructor(
         floorPaint.color = theme.floorColor
         wallPaint.color = theme.wallColor
         themedMode = mode
-        Timber.d("S0804: board theme applied mode=$mode")
     }
 
     private fun drawAnimatedActors(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {

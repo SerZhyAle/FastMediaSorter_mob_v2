@@ -12,7 +12,8 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
-import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
+import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,10 +30,15 @@ import java.util.Locale
  * S0790-S0794 - all business logic for the edge-gesture "take photo" family, kept out of the thin
  * [PhotoCaptureLaunchActivity] trampoline (Rule 3).
  *
- * Flow: resolve photo availability -> CAMERA permission -> open [CameraCaptureActivity] in auto-capture
- * PHOTO mode (fires the shutter once ready, single shot) -> on result either save to the public folder
- * and toast (plain take-photo, [autoAction] null), or route the captured photo into
- * [PhotoVideoStandaloneActivity] with the given auto-action (send-to / draw editor / OCR-translate).
+ * Flow: resolve photo availability -> CAMERA permission -> [HeadlessPhotoCapturer] takes a single
+ * photo with no visible camera UI -> on success either save to the public folder and toast (plain
+ * take-photo, [autoAction] null), or route the captured photo into [PhotoVideoStandaloneActivity]
+ * with the given auto-action (send-to / draw editor / OCR-translate).
+ *
+ * The capture is headless (no [com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity]): the
+ * previous design opened that full screen in auto-capture mode and read the shot back via an activity
+ * result, but the trampoline's `android:noHistory` teardown destroyed it while the camera was in the
+ * foreground, so the result never came back and no photo was ever saved (S0790-S0794 device fail).
  *
  * @param autoAction one of [PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO] /
  *   [PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW] / [PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE],
@@ -45,44 +51,35 @@ class PhotoCaptureLaunchManager(
     private val saveCapturedMedia: SaveCapturedMediaUseCase,
     private val coroutineScope: CoroutineScope,
     private val autoAction: String?,
+    private val capturer: HeadlessPhotoCapturer,
+    private val locationProvider: CameraLocationProvider,
     private val requestPermission: () -> Unit,
-    private val launchCapture: (Intent) -> Unit,
     private val finish: () -> Unit,
 ) {
 
     private var pendingDir: File? = null
     private var pendingBaseName: String? = null
 
+    // S0766: geotag is opt-in; resolved once from settings in start() and read on the capture path.
+    private var geotagEnabled = false
+
     /** Entry point from the trampoline's onCreate. */
     fun start() {
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val photoAvailable = !settings.disableCameraCapture && mediaCapabilities.supportsImages
-            withContext(Dispatchers.Main) { prepareAndLaunch(photoAvailable) }
+            geotagEnabled = settings.cameraGeotagEnabled
+            withContext(Dispatchers.Main) {
+                // S0766: warm the location source early (opt-in + permission held) so a cached fix is
+                // ready by the shutter; a headless shot never blocks waiting for a fresh fix.
+                if (geotagEnabled && hasLocationPermission()) locationProvider.start(activity)
+                prepareAndLaunch(photoAvailable)
+            }
         }
     }
 
     fun onPermissionResult(granted: Boolean) {
-        if (granted) launchCaptureIntent() else toastAndFinish(R.string.camera_permission_required)
-    }
-
-    /** Result from [CameraCaptureActivity]: RESULT_OK means the host wrote the captured photo. */
-    fun onCaptureResult(resultCode: Int, data: Intent?) {
-        val dir = pendingDir
-        val base = pendingBaseName
-        if (resultCode != Activity.RESULT_OK || dir == null || base == null) {
-            clearPending()
-            finish()
-            return
-        }
-        val captured = CameraCaptureContract.readResultOutputPath(data)?.let { File(it) }
-            ?: File(dir, "$base.jpg")
-        if (!captured.exists()) {
-            clearPending()
-            toastAndFinish(R.string.camera_capture_error_session_expired)
-            return
-        }
-        if (autoAction == null) saveAndToast(captured) else routeToViewer(captured)
+        if (granted) performCapture() else toastAndFinish(R.string.camera_permission_required)
     }
 
     private fun prepareAndLaunch(photoAvailable: Boolean) {
@@ -96,17 +93,43 @@ class PhotoCaptureLaunchManager(
         }
         pendingDir = dir
         pendingBaseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        if (hasCameraPermission()) launchCaptureIntent() else requestPermission()
+        if (hasCameraPermission()) performCapture() else requestPermission()
     }
 
-    private fun launchCaptureIntent() {
+    // S0790-S0794: headless single shot - no visible camera screen, no inter-activity result hop.
+    private fun performCapture() {
         val dir = pendingDir
         val base = pendingBaseName
         if (dir == null || base == null) {
             toastAndFinish(R.string.camera_capture_error_temp_file)
             return
         }
-        launchCapture(CameraCaptureContract.createAutoCaptureIntent(activity, dir.absolutePath, base))
+        val captured = File(dir, "$base.jpg")
+        val location = if (geotagEnabled && hasLocationPermission()) {
+            locationProvider.lastKnownLocation()
+        } else {
+            null
+        }
+        Timber.d("S0790: headless photo capture autoAction=%s geotag=%s", autoAction, location != null)
+        capturer.capture(
+            outputFile = captured,
+            location = location,
+            onSaved = { onCaptured(captured) },
+            onError = { error ->
+                Timber.e(error, "PhotoCaptureLaunchManager: headless capture failed")
+                clearPending()
+                toastAndFinish(R.string.camera_capture_error_save_generic)
+            },
+        )
+    }
+
+    private fun onCaptured(captured: File) {
+        if (!captured.exists()) {
+            clearPending()
+            toastAndFinish(R.string.camera_capture_error_session_expired)
+            return
+        }
+        if (autoAction == null) saveAndToast(captured) else routeToViewer(captured)
     }
 
     // S0790: plain take-photo - persist to the public Camera folder and toast, no viewer.
@@ -154,6 +177,13 @@ class PhotoCaptureLaunchManager(
 
     private fun hasCameraPermission(): Boolean =
         ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+
+    /** S0766: true when fine OR coarse location is granted; geotag silently skips otherwise. */
+    private fun hasLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
 
     private fun createScratchDir(): File? = try {

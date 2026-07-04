@@ -105,7 +105,7 @@ Remove temporary fixtures and emulator state pushed during sweep, unless a ticke
 
 ### 7 - Sweep report
 
-Write `temp/spec-sweep_<YYYYMMDD_HHmm>/report.md` (per-run timestamped dir; sub-artifacts from `/spec-test-device` stay under their own `temp/<Sxxxx>_*` paths, linked not duplicated). Group by verdict:
+Write `temp/scratch/spec-sweep_<YYYYMMDD_HHmm>/report.md` (per-run timestamped dir - the sweep spans many tickets, so it is scratch, not one ticket's dir; sub-artifacts from `/spec-test-device` stay under their own `temp/<Sxxxx>/` paths, linked not duplicated). Group by verdict:
 
 - **Closed** (`Verified`): id, slug, tested flavor, evidence path.
 - **Reopened** (`Broken` / `Partial`): id, slug, one-line defect summary, evidence path.
@@ -127,7 +127,7 @@ Functionality log and feature docs **not** touched - internal verification workf
 ### 9 - Final report line
 
 ```text
-spec-sweep: device <id>, eligible E, closed N, reopened M, blocked K, excluded V. Report: temp/spec-sweep_<TS>/report.md
+spec-sweep: device <id>, eligible E, closed N, reopened M, blocked K, excluded V. Report: temp/scratch/spec-sweep_<TS>/report.md
 ```
 
 ---

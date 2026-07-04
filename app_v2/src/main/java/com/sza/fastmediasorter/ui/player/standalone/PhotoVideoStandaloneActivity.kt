@@ -74,6 +74,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
+import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,8 +82,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
+import java.io.FileOutputStream
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val PRINT_TEMP_PNG_QUALITY = 100
 
 /**
  * S0380: specialized standalone activity for image/gif/video files opened from external intents.
@@ -347,14 +352,49 @@ class PhotoVideoStandaloneActivity :
         }
     }
 
-    // S0610: Print receiver for the unified «Send to..» menu (S0459 ADR-10). Reuses the displayed-bitmap
-    // print path; returns false when no rendered image is available so the menu gate / dispatch fails cleanly.
+    // S0610/S0919: Print receiver for the unified «Send to..» menu (S0459 ADR-10). Stages the displayed
+    // bitmap to a private temp PNG and dispatches through PrintDispatchActivity so One UI reaches the
+    // system print UI (BaseActivity's wrapped context otherwise trips "Can print only from an activity").
+    // Returns false only when no rendered image is available, so the menu gate fails cleanly.
     override fun printMediaFile(mediaFile: MediaFile): Boolean {
         val bitmap = binding.photoView.drawable?.toBitmap() ?: return false
-        androidx.print.PrintHelper(this).apply {
-            scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
-        }.printBitmap(mediaFile.name, bitmap)
+        lifecycleScope.launch {
+            val staged = withContext(Dispatchers.IO) { stageBitmapForPrint(bitmap) }
+            val dispatched = staged != null && PrintDispatchActivity.startImage(
+                context = this@PhotoVideoStandaloneActivity,
+                file = staged,
+                jobLabel = mediaFile.name,
+                displayName = mediaFile.name,
+                chooserTitle = getString(R.string.print_share_chooser_title),
+                fallbackMessage = getString(R.string.print_fallback_to_share),
+                unavailableMessage = getString(R.string.error_print_unavailable),
+            )
+            if (!dispatched) {
+                Toast.makeText(
+                    this@PhotoVideoStandaloneActivity,
+                    R.string.error_print_unavailable,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
         return true
+    }
+
+    // Single-file staging dir cleared before each write - bounds temp usage to one PNG; cacheDir is
+    // OS-reclaimable so no explicit lifecycle deletion is needed.
+    private fun stageBitmapForPrint(bitmap: Bitmap): File? = runCatching {
+        val dir = File(cacheDir, "print_tmp").apply {
+            mkdirs()
+            listFiles()?.forEach { it.delete() }
+        }
+        File(dir, "print_${System.nanoTime()}.png").also { target ->
+            FileOutputStream(target).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, PRINT_TEMP_PNG_QUALITY, out)
+            }
+        }
+    }.getOrElse { error ->
+        Timber.e(error, "PhotoVideoStandaloneActivity: failed to stage bitmap for print")
+        null
     }
 
     // S0393 wave-C: capture the current video frame from the TextureView and save it to Pictures.
@@ -569,6 +609,8 @@ class PhotoVideoStandaloneActivity :
     }
 
     private fun setupFileOperationButtons() {
+        // S0920: wire the Copy/Move panel headers so a header tap expands/collapses its grid.
+        destinationButtonsManager.bindHeaderToggles()
         binding.btnDeleteCmd.isVisible = true
         binding.btnDeleteCmd.setOnClickListener { fileOperations.deleteCurrentFile() }
         binding.btnShareCmd.isVisible = true
@@ -760,7 +802,6 @@ class PhotoVideoStandaloneActivity :
 
     private fun launchCropAndShareAutoAction() {
         lifecycleScope.launch {
-            Timber.d("S0680: crop-and-share auto-action start")
             viewModel.ensureEditableImage()
             if (viewModel.editableImageFile.value == null) {
                 pendingShareAfterCrop = false
@@ -971,7 +1012,20 @@ class PhotoVideoStandaloneActivity :
 
         val fsManager = StandaloneFullscreenManager(this)
         fullscreenManager = fsManager
-        fsManager.enterFullscreen()
+        // S0920: honor "open video in fullscreen" instead of always hiding the system bars.
+        // When on, enter true fullscreen - system bars AND the command panel hidden together, so the
+        // panel stays the single source of truth for "in fullscreen"; when off, keep both visible
+        // (commands mode). An edge-swipe restores the panel via setupTransientBarsExitCallback below.
+        lifecycleScope.launch {
+            val openFullscreen = settingsRepository.getSettings().first().openVideoInFullscreen
+            Timber.d("S0920: standalone video open, openVideoInFullscreen=$openFullscreen")
+            if (openFullscreen) {
+                fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {}
+            }
+        }
+        fsManager.setupTransientBarsExitCallback(window.decorView) {
+            if (!binding.topCommandPanel.isVisible) binding.topCommandPanel.isVisible = true
+        }
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },

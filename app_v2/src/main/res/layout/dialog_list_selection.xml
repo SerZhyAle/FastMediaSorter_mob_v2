@@ -25,11 +25,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- S0787: persistent (non-fading) vertical scroll thumb so a capped, overflowing option set
+         visibly reads as scrollable on open - the default fading thumb hides until the user scrolls,
+         leaving no hint that the list continues below. Mirrors the main resource list treatment. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list_selection_recycler"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
+        android:scrollbarThumbVertical="@color/scrollbar_thumb"
+        android:fadeScrollbars="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintHeight_max="@dimen/dialog_resource_picker_tvTitle_maxHeight"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"

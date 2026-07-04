@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,7 +72,8 @@ class BrowseUtilityManager(
         val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let {
             buildBreadcrumb(state)
         } ?: buildRootPathDisplay(resource.path, resource.name, state.isCloudResource)
-        
+        Timber.d("S0906: pathDisplay resolved to '$pathDisplay' (cloud=${state.isCloudResource})")
+
         val modeLabel = if (resource.allFiles) {
             " • " + context.getString(R.string.all_files)
         } else {
@@ -89,22 +91,17 @@ class BrowseUtilityManager(
     // segment-matching logic below always misses (the last segment is an id, never the real
     // name), which used to leak the raw id string. Omit the path segment entirely for cloud.
     private fun buildRootPathDisplay(resourcePath: String, resourceName: String, isCloudResource: Boolean): String {
-        if (isCloudResource) {
-            return ""
-        }
+        if (isCloudResource) return ""
 
         val normalizedPath = resourcePath.trimEnd('/', '\\')
-        if (normalizedPath.isEmpty()) {
-            return resourcePath
-        }
-
         val lastSegment = normalizedPath.substringAfterLast('/').substringAfterLast('\\')
-        if (!lastSegment.equals(resourceName, ignoreCase = true)) {
-            return resourcePath
-        }
-
         val parentPath = normalizedPath.substringBeforeLast('/', "").substringBeforeLast('\\', "")
-        return if (parentPath.isNotBlank()) parentPath else resourcePath
+        return when {
+            normalizedPath.isEmpty() -> resourcePath
+            !lastSegment.equals(resourceName, ignoreCase = true) -> resourcePath
+            parentPath.isNotBlank() -> parentPath
+            else -> resourcePath
+        }
     }
     
     /**

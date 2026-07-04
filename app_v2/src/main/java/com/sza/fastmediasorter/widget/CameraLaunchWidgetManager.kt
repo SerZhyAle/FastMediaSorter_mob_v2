@@ -157,6 +157,9 @@ class CameraLaunchWidgetManager(
             base,
             initialMode,
             allowModeSwitch = allowSwitch,
+            // S0926: the "start video recording" gesture auto-starts recording once the preview is ready;
+            // a plain widget launch keeps the manual shutter.
+            autoCapture = forceVideo,
         )
         launchCapture(intent)
     }

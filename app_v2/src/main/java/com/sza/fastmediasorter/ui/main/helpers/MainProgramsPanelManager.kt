@@ -20,8 +20,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
-
 /**
  * S0755: renders the main-window programs panel as a visual mirror of the three-dots programs menu.
  * Rather than re-declare the item set, it populates a throwaway [PopupMenu] through the same
@@ -125,7 +123,6 @@ class MainProgramsPanelManager(
 
     /** S0807: panel-level menu - Configure panel (deep-link) / Collapse panel (strip) / Hide panel. */
     private fun showPanelMenu(anchor: View) {
-        Timber.d("S0807: programs panel header menu opened")
         val actions = listOf(
             PanelItemContextMenu.Action(R.string.programs_panel_configure_action) { onConfigure() },
             PanelItemContextMenu.Action(R.string.programs_panel_collapse_action) { setCollapsed(true) },
@@ -148,8 +145,6 @@ class MainProgramsPanelManager(
             val item = menu.getItem(i)
             if (!item.isVisible) null else PanelItem(item.itemId, item.title ?: "", item.icon)
         }
-
-        Timber.d("S0755: programs panel rebuilt items=${models.size} labels=$showLabels exclStreams=$excludeStreams")
         val container = panel.programsPanelItems
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
@@ -157,7 +152,6 @@ class MainProgramsPanelManager(
         // light foreground here - not in item_main_program.xml, which the overflow popup reuses on the
         // neutral theme surface where white would be illegible.
         val accentForeground = ContextCompat.getColor(context, R.color.main_panel_accent_foreground)
-        Timber.d("S0914: programs panel items tinted for accent background count=${models.size}")
         for (model in models) {
             val itemView = inflater.inflate(R.layout.item_main_program, container, false)
             val button = itemView.findViewById<MaterialButton>(R.id.btnProgram)
@@ -185,7 +179,6 @@ class MainProgramsPanelManager(
 
     /** S0770: per-item menu - Open always, plus Open-in-new-window / Remove when the host supplies them. */
     private fun showItemMenu(model: PanelItem, anchor: View) {
-        Timber.d("S0770: programs panel item menu id=${model.id}")
         val actions = mutableListOf<PanelItemContextMenu.Action>()
         actions += PanelItemContextMenu.Action(R.string.action_open) { onItemSelected(model.id) }
         newWindowActionFor(model.id)?.let {
@@ -193,7 +186,6 @@ class MainProgramsPanelManager(
         }
         // S0780: jump to the settings group holding program/scenario behaviour options.
         actions += PanelItemContextMenu.Action(R.string.action_configure) {
-            Timber.d("S0780: programs panel configure tapped")
             onConfigure()
         }
         removeActionFor(model.id)?.let {
@@ -251,8 +243,6 @@ class MainProgramsPanelManager(
         overflowPopup?.dismiss()
         val anchor = panel.btnProgramsPanelOverflow
         val context = anchor.context
-        Timber.d("S0830: overflow popup items=${overflowItems.size} tap=launch long/dots=menu")
-
         val list = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         val popup = PopupWindow(list, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
         overflowPopup = popup

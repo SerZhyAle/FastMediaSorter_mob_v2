@@ -54,7 +54,15 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
             val modelManager = TesseractModelManager(context)
 
             try {
-                tessApi = TessBaseAPI()
+                // S0923: TessBaseAPI() triggers the native static initializer (System.loadLibrary of
+                // jpeg/pngx/leptonica/tesseract). On a device where the delivered libs are not
+                // name-resolvable it throws UnsatisfiedLinkError - a LinkageError, not an Exception - which
+                // the catch (Exception) below would not catch. Guard it so it degrades to init-failure.
+                tessApi = newTessBaseApiOrNull()
+                if (tessApi == null) {
+                    initializationFailed = true
+                    return@withContext false
+                }
 
                 // Try to use high-quality model (best) if installed
                 if (modelManager.isModelInstalled(language)) {
@@ -79,7 +87,7 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                 try {
                     tessApi?.recycle()
                 } catch (_: Exception) {}
-                tessApi = TessBaseAPI()
+                tessApi = newTessBaseApiOrNull()
             }
 
             // Fallback to standard fast models
@@ -118,6 +126,19 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
             }
         }
     }
+
+    /**
+     * Construct [TessBaseAPI], catching the native static-initializer failure as a [LinkageError]
+     * (S0923). Returns null when the Tesseract native library cannot be loaded on this device, so the
+     * caller degrades to init-failure instead of crashing the process.
+     */
+    private fun newTessBaseApiOrNull(): TessBaseAPI? =
+        try {
+            TessBaseAPI()
+        } catch (e: LinkageError) {
+            Timber.w(e, "Tesseract native library unavailable on this device")
+            null
+        }
 
     private fun checkAndDownloadData(dir: File, lang: String): Boolean {
         val file = File(dir, "$lang.traineddata")

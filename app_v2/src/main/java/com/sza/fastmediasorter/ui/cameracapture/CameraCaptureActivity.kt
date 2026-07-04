@@ -263,7 +263,6 @@ class CameraCaptureActivity :
     // OCR capture entry resumes the host inside that window; the previous raw onResume() override
     // crashed on the uninitialised manager.
     override fun onResumeWithViews() {
-        Timber.d("S0801: camera onResumeWithViews after deferred setup; orientationManager ready")
         orientationManager.enable()
     }
 
@@ -323,11 +322,12 @@ class CameraCaptureActivity :
         )
     }
 
-    // S0790: edge-gesture "take photo" opens this screen in auto-capture mode - fire the shutter once
-    // the preview is ready and finish with the result, so the trampoline can save or route the photo.
+    // S0790: auto-capture opens this screen and fires once the preview is ready - PHOTO takes a shot and
+    // finishes; S0926: VIDEO auto-starts recording ("start video recording" gesture), user stops it.
     private fun maybeAutoCapture() {
         if (!flowManager.autoCapture || autoCaptureFired) return
         autoCaptureFired = true
+        if (flowManager.isVideoMode) Timber.d("S0926: auto-start video recording on preview ready")
         triggerCapture()
     }
 

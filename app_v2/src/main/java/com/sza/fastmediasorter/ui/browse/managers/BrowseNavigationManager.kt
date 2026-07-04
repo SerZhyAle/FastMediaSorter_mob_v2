@@ -109,6 +109,7 @@ class BrowseNavigationManager(
         val currentName = stateFlow.value.currentFolderName
         val newNameStack = if (currentName != null) stateFlow.value.folderNameStack + currentName else emptyList()
 
+        Timber.d("S0906: navigateToFolder captured real name '${folder.name}' for breadcrumb tracking")
         Timber.d("BrowseNavigationManager.navigateToFolder: ${folder.path}, stack=${newStack.size}")
 
         cancelLoad()

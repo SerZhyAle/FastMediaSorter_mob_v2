@@ -172,7 +172,7 @@ Follow `/spec-dev` executing all phases from first non-done step.
 - Missing symbol/wrong path -> Grep/Glob actual location; patch spec; resume.
 - Verification fail -> re-read file, correct edit, re-run predicates.
 - Trilingual gap -> add `<!-- TODO translate: <EN text> -->` in missing locale; continue.
-- Line budget warning (>500 LOC) -> timestamped backup in `temp/`; continue.
+- Line budget warning (>500 LOC) -> timestamped backup under `temp/<Sxxxx>/`; continue.
 - Ambiguous step (placeholder, missing name) -> attempt to resolve from codebase; resolved -> patch step, continue; still ambiguous after 1 attempt -> mark `[DEFERRED - ambiguous]`, add to manual list, skip to next step. Never stop pipeline for one ambiguous step when others unblocked.
 - Unresolvable after 2 attempts -> mark `[DEFERRED]`, add to manual list, continue with remaining steps.
 

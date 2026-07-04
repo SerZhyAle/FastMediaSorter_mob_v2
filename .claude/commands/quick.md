@@ -100,7 +100,7 @@ Skip (тихо), если:
 
 **Step 4b - On-device проверка (только при `--verify-device`).** Сразу после `post-change.ps1`:
 1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → залогировать причину в чат, пропустить шаг (не блокировать `/quick`).
-2. `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты в `temp/verify_*` - `/quick` их не трогает.
+2. `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты в `temp/scratch/verify_*` - `/quick` их не трогает.
 3. В отчёт хвост: `verify: PASS/FAIL, errors N`.
 
 Этот шаг **не**:
