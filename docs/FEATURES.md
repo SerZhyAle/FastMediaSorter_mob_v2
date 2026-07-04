@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-04*
+*Last updated: 2026-07-05*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -124,7 +124,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Settings reference page** `[Standard]`: Browse an in-app reference describing every setting, searchable from the settings screen.
 - **Collapsible settings groups** `[Standard / VR]`: Settings sections fold into tidy collapsible groups so long screens stay easy to scan.
 - **Exit button minimizes when background functions are active** `[Standard / Lite / Photos / Legacy]`: The top-left exit button minimizes the app instead of closing it while background music, recording, or scheduled file operations are running; it fully closes only when nothing runs in the background, and a long-press always force-closes.
-- **Travelling D-pad / TV focus frame** `[Standard / Lite / Photos / Legacy]`: A single highlighted frame follows keyboard, D-pad and gamepad focus across every screen, form and dialog, shown only under remote/gamepad control, not touch.
+- **Focus indicator & automatic initial focus** `[Standard / Lite / Photos / Legacy]`: Every focused control is outlined in place with an accent highlight under keyboard, D-pad or gamepad control (not touch); opening any screen places focus on a real control automatically, so the first remote/D-pad key acts immediately.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity - files sorted, space freed, time in the player and more - stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.
@@ -138,6 +138,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Category & language filters** `[Standard / Legacy / noLegal / VR]`: Filter the streams list by category, language, and type (audio/video/RTSP) using searchable pickers. The language picker pins English, Russian, and Ukrainian to the top with flag icons.
 - **Background playback & exit prompts** `[Standard / Legacy / noLegal / VR]`: Manage streams using background audio settings. Leaving the streams list prompts to keep playing or stop the active stream when background playback is disabled.
 - **Local streams pinning** `[Standard / Legacy / noLegal / VR / Lite]`: Pin your favorite stream sources to the top of the list with a distinct icon for quick access.
+- **Reorder pinned streams** `[Standard / Legacy / noLegal]`: Move a pinned stream up, down, or to the top from the list or grid three-dot menu; the new order applies everywhere - list, grid, main-window panel, and player channel navigation.
 - **Stream-tailored player controls** `[Standard / Legacy / noLegal / VR]`: The stream player shows a trimmed control set fit for live playback, with channel-to-channel navigation and no copy/move panels.
 - **Live stream casting** `[Standard / Legacy / noLegal]`: Cast a live video stream to a Chromecast device straight from the stream player.
 - **Home-screen shortcut & card actions** `[Standard / Legacy / noLegal / VR]`: Pin a stream to the home screen for one-tap launch, and open a per-card actions menu directly from the streams list.

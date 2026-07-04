@@ -21623,3 +21623,4 @@ Format: | datetime | file | target | description |
 | 2026-07-04 23:41:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerLifecycleHelper.kt` | `VideoPlayerLifecycleHelper` | S0936 Phase 01.3: cancel stall watchdog on releasePlayer()+onDestroy() teardown edges (listener symmetry) [branch: DEBUG-v022] |
 | 2026-07-04 23:45:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerLifecycleHelper.kt` | `VideoPlayerLifecycleHelper` | S0936 Phase 01.3: cancel stall watchdog on releasePlayer()+onDestroy() teardown edges (listener symmetry); incidental detekt-clean fix: onStart() ReturnCount 3->2 [branch: DEBUG-v022] |
 | 2026-07-05 00:04:06 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7042.357 - plateau merge from DEBUG-v022 [branch: DEBUG-v022] |
+| 2026-07-05 00:08:39 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7042.357 from ALL_FEATURES diff [branch: DEBUG-v023] |
