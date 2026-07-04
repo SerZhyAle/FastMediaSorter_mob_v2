@@ -6,7 +6,28 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7031.316** (July 2026)
+**Current release: 2.60.7040.526** (July 2026)
+
+> Changes since version 2.60.7031.316
+
+---
+
+## What's New
+
+- **Quick capture app panel** - camera, voice, screen recording and link download in the quick-launch panel.
+- **Floating recording indicator** - stop a quick voice recording from an on-top control over any app.
+
+## What's Fixed
+
+- Wider device support - now available on more TVs, tablets and landscape-only devices.
+- OS Interaction and Destinations settings toggles stack full-width in portrait.
+- Quick capture records voice, video and photo with pause, resume and discard.
+- Screen video recording captures the whole screen with microphone audio and pause/resume.
+- Edge-gesture photo capture saves headlessly to the device camera folder.
+
+---
+
+## Previous Release: 2.60.7031.316 (July 2026)
 
 > Changes since version 2.60.6270.802
 
