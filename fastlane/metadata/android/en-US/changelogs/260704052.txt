@@ -1,0 +1,8 @@
+• Quick capture app panel - camera, voice, screen recording and link download in the quick-launch panel.
+• Floating recording indicator - stop a quick voice recording from an on-top control over any app.
+
+
+• Wider device support - now available on more TVs, tablets and landscape-only devices.
+• OS Interaction and Destinations settings toggles stack full-width in portrait.
+• Quick capture records voice, video and photo with pause, resume and discard.
+..
