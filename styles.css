@@ -138,7 +138,7 @@ body {
 /* Header & Canvas Background */
 header {
     position: relative;
-    padding: 6rem 1rem 4rem 1rem;
+    padding: 2.5rem 1rem 2.75rem 1rem;
     text-align: center;
     overflow: hidden;
     border-bottom: 1px solid var(--border-glass);
@@ -160,16 +160,49 @@ header>*:not(canvas) {
     z-index: 1;
 }
 
+/* Hero content sits over the animation as one compact block instead of a tall
+   empty banner. The canvas sizes to the whole <header>, so it stays a backdrop
+   behind the title, facts, description and quick-start. */
+.hero-inner {
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.05rem;
+}
+
+.hero-facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.45rem 0.6rem;
+}
+
+.hero-facts li {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-2);
+    border: 1px solid var(--border-glass);
+    border-radius: 999px;
+    padding: 0.24rem 0.7rem;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+}
+
 h1 {
     font-family: 'Outfit', sans-serif;
-    font-size: 3.2rem;
+    font-size: clamp(2.1rem, 4.2vw, 3.2rem);
     font-weight: 800;
     letter-spacing: 0;
     background: linear-gradient(135deg, var(--text-highlight) 20%, var(--acc) 70%, var(--gold) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
 }
 
 h1 img {
@@ -180,11 +213,11 @@ h1 img {
 }
 
 .subtitle {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     color: var(--text-muted);
     font-weight: 300;
     max-width: 600px;
-    margin: 0.5rem auto 1rem auto;
+    margin: 0;
 }
 
 .version-badge {
@@ -679,6 +712,23 @@ h1 img {
 /* What-it-replaces section */
 .replaces-grid {
     margin-bottom: 1.5rem;
+    /* Four themed cards: keep whole, even rows at every width instead of the
+       shared auto-fit rule collapsing to an uneven 3+1 on mid-size screens. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+/* These cards hold a title + one list. The shared .card space-between rule
+   pushes a short list (e.g. Capture & Create) to the card's middle; anchor the
+   content to the top so every list starts on the same line. */
+.replaces-grid .card {
+    justify-content: flex-start;
+}
+
+@media (max-width: 1200px) {
+    .replaces-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 .repl-list {
@@ -910,6 +960,14 @@ footer p {
 
     .subtitle {
         font-size: 1.05rem;
+    }
+
+    header {
+        padding: 2rem 1rem 2.25rem 1rem;
+    }
+
+    .hero-inner {
+        gap: 0.9rem;
     }
 
     .explorer-controls {
@@ -1874,35 +1932,30 @@ html[data-theme="light"] .btn-ghost {
     border-radius: var(--radius-sm);
 }
 
-/* ---------- "GET IT" / DISTRIBUTION BLOCK ---------- */
-.get {
-    display: grid;
-    gap: 1rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    backdrop-filter: blur(16px);
-    padding: 1.4rem 1.5rem;
-    margin: 1rem auto 2.5rem;
-    max-width: 820px;
-}
-
-.get .whatfor {
+/* ---------- HERO DISTRIBUTION CONTENT (description / quick-start / links) ---------- */
+.whatfor {
     color: var(--text-2);
-    font-size: 1rem;
+    font-size: 1.02rem;
+    line-height: 1.6;
+    max-width: 680px;
+    margin: 0;
 }
 
-.get .channels {
+.channels {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.6rem;
+    margin-top: 0.2rem;
 }
 
 .quickstart {
     counter-reset: qs;
     display: grid;
     gap: 0.5rem;
-    margin-top: 0.2rem;
+    margin: 0;
+    text-align: left;
+    max-width: 560px;
 }
 
 .quickstart li {
