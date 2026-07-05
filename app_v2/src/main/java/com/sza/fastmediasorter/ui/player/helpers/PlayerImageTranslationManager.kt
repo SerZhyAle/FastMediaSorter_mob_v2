@@ -54,7 +54,6 @@ class PlayerImageTranslationManager(
     }
 
     fun translateCurrentImage() {
-        Timber.d("S0288: PlayerImageTranslationManager.translateCurrentImage entered (progress bar gate)")
         val currentFile = activity.viewModel.state.value.currentFile
         val binding = activity.activityBinding
         val safeViews = activity.safeViews

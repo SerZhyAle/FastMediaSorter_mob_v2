@@ -80,19 +80,15 @@ class ImageOcrManager(
         // without this the UI looks frozen even though the IO coroutine is running.
         loadingIndicatorCoordinator.show(LoadingSource.OCR)
         binding.btnOcrImageCmd.isEnabled = false
-        Timber.d("S0288: ImageOcrManager launching OCR coroutine (Dispatchers.IO)")
 
         // Perform OCR in background
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                Timber.d("S0288: ImageOcrManager reading settings via Flow.first()")
                 val settings = settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-                Timber.d("S0288: ImageOcrManager settings read, sourceLang=$sourceLang, calling extractTextOnly")
 
                 // Extract text using OCR (recognize facade - no translation surface)
                 val recognizedText = translationManager.recognition.extractTextOnly(bitmap, sourceLang)
-                Timber.d("S0288: ImageOcrManager extractTextOnly returned len=${recognizedText?.length}")
 
                 withContext(Dispatchers.Main) {
                     loadingIndicatorCoordinator.hide(LoadingSource.OCR)

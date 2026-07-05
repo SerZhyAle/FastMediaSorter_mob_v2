@@ -89,6 +89,11 @@ class BrowseEventHandler(
                     // S0820: launch straight into fullscreen for a video file when the setting is on
                     // and this resource has no explicit saved showCommandPanel choice yet - an explicit
                     // choice always wins over the new default.
+                    // S0921: this also governs the upgrade path. A resource migrated from an older build
+                    // may carry a non-null showCommandPanel, and that migrated explicit choice legitimately
+                    // suppresses the global fullscreen toggle even while the toggle shows ON (owner decision
+                    // A: intended precedence, not a bug). A null-state upgrade repro that still failed would
+                    // instead point to a stale settings cache - a separate defect, out of this gate's scope.
                     val enterFullscreenOnOpen = file?.type == MediaType.VIDEO &&
                         viewModel.settings.value.openVideoInFullscreen &&
                         viewModel.state.value.resource?.showCommandPanel == null

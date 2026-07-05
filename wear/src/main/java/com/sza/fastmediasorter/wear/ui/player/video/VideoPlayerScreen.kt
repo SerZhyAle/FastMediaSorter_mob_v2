@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.ui.PlayerView
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -50,7 +52,13 @@ fun VideoPlayerScreen(
     viewModel: VideoPlayerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
+    // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
+    // onDispose only fires on navigation away, so without this the player kept running.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        viewModel.onHostStopped()
+    }
+
     Timber.d("VideoPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
     
     Box(

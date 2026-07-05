@@ -604,7 +604,6 @@ class PlayerMediaFilesLoader(
                 // A watchdog-aborted scan gets the scan-specific message; everything else keeps the
                 // generic load-failed copy. The player cannot list files, so re-opening is the retry.
                 val msgRes = if (e is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
-                    Timber.d("S0624: SFTP scan timeout surfaced in player")
                     R.string.error_scan_timeout
                 } else {
                     R.string.player_media_files_load_failed

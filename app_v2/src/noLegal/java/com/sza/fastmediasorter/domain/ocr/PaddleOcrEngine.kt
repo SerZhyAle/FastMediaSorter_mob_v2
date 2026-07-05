@@ -29,7 +29,6 @@ class PaddleOcrEngine @Inject constructor(@ApplicationContext private val contex
         bitmap: Bitmap,
         languageCode: String
     ): List<OcrTextBlock>? = withContext(Dispatchers.Default) {
-        Timber.d("S0288: PaddleOcrEngine.recognizeTextBlocks entered language=$languageCode size=${bitmap.width}x${bitmap.height}")
         if (bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) {
             Timber.w("PaddleOCR skipped: bitmap is invalid")
             return@withContext null

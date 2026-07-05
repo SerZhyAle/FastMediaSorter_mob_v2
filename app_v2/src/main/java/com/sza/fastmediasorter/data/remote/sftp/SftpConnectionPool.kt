@@ -562,7 +562,6 @@ class SftpConnectionPool {
      * parked in a blocking listing never reaches its finally until the socket is closed.
      */
     fun disconnectAllOnNetworkChange() {
-        Timber.d("S0624: SFTP pool force-reset on network change")
         cleanupScope.launch { disconnectAll() }
     }
 

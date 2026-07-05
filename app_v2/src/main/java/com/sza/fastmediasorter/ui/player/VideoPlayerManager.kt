@@ -648,7 +648,6 @@ class VideoPlayerManager(
         preflightHelper.runPreflight(path, resourceType)
 
         // S0854: cancel any in-flight load before starting a new one - see activeLoadJob KDoc.
-        if (activeLoadJob?.isActive == true) Timber.d("S0854: playVideo - cancelling in-flight load job")
         activeLoadJob?.cancel()
         activeLoadJob = managerScope.launch {
             try {
