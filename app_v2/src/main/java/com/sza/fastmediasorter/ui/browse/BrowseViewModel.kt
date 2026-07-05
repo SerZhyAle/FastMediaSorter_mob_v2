@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.browse
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.core.di.IoDispatcher
@@ -33,8 +32,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -105,8 +102,8 @@ class BrowseViewModel @Inject constructor(
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
 
     companion object {
-        private const val PAGINATION_THRESHOLD = 500 // Use pagination for folders with 500+ files (reduced to improve initial load performance)
-        private const val PAGE_SIZE = 50 // Load 50 files per page
+        // Large-folder threshold: above this count the browse path force-sorts + prefers the cache.
+        private const val PAGINATION_THRESHOLD = 500
     }
 
     private val resourceId: Long = savedStateHandle.get<Long>("resourceId")
@@ -183,13 +180,11 @@ class BrowseViewModel @Inject constructor(
     )
     
     private val loadingManager = com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager(
-        mediaScannerFactory = mediaScannerFactory,
         getMediaFilesUseCase = getMediaFilesUseCase,
         favoritesUseCase = favoritesUseCase,
         resourceId = resourceId,
         viewModelScope = viewModelScope,
         ioDispatcher = ioDispatcher,
-        pageSize = PAGE_SIZE,
         paginationThreshold = PAGINATION_THRESHOLD
     )
     
@@ -478,8 +473,7 @@ class BrowseViewModel @Inject constructor(
             metadataManager.updateMetadata(resource, fileCount, subfolderCount)
         },
         startFileObserver = { fileObserverManager.start() },
-        sortFiles = { files, mode, force -> sortFilterManager.sortFiles(files, mode, force) },
-        setPagingDataFlow = { flow -> _pagingDataFlow.value = flow }
+        sortFiles = { files, mode, force -> sortFilterManager.sortFiles(files, mode, force) }
     )
 
     // --- File-list mutations (delegated to BrowseFileListMutationManager) ---
@@ -560,10 +554,6 @@ class BrowseViewModel @Inject constructor(
     fun markListAsSubmitted(list: List<MediaFile>) {
         lastEmittedMediaFiles = list
     }
-    
-    // PagingData flow for large datasets (used when usePagination = true)
-    private val _pagingDataFlow = MutableStateFlow<Flow<PagingData<MediaFile>>?>(null)
-    val pagingDataFlow: StateFlow<Flow<PagingData<MediaFile>>?> = _pagingDataFlow.asStateFlow()
 
     override fun getInitialState() = BrowseState()
 

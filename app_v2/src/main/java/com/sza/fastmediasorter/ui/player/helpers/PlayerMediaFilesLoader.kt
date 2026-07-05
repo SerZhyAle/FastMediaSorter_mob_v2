@@ -316,10 +316,6 @@ class PlayerMediaFilesLoader(
                     val (streamFiles, streamIndex) =
                         if (targetIndex >= 0) catalogFiles to targetIndex
                         else listOf(launchStreamFile) to 0
-                    Timber.d(
-                        "S0640: stream prev/next catalog size=%d startIndex=%d url=%s",
-                        streamFiles.size, streamIndex, targetUrl,
-                    )
                     updateState {
                         it.copy(
                             files = streamFiles,

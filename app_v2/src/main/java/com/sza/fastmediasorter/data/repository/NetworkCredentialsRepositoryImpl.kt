@@ -280,7 +280,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     private fun warnIfEmptyShareName(entity: NetworkCredentialsEntity, op: String) {
         if (entity.type.equals("SMB", ignoreCase = true) && entity.shareName.isNullOrEmpty()) {
             Timber.w(
-                "S0139: SMB credential persisted with empty shareName " +
+                "SMB credential persisted with empty shareName " +
                     "(op=$op, server='${entity.server}', credentialId='${entity.credentialId}')"
             )
         }

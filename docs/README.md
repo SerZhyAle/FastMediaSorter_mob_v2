@@ -134,7 +134,7 @@ Full-size images:
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
 - 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "File Manager Mode".
-- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Input → Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
+- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Operations → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
@@ -195,7 +195,7 @@ Mark important files with the star button while browsing. Later, tap the "Favori
 
 ### 6. 🎶 Slideshow with Background Music
 
-Add your music collection as a resource. In Settings → Audio, enable "Slideshow Background Music" and select your music resource. Now when you start a slideshow of your photos, your favorite tracks will play in the background. Tap the track name to skip to a different random song, creating the perfect ambiance for your photo presentations.
+Add your music collection as a resource. In **Settings → Media → Images**, enable **"Play music during slideshow"** and select your music resource. Now when you start a slideshow of your photos, your favorite tracks will play in the background. Tap the track name to skip to a different random song, creating the perfect ambiance for your photo presentations.
 
 ### 7. 🖼️ Digital Photo Frame on a Tablet
 

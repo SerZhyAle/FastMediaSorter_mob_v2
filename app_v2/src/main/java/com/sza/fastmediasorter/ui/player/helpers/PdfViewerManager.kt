@@ -145,6 +145,10 @@ class PdfViewerManager(
 
     init {
 
+        // S0949: widen the shared PDF PhotoView zoom range to 0.3x..10x so both the in-app player and
+        // the document standalone host expose the same swipe/pinch/button band (default was 1x..3x).
+        safeViews.photoView.setScaleLevels(PDF_MIN_SCALE, PDF_MEDIUM_SCALE, PDF_MAX_SCALE)
+
         // Listen for scale/position changes on PhotoView to update translation overlay
         safeViews.photoView.setOnMatrixChangeListener {
             // Update translation overlay position when PDF is zoomed/panned
@@ -886,37 +890,48 @@ class PdfViewerManager(
     /** Check if PDF is currently active (renderer is open). Used by gesture handlers to route PDF-specific gestures. */
     fun isPdfActive(): Boolean = pdfRenderer != null
 
-    /** Handle fling gesture for PDF page navigation. Called from PlayerGestureSetupManager's PhotoView fling listener. Returns true if handled (PDF active and gesture recognized), false otherwise. */
-    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, @Suppress("UNUSED_PARAMETER") velocityX: Float, velocityY: Float): Boolean {
-        // Only handle when PDF is active
-        if (pdfRenderer == null || e1 == null) return false
-
-        // Disable fling page navigation in scroll mode (RecyclerView handles scrolling)
-        if (isScrollMode) return false
-
-        // Check if PhotoView is zoomed - don't navigate when panning
-        if (safeViews.photoView.scale > 1.05f) return false
+    /**
+     * Handle a PDF fling: vertical swipe pages, horizontal swipe zooms (S0949).
+     * Wired from each host's PhotoView single-fling listener; returns true if handled.
+     */
+    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        // Guards: PDF active, not scroll mode (RecyclerView owns vertical scroll), and not zoomed-in.
+        // PhotoView's single-fling listener only fires at scale <= fit, so the horizontal-zoom branch
+        // also lives here; the > threshold check keeps a zoomed page in pan mode.
+        val blocked = isScrollMode || safeViews.photoView.scale > PDF_NAV_ZOOM_THRESHOLD
+        if (pdfRenderer == null || e1 == null || blocked) {
+            return false
+        }
 
         val diffY = e2.y - e1.y
         val diffX = e2.x - e1.x
-        val SWIPE_THRESHOLD = (root.width * 0.05f).toInt().coerceAtLeast(50)
-        val SWIPE_VELOCITY_THRESHOLD = 100
-
-        // Vertical swipe should be dominant
+        val swipeThreshold = (root.width * PDF_SWIPE_THRESHOLD_FRACTION).toInt()
+            .coerceAtLeast(PDF_MIN_SWIPE_THRESHOLD_PX)
+        var handled = false
         if (abs(diffY) > abs(diffX)) {
-            if (abs(diffY) > SWIPE_THRESHOLD && abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                if (diffY > 0) {
-                    // Swipe down → previous page
-                    showPreviousPage()
-                    return true
-                } else {
-                    // Swipe up → next page
-                    showNextPage()
-                    return true
-                }
+            // Vertical swipe = page navigation (down = previous, up = next).
+            if (abs(diffY) > swipeThreshold && abs(velocityY) > PDF_SWIPE_VELOCITY_THRESHOLD) {
+                if (diffY > 0) showPreviousPage() else showNextPage()
+                handled = true
             }
+        } else if (abs(diffX) > swipeThreshold && abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD) {
+            // S0949: horizontal swipe = zoom step (right = in, left = out), clamped to 0.3x..10x.
+            Timber.d("S0949: pdf horizontal swipe zoom in=${diffX > 0}")
+            stepPdfZoom(zoomIn = diffX > 0)
+            handled = true
         }
-        return false
+        return handled
+    }
+
+    /**
+     * S0949: shared PDF zoom-step - one multiplicative step clamped to 0.3x..10x.
+     * Drives the horizontal-swipe gesture and the on-screen zoom buttons so both hosts share one range.
+     */
+    fun stepPdfZoom(zoomIn: Boolean) {
+        if (pdfRenderer == null) return
+        val photoView = safeViews.photoView
+        val factor = if (zoomIn) PDF_ZOOM_STEP_FACTOR else 1f / PDF_ZOOM_STEP_FACTOR
+        photoView.setScale((photoView.scale * factor).coerceIn(PDF_MIN_SCALE, PDF_MAX_SCALE), true)
     }
 
     /** Handle long press gesture: open the text-selection overlay for the current page, pre-selecting the word under the long-press point (view coordinates). Returns true if handled (PDF active), false otherwise. */
@@ -1030,6 +1045,20 @@ class PdfViewerManager(
     /** Share current PDF page to Google Lens for visual search/text recognition. Saves current page bitmap to temp file and delegates to activity callback. */
     fun shareCurrentPageToGoogleLens() {
         pdfLinkAndSearchManager.shareCurrentPageToGoogleLens(getCurrentPageBitmap())
+    }
+
+    companion object {
+        // S0949: shared PDF zoom-step contract. Range 0.3x..10x, one multiplicative step per swipe/button.
+        private const val PDF_MIN_SCALE = 0.3f
+        private const val PDF_MEDIUM_SCALE = 2.0f
+        private const val PDF_MAX_SCALE = 10.0f
+        private const val PDF_ZOOM_STEP_FACTOR = 1.5f
+
+        // Above this scale a PDF page is treated as zoomed (pan mode) - fling gestures are ignored.
+        private const val PDF_NAV_ZOOM_THRESHOLD = 1.05f
+        private const val PDF_SWIPE_THRESHOLD_FRACTION = 0.05f
+        private const val PDF_MIN_SWIPE_THRESHOLD_PX = 50
+        private const val PDF_SWIPE_VELOCITY_THRESHOLD = 100
     }
 }
 

@@ -30,8 +30,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import androidx.paging.PagingData
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -86,8 +84,7 @@ class BrowseResourceLoadManager(
     private val schedulePlayerWarmup: suspend (List<MediaFile>) -> Unit,
     private val updateResourceMetadata: suspend (MediaResource, Int, Int) -> Unit,
     private val startFileObserver: () -> Unit,
-    private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>,
-    private val setPagingDataFlow: (Flow<PagingData<MediaFile>>?) -> Unit
+    private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>
 ) {
     private var currentScanJob: Job? = null
     private val resolvedGoogleDriveClient by lazy(LazyThreadSafetyMode.NONE) { googleDriveClient.get() }
@@ -450,7 +447,6 @@ class BrowseResourceLoadManager(
 
             override suspend fun updateState(
                 mediaFiles: List<MediaFile>,
-                usePagination: Boolean,
                 loadingProgress: Int,
                 totalFileCount: Int,
                 isScanCancellable: Boolean
@@ -458,7 +454,6 @@ class BrowseResourceLoadManager(
                 this@BrowseResourceLoadManager.updateState {
                     it.copy(
                         mediaFiles = mediaFiles,
-                        usePagination = usePagination,
                         loadingProgress = loadingProgress,
                         totalFileCount = totalFileCount,
                         isScanCancellable = isScanCancellable
@@ -498,26 +493,4 @@ class BrowseResourceLoadManager(
         )
     }
 
-    private fun loadMediaFilesWithPagination(resource: MediaResource, sizeFilter: SizeFilter) {
-        try {
-            val newFlow = loadingManager.setupPagination(
-                resource = resource,
-                sortMode = stateFlow.value.sortMode,
-                sizeFilter = sizeFilter
-            )
-            setPagingDataFlow(newFlow)
-            updateState { it.copy(usePagination = true, mediaFiles = emptyList()) }
-            setLoading(false)
-            scope.launch(ioDispatcher) {
-                val actualFileCount = stateFlow.value.totalFileCount ?: 0
-                updateResourceMetadata(resource, actualFileCount, -1)
-            }
-            Timber.d("BrowseResourceLoadManager: pagination enabled for '${resource.name}'")
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
-            Timber.e(e, "BrowseResourceLoadManager: pagination setup failed")
-            onHandleLoadingError(resource, e)
-            setLoading(false)
-        }
-    }
 }

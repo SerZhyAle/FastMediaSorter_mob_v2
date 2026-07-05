@@ -164,7 +164,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     if (url != null && isMediaCandidateUrl(url)) {
                         if (mediaHarvested.compareAndSet(false, true)) {
                             Timber.i(
-                                "[S0166] harvest-mode: intercepted CDN media url=%s",
+                                "harvest-mode: intercepted CDN media url=%s",
                                 LinkDownloadTrace.truncateUrl(url),
                             )
                             // shouldInterceptRequest is called on a background thread - post dismiss to main.
@@ -254,7 +254,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 ) { savedAccountId ->
                     scrubWebViewState()
                     Timber.i(
-                        "[S0166] browser login saved: account=%s host=%s",
+                        "browser login saved: account=%s host=%s",
                         displayName,
                         targetHost,
                     )

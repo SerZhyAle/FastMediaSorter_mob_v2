@@ -74,7 +74,7 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
                     ?.takeIf { it.isNotEmpty() }
                 if (parsedShare == null) {
                     Timber.w(
-                        "S0139: backfill skipped - path has no shareName " +
+                        "backfill skipped - path has no shareName " +
                             "(credentialId=${credential.credentialId}, path=${resource.path})"
                     )
                     skipped++
@@ -83,7 +83,7 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
 
                 credentialsRepository.update(credential.copy(shareName = parsedShare))
                 Timber.i(
-                    "S0139: backfilled shareName='$parsedShare' for credential ${credential.credentialId}"
+                    "backfilled shareName='$parsedShare' for credential ${credential.credentialId}"
                 )
                 updated++
             }

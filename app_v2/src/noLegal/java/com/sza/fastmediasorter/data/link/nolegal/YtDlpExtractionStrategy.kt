@@ -423,7 +423,6 @@ class YtDlpExtractionStrategy @Inject constructor(
                         msg.contains("HTTP Error", ignoreCase = true) ||
                         msg.contains("DownloadError", ignoreCase = true) ||
                         msg.contains("ExtractorError", ignoreCase = true)) {
-                        Timber.d("S0935: ytdlp extraction failed - fallthrough to cascade")
                         Timber.d(
                             "YtDlpExtractionStrategy: not applicable url=%s reason=%s",
                             url, msg.take(100)

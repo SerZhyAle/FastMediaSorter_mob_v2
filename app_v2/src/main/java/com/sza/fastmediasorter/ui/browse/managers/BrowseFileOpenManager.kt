@@ -65,10 +65,8 @@ class BrowseFileOpenManager(
         }
         val resource = stateFlow.value.resource ?: return
 
-        val index = if (stateFlow.value.usePagination) {
-            Timber.d("BrowseFileOpenManager.openFile (pagination): ${file.name}, pos=$approximatePosition")
-            approximatePosition
-        } else {
+        val index = run {
+            Timber.d("S0954: browse openFile index resolve (dead-paging path removed)")
             val foundIndex = stateFlow.value.mediaFiles.indexOfFirst { it.path == file.path }
             if (foundIndex == -1) {
                 Timber.w("BrowseFileOpenManager.openFile: cache miss for ${file.path}, attempting fallback")

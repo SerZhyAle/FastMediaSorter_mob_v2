@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.domain.model.UndoOperation
 data class BrowseState(
     val resource: MediaResource? = null,
     val mediaFiles: List<MediaFile> = emptyList(),
-    val usePagination: Boolean = false, // True if file count >= PAGINATION_THRESHOLD
     val totalFileCount: Int? = null, // Total count (null if not yet calculated)
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,

@@ -73,7 +73,7 @@ class BrowseCameraCaptureManager(
     val launcher: ActivityResultLauncher<Intent> =
         activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             Timber.i(
-                "S0022-CAM: launcher callback fired resultCode=%d data=%s extras=%s",
+                "CAM: launcher callback fired resultCode=%d data=%s extras=%s",
                 result.resultCode,
                 result.data?.dataString,
                 result.data?.extras?.keySet()?.joinToString(),
@@ -92,7 +92,7 @@ class BrowseCameraCaptureManager(
 
     fun launch(resource: MediaResource) {
         Timber.i(
-            "S0022-CAM: launch ENTRY resource={id=%d, name=%s, type=%s, path=%s, allFiles=%b} device={mfr=%s, model=%s, sdk=%d}",
+            "CAM: launch ENTRY resource={id=%d, name=%s, type=%s, path=%s, allFiles=%b} device={mfr=%s, model=%s, sdk=%d}",
             resource.id,
             resource.name,
             resource.type,
@@ -110,7 +110,7 @@ class BrowseCameraCaptureManager(
         val ext = ".jpg"
         val action = "in-app-photo"
         Timber.i(
-            "S0022-CAM: launch resolved action=%s ext=%s supportedMediaTypes=%s",
+            "CAM: launch resolved action=%s ext=%s supportedMediaTypes=%s",
             action,
             ext,
             resource.supportedMediaTypes.joinToString(),
@@ -315,7 +315,7 @@ class BrowseCameraCaptureManager(
 
     private fun handleResult(result: ActivityResult) {
         Timber.i(
-            "S0022-CAM: handleResult ENTRY resultCode=%d (RESULT_OK=%d, RESULT_CANCELED=%d) pendingTempFile=%s pendingResource=%s",
+            "CAM: handleResult ENTRY resultCode=%d (RESULT_OK=%d, RESULT_CANCELED=%d) pendingTempFile=%s pendingResource=%s",
             result.resultCode,
             Activity.RESULT_OK,
             Activity.RESULT_CANCELED,
@@ -341,7 +341,7 @@ class BrowseCameraCaptureManager(
         val isVideo = pendingIsVideo
         if (result.resultCode != Activity.RESULT_OK) {
             Timber.i(
-                "S0022-CAM: handleResult NON-OK resultCode=%d - deleting tempFile=%s and returning quietly",
+                "CAM: handleResult NON-OK resultCode=%d - deleting tempFile=%s and returning quietly",
                 result.resultCode,
                 tempFile.absolutePath,
             )

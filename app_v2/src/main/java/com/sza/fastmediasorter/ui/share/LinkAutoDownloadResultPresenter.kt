@@ -128,7 +128,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         // keeps seeing the already-logged-in WebView and pressing Save, to no avail.
         if (isAuthRetry && result.hadExistingSession) {
             Timber.i(
-                "[S0166] retry+session still preview-only - extractor limitation, not an auth issue: host=%s",
+                "retry+session still preview-only - extractor limitation, not an auth issue: host=%s",
                 result.host,
             )
             toast(R.string.s0151_toast_content_unavailable)
@@ -141,7 +141,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         // is not yet supported. Opening a visible browser here would confuse the user.
         if (result.hadExistingSession) {
             Timber.i(
-                "[S0166] existing session, extraction still failed - toast only: host=%s",
+                "existing session, extraction still failed - toast only: host=%s",
                 result.host,
             )
             toast(R.string.s0151_toast_content_unavailable)

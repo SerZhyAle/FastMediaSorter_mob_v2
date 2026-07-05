@@ -13,5 +13,12 @@
   ],
   "allowedScreens": [
     { "id": "controls-keybindings", "destination": "OPERATIONS", "en": "Controls & Keybindings", "ru": "Управление и клавиши", "uk": "Керування та клавіші" }
-  ]
+  ],
+  "systemSettingsNodes": {
+    "_comment": "S0945 - Android OS Settings-app nodes. A 'Settings -> ..' chain whose first segment is one of these, or any chain naming the app's own product, is a path into the Android *system* Settings app (not the in-app settings screen) and is out of scope for the manifest gate - the narrative-guide scan skips it silently.",
+    "productName": "FastMediaSorter",
+    "en": ["Apps", "Permissions", "Storage", "Notifications", "Display", "Security"],
+    "ru": ["Приложения", "Разрешения", "Хранилище", "Уведомления", "Экран", "Безопасность"],
+    "uk": ["Застосунки", "Додатки", "Дозволи", "Сховище", "Сповіщення", "Екран", "Безпека"]
+  }
 }

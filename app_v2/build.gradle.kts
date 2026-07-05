@@ -1145,9 +1145,14 @@ if (isNoLegalBuild) {
                     // extractor" (#17075) which fixes this. Nightly is NOT on PyPI, so we pin the
                     // GitHub sdist tarball directly. Trade-off: nightly is less battle-tested for
                     // other sites than a stable release - revisit on the next stable bump.
+                    // 2026-07-05 (S0950): bumped 2026.07.02.234458 → 2026.07.04.221833. The prior
+                    // pin still 404'd/500'd on reels (S0935 device test); this nightly adds the
+                    // follow-up fix to #17075 (commit 8b8e3e3) plus "Instagram: Detect when cookies
+                    // are invalidated" (#17126), targeting exactly the reel extraction + stale-
+                    // session failure modes (ref S0822).
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.02.234458/yt-dlp.tar.gz",
+                            "releases/download/2026.07.04.221833/yt-dlp.tar.gz",
                     )
                 }
             }
