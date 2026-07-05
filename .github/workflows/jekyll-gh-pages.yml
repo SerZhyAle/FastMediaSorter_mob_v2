@@ -13,8 +13,12 @@ on:
       - 'docs/**'
       - 'dev/Q/**'
       - '*.md'                 # root-level README etc. (not nested PLAN/*.md spec churn)
+      - '*.html'               # landing pages (index / index-ru / index-uk / nolegal*)
+      - '*.css'                # site stylesheet(s)
+      - '*.js'                 # site scripts
       - '_config.yml'
       - 'assets/**'
+      - 'icons/**'             # interface icons referenced by the docs/landing
       - '.github/workflows/jekyll-gh-pages.yml'
 
   # Allows you to run this workflow manually from the Actions tab
