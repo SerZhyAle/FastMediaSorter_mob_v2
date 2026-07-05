@@ -155,6 +155,9 @@ Full-size images:
 - 📷 **Camera Capture in Browse:** Take a photo with the device camera and save it directly to the current resource - local or network - without leaving the app.
 - 🔗 **Link Auto-Download:** Share any http(s) URL to the app via the Android Share sheet; the media file is downloaded and saved to a selected resource automatically.
 - 👁️ **Single-Eye 3D Mode:** Crop stereo (SBS/OU) content to one eye for comfortable viewing on flat screens; works for both video and images.
+- 📲 **Screen Capture & Recording:** Left-edge gesture strip for screenshots, quick photos, crop-and-share, and screen/voice/video recording without leaving the current file.
+- 📊 **Usage Statistics (opt-in):** Local dashboard of files sorted, space freed, and playback time - nothing leaves the device unless you export it.
+- 🧹 **Duplicate Finder & Size Cleanup:** Content-based duplicate scan (size, quick hash, SHA-256) with manual or automatic delete, plus a delete-by-size sweep.
 
 ## Supported Media Formats 🎞️
 

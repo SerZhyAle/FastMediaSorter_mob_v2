@@ -76,6 +76,7 @@ The publish pipeline (Step 5) generates the user-facing release notes from curat
 - **Feature inventory** `docs/ALL_FEATURES.jsonl` - every shipped capability this release must have its EN record (via `scripts/all_features/add.ps1`). `/skill-release` Step 3 diffs this since the last release to write "What's New" / "What's Fixed"; a missing record means a missing release-note line. noLegal-only records go to `docs/ALL_FEATURES_noLegal.jsonl`.
 - **Settings docs** - if any setting changed, the settings manifest + reference are regenerated (CLAUDE.md Rule 22 gate).
 - **HOW_TO / navigation paths** - if a Settings path changed, the HOW_TO path gate is green.
+- **Narrative guides drift review (S0814)** - skim the five narrative guides (`README` / `QUICK_START` / `HOW_TO` / `FAQ` / `LIMITATIONS`, EN + RU/UK) against `docs/ALL_FEATURES.jsonl` for user-visible capabilities shipped since the last release that none of them mentions yet; reflect the important ones (EN edit + RU/UK mirror) per `COMMUNICATION_POLICY`. Nothing mechanically gates these five, so this skim is their only drift check. Leave `FEATURES*` / `SETTINGS_REFERENCE*` / `ICON_LEGEND*` alone (owned / generated elsewhere).
 
 Note what `/skill-release` will produce automatically in Step 5, so you can verify it afterward rather than hand-editing:
 
@@ -120,6 +121,7 @@ Complete the channels `/skill-release` cannot fully automate - work its final re
 - [ ] No release-coverage regression vs previous release (Step 3).
 - [ ] `docs/ALL_FEATURES.jsonl` has a record for every shipped capability (Step 4).
 - [ ] Settings manifest + HOW_TO path gates green if settings/paths changed (Step 4).
+- [ ] Narrative guides (README/QUICK_START/HOW_TO/FAQ/LIMITATIONS, EN+RU/UK) skimmed against `ALL_FEATURES.jsonl` for undocumented shipped capabilities (Step 4, S0814).
 - [ ] `/skill-release` ran; `WHATS_NEW.md` "What's New in vXXX" generated and version-consistent (Step 5).
 - [ ] Google Play published / FGS declared if needed (Step 5-6).
 - [ ] GitHub release assets published for the requested flavors (Step 5).
