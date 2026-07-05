@@ -45,6 +45,8 @@ Deleted files move to a `.trash/` folder in the same location (soft-delete). The
 ### What is File Manager Mode?
 **File Manager Mode** allows you to use the app as a full-featured file browser across all directories. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
 
+### How do I find and remove duplicate files?
+Open a folder, tap the overflow menu, and choose **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away. There's also **Delete by Size..** for a quick cleanup sweep based on file size alone. The automatic option skips confirmation, so use **Find Duplicates** first if you want to double-check before anything is deleted. Matching is content-based - size, then a quick hash, then a full SHA-256 check - so renamed copies are still found.
 
 ---
 
@@ -124,6 +126,9 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 2. Tap a **numbered button** (0-9) on the command panel, OR
 3. Tap the **bottom-left corner** (COPY zone) or **bottom-center** (MOVE zone)
 
+### Can I use number keys instead of tapping?
+Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
+
 ### Quick Sort buttons are not showing
 Make sure you have added at least one destination folder first: Settings → Operations → Quick Sort destinations → **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
 
@@ -152,6 +157,16 @@ Settings → Playback → Enable **"Always show touch zones overlay"**
 
 ### Can I disable Touch Zones?
 Yes, just use the **command panel buttons** instead. Touch Zones are optional.
+
+---
+
+## Screen & Voice Capture
+
+### What is the left-edge gesture strip?
+It's a quick-capture menu you open with a diagonal swipe from the left edge of the screen. Turn it on in **Settings → Operations → Left-edge screen gestures → Gesture overlay**. From the menu you can take a screenshot, snap a photo, crop and share the current image, open an app or panel shortcut, or start a screen, video, or voice recording - all without leaving what you're looking at. Available in Standard and XR/noLegal.
+
+### How do I record a quick voice note?
+Three ways: the **Voice recording** item in the overflow menu, the **Quick Recorder** home-screen widget, or the edge gesture's **Start audio recording** action. However you start it, a floating **Stop** control stays on screen - even over another app - until you tap it to save.
 
 ---
 
@@ -210,6 +225,12 @@ Main menu → **"Favorites"** tab
 
 ### Is my data collected?
 **No.** FastMediaSorter does NOT collect or send any personal data.
+
+### Does the app save GPS location in my photos?
+Only if you turn it on. In **Settings → Operations → Photography**, enable photo capture, then turn on **Geotag photos** underneath it - the app asks for location permission right away, not at shutter time. A geotagged photo's File Info screen shows the capture date and the GPS spot from the photo's EXIF data as a tappable link that opens your maps app or browser.
+
+### Can I see how I use the app?
+Yes - it's opt-in and off by default: turn on **Statistics collection** in **Settings → General** to open a local usage dashboard: files sorted, space freed, playback time, and more, broken down by media type. Nothing is sent automatically; **Send to author** or **Export** only shares a summary if you choose to.
 
 ---
 
@@ -280,6 +301,12 @@ If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** o
 
 ### Does radio keep playing when I leave the Streams screen?
 Depends on **Settings > Player > Background audio playback**. With background audio ON, playback continues. With it OFF, leaving the screen stops the stream and offers a Stop / Keep playing choice - the same behaviour as the local audio player.
+
+### Can I see live thumbnails for streams?
+Switch the Streams toolbar toggle to **Grid** view - each channel shows as a tile with its last captured frame, so you can spot what's playing at a glance. The tile stays visible even after you close and reopen the app, then refreshes with a new capture once the stream is live again.
+
+### Can I cast a stream to my TV?
+Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the same Wi-Fi network. RTSP streams can't be cast; the button only appears for formats the Chromecast receiver supports.
 
 ---
 

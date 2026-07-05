@@ -59,26 +59,32 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 #### Power-user and mixed media workflows
 
 12. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
-13. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
-14. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
-15. [Auto-Translation](#auto-translation)
-16. [Home-Screen Smart Widgets](#home-screen-smart-widgets)
+13. [Capture the Screen with Edge Gestures](#capture-the-screen-with-edge-gestures)
+14. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
+15. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
+16. [Auto-Translation](#auto-translation)
+17. [Home-Screen Smart Widgets](#home-screen-smart-widgets)
 
 ### Core Task Reference
 
-17. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
-18. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
-19. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
-20. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
-21. [Use Touch Zones](#how-to-use-touch-zones)
-22. [Edit Photos](#how-to-edit-photos)
-23. [Create Slideshow](#how-to-create-slideshow)
-24. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
-25. [Empty Trash](#how-to-empty-trash)
-26. [Backup Settings](#how-to-backup-settings)
-27. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
-28. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
-29. [View Song Lyrics](#how-to-view-song-lyrics)
+18. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
+19. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
+20. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
+21. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
+22. [Use Touch Zones](#how-to-use-touch-zones)
+23. [Edit Photos](#how-to-edit-photos)
+24. [Create Slideshow](#how-to-create-slideshow)
+25. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
+26. [Empty Trash](#how-to-empty-trash)
+27. [Backup Settings](#how-to-backup-settings)
+28. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
+29. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
+30. [View Song Lyrics](#how-to-view-song-lyrics)
+31. [Record Your Screen](#how-to-record-your-screen)
+32. [Record a Voice Note](#how-to-record-a-voice-note)
+33. [Use the In-App Camera](#how-to-use-the-in-app-camera)
+34. [Find and Delete Duplicate Files](#how-to-find-and-delete-duplicate-files)
+35. [View Your Usage Statistics](#how-to-view-your-usage-statistics)
 
 ---
 
@@ -209,6 +215,8 @@ These sections are intentionally more varied than the core reference blocks belo
 
 - The curated catalog arrives with topic and language chips; filter by genre or language via the filter button (dot indicator when active). The AND/OR toggle lets you match stations that fit all criteria or any one of them.
 - Pin your favourite stations to the top with the pin icon - order is independent of global Favorites.
+- Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
+- If a stream is cast-friendly and your phone is on Wi-Fi, tap **Cast** in the player to send it to a Chromecast on the same network. RTSP streams can't be cast.
 - ICY now-playing metadata (station name, current track) shows in the bottom mini-control.
 - Video and RTSP streams open in the fullscreen player; pressing Back returns to the Streams list with scroll position preserved.
 - Background audio behaviour follows **Settings > Playback > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
@@ -409,6 +417,34 @@ These sections are intentionally more varied than the core reference blocks belo
 - Do not start sorting before destinations are named clearly.
 - Do not use Move immediately if you are still unsure which folders should stay as the long-term archive.
 
+## Capture the screen with edge gestures
+
+**Available in:** Standard, XR/noLegal
+
+**Quick Path**
+
+1. Go to **Settings → Operations → Left-edge screen gestures → Gesture overlay** and turn it on.
+2. While viewing any file, swipe in from the left edge to open the capture menu.
+3. Pick an action - the strip closes and the action runs.
+
+**What the strip can do**
+
+- Take a **screenshot** of the current screen - view it, edit it, share it, send it to another app, or run OCR translation on it, plus a silent-capture option.
+- **Take a photo** with the camera, then send it, edit it, or run OCR-translate on it without leaving the app.
+- Start a **screen**, **video**, or **audio/voice** recording - see [How to Record Your Screen](#how-to-record-your-screen) and [How to Record a Voice Note](#how-to-record-a-voice-note).
+- **Open an app or panel** you use often.
+- **Crop-and-share** a region of the current image.
+
+**Good to know**
+
+- While the strip is on, a swipe from the left edge opens the capture menu instead of turning the page.
+- The strip is built for one-handed capture while browsing - leave it off if you rely on left-edge page swipes.
+- Android confirms the capture or recording every time you use this gesture, even for the silent screenshot option - that's a system safeguard, not something the app controls.
+
+**When It Helps**
+
+- You want a screenshot, a quick photo, or a recording without leaving the file you are viewing.
+
 ## Core Task Reference
 
 ## How to Add or Import an Internet Stream
@@ -601,6 +637,8 @@ While viewing files:
 - OR tap **bottom-center corner** (MOVE zone)
 
 File is instantly copied/moved to that folder!
+
+**With a keyboard or TV remote:** connect one and the destination buttons get a digit badge - press the matching number key to fire that destination instantly, no tapping needed.
 
 ---
 
@@ -1110,6 +1148,110 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 - Hold D-pad Up/Down to accelerate scrolling through long file lists.
 - Press **F1** on a Bluetooth keyboard to open a surface-specific shortcut reference on any screen.
 - TV remote color keys can be reassigned in **Settings → Operations → Controls & Keybindings**.
+
+---
+
+## How to Record Your Screen
+
+**Available in:** Standard, XR/noLegal
+
+**Steps:**
+
+1. Start it from the main-screen overflow menu (**Screen video recording**), the Quick Launch panel, or the edge gesture's **Start screen recording** action.
+2. Confirm Android's prompt to share your screen or just this app - it appears every time you start a recording and can't be skipped.
+3. A small pill in the corner shows **Recording screen**, with pause/resume and stop controls. A notification also offers **Stop**.
+4. Tap **Stop** when you're done.
+
+**What happens:**
+
+- The recording captures everything on screen, including other apps you switch to, together with audio.
+- The finished video is saved to your device's Movies folder.
+
+**Note:** The Android confirmation step is a system safeguard for anything that records your screen - it's not something the app can turn off.
+
+---
+
+## How to Record a Voice Note
+
+**Available in:** Standard, XR/noLegal
+
+**Steps:**
+
+1. Start a recording from the **Voice recording** item in the overflow menu, the **Quick Recorder** home-screen widget, or the edge gesture's **Start audio recording** action.
+2. Speak - a **Recording..** indicator (or a floating pill over whatever app is in front) shows it's running.
+3. Tap **Stop and save** (or tap the widget/gesture again) to finish.
+
+**What happens:**
+
+- The recording saves to the microphone destination you've chosen in Settings, or to your device's Recordings folder if none is set.
+- Starting a voice note from the widget or the edge gesture works even while you're using another app - a small floating control stays on top so you can stop it without switching back.
+
+**Where to set the save folder:** Settings → Operations → Voice recorder.
+
+---
+
+## How to Use the In-App Camera
+
+**Available in:** Standard, Lite, Photos (photo only), Legacy, XR/noLegal
+
+**Steps:**
+
+1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
+2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
+3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
+4. In low light, turn on **Night mode** for a brighter photo.
+5. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
+
+**Tips:**
+
+- The edge gesture's **Start video recording** action opens the camera already in Video mode and starts recording as soon as the preview is ready - quick, but that particular shortcut saves to your device's Movies folder rather than the browsed resource.
+- Turn on **Geotag photos** next to the camera settings to embed the GPS location into each captured JPEG - it is off until you enable it. **File Info** then shows the capture date and the photo's EXIF GPS spot as a tappable link that opens in your maps app or browser.
+
+**Where to find camera settings:** Settings → Operations → Photography.
+
+---
+
+## How to Find and Delete Duplicate Files
+
+**Steps:**
+
+1. Open a folder in Browse, then open the **overflow menu** (⋮) in the toolbar.
+2. Tap **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away.
+3. For **Find Duplicates**, the app pre-selects every copy except the oldest one in each group - adjust the selection, then tap **Delete Selected** and confirm.
+4. **Find and Delete Duplicates** removes the same pre-selected copies right after the scan, with no confirmation step - use **Find Duplicates** first if you want to double-check before anything is deleted.
+
+**Clean up by size instead:**
+
+1. From the same overflow menu, tap **Delete by Size..**
+2. Choose **Smaller than** or **Larger than**, set a size, and tap **Analyze**.
+3. Review the count and space it would free, then tap **Delete Files** to confirm.
+
+**Notes:**
+
+- The scan matches files by content in three passes - size, then a quick hash, then a full SHA-256 check - so renamed duplicates are still caught.
+- Deleting by size shows how much space you will free before anything is removed; network and cloud sources skip the trash, so that delete is immediate and permanent.
+
+---
+
+## How to View Your Usage Statistics
+
+**Steps:**
+
+1. Go to **Settings → General → Statistics collection** and turn it on.
+2. Tap **Statistics** (it appears right below the toggle) to open the dashboard.
+
+**What you'll see:**
+
+- Summary cards for files sorted, space freed, and time spent playing media.
+- A by-type breakdown (images, videos, audio, documents..).
+- Collapsible sections with more detail: operations, capture, viewing, editing, sources, and general usage.
+
+**Share a report:**
+
+- **Send to author** opens your email app with a summary attached, addressed to the developer.
+- **Export** shares the same summary through the regular Android share sheet, so you can save or send it anywhere.
+
+**Note:** Everything stays on your device until you choose to send or export it - see the FAQ for the privacy details.
 
 ---
 

@@ -15,10 +15,10 @@ Essential reading for end-users to install, configure, and use the application. 
 | Document | Description | Last Updated |
 |---|---|---|
 | [What's New](WHATS_NEW.md) | Release notes for v2.60.6200.317 - new features and fixes since 2.60.6180.134. | 2026-06-20 |
-| [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-06-19 |
-| [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-06-19 |
-| [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-06-19 |
-| [FAQ](FAQ.md) | Frequently Asked Questions. | 2026-06-19 |
+| [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-07-05 |
+| [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-07-05 |
+| [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-07-05 |
+| [FAQ](FAQ.md) | Frequently Asked Questions. | 2026-07-05 |
 | [Troubleshooting](TROUBLESHOOTING.md) | Solutions to common problems. | 2026-06-07 |
 | [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | Current |
 | [SMB Setup Guide](SMB_SETUP_GUIDE.md) | Specific guide for setting up network shares. | 2026-02-09 |
@@ -89,6 +89,9 @@ Resources for developers, QA, and contributors.
 | [Device Profile Preset Matrix](../dev/DEVICE_PROFILE_PRESET_MATRIX.md) | Device-profile rationale, provisional preset matrix + change rules, and profile icon asset registry (S0327). | 2026-06-02 |
 
 ### Current public docs
+
+> Date convention: the "User Guides & Manuals" table above carries the authoritative last-edit date for each guide; this table only tracks publish status - `Current` means the doc is part of the current public site build, not a second freshness date.
+
 | Document | Description | Last Updated |
 |---|---|---|
 | [README](README.md) | Main user-facing manual and product overview. | Current |

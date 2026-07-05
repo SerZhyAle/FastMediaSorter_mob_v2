@@ -187,7 +187,14 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Camera Capture
 
-- In Browse, tap the **camera button** in the toolbar to take a photo and save it directly to the current resource - local or network
+- In Browse, tap the **camera button** in the toolbar to open the in-app camera and save straight to the current resource - local or network
+- **Zoom:** tap a preset (0.5x/1x/2x..) or drag the slider for a precise level
+- **Night mode:** turn it on in low light for a brighter shot
+- **Photo or video:** switch modes right on the camera screen before you shoot
+
+### Screen Capture & Edge Gestures
+
+- Turn on **Settings → Operations → Left-edge screen gestures → Gesture overlay**, then swipe from the left edge to take a screenshot, snap a photo, or start a screen/voice/video recording - see the edge-gestures scenario in [HOW_TO.md](HOW_TO.md) for details
 
 ### Link Auto-Download
 
