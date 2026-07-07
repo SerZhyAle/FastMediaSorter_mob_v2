@@ -1,0 +1,7 @@
+• Document viewer - tap a PDF link to open it and select text with long-press.
+• More OS shortcuts - extra Android settings tiles in the quick-launch panel.
+
+
+• Audio permission no longer silently disabled on release builds.
+• Stopping a quick voice recording no longer crashes.
+• Enable-all onboarding resumes after the app restarts.
