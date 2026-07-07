@@ -21805,3 +21805,4 @@ Format: | datetime | file | target | description |
 | 2026-07-07 08:26:38 | `PLAN/S0975_howto-consolidate-3d-sections.md` | `spec-draft` | Scaffold Draft skeleton S0975 (consolidate three overlapping HOW_TO 3D sections; follow-up from S0968) [branch: DEBUG-v023] |
 | 2026-07-07 09:25:15 | `PLAN/S0976_prerelease-audit-benign-allowlist-tune.md` | `spec-draft` | Scaffold Draft skeleton S0976 (tune prerelease log-audit benign allowlist; 110 false actionables in sweep) [branch: DEBUG-v023] |
 | 2026-07-07 09:41:20 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7070.937 - plateau merge from DEBUG-v023 [branch: DEBUG-v023] |
+| 2026-07-07 09:55:15 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7070.937 from ALL_FEATURES diff (PDF hyperlink viewer S0953, more OS tiles S0946) [branch: DEBUG-v024] |
