@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.7042.357 (July 2026)
+## What's New in v2.60.7070.937 (July 2026)
 
 **New:**
-Reorder pinned streams from the list or grid menu, app-wide TV/D-pad focus highlight with automatic initial focus.
+Standalone document viewer opens PDF hyperlinks and supports long-press text selection, more Android settings tiles in the quick-launch panel.
 
 **Fixed:**
-Streams landscape view no longer wastes vertical space on a separate control bar, playback-control sliders track the finger correctly in portrait, live streams keep playing instead of pausing in Picture-in-Picture.
+Audio permission no longer silently disabled on release builds, stopping a quick voice recording no longer crashes, enable-all onboarding resumes after the app restarts.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

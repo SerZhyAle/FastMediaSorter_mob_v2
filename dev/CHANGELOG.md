@@ -21804,3 +21804,4 @@ Format: | datetime | file | target | description |
 | 2026-07-07 08:24:55 | `PLAN/S0968_howto-sbs-3d-vr-mode-flavor-drift.md` | `spec-check` | Audit S0968 -> Verified (docs-only); PASS 3 WARN 1 (three-section 3D overlap follow-up) [branch: DEBUG-v023] |
 | 2026-07-07 08:26:38 | `PLAN/S0975_howto-consolidate-3d-sections.md` | `spec-draft` | Scaffold Draft skeleton S0975 (consolidate three overlapping HOW_TO 3D sections; follow-up from S0968) [branch: DEBUG-v023] |
 | 2026-07-07 09:25:15 | `PLAN/S0976_prerelease-audit-benign-allowlist-tune.md` | `spec-draft` | Scaffold Draft skeleton S0976 (tune prerelease log-audit benign allowlist; 110 false actionables in sweep) [branch: DEBUG-v023] |
+| 2026-07-07 09:41:20 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7070.937 - plateau merge from DEBUG-v023 [branch: DEBUG-v023] |

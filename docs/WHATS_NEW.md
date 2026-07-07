@@ -6,7 +6,26 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7042.357** (July 2026)
+**Current release: 2.60.7070.937** (July 2026)
+
+> Changes since version 2.60.7042.357
+
+---
+
+## What's New
+
+- **Document viewer** - tap a PDF link to open it and select text with long-press.
+- **More OS shortcuts** - extra Android settings tiles in the quick-launch panel.
+
+## What's Fixed
+
+- Audio permission no longer silently disabled on release builds.
+- Stopping a quick voice recording no longer crashes.
+- Enable-all onboarding resumes after the app restarts.
+
+---
+
+## Previous Release: 2.60.7042.357 (July 2026)
 
 > Changes since version 2.60.7040.526
 
