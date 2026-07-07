@@ -212,10 +212,11 @@ class PlayerPlaybackCallbackImpl(
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
         viewModel.setAutoDetectedStereoMode(mode, forFilePath)
 
-        // S0264: VR install CTA must not appear on VR-capable builds (vr / noLegal).
-        // Those builds already include VR functionality - prompting the user to install
-        // "the VR edition" while they are running the VR edition is meaningless noise.
-        if (mediaCapabilities.supportsVrPlayer) return
+        // S0264/S0969: VR install CTA must not appear on VR-capable builds (vr / noLegal). Gate on
+        // supportsVrMediaControls (true on BOTH vr and noLegal), NOT supportsVrPlayer - the latter is
+        // false on the `vr` Store flavor (S0241 gate divergence), so it let the "install the VR edition"
+        // prompt fire on the VR edition itself. supportsVrMediaControls tracks actual VR capability.
+        if (mediaCapabilities.supportsVrMediaControls) return
 
         // Show VR CTA for actual flat 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU

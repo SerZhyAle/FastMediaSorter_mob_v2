@@ -24,6 +24,7 @@
 - [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md) - real device wipes config; FAIL = harness, trust toastCount
 - [Emulator capture testing](reference_emulator_capture_family_testing.md) + [MediaProjection](reference_emulator_mediaprojection_capture.md) - cmd statusbar+aapt2; overlay not drivable; non-VR AVD verifies menu-screenshot
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md) - touch wedge/mcp coords; force MediaStore scan; bottom-sheet taps ignored -> INCONCLUSIVE
+- [Trigger widget-only features on emulator](reference_trigger_widget_only_features_on_emulator.md) - am start export-blocked; only self-uid widget tap; place via input draganddrop
 - [Color theme device switch](feedback_color_theme_device_switch.md) - pref-file swap doesn't stick; via Settings UI+restart
 
 ## Build, flavors, gates
@@ -63,6 +64,7 @@
 - [Bounded UI](feedback_no_edge_to_edge_ui_elements.md) + [insets](feedback_respect_system_insets_safe_bounds.md) - bounded W+H, dropdowns 240/280; systemBars+cutout safe rect
 - [Landscape buttons](feedback_no_fullwidth_buttons_landscape.md) + [multi-column](feedback_landscape_multicolumn_settings.md) - wrap_content+gravity; toggles 2-up, buttons 3-4+ Flow
 - [configChanges no recreate](project_streams_activity_config_changes_rotation.md) - recompute spans in onConfigurationChanged
+- [BaseActivity posts setupViews()](feedback_baseactivity_setupviews_posted_ordering.md) - onCreate-body restore runs BEFORE attach(); put recreation-restore needing a manager in attach()/onResumeWithViews (broke S0910 fix)
 - [SettingsInputRow greedy width](feedback_settingsinputrow_greedy_width.md) - internally match_parent; fix width in weighted rows
 - [Canonical settings pickers](feedback_canonical_settings_value_pickers.md) - reuse ListSelectionDialog<T>+SettingsSelectionRow
 - [No wrapper focus compound rows](feedback_compound_row_no_wrapper_focus.md) - wrapper NOT focusable; inner field is D-pad stop
@@ -77,6 +79,7 @@
 - [HOW_TO path gate](reference_howto_settings_path_gate.md) + [parity](feedback_howto_settings_path_parity.md) - S0558 validates vs manifest; only U+2192+anchor lines need EN/RU/UK
 - [Play edge-to-edge warnings](project_play_setstatusbarcolor_false_positive.md) - #2 fixed by Material 1.14.0; #1 informational
 - [Land player bottom-band stacking](project_land_player_bottom_band_stacking.md) - anchor above bottomPanelsContainer, not parent bottom (S0368/S0852)
+- [Material inflate needs themed context](feedback_material_inflate_needs_themed_context.md) - MaterialButton from app/Service context crashes ThemeEnforcement; use ContextThemeWrapper (S0930)
 
 ## Streams / VR / players
 - [Stream catalog: all channels](feedback_stream_catalog_all_live_channels.md) + [publish](reference_stream_catalog_publish.md) - ship EVERY reachable; collect-stream-candidates.ps1 -WithFavicons -Publish

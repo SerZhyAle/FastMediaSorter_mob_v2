@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.res.Configuration
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,6 +53,38 @@ class MainLayoutChromeManager(
             binding.btnToggleView.text = null
             binding.btnFavorites.text = null
             binding.btnStartPlayer.text = null
+        }
+        applyControlBarOverflow()
+    }
+
+    /**
+     * S0972: the control bar is a non-wrapping horizontal row; on a narrow screen (or in label mode)
+     * the buttons can overflow and the last one is clipped. Owner directive 2026-07-06: when the full
+     * set does not fit, sacrifice the last button (Start Player) so the rest stay reachable. Measured
+     * (not a static width bucket) because the visible-button count varies (Menu/Toggle can be GONE).
+     * Restored to VISIBLE and re-measured whenever labels/compact change (setup + rotation).
+     */
+    fun applyControlBarOverflow() {
+        val bar = binding.layoutControlButtons
+        bar.doOnLayout {
+            val available = bar.width - bar.paddingStart - bar.paddingEnd
+            if (available <= 0) return@doOnLayout
+            // Reset first so the fit decision is made against the full button set, not a prior GONE.
+            binding.btnStartPlayer.visibility = View.VISIBLE
+            val widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            val heightSpec = View.MeasureSpec.makeMeasureSpec(bar.height, View.MeasureSpec.AT_MOST)
+            var needed = 0
+            for (i in 0 until bar.childCount) {
+                val child = bar.getChildAt(i)
+                if (child.visibility == View.GONE) continue
+                child.measure(widthSpec, heightSpec)
+                val lp = child.layoutParams as? ViewGroup.MarginLayoutParams
+                needed += child.measuredWidth + (lp?.marginStart ?: 0) + (lp?.marginEnd ?: 0)
+            }
+            if (needed > available) {
+                binding.btnStartPlayer.visibility = View.GONE
+            }
+            restitchControlBarFocusChain()
         }
     }
 
@@ -108,6 +142,7 @@ class MainLayoutChromeManager(
             }
         }
         binding.layoutControlButtons.requestLayout()
+        applyControlBarOverflow()
     }
 
     /** Apply or remove inter-item spacing decoration for the resource grid. */

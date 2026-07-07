@@ -177,6 +177,7 @@ class WelcomePermissionsManager @Inject constructor(
     fun reattachGrantAllCallback(onComplete: () -> Unit) {
         if (grantAllInProgress) {
             grantAllOnComplete = onComplete
+            Timber.d("S0910: reattached grant-all completion callback after recreation")
         }
     }
 

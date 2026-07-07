@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -54,11 +53,6 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
 
     private suspend fun maybeStartConsentFlow() {
         val settings = settingsRepository.getSettings().first()
-        Timber.d(
-            "S0671: disclosureAccepted=%s, next=%s",
-            settings.screenCaptureDisclosureAccepted,
-            if (settings.screenCaptureDisclosureAccepted) "launch_consent" else "show_disclosure"
-        )
         if (settings.screenCaptureDisclosureAccepted) {
             launchSystemConsent()
         } else {

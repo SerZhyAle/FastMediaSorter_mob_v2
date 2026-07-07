@@ -33,7 +33,7 @@ On the very first launch, right under the language picker, the welcome screen as
 
 - 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.
 - ⏭️ **Skip:** in a hurry? **Skip** simply applies the recommended profile. No wrong answer here.
-- ⚙️ **Change it later:** **Settings → Interface → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
+- ⚙️ **Change it later:** **Settings → General → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
 - 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
 - ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
 - 🎚️ **Next - pick what the app does:** after the profile, a quick screen lets you switch capabilities on or off (file manager, audio, video, documents, text recognition, translation). Optional parts download right there and turn on the moment they finish - all changeable later in Settings.
@@ -137,14 +137,14 @@ The screen is divided into 9 areas for quick actions:
 
 ### Network Drive (SMB / SFTP / FTP)
 
-Settings → Add Folder → **SMB** or **SFTP / FTP**
+Tap **"+"** → **Network** → **SMB** or **SFTP / FTP**
 
 - **SMB:** Use **"Scan Network"** to automatically discover your NAS and network devices. The app will search your local network and display available SMB shares.
 - **SFTP/FTP:** Enter host IP, user, and password manually.
 
 ### Cloud Storage
 
-Settings → Add Folder → **Cloud Storage**
+Tap **"+"** → **Cloud Storage**
 
 - Supports: **Google Drive**, **OneDrive**, **Dropbox**
 - Tap "Sign in..", grant permissions, and pick folders.
@@ -157,13 +157,13 @@ Settings → Add Folder → **Cloud Storage**
 
 ### Auto-Translation
 
-- Enable in **Settings** → **Media** → **Translation, OCR and Google Lens**
+- Enable in **Settings** → **Media** → **Other**
 - Tap **Translate** button (A→文) when viewing Images/PDF/Text
 - **Lens-style mode:** Enable "Lens-style overlay" in settings for Google Lens-like in-place translations
 
 ### EPUB E-Books
 
-- Enable in **Settings** → **Media** → **Text, PDF and EPUB viewing**
+- Enable in **Settings** → **Media** → **Documents**
 - Add folder with .epub files → Files will show "E" badge
 - **Chapter navigation:** Swipe left/right or use prev/next buttons
 - **Table of Contents:** Tap 📋 button for chapter list
@@ -174,14 +174,14 @@ Settings → Add Folder → **Cloud Storage**
 ### Slideshow Background Music
 
 - Add a folder with audio files as a resource
-- Go to **Settings** → **Audio** → Enable **"Slideshow Background Music"**
+- Go to **Settings** → **Media** → **Images** → **"Play music during slideshow"**
 - Select your music resource from the dropdown
 - Start any slideshow - music plays automatically!
 - **Tip:** Tap the track name during slideshow to skip to a different random track
 
 ### Keybinding Remapper
 
-- Settings → **Input** → **Keybindings** - reassign any control to a different key, button, or gamepad input
+- Settings → **Operations** → **Controls & Keybindings** - reassign any control to a different key, button, or gamepad input
 - 70 built-in defaults; tap **Reset** to restore
 - Press **F1** on any screen to view the active key bindings for that surface
 

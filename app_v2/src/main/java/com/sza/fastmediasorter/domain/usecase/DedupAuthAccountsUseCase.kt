@@ -63,7 +63,7 @@ class DedupAuthAccountsUseCase @Inject constructor(
                                 store.deleteForAccount(h, entry.accountId)
                                 deleted += 1
                                 Timber.i(
-                                    "S0211 cleanup: deleted dup host=%s accountId=%s identity=%s keepId=%s",
+                                    "cleanup: deleted dup host=%s accountId=%s identity=%s keepId=%s",
                                     h, entry.accountId, identity, keep.second.accountId,
                                 )
                             }

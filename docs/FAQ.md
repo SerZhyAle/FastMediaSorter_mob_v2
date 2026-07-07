@@ -53,7 +53,7 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 ## Network & Cloud
 
 ### How do I connect to my home NAS (network drive)?
-1. Settings → Add Folder → **SMB/Network Drive**
+1. Tap **"+"** → **Network** → **SMB / Network Drive**
 2. **Option A - Automatic:** Tap **"Scan Network"** to automatically discover available devices on your network
 3. **Option B - Manual:** Enter server address: `\\192.168.1.100\share` or `smb://192.168.1.100/share`
 4. Enter username and password
@@ -73,7 +73,7 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 → Full walkthrough: [SMB Setup Guide](howto/scenario-smb-setup.md)
 
 ### How do I connect to Google Drive?
-1. Settings → Add Folder → **Google Drive**
+1. Tap **"+"** → **Cloud** → **Google Drive**
 2. Tap "Sign in with Google"
 3. Grant permissions when prompted
 4. Your Drive folders will appear
@@ -81,13 +81,13 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 **Note:** Files are NOT downloaded automatically - they stream on-demand.
 
 ### How do I connect to OneDrive?
-1. Settings → Add Folder → **OneDrive**
+1. Tap **"+"** → **Cloud** → **OneDrive**
 2. Tap "Sign in with Microsoft"
 3. Grant permissions when prompted
 4. Your OneDrive folders will appear
 
 ### How do I connect to Dropbox?
-1. Settings → Add Folder → **Dropbox**
+1. Tap **"+"** → **Cloud** → **Dropbox**
 2. Tap "Sign in with Dropbox"
 3. Grant permissions when prompted
 4. Your Dropbox folders will appear
@@ -118,7 +118,7 @@ If thumbnails never load at all:
 Quick Sort folders are pre-configured target folders for fast file sorting. You can assign up to 30 folders with numbered buttons.
 
 ### How do I set up Quick Sort?
-**Method 1:** Settings → Operations → Quick Sort destinations → "Add to Quick Sort"  
+**Method 1:** Settings → Operations → Quick Sort destinations, then tap **"Add to Quick Sort"**  
 **Method 2:** Edit any folder → Enable "Mark for Quick Sort"
 
 ### How do I use Quick Sort while viewing files?
@@ -130,7 +130,7 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
 
 ### Quick Sort buttons are not showing
-Make sure you have added at least one destination folder first: Settings → Operations → Quick Sort destinations → **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
+Make sure you have added at least one destination folder first: Settings → Operations → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
 
 ### I accidentally sent a file to the wrong folder
 Tap **Undo** immediately (bottom-right of the command panel) - available for a few seconds after each operation. If you missed the window, go to the destination folder and move the file back manually.
@@ -153,7 +153,7 @@ Touch Zones are invisible areas on the screen that trigger actions when tapped. 
 ```
 
 ### How do I see Touch Zones?
-Settings → Playback → Enable **"Always show touch zones overlay"**
+Settings → Playback → **"Always show touch zones overlay"**
 
 ### Can I disable Touch Zones?
 Yes, just use the **command panel buttons** instead. Touch Zones are optional.
@@ -176,7 +176,7 @@ Three ways: the **Voice recording** item in the overflow menu, the **Quick Recor
 **Yes!** Full keyboard, mouse, and gamepad input is available across all screens. Press **F1** on any screen to see the active key bindings for that surface.
 
 ### How do I remap controls / change keybindings?
-Settings → **Input** → **Keybindings** - reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
+Settings → **Operations** → **Controls & Keybindings** - reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
 
 ### How do I download a media file from a URL?
 Share any `http(s)` link to FastMediaSorter via the Android **Share sheet** (from a browser, messenger, or any app). FastMediaSorter will download the file and offer to save it to any of your configured resources.
@@ -251,7 +251,7 @@ We use a **Hybrid OCR System**:
 If the app detects Cyrillic text, it initializes the Tesseract engine, which is more powerful but takes 1-2 seconds longer to start than ML Kit.
 
 ### What is lens-style translation mode?
-**Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in Settings → Media → Translation, OCR and Google Lens → "Lens-style overlay".
+**Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in **Settings → Media → Other** (the "Lens-style overlay" toggle).
 
 **Standard mode** shows translations in a separate text view below the image.
 
@@ -261,8 +261,8 @@ If the app detects Cyrillic text, it initializes the Tesseract engine, which is 
 
 ### How do I add background music to slideshows?
 1. Add a folder containing audio files as a resource
-2. Go to Settings → **Audio** section
-3. Enable **"Slideshow Background Music"**
+2. Go to **Settings → Media → Images**
+3. Enable **"Play music during slideshow"**
 4. Select your music resource from the dropdown
 5. Start any slideshow - music will play automatically!
 
@@ -330,7 +330,7 @@ The Wear OS app currently supports:
 ## EPUB E-Books
 
 ### How do I enable EPUB support?
-Settings → Media → **Text, PDF and EPUB viewing** → Enable **"Support EPUB"**
+Settings → Media → **Documents** → **"Support EPUB e-books"**
 
 **Note:** Restart the app after enabling for changes to take effect.
 
@@ -358,7 +358,7 @@ Settings → Media → **Text, PDF and EPUB viewing** → Enable **"Support EPUB
 **Yes!** The app saves the last chapter you were reading. When you reopen the book, it continues from where you left off.
 
 ### What about dark/light theme?
-EPUB viewer automatically adapts to your app theme (Settings → Appearance → Theme).
+EPUB viewer automatically adapts to your app theme (Settings → General → Color theme).
 
 ---
 
@@ -368,7 +368,7 @@ EPUB viewer automatically adapts to your app theme (Settings → Appearance → 
 Time-based automation rules that run Copy, Move, or Delete operations between any of your resources (local folders, NAS, cloud) on a repeating schedule - even when the app is closed.
 
 ### Where do I set up Scheduled Operations?
-Settings → **Operations** → **Scheduled Operations** section. Tap **"+"** to add a new rule.
+Settings → **Operations** → **Scheduled operations by schedule**. Tap **"+"** to add a new rule.
 
 ### Will it run if my app is closed?
 **Yes.** Operations are scheduled via Android **WorkManager**, which runs them in the background regardless of whether the app is open.

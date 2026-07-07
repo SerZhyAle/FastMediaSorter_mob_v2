@@ -126,7 +126,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
         sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
         Timber.i(
-            "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
+            "applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
             host,
             resolvedHost,
             accountId ?: "auto",
@@ -288,7 +288,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         val urlHost = url.toHttpUrlOrNull()?.host ?: ""
                         if (KnownAuthResources.isPreviewSensitiveHost(urlHost)) {
                             Timber.d(
-                                "S0151-diag: host=%s strategy=%s sessionApplied=%s outcome=%s",
+                                "link-diag: host=%s strategy=%s sessionApplied=%s outcome=%s",
                                 urlHost,
                                 strategy.id,
                                 accountId != null,
@@ -306,7 +306,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
                                 Timber.i(
-                                    "[S0166] preview-only result: host=%s strategy=%s accountId=%s",
+                                    "preview-only result: host=%s strategy=%s accountId=%s",
                                     opened.host,
                                     strategy.id,
                                     accountId ?: "none",
@@ -326,7 +326,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 BlockedReason.MuxFailed -> return Result.Failed.MuxFailed(codec = "unknown")
                                 BlockedReason.AuthRequired -> {
                                     Timber.i(
-                                        "[S0166] login wall detected: host=%s strategy=%s accountId=%s",
+                                        "login wall detected: host=%s strategy=%s accountId=%s",
                                         url.toHttpUrlOrNull()?.host ?: url,
                                         strategy.id,
                                         accountId ?: "none",
@@ -382,7 +382,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     return Result.Failed.AuthRequired(host = wallHost, originalUrl = url)
                 }
                 Timber.i(
-                    "[S0166] no real media found after analysis: host=%s accountId=%s",
+                    "no real media found after analysis: host=%s accountId=%s",
                     url.toHttpUrlOrNull()?.host ?: url,
                     accountId ?: "none",
                 )
@@ -434,7 +434,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         return when (writeResult) {
             is LinkDownloadWriter.WriteResult.Saved -> {
                 Timber.i(
-                    "[S0166] real media saved: file=%s mime=%s resource=%s",
+                    "real media saved: file=%s mime=%s resource=%s",
                     writeResult.fileName,
                     stream.mime,
                     writeResult.resourceLabel,
@@ -448,7 +448,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             }
             is LinkDownloadWriter.WriteResult.FellBackToDownloads -> {
                 Timber.i(
-                    "[S0166] real media saved via fallback: file=%s reason=%s",
+                    "real media saved via fallback: file=%s reason=%s",
                     writeResult.fileName,
                     writeResult.reason,
                 )
@@ -465,7 +465,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
             is LinkDownloadWriter.WriteResult.Corrupted -> {
                 Timber.i(
-                    "[S0166] download rejected as corrupted: kind=%s bytes=%d mime=%s",
+                    "download rejected as corrupted: kind=%s bytes=%d mime=%s",
                     writeResult.sniffedKind,
                     writeResult.bytesWritten,
                     stream.mime,
@@ -652,7 +652,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
                         is LinkDownloadWriter.WriteResult.Corrupted -> {
                             Timber.i(
-                                "[S0166] download rejected as corrupted: kind=%s bytes=%d mime=%s",
+                                "download rejected as corrupted: kind=%s bytes=%d mime=%s",
                                 writeResult.sniffedKind,
                                 writeResult.bytesWritten,
                                 outcome.mime,

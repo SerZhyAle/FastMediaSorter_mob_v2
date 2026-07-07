@@ -302,7 +302,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 resolvedName ?: "<none>", host,
             )
             Timber.i(
-                "[S0166] auth dialog shown: type=%s account=%s host=%s",
+                "auth dialog shown: type=%s account=%s host=%s",
                 dialogType, resolvedName ?: "none", host,
             )
             val title: String

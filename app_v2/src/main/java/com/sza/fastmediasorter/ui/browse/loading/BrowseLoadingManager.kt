@@ -1,23 +1,16 @@
 package com.sza.fastmediasorter.ui.browse.loading
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.data.paging.MediaFilesPagingSource
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
-import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,13 +22,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Handles both standard loading and pagination setup.
  */
 class BrowseLoadingManager(
-    private val mediaScannerFactory: MediaScannerFactory,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val favoritesUseCase: FavoritesUseCase,
     private val resourceId: Long,
     private val viewModelScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
-    private val pageSize: Int = 50,
     private val paginationThreshold: Int = 500
 ) {
     companion object {
@@ -47,47 +38,13 @@ class BrowseLoadingManager(
      */
     interface LoadingCallbacks {
         suspend fun updateLoadingProgress(progress: Int)
-        suspend fun updateState(mediaFiles: List<MediaFile>, usePagination: Boolean, loadingProgress: Int, totalFileCount: Int, isScanCancellable: Boolean)
+        suspend fun updateState(mediaFiles: List<MediaFile>, loadingProgress: Int, totalFileCount: Int, isScanCancellable: Boolean)
         fun setLoading(loading: Boolean)
         suspend fun handleLoadingError(resource: MediaResource, error: Throwable)
         suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int, subfolderCount: Int)
         suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>)
         fun startFileObserver()
         fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile>
-    }
-    
-    /**
-     * Sets up pagination for large folders using Paging3 library.
-     * Creates a Pager with MediaFilesPagingSource for efficient chunked loading.
-     * 
-     * @param resource The resource to load files from
-     * @param sortMode Current sort mode for file ordering
-     * @param sizeFilter Size filters for different media types
-     * @return Flow<PagingData<MediaFile>> that emits paginated data
-     */
-    fun setupPagination(
-        resource: MediaResource,
-        sortMode: SortMode,
-        sizeFilter: SizeFilter
-    ): Flow<PagingData<MediaFile>> {
-        Timber.d("BrowseLoadingManager: Setting up pagination for resource='${resource.name}', sortMode=$sortMode")
-        
-        return Pager(
-            config = PagingConfig(
-                pageSize = pageSize,
-                prefetchDistance = 15,
-                enablePlaceholders = false,
-                initialLoadSize = pageSize * 2 // Load 2 pages initially
-            ),
-            pagingSourceFactory = {
-                MediaFilesPagingSource(
-                    resource = resource,
-                    sortMode = sortMode,
-                    sizeFilter = sizeFilter,
-                    mediaScannerFactory = mediaScannerFactory
-                )
-            }
-        ).flow.cachedIn(viewModelScope)
     }
     
     /**
@@ -196,7 +153,7 @@ class BrowseLoadingManager(
                 // Show every intermediate emission immediately so the user sees
                 // files as soon as possible. Final post-processing (favorites,
                 // caching, metadata update) happens after the flow completes.
-                callbacks.updateState(files, usePagination = false, loadingProgress = files.size, totalFileCount = files.size, isScanCancellable = true)
+                callbacks.updateState(files, loadingProgress = files.size, totalFileCount = files.size, isScanCancellable = true)
                 callbacks.updateLoadingProgress(files.size)
             }
         
@@ -206,7 +163,7 @@ class BrowseLoadingManager(
         Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms - final batch: ${files.size} files")
         
         if (files.isEmpty()) {
-            callbacks.updateState(emptyList(), usePagination = false, loadingProgress = 0, totalFileCount = 0, isScanCancellable = false)
+            callbacks.updateState(emptyList(), loadingProgress = 0, totalFileCount = 0, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
             return
@@ -248,7 +205,7 @@ class BrowseLoadingManager(
             Timber.d(
                 "BrowseLoadingManager: Single-phase render (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
             )
-            callbacks.updateState(finalFiles, usePagination = false, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
+            callbacks.updateState(finalFiles, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
             MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
@@ -256,14 +213,14 @@ class BrowseLoadingManager(
             Timber.d(
                 "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target, two-phase fallback"
             )
-            callbacks.updateState(sortedFiles, usePagination = false, loadingProgress = 0, totalFileCount = sortedFiles.size, isScanCancellable = false)
+            callbacks.updateState(sortedFiles, loadingProgress = 0, totalFileCount = sortedFiles.size, isScanCancellable = false)
             progressJob?.cancel()
             callbacks.setLoading(false)
 
             viewModelScope.launch(ioDispatcher) {
                 MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
                 if (hasFavoriteFlags) {
-                    callbacks.updateState(finalFiles, usePagination = false, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
+                    callbacks.updateState(finalFiles, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
                 }
             }
         }

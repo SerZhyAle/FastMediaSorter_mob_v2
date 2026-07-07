@@ -6,19 +6,44 @@ permalink: /docs/VR_CONTROLS.html
 
 # VR Immersive Controls
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-07-06*
 
-This reference covers every input device supported in the VR flavor's immersive
+## Where things stand today
+
+Today's immersive OpenXR session - opened from the player's VR badge, Browse's
+"Open in VR Cinema" menu item, or the "Test Immersive" button in Settings (see
+[VR Edition](VR_EDITION.md), `noLegal` sideload build) - has a deliberately
+small control scheme:
+
+- The controller's aiming ray / trigger (or any native XR action) steps to the
+  **next** or **previous** file.
+- Any other input - any controller button, a paired keyboard key, a mouse
+  click - **exits** the session back to the flat 2D panel. A short grace
+  period right after entry stops the first frame from being dismissed by
+  accident.
+- There is no in-headset volume, seek, zoom, or file-operations control yet,
+  and no clickable on-screen HUD - the fully interactive panel exists in code
+  but isn't visible on screen today (tracked as bug S0961). A small
+  filename/format banner (not interactive) shows briefly whenever a file
+  loads.
+
+Everything below this point - the full Touch controller layout, Bluetooth
+keyboard shortcuts, mouse support, file-operations panel, and detailed HUD -
+is the **target design for the dedicated VR Cinema** (epic S0773, still in
+development, not shipped). Read it as a design reference, not as what works
+in the headset today.
+
+This reference covers every input device planned for the VR flavor's immersive
 (headset) playback mode: Meta Quest Touch Plus / Touch Pro controllers, a paired
-Bluetooth keyboard, and a paired Bluetooth mouse. All three layers share the
-same command dispatcher, so each action is available through whichever input
-you prefer.
+Bluetooth keyboard, and a paired Bluetooth mouse. All three layers are meant to
+share the same command dispatcher, so each action would be available through
+whichever input you prefer.
 
-A cheatsheet auto-appears once on the very first immersive entry (4 seconds).
-To bring it back any time: long-press **Y** on the left controller or press
-**F1** on the keyboard.
+A cheatsheet is designed to auto-appear once on the very first immersive entry
+(4 seconds), brought back any time with a long-press of **Y** on the left
+controller or **F1** on the keyboard.
 
-## 1. Touch controllers
+## 1. Touch controllers (target design, not shipped yet)
 
 Supported models: Touch Plus (Quest 2, Quest 3) and Touch Pro (Quest Pro).
 Both use the same logical binding set; our app registers suggested bindings
@@ -54,7 +79,7 @@ for both interaction profiles so it behaves identically on every headset.
 
 - **Both grips held ≥ 1 second** → reset zoom to 1.0×.
 
-## 2. Bluetooth keyboard
+## 2. Bluetooth keyboard (target design, not shipped yet)
 
 Four convention layers are stacked so you can keep whatever habit you bring:
 Norton Commander F-keys (first-class), Windows / MPC-HC / VLC shortcuts,
@@ -113,7 +138,7 @@ browser-YouTube letters, and standard BT media keys.
 - **Media Next / Previous** → Next / previous file.
 - **Volume ± / Mute** are **not** intercepted - Android's system keys handle them.
 
-## 3. Bluetooth mouse
+## 3. Bluetooth mouse (target design, not shipped yet)
 
 Mouse input is a parallel surface to the controller ray (this iteration uses
 the Android cursor; a 3D ray overlay is future work).
@@ -128,7 +153,7 @@ the Android cursor; a 3D ray overlay is future work).
 | **Wheel ↑ / ↓** | Volume ±. |
 | **Shift + Wheel** | Seek ±10s. |
 
-## 4. File operations workflow
+## 4. File operations workflow (target design, not shipped yet)
 
 1. Open the panel with **Y** (left controller), **F7**, or **Ctrl+Y** - or jump
    straight to an action via **F2 / F3 / F5 / F6 / F8**.
@@ -139,7 +164,7 @@ the Android cursor; a 3D ray overlay is future work).
    the 2D panel for the full folder tree.
 4. Delete always shows a confirmation with the file name and size.
 5. Rename opens a simple text-entry dialog (requires the BT keyboard or the
-   Quest passthrough on-screen keyboard).
+   Quest system on-screen keyboard).
 
 ## 4a. Streams screen navigation
 
@@ -147,10 +172,10 @@ The Streams screen is a 2D panel (not immersive) and is driven by the normal And
 
 - Open Streams from the main window dropdown or from Settings > Media > Streams.
 - Select a radio station to start inline audio playback; the sticky mini-player appears at the bottom of the list. The list stays scrollable and interactive while audio plays.
-- Select a video or RTSP stream to open the fullscreen player in Cinema mode. Press **B** (right controller), **Esc** (keyboard), or **Back** to return to the Streams list; scroll position and last-selected source are preserved.
+- Select a video or RTSP stream to open the fullscreen player. Press **B** (right controller), **Esc** (keyboard), or **Back** to return to the Streams list; scroll position and last-selected source are preserved.
 - Background audio playback behavior is the same as on the phone: with background playback OFF, leaving the Streams screen stops the radio.
 
-## 5. HUD indicators
+## 5. HUD indicators (target design, not shipped yet)
 
 Auto-dismissing toasts overlaid on the scene provide visual feedback:
 
@@ -162,15 +187,19 @@ Auto-dismissing toasts overlaid on the scene provide visual feedback:
 - "Recentered" flash (center, 0.4 s)
 - "First file" / "Last file" (top-right, 1.5 s)
 
-## 6. Troubleshooting
+## 6. Troubleshooting (today)
 
-- **Controllers silent in immersive.** Confirm you're on the `vr` flavor; other
-  flavors never load the OpenXR input system. On Quest Pro with Touch Pro
-  controllers, the same bindings are active - they share the logical action set.
-- **Keyboard works in the 2D panel but not inside VR.** Force-close the
-  activity and reopen; some BT keyboards need to be paired after the immersive
-  session is focused.
-- **Mouse cursor not visible.** The current iteration renders the cursor on the
-  2D decor surface beneath the OpenXR composition layer, which is invisible in
-  the headset. Controller ray-pointer and full mouse-on-quad rendering are
-  planned follow-up work.
+- **Pressing a controller button in immersive does nothing, or exits the
+  session.** That's expected today - only the aiming ray/trigger (next /
+  previous) is wired up; almost everything else exits back to the flat panel.
+  See "Where things stand today" above.
+- **The on-screen banner is a blank grey rectangle.** Known bug (S0961) - it's
+  meant to show the filename and detected 3D format; a fix is in progress.
+- **A Bluetooth keyboard or mouse does not control playback in immersive.**
+  Expected today - keyboard/mouse control of the immersive session is part of
+  the target design (epic S0773), not shipped yet. Both work normally in the
+  flat 2D panel.
+
+The rest of this page - the full Touch controller layout, keyboard, mouse,
+file operations, and HUD - describes the troubleshooting surface once the
+dedicated VR Cinema (epic S0773) ships.

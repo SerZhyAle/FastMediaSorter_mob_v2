@@ -368,7 +368,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 currentKey = settings.ocrEngineType,
                 onSelected = { key ->
                     key?.let {
-                        Timber.d("S0288: settings ocr engine selector picked engine=$it")
                         val current = viewModel.settings.value
                         viewModel.updateSettings(current.copy(ocrEngineType = it))
                         refreshOcrRowValues(current.copy(ocrEngineType = it))

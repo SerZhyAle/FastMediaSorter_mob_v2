@@ -7,7 +7,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.capability.InstallSourceProvider
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
@@ -45,7 +44,6 @@ class WelcomeEnableAllManager @Inject constructor(
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val mediaCapabilities: MediaCapabilities,
     private val capabilityAvailability: CapabilityAvailability,
-    private val installSource: InstallSourceProvider,
     private val downloadRunner: DeliverableDownloadRunner,
     private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val settingsRepository: SettingsRepository,
@@ -79,6 +77,14 @@ class WelcomeEnableAllManager @Inject constructor(
         this.activity = activity
         this.permissionsManager = permissionsManager
         this.onFinished = onFinished
+        // S0910: attach() runs from setupViews, which BaseActivity defers to a post{} - i.e. AFTER
+        // onRestoreInstanceState has already restored inProgress/defaultPlayerStageStarted here and the
+        // permissions manager's own grantAllInProgress. Re-arm the grant-all completion callback here
+        // (NOT in onRestoreInstanceState, where permissionsManager was still null and the call no-op'd),
+        // so a recreation mid permissions-stage still chains into the default-player stage, not stalls.
+        if (inProgress && !defaultPlayerStageStarted) {
+            permissionsManager.reattachGrantAllCallback { beginDefaultPlayerStage() }
+        }
         defaultPlayerLauncher = activity.activityResultRegistry.register(
             KEY_DEFAULT_PLAYER,
             ActivityResultContracts.StartActivityForResult(),
@@ -100,14 +106,9 @@ class WelcomeEnableAllManager @Inject constructor(
         inProgress = state.getBoolean(STATE_IN_PROGRESS, false)
         currentTypeIndex = state.getInt(STATE_TYPE_INDEX, 0)
         defaultPlayerStageStarted = state.getBoolean(STATE_DEFAULT_PLAYER_STAGE_STARTED, false)
-        // S0910: a recreation mid permissions-stage loses WelcomePermissionsManager's transient
-        // completion callback - reattach it here so the finished run still chains into this stage
-        // instead of silently stalling. Runs after WelcomeActivity has already restored the
-        // permissions manager's own state (its onRestoreInstanceState is called before this one), so
-        // grantAllInProgress is already correct when reattachGrantAllCallback checks it.
-        if (inProgress && !defaultPlayerStageStarted) {
-            permissionsManager?.reattachGrantAllCallback { beginDefaultPlayerStage() }
-        }
+        // S0910: the grant-all completion callback is re-armed in attach(), NOT here - attach() runs
+        // via BaseActivity's deferred setupViews (a post{}), which is the first point permissionsManager
+        // is non-null. Calling reattach here (before attach) silently no-op'd and the sequence stalled.
     }
 
     /** Kick off the full sequence. [applyProfileOther] sets the device profile to OTHER and persists it
@@ -179,7 +180,9 @@ class WelcomeEnableAllManager @Inject constructor(
     /** Enqueue OCR/translation engines where available and flip their settings only on a successful
      *  install (enable-only-after-install, S0386). Never blocks the sequence. */
     private fun enqueueOptionalDeliverables() {
-        if (capabilityAvailability.isOcrAvailable(context) && !installSource.isPlayInstall()) {
+        // S0971: OCR engines are bundled now, so the enqueue resolves to an immediate install on every
+        // install source (including Play) - the former `!isPlayInstall()` gate is gone.
+        if (capabilityAvailability.isOcrAvailable(context)) {
             enqueueAndEnableOnInstall(DeliverableSet.OCR_ENGINES) { it.copy(enableOcr = true) }
         }
         if (capabilityAvailability.isTranslationAvailable()) {

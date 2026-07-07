@@ -459,12 +459,6 @@ class CameraCaptureSessionManager(
                 source.getAttribute(tag)?.let { value -> dest.setAttribute(tag, value) }
             }
             dest.saveAttributes()
-            Timber.d(
-                "S0765: restored EXIF after zoom crop orientation=" +
-                    "${dest.getAttribute(ExifInterface.TAG_ORIENTATION)} " +
-                    "datetime=${dest.getAttribute(ExifInterface.TAG_DATETIME)} " +
-                    "gps=${dest.getAttribute(ExifInterface.TAG_GPS_LATITUDE) != null}",
-            )
         }.onFailure { Timber.w(it, "CameraCaptureSessionManager: EXIF restore after crop failed") }
     }
 

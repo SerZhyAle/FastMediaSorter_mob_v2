@@ -20,6 +20,7 @@ import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
+import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -182,6 +183,10 @@ class StandaloneViewManager(
     private var videoPositionSaveJob: Job? = null
     private var lastSavedPosition: Long = -1L
     private var currentVideoFilePath: String? = null
+
+    // S0953: the media type currently on screen. photoView is shared IMAGE/GIF/PDF, so the PDF fling
+    // listener must be gated on this to avoid paging an image on a vertical swipe.
+    private var currentMediaType: MediaType? = null
     // Media3 1.2.1 deferral flags - mirrors VideoPlayerManager logic.
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
@@ -265,6 +270,7 @@ class StandaloneViewManager(
 
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
+        currentMediaType = mediaType
         // S0859: playVideo()/playAudio() are only reachable through here - release any previous
         // video player / audio controller before dispatching, so folder paging, slideshow and
         // rename-triggered re-show never orphan a live player (and its bound focus/service).
@@ -511,6 +517,15 @@ class StandaloneViewManager(
 
     private fun showPdf(mediaFile: MediaFile) {
         pdfViewerManager.displayPdf(mediaFile)
+        // S0953: legacy PDF vertical-swipe paging parity with the in-app player. photoView is shared
+        // IMAGE/GIF/PDF, so the guard drops the fling unless a PDF is on screen. Native fling callback
+        // (not setOnTouchListener) keeps the PhotoView attacher's pinch/pan intact.
+        safeViews.photoView.setOnSingleFlingListener(
+            OnSingleFlingListener { e1, e2, velocityX, velocityY ->
+                if (currentMediaType != MediaType.PDF) return@OnSingleFlingListener false
+                pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
+            }
+        )
     }
 
     fun showPdfPreviousPage() { _pdfViewerManager?.showPreviousPage() }

@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
+import com.sza.fastmediasorter.wear.util.SmbCacheEvictor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,11 @@ class VideoPlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
-    
+
+    companion object {
+        private const val SMB_VIDEO_CACHE_CAP_BYTES = 300L * 1024 * 1024
+    }
+
     private val _uiState = MutableStateFlow(VideoPlayerUiState())
     val uiState: StateFlow<VideoPlayerUiState> = _uiState.asStateFlow()
     
@@ -154,8 +159,12 @@ class VideoPlayerViewModel @Inject constructor(
     }
     
     fun dismissBatteryWarning() {
+        Timber.d("S0902: battery warning dismissed - starting playback")
         prefs.edit().putBoolean(KEY_BATTERY_WARNING_SHOWN, true).apply()
         _uiState.update { it.copy(showBatteryWarning = false) }
+        // S0902: loadMediaFile/loadSmbFile defer playWhenReady while the warning is showing -
+        // without this, first-run video never auto-starts once the user dismisses it.
+        exoPlayer.play()
     }
     
     private fun loadMediaFile() {
@@ -221,7 +230,15 @@ class VideoPlayerViewModel @Inject constructor(
                         }
                         
                         Timber.d("SMB file downloaded, size: ${tempFile.length()} bytes")
-                        
+
+                        // S0902: bound unbounded cache growth - each distinct SMB file adds a
+                        // new temp file that was never deleted before this fix.
+                        SmbCacheEvictor.evictOldestUntilUnderCap(
+                            cacheDir = cacheDir,
+                            keep = tempFile,
+                            capBytes = SMB_VIDEO_CACHE_CAP_BYTES
+                        )
+
                         // Play from temp file on main thread
                         withContext(Dispatchers.Main) {
                             val mediaItem = MediaItem.fromUri(android.net.Uri.fromFile(tempFile))
@@ -264,7 +281,17 @@ class VideoPlayerViewModel @Inject constructor(
             exoPlayer.play()
         }
     }
-    
+
+    /**
+     * S0902: called from the screen's onStop lifecycle effect - without this, playback
+     * keeps running while the host activity is stopped (screen off / app backgrounded);
+     * onCleared was the only prior teardown edge.
+     */
+    fun onHostStopped() {
+        Timber.d("S0902: video host stopped - pausing player")
+        exoPlayer.pause()
+    }
+
     fun onScreenTap() {
         if (_uiState.value.showControls) {
             _uiState.update { it.copy(showControls = false) }

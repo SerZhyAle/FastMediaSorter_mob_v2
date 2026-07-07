@@ -117,7 +117,7 @@ class AuthSessionRepositoryImpl @Inject constructor(
                 }
                 if (fallbackHost != null) {
                     Timber.d(
-                        "[S0166] listAccountsForHost eTLD+1 fallback: host=%s resolvedHost=%s reg=%s",
+                        "listAccountsForHost eTLD+1 fallback: host=%s resolvedHost=%s reg=%s",
                         host,
                         fallbackHost,
                         reg,

@@ -191,11 +191,12 @@ $runsSettingsDocGate = (
     $normFile -match 'docs/settings/' -or
     $normFile -match 'docs/SETTINGS_REFERENCE'
 )
-# S0558 HOW_TO settings-path drift gate. Fires when a HOW_TO guide is edited -
-# validates the embedded "Settings -> .." recipes against the manifest. Standalone
-# (pure text, no gradle) so a doc edit stays fast; also runs as stage 5 of the
-# settings-doc composite so a manifest/vocab change re-checks the guides.
-$runsHowToPathGate = ($normFile -match 'docs/HOW_TO.*\.md$')
+# S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
+# (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
+# embedded "Settings -> .." recipes against the manifest. Standalone (pure text, no
+# gradle) so a doc edit stays fast; also runs as stage 5 of the settings-doc
+# composite so a manifest/vocab change re-checks every guide.
+$runsHowToPathGate = ($normFile -match 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Z_]*\.md$')
 # S0815/S0939 icon-inventory drift gate. Fires for generated icon docs AND for
 # settings-source files that can stale the committed inventory/legend:
 # - docs/icons/**, docs/ICON_LEGEND*
@@ -433,7 +434,7 @@ if ($runsHowToPathGate) {
     }
 }
 else {
-    Skip-Step "howto-settings-paths-gate" "not applicable - touched file is not a HOW_TO guide"
+    Skip-Step "howto-settings-paths-gate" "not applicable - touched file is not a HOW_TO or narrative settings-path guide"
 }
 
 if ($runsIconInventoryGate) {

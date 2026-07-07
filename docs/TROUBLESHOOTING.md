@@ -78,7 +78,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the current flavor mat
 ### ❌ "App is slow / laggy"
 
 **For large folders (5000+ files):**
-1. Settings → Edit folder → Enable **"Disable thumbnails"**
+1. **Edit folder** (per-resource) → Enable **"Disable thumbnails"**
 2. Use **filters** to reduce visible files
 3. Close other apps to free RAM
 
@@ -199,7 +199,7 @@ Settings → Playback → **"Always show touch zones overlay"** = ON
 ### ❌ "Command panel buttons too small"
 
 **Solution:**
-Settings → Playback → **"Compact mode"** = OFF
+Settings → Playback → **"Compact player buttons"** = OFF
 
 This doubles the size of all buttons and spacing.
 
@@ -221,7 +221,7 @@ Favorites are stored **locally**:
 - New device? → Need to re-mark
 
 **Prevention:**
-- Use Settings → Backup to save settings
+- Use **Settings → General → Backups, restore and settings export**
 - Favorites are local to the device; if you move to a new phone, re-mark them or use the app backup/restore flow available in your build
 
 ---
@@ -239,7 +239,7 @@ Deleted files go to `.trash/` folder and stay there until manually emptied.
 ## Still Having Issues?
 
 ### Check Logs
-1. Settings → General → **"Enable detailed errors"** = ON
+1. Settings → Operations → **"Show detailed errors"** = ON
 2. Reproduce the issue
 3. Check logcat output
 
@@ -267,7 +267,7 @@ Include this information:
 
 **Solution:**
 1. Check internet connection.
-2. Go to **Settings** → **Media** → **Translation, OCR and Google Lens**
+2. Go to **Settings** → **Media** → **Other**
 3. Toggle "Enable Translation" OFF and ON again.
 4. Try switching **Source Language** to "Auto".
 
@@ -327,7 +327,7 @@ ICY metadata requires an Icecast/Shoutcast stream that sends the `Icy-MetaData: 
 ### ❌ "Cannot see Text or PDF files"
 
 **Solution:**
-1. Check **Settings** → **Media** → **Text, PDF and EPUB viewing**
+1. Check **Settings** → **Media** → **Documents**
 2. Ensure **"Support Text Files"** and **"Support PDF Files"** are enabled.
 3. Check **Filters** on main screen (funnel icon) to ensure they are selected.
 4. **Rescan** the folder (pull-to-refresh).

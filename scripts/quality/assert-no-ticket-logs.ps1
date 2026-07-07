@@ -59,14 +59,67 @@ $scanRoots = @(
     (Join-Path $repoRoot 'wear')
 ) | Where-Object { Test-Path $_ }
 
-# Match a Timber call carrying a FREESTANDING ticket id in its argument text.
-# The id must not be part of a longer identifier (class names such as
-# MigrateS0059UseCase or S0200AuthStateWipe legitimately embed an id and are NOT
-# provenance tags) - hence the surrounding non-word boundaries.
-#   group 'level' = i|w|e|d ; group 'num' = first freestanding Sxxxx in the call.
-$timberRx = [regex]'Timber\.(?<level>[iwed])\((?<args>[^\r\n]*?(?<![A-Za-z0-9])S(?<num>\d{4})(?![0-9A-Za-z])[^\r\n]*)'
-# Probe form: Timber.d("Sxxxx: ..)
-$probeRx = [regex]'Timber\.d\(\s*"S(?<num>\d{4}):'
+# Opener of a Timber log call. The call may span several physical lines, so the
+# whole argument text is reconstructed from the source (see Get-CallEnd) before
+# scanning - a per-line match would miss `Timber.d(\n  "Sxxxx: ..")` (S0948).
+$openerRx = [regex]'Timber\.(?<level>[iwed])\('
+# Freestanding ticket id in the reconstructed argument text. The id must not be
+# part of a longer identifier (class names such as MigrateS0059UseCase or
+# S0200AuthStateWipe legitimately embed an id and are NOT provenance tags) -
+# hence the surrounding non-word boundaries.
+$idRx = [regex]'(?<![A-Za-z0-9])S(?<num>\d{4})(?![0-9A-Za-z])'
+# Probe form: Timber.d("Sxxxx: ..) - the string may sit on a later line, so the
+# span is matched from its start and \s spans newlines.
+$probeRx = [regex]'^Timber\.d\(\s*"S(?<num>\d{4}):'
+
+# Reconstruct a Timber call from its 'Timber.<level>' start ($prefixStart) through
+# the ')' that matches its opening '(' ($openParenIdx), tracking string and comment
+# state. Returns @{ End = <index of that ')'>; Span = <call text with // and /* */
+# comments blanked to spaces but string literals kept verbatim> }. Comments are
+# blanked so a `// Sxxxx` rationale note sitting between call arguments is not
+# mistaken for log text; string literals stay intact because that is exactly where a
+# forbidden id lives. Parens inside strings/comments do not skew the depth count.
+# Kotlin raw-triple-quote strings and char literals holding a quote are rare in
+# Timber args and out of scope here.
+function Get-SanitizedCall([string] $content, [int] $prefixStart, [int] $openParenIdx) {
+    $sb = [System.Text.StringBuilder]::new()
+    [void]$sb.Append($content.Substring($prefixStart, $openParenIdx - $prefixStart))
+    $depth = 0
+    $inStr = $false
+    $inLine = $false
+    $inBlock = $false
+    $i = $openParenIdx
+    $len = $content.Length
+    $end = -1
+    while ($i -lt $len) {
+        $c = $content[$i]
+        if ($inLine) {
+            if ($c -eq "`n") { $inLine = $false; [void]$sb.Append($c) } else { [void]$sb.Append(' ') }
+            $i++; continue
+        }
+        if ($inBlock) {
+            if ($c -eq '*' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '/') {
+                $inBlock = $false; [void]$sb.Append('  '); $i += 2; continue
+            }
+            [void]$sb.Append($(if ($c -eq "`n") { $c } else { ' ' })); $i++; continue
+        }
+        if ($inStr) {
+            [void]$sb.Append($c)
+            if ($c -eq '\' -and ($i + 1) -lt $len) { [void]$sb.Append($content[$i + 1]); $i += 2; continue }
+            if ($c -eq '"') { $inStr = $false }
+            $i++; continue
+        }
+        if ($c -eq '"') { $inStr = $true; [void]$sb.Append($c); $i++; continue }
+        if ($c -eq '/' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '/') { $inLine = $true; [void]$sb.Append('  '); $i += 2; continue }
+        if ($c -eq '/' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '*') { $inBlock = $true; [void]$sb.Append('  '); $i += 2; continue }
+        [void]$sb.Append($c)
+        if ($c -eq '(') { $depth++ }
+        elseif ($c -eq ')') { $depth--; if ($depth -eq 0) { $end = $i; break } }
+        $i++
+    }
+    if ($end -lt 0) { $end = [Math]::Min($len - 1, $openParenIdx + 2000) }
+    return @{ End = $end; Span = $sb.ToString() }
+}
 
 $findings = [System.Collections.Generic.List[object]]::new()
 
@@ -74,34 +127,40 @@ foreach ($root in $scanRoots) {
     $files = Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }
     foreach ($file in $files) {
-        $lineNo = 0
-        foreach ($text in Get-Content -LiteralPath $file.FullName) {
-            $lineNo++
-            $m = $timberRx.Match($text)
-            if (-not $m.Success) { continue }
+        $content = Get-Content -LiteralPath $file.FullName -Raw
+        if ([string]::IsNullOrEmpty($content)) { continue }
 
-            # Skip comment lines - a ticket id in a comment is not log text.
-            $trimmed = $text.TrimStart()
-            if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('*') -or $trimmed.StartsWith('/*')) { continue }
-            $slashIdx = $text.IndexOf('//')
-            if ($slashIdx -ge 0 -and $slashIdx -lt $m.Index) { continue }
+        foreach ($m in $openerRx.Matches($content)) {
+            $openParenIdx = $m.Index + $m.Length - 1
+            $span = (Get-SanitizedCall $content $m.Index $openParenIdx).Span
+
+            $idm = $idRx.Match($span)
+            if (-not $idm.Success) { continue }
+
+            # Opener line number + its physical line text (for comment filtering).
+            $lineNo = ($content.Substring(0, $m.Index) -split "`n").Count
+            $lineStart = $content.LastIndexOf("`n", $m.Index) + 1
+            $lineText = $content.Substring($lineStart, $m.Index - $lineStart)
+            # Skip when the opener sits in a comment - an id there is not log text.
+            if ($lineText.Contains('//')) { continue }
+            $trimmed = $lineText.TrimStart()
+            if ($trimmed.StartsWith('*') -or $trimmed.StartsWith('/*')) { continue }
 
             $level = $m.Groups['level'].Value
-            $id = 'S' + $m.Groups['num'].Value
+            $id = 'S' + $idm.Groups['num'].Value
 
             $allowed = $false
             if ($level -eq 'd') {
-                $pm = $probeRx.Match($text)
-                if ($pm.Success) {
-                    $probeId = 'S' + $pm.Groups['num'].Value
-                    if ($blockNeedUserTest.Contains($probeId)) { $allowed = $true }
+                $pm = $probeRx.Match($span)
+                if ($pm.Success -and $blockNeedUserTest.Contains('S' + $pm.Groups['num'].Value)) {
+                    $allowed = $true
                 }
             }
 
             if (-not $allowed) {
                 $reason = if ($level -ne 'd') {
                     "ticket id in permanent Timber.$level"
-                } elseif ($probeRx.IsMatch($text)) {
+                } elseif ($probeRx.IsMatch($span)) {
                     "stale probe (ticket not BlockNeedUserTest)"
                 } else {
                     "ticket id in long-lived Timber.d (not a probe)"
@@ -113,7 +172,7 @@ foreach ($root in $scanRoots) {
                     Level  = "Timber.$level"
                     Ticket = $id
                     Reason = $reason
-                    Text   = $text.Trim()
+                    Text   = (($span -split "`n")[0]).Trim()
                 })
             }
         }

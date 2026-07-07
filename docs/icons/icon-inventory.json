@@ -489,6 +489,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "accessibility",
+    "feature": "app_launch_panel_os_accessibility",
+    "drawable": "ic_accessibility",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "app_info",
     "feature": "app_launch_panel_os_app_info",
     "drawable": "ic_info",
@@ -497,8 +505,24 @@
   },
   {
     "surface": "program-nav",
+    "key": "auto_rotate",
+    "feature": "app_launch_panel_os_auto_rotate",
+    "drawable": "ic_screen_rotation",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "battery",
     "feature": "app_launch_panel_os_battery",
+    "drawable": "ic_battery",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "battery_saver",
+    "feature": "app_launch_panel_os_battery_saver",
     "drawable": "ic_battery",
     "assetFormat": "vector",
     "public": true
@@ -521,9 +545,25 @@
   },
   {
     "surface": "program-nav",
+    "key": "data_usage",
+    "feature": "app_launch_panel_os_data_usage",
+    "drawable": "ic_data_usage",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "datetime",
     "feature": "app_launch_panel_os_datetime",
     "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "dev_options",
+    "feature": "app_launch_panel_os_dev_options",
+    "drawable": "ic_developer_options",
     "assetFormat": "vector",
     "public": true
   },
@@ -556,6 +596,14 @@
     "key": "link_download",
     "feature": "download_by_link_menu_label",
     "drawable": "ic_cloud_download",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "nfc",
+    "feature": "app_launch_panel_os_nfc",
+    "drawable": "ic_nfc",
     "assetFormat": "vector",
     "public": true
   },
@@ -625,9 +673,25 @@
   },
   {
     "surface": "program-nav",
+    "key": "vpn",
+    "feature": "app_launch_panel_os_vpn",
+    "drawable": "ic_lock",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "wifi",
     "feature": "app_launch_panel_os_wifi",
     "drawable": "ic_wifi",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "wireless",
+    "feature": "app_launch_panel_os_wireless",
+    "drawable": "ic_wifi_tethering",
     "assetFormat": "vector",
     "public": true
   },

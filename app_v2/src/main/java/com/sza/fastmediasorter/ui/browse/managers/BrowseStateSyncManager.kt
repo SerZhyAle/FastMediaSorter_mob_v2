@@ -56,8 +56,7 @@ class BrowseStateSyncManager(
                     it.copy(
                         mediaFiles = mediaFiles,
                         totalFileCount = mediaFiles.size,
-                        loadingProgress = mediaFiles.size,
-                        usePagination = false
+                        loadingProgress = mediaFiles.size
                     )
                 }
                 scheduleWarmupIfEligible(mediaFiles)

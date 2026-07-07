@@ -202,17 +202,25 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
 
     private fun evaluateFlavorGates(gates: Set<String>): Boolean {
         if (gates.isEmpty()) return true
-        return gates.all { fieldName ->
-            try {
-                BuildConfig::class.java.getField(fieldName).getBoolean(null)
-            } catch (e: NoSuchFieldException) {
-                // A misspelled or removed gate field is a developer error, not a runtime state - surface it
-                // loudly while keeping the safe (disabled) default so release never crashes on it.
-                Timber.e("Permission flavor-gate references unknown BuildConfig field: %s", fieldName)
-                false
-            } catch (e: Exception) {
-                false
-            }
+        return gates.all { fieldName -> resolveFlavorGate(fieldName) }
+    }
+
+    /**
+     * S0970: resolve a gate name to its BuildConfig value via a compile-time map, NOT reflection.
+     * R8 constant-folds `public static final boolean` BuildConfig fields into their call sites and then
+     * strips the field declarations, so `BuildConfig::class.java.getField(name)` throws
+     * NoSuchFieldException on a minified release build - the old code then logged
+     * "unknown BuildConfig field" and silently disabled the permission (e.g. audio) on every release.
+     * Direct references survive R8 with the correct inlined value. An unmapped name is a developer
+     * error (a new gate string without a matching arm here); surface it and keep the safe default.
+     */
+    private fun resolveFlavorGate(fieldName: String): Boolean = when (fieldName) {
+        "SUPPORT_AUDIO" -> BuildConfig.SUPPORT_AUDIO
+        "SUPPORT_LOCAL_NETWORK" -> BuildConfig.SUPPORT_LOCAL_NETWORK
+        "ENABLE_PERSISTENT_AUDIO_PLAYBACK" -> BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+        else -> {
+            Timber.e("Permission flavor-gate references unmapped BuildConfig field: %s", fieldName)
+            false
         }
     }
 }

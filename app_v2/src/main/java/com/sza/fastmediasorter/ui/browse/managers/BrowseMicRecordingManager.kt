@@ -214,7 +214,6 @@ class BrowseMicRecordingManager(
     private suspend fun save(tempFile: File, name: String, resource: MediaResource) {
         // S0526: delegate destination resolution, write/upload and the S0522 fallback to the shared
         // mic-save backend; this manager keeps only the recorder lifecycle and the user-facing notice.
-        Timber.d("S0901: mic save on appScope")
         val result = micRecordingSaver.save(
             tempFile = tempFile,
             name = name,

@@ -150,19 +150,18 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Watch SBS 3D videos in VR mode
 
-**Available in:** Standard, Legacy
+**Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (auto-crop); `vr`, XR/noLegal only (manual format picker)
 
 **Quick Path**
 
-1. Open an SBS 3D video.
-2. Enter fullscreen.
-3. Open **Playback Settings**.
-4. Switch **3D Video** to **Auto-detect** or **Side-by-Side (SBS)**.
+1. **Auto-crop (every flavor, nothing to enable):** open an SBS or Over-Under 3D video and go fullscreen - it's auto-detected and cropped to one eye so it looks right on a flat screen or in a simple phone VR viewer. Controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON).
+2. **Manual format picker (`vr`/XR-noLegal only):** if auto-detect gets it wrong, open the player's Control dialog and pick **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under**, or **Mono** from the 3D tab - the choice is remembered for that file. Not available on Standard/Lite/Legacy.
+3. For simple phone VR viewers, confirm the stereo mode first and only then place the phone in the headset.
 
 **Scenario Walkthrough**
 
-- Start with Auto-detect for normal SBS files.
-- If the picture looks doubled, force **Side-by-Side (SBS)** manually.
+- Standard/Lite/Legacy: the crop is automatic - there is no format picker, only the single on/off toggle in Playback settings.
+- `vr`/XR-noLegal: if the picture looks doubled, force the format manually from the 3D tab instead of relying on auto-detect.
 - For simple phone VR viewers, confirm the stereo mode first and only then place the phone in the headset.
 
 **When It Helps**
@@ -171,34 +170,35 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Avoid This**
 
+- Do not look for a format picker on Standard/Lite/Legacy - only the single-eye crop toggle exists there.
 - Do not expect Over-Under material to behave like SBS.
 - Do not assume every wide video is 3D; verify before saving a playback preset.
 
 ## OpenXR VR Immersive Cinema
 
-**Available in:** VR Only
+**Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (single-eye 3D); XR/noLegal only (full headset immersion)
 
-**Quick Path**
+**Quick Path - enable, configure, watch 3D**
 
-1. Launch FastMediaSorter on your Meta Quest or Android XR headset.
-2. Select any media file (3D or 2D) from local or network/cloud folders.
-3. For 3D/360° stereoscopic media, use the **VR Entry Point** floating badge to switch into full immersive mode.
-4. For standard 2D files, view them on a large virtual screen inside the cinema interface.
+1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick it from the 3D tab; the choice is remembered for that file.
+2. **Full immersion on a Quest (XR/noLegal sideload build only):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
+3. **Watch:** inside the immersive view, aim the controller ray and pull the trigger to move to the next or previous file. Any other button, key, or click exits back to the flat screen - there is no in-headset volume, seek, or track control yet.
 
 **Scenario Walkthrough**
 
-- Open a Side-by-Side (SBS) or Over-Under (OU) video file and enable auto-detection to render the 3D depth correctly.
-- Use **Quest Hand Tracking** gestures or aiming rays to navigate the player menus without physical controllers.
-- Capture passthrough mixed-reality snapshots or stereo screenshots of both eyes while in VR mode.
+- Single-eye 3D needs no headset at all - it's the easiest way to revisit old SBS/OU footage on a phone or tablet.
+- Full immersion needs the XR/noLegal sideload build (see the [VR Sideloading Guide](VR_SIDELOAD.md)) and a Quest or other OpenXR headset - the Meta Horizon Store / Google Play `vr` build does not have it wired up yet.
+- 360°/180° photos and video render as a sphere/hemisphere around you once inside the immersive view; flat 2D files just play flat.
 
 **When It Helps**
 
-- You want to watch immersive SBS 3D movies or explore 360°/VR180 vacation photos in high-quality per-eye rendering.
-- You want to view flat media files on a simulated large theater screen in virtual space.
+- You want to revisit archived SBS/OU/360°/180° footage without a separate VR media app.
+- You have a Quest and want to try full immersion on your own files today, accepting that navigation is next/previous only for now.
 
 **Avoid This**
 
-- Do not use non-VR builds (Standard/Lite/Legacy) expecting full headset tracking; the VR edition requires the dedicated OpenXR build.
+- Do not expect the Meta Horizon Store / Google Play `vr` build to enter immersive mode yet - that part is still in development.
+- Do not expect in-headset volume, seek, or file operations inside the immersive view - drop back to the flat panel for anything beyond next/previous.
 
 ## Play Internet Radio on a Car Head Unit or Audio Player
 
@@ -699,28 +699,26 @@ Then use **command panel buttons** instead.
 
 ## How to Watch 3D Videos (VR)
 
-**Flavor**: Standard, Legacy
+**Flavor**: Standard, Lite, Legacy (automatic single-eye 3D); `vr`/XR-noLegal (manual stereo-mode picker)
 
-**What you need**: A 3D video file in SBS (Side-by-Side) format and optionally a phone-based VR viewer (e.g., Google Cardboard).
+**What you need**: A 3D video file in SBS (Side-by-Side) or Over-Under format and optionally a phone-based VR viewer (e.g., Google Cardboard).
 
 **Steps:**
 
 1. Browse to and open a 3D video file in FastMediaSorter.
 2. Tap the **fullscreen** button to enter fullscreen mode.
-3. Tap **Playback Settings** (gear icon) in the player controls.
-4. Scroll to the **3D Video** section.
-5. Choose a stereo mode:
-   - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS automatically.
-   - **Side-by-Side (SBS)** - manually enable side-by-side stereo rendering regardless of detection.
-   - **Over-Under (OU)** - manually enable over-under stereo rendering regardless of detection.
+3. Open **Playback Settings** (gear icon) and make sure **Show 3D content from one eye** is on - on Standard/Lite/Legacy this single toggle drives automatic SBS/OU detection and single-eye crop. There is no per-format dropdown on these flavors.
+4. On a `vr`/XR-noLegal build only, the player's Control dialog adds a **3D** tab with a manual stereo mode:
+   - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS/OU automatically.
+   - **Side-by-Side (SBS)** - force side-by-side rendering regardless of detection.
+   - **Over-Under (OU)** - force over-under rendering regardless of detection.
    - **Mono (Disabled)** - disable stereo (standard viewing).
-6. Tap **Apply** - the player switches to the selected mode instantly.
-7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
+5. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D, or see [OpenXR VR Immersive Cinema](#openxr-vr-immersive-cinema) for full-headset playback on a Quest.
 
 **Tips:**
 
-- Auto-detect works reliably for standard SBS files (aspect ratio ≈ 32:9 or wider).
-- If the video looks stretched or doubled, switch to **Side-by-Side (SBS)** manually.
+- The single-eye crop toggle is the universal path; the manual per-format picker exists only on `vr`/XR-noLegal builds.
+- If a wide video is misdetected on Standard/Lite/Legacy, the single-eye crop still applies; for exact format control use a `vr`/XR-noLegal build.
 
 ---
 

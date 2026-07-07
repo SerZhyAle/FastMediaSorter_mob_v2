@@ -15,14 +15,16 @@ import dagger.multibindings.IntoSet
 @InstallIn(SingletonComponent::class)
 object VrBundledDeliverableSetsModule {
 
-    // Translation (Set A) stays bundled on sideload/VR (Google `.so` are not re-hosted). Set B (OCR:
-    // Tesseract; vr ships no PaddleOCR), Set C (audio-visualizations) and Set D (FFmpeg DTS) are
-    // de-bundled and delivered on demand (S0386 Phase 05).
+    // Translation (Set A) stays bundled on sideload/VR (Google `.so` are not re-hosted).
+    // S0971: Set B (OCR: Tesseract; vr ships no PaddleOCR) and Set D (FFmpeg DTS) are re-bundled - their
+    // `.so` ship in the APK again. Only Set C (audio-visualizations, `.mp4` data) stays on demand.
     @Provides
     @IntoSet
     fun contributor(): BundledDeliverableSetContributor = object : BundledDeliverableSetContributor {
         override fun bundledSets(): Set<DeliverableSet> = setOf(
-            DeliverableSet.TRANSLATION
+            DeliverableSet.TRANSLATION,
+            DeliverableSet.OCR_ENGINES,
+            DeliverableSet.FFMPEG_DTS
         )
     }
 
@@ -30,9 +32,7 @@ object VrBundledDeliverableSetsModule {
     @IntoSet
     fun descriptorContributor(): DeliverableSetContributor = object : DeliverableSetContributor {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
-            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
-            DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesStore(),
-            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
+            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations()
         )
     }
 }

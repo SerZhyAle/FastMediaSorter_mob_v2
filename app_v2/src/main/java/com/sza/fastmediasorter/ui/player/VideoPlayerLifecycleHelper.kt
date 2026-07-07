@@ -32,7 +32,6 @@ internal class VideoPlayerLifecycleHelper(
         // S0854: this is also the only teardown path when switching to a non-video file
         // (PlayerLifecycleManager.stopVideoPlayback) - without this, the save loop has no future
         // startPositionSaving() call to be replaced by and ticks forever against a released player.
-        Timber.d("S0854: releasePlayer - stopping position-save loop")
         manager.stopPositionSaving()
 
         manager.pendingEffectsRunnable?.let { manager.effectsHandler.removeCallbacks(it) }

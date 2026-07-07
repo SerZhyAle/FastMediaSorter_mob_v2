@@ -2,31 +2,41 @@ package com.sza.fastmediasorter.ui.player.standalone
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
+import android.view.ActionMode
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.github.chrisbanes.photoview.OnSingleFlingListener
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.share.SharePrintHost
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandaloneDocumentBinding
@@ -39,6 +49,10 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
+import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintHost
+import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
 import com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentOpenManager
@@ -50,17 +64,6 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import android.content.res.Configuration
-import android.view.ActionMode
-import com.sza.fastmediasorter.BuildConfig
-import androidx.appcompat.app.AppCompatActivity
-import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.share.SharePrintHost
-import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintHost
-import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
-import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
-import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -302,6 +305,11 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         )
     }
     private val pdfViewerManager: PdfViewerManager by pdfViewerManagerDelegate
+
+    // S0953: last PDF touch-down point, recorded so a long-press can pre-select the word under it
+    // (mirrors PlayerGestureSetupManager's in-app reference). Meaningful only while a PDF is shown.
+    private var lastPdfDownX = 0f
+    private var lastPdfDownY = 0f
 
     // S0873: explicit Lazy (see pdf) so an initialized EPUB viewer is released on teardown/type-switch.
     private val epubViewerManagerDelegate = lazy {
@@ -600,24 +608,57 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     // ── PDF / EPUB navigation controls (mirror StandalonePlayerActivity) ──────────
 
+    // Touch is forwarded to the PhotoView attacher; tap/long-press semantics come from the native
+    // callbacks below, so performClick is not needed here.
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupPdfButtons() {
         // Navigation/zoom buttons live in player_pdf_controls_overlay_content (id-less include) →
         // reach via safeViews. The cmd buttons (translate/search) are direct command-panel children.
         safeViews.btnPdfPrevPage.setOnClickListener { pdfViewerManager.showPreviousPage() }
         safeViews.btnPdfHome.setOnClickListener { pdfViewerManager.showFirstPage() }
         safeViews.btnPdfNextPage.setOnClickListener { pdfViewerManager.showNextPage() }
-        safeViews.btnPdfZoomIn.setOnClickListener {
-            binding.photoView.setScale(binding.photoView.scale * 1.25f, true)
-        }
-        safeViews.btnPdfZoomOut.setOnClickListener {
-            binding.photoView.setScale(binding.photoView.scale / 1.25f, true)
-        }
+        // S0949: route buttons through the shared PDF zoom-step contract (0.3x..10x, clamped) so
+        // buttons and the horizontal-swipe gesture stay in one range on both hosts.
+        safeViews.btnPdfZoomIn.setOnClickListener { pdfViewerManager.stepPdfZoom(zoomIn = true) }
+        safeViews.btnPdfZoomOut.setOnClickListener { pdfViewerManager.stepPdfZoom(zoomIn = false) }
         binding.btnTranslatePdfCmd.setOnClickListener { pdfViewerManager.toggleTranslation() }
         binding.btnSearchPdfCmd.setOnClickListener { pdfViewerManager.showThumbnailNavigation() }
         // S0393 wave-C: OCR current page + share current page to Google Lens (buttons already in layout;
         // visibility owned by the viewer manager per settings).
         binding.btnOcrPdfCmd.setOnClickListener { pdfViewerManager.extractTextFromCurrentPage() }
         binding.btnGoogleLensPdfCmd.setOnClickListener { pdfViewerManager.shareCurrentPageToGoogleLens() }
+        // S0951: touch parity with the in-app player - vertical swipe pages the PDF. Uses PhotoView's
+        // native single-fling callback (not setOnTouchListener, which would replace the attacher and
+        // break pinch/pan). handlePdfFling owns the scroll-mode + zoom guards, so no extra checks here.
+        binding.photoView.setOnSingleFlingListener(
+            OnSingleFlingListener { e1, e2, velocityX, velocityY ->
+                pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
+            }
+        )
+        // S0953: full PDF touch parity with the in-app player (PlayerGestureSetupManager reference) -
+        // single-tap opens links, long-press opens text selection. PhotoView native callbacks; the
+        // touch listener only records the down point and forwards to the attacher so pinch/pan/fling
+        // stay intact. handlePdfTap/handlePdfLongPress no-op when no PDF page is loaded.
+        binding.photoView.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                return pdfViewerManager.handlePdfTap(e.x, e.y)
+            }
+
+            override fun onDoubleTap(e: MotionEvent): Boolean = false // pinch-to-zoom only, matches in-app
+
+            override fun onDoubleTapEvent(e: MotionEvent): Boolean = false
+        })
+        val pdfAttacher = binding.photoView.attacher
+        binding.photoView.setOnTouchListener { v, ev ->
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                lastPdfDownX = ev.x
+                lastPdfDownY = ev.y
+            }
+            pdfAttacher.onTouch(v, ev)
+        }
+        binding.photoView.setOnLongClickListener {
+            pdfViewerManager.handlePdfLongPress(lastPdfDownX, lastPdfDownY)
+        }
     }
 
     // S0393 wave-C: delegate to the shared host-agnostic Google Lens share.

@@ -2978,4 +2978,14 @@ Close the player and try again.</string>
     <string name="streams_move_up">Move up</string>
     <string name="streams_move_down">Move down</string>
     <string name="streams_move_to_top">Move to top</string>
+    <string name="app_launch_panel_os_dev_options">Developer options</string>
+    <string name="app_launch_panel_os_battery_saver">Battery saver</string>
+    <string name="app_launch_panel_os_auto_rotate">Auto-rotate</string>
+    <string name="app_launch_panel_os_accessibility">Accessibility</string>
+    <string name="app_launch_panel_os_wireless">Wireless networks</string>
+    <string name="app_launch_panel_os_data_usage">Data usage</string>
+    <string name="app_launch_panel_os_nfc">NFC</string>
+    <string name="app_launch_panel_os_vpn">VPN</string>
+    <string name="action_open_in_vr_cinema">Open in VR Cinema</string>
+    <string name="vr_cinema_launch_unavailable">VR Cinema is unavailable right now</string>
 </resources>

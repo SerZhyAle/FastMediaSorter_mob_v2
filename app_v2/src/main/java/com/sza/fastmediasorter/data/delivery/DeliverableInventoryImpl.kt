@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -204,6 +205,9 @@ class DeliverableInventoryImpl @Inject constructor(
     // Merges the persisted capability state with any in-flight download so the row reflects both:
     // a live download (or its failure) wins, otherwise the repository's installed/not state shows.
     private fun moduleStatusFlow(set: DeliverableSet): Flow<ExtensionStatus> {
+        // S0971: a bundled set ships inside the APK, so it is always installed - never surface a
+        // (Play-forbidden) download for it. Short-circuit before the repository/marker state.
+        if (bundled.contains(set)) return flowOf(ExtensionStatus.Installed)
         val active = activeDownloads.getOrPut(moduleKey(set)) {
             MutableStateFlow(
                 if (repository.isInstalledBlocking(set)) ExtensionStatus.Installed

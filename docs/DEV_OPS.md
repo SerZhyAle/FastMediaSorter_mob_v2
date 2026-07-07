@@ -332,37 +332,32 @@ ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `
 ## QUEST DEBUGGING (VR flavor)
 
 **Do NOT launch the VR build via `adb shell am start`, Android Studio Run, or MQDH Launch App.**
-These entry points bypass the HorizonOS VR shell, so the panel activity is stacked
-inside the same Android task as `VrPlayerActivity`. Because the panel activity
-carries `com.oculus.intent.category.2D`, the compositor keeps rendering the task
-root as the foreground window and the XR session stops at `VISIBLE` instead of
-reaching `FOCUSED` - no true immersive VR.
+These entry points start the immersive Activity through the plain Android launch path,
+bypassing the HorizonOS VR shell that recognizes `com.oculus.intent.category.VR`. Without
+that shell handoff the Activity's window may never get the compositor focus the native
+OpenXR session waits for, so the session can stall at `VISIBLE` instead of reaching
+`FOCUSED` - no true immersive VR.
 
-### Why FOCUSED requires the hybrid-app task split
+### The real immersive host: `DiagnosticXrActivity`
 
-HorizonOS follows Meta's [Hybrid App Model](https://developers.meta.com/horizon/documentation/spatial-sdk/hybrid-apps-overview/):
-an app declares two distinct Activities - a panel Activity with
-`com.oculus.intent.category.2D` (our `MainActivity`) and an immersive Activity
-with `com.oculus.intent.category.VR` (our `VrPlayerActivity`) - and switches
-between them via an explicit task swap.
+There is no panel/VR task-affinity split in the current architecture. `MainActivity` is
+the ordinary 2D panel - it carries no VR-specific category and stays on the app's default
+task. The dedicated immersive host is `DiagnosticXrActivity`
+(`app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt`, declared in
+`app_v2/src/vr/AndroidManifest.xml`):
 
-Two co-requisites make the VR category safe:
-
-1. **Separate tasks.** `VrPlayerActivity` declares `android:taskAffinity="${applicationId}.vr"`
-   in `app_v2/src/vr/AndroidManifest.xml`. `MainActivity` and the rest of the panel
-   Activities stay on the default affinity. The compositor never sees a 2D window
-   inside the VR task.
-2. **Runtime handoff via `VrTaskTransition`.**
-   `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/VrTaskTransition.kt`
-   implements the swap:
-   - `enterImmersive(source, vrIntent)`: `ACTION_MAIN` + `FLAG_ACTIVITY_NEW_TASK` on the intent, then `source.finishAndRemoveTask()` tears down the panel task.
-   - `exitImmersiveToPanel(source)`: builds a `PendingIntent` targeting `MainActivity` with `FLAG_IMMUTABLE`, attaches it as `extra_launch_in_home_pending_intent` on a `CATEGORY_HOME` intent, and calls `finishAndRemoveTask()` on the VR activity. HorizonOS fires the PendingIntent and the user lands on a fresh panel.
-
-All non-VR `PlayerActivity.createIntent(...)` call sites in the VR flavor are
-wrapped with `VrTaskTransition.shouldEnterImmersiveTask(intent)` so that explicit
-standard-player intents (`BrowseEventHandler.createStandardPlayerIntent` for
-MONO/audio) stay on the panel-launch path and preserve their `ActivityResultLauncher`
-contract.
+- `android:launchMode="singleTask"`, `android:exported="true"`, `android:screenOrientation="landscape"`.
+- Intent-filter: `android.intent.action.MAIN` + `com.oculus.intent.category.VR` +
+  `android.intent.category.DEFAULT`. The VR category is the HorizonOS hint to launch in
+  headset mode - there is no `android:taskAffinity` override on this Activity.
+- Entry is explicit: `XrEntryGatewayImpl` / `StartVrPlaybackUseCaseImpl` (`core/xr`,
+  vr/noLegal source set) build an `Intent(appContext, DiagnosticXrActivity::class.java)`,
+  add `FLAG_ACTIVITY_NEW_TASK` (required because the launch runs from the Application
+  context, not an Activity), and call `startActivity`. Triggers: the player's VR entry
+  badge, Browse's "Open in VR Cinema" (S0962), and the "Test Immersive" button in Settings.
+- Exit is a `CATEGORY_HOME` + `PendingIntent` handoff back to the panel
+  (`MainActivity`/`SettingsActivity`), built inline in
+  `DiagnosticXrActivity.returnToSettingsTaskOrFinish`, followed by `finish()`.
 
 ### Correct workflow
 
@@ -379,52 +374,52 @@ contract.
 
 #### 2. Launch from the headset
 
-Menu → Library → *Unknown Sources* → `FastMediaSorter (VR debug)` → tap. HorizonOS launches `MainActivity` as a 2D panel; tapping a VR-target file inside the library triggers the task swap described above, and `VrPlayerActivity` starts in its dedicated VR task.
+Menu → Library → *Unknown Sources* → `FastMediaSorter (VR debug)` → tap. HorizonOS launches `MainActivity` as a 2D panel; tapping "Test Immersive" (or a VR-target file) fires the XR entry gateway, which starts `DiagnosticXrActivity` directly.
 
 #### 3. Attach debugger (optional)
 
-Android Studio → `Run → Attach Debugger to Android Process` → select `com.sza.fastmediasorter.vr.debug`. Breakpoints, variable inspection, evaluate expression - all work against the shell-launched process.
+Android Studio → `Run → Attach Debugger to Android Process` → select `com.sza.fastmediasorter.debug` (the `vr` flavor has no `applicationIdSuffix` - it shares the debug package with `standard`, per the S0232 applicationId policy above). Breakpoints, variable inspection, evaluate expression - all work against the shell-launched process.
 
 #### 4. Live logcat (optional, run before the tap on headset)
 
 ```powershell
-adb logcat -s VrRuntimeClient OpenXR OpenXrNative VrPlayerActivity OpenXrSessionManager VrTaskTransition
+adb logcat -s DiagnosticXrActivity DiagnosticXrRenderThread S0249.XrSession S0249.JniBridge OpenXR_SessionImpl VrRuntimeClient
 ```
+
+`S0249.XrSession` / `S0249.JniBridge` are our own native tags; `OpenXR_SessionImpl` /
+`VrRuntimeClient` come from the Meta/HorizonOS OpenXR runtime itself - both matter when a
+session fails to reach FOCUSED. Android Studio's `package:mine` logcat export drops all of
+these (immersive playback runs in native threads and the per-entry Activity is
+`finish()`-ed, so the pid looks dead to the package filter) - capture with raw
+`adb logcat -b all -v threadtime` instead.
 
 ### Verifying FOCUSED is reached
 
-After step 2, look for this line in logcat:
+The native session logs state transitions under `S0249.XrSession` as
+`session state -> <N>` - a raw `XrSessionState` integer, not its symbolic name. Per the
+OpenXR 1.0 spec: `IDLE=1`, `READY=2`, `SYNCHRONIZED=3`, `VISIBLE=4`, `FOCUSED=5`. A healthy
+immersive entry climbs `1 -> 2 -> 3 -> 4 -> 5`.
 
-```text
-OpenXR  PostSessionStateChange: XR_SESSION_STATE_VISIBLE -> XR_SESSION_STATE_FOCUSED
-```
-
-Expected full sequence for a successful immersive entry:
-
-```text
-XR_SESSION_STATE_IDLE -> XR_SESSION_STATE_READY
-XR_SESSION_STATE_READY -> XR_SESSION_STATE_SYNCHRONIZED
-XR_SESSION_STATE_SYNCHRONIZED -> XR_SESSION_STATE_VISIBLE
-XR_SESSION_STATE_VISIBLE -> XR_SESSION_STATE_FOCUSED
-```
-
-If you only see `... -> XR_SESSION_STATE_VISIBLE` and a later `VrRuntimeClient: Client has lost focus.`, the panel task was not destroyed - either you launched via ADB/Studio/MQDH, or a panel Activity was recreated inside the VR task. Dump activities with:
+If the state sticks at `1` (`IDLE`, never reaching `2`), or logcat shows
+`OpenXR_SessionImpl: xrCreateSession: Activity is not yet in the ready state` or
+`VrRuntimeClient: Failed to get window type`, either the Activity did not go through the
+VR shell path, or you are looking at the immersive re-entry bug fixed in S0607 (repeat
+entries reusing an `XrInstance` bound to an already-`finish()`-ed Activity). Dump
+activities with:
 
 ```powershell
 adb shell dumpsys activity activities
 ```
 
-The healthy state after immersive entry is exactly one task with affinity `...vr` containing `VrPlayerActivity`, and no panel task at all.
-
 ### Historical note
 
-Earlier revisions of this app attempted to add `com.oculus.intent.category.VR` to
-`VrPlayerActivity` without splitting the task affinity. That produced an immediate
-black screen because HorizonOS disabled passthrough before the XR session was
-ready. The task split is the decisive co-requisite that makes the category safe.
-An even earlier theory - that FOCUSED requires forwarding a
-`com.oculus.vrshell.launch_id` extra - was disproved by intent dumps (the key was
-never present) and has been removed from the codebase; do not re-introduce it.
+The predecessor to `DiagnosticXrActivity` extended the same `PlayerActivity` as the 2D
+panel, so it needed a `${applicationId}.vr` task-affinity split plus a dedicated
+`VrTaskTransition` handoff helper to keep the compositor from seeing a 2D window inside the
+VR task. Both are gone: `VrTaskTransition` was removed in S0251, and the old immersive host
+was replaced by the standalone `DiagnosticXrActivity` in S0282. The new host never shares a
+task or an Activity class with the panel, so the affinity split is no longer needed - do
+not resurrect it.
 
 ## Release Signing Fingerprint (GitHub Store)
 

@@ -27,6 +27,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -46,6 +48,12 @@ fun AudioPlayerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+
+    // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
+    // onDispose only fires on navigation away, so without this the player kept running.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        viewModel.onHostStopped()
+    }
 
     Timber.d("AudioPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
 

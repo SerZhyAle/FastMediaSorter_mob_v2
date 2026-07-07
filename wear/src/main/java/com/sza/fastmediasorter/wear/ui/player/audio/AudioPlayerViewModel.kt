@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
 import android.content.Context
-import android.media.MediaMetadataRetriever
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,13 +12,12 @@ import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
-import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
+import com.sza.fastmediasorter.wear.util.SmbCacheEvictor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -45,8 +43,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AudioPlayerViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
-    private val albumArtRepository: AlbumArtRepository,
-    private val preferencesRepository: WearPreferencesRepository,
     private val selectedMediaManager: SelectedMediaManager,
     private val smbDataSource: SmbDataSource,
     private val exoPlayer: ExoPlayer,
@@ -56,7 +52,11 @@ class AudioPlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
-    
+
+    companion object {
+        private const val SMB_AUDIO_CACHE_CAP_BYTES = 100L * 1024 * 1024
+    }
+
     private val _uiState = MutableStateFlow(AudioPlayerUiState())
     val uiState: StateFlow<AudioPlayerUiState> = _uiState.asStateFlow()
 
@@ -90,7 +90,11 @@ class AudioPlayerViewModel @Inject constructor(
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
+                    Timber.d("S0902: audio STATE_ENDED - pause+seekTo(0), no auto-restart")
                     _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
+                    // S0902: pause before seeking - playWhenReady stays true otherwise and the
+                    // track auto-restarts from 0, looping indefinitely (mirrors VideoPlayerViewModel).
+                    exoPlayer.pause()
                     exoPlayer.seekTo(0)
                     publishPlaybackState()
                 }
@@ -188,7 +192,15 @@ class AudioPlayerViewModel @Inject constructor(
                         }
                         
                         Timber.d("SMB audio downloaded, size: ${tempFile.length()} bytes")
-                        
+
+                        // S0902: bound unbounded cache growth - each distinct SMB file adds a
+                        // new temp file that was never deleted before this fix.
+                        SmbCacheEvictor.evictOldestUntilUnderCap(
+                            cacheDir = cacheDir,
+                            keep = tempFile,
+                            capBytes = SMB_AUDIO_CACHE_CAP_BYTES
+                        )
+
                         // Play from temp file on main thread
                         withContext(Dispatchers.Main) {
                             val mediaItem = MediaItem.fromUri(android.net.Uri.fromFile(tempFile))
@@ -225,7 +237,17 @@ class AudioPlayerViewModel @Inject constructor(
             exoPlayer.play()
         }
     }
-    
+
+    /**
+     * S0902: called from the screen's onStop lifecycle effect - without this, playback
+     * keeps running while the host activity is stopped (screen off / app backgrounded);
+     * onCleared was the only prior teardown edge.
+     */
+    fun onHostStopped() {
+        Timber.d("S0902: audio host stopped - pausing player")
+        exoPlayer.pause()
+    }
+
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
