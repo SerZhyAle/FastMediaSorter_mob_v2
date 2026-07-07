@@ -131,12 +131,19 @@ class QuickAudioRecorderService : Service() {
             recorderStarted = true
             isRecording = true
             QuickAudioRecorderWidgetProvider.updateAllWidgets(this, true)
-            val controller = indicatorControllers.firstOrNull { it.isAvailable(this) }
-            if (controller != null) {
-                Timber.d("S0930: showing floating stop indicator for quick audio recording")
-                controller.show(this) { stopAndSave() }
-                activeIndicator = controller
-                elapsedTimer.start()
+            // S0930: the floating indicator is cosmetic; a UI-inflate failure must NEVER discard an
+            // already-started recording. Isolate it in its own catch so a bad pill degrades to
+            // "recording continues without the pill" instead of failAndStop() dropping the clip.
+            try {
+                val controller = indicatorControllers.firstOrNull { it.isAvailable(this) }
+                if (controller != null) {
+                    Timber.d("S0930: showing floating stop indicator for quick audio recording")
+                    controller.show(this) { stopAndSave() }
+                    activeIndicator = controller
+                    elapsedTimer.start()
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "QuickAudioRecorder: indicator failed to show; recording continues without pill")
             }
         } catch (e: Exception) {
             Timber.e(e, "QuickAudioRecorder: failed to prepare/start recorder")

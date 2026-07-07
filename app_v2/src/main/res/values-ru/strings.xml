@@ -2932,4 +2932,14 @@
     <string name="streams_move_up">Вверх</string>
     <string name="streams_move_down">Вниз</string>
     <string name="streams_move_to_top">В самый верх</string>
+    <string name="app_launch_panel_os_dev_options">Для разработчиков</string>
+    <string name="app_launch_panel_os_battery_saver">Энергосбережение</string>
+    <string name="app_launch_panel_os_auto_rotate">Автоповорот</string>
+    <string name="app_launch_panel_os_accessibility">Специальные возможности</string>
+    <string name="app_launch_panel_os_wireless">Беспроводные сети</string>
+    <string name="app_launch_panel_os_data_usage">Передача данных</string>
+    <string name="app_launch_panel_os_nfc">NFC</string>
+    <string name="app_launch_panel_os_vpn">VPN</string>
+    <string name="action_open_in_vr_cinema">Открыть в VR-кинотеатре</string>
+    <string name="vr_cinema_launch_unavailable">VR-кинотеатр сейчас недоступен</string>
 </resources>

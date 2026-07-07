@@ -2904,4 +2904,14 @@
     <string name="streams_move_up">Вгору</string>
     <string name="streams_move_down">Вниз</string>
     <string name="streams_move_to_top">На самий верх</string>
+    <string name="app_launch_panel_os_dev_options">Для розробників</string>
+    <string name="app_launch_panel_os_battery_saver">Економія заряду</string>
+    <string name="app_launch_panel_os_auto_rotate">Автообертання</string>
+    <string name="app_launch_panel_os_accessibility">Спеціальні можливості</string>
+    <string name="app_launch_panel_os_wireless">Бездротові мережі</string>
+    <string name="app_launch_panel_os_data_usage">Передача даних</string>
+    <string name="app_launch_panel_os_nfc">NFC</string>
+    <string name="app_launch_panel_os_vpn">VPN</string>
+    <string name="action_open_in_vr_cinema">Відкрити в VR-кінотеатрі</string>
+    <string name="vr_cinema_launch_unavailable">VR-кінотеатр зараз недоступний</string>
 </resources>

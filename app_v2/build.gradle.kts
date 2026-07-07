@@ -321,7 +321,6 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible - safe for Google Play.
@@ -397,7 +396,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
@@ -426,7 +424,6 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No background audio in lite
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
@@ -454,7 +451,6 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No audio support
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
@@ -485,7 +481,6 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
@@ -547,7 +542,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
@@ -882,21 +876,16 @@ android {
             // final shared library in intermediates/cxx; mergeNativeLibs must ignore them.
             excludes += "**/*.tmp"
 
-            // S0386 Phase 05 de-bundle: strip the on-demand native sets from every base artifact.
-            // The Java/Kotlin wrappers (cz.adaptech:tesseract4android, PaddleLite, media3 FfmpegLibrary)
-            // stay on the compile path; only the `.so` are removed and re-attached at runtime from
-            // filesDir by DeliveredNativeLibraryLoader. These names exist only in OCR/DTS flavors, so a
-            // global exclude is flavor-safe (lite/photos never packaged them).
-            // Set B - Tesseract OCR stack:
-            excludes += "**/libtesseract.so"
-            excludes += "**/libleptonica.so"
-            excludes += "**/libpngx.so"
-            excludes += "**/libjpeg.so"
-            // Set B - PaddleOCR (noLegal):
-            excludes += "**/libpaddle_lite_jni.so"
-            excludes += "**/libpaddle_light_api_shared.so"
-            // Set D - FFmpeg DTS decoder:
-            excludes += "**/libffmpegJNI.so"
+            // S0971 (2026-07-06): re-bundle the native sets back into the base artifact. The S0386
+            // Phase 05 de-bundle stripped the OCR (Tesseract/PaddleOCR) and FFmpeg-DTS `.so` and relied
+            // on a runtime GitHub download, but Google Play policy (Device & Network Abuse) forbids
+            // fetching executable `.so` from a non-Play source, so on a Play install those modules were
+            // permanently unavailable (S0401's Play-compliant delivery was never built). Owner decision:
+            // ship the `.so` in the APK/AAB again (store AABs stay lean via per-ABI delivery). The `.so`
+            // ride the AAR native libs on the compile path, so simply not excluding them re-packages
+            // them; lite/photos have no OCR/DTS deps, so this is a no-op there. The sets are now declared
+            // in each flavor's *BundledDeliverableSetsModule.bundledSets(), so the delivery runtime
+            // treats them as installed and never offers a (Play-forbidden) download.
 
             useLegacyPackaging = false
         }

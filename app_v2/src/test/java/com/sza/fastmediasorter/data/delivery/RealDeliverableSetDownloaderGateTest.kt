@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
+import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
@@ -35,10 +36,12 @@ class RealDeliverableSetDownloaderGateTest {
     private val markerStore = mockk<InstalledSetMarkerStore>(relaxed = true)
     private val repository = mockk<DeliverableCapabilityRepository>(relaxed = true)
     private val installSourceProvider = mockk<InstallSourceProvider>()
+    private val bundledSets = mockk<BundledDeliverableSets>()
     private val context = mockk<Context>(relaxed = true)
 
-    private fun downloader(playInstall: Boolean): RealDeliverableSetDownloader {
+    private fun downloader(playInstall: Boolean, bundled: Boolean = false): RealDeliverableSetDownloader {
         every { installSourceProvider.isPlayInstall() } returns playInstall
+        every { bundledSets.contains(any()) } returns bundled
         // Source-failover branch resolves the descriptor first; stub to null so it fails fast with a
         // distinct reason instead of touching staging/HTTP.
         coEvery { manifest.resolve(any()) } returns null
@@ -49,8 +52,21 @@ class RealDeliverableSetDownloaderGateTest {
             markerStore = markerStore,
             repository = repository,
             installSourceProvider = installSourceProvider,
+            bundledSets = bundledSets,
             okHttpClient = OkHttpClient()
         )
+    }
+
+    @Test
+    fun `S0971 bundled native set reports installed immediately without gate or network`() = runTest {
+        val progress = downloader(playInstall = true, bundled = true)
+            .download(DeliverableSet.OCR_ENGINES).toList()
+
+        assertEquals(DownloadProgress.Queued, progress.first())
+        assertEquals(DownloadProgress.Installed, progress.last())
+        // A bundled set short-circuits before the Play gate and the descriptor source alike.
+        verify(exactly = 0) { installSourceProvider.isPlayInstall() }
+        coVerify(exactly = 0) { manifest.resolve(any()) }
     }
 
     @Test

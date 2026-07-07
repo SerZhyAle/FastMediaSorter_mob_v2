@@ -16,13 +16,16 @@ import dagger.multibindings.IntoSet
 object StandardBundledDeliverableSetsModule {
 
     // S0423: Translation (Set A) is bundled in the standard base (the on-demand DFM was removed).
-    // Set B (OCR/Tesseract), Set C (audio-visualizations) and Set D (FFmpeg DTS) stay de-bundled and
-    // delivered on demand (S0386 Phase 05).
+    // S0971: Set B (OCR/Tesseract) and Set D (FFmpeg DTS) are re-bundled - their `.so` ship in the APK
+    // again (Play forbids downloading executable `.so`, so on-demand delivery dead-ended on Play).
+    // Only Set C (audio-visualizations, pure `.mp4` data) stays delivered on demand.
     @Provides
     @IntoSet
     fun contributor(): BundledDeliverableSetContributor = object : BundledDeliverableSetContributor {
         override fun bundledSets(): Set<DeliverableSet> = setOf(
-            DeliverableSet.TRANSLATION
+            DeliverableSet.TRANSLATION,
+            DeliverableSet.OCR_ENGINES,
+            DeliverableSet.FFMPEG_DTS
         )
     }
 
@@ -30,9 +33,7 @@ object StandardBundledDeliverableSetsModule {
     @IntoSet
     fun descriptorContributor(): DeliverableSetContributor = object : DeliverableSetContributor {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
-            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
-            DeliverableSet.OCR_ENGINES to DeliverableDescriptorCatalog.ocrEnginesStore(),
-            DeliverableSet.FFMPEG_DTS to DeliverableDescriptorCatalog.ffmpegDts()
+            DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations()
         )
     }
 }

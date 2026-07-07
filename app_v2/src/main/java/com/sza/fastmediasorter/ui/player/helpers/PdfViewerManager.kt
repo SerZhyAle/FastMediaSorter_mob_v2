@@ -916,7 +916,6 @@ class PdfViewerManager(
             }
         } else if (abs(diffX) > swipeThreshold && abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD) {
             // S0949: horizontal swipe = zoom step (right = in, left = out), clamped to 0.3x..10x.
-            Timber.d("S0949: pdf horizontal swipe zoom in=${diffX > 0}")
             stepPdfZoom(zoomIn = diffX > 0)
             handled = true
         }

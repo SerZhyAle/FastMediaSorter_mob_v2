@@ -17,6 +17,8 @@ import javax.inject.Inject
 @ActivityScoped
 class BrowseFileOverflowMenuManager @Inject constructor(
     @ActivityContext private val context: Context,
+    // S0962 (VR Cinema, Столп 1): self-sourced gate + cold-launch for the "Open in VR Cinema" item.
+    private val vrCinemaLaunchManager: BrowseVrCinemaLaunchManager,
 ) {
     private data class MenuItem(val label: String, val action: () -> Unit)
 
@@ -50,6 +52,14 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         // Folders and binary files have their own open semantics and are excluded.
         if (!file.isDirectory && !file.type.isBinaryFile() && onOpenInPlayer != null) {
             items += MenuItem(context.getString(R.string.action_open)) { onOpenInPlayer(file) }
+        }
+
+        // S0962: "Open in VR Cinema" - video files only, gated on runtime VR availability
+        // (device XR-capable AND master toggle on). Hidden on non-VR flavors via the No-Op facade.
+        if (file.type == MediaType.VIDEO && vrCinemaLaunchManager.isAvailable) {
+            items += MenuItem(context.getString(R.string.action_open_in_vr_cinema)) {
+                vrCinemaLaunchManager.launch(file)
+            }
         }
 
         // Basic ops - same gates as the direct buttons

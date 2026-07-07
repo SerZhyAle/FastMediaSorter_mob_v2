@@ -20,15 +20,21 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | RTSP stream |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | SMB network share |
+| <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Accessibility |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | App info |
+| <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery |
+| <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
+| <img src="icons/svg/ic_data_usage.svg" alt="ic_data_usage" width="24" height="24"> | Data usage |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Date and time |
+| <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Developer options |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Display |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
+| <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Camera |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
@@ -37,7 +43,9 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Sound |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Streams |
+| <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
+| <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Wireless networks |
 
 ## Settings sections
 

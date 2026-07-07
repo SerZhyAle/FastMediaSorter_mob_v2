@@ -523,7 +523,6 @@ class StandaloneViewManager(
         safeViews.photoView.setOnSingleFlingListener(
             OnSingleFlingListener { e1, e2, velocityX, velocityY ->
                 if (currentMediaType != MediaType.PDF) return@OnSingleFlingListener false
-                Timber.d("S0953: legacy pdf fling -> handlePdfFling")
                 pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
             }
         )

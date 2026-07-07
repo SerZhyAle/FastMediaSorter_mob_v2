@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.widget
 import android.content.Context
 import android.graphics.PixelFormat
 import android.provider.Settings
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -33,7 +34,10 @@ class QuickRecorderIndicatorControllerImpl @Inject constructor(
 
     override fun show(context: Context, onStop: () -> Unit) {
         if (indicatorView != null) return
-        val view = LayoutInflater.from(appContext).inflate(R.layout.view_recording_indicator, null)
+        // S0930: inflate through a Material-themed context - view_recording_indicator uses
+        // MaterialButton, whose ThemeEnforcement throws if inflated from the bare application context.
+        val themed = ContextThemeWrapper(appContext, R.style.Theme_FastMediaSorter)
+        val view = LayoutInflater.from(themed).inflate(R.layout.view_recording_indicator, null)
         view.contentDescription = appContext.getString(R.string.quick_recorder_notification_recording)
         view.findViewById<MaterialButton>(R.id.recordingIndicatorPauseResume).visibility = View.GONE
         view.findViewById<MaterialButton>(R.id.recordingIndicatorCancel).visibility = View.GONE

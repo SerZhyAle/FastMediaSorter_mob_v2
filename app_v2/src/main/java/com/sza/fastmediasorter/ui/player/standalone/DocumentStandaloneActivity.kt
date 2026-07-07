@@ -632,7 +632,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         // break pinch/pan). handlePdfFling owns the scroll-mode + zoom guards, so no extra checks here.
         binding.photoView.setOnSingleFlingListener(
             OnSingleFlingListener { e1, e2, velocityX, velocityY ->
-                Timber.d("S0951: standalone pdf fling -> handlePdfFling")
                 pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
             }
         )
@@ -642,7 +641,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         // stay intact. handlePdfTap/handlePdfLongPress no-op when no PDF page is loaded.
         binding.photoView.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                Timber.d("S0953: standalone pdf single-tap -> handlePdfTap")
                 return pdfViewerManager.handlePdfTap(e.x, e.y)
             }
 
@@ -659,7 +657,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             pdfAttacher.onTouch(v, ev)
         }
         binding.photoView.setOnLongClickListener {
-            Timber.d("S0953: standalone pdf long-press -> handlePdfLongPress")
             pdfViewerManager.handlePdfLongPress(lastPdfDownX, lastPdfDownY)
         }
     }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.panel
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -32,7 +33,20 @@ object OsShortcutCatalog {
     const val KEY_STORAGE = "storage"
     const val KEY_APP_INFO = "app_info"
     const val KEY_DATETIME = "datetime"
+    const val KEY_DEV_OPTIONS = "dev_options"
+    const val KEY_BATTERY_SAVER = "battery_saver"
+    const val KEY_AUTO_ROTATE = "auto_rotate"
+    const val KEY_ACCESSIBILITY = "accessibility"
+    const val KEY_WIRELESS = "wireless"
+    const val KEY_DATA_USAGE = "data_usage"
+    const val KEY_NFC = "nfc"
+    const val KEY_VPN = "vpn"
 
+    // Settings.ACTION_* are compile-time String constants; the value is inlined so it exists on every
+    // API level and [available] can probe it via resolveActivity. InlinedApi (auto-rotate API 31, data
+    // usage API 28, VPN API 24) is therefore the intended behaviour, not a bug: an unresolvable target
+    // simply never renders. So the suppression is safe here.
+    @SuppressLint("InlinedApi")
     private val targets: List<Target> = listOf(
         Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_settings) {
             Intent(Settings.ACTION_SETTINGS)
@@ -63,6 +77,30 @@ object OsShortcutCatalog {
         },
         Target(KEY_DATETIME, R.string.app_launch_panel_os_datetime, R.drawable.ic_schedule) {
             Intent(Settings.ACTION_DATE_SETTINGS)
+        },
+        Target(KEY_DEV_OPTIONS, R.string.app_launch_panel_os_dev_options, R.drawable.ic_developer_options) {
+            Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+        },
+        Target(KEY_BATTERY_SAVER, R.string.app_launch_panel_os_battery_saver, R.drawable.ic_battery) {
+            Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+        },
+        Target(KEY_AUTO_ROTATE, R.string.app_launch_panel_os_auto_rotate, R.drawable.ic_screen_rotation) {
+            Intent(Settings.ACTION_AUTO_ROTATE_SETTINGS)
+        },
+        Target(KEY_ACCESSIBILITY, R.string.app_launch_panel_os_accessibility, R.drawable.ic_accessibility) {
+            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        },
+        Target(KEY_WIRELESS, R.string.app_launch_panel_os_wireless, R.drawable.ic_wifi_tethering) {
+            Intent(Settings.ACTION_WIRELESS_SETTINGS)
+        },
+        Target(KEY_DATA_USAGE, R.string.app_launch_panel_os_data_usage, R.drawable.ic_data_usage) {
+            Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
+        },
+        Target(KEY_NFC, R.string.app_launch_panel_os_nfc, R.drawable.ic_nfc) {
+            Intent(Settings.ACTION_NFC_SETTINGS)
+        },
+        Target(KEY_VPN, R.string.app_launch_panel_os_vpn, R.drawable.ic_lock) {
+            Intent(Settings.ACTION_VPN_SETTINGS)
         },
     )
 

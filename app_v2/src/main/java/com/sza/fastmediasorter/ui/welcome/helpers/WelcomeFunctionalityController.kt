@@ -13,7 +13,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.capability.InstallSourceProvider
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
@@ -55,7 +54,6 @@ class WelcomeFunctionalityController @Inject constructor(
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val capabilityAvailability: CapabilityAvailability,
     private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
-    private val installSource: InstallSourceProvider,
     private val mediaCapabilities: MediaCapabilities,
     private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
     @param:ApplicationScope private val appScope: CoroutineScope,
@@ -338,11 +336,11 @@ class WelcomeFunctionalityController @Inject constructor(
         }
     }
 
-    // Hide the OCR row on a Play install: the OCR engines are .so delivered from GitHub on every
-    // flavor, and S0401 gates that off on Play-acquired store builds (Device & Network Abuse), so the
-    // download would dead-end there. Sideload/debug/noLegal keep the direct path, so OCR stays offered.
+    // S0971: OCR engines are now bundled in the APK (no GitHub download), so they work on a Play
+    // install too - the former `!isPlayInstall()` gate is gone; compile-time OCR capability is the
+    // only axis left.
     private fun isOcrVisible(): Boolean =
-        capabilityAvailability.isOcrAvailable(context) && !installSource.isPlayInstall()
+        capabilityAvailability.isOcrAvailable(context)
 
     private fun bindElementsButton(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
         val button = binding.btnElements

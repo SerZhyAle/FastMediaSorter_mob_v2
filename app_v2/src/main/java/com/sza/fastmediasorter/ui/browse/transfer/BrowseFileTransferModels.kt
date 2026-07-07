@@ -1,26 +1,32 @@
 package com.sza.fastmediasorter.ui.browse.transfer
 
 import android.app.PendingIntent
+import com.google.gson.annotations.SerializedName
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 
+// S0957: BrowseFileTransferRequest, its nested BrowseFileTransferSource and BrowseFileTransferTerminalPayload
+// are Gson field-reflection persisted to disk (active_request.json / terminal_event.json) and read back by a
+// @HiltWorker that outlives the process. Without @SerializedName R8 renames the fields, so a Play auto-update
+// mid-transfer (new R8 mapping between write and read) desyncs the JSON keys. Pinning every persisted field to
+// an explicit wire name makes the format R8-independent and stable across app updates while keeping obfuscation.
 data class BrowseFileTransferRequest(
-    val operationType: FileOperationType,
-    val sourceResourceId: Long,
-    val sourceResourceName: String,
-    val sourceCredentialsId: String?,
-    val currentBrowsePath: String?,
-    val destinationPath: String,
-    val destinationName: String,
-    val overwriteFiles: Boolean,
-    val sources: List<BrowseFileTransferSource>,
+    @SerializedName("operationType") val operationType: FileOperationType,
+    @SerializedName("sourceResourceId") val sourceResourceId: Long,
+    @SerializedName("sourceResourceName") val sourceResourceName: String,
+    @SerializedName("sourceCredentialsId") val sourceCredentialsId: String?,
+    @SerializedName("currentBrowsePath") val currentBrowsePath: String?,
+    @SerializedName("destinationPath") val destinationPath: String,
+    @SerializedName("destinationName") val destinationName: String,
+    @SerializedName("overwriteFiles") val overwriteFiles: Boolean,
+    @SerializedName("sources") val sources: List<BrowseFileTransferSource>,
 )
 
 data class BrowseFileTransferSource(
-    val path: String,
-    val displayName: String,
-    val size: Long,
-    val isDirectory: Boolean,
+    @SerializedName("path") val path: String,
+    @SerializedName("displayName") val displayName: String,
+    @SerializedName("size") val size: Long,
+    @SerializedName("isDirectory") val isDirectory: Boolean,
 )
 
 data class BrowseFileTransferProgressSnapshot(
@@ -82,17 +88,17 @@ sealed interface BrowseFileTransferTerminalEvent {
 }
 
 data class BrowseFileTransferTerminalPayload(
-    val kind: String,
-    val workId: String,
-    val operationType: String,
-    val processedCount: Int = 0,
-    val failedCount: Int = 0,
-    val message: String? = null,
-    val details: String? = null,
-    val provider: String? = null,
-    val undoSourceFiles: List<String> = emptyList(),
-    val undoDestinationFolder: String? = null,
-    val undoCopiedFiles: List<String> = emptyList(),
+    @SerializedName("kind") val kind: String,
+    @SerializedName("workId") val workId: String,
+    @SerializedName("operationType") val operationType: String,
+    @SerializedName("processedCount") val processedCount: Int = 0,
+    @SerializedName("failedCount") val failedCount: Int = 0,
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("details") val details: String? = null,
+    @SerializedName("provider") val provider: String? = null,
+    @SerializedName("undoSourceFiles") val undoSourceFiles: List<String> = emptyList(),
+    @SerializedName("undoDestinationFolder") val undoDestinationFolder: String? = null,
+    @SerializedName("undoCopiedFiles") val undoCopiedFiles: List<String> = emptyList(),
 )
 
 private const val KIND_SUCCESS = "success"

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
+import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
@@ -12,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -38,6 +40,7 @@ class RealDeliverableSetDownloader @Inject constructor(
     private val markerStore: InstalledSetMarkerStore,
     private val repository: DeliverableCapabilityRepository,
     private val installSourceProvider: InstallSourceProvider,
+    private val bundledSets: BundledDeliverableSets,
     okHttpClient: OkHttpClient
 ) : DeliverableSetDownloader {
 
@@ -49,6 +52,13 @@ class RealDeliverableSetDownloader @Inject constructor(
         .build()
 
     override fun download(set: DeliverableSet): Flow<DownloadProgress> {
+        // S0971: a bundled set (OCR/DTS/translation `.so` shipped in the APK) has nothing to download -
+        // report it installed immediately so enqueue-and-enable flows complete without any network call
+        // (and never hit the Play `.so`-download ban).
+        if (bundledSets.contains(set)) {
+            return flowOf(DownloadProgress.Queued, DownloadProgress.Installed)
+        }
+
         // S0423: TRANSLATION is bundled (the on-demand DFM was removed), so it is never offered for
         // download. If it ever reaches here it degrades gracefully to "no descriptor" below.
 
