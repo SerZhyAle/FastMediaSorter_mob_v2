@@ -189,6 +189,13 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun setHudQuadSize(widthMeters: Float, heightMeters: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetHudQuadSize(widthMeters, heightMeters) }.onFailure {
+            Timber.w(it, "setHudQuadSize: native call threw")
+        }
+    }
+
     override fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
         // Validation placeholder for phase 03 JNI pathway streaming
     }
@@ -218,6 +225,7 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
     private external fun nativeSetRenderConfig(projection: Int, layout: Int)
     private external fun nativeSetParallaxShift(value: Float)
     private external fun nativeQueueHud(rgba: ByteArray, width: Int, height: Int)
+    private external fun nativeSetHudQuadSize(widthMeters: Float, heightMeters: Float)
     private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
     private external fun nativeGetCurrentFps(): Float
     private external fun nativeRunFrameLoop(): Int

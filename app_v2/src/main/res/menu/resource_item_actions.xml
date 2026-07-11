@@ -9,6 +9,10 @@
         android:title="@string/resource_menu_launch"
         android:icon="@drawable/ic_play" />
     <item
+        android:id="@+id/action_open_in_vr_cinema"
+        android:title="@string/action_open_in_vr_cinema"
+        android:icon="@drawable/ic_play" />
+    <item
         android:id="@+id/action_add_to_home_screen"
         android:title="@string/widget_add_to_home_screen"
         android:icon="@drawable/ic_widget_resource_launch" />
@@ -23,6 +27,10 @@
     <item
         android:id="@+id/action_export_resource"
         android:title="@string/resource_menu_export"
+        android:icon="@drawable/ic_share" />
+    <item
+        android:id="@+id/action_share_sftp_access"
+        android:title="@string/resource_menu_share_sftp_access"
         android:icon="@drawable/ic_share" />
     <item
         android:id="@+id/action_scan"

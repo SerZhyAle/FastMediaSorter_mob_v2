@@ -103,6 +103,9 @@ void xr_session_set_parallax_shift(float value);
 // Queue a new HUD frame (text overlay).
 void xr_session_queue_hud(const uint8_t* rgba, int width, int height);
 
+// S0964: set the world-space HUD quad size in meters (panel vs banner aspect).
+void xr_session_set_hud_quad_size(float widthMeters, float heightMeters);
+
 // Stage 5: blocking frame loop. Returns Ok when the loop exits cleanly (user requested exit
 // or runtime asked the session to stop), or an error code if the loop aborted on a hard
 // failure. The render thread should call this once per session.

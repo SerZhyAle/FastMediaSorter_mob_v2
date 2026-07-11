@@ -202,7 +202,6 @@ class StreamInlineAudioManager(
                 p.playWhenReady = false
                 p.stop()
                 p.clearMediaItems()
-                Timber.d("S0900: service player quiesced on stop")
             }
         }
         player = null

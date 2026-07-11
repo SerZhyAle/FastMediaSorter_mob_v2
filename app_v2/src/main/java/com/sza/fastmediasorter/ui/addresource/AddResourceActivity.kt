@@ -89,6 +89,24 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { scanManager.loadSshKeyFromFile(it) }
     }
 
+    // S0421: .fmscfg has no registered MIME type, so the picker accepts any document.
+    private val companionConfigPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.importCompanionConfig(it) }
+    }
+
+    // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
+    private val companionQrScanLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.getStringExtra(
+                com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.EXTRA_PAYLOAD
+            )?.let { payload -> viewModel.importCompanionConfigFromQr(payload) }
+        }
+    }
+
     override fun getViewBinding(): ActivityAddResourceBinding =
         ActivityAddResourceBinding.inflate(layoutInflater)
 
@@ -314,6 +332,20 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnSftpLoadKey.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("LoadSshKey", "AddResource")
             sshKeyFilePickerLauncher.launch(arrayOf("*/*"))
+        }
+        binding.btnSftpImportCompanion.setOnClickListener {
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ImportCompanionConfig", "AddResource")
+            companionConfigPickerLauncher.launch(arrayOf("*/*"))
+        }
+        // S0988: QR scan of a companion config. Hidden on camera-less devices and VR headsets
+        // (Quest exposes no camera to CameraX), so the file import above stays the fallback there.
+        binding.btnSftpScanCompanionQr.isVisible =
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)
+        binding.btnSftpScanCompanionQr.setOnClickListener {
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanCompanionQr", "AddResource")
+            companionQrScanLauncher.launch(
+                com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.createIntent(this)
+            )
         }
 
         // Profile presets

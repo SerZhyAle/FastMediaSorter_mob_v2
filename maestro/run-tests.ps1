@@ -13,8 +13,9 @@
 
   Selection (-Suite):
     all       - emulator-default *.yaml under smoke/, critical/, features/
-                (excludes _shared/ fragments, device-only file-operation flows, and the
-                 inline-audio player flows that need a full player not present on emulator - S0666)
+                (excludes _shared/ fragments, device-only file-operation flows, the inline-audio
+                 player flows that need a full player not present on emulator - S0666, and the
+                 features/resource flows that need All-Files access)
     smoke      | critical | features      - that category, recursively
     features\browse  (or features/files)  - a single category subpath
     smoke\app_launch.yaml  | a full path  - a single flow file
@@ -190,6 +191,10 @@ function Get-FlowSet {
                 $_.FullName -match '[\\/](smoke|critical|features)[\\/]' -and
                 $_.FullName -notmatch '[\\/]features[\\/]files[\\/]' -and
                 $_.FullName -notmatch '[\\/]critical[\\/]file_operations\.yaml$' -and
+                # Resource create/edit/delete flows need All-Files access (MANAGE_EXTERNAL_STORAGE)
+                # granted for the debug package; excluded from the bare-emulator default, run via
+                # -Suite features\resource once storage access is set up.
+                $_.FullName -notmatch '[\\/]features[\\/]resource[\\/]' -and
                 # Audio flows assume a full-screen audio player (playerView / btnPlaybackControl), but
                 # audio plays INLINE in the browse list (the row's btnPlayInline; the activity stays
                 # BrowseActivity) and the inline state is not introspectable by UiAutomator on the

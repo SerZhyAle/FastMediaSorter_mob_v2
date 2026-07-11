@@ -137,7 +137,6 @@ class QuickAudioRecorderService : Service() {
             try {
                 val controller = indicatorControllers.firstOrNull { it.isAvailable(this) }
                 if (controller != null) {
-                    Timber.d("S0930: showing floating stop indicator for quick audio recording")
                     controller.show(this) { stopAndSave() }
                     activeIndicator = controller
                     elapsedTimer.start()

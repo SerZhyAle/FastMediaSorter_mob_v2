@@ -573,7 +573,6 @@ class DestinationButtonsManager(
     fun triggerSlotInAddressableGroup(slotIndex: Int): Boolean {
         val buttons = addressableButtons()
         val button = buttons.getOrNull(slotIndex - 1)
-        Timber.d("S0531: keyboard slot=$slotIndex of ${buttons.size} fired=${button != null}")
         button?.performClick()
         return button != null
     }
@@ -607,7 +606,6 @@ class DestinationButtonsManager(
      */
     fun refreshSlotBadges() {
         val numbered = if (shouldNumberSlots()) addressableButtons() else emptyList()
-        Timber.d("S0531: refreshSlotBadges numberingActive=${shouldNumberSlots()} numbered=${numbered.size}")
         // Clear badges on every button first, then re-apply the continuous numbering to the addressable sequence.
         listOf(safeViews.copyToButtonsGrid, safeViews.moveToButtonsGrid).forEach { grid ->
             flattenButtons(grid).forEach { button -> if (button !in numbered) applyBadge(button, null) }

@@ -60,6 +60,7 @@ class LinkAutoDownloadCoordinatorTest {
             cookieStore = cookieStore,
             urlCanonicalizer = LinkUrlCanonicalizer(),
             contract = contract,
+            pacers = emptySet(),
         )
     }
 

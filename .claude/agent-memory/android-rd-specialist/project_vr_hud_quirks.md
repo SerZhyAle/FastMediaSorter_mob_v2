@@ -1,6 +1,6 @@
 ---
 name: project-vr-hud-quirks
-description: Four hidden VR HUD rendering pitfalls discovered during S0290 emergency session 2026-05-22 - matrix multiply convention, per-frame zero-blast, ByteBuffer.wrap broken path, Skia RGBA byte order. Touch xr_hud_world.cpp / queueHud paths with care.
+description: VR HUD pitfalls (S0290) + S0961/S0964 invariants - matrix convention, no per-frame queueHud, direct ByteBuffer, Skia RGBA, hudContentUploaded gate, panel-vs-banner visual ownership, quad-size override API.
 metadata:
   type: project
 ---
@@ -28,5 +28,12 @@ DiagnosticXrHud: xr_hud_render ok: eye=0 hudTex=8 quad.center=(X,Y,Z) wh=1.20x0.
 ```
 
 If any of these are missing or `EARLY RETURN`, HUD is broken - diagnose using the same log markers.
+
+**S0961/S0964 additions (2026-07-11):**
+
+5. **HUD texture is born as an opaque grey 1x1 `{64,64,64,255}` placeholder** (`createGlAssets`). Since S0961 the quad is HIDDEN until the first real `hud upload` - `g.hudContentUploaded` flag in `xr_session.cpp`; the render call site passes `hudTex=0` before that, so `xr_hud_render EARLY RETURN .. hudTex=0` while pending is EXPECTED, not a bug. Flag disarms in createGlAssets (placeholder rebirth) and at shutdown.
+6. **Visual ownership is launch-mode-split (S0964):** `FILE_URI` (user launches: player / Browse VR Cinema) renders the full interactive `HudCanvasRenderer` panel (1024x640) into the quad; `DIAGNOSTIC_PLAYLIST` keeps the 1024x128 filename banner. Before S0964 the panel was interaction-model-only (blind clicks) - do not "restore" banner-only visuals on FILE_URI.
+7. **Quad size is runtime-settable**: `runtime.setHudQuadSize(w,h)` -> `xr_hud_set_quad_size` (override persists across sessions in-process; `xr_hud_init` re-applies it). Each mode must set its own size explicitly on session ready (panel 0.48x0.30, banner 0.3x0.113) - relying on defaults breaks after a mode switch within one process.
+8. **Panel repaints are debounced (~100 ms) and state-driven** (play/pause, volume, tracks changed, cycle clicks). Volume slider drag fires per ray-tick - never wire it straight to `queueHud`.
 
 See also [[user_author_style]], [[project_functionality_log]].

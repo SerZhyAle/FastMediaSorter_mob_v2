@@ -108,6 +108,7 @@ internal class MainEventHandler(
                     .show()
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
+            is MainEvent.ShareCompanionConfigFile -> shareCompanionConfigFile(event.filePath)
         }
     }
 
@@ -169,9 +170,33 @@ internal class MainEventHandler(
         }
     }
 
+    /** S0984: share an exported `.fmscfg` access file with the vendor MIME for a reliable app-to-app SEND. */
+    private fun shareCompanionConfigFile(filePath: String) {
+        try {
+            val file = java.io.File(filePath)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                activity, "${activity.packageName}.fileprovider", file
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = COMPANION_CONFIG_MIME
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.sftp_share_export_title)))
+        } catch (e: Exception) {
+            timber.log.Timber.e(e, "Failed to share companion config file")
+            Toast.makeText(activity, R.string.sftp_share_export_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun navigateSlideAnim(intent: Intent) {
         activity.startActivity(intent)
         @Suppress("DEPRECATION")
         activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
+
+    private companion object {
+        // Must stay in sync with the CompanionConfigImportActivity SEND intent-filter in the manifest.
+        const val COMPANION_CONFIG_MIME = "application/vnd.fms.companion-config+json"
     }
 }

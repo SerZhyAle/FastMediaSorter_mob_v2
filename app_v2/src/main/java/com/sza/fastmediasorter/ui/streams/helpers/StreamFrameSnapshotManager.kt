@@ -111,7 +111,6 @@ class StreamFrameSnapshotManager(
             // cancelAll() clears `pending`; if our url is gone, the grid was left/stopped while we were
             // parked on the semaphore - skip the expensive ExoPlayer capture instead of launching it late.
             if (synchronized(pending) { url !in pending }) {
-                Timber.d("S0900: capture skipped, grid left")
                 return@withPermit
             }
             val job = scope.launch {

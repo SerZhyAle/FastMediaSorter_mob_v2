@@ -130,6 +130,26 @@ class AddResourceViewModel @Inject constructor(
         context, addResourceUseCase, smbOperationsUseCase, settingsRepository, finalizer, bridge
     )
 
+    // S0421: use case built manually (like the coordinators) - extending the baselined
+    // 12-param constructor would resurface its LongParameterList finding.
+    private val companionCoordinator = AddResourceCompanionCoordinator(
+        context,
+        com.sza.fastmediasorter.domain.usecase.companion.ImportCompanionConfigUseCase(
+            context,
+            com.sza.fastmediasorter.data.companion.CompanionConfigParser(),
+            smbOperationsUseCase,
+            addResourceUseCase,
+            ioDispatcher
+        ),
+        bridge
+    )
+
+    /** S0421: one-action import of a Windows-companion `.fmscfg` config. */
+    fun importCompanionConfig(uri: Uri) = companionCoordinator.importFromUri(uri)
+
+    /** S0988: import a companion config from a scanned QR payload string. */
+    fun importCompanionConfigFromQr(payload: String) = companionCoordinator.importFromPayload(payload)
+
     // ==================== Media type / settings helpers ====================
 
     /**

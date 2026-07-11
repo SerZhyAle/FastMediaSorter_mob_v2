@@ -49,4 +49,16 @@
         <item>Full Side-by-Side</item>
         <item>Full Over-Under</item>
     </string-array>
+
+    <!-- S0964: immersive HUD panel captions (canvas-drawn, injected into HudCanvasRenderer). -->
+    <string name="vr_hud_audio_label">AUDIO</string>
+    <string name="vr_hud_subs_label">SUBS</string>
+    <string name="vr_hud_subs_off">Off</string>
+    <string name="vr_hud_no_tracks">-</string>
+    <string name="vr_hud_prev">PREV</string>
+    <string name="vr_hud_play">PLAY</string>
+    <string name="vr_hud_pause">PAUSE</string>
+    <string name="vr_hud_next">NEXT</string>
+    <string name="vr_hud_volume_label">VOLUME</string>
+    <string name="vr_hud_depth_label">STEREO DEPTH</string>
 </resources>

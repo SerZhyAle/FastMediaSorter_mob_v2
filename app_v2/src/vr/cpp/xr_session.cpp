@@ -243,6 +243,12 @@ void main() {
             int pendingHudWidth{0};
             int pendingHudHeight{0};
             bool pendingHudReady{false};
+            // S0961: hudTexture is born as an opaque grey 1x1 placeholder (createGlAssets). If any
+            // step of the generate -> queue -> upload chain fails on-device, rendering the quad
+            // exposes that placeholder as an empty grey rectangle in the middle of the view. Track
+            // whether real HUD content ever reached the texture and keep the quad hidden until then
+            // (render call site passes hudTex=0). Written and read on the render thread only.
+            bool hudContentUploaded{false};
             std::mutex hudMutex;
 
             GLint locViewProj{-1};
@@ -1145,6 +1151,9 @@ void main() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            // S0961: the texture holds the grey placeholder again from this point on, so the
+            // content-uploaded gate must disarm here, at the placeholder's birthplace.
+            g.hudContentUploaded = false;
 
             if (!createVideoSurfaceObjects())
                 return NativeResult::SessionCreationFailed;
@@ -1371,8 +1380,13 @@ void main() {
             glDrawElements(GL_TRIANGLES, activeIndexCount, GL_UNSIGNED_INT, nullptr);
             glBindVertexArray(0);
 
-            // Render World Space HUD Quad, pointer rays, and low-latency cursor dots (Phase 02)
-            xr_hud_render(proj, viewMat, eyeIdx, g.program, g.quadVao, g.hudTexture, g.locViewProj, g.locTex, g.locEye, g.locStereoLayout);
+            // Render World Space HUD Quad, pointer rays, and low-latency cursor dots (Phase 02).
+            // S0961: pass hudTex=0 until real content reached the texture so the quad stays hidden
+            // instead of exposing the grey 1x1 placeholder; reuses xr_hud_render's early-return and
+            // its "EARLY RETURN .. hudTex=0" diagnostic log.
+            xr_hud_render(proj, viewMat, eyeIdx, g.program, g.quadVao,
+                          g.hudContentUploaded ? g.hudTexture : 0,
+                          g.locViewProj, g.locTex, g.locEye, g.locStereoLayout);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -1652,6 +1666,13 @@ void main() {
         g.parallaxShift = (clamped - 0.5f) * 0.04f;
     }
 
+    void xr_session_set_hud_quad_size(float widthMeters, float heightMeters)
+    {
+        // S0964: thin forwarder keeps the JNI surface uniform (everything goes through
+        // xr_session_*); sizing logic lives with the quad state in xr_hud_world.
+        xr_hud_set_quad_size(widthMeters, heightMeters);
+    }
+
     void xr_session_queue_hud(const uint8_t *rgba, int width, int height)
     {
         if (!rgba || width <= 0 || height <= 0)
@@ -1736,6 +1757,7 @@ void main() {
                     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingHudWidth, g.pendingHudHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingHudData.data());
                     LOGD("hud upload: %dx%d to texture=%u", g.pendingHudWidth, g.pendingHudHeight, g.hudTexture);
                     g.pendingHudReady = false;
+                    g.hudContentUploaded = true;
                 }
             }
 
@@ -1970,6 +1992,9 @@ void main() {
             g.pendingHudData.clear();
             g.pendingHudWidth = 0;
             g.pendingHudHeight = 0;
+            // S0961: next session starts with a fresh grey placeholder texture, so the
+            // content-uploaded gate must re-arm as well.
+            g.hudContentUploaded = false;
         }
 
         // S0291 owner round 3 (2026-05-22 21:19): do NOT DeleteGlobalRef on g.activity at

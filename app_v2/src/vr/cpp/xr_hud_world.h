@@ -20,7 +20,13 @@ namespace fms::xr {
 struct HUDWorldState {
     QuadHUD quad;
     bool visible{true};
-    
+
+    // S0964: caller-requested quad size in meters; 0 = keep the banner defaults from
+    // xr_hud_init. Persisted across sessions (xr_hud_init re-runs per entry and must not
+    // reset an explicit panel size back to the banner strip).
+    float overrideWidth{0.0f};
+    float overrideHeight{0.0f};
+
     // Gaze-kept target states
     XrVector3f targetCenter;
     XrQuaternionf targetRot;
@@ -36,6 +42,9 @@ extern HUDWorldState g_hudState;
 
 // Initialize the 3D HUD to initial position and properties
 void xr_hud_init();
+
+// S0964: request a HUD quad size in meters; takes effect immediately and survives re-entry.
+void xr_hud_set_quad_size(float widthMeters, float heightMeters);
 
 // Smoothly interpolate HUD position using exponential gaze lazy-follow
 void xr_hud_update(const XrPosef& headPose, float deltaTime);

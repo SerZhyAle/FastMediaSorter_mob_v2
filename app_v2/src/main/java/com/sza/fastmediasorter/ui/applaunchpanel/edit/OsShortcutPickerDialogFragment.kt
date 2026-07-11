@@ -6,18 +6,18 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
-import com.sza.fastmediasorter.databinding.DialogPanelRoutePickerBinding
-import com.sza.fastmediasorter.databinding.ItemAppPickerRowBinding
+import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -26,13 +26,13 @@ import kotlinx.coroutines.withContext
 
 /**
  * Lists the curated OS targets from [OsShortcutCatalog] that actually resolve on this device
- * (strategic S0663 §6.3), returning the chosen target key to the host via a FragmentResult. Shares
- * the route-picker layout; sized/centred like [AppPickerDialogFragment].
+ * (strategic S0663 §6.3), returning the chosen target key to the host via a FragmentResult.
+ * S0947: renders through the canonical [SearchableOptionPickerController].
  */
 @AndroidEntryPoint
 class OsShortcutPickerDialogFragment : DialogFragment() {
 
-    private var _binding: DialogPanelRoutePickerBinding? = null
+    private var _binding: DialogSearchableOptionPickerBinding? = null
     private val binding get() = _binding!!
 
     private var slotIndex: Int = 0
@@ -48,28 +48,34 @@ class OsShortcutPickerDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = DialogPanelRoutePickerBinding.inflate(inflater, container, false)
+        _binding = DialogSearchableOptionPickerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tvRoutePickerTitle.text = getString(R.string.app_launch_panel_picker_os_title)
-        binding.rvRouteItems.layoutManager = LinearLayoutManager(requireContext())
-        collectOnLifecycle(flow { emit(buildItems()) }) { items ->
-            binding.rvRouteItems.adapter = OsItemAdapter(items, ::onTargetPicked)
+        binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_os_title)
+        binding.tvOptionPickerTitle.isVisible = true
+        collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
+            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+                picked?.let { onTargetPicked(it.id) }
+            }
         }
     }
 
     // PackageManager resolution runs off the main thread (strategic §3.2 performance constraint).
-    private suspend fun buildItems(): List<OsItem> = withContext(Dispatchers.IO) {
+    private suspend fun buildOptions(): List<Option> = withContext(Dispatchers.IO) {
         OsShortcutCatalog.available(requireContext()).map { target ->
-            OsItem(target.key, target.iconRes, getString(target.labelRes))
+            Option(
+                id = target.key,
+                label = getString(target.labelRes),
+                leading = LeadingVisual.IconRes(target.iconRes),
+            )
         }
     }
 
-    private fun onTargetPicked(item: OsItem) {
-        setFragmentResult(RESULT_KEY, bundleOf(RESULT_SLOT to slotIndex, RESULT_TARGET_KEY to item.targetKey))
+    private fun onTargetPicked(targetKey: String) {
+        setFragmentResult(RESULT_KEY, bundleOf(RESULT_SLOT to slotIndex, RESULT_TARGET_KEY to targetKey))
         dismiss()
     }
 
@@ -93,39 +99,6 @@ class OsShortcutPickerDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         super.onCreateDialog(savedInstanceState).also { it.setCanceledOnTouchOutside(true) }
-
-    private data class OsItem(val targetKey: String, val iconRes: Int, val label: String)
-
-    private class OsItemAdapter(
-        private val items: List<OsItem>,
-        private val onPicked: (OsItem) -> Unit,
-    ) : RecyclerView.Adapter<OsItemAdapter.OsViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OsViewHolder {
-            val itemBinding = ItemAppPickerRowBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return OsViewHolder(itemBinding)
-        }
-
-        override fun getItemCount(): Int = items.size
-
-        override fun onBindViewHolder(holder: OsViewHolder, position: Int) = holder.bind(items[position])
-
-        inner class OsViewHolder(
-            private val itemBinding: ItemAppPickerRowBinding,
-        ) : RecyclerView.ViewHolder(itemBinding.root) {
-
-            fun bind(item: OsItem) {
-                itemBinding.ivAppIcon.setImageDrawable(
-                    ContextCompat.getDrawable(itemBinding.root.context, item.iconRes)
-                )
-                itemBinding.tvAppLabel.text = item.label
-                itemBinding.rowApp.contentDescription = item.label
-                itemBinding.rowApp.setOnClickListener { onPicked(item) }
-            }
-        }
-    }
 
     companion object {
         const val TAG = "OsShortcutPickerDialog"

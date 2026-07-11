@@ -109,7 +109,6 @@ class BrowseNavigationManager(
         val currentName = stateFlow.value.currentFolderName
         val newNameStack = if (currentName != null) stateFlow.value.folderNameStack + currentName else emptyList()
 
-        Timber.d("S0906: navigateToFolder captured real name '${folder.name}' for breadcrumb tracking")
         Timber.d("BrowseNavigationManager.navigateToFolder: ${folder.path}, stack=${newStack.size}")
 
         cancelLoad()
@@ -282,53 +281,33 @@ class BrowseNavigationManager(
      * @param depth 0 = resource root, 1 = first subfolder, etc.
      */
     fun navigateToDepth(depth: Int) {
-        if (!stateFlow.value.isSubfolderMode) return
+        val s = stateFlow.value
+        if (!s.isSubfolderMode) return
+        s.resource ?: return
+        val currentPath = s.currentPath ?: return
 
-        val resource = stateFlow.value.resource ?: return
-        val currentPath = stateFlow.value.currentPath ?: return
-        val resourcePath = resource.path
+        // S0917: reconstruct the target from the tracked path/name stacks by breadcrumb index
+        // instead of string-parsing currentPath against resource.path. Cloud resources use flat
+        // id-based paths ("cloud://provider/<id>") where a segment is an opaque id, not a folder
+        // name, so startsWith/removePrefix/split never matched and any non-adjacent cloud
+        // breadcrumb silently no-op'd. The stacks already hold the real per-level path and name
+        // for every resource type (local, network, cloud), so index == depth needs no parsing.
+        val fullPaths = s.pathStack + currentPath
+        val fullNames = s.folderNameStack + listOfNotNull(s.currentFolderName)
 
-        val relativePath = if (currentPath.startsWith(resourcePath)) {
-            currentPath.removePrefix(resourcePath).trimStart('/', '\\')
-        } else {
-            Timber.w("BrowseNavigationManager.navigateToDepth: path mismatch")
+        if (depth < 0 || depth >= fullPaths.size) {
+            Timber.w("BrowseNavigationManager.navigateToDepth: invalid depth $depth (max ${fullPaths.size - 1})")
             return
         }
+        if (depth == fullPaths.size - 1) return // already at this level - breadcrumb self-click
 
-        if (relativePath.isEmpty()) return
-
-        val pathParts = relativePath.split("/", "\\").filter { it.isNotEmpty() }
-
-        val targetPath = when {
-            depth == 0 -> resourcePath
-            depth in 1..pathParts.size ->
-                resourcePath.trimEnd('/', '\\') + "/" + pathParts.take(depth).joinToString("/")
-            else -> {
-                Timber.w("BrowseNavigationManager.navigateToDepth: invalid depth $depth (max ${pathParts.size})")
-                return
-            }
-        }
-
-        val newStack = if (depth == 0) {
-            emptyList()
-        } else {
-            buildList {
-                var buildPath = resourcePath.trimEnd('/', '\\')
-                for (i in 0 until depth - 1) {
-                    buildPath += "/" + pathParts[i]
-                    add(buildPath)
-                }
-            }
-        }
-
-        // S0906: pathParts are real folder names here (this branch only runs for hierarchical
-        // local/network paths, where a path segment IS the folder name - see the cloud
-        // early-return above, tracked separately as S0917), so the name stack can be sliced
-        // the same way as the path stack, no extra lookup needed.
-        val newNameStack = if (depth == 0) emptyList() else pathParts.take(depth - 1)
-        val newFolderName = if (depth == 0) null else pathParts.getOrNull(depth - 1)
+        val targetPath = fullPaths[depth]
+        val newStack = fullPaths.take(depth)
+        val newNameStack = if (depth == 0) emptyList() else fullNames.take(depth - 1)
+        val newFolderName = if (depth == 0) null else fullNames.getOrNull(depth - 1)
 
         Timber.d("BrowseNavigationManager.navigateToDepth: depth=$depth → $targetPath, stack=${newStack.size}")
+        cancelLoad()
         updateState {
             it.copy(
                 currentPath = targetPath,

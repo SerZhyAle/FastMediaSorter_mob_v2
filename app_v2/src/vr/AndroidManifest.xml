@@ -78,5 +78,30 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!--
+            S0963 (Pillar 2): immersive file browser host. Launched only in-process by
+            XrEntryGatewayImpl (explicit Intent, RESOURCE_BROWSE mode); no LAUNCHER category so it
+            never appears in the app grid. It reuses the same OpenXR session machinery as the
+            diagnostic host, so it mirrors the same headset-mode intent-filter (VR category), the
+            exhaustive configChanges (own OpenXR loop must survive HorizonOS layout churn), the
+            landscape lock, and the API-36 restricted-resizability opt-out.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.xr.ImmersiveBrowseActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|navigation|uiMode|smallestScreenSize|density"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.oculus.intent.category.VR" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

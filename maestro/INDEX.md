@@ -11,17 +11,21 @@ Status: active S0551 capability-regression suite.
 
 ## Active Flow Groups
 
-- `smoke/` - app launch, local browse, 3D video smoke.
+- `smoke/` - app launch, local browse, 3D video smoke, screen tour, add-resource forms, settings toggle sweep.
 - `critical/` - file operations and settings.
 - `features/browse/` - All Images, filter, sort + empty state.
 - `features/files/` - rename, trash/undo, overwrite conflict.
+- `features/resource/` - create local, edit (rename round-trip), full create+delete lifecycle.
+- `features/settings/` - settings search empty-state.
 - `features/player/` - video, image, audio lyrics, documents, resume, info dialog.
 - `features/slideshow/` - slideshow start/stop regression.
-- `features/edge/` - no-extension and large-video edge cases.
+- `features/edge/` - no-extension and large-video edge cases, back-from-every-screen.
 - `_shared/` - reusable permission/navigation fragments.
 
 `-Suite all` is the emulator-default suite. It excludes device-only file-operation flows until
 `Ops/src` and `Ops/dst` are registered as writable operation resources on the target device.
+It also excludes the `features/resource/` flows (need All-Files access granted for the debug
+package on API 30+); run those with an explicit `-Suite features\resource`.
 Network/cloud flows are deferred from the active suite because they require external reachability.
 
 ## Run Examples

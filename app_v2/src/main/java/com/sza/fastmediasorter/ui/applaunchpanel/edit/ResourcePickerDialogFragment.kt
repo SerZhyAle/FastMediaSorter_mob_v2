@@ -6,20 +6,20 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
-import com.sza.fastmediasorter.databinding.DialogPanelRoutePickerBinding
-import com.sza.fastmediasorter.databinding.ItemAppPickerRowBinding
+import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
@@ -28,8 +28,8 @@ import javax.inject.Inject
 /**
  * Lists the configured resources (one tile pins one specific resource, strategic S0663 §5.1.C) and
  * returns the chosen resource id to the host via a FragmentResult. Lists through the domain
- * [ResourceRepository] (mirroring how [AppPickerDialogFragment] injects a use case) rather than the
- * DAO/entity, keeping UI off the data layer (CLAUDE.md Architecture). Shares the route-picker layout.
+ * [ResourceRepository], keeping UI off the data layer (CLAUDE.md Architecture). S0947: renders through
+ * the canonical [SearchableOptionPickerController].
  */
 @AndroidEntryPoint
 class ResourcePickerDialogFragment : DialogFragment() {
@@ -37,7 +37,7 @@ class ResourcePickerDialogFragment : DialogFragment() {
     @Inject
     lateinit var resourceRepository: ResourceRepository
 
-    private var _binding: DialogPanelRoutePickerBinding? = null
+    private var _binding: DialogSearchableOptionPickerBinding? = null
     private val binding get() = _binding!!
 
     private var slotIndex: Int = 0
@@ -53,29 +53,38 @@ class ResourcePickerDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = DialogPanelRoutePickerBinding.inflate(inflater, container, false)
+        _binding = DialogSearchableOptionPickerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tvRoutePickerTitle.text = getString(R.string.app_launch_panel_picker_resource_title)
-        binding.rvRouteItems.layoutManager = LinearLayoutManager(requireContext())
-        collectOnLifecycle(flow { emit(buildItems()) }) { items ->
-            binding.rvRouteItems.adapter = ResourceItemAdapter(items, ::onResourcePicked)
+        binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_resource_title)
+        binding.tvOptionPickerTitle.isVisible = true
+        collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
+            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+                picked?.let { onResourcePicked(it.id) }
+            }
         }
     }
 
-    private suspend fun buildItems(): List<ResourceItem> =
+    private suspend fun buildOptions(): List<Option> =
         resourceRepository.getAllResourcesSync().map { resource ->
-            ResourceItem(resource.id, resourceIconRes(resource.type), resource.name)
+            Option(
+                id = resource.id.toString(),
+                label = resource.name,
+                leading = LeadingVisual.IconRes(resourceIconRes(resource.type)),
+            )
         }
 
     // S0890: single source of truth for the type -> icon table.
     private fun resourceIconRes(type: ResourceType): Int = ResourceTypeIconMap.iconFor(type)
 
-    private fun onResourcePicked(item: ResourceItem) {
-        setFragmentResult(RESULT_KEY, bundleOf(RESULT_SLOT to slotIndex, RESULT_RESOURCE_ID to item.resourceId))
+    private fun onResourcePicked(resourceId: String) {
+        setFragmentResult(
+            RESULT_KEY,
+            bundleOf(RESULT_SLOT to slotIndex, RESULT_RESOURCE_ID to resourceId.toLong()),
+        )
         dismiss()
     }
 
@@ -99,39 +108,6 @@ class ResourcePickerDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         super.onCreateDialog(savedInstanceState).also { it.setCanceledOnTouchOutside(true) }
-
-    private data class ResourceItem(val resourceId: Long, val iconRes: Int, val label: String)
-
-    private class ResourceItemAdapter(
-        private val items: List<ResourceItem>,
-        private val onPicked: (ResourceItem) -> Unit,
-    ) : RecyclerView.Adapter<ResourceItemAdapter.ResourceViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResourceViewHolder {
-            val itemBinding = ItemAppPickerRowBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return ResourceViewHolder(itemBinding)
-        }
-
-        override fun getItemCount(): Int = items.size
-
-        override fun onBindViewHolder(holder: ResourceViewHolder, position: Int) = holder.bind(items[position])
-
-        inner class ResourceViewHolder(
-            private val itemBinding: ItemAppPickerRowBinding,
-        ) : RecyclerView.ViewHolder(itemBinding.root) {
-
-            fun bind(item: ResourceItem) {
-                itemBinding.ivAppIcon.setImageDrawable(
-                    ContextCompat.getDrawable(itemBinding.root.context, item.iconRes)
-                )
-                itemBinding.tvAppLabel.text = item.label
-                itemBinding.rowApp.contentDescription = item.label
-                itemBinding.rowApp.setOnClickListener { onPicked(item) }
-            }
-        }
-    }
 
     companion object {
         const val TAG = "ResourcePickerDialog"

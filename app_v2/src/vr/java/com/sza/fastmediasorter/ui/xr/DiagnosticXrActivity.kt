@@ -13,6 +13,8 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.KeyEvent
@@ -34,6 +36,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
@@ -58,6 +61,7 @@ import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
+import com.sza.fastmediasorter.ui.xr.helpers.HudTrackController
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
@@ -109,8 +113,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     // Completed when the Activity gains window focus. Render thread awaits this before calling
     // nativeStartSession so that HzOS has registered the volumetric window by that time.
-    // A new instance is created per Activity lifetime in maybeStartRenderThread to support
-    // multiple sessions within one process (each new DiagnosticXrActivity is a fresh instance).
+    // Created once here for the cold start and re-armed on teardown in shutdownRenderThreadSync
+    // (NOT in maybeStartRenderThread): a same-Activity re-resume starts a fresh render thread, and
+    // without re-arming it would await an already-completed deferred and skip the window-focus wait.
     private var windowFocusedDeferred = CompletableDeferred<Unit>()
 
     @Volatile private var reusableDirectBuffer: ByteBuffer? = null
@@ -148,6 +153,44 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         return newBuffer
     }
 
+    // S0964: panel-sized twin of getReusableHudBuffer (see reusablePanelHudBuffer field note).
+    @Synchronized
+    private fun getReusablePanelHudBuffer(): ByteBuffer {
+        val size = HudCanvasRenderer.WIDTH * HudCanvasRenderer.HEIGHT * RGBA_BYTES_PER_PIXEL
+        val current = reusablePanelHudBuffer
+        if (current != null) {
+            current.clear()
+            return current
+        }
+        val newBuffer = ByteBuffer.allocateDirect(size)
+        reusablePanelHudBuffer = newBuffer
+        return newBuffer
+    }
+
+    /**
+     * S0960: single OOM-guarded path for the direct-buffer -> on-heap RGBA copy shared by the
+     * bundled, initial-file, and slide-change decodes. The fresh ByteArray below is the exact
+     * allocation that crashed on Quest 3 (128 MB against a warm 512 MB heap), so it degrades to
+     * null instead of throwing - callers reuse the existing DecoderFailed / skip-frame fallbacks.
+     * The direct-buffer intermediate stays: heap ByteBuffer.wrap produced all-zero pixel output
+     * on-device (see generateFilenameHudBytes).
+     */
+    private fun copyBitmapToRgbaBytes(bitmap: Bitmap): ByteArray? {
+        val size = bitmap.width * bitmap.height * RGBA_BYTES_PER_PIXEL
+        val buf = getReusableDirectBuffer(size)
+        bitmap.copyPixelsToBuffer(buf)
+        buf.rewind()
+        return try {
+            val bytes = ByteArray(buf.remaining())
+            buf.get(bytes)
+            Timber.d("S0960: RGBA copy ok, ${bytes.size} bytes (${bitmap.width}x${bitmap.height})")
+            bytes
+        } catch (oom: OutOfMemoryError) {
+            Timber.e(oom, "copyBitmapToRgbaBytes: heap cannot fit $size bytes; degrading gracefully")
+            null
+        }
+    }
+
     // Dynamic Playlist
     private var mediaPlaylist: List<File> = emptyList()
     private var currentPlaylistIndex: Int = -1
@@ -167,10 +210,25 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private lateinit var playbackController: HudPlaybackController
     private lateinit var hapticBridge: HudHapticBridge
 
-    // Dynamic HUD Canvas buffers
+    // S0964: track rows on the interactive panel (FILE_URI launches only).
+    private lateinit var trackController: HudTrackController
+    private var hudSubsOffLabel: String = ""
+    private var hudNoTracksLabel: String = ""
+
+    // S0964: panel repaints are debounced so a volume-slider drag (per ray-tick callbacks)
+    // cannot turn into a per-frame queueHud storm (S0290 rule: state-driven uploads only).
+    private val hudRepaintHandler = Handler(Looper.getMainLooper())
+    private var hudRepaintScheduled = false
+
+    // S0964: the panel copy buffer is deliberately separate from reusableDirectBuffer - image
+    // decodes use that one from Dispatchers.IO while panel repaints run on main, and the buffer
+    // CONTENT is written outside the @Synchronized getter, so sharing would race.
+    @Volatile private var reusablePanelHudBuffer: ByteBuffer? = null
+
+    // Dynamic HUD Canvas buffers (S0964: RGBA copies go through reusablePanelHudBuffer; the old
+    // hudRgbaBytes field from the removed S0290 per-frame path was dead and is gone).
     private var hudBitmap: Bitmap? = null
     private var hudCanvas: Canvas? = null
-    private var hudRgbaBytes: ByteArray = ByteArray(0)
 
     // Quest Home may redispatch the panel PendingIntent during immersive teardown. Keep the
     // flat-panel handoff idempotent so one exit cannot spawn multiple SettingsActivity instances.
@@ -257,11 +315,27 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudRenderer = HudCanvasRenderer()
         hapticBridge = HudHapticBridge(runtime)
         playbackController = HudPlaybackController(exoPlayer, ::navigateToNextMedia, ::navigateToPrevMedia)
-        interactionDispatcher = HudInteractionDispatcher(hudRenderer, object : HudInteractionDispatcher.InteractionListener {
+        // S0964: track rows mirror the 2D video dialog composition on top of the shared
+        // VideoTrackSelectionManager primitives (epic S0773 ADR-3).
+        trackController = HudTrackController { exoPlayer }
+        hudSubsOffLabel = getString(R.string.vr_hud_subs_off)
+        hudNoTracksLabel = getString(R.string.vr_hud_no_tracks)
+        hudRenderer.audioCaption = getString(R.string.vr_hud_audio_label)
+        hudRenderer.subsCaption = getString(R.string.vr_hud_subs_label)
+        hudRenderer.audioTrackLabel = hudNoTracksLabel
+        hudRenderer.subtitleTrackLabel = hudNoTracksLabel
+        hudRenderer.prevLabel = getString(R.string.vr_hud_prev)
+        hudRenderer.playLabel = getString(R.string.vr_hud_play)
+        hudRenderer.pauseLabel = getString(R.string.vr_hud_pause)
+        hudRenderer.nextLabel = getString(R.string.vr_hud_next)
+        hudRenderer.volumeCaption = getString(R.string.vr_hud_volume_label)
+        hudRenderer.depthCaption = getString(R.string.vr_hud_depth_label)
+        val hudInteractionListener = object : HudInteractionDispatcher.InteractionListener {
             override fun onPlayPauseClick() {
                 hapticBridge.triggerClickFeedback()
                 hudRenderer.isPlaying = !hudRenderer.isPlaying
                 if (hudRenderer.isPlaying) playbackController.play() else playbackController.pause()
+                scheduleHudPanelRepaint()
             }
             override fun onNextClick() {
                 hapticBridge.triggerClickFeedback()
@@ -273,19 +347,31 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
             override fun onVolumeChanged(volume: Float) {
                 playbackController.setVolume(volume)
+                scheduleHudPanelRepaint()
             }
             override fun onDepthChanged(depth: Float) {
                 // S0283 Parallax Stereo-depth wiring (0.0 to 1.0 translates to horizontal shift in GLES uniform) Let's store this in a static/dynamic property. The rendering thread can read it or we set it. We will set this on the renderThread directly.
                 renderThread?.setParallaxShift(depth)
+                scheduleHudPanelRepaint()
             }
             override fun onHoverStateChanged(isHovered: Boolean) {
                 hapticBridge.triggerHoverFeedback()
             }
-        })
+            override fun onAudioTrackCycle(step: Int) {
+                Timber.d("S0964: audio track cycle step=$step")
+                hapticBridge.triggerClickFeedback()
+                trackController.cycleAudio(step) { refreshTrackRowsAndRepaint() }
+            }
+            override fun onSubtitleTrackCycle(step: Int) {
+                Timber.d("S0964: subtitle track cycle step=$step")
+                hapticBridge.triggerClickFeedback()
+                trackController.cycleSubtitle(step) { refreshTrackRowsAndRepaint() }
+            }
+        }
+        interactionDispatcher = HudInteractionDispatcher(hudRenderer, hudInteractionListener)
 
         hudBitmap = Bitmap.createBitmap(HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT, Bitmap.Config.ARGB_8888)
         hudCanvas = Canvas(hudBitmap!!)
-        hudRgbaBytes = ByteArray(HudCanvasRenderer.WIDTH * HudCanvasRenderer.HEIGHT * 4)
 
         surfaceView = SurfaceView(this).apply {
             isFocusable = true
@@ -423,6 +509,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     return false
                 }
                 listOf(launchFile)
+            }
+            // S0963: RESOURCE_BROWSE is owned by ImmersiveBrowseActivity; the gateway never routes it
+            // here. Reject defensively rather than scanning the diagnostic test folder.
+            VrLaunchMode.RESOURCE_BROWSE -> {
+                Timber.w("DiagnosticXrActivity: RESOURCE_BROWSE not handled by the diagnostic host")
+                deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.NotYetSupported))
+                return false
             }
         }
         currentPlaylistIndex = if (mediaPlaylist.isNotEmpty()) 0 else -1
@@ -620,6 +713,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     /** S0290 (owner feedback round 3 2026-05-22): the previous attempt to render the full [HudCanvasRenderer] panel as the always-on HUD produced an invisible result on Quest 3 (user reported "I see no HUD"). The simple 1024x128 strip used pre-refactor was visible. This restores that working path and additionally includes the resolved projection and stereo layout next to the filename so the operator can see what the parser decided. */
     private fun queueFilenameHud(filename: String, projection: ProjectionType, layout: StereoLayout) {
+        Timber.d("S0961: filename HUD queued file=$filename proj=$projection layout=$layout")
         val bytes = generateFilenameHudBytes(filename, projection, layout)
         runtime.queueHud(bytes, HUD_BANNER_WIDTH, HUD_BANNER_HEIGHT)
     }
@@ -694,10 +788,59 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         StereoLayout.SIDE_BY_SIDE -> "SBS"
     }
 
+    /** S0964: true when this launch shows the interactive panel HUD instead of the banner. */
+    private fun isPanelHudMode(): Boolean = launchInput.launchMode == VrLaunchMode.FILE_URI
+
+    /**
+     * S0964: paint the interactive panel (nav, volume, depth, track rows) into the HUD quad.
+     * Called on state changes only - never per frame (S0290). Main thread.
+     */
+    private fun renderPanelHud() {
+        if (isFinishing || isDestroyed) return
+        val bitmap = hudBitmap
+        val canvas = hudCanvas
+        if (bitmap == null || canvas == null) return
+        hudRenderer.render(canvas)
+        val buf = getReusablePanelHudBuffer()
+        bitmap.copyPixelsToBuffer(buf)
+        buf.rewind()
+        val bytes = ByteArray(buf.remaining())
+        buf.get(bytes)
+        Timber.d("S0964: panel HUD queued file=${hudRenderer.currentFilename}")
+        runtime.queueHud(bytes, HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT)
+    }
+
+    /** S0964: pull current track labels/availability from the player into the panel model. */
+    private fun refreshTrackRows() {
+        hudRenderer.audioTrackLabel = trackController.audioLabel(hudNoTracksLabel)
+        hudRenderer.subtitleTrackLabel = trackController.subtitleLabel(hudSubsOffLabel, hudNoTracksLabel)
+        hudRenderer.audioRowEnabled = trackController.hasMultipleAudioTracks()
+        hudRenderer.subsRowEnabled = trackController.hasSubtitleTracks()
+    }
+
+    private fun refreshTrackRowsAndRepaint() {
+        refreshTrackRows()
+        scheduleHudPanelRepaint()
+    }
+
+    /** S0964: debounced panel repaint; no-op on the banner (diagnostic) path. */
+    private fun scheduleHudPanelRepaint() {
+        if (!isPanelHudMode() || hudRepaintScheduled) return
+        hudRepaintScheduled = true
+        hudRepaintHandler.postDelayed({
+            hudRepaintScheduled = false
+            renderPanelHud()
+        }, HUD_REPAINT_DEBOUNCE_MS)
+    }
+
     private suspend fun decodeBundledAsset(): Boolean {
         runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
         hudRenderer.currentFilename = "vr_diagnostic_360_mono.jpg (bundled)"
-        queueFilenameHud("vr_diagnostic_360_mono.jpg (bundled)", ProjectionType.SPHERE_360, StereoLayout.MONO)
+        if (isPanelHudMode()) {
+            renderPanelHud()
+        } else {
+            queueFilenameHud("vr_diagnostic_360_mono.jpg (bundled)", ProjectionType.SPHERE_360, StereoLayout.MONO)
+        }
 
         // S0382 Phase 04 / ADR-1: decode and the large RGBA copy run on Dispatchers.IO so the
         // focus transition is never blocked on the main thread (reverses the prior S0290 Phase 11
@@ -705,21 +848,19 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         return withContext(Dispatchers.IO) {
             val bitmap = decodeBundledPooled() ?: return@withContext false
             try {
-                val w = bitmap.width
-                val h = bitmap.height
-                val buf = getReusableDirectBuffer(w * h * 4)
-                bitmap.copyPixelsToBuffer(buf)
-                buf.rewind()
-                val bytes = ByteArray(buf.remaining())
-                buf.get(bytes)
-                textureBytes = bytes
-                textureWidth = w
-                textureHeight = h
-                Timber.d("decoded bundled mono 360 asset to RGBA: ${w}x${h}, bytes=${bytes.size}")
-                true
+                val bytes = copyBitmapToRgbaBytes(bitmap)
+                if (bytes == null) {
+                    false
+                } else {
+                    textureBytes = bytes
+                    textureWidth = bitmap.width
+                    textureHeight = bitmap.height
+                    Timber.d("decoded bundled mono 360 asset: ${bitmap.width}x${bitmap.height}")
+                    true
+                }
             } finally {
                 // S0290 Phase 11: return bitmap to Glide pool so the second session reuses the
-                // 128 MB ARGB_8888 allocation instead of re-allocating. Pool drives recycle by LRU.
+                // budget-sampled ARGB_8888 allocation instead of re-allocating. Pool drives recycle by LRU.
                 returnToPool(bitmap)
             }
         }
@@ -729,59 +870,82 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val config = parseFilenameConfig(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
         hudRenderer.currentFilename = file.name
-        queueFilenameHud(file.name, config.projection, config.layout)
+        if (isPanelHudMode()) {
+            renderPanelHud()
+        } else {
+            queueFilenameHud(file.name, config.projection, config.layout)
+        }
 
         // S0382 Phase 04 / ADR-1: decode + RGBA copy off the main thread (see decodeBundledAsset).
         return withContext(Dispatchers.IO) {
             val bitmap = decodeFilePooled(file) ?: return@withContext false
             try {
-                val w = bitmap.width
-                val h = bitmap.height
-                val buf = getReusableDirectBuffer(w * h * 4)
-                bitmap.copyPixelsToBuffer(buf)
-                buf.rewind()
-                val bytes = ByteArray(buf.remaining())
-                buf.get(bytes)
-                textureBytes = bytes
-                textureWidth = w
-                textureHeight = h
-                Timber.d("decoded initial image ${file.name} to RGBA: ${w}x${h}")
-                true
+                val bytes = copyBitmapToRgbaBytes(bitmap)
+                if (bytes == null) {
+                    false
+                } else {
+                    textureBytes = bytes
+                    textureWidth = bitmap.width
+                    textureHeight = bitmap.height
+                    Timber.d("decoded initial image ${file.name}: ${bitmap.width}x${bitmap.height}")
+                    true
+                }
             } finally {
                 returnToPool(bitmap)
             }
         }
     }
 
-    /** S0290 Phase 11 Step 11.1 / ADR-5 v2: decode the bundled 8K equirectangular JPEG via Glide BitmapPool on Dispatchers.IO. The Glide pool is LRU, thread-safe, and already in the project (`com.github.bumptech.glide:glide:4.16.0`). One 8K ARGB_8888 entry can be reused by any smaller decode of the same Config (API 19+). On OOM with `inBitmap` (pool entry too small / GC pressure), retry with `inSampleSize=2`. That halves each axis → quarter pixel count → 32 MB heap, which always succeeds. */
+    /**
+     * S0290 Phase 11 Step 11.1 / ADR-5 v2 + S0960: decode the bundled equirectangular JPEG via
+     * Glide BitmapPool on Dispatchers.IO. The Glide pool is LRU, thread-safe, and already in the
+     * project. S0960: the bundled asset now goes through the same [pickSampleSizeForBudget]
+     * preflight as external files (8192x4096 exceeds the 96 MB budget -> inSampleSize=2 ->
+     * 4096x2048 = 32 MB) - the previous full-size 128 MB decode plus its equally sized on-heap
+     * RGBA copy OOMed a warm 512 MB heap on Quest 3. On OOM with `inBitmap` (pool entry too
+     * small / GC pressure), retry with a doubled sample size.
+     */
     private suspend fun decodeBundledPooled(): Bitmap? = withContext(Dispatchers.IO) {
+        val sample = pickSampleSizeForBudget(BUNDLED_WIDTH, BUNDLED_HEIGHT)
+        val sampledW = BUNDLED_WIDTH / sample
+        val sampledH = BUNDLED_HEIGHT / sample
+        Timber.d("S0960: bundled decode preflight sample=$sample -> ${sampledW}x${sampledH}")
         val pool = Glide.get(this@DiagnosticXrActivity).bitmapPool
-        val reusable = pool.getDirty(BUNDLED_WIDTH, BUNDLED_HEIGHT, Bitmap.Config.ARGB_8888)
+        val reusable = pool.getDirty(sampledW, sampledH, Bitmap.Config.ARGB_8888)
         val opts = BitmapFactory.Options().apply {
             inBitmap = reusable
             inMutable = true
             inPreferredConfig = Bitmap.Config.ARGB_8888
+            inSampleSize = sample
         }
         try {
             resources.openRawResource(R.drawable.vr_diagnostic_360_mono).use {
                 BitmapFactory.decodeStream(it, null, opts)
             }
         } catch (oom: OutOfMemoryError) {
-            Timber.w(oom, "VR bundled asset decode OOM with inBitmap; retry with inSampleSize=2")
+            Timber.w(oom, "VR bundled asset decode OOM with inBitmap; retry with inSampleSize=${sample * 2}")
             opts.inBitmap = null
-            opts.inSampleSize = 2
+            opts.inSampleSize = sample * 2
             try {
                 resources.openRawResource(R.drawable.vr_diagnostic_360_mono).use {
                     BitmapFactory.decodeStream(it, null, opts)
                 }
             } catch (oom2: OutOfMemoryError) {
-                Timber.e(oom2, "VR bundled asset decode OOM even with inSampleSize=2; giving up")
+                Timber.e(oom2, "VR bundled asset decode OOM even with inSampleSize=${opts.inSampleSize}; giving up")
                 null
             }
         }
     }
 
-    /** S0290 Phase 11 Step 11.1: external-file counterpart of [decodeBundledPooled]. Uses `inJustDecodeBounds` preflight to discover dimensions, picks an [inSampleSize] that keeps the ARGB_8888 footprint under [MAX_EXTERNAL_DECODE_BYTES], then asks the Glide pool for a matching reusable bitmap. Bounds-driven preflight avoids the first OOM that the original implementation took before falling back - observed on Quest 3 with `moraine_lake_flat_mono.jpg` (7742x5327 = 165 MB) which crashed `BitmapFactory` before the catch ran. */
+    /**
+     * S0290 Phase 11 Step 11.1: external-file counterpart of [decodeBundledPooled]. Uses
+     * `inJustDecodeBounds` preflight to discover dimensions, picks an [inSampleSize] that keeps
+     * the ARGB_8888 footprint under [MAX_DECODE_BYTES], then asks the Glide pool for a matching
+     * reusable bitmap. Bounds-driven preflight avoids the first OOM that the original
+     * implementation took before falling back - observed on Quest 3 with
+     * `moraine_lake_flat_mono.jpg` (7742x5327 = 165 MB) which crashed `BitmapFactory` before the
+     * catch ran.
+     */
     private suspend fun decodeFilePooled(file: File): Bitmap? = withContext(Dispatchers.IO) {
         val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, boundsOpts)
@@ -796,7 +960,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         if (preflightSample > 1) {
             Timber.i(
                 "decodeFilePooled: ${file.name} bounds ${boundsOpts.outWidth}x${boundsOpts.outHeight}" +
-                    " exceeds ${MAX_EXTERNAL_DECODE_BYTES / (1024 * 1024)} MB budget;" +
+                    " exceeds ${MAX_DECODE_BYTES / (1024 * 1024)} MB budget;" +
                     " preflight inSampleSize=$preflightSample -> ${sampledW}x${sampledH}"
             )
         }
@@ -837,11 +1001,15 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
-    /** Picks the smallest power-of-2 sample size such that the ARGB_8888 footprint of the resulting bitmap is at most [MAX_EXTERNAL_DECODE_BYTES]. Capped at 8 - beyond that the picture is below usable VR-quality anyway and we surface the failure. */
+    /**
+     * Picks the smallest power-of-2 sample size such that the ARGB_8888 footprint of the
+     * resulting bitmap is at most [MAX_DECODE_BYTES]. Capped at 8 - beyond that the picture is
+     * below usable VR-quality anyway and we surface the failure.
+     */
     private fun pickSampleSizeForBudget(width: Int, height: Int): Int {
         var sample = 1
         var bytes = width.toLong() * height.toLong() * 4L
-        while (bytes > MAX_EXTERNAL_DECODE_BYTES && sample < 8) {
+        while (bytes > MAX_DECODE_BYTES && sample < 8) {
             sample *= 2
             bytes /= 4
         }
@@ -916,6 +1084,15 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                         }
                     }
                 }
+
+                // S0964: tracks become known only after prepare(); refresh the panel rows when
+                // they land or when a selection override is applied.
+                override fun onTracksChanged(tracks: Tracks) {
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        refreshTrackRowsAndRepaint()
+                    }
+                }
             })
 
             if (snapshot != null) {
@@ -933,6 +1110,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
         runtime.setVideoSurfaceEnabled(true)
         playbackController.updatePlayer(exoPlayer)
+        // S0964: seed the panel model from the real player state (snapshot-aware) so the HUD does
+        // not show stale defaults (volume 1.0 / playing) on warm entries from the flat player.
+        exoPlayer?.let { player ->
+            hudRenderer.isPlaying = player.playWhenReady
+            hudRenderer.volume = player.volume
+        }
         Timber.d("Started video playback for: ${file.name}")
         return true
     }
@@ -973,24 +1156,30 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         val config = parseFilenameConfig(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
-        queueFilenameHud(file.name, config.projection, config.layout)
+        if (isPanelHudMode()) {
+            refreshTrackRowsAndRepaint()
+        } else {
+            queueFilenameHud(file.name, config.projection, config.layout)
+        }
 
         if (file.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
             runtime.setVideoSurfaceEnabled(false)
-            // S0290 Phase 11: decode off-main via Glide pool. After native consumes RGBA bytes (queueFrame copies into the native pendingFrameData vector), return the bitmap to the pool so the next slide's decode reuses this allocation - main thread sees no GC pause from the 128 MB bundled-sized bitmap being recreated each slide change.
+            // S0290 Phase 11: decode off-main via Glide pool. After native consumes RGBA bytes (queueFrame
+            // copies into the native pendingFrameData vector), return the bitmap to the pool so the next
+            // slide's decode reuses this allocation - main thread sees no GC pause from the budget-sized
+            // bitmap being recreated each slide change.
             lifecycleScope.launch(Dispatchers.IO) {
                 val bitmap = decodeFilePooled(file)
                 if (bitmap != null) {
                     try {
-                        val w = bitmap.width
-                        val h = bitmap.height
-                        val buf = getReusableDirectBuffer(w * h * 4)
-                        bitmap.copyPixelsToBuffer(buf)
-                        buf.rewind()
-                        val bytes = ByteArray(buf.remaining())
-                        buf.get(bytes)
-                        runtime.queueFrame(bytes, w, h)
-                        Timber.d("Loaded and queued image: ${file.name} at ${w}x${h}")
+                        val bytes = copyBitmapToRgbaBytes(bitmap)
+                        if (bytes != null) {
+                            runtime.queueFrame(bytes, bitmap.width, bitmap.height)
+                            Timber.d("Loaded and queued image: ${file.name} at ${bitmap.width}x${bitmap.height}")
+                        } else {
+                            // S0960 graceful path: keep showing the previous slide instead of crashing.
+                            Timber.w("RGBA copy failed for ${file.name}; keeping previous frame")
+                        }
                     } catch (t: Throwable) {
                         Timber.e(t, "Failed to copy bitmap buffer for ${file.name}")
                     } finally {
@@ -1113,8 +1302,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // onPause normally already tore everything down (Phase 09); this is the belt-and-braces path for the rare process-death-after-pause case where onPause did not get to finish. Same ordering rule: ExoPlayer release before native shutdown.
         releasePlaybackResources()
         shutdownRenderThreadSync(SHUTDOWN_TIMEOUT_MS)
+        hudRepaintHandler.removeCallbacksAndMessages(null)
         reusableDirectBuffer = null
         reusableHudBuffer = null
+        reusablePanelHudBuffer = null
         super.onDestroy()
     }
 
@@ -1124,10 +1315,16 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         thread.requestExit()
         thread.join(timeoutMs)
         if (thread.isAlive) {
-            Timber.w("DiagnosticXrActivity: render thread did not exit within ${timeoutMs}ms")
+            // Wedged native runFrameLoop: no safe synchronous kill (no Thread.stop). Abandoning it
+            // retains this Activity plus the live native EGL/OpenXR session until it unwedges.
+            Timber.e("DiagnosticXrActivity: render thread did not exit within ${timeoutMs}ms; " +
+                "abandoning it still-alive - leaks Activity + native XR session")
         }
         renderThread = null
         sessionReady = false
+        // Re-arm the window-focus gate so the next render-thread start awaits a fresh window-focus
+        // signal instead of the completed one from the session we just tore down (re-entry gate).
+        windowFocusedDeferred = CompletableDeferred()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -1306,11 +1503,25 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // re-run when a session is recreated, leaving the placeholder visible on re-entry.
             runtime.setRenderConfig(config.projection.value, config.layout.value)
             hudRenderer.currentFilename = file.name
-            queueFilenameHud(file.name, config.projection, config.layout)
+            // S0964: the quad-size override persists in native state across sessions within one
+            // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
+            // a VR Cinema one would otherwise stretch the banner onto the panel-sized quad.
+            if (isPanelHudMode()) {
+                runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M)
+            } else {
+                runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M)
+                queueFilenameHud(file.name, config.projection, config.layout)
+            }
             if (isVideoFilename(file.name)) {
                 if (!startVideoPlayback(file)) {
                     queueErrorHud(file.name, "Playback Start Failed")
                 }
+            }
+            if (isPanelHudMode()) {
+                // After startVideoPlayback so the panel model already reflects snapshot state;
+                // track rows populate later via onTracksChanged.
+                refreshTrackRows()
+                renderPanelHud()
             }
         }
     }
@@ -1328,18 +1539,44 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         private const val EXTRA_LAUNCH_IN_HOME_PENDING_INTENT = "extra_launch_in_home_pending_intent"
         private const val MEDIA_SETTINGS_TAB_INDEX = 1
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
+
         // S0290 Phase 09: onPause runs on the main thread; keep the join wait shorter than the standard ANR window so re-entry is responsive while still giving the render thread time to release EGL/OpenXR resources.
         const val PAUSE_SHUTDOWN_TIMEOUT_MS = 2_000L
         private const val REQUEST_CODE_HAND_TRACKING = 1001
-        // S0290 Phase 11: known dimensions of the bundled equirectangular asset. Used as the pool key for Glide BitmapPool so the second + subsequent sessions reuse the same 128 MB ARGB_8888 allocation instead of re-allocating (root cause of the 2nd-launch OOM observed 2026-05-22).
+
+        // S0290 Phase 11: known source dimensions of the bundled equirectangular asset, pre-sampling.
+        // S0960 runs them through pickSampleSizeForBudget, so the Glide BitmapPool key is the sampled
+        // size (4096x2048 at the 96 MB budget) and the second + subsequent sessions reuse that
+        // allocation instead of re-allocating (root cause of the 2nd-launch OOM observed 2026-05-22).
         private const val BUNDLED_WIDTH = 8192
         private const val BUNDLED_HEIGHT = 4096
+
+        // S0960: bytes per ARGB_8888 / RGBA pixel for buffer sizing.
+        private const val RGBA_BYTES_PER_PIXEL = 4
+
         // S0290 (owner round 3): always-on HUD banner dimensions. Wide banner with the filename on the left and the resolved projection/stereo layout on the right - visible from the moment a slide loads, no ray pointing required.
         private const val HUD_BANNER_WIDTH = 1024
         private const val HUD_BANNER_HEIGHT = 128
-        // S0290 Phase 11.1 reinforcement: heap budget for ANY single external bitmap decode. Anything above this gets a preflight inSampleSize so we never even try the OOM allocation. 96 MB leaves headroom for the bundled pool entry (128 MB), ExoPlayer buffers, and OpenXR swapchain copies. 96 MB at ARGB_8888 covers ~4900x4900 source.
-        private const val MAX_EXTERNAL_DECODE_BYTES = 96L * 1024L * 1024L
+
+        // S0964: world-space HUD quad sizes per mode. Banner values mirror the native defaults
+        // (S0291 owner decision); the panel quad matches the 1024x640 texture aspect (1.6:1) at
+        // -1.5 m so text stays legible without dominating the film. Owner review on device.
+        private const val BANNER_QUAD_WIDTH_M = 0.3f
+        private const val BANNER_QUAD_HEIGHT_M = 0.113f
+        private const val PANEL_QUAD_WIDTH_M = 0.48f
+        private const val PANEL_QUAD_HEIGHT_M = 0.30f
+
+        // S0964: coalesce repaint bursts (slider drags) into one queueHud per window.
+        private const val HUD_REPAINT_DEBOUNCE_MS = 100L
+
+        // S0290 Phase 11.1 + S0960: heap budget for ANY single bitmap decode - external files and the
+        // bundled asset alike. Anything above this gets a preflight inSampleSize so we never even try
+        // the OOM allocation. 96 MB at ARGB_8888 covers a ~4900x4900 source; the bundled 8192x4096
+        // asset lands at inSampleSize=2 (4096x2048 = 32 MB), leaving headroom for ExoPlayer buffers
+        // and OpenXR swapchain copies.
+        private const val MAX_DECODE_BYTES = 96L * 1024L * 1024L
         private val VIDEO_EXTENSIONS = setOf("mp4", "mkv")
+
         // S0290 (owner round 3 2026-05-22): full coverage matrix - 3 projections × 3 stereo layouts × {image, video} = 18 entries plus the original FLAT mono (moraine lake). Stereo variants ship with diagnostic L/R overlays (see setup_test_vr.ps1) so the viewer can verify per-eye routing by closing one eye in the headset.
         // Test matrix: 360°/180°/flat × mono/TB-stereo/SBS-stereo × image+video. L/R overlays in setup_test_vr.ps1.
         private val VR_TEST_MEDIA_ORDER = listOf(

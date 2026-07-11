@@ -1,0 +1,42 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: back navigation from each primary screen returns home without exiting the app.
+# Oracle: after a single back from Settings and from Add Resource, the resource-type tabs render
+#   again (exact id) - never a black screen, never an unexpected app exit.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+
+# Settings -> back -> home
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+
+# Add Resource -> back -> home
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+    timeout: 10000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

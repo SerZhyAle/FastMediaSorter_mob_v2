@@ -38,6 +38,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
     suspend fun present(
         result: LinkAutoDownloadCoordinator.Result,
         hostActivity: AppCompatActivity,
+        notificationShown: Boolean = false,
         isAuthRetry: Boolean = false,
         onAuthRetryRequested: suspend (originalUrl: String) -> Unit = {},
     ) {
@@ -60,22 +61,32 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
 
         when (result) {
             is LinkAutoDownloadCoordinator.Result.Saved -> {
+                Timber.d("S0980: saved-open openInPlayer=$openInPlayer uri=${result.openInPlayerUri != null}")
                 if (openInPlayer && result.openInPlayerUri != null) {
                     launchPlayer(hostActivity, result.openInPlayerUri)
-                } else {
+                } else if (!notificationShown) {
+                    // S0981: suppress only the duplicate toast when the worker already posted a
+                    // result notification; the auto-open path above is never suppressed.
                     toast(R.string.s0116_toast_saved_to_resource, result.fileName)
                 }
             }
             is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> {
                 if (openInPlayer && result.openInPlayerUri != null) {
                     launchPlayer(hostActivity, result.openInPlayerUri)
-                } else {
+                } else if (!notificationShown) {
                     toast(R.string.s0116_toast_saved_to_downloads, result.fileName)
                 }
             }
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
+                Timber.d("S0980: batch-open openInPlayer=$openInPlayer firstUri=${result.summary.firstSavedUri != null}")
                 if (result.summary.failureCount == 0) {
-                    toast(R.string.s0117_toast_batch_saved, result.summary.successCount)
+                    // S0980: a fully-successful batch (e.g. an Instagram carousel) opens its first saved
+                    // file when the setting is on, matching single-item behaviour and the notification tap.
+                    if (openInPlayer && result.summary.firstSavedUri != null) {
+                        launchPlayer(hostActivity, result.summary.firstSavedUri)
+                    } else if (!notificationShown) {
+                        toast(R.string.s0117_toast_batch_saved, result.summary.successCount)
+                    }
                 } else {
                     showBatchSummary(hostActivity, result.summary)
                 }

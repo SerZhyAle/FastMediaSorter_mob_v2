@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260704192
-val defaultAppVersionName = "2.60.7041.926"
+val defaultAppVersionCode = 260710151
+val defaultAppVersionName = "2.60.7101.516"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -1325,7 +1325,11 @@ dependencies {
     implementation("androidx.camera:camera-video:1.5.3")
     // S0753: OEM NIGHT extension for the camera night mode (device-gated via ExtensionsManager).
     implementation("androidx.camera:camera-extensions:1.5.3")
-    
+
+    // S0988: pure-JVM QR decoder for the companion-config scan (no native model, no GMS, all flavors).
+    // Only the core decoder - NOT zxing-android-embedded, which drags in a legacy camera1 stack.
+    implementation("com.google.zxing:core:3.5.3")
+
     // Tesseract OCR (Offline, better Cyrillic support)
     // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)
     "standardImplementation"("cz.adaptech:tesseract4android:4.8.0") {

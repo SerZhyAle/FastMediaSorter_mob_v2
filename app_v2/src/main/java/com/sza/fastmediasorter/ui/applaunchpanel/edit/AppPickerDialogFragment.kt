@@ -9,12 +9,13 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
-import com.sza.fastmediasorter.databinding.DialogAppPickerBinding
-import com.sza.fastmediasorter.domain.usecase.panel.LaunchableApp
+import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
@@ -23,6 +24,8 @@ import javax.inject.Inject
 /**
  * Lists installed launcher apps and returns the chosen package to the host via a FragmentResult.
  * Used by the Edit-panel screen to fill or replace a slot. Sized/centred as a card in [onStart].
+ * S0947: renders through the canonical [SearchableOptionPickerController] (conditional search filter,
+ * selected highlight/autoscroll) instead of a bespoke adapter.
  */
 @AndroidEntryPoint
 class AppPickerDialogFragment : DialogFragment() {
@@ -30,7 +33,7 @@ class AppPickerDialogFragment : DialogFragment() {
     @Inject
     lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
 
-    private var _binding: DialogAppPickerBinding? = null
+    private var _binding: DialogSearchableOptionPickerBinding? = null
     private val binding get() = _binding!!
 
     private var slotIndex: Int = 0
@@ -46,17 +49,25 @@ class AppPickerDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = DialogAppPickerBinding.inflate(inflater, container, false)
+        _binding = DialogSearchableOptionPickerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.rvApps.layoutManager = LinearLayoutManager(requireContext())
         // One-shot package query wrapped as a flow so it is collected lifecycle-safely (the list does
         // not change while the picker is open).
         collectOnLifecycle(flow { emit(queryLaunchableApps()) }) { apps ->
-            binding.rvApps.adapter = AppPickerAdapter(apps, ::onAppPicked)
+            val options = apps.map { app ->
+                Option(
+                    id = app.packageName,
+                    label = app.label,
+                    leading = LeadingVisual.IconDrawable(app.icon),
+                )
+            }
+            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+                picked?.let { onAppPicked(it.id) }
+            }
         }
     }
 
@@ -78,10 +89,10 @@ class AppPickerDialogFragment : DialogFragment() {
         _binding = null
     }
 
-    private fun onAppPicked(app: LaunchableApp) {
+    private fun onAppPicked(packageName: String) {
         setFragmentResult(
             RESULT_KEY,
-            bundleOf(RESULT_SLOT to slotIndex, RESULT_PACKAGE to app.packageName)
+            bundleOf(RESULT_SLOT to slotIndex, RESULT_PACKAGE to packageName),
         )
         dismiss()
     }

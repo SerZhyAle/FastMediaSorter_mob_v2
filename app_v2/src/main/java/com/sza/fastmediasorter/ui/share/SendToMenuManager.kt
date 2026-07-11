@@ -138,7 +138,6 @@ class SendToMenuManager @Inject constructor(
                 activity.getString(R.string.share_to_pick_resource),
             )
             pickItem.setIcon(R.drawable.ic_resource)
-            Timber.d("S0842: SendTo pick-resource uses ic_resource")
             pickItem.setOnMenuItemClickListener {
                 onPickResource()
                 true

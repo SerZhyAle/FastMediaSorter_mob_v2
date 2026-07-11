@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.link.LinkDownloadUserAgents
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadCookieJar
 import com.sza.fastmediasorter.data.repository.AuthSessionRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.usecase.link.LinkDownloadPacer
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import dagger.Binds
 import dagger.Module
@@ -14,6 +15,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import dagger.multibindings.Multibinds
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -86,4 +88,9 @@ abstract class LinkDownloadStrategiesModule {
 
     @Binds
     abstract fun bindAuthSessionRepository(impl: AuthSessionRepositoryImpl): AuthSessionRepository
+
+    // S0973: declares the (possibly empty) pacer set. No flavor except noLegal contributes an
+    // element, so standard/lite/photos/legacy inject an empty set and add no inter-item pause.
+    @Multibinds
+    abstract fun linkDownloadPacers(): Set<LinkDownloadPacer>
 }

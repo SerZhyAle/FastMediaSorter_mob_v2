@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.share.di
 
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.handlers.ConfiguredPackageShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.EmailShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.InstagramShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.KeepDrawingShareTargetHandler
@@ -13,6 +14,7 @@ import com.sza.fastmediasorter.core.share.handlers.TelegramShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.WhatsAppShareTargetHandler
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
@@ -76,4 +78,30 @@ abstract class ShareTargetHandlerModule {
     @IntoMap
     @StringKey("instagram")
     abstract fun bindInstagram(handler: InstagramShareTargetHandler): ShareTargetHandler
+
+    companion object {
+        @Provides
+        @IntoMap
+        @StringKey("viber")
+        fun provideViberHandler(): ShareTargetHandler = ConfiguredPackageShareTargetHandler(
+            targetId = "viber",
+            packages = ShareTargetModule.VIBER_PACKAGES,
+        )
+
+        @Provides
+        @IntoMap
+        @StringKey("messenger")
+        fun provideMessengerHandler(): ShareTargetHandler = ConfiguredPackageShareTargetHandler(
+            targetId = "messenger",
+            packages = ShareTargetModule.MESSENGER_PACKAGES,
+        )
+
+        @Provides
+        @IntoMap
+        @StringKey("tiktok")
+        fun provideTiktokHandler(): ShareTargetHandler = ConfiguredPackageShareTargetHandler(
+            targetId = "tiktok",
+            packages = ShareTargetModule.TIKTOK_PACKAGES,
+        )
+    }
 }

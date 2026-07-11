@@ -124,7 +124,6 @@ internal class VideoPlayerLifecycleHelper(
         wasPlayingBeforeStop = manager.exoPlayer?.isPlaying == true ||
             (manager.isUsingMediaPlayer && manager.mediaPlayer?.isPlaying == true)
         if (!hasActivePlayer) return
-        Timber.d("S0893: VideoPlayerManager onStop - releasing player while backgrounded (API24+)")
         // Explicit save before release - releasePlayer() does not save, and the periodic auto-save
         // loop may be up to POSITION_SAVE_INTERVAL_MS stale.
         manager.saveCurrentPosition()
@@ -138,7 +137,6 @@ internal class VideoPlayerLifecycleHelper(
         val path = manager.currentFilePath
         val resourceType = manager.lastResourceType
         if (path == null || resourceType == null) return
-        Timber.d("S0893: VideoPlayerManager onStart - recreating player released on background")
         manager.playVideo(path, resourceType, manager.lastCredentialsId, playWhenReady = wasPlayingBeforeStop)
     }
 

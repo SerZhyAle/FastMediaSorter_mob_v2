@@ -2988,4 +2988,27 @@ Close the player and try again.</string>
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Open in VR Cinema</string>
     <string name="vr_cinema_launch_unavailable">VR Cinema is unavailable right now</string>
+    <string name="companion_import_button">Import from companion</string>
+    <string name="companion_import_success">Added from companion: %1$s (%2$s)</string>
+    <string name="companion_import_version_error">This config was created by a newer companion version. Please update the app.</string>
+    <string name="companion_import_invalid_error">This file is not a valid companion config.</string>
+    <string name="companion_import_failed">Companion import failed. Check the file and try again.</string>
+    <string name="resource_menu_share_sftp_access">Share access..</string>
+    <string name="sftp_share_export_title">Share SFTP access</string>
+    <string name="sftp_share_export_warning">This file contains the access password. Send it only to people you trust.</string>
+    <string name="sftp_share_omit_password">Do not include the password</string>
+    <string name="sftp_share_private_network_warning">This server is on your local network - the recipient can connect only from the same network.</string>
+    <string name="sftp_share_export_failed">Could not create the access file.</string>
+    <string name="sftp_share_export_action">Share</string>
+    <string name="companion_import_title">Import access</string>
+    <string name="companion_import_confirm_message">Add the SFTP resource &quot;%1$s&quot; on %2$s with %3$d folder(s)?</string>
+    <string name="companion_import_no_fingerprint_warning">This server has not been verified - connect only if you trust the sender.</string>
+    <string name="companion_import_password_label">Password for this server</string>
+    <string name="companion_import_action">Import</string>
+    <string name="companion_import_password_required">Enter the password for this server.</string>
+    <string name="companion_qr_scan_button">Scan QR code</string>
+    <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
+    <string name="companion_qr_scan_torch">Torch</string>
+    <string name="companion_qr_camera_denied">Camera access is needed to scan the QR code</string>
+    <string name="vr_cinema_program_title">VR Cinema</string>
 </resources>

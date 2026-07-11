@@ -7,16 +7,24 @@ import android.util.Size
 import androidx.camera.core.AspectRatio
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsDialogRotationManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.roundToLong
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class CameraSettingsDialogFragment : DialogFragment() {
 
@@ -55,6 +63,13 @@ class CameraSettingsDialogFragment : DialogFragment() {
     lateinit var initialSettings: CameraSettingsState
     lateinit var callbacks: Callbacks
 
+    // S0924: the Activity's single CameraOrientationManager bucket (portrait-locked host); the dialog
+    // is a third, late consumer - no second OrientationEventListener.
+    var rotationBucketState: StateFlow<Int>? = null
+
+    private val rotationManager by lazy { CameraSettingsDialogRotationManager(requireContext()) }
+    private var rotationJob: Job? = null
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogCameraSettingsBinding.inflate(layoutInflater)
         draft = initialSettings.copy()
@@ -65,9 +80,25 @@ class CameraSettingsDialogFragment : DialogFragment() {
         setupManualSensorControls()
         wireActionButtons()
 
+        // S0924: wrap content in the rotate-and-swap-measure container so it can turn with the device.
+        val content = rotationManager.wrap(binding.root)
         return MaterialAlertDialogBuilder(requireContext())
-            .setView(binding.root)
+            .setView(content)
             .create()
+            .also { rotationManager.attach(it) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val state = rotationBucketState ?: return
+        if (rotationJob != null) return
+        // S0924: subscribe to the device rotation bucket; symmetric deregistration in onDestroyView.
+        rotationJob = lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                state.collect { bucket -> rotationManager.applyRotation(bucket) }
+            }
+        }
+        Timber.d("S0924: dialog rotation registered for bucket=${state.value}")
     }
 
     private fun preview() {
@@ -220,6 +251,9 @@ class CameraSettingsDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        // S0924: symmetric deregistration of the rotation-bucket subscription started in onStart().
+        rotationJob?.cancel()
+        rotationJob = null
         _binding?.let { dialogBinding ->
             exposureChangeListener?.let(dialogBinding.sliderCameraExposure::removeOnChangeListener)
             isoChangeListener?.let(dialogBinding.sliderCameraIso::removeOnChangeListener)

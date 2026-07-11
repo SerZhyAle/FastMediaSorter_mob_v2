@@ -8,10 +8,13 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager
 import com.sza.fastmediasorter.widget.LinkDownloadLaunchActivity
+import com.sza.fastmediasorter.widget.PhotoCaptureLaunchActivity
 import com.sza.fastmediasorter.widget.QuickAudioRecorderActivity
 import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
 
@@ -58,6 +61,21 @@ object AppLaunchPanelRouteIntents {
 
     fun linkDownload(context: Context): Intent =
         Intent(context, LinkDownloadLaunchActivity::class.java).withPanelFlags()
+
+    // S0978: reuse the same standalone camera/photo trampolines the left-edge gesture dispatcher uses
+    // (PhotoCaptureLaunchActivity auto-captures then routes; CameraLaunchActivity.videoIntent opens the
+    // camera in video mode). The AUTO_ACTION_* constants match the gesture path's routing exactly.
+    fun takePhotoSendTo(context: Context): Intent =
+        PhotoCaptureLaunchActivity.intent(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO).withPanelFlags()
+
+    fun takePhotoEdit(context: Context): Intent =
+        PhotoCaptureLaunchActivity.intent(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW).withPanelFlags()
+
+    fun takePhotoOcrTranslate(context: Context): Intent =
+        PhotoCaptureLaunchActivity.intent(context, PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE).withPanelFlags()
+
+    fun startVideoRecording(context: Context): Intent =
+        CameraLaunchActivity.videoIntent(context).withPanelFlags()
 
     private fun Intent.withPanelFlags(): Intent = addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 

@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class ImagesSettingsFragment : BaseSettingsFragment() {
@@ -117,7 +116,6 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         // Select music source button
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectMusicSource, binding.btnSelectMusicSource.contentDescription)
-        Timber.d("S0842: music-source dest picker is icon-only")
         binding.btnSelectMusicSource.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.ResourcePickerDialog(
                 context = requireContext(),

@@ -342,7 +342,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
     override fun onDestroyView() {
         // S0892: detach + quiesce before destroy() - destroy() on a still-attached / mid-load WebView
         // can crash its native renderer or leak. Order: stop load, blank out, remove from parent, destroy.
-        Timber.d("S0892: webview teardown")
         webView?.let { web ->
             web.stopLoading()
             web.loadUrl("about:blank")

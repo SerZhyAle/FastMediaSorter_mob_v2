@@ -28,6 +28,19 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- S0979: explicit close affordance before the title; the transparent host finishes itself
+                 on dialog detach (AppLaunchPanelActivity.onFragmentDetached), so dismiss() is enough. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClosePanel"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@string/close"
+                android:focusable="true"
+                app:icon="@drawable/ic_clear"
+                app:iconTint="?attr/colorOnSurface" />
+
             <TextView
                 android:id="@+id/tvPanelTitle"
                 android:layout_width="0dp"

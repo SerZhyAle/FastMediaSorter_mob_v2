@@ -595,7 +595,11 @@ class VideoPlayerManager(
     // Public API - Stereo / color adjustments
     // ═══════════════════════════════════════════════════════════════════════
 
-    /** Apply stereo crop effect matching [mode], with VR paths deferring per-eye crop to VrStereoRenderer. */
+    /**
+     * Apply stereo crop matching [mode]. Under VR immersive the 2D crop is skipped (full SBS/OU frame
+     * passed through) and per-eye crop is done by the vr-flavor OpenXR renderer - DiagnosticXrRuntime
+     * over the native xr_session (per-eye swapchains).
+     */
     fun applyStereoEffect(mode: StereoMode) = playbackControlsHelper.applyStereoEffect(mode)
 
     fun setHueAdjustmentDegrees(hueDegrees: Float) = playbackControlsHelper.setHueAdjustmentDegrees(hueDegrees)

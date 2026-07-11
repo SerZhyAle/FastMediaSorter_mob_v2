@@ -1,0 +1,40 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: top-level screen tour - every primary form opens and backs out without a crash.
+# Oracle: each screen renders its anchor id; the back-cascade lands on the resource-type tabs;
+#   no crash-report prompt at the end. Anchor ids are exact - no optional on the proofs.
+
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+# Settings screen
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
+- runFlow: ../_shared/go_home.yaml
+
+# Add Resource screen
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+- runFlow: ../_shared/go_home.yaml
+
+# Back home, still alive
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

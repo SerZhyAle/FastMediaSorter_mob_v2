@@ -49,6 +49,8 @@ class ResourceAdapter(
     private val onScanClick: (MediaResource) -> Unit = {},
     // S0422: export a single resource to a share file.
     private val onExportClick: (MediaResource) -> Unit = {},
+    // S0984: share an SFTP resource's access as a .fmscfg config file (SFTP resources only).
+    private val onShareSftpAccessClick: (MediaResource) -> Unit = {},
     // S0661: pin the configurable resource-launch widget for this resource from the row overflow.
     private val onAddToHomeScreenClick: (MediaResource) -> Unit = {},
     // S0293 Phase 08: per-resource "Open in new window" entry on the main list. Optional - when
@@ -56,7 +58,11 @@ class ResourceAdapter(
     private val onOpenInNewWindowClick: ((MediaResource) -> Unit)? = null,
     // S0727: mutable so MainActivity can fold in the persisted allowSeparateWindow preference off the
     // Main thread (the initial value is the non-blocking runtime multi-window capability).
-    private var isOpenInNewWindowVisible: Boolean = false
+    private var isOpenInNewWindowVisible: Boolean = false,
+    // S0963 (Pillar 2): per-resource "Open in VR Cinema" entry. Optional - when null the item is
+    // hidden; visibility is also gated by isOpenInVrCinemaVisible (XR availability mirror).
+    private val onOpenInVrCinemaClick: ((MediaResource) -> Unit)? = null,
+    private var isOpenInVrCinemaVisible: Boolean = false
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
 
     companion object {
@@ -271,6 +277,14 @@ class ResourceAdapter(
         }
     }
 
+    // S0963: toggle the per-row "Open in VR Cinema" entry after construction, mirroring XR availability.
+    fun setOpenInVrCinemaVisible(visible: Boolean) {
+        if (this.isOpenInVrCinemaVisible != visible) {
+            this.isOpenInVrCinemaVisible = visible
+            notifyDataSetChanged()
+        }
+    }
+
     override fun getItemViewType(position: Int) = if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -441,14 +455,19 @@ class ResourceAdapter(
                 } else if (overflowModeEnabled) {
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
                     btnMoreActions.visibility = android.view.View.VISIBLE
+                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
+                    btnMoreActions.contentDescription = "more_options:${resource.name}"
                     btnMoreActions.setOnClickListener { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
                         popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
+                        popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible = resource.type == ResourceType.SFTP
                         // S0293 Phase 08: per-resource multi-window entry on main list
                         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                             isOpenInNewWindowVisible && onOpenInNewWindowClick != null
+                        popup.menu.findItem(R.id.action_open_in_vr_cinema)?.isVisible =
+                            isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null
                         popup.menu.findItem(R.id.action_launch_player)?.isVisible =
                             isQuickSlideshowEligible(resource)
                         popup.setForceShowIcon(true)
@@ -459,6 +478,7 @@ class ResourceAdapter(
                                 R.id.action_edit -> { onEditClick(resource); true }
                                 R.id.action_copy -> { onCopyFromClick(resource); true }
                                 R.id.action_export_resource -> { onExportClick(resource); true }
+                                R.id.action_share_sftp_access -> { onShareSftpAccessClick(resource); true }
                                 R.id.action_scan -> { onScanClick(resource); true }
                                 R.id.action_move_up -> { onMoveUpClick(resource); true }
                                 R.id.action_move_down -> { onMoveDownClick(resource); true }
@@ -467,6 +487,9 @@ class ResourceAdapter(
                                 R.id.action_delete -> { onDeleteClick(resource); true }
                                 R.id.action_open_in_separate_window -> {
                                     onOpenInNewWindowClick?.invoke(resource); true
+                                }
+                                R.id.action_open_in_vr_cinema -> {
+                                    onOpenInVrCinemaClick?.invoke(resource); true
                                 }
                                 else -> false
                             }
@@ -796,15 +819,20 @@ class ResourceAdapter(
                     } else {
                         btnMoreActions.visibility = android.view.View.VISIBLE
                         layoutInlineActions.visibility = android.view.View.GONE
+                        // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
+                        btnMoreActions.contentDescription = "more_options:${resource.name}"
 
                         btnMoreActions.setOnClickListenerDebounced { view ->
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                             popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
                         popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
+                            popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible = resource.type == ResourceType.SFTP
                             // S0293 Phase 08: per-resource multi-window entry on main list
                             popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                                 isOpenInNewWindowVisible && onOpenInNewWindowClick != null
+                            popup.menu.findItem(R.id.action_open_in_vr_cinema)?.isVisible =
+                                isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null
                             popup.menu.findItem(R.id.action_launch_player)?.isVisible =
                                 isQuickSlideshowEligible(resource)
                             popup.setForceShowIcon(true)
@@ -835,6 +863,10 @@ class ResourceAdapter(
                                         onExportClick(resource)
                                         true
                                     }
+                                    R.id.action_share_sftp_access -> {
+                                        onShareSftpAccessClick(resource)
+                                        true
+                                    }
                                     R.id.action_scan -> {
                                         onScanClick(resource)
                                         true
@@ -857,6 +889,10 @@ class ResourceAdapter(
                                     }
                                     R.id.action_open_in_separate_window -> {
                                         onOpenInNewWindowClick?.invoke(resource)
+                                        true
+                                    }
+                                    R.id.action_open_in_vr_cinema -> {
+                                        onOpenInVrCinemaClick?.invoke(resource)
                                         true
                                     }
                                     R.id.action_delete -> {

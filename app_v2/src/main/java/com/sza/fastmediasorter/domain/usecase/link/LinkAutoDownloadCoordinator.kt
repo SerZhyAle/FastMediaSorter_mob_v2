@@ -37,6 +37,8 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val cookieStore: EncryptedCookieStore,
     private val urlCanonicalizer: LinkUrlCanonicalizer,
     private val contract: YtMusicAudioOnlyContract,
+    // S0973: empty in every flavor except noLegal, where it holds the humanized carousel pacer.
+    private val pacers: Set<@JvmSuppressWildcards LinkDownloadPacer>,
 ) {
 
     // S0176: resolves the stored host whose cookies should be applied to the current run.
@@ -498,6 +500,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     total = null,
                 ),
             )
+
+            // S0973: humanized pause BETWEEN items (never before the first). The next-item progress
+            // was already emitted above, so the UI shows "item N", not a hang. `delay` is cancellable,
+            // so cancelling the download interrupts the pause immediately. Empty set (non-noLegal) = no-op.
+            if (index > 0) pacers.firstOrNull()?.pauseBetweenItems()
 
             val itemCallbacks = object : Callbacks {
                 override fun onProgress(state: ProgressState) {

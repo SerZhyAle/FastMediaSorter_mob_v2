@@ -573,6 +573,12 @@
             <!-- Add Resource button -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
 
+            <!-- S0421: one-action import of a Windows-companion .fmscfg config -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpImportCompanion" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/companion_import_button" app:icon="@drawable/ic_import" />
+
+            <!-- S0988: camera QR scan of the same companion config; hidden on camera-less/VR devices -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpScanCompanionQr" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/companion_qr_scan_button" app:icon="@drawable/ic_qr_scan" />
+
         </LinearLayout>
 
     </ScrollView>

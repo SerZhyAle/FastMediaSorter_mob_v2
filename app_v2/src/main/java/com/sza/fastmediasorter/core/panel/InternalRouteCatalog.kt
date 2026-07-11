@@ -37,6 +37,13 @@ object InternalRouteCatalog {
     const val KEY_SCREEN_RECORDING = "screen_recording"
     const val KEY_LINK_DOWNLOAD = "link_download"
 
+    // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
+    // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
+    const val KEY_TAKE_PHOTO_SEND_TO = "take_photo_send_to"
+    const val KEY_TAKE_PHOTO_EDIT = "take_photo_edit"
+    const val KEY_TAKE_PHOTO_OCR_TRANSLATE = "take_photo_ocr_translate"
+    const val KEY_START_VIDEO_RECORDING = "start_video_recording"
+
     private val routes: List<Route> = listOf(
         Route(
             key = KEY_CALCULATOR,
@@ -94,6 +101,32 @@ object InternalRouteCatalog {
             labelRes = R.string.download_by_link_menu_label,
             iconRes = R.drawable.ic_cloud_download,
             intent = AppLaunchPanelRouteIntents::linkDownload,
+        ),
+        // S0978: camera/video gesture actions with an existing standalone trampoline. Labels reuse the
+        // left-edge gesture picker's own strings; order follows the ScreenshotGestureAction enum order.
+        Route(
+            key = KEY_TAKE_PHOTO_SEND_TO,
+            labelRes = R.string.screenshot_gesture_action_take_photo_send_to,
+            iconRes = R.drawable.ic_camera_send_to,
+            intent = AppLaunchPanelRouteIntents::takePhotoSendTo,
+        ),
+        Route(
+            key = KEY_TAKE_PHOTO_EDIT,
+            labelRes = R.string.screenshot_gesture_action_take_photo_edit,
+            iconRes = R.drawable.ic_edit_20,
+            intent = AppLaunchPanelRouteIntents::takePhotoEdit,
+        ),
+        Route(
+            key = KEY_TAKE_PHOTO_OCR_TRANSLATE,
+            labelRes = R.string.screenshot_gesture_action_take_photo_ocr_translate,
+            iconRes = R.drawable.ic_camera_ocr_translate,
+            intent = AppLaunchPanelRouteIntents::takePhotoOcrTranslate,
+        ),
+        Route(
+            key = KEY_START_VIDEO_RECORDING,
+            labelRes = R.string.screenshot_gesture_action_start_video_recording,
+            iconRes = R.drawable.ic_video,
+            intent = AppLaunchPanelRouteIntents::startVideoRecording,
         ),
     )
 

@@ -62,7 +62,7 @@
 
                 <ImageButton android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_google_lens" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
-                <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_microphone" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
+                <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
                 <ImageButton android:id="@+id/btnSleepTimerCmd"
                     android:layout_width="@dimen/player_cmd_button_size"

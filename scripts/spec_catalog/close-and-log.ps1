@@ -49,6 +49,9 @@ param(
     [string]$FeatFlavors = 'standard',
     [string]$CatalogModule = 'app_v2',
     [string]$StatusNote = '',
+    # S0960: route the feature record to gitignored docs/ALL_FEATURES_noLegal.jsonl
+    # (noLegal-only capabilities, e.g. vr source set) instead of docs/ALL_FEATURES.jsonl.
+    [switch]$FeatNoLegal,
     [switch]$SkipCatalogSync,
     [switch]$SkipFuncLog,
     [switch]$StatusOnly
@@ -157,6 +160,7 @@ if (-not $SkipFuncLog -and $FuncOp -and $FuncDesc) {
         $recId = if ($FeatId) { $FeatId } else { "$areaSlug.$slug" }
         $status = if ($FuncOp -eq 'DELETE') { 'removed' } else { 'active' }
         $addArgs = @{ Id = $recId; Area = $FeatArea; Name = $featName; Description = $FuncDesc; Flavors = $FeatFlavors; Spec = $Id; Status = $status; Quiet = $true }
+        if ($FeatNoLegal) { $addArgs.NoLegal = $true }
         & $addScript @addArgs | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "all_features/add.ps1 exited $LASTEXITCODE" }
     }

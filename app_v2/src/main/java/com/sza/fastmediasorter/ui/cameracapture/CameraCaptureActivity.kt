@@ -243,6 +243,7 @@ class CameraCaptureActivity :
             sessionManager = sessionManager,
             flowManager = flowManager,
             onGridToggled = ::renderGridOverlay,
+            rotationBucket = orientationManager.rotationBucket,
         )
     }
 

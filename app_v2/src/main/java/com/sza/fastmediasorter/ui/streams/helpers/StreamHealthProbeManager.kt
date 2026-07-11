@@ -70,7 +70,6 @@ class StreamHealthProbeManager(
                 // NonCancellable so onComplete still runs when the sweep was cancelled - a plain
                 // withContext(Main) throws in a cancelled coroutine before the block runs (KDoc contract).
                 withContext(NonCancellable + Dispatchers.Main) {
-                    Timber.d("S0900: health sweep onComplete (cancel-safe)")
                     onComplete()
                 }
             }

@@ -78,7 +78,6 @@ class OperationsGesturesManager(
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectScreenshotDestination, binding.btnSelectScreenshotDestination.contentDescription)
-        Timber.d("S0842: screenshot dest picker is icon-only")
         binding.btnSelectScreenshotDestination.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()

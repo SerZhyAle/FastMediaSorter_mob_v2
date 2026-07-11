@@ -1,0 +1,125 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: full resource lifecycle - create a LOCAL resource, rename it to a unique token, then delete it.
+# Self-contained: it renames the created resource to a unique name (ZzLifecycleTmp) so create + rename
+#   are deterministic, then removes it via the overflow menu.
+# Precondition: All-Files access granted on API 30+ (see resource_create_local.yaml).
+# Oracle: after delete the unique "ZzLifecycleTmp" entry is gone from the main list.
+# Note: delete is only reachable through the per-item overflow menu (long-press = Edit), gated by the
+#   "resource ops in overflow menu" setting; the flow enables it idempotently, keyed on btnMoreActions.
+# Per-card targeting (S0977): each card's overflow button carries a stable contentDescription
+#   "more_options:<resourceName>" (set in ResourceAdapter bind), which Maestro matches via text:.
+#   This makes the target card's own overflow uniquely addressable in the multi-column grid, so the
+#   delete step no longer relies on brittle relative selectors (below/rightOf a name).
+
+# --- Create (reuses the create flow; leaves us on the Local tab with "Download" visible) ---
+- runFlow: resource_create_local.yaml
+
+# --- Rename "Download" -> unique token via the editor (long-press opens Edit) ---
+- longPressOn:
+    text: "Download"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etName"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etName"
+- eraseText: 40
+- inputText: "ZzLifecycleTmp"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSave"
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    text: "Локальные"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      text: "ZzLifecycleTmp"
+    timeout: 10000
+
+# --- Ensure the per-item overflow menu is enabled (idempotent) ---
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/btnMoreActions"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnSettings"
+      - runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/titleText"
+          timeout: 10000
+      # The overflow-ops toggle lives inside the collapsed "Main window interface" category;
+      # expand it first, then the row is reachable.
+      - scrollUntilVisible:
+          element:
+            text: "Интерфейс главного окна"
+          visibilityPercentage: 10
+          timeout: 8000
+      - tapOn:
+          text: "Интерфейс главного окна"
+      - waitForAnimationToEnd
+      - scrollUntilVisible:
+          element:
+            id: "com.sza.fastmediasorter.debug:id/rowResourceOpsInOverflowMenu"
+          visibilityPercentage: 10
+          timeout: 8000
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/rowResourceOpsInOverflowMenu"
+      - runFlow: ../../_shared/go_home.yaml
+      - tapOn:
+          text: "Локальные"
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            text: "ZzLifecycleTmp"
+          timeout: 10000
+
+# --- Delete via the ZzLifecycleTmp row overflow menu ---
+# S0977: tap the target card's own overflow by its stable per-card handle (contentDescription
+# "more_options:<name>"), matched via text:. Unique across the grid, no relative selector needed.
+- scrollUntilVisible:
+    element:
+      text: "ZzLifecycleTmp"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    text: "more_options:ZzLifecycleTmp"
+# "Открыть" is the menu's first (always-present) item, so its visibility proves the popup opened.
+- extendedWaitUntil:
+    visible:
+      text: "Открыть"
+    timeout: 8000
+# The overflow menu has 12 items and is taller than the space at the anchor, so its last item
+# ("Удалить") sits below the fold. scrollUntilVisible would scroll the grid behind and dismiss the
+# menu, so nudge the menu list itself with a short swipe inside the popup region, then tap delete.
+- swipe:
+    start: 72%, 52%
+    end: 72%, 20%
+- extendedWaitUntil:
+    visible:
+      text: "Удалить"
+    timeout: 8000
+- tapOn:
+    text: "Удалить"
+
+# Confirmation dialog: tap the positive button by its framework id. (The message contains the
+# resource name but Maestro text is an exact match, so it is not asserted here; the final
+# assertNotVisible is the real proof the correct resource was removed.)
+- extendedWaitUntil:
+    visible:
+      text: "Удалить ресурс"
+    timeout: 8000
+- tapOn:
+    id: "android:id/button1"
+
+# --- Gone ---
+- extendedWaitUntil:
+    notVisible:
+      text: "ZzLifecycleTmp"
+    timeout: 10000
+- assertNotVisible:
+    text: "ZzLifecycleTmp"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

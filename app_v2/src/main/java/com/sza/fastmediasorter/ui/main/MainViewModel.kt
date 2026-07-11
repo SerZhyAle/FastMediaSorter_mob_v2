@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -105,6 +106,8 @@ sealed class MainEvent {
     object ConfirmRescanWithVirtualResources : MainEvent()
     // S0422: a single resource has been written to [filePath]; the host shares it via ACTION_SEND.
     data class ShareResourceFile(val filePath: String) : MainEvent()
+    // S0984: an SFTP access .fmscfg has been written to [filePath]; the host shares it via ACTION_SEND.
+    data class ShareCompanionConfigFile(val filePath: String) : MainEvent()
 }
 
 @HiltViewModel
@@ -118,6 +121,7 @@ class MainViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
     private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
+    private val exportCompanionConfigUseCase: ExportCompanionConfigUseCase,
     // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
     // via this path. Dereferenced with .get() only inside coroutine bodies (mirrors S0194). NOTE: the
     // sibling resource use-cases above are still non-Lazy and transitively open the DB at construction;
@@ -347,6 +351,23 @@ class MainViewModel @Inject constructor(
                     sendEvent(MainEvent.ShowResourceMessage(R.string.resource_share_export_failed))
                 }
             }
+        }
+    }
+
+    /**
+     * S0984: exports a single SFTP resource's access to a `.fmscfg` cache file and signals the host
+     * to share it via the system share sheet. [includePassword] is driven by the export dialog.
+     */
+    fun shareSftpResourceConfig(resource: MediaResource, includePassword: Boolean) {
+        Timber.d("S0984: export SFTP access requested (includePassword=$includePassword)")
+        viewModelScope.launch {
+            exportCompanionConfigUseCase(resource, includePassword).fold(
+                onSuccess = { file -> sendEvent(MainEvent.ShareCompanionConfigFile(file.absolutePath)) },
+                onFailure = { e ->
+                    Timber.e(e, "SFTP config export failed")
+                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                }
+            )
         }
     }
 

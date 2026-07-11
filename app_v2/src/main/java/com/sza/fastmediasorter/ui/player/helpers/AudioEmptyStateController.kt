@@ -201,7 +201,6 @@ class AudioEmptyStateController(
     // no OS resource. videoActive=false lets a later show()/onIsPlayingChanged() know a rebuild is due.
     override fun onStop(owner: LifecycleOwner) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
-        Timber.d("S0893: AudioEmptyStateController onStop()")
         if (currentMode.isVideoMode()) {
             releaseMediaPlayer()
             videoActive = false
@@ -214,7 +213,6 @@ class AudioEmptyStateController(
     override fun onStart(owner: LifecycleOwner) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
         if (isPlaying && currentMode.isVideoMode() && !videoActive) {
-            Timber.d("S0893: AudioEmptyStateController onStart() - rebuilding video background")
             showVideo()
         }
     }

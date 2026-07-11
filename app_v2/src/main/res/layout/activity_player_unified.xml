@@ -75,7 +75,7 @@
 
 
 
-            <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/lyrics" android:src="@drawable/ic_microphone" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/lyrics" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
             <ImageButton android:id="@+id/btnSleepTimerCmd"
                 android:layout_width="@dimen/player_cmd_button_size"

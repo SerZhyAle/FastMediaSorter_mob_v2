@@ -43,32 +43,32 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 
 1. [Turn a NAS into a living-room media shelf](#turn-a-nas-into-a-living-room-media-shelf)
 2. [Run a slideshow with background music for a room display](#run-a-slideshow-with-background-music-for-a-room-display)
-3. [Watch SBS 3D videos in VR mode](#watch-sbs-3d-videos-in-vr-mode)
-4. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
-5. [OpenXR VR Immersive Cinema](#openxr-vr-immersive-cinema)
+3. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
+4. [OpenXR VR Immersive Cinema](#openxr-vr-immersive-cinema)
 
 #### Travel, reading and document workflows
 
-6. [Prepare a folder for travel without stable internet](#prepare-a-folder-for-travel-without-stable-internet)
-7. [Read cloud documents and EPUBs on the go](#read-cloud-documents-and-epubs-on-the-go)
-8. [Translate signs, scans and screenshots with OCR](#translate-signs-scans-and-screenshots-with-ocr)
-9. [Hand network files off to specialist apps](#hand-network-files-off-to-specialist-apps)
-10. [Quick Math & Text Calculations](#quick-math-and-text-calculations)
-11. [Cloud Markdown & Code Notes](#cloud-markdown-and-code-notes)
+5. [Prepare a folder for travel without stable internet](#prepare-a-folder-for-travel-without-stable-internet)
+6. [Read cloud documents and EPUBs on the go](#read-cloud-documents-and-epubs-on-the-go)
+7. [Translate signs, scans and screenshots with OCR](#translate-signs-scans-and-screenshots-with-ocr)
+8. [Hand network files off to specialist apps](#hand-network-files-off-to-specialist-apps)
+9. [Quick Math & Text Calculations](#quick-math-and-text-calculations)
+10. [Cloud Markdown & Code Notes](#cloud-markdown-and-code-notes)
 
 #### Power-user and mixed media workflows
 
-12. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
-13. [Capture the Screen with Edge Gestures](#capture-the-screen-with-edge-gestures)
-14. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
-15. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
-16. [Auto-Translation](#auto-translation)
-17. [Home-Screen Smart Widgets](#home-screen-smart-widgets)
+11. [Sort a family photo archive with Quick Sort](#sort-a-family-photo-archive-with-quick-sort)
+12. [Capture the Screen with Edge Gestures](#capture-the-screen-with-edge-gestures)
+13. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
+14. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
+15. [Auto-Translation](#auto-translation)
+16. [Home-Screen Smart Widgets](#home-screen-smart-widgets)
 
 ### Core Task Reference
 
-18. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
-19. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
+17. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
+18. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
+19. [Import a Windows Companion Share](#how-to-import-a-windows-companion-share)
 20. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
 21. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
 22. [Use Touch Zones](#how-to-use-touch-zones)
@@ -148,39 +148,13 @@ These sections are intentionally more varied than the core reference blocks belo
 
 - Do not use a very slow network share for both images and music if smooth playback matters.
 
-## Watch SBS 3D videos in VR mode
-
-**Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (auto-crop); `vr`, XR/noLegal only (manual format picker)
-
-**Quick Path**
-
-1. **Auto-crop (every flavor, nothing to enable):** open an SBS or Over-Under 3D video and go fullscreen - it's auto-detected and cropped to one eye so it looks right on a flat screen or in a simple phone VR viewer. Controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON).
-2. **Manual format picker (`vr`/XR-noLegal only):** if auto-detect gets it wrong, open the player's Control dialog and pick **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under**, or **Mono** from the 3D tab - the choice is remembered for that file. Not available on Standard/Lite/Legacy.
-3. For simple phone VR viewers, confirm the stereo mode first and only then place the phone in the headset.
-
-**Scenario Walkthrough**
-
-- Standard/Lite/Legacy: the crop is automatic - there is no format picker, only the single on/off toggle in Playback settings.
-- `vr`/XR-noLegal: if the picture looks doubled, force the format manually from the 3D tab instead of relying on auto-detect.
-- For simple phone VR viewers, confirm the stereo mode first and only then place the phone in the headset.
-
-**When It Helps**
-
-- You have archived SBS vacation videos, concert captures, or hobby footage and want to revisit them without a separate VR media app.
-
-**Avoid This**
-
-- Do not look for a format picker on Standard/Lite/Legacy - only the single-eye crop toggle exists there.
-- Do not expect Over-Under material to behave like SBS.
-- Do not assume every wide video is 3D; verify before saving a playback preset.
-
 ## OpenXR VR Immersive Cinema
 
 **Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (single-eye 3D); XR/noLegal only (full headset immersion)
 
 **Quick Path - enable, configure, watch 3D**
 
-1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick it from the 3D tab; the choice is remembered for that file.
+1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
 2. **Full immersion on a Quest (XR/noLegal sideload build only):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
 3. **Watch:** inside the immersive view, aim the controller ray and pull the trigger to move to the next or previous file. Any other button, key, or click exits back to the flat screen - there is no in-headset volume, seek, or track control yet.
 
@@ -557,6 +531,36 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ---
 
+## How to Import a Windows Companion Share
+
+**What it is:** the companion is a feature of [FastMediaSorter LITE](https://serzhyale.github.io/FastMediaSorter_Lite/) - the free Windows media sorter from the same author. It shares chosen PC folders over SFTP and exports a ready-made config - no manual server setup, no host/port/key typing on the phone.
+
+**Available in:** Standard, Photos, Legacy, XR/noLegal flavors
+
+**Get FastMediaSorter LITE (Windows):**
+
+- Website: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
+- GitHub: [latest release](https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest) (installer or portable ZIP)
+- winget: `winget install SerZhyAle.FastMediaSorter`
+- Microsoft Store: search for "FastMediaSorter"
+
+**On the PC:**
+
+1. Install and run **FastMediaSorter LITE**, open the **Share** tab in settings.
+2. Pick the folder(s) to share - the app starts the SFTP server, generates keys and sets up autostart by itself.
+3. Use **Save .fmscfg** and transfer the file to the phone (or keep it in a shared location).
+
+**On the phone:**
+
+1. **Tap "+" button** on main screen.
+2. Select **"SFTP / FTP"**.
+3. Tap **"Import from companion"** and pick the `.fmscfg` file.
+4. Done - one read-only resource per shared folder appears, with the server key pinned automatically.
+
+**Note:** the config file embeds the access password - treat it like a key, do not publish it.
+
+---
+
 ## How to Connect to Cloud Storage
 
 **Supported Providers:**
@@ -694,31 +698,6 @@ The screen is divided into 9 invisible areas for quick actions:
 Settings → Playback → "Always show touch zones overlay" = OFF
 
 Then use **command panel buttons** instead.
-
----
-
-## How to Watch 3D Videos (VR)
-
-**Flavor**: Standard, Lite, Legacy (automatic single-eye 3D); `vr`/XR-noLegal (manual stereo-mode picker)
-
-**What you need**: A 3D video file in SBS (Side-by-Side) or Over-Under format and optionally a phone-based VR viewer (e.g., Google Cardboard).
-
-**Steps:**
-
-1. Browse to and open a 3D video file in FastMediaSorter.
-2. Tap the **fullscreen** button to enter fullscreen mode.
-3. Open **Playback Settings** (gear icon) and make sure **Show 3D content from one eye** is on - on Standard/Lite/Legacy this single toggle drives automatic SBS/OU detection and single-eye crop. There is no per-format dropdown on these flavors.
-4. On a `vr`/XR-noLegal build only, the player's Control dialog adds a **3D** tab with a manual stereo mode:
-   - **Auto-detect** - app analyses the aspect ratio and embedded metadata to detect SBS/OU automatically.
-   - **Side-by-Side (SBS)** - force side-by-side rendering regardless of detection.
-   - **Over-Under (OU)** - force over-under rendering regardless of detection.
-   - **Mono (Disabled)** - disable stereo (standard viewing).
-5. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D, or see [OpenXR VR Immersive Cinema](#openxr-vr-immersive-cinema) for full-headset playback on a Quest.
-
-**Tips:**
-
-- The single-eye crop toggle is the universal path; the manual per-format picker exists only on `vr`/XR-noLegal builds.
-- If a wide video is misdetected on Standard/Lite/Legacy, the single-eye crop still applies; for exact format control use a `vr`/XR-noLegal build.
 
 ---
 
@@ -1021,8 +1000,6 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 - Play network video in VLC Player
 - View network PDF in Adobe Acrobat
 - Share network photo via messaging apps
-
----
 
 ---
 

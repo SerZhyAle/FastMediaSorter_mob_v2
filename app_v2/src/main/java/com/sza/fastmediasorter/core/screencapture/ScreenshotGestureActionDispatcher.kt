@@ -143,7 +143,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private fun launchAudioRecorder(context: Context) {
         // S0796: reuse the quick voice-recorder trampoline (S0349) - it gates RECORD_AUDIO and toggles
         // the recording foreground service. Explicit same-app launch from the dispatcher's Service.
-        Timber.d("S0796: edge-gesture toggle audio recording")
         val intent = Intent(context, QuickAudioRecorderActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }

@@ -162,8 +162,8 @@ class PlayerMediaLoaderManager(
             config = videoPlayerManager.stereoDetectionConfig,
         )
 
-        // Propagate to ViewModel so the 3D tab reflects the current mode
-        // and VrStereoRenderer picks it up via stereoMode flow.
+        // Propagate to ViewModel so the 3D tab reflects the current mode and the vr-flavor OpenXR
+        // renderer (DiagnosticXrRuntime) picks it up via the stereoMode flow.
         if (detected != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN &&
             detected != com.sza.fastmediasorter.domain.model.StereoMode.AUTO) {
             viewModel.setAutoDetectedStereoMode(detected)
@@ -771,7 +771,6 @@ class PlayerMediaLoaderManager(
         serviceOrderModeReappliedForTimeline = true
         val mode = viewModel.state.value.playbackOrderMode
         controller.applyPlaybackOrderMode(mode)
-        Timber.d("S0851: re-armed order mode $mode on timeline-ready, items=${player.mediaItemCount}")
     }
 
     private fun unbindServicePlaybackListener() {

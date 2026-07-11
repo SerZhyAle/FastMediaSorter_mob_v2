@@ -50,7 +50,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         lateinit var appContext: Context
             private set
 
-        private const val ENABLE_DEBUG_STRICT_MODE = false
+        private const val ENABLE_DEBUG_STRICT_MODE = true
 
         // Field-name fragments that mark a value as a credential / token.
         // Matched case-insensitively against lowercase AppSettings field names.
@@ -177,7 +177,6 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // (a main-thread .get() that still beats this warm-up blocks on the @Singleton lock) - S0869 §3.
         applicationScope.launch(Dispatchers.IO) {
             try {
-                Timber.d("S0869: Room warm-up start (thread=${Thread.currentThread().name})")
                 appDatabase.get()
             } catch (e: Exception) {
                 // provideAppDatabase already owns backup+reset+notice recovery (S0731); this guard only

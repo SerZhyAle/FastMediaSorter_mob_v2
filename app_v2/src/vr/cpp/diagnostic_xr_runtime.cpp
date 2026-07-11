@@ -177,6 +177,12 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQue
     env->ReleaseByteArrayElements(rgba, bytes, JNI_ABORT);
 }
 
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudQuadSize(
+        JNIEnv* /*env*/, jobject /*thiz*/, jfloat widthMeters, jfloat heightMeters) {
+    fms::xr::xr_session_set_hud_quad_size(widthMeters, heightMeters);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
         JNIEnv* /*env*/, jobject /*thiz*/) {

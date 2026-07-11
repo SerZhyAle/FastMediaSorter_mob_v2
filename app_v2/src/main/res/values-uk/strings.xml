@@ -2914,4 +2914,27 @@
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Відкрити в VR-кінотеатрі</string>
     <string name="vr_cinema_launch_unavailable">VR-кінотеатр зараз недоступний</string>
+    <string name="companion_import_button">Імпорт із компаньйона</string>
+    <string name="companion_import_success">Додано з компаньйона: %1$s (%2$s)</string>
+    <string name="companion_import_version_error">Цю конфігурацію створено новішою версією компаньйона. Оновіть застосунок.</string>
+    <string name="companion_import_invalid_error">Цей файл не є конфігурацією компаньйона.</string>
+    <string name="companion_import_failed">Не вдалося імпортувати з компаньйона. Перевірте файл і спробуйте ще раз.</string>
+    <string name="resource_menu_share_sftp_access">Поділитися доступом..</string>
+    <string name="sftp_share_export_title">Поділитися доступом до SFTP</string>
+    <string name="sftp_share_export_warning">Файл містить пароль доступу. Надсилайте його лише довіреним людям.</string>
+    <string name="sftp_share_omit_password">Не додавати пароль</string>
+    <string name="sftp_share_private_network_warning">Сервер у вашій локальній мережі - отримувач підключиться лише з цієї ж мережі.</string>
+    <string name="sftp_share_export_failed">Не вдалося створити файл доступу.</string>
+    <string name="sftp_share_export_action">Поділитися</string>
+    <string name="companion_import_title">Імпорт доступу</string>
+    <string name="companion_import_confirm_message">Додати SFTP-ресурс «%1$s» на %2$s (папок: %3$d)?</string>
+    <string name="companion_import_no_fingerprint_warning">Сервер не верифіковано - підключайтеся, лише якщо довіряєте відправнику.</string>
+    <string name="companion_import_password_label">Пароль для цього сервера</string>
+    <string name="companion_import_action">Імпортувати</string>
+    <string name="companion_import_password_required">Введіть пароль для цього сервера.</string>
+    <string name="companion_qr_scan_button">Сканувати QR-код</string>
+    <string name="companion_qr_scan_hint">Наведіть камеру на QR-код companion-застосунку</string>
+    <string name="companion_qr_scan_torch">Ліхтарик</string>
+    <string name="companion_qr_camera_denied">Для сканування QR-коду потрібен доступ до камери</string>
+    <string name="vr_cinema_program_title">VR-кінотеатр</string>
 </resources>

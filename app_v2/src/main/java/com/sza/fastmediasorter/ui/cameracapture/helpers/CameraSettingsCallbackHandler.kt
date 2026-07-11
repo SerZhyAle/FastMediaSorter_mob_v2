@@ -3,23 +3,29 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.hardware.camera2.CameraMetadata
 import androidx.fragment.app.FragmentManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraSettingsDialogFragment
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * S0844: implements [CameraSettingsDialogFragment.Callbacks] and owns showing the dialog on behalf
  * of [com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity] - a standalone object is
  * substituted for the Activity at the dialog's `callbacks` field (strategic ADR-1), so these methods
  * no longer count against the Activity's detekt `TooManyFunctions`.
+ *
+ * S0924: forwards the Activity's single [CameraOrientationManager] rotation bucket to the dialog so it
+ * can rotate with the device without a second `OrientationEventListener`.
  */
 class CameraSettingsCallbackHandler(
     private val sessionManager: CameraCaptureSessionManager,
     private val flowManager: CameraCaptureFlowManager,
     private val onGridToggled: () -> Unit,
+    private val rotationBucket: StateFlow<Int>,
 ) : CameraSettingsDialogFragment.Callbacks {
 
     fun show(fragmentManager: FragmentManager) {
         if (fragmentManager.findFragmentByTag(CameraSettingsDialogFragment.TAG) != null) return
         CameraSettingsDialogFragment().apply {
             callbacks = this@CameraSettingsCallbackHandler
+            rotationBucketState = rotationBucket
             capabilities = flowManager.currentCapabilities
             initialSettings = CameraSettingsDialogFragment.CameraSettingsState(
                 selfTimerSeconds = flowManager.selfTimerSeconds,

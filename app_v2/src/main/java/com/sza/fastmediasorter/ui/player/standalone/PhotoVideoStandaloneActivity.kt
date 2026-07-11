@@ -1098,7 +1098,6 @@ class PhotoVideoStandaloneActivity :
         super.onStart()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && viewModel.state.value.mediaType == MediaType.VIDEO) {
             viewModel.state.value.mediaFile?.let { file ->
-                Timber.d("S0893: PhotoVideoStandalone onStart - rebuilding video released on background")
                 viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
             }
         }

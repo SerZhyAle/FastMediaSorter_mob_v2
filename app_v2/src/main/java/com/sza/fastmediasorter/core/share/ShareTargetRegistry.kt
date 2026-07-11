@@ -46,7 +46,10 @@ class ShareTargetRegistry @Inject constructor(
             // Messengers & social - the most-tapped personal-share apps, kept together.
             "telegram",
             "whatsapp",
+            "viber",
+            "messenger",
             "instagram",
+            "tiktok",
             // Email.
             "email",
             // Google services.

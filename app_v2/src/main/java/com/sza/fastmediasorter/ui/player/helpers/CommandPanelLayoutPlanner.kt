@@ -17,8 +17,8 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
  * commands participate in the plan.
  *
  * Fixed button groups are NOT subject to adaptive width planning:
- *   – Back (left anchor)
- *   – Previous, Next (right anchor - always visible)
+ *   - Back (left anchor)
+ *   - Previous, Next (right anchor - always visible)
  */
 class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities) {
 
@@ -40,7 +40,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // Short label for Big Buttons Mode top-panel display. 0 = use titleResId at runtime.
         val shortTitleResId: Int = 0
     ) {
-        // ── Group 1 : high-priority adaptive commands (priorities 10–70) ──────────
+        // ── Group 1 : high-priority adaptive commands (priorities 10-70) ──────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
         // Previous/Next are fixed right anchors - not in this group.
 
@@ -72,7 +72,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav,
             R.string.big_btn_short_random),
 
-        // ── Group 2 : current command-bar commands (priorities 200–499) ──────────────
+        // ── Group 2 : current command-bar commands (priorities 200-499) ──────────────
 
         BLACK_SCREEN(195, R.id.menu_black_screen, true,
             R.string.black_screen_button_title, R.drawable.ic_black_screen,
@@ -89,7 +89,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // otherwise let adaptive portrait layout spill it to overflow.
         SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame,
             R.drawable.ic_save_frame, R.string.big_btn_short_save_frame),
-        LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_microphone,
+        LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_book,
             R.string.big_btn_short_lyrics),
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
@@ -154,7 +154,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.google_lens,
             R.drawable.ic_google_lens, R.string.big_btn_short_lens),
 
-        // ── Group 3 : overflow-only commands (priorities 500–699) ───────────────────
+        // ── Group 3 : overflow-only commands (priorities 500-699) ───────────────────
 
         SLEEP_TIMER(500, R.id.menu_sleep_timer, true, R.string.menu_sleep_timer,
             R.drawable.ic_sleep_timer),
