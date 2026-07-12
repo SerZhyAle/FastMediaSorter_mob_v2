@@ -6,9 +6,14 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
+import com.sza.fastmediasorter.data.companion.CompanionResourceTokens
+import com.sza.fastmediasorter.data.companion.CompanionRootDto
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.mediaPreset
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.utils.SftpPathUtils
@@ -95,9 +100,20 @@ class ImportCompanionConfigUseCase @Inject constructor(
     /** Imports an already-parsed config (QR payload path reuses this directly). */
     suspend fun import(config: CompanionConfigDto): Result<CompanionImportResult> = withContext(ioDispatcher) {
         // Contract order is LAN first - the first entry is the preferred path.
-        val accessPath = config.accessPaths.orEmpty().first()
+        val allAccessPaths = config.accessPaths.orEmpty()
+        val accessPath = allAccessPaths.first()
         val host = requireNotNull(accessPath.host) { "validated by parser" }
         val port = requireNotNull(accessPath.port) { "validated by parser" }
+        // S1006: every access path after the primary becomes a reachable-endpoint fallback candidate,
+        // so one imported resource works on the home LAN and remotely (SftpEndpointResolver picks the live one).
+        val altEndpoints = allAccessPaths.drop(1)
+            .mapNotNull { ap ->
+                val altHost = ap.host
+                val altPort = ap.port
+                if (altHost.isNullOrBlank() || altPort == null) null else HostPort(altHost, altPort)
+            }
+            .filterNot { it.host == host && it.port == port }
+            .distinct()
 
         // S0984: a blank fingerprint is an intentional no-pin share (recipient trusts on first
         // connect, like manual entry) -> null. Only a non-blank, non-canonical value is malformed.
@@ -125,22 +141,21 @@ class ImportCompanionConfigUseCase @Inject constructor(
             return@withContext Result.failure(e)
         }
 
+        // S1006: credentials are looked up by host:port at connect time, so each fallback candidate
+        // needs its own row (same username/password - the companion uses one credential for all paths).
+        altEndpoints.forEach { endpoint ->
+            smbOperationsUseCase.saveSftpCredentials(
+                host = endpoint.host,
+                port = endpoint.port,
+                username = config.username.orEmpty(),
+                password = config.password.orEmpty()
+            ).onFailure { e ->
+                Timber.w(e, "Companion import: alt credential save failed for ${endpoint.host}:${endpoint.port}")
+            }
+        }
+
         val resources = config.roots.orEmpty().map { root ->
-            val virtualPath = root.virtualPath.orEmpty()
-            val label = root.label?.ifBlank { null } ?: virtualPath.trimStart('/')
-            MediaResource(
-                id = 0,
-                name = label,
-                path = SftpPathUtils.buildSftpPath(host = host, path = virtualPath, port = port),
-                type = ResourceType.SFTP,
-                credentialsId = credentialsId,
-                supportedMediaTypes = DEFAULT_MEDIA_TYPES,
-                // Companion shares are whole folder trees; the server serves them read-only in MVP.
-                scanSubdirectories = true,
-                isReadOnly = true,
-                comment = config.resourceName?.let { "Companion: $it" },
-                hostKeyFingerprint = canonicalFingerprint
-            )
+            buildResource(root, host, port, credentialsId, canonicalFingerprint, config.resourceName, altEndpoints)
         }
 
         addResourceUseCase.addMultiple(resources).fold(
@@ -159,6 +174,64 @@ class ImportCompanionConfigUseCase @Inject constructor(
                 Result.failure(e)
             }
         )
+    }
+
+    /**
+     * S1002: maps one shared root onto a [MediaResource], applying the v2 resource params when present
+     * and falling back to the frozen v1 defaults (ALL media types, scan subdirectories, read-only,
+     * "Companion: <name>" comment) for every field a v1 config omits.
+     *
+     * Media-type precedence: explicit [CompanionRootDto.mediaTypes] > profile preset > v1 default.
+     * A destination must be writable, so `isDestination` clears the read-only default.
+     * Destination color for actual destination slots is reassigned by [AddResourceUseCase.addMultiple].
+     */
+    private fun buildResource(
+        root: CompanionRootDto,
+        host: String,
+        port: Int,
+        credentialsId: String,
+        canonicalFingerprint: String?,
+        configName: String?,
+        altEndpoints: List<HostPort>
+    ): MediaResource {
+        val virtualPath = root.virtualPath.orEmpty()
+        val label = root.label?.ifBlank { null } ?: virtualPath.trimStart('/')
+
+        val profile = CompanionResourceTokens.profileFromToken(root.profile)
+        val preset = profile?.mediaPreset()
+        val explicitTypes = root.mediaTypes
+            ?.mapNotNull { CompanionResourceTokens.mediaTypeFromToken(it) }
+            ?.toSet()
+            ?.ifEmpty { null }
+        val mediaTypes = explicitTypes ?: preset?.supportedMediaTypes ?: DEFAULT_MEDIA_TYPES
+        val isDestination = root.isDestination ?: false
+
+        val base = MediaResource(
+            id = 0,
+            name = label,
+            path = SftpPathUtils.buildSftpPath(host = host, path = virtualPath, port = port),
+            type = ResourceType.SFTP,
+            credentialsId = credentialsId,
+            supportedMediaTypes = mediaTypes,
+            allFiles = root.allFiles ?: preset?.allFiles ?: false,
+            // Companion shares are whole folder trees; v1 default scans subdirectories.
+            scanSubdirectories = root.scanSubdirectories ?: true,
+            showSubfoldersAsItems = root.showSubfoldersAsItems ?: false,
+            showHiddenFiles = root.showHiddenFiles ?: false,
+            // A destination must accept writes; otherwise keep the v1 read-only default.
+            isReadOnly = !isDestination,
+            isDestination = isDestination,
+            comment = root.comment?.ifBlank { null } ?: configName?.let { "Companion: $it" },
+            accessPin = root.accessPin?.ifBlank { null },
+            profile = profile ?: ResourceProfile.NONE,
+            rememberFileList = preset?.rememberFileList ?: false,
+            hostKeyFingerprint = canonicalFingerprint,
+            altAccessPaths = altEndpoints // S1006: reachable-endpoint fallback candidates
+        )
+        // Only override the model defaults (interval 10, green color) when the config actually carries them.
+        val withInterval = root.slideshowInterval?.takeIf { it > 0 }
+            ?.let { base.copy(slideshowInterval = it) } ?: base
+        return root.destinationColor?.let { withInterval.copy(destinationColor = it) } ?: withInterval
     }
 
     companion object {

@@ -39,6 +39,11 @@ import timber.log.Timber
 internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
     releasePlayer()
 
+    // S0936: a fresh playback session starts with a full watchdog-recovery budget, and a stale
+    // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.
+    streamWatchdogRecoveries = 0
+    streamWatchdogReconnecting = false
+
     val isRtsp = path.startsWith("rtsp://")
     val uri: Uri = Uri.parse(path)
     val dataSourceFactory = StreamDataSourceFactoryProvider.create(context)
@@ -138,8 +143,10 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                     // BUFFERING that never returns to READY, with no PlaybackException to recover from.
                     armStreamBufferingTimeout()
                     playerCallback.onBuffering(true)
+                    // S0936: a watchdog-triggered re-prepare buffers through the manager-level flag,
+                    // which this listener cannot set locally - both recovery kinds share the label.
                     playerCallback.onStreamWaitPhase(
-                        if (reconnecting) VideoPlayerManager.StreamWaitPhase.RECONNECTING
+                        if (reconnecting || streamWatchdogReconnecting) VideoPlayerManager.StreamWaitPhase.RECONNECTING
                         else VideoPlayerManager.StreamWaitPhase.BUFFERING
                     )
                 }
@@ -149,6 +156,9 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                     behindLiveRecoveries = 0
                     transientRetries = 0
                     reconnecting = false
+                    // S0936: the watchdog budget holds the same invariant as the error budgets above.
+                    streamWatchdogRecoveries = 0
+                    streamWatchdogReconnecting = false
                     // S0936: (re)start the position-stall poll; also clears any pending
                     // buffering-timeout runnable armed above (cancelStreamStallWatchdog is called first).
                     startStreamStallWatchdog()

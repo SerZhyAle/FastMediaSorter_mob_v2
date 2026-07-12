@@ -67,6 +67,16 @@ interface ResourceRepository {
     suspend fun updateIcon(resourceId: Long, iconId: String?)
 
     /**
+     * S1001: targeted single-column writes for the Browse view-state (last viewed file /
+     * scroll position). These fire on every onPause/file-open with an in-memory resource copy
+     * that may be stale; a full [updateResource] there clobbers freshly written statistics
+     * (fileCount/lastBrowseDate/lastSyncDate).
+     */
+    suspend fun updateLastViewedFile(resourceId: Long, path: String?)
+
+    suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
+
+    /**
      * Assigns icons to all resources that currently have [iconId] == null.
      * Called once on startup after DB migration to 26; safe to call multiple times.
      * Returns the number of resources that were updated.

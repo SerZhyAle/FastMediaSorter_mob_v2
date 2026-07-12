@@ -68,7 +68,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 
 17. [Connect to Network Drive (SMB)](#how-to-connect-to-network-drive-smb)
 18. [Connect to SFTP/FTP Server](#how-to-connect-to-sftpftp-server)
-19. [Import a Windows Companion Share](#how-to-import-a-windows-companion-share)
+19. [Import a Windows Companion Share (scan a code or import a file)](#how-to-import-a-windows-companion-share)
 20. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
 21. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
 22. [Use Touch Zones](#how-to-use-touch-zones)
@@ -91,6 +91,8 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 ## Scenario Groups
 
 These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
+
+> **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
 
 ## Home media, TV and living room flows
 
@@ -397,7 +399,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Quick Path**
 
-1. Go to **Settings → Operations → Left-edge screen gestures → Gesture overlay** and turn it on.
+1. Go to **Settings → Operations → Edge screen gestures → Gesture overlay** and turn it on.
 2. While viewing any file, swipe in from the left edge to open the capture menu.
 3. Pick an action - the strip closes and the action runs.
 
@@ -533,31 +535,40 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## How to Import a Windows Companion Share
 
-**What it is:** the companion is a feature of [FastMediaSorter LITE](https://serzhyale.github.io/FastMediaSorter_Lite/) - the free Windows media sorter from the same author. It shares chosen PC folders over SFTP and exports a ready-made config - no manual server setup, no host/port/key typing on the phone.
+**What it is:** the companion is a feature of [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (formerly FastMediaSorter LITE) - the free Windows media sorter from the same author. It shares chosen PC folders over SFTP and exports a ready-made connection - no manual server setup, no host/port/key typing on the phone. You bring it to the phone by **scanning a QR code** on the PC screen, or by **importing a `.fmscfg` file**.
 
-**Available in:** Standard, Photos, Legacy, XR/noLegal flavors
+**Available in:** Standard, Photos, Legacy, XR/noLegal (barcode scan needs a camera; the file method works everywhere, including VR)
 
-**Get FastMediaSorter LITE (Windows):**
+> Prefer a guided, screenshot-friendly version? See the scenario guide [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md).
+
+**Get Fast Media Sorter for Windows:**
 
 - Website: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
+- Publishing folders (guide): [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
 - GitHub: [latest release](https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest) (installer or portable ZIP)
 - winget: `winget install SerZhyAle.FastMediaSorter`
-- Microsoft Store: search for "FastMediaSorter"
+- Microsoft Store: search for "FastMediaSorter LITE" (still listed under the former name)
 
 **On the PC:**
 
-1. Install and run **FastMediaSorter LITE**, open the **Share** tab in settings.
+1. Install and run **Fast Media Sorter for Windows**, open the **Share** tab in settings.
 2. Pick the folder(s) to share - the app starts the SFTP server, generates keys and sets up autostart by itself.
-3. Use **Save .fmscfg** and transfer the file to the phone (or keep it in a shared location).
+3. It shows a **QR code** on screen. It can also **Save .fmscfg** if you prefer a file.
 
-**On the phone:**
+**On the phone - Method A, scan the code (fastest):**
 
-1. **Tap "+" button** on main screen.
-2. Select **"SFTP / FTP"**.
-3. Tap **"Import from companion"** and pick the `.fmscfg` file.
+1. **Tap the "+" button** on the main screen.
+2. Tap **"Import by barcode"** - it sits next to the four resource-type cards and in the SFTP form header.
+3. Point the camera at the QR on the PC (tap **Torch** in a dark room), then confirm the **Import access** dialog.
 4. Done - one read-only resource per shared folder appears, with the server key pinned automatically.
 
-**Note:** the config file embeds the access password - treat it like a key, do not publish it.
+**On the phone - Method B, import the file:**
+
+1. On the PC, use **Save .fmscfg** and transfer the file to the phone (email, Telegram, or a shared location).
+2. **Tap "+"** -> **"SFTP / FTP"** -> **"Import from file"** and pick the `.fmscfg` file. If it arrived as a Telegram/email attachment, just tap the attachment.
+3. Confirm the **Import access** dialog - the read-only resources appear.
+
+**Note:** the QR code and the config file both embed the access password - treat them like a key, do not publish the screenshot or the file. The **Import by barcode** entry is hidden on camera-less devices and VR headsets; use Method B there.
 
 ---
 

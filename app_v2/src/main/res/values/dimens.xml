@@ -759,4 +759,8 @@
     <dimen name="focus_decoration_stroke_width">3dp</dimen>
     <dimen name="focus_decoration_corner_radius">12dp</dimen>
 
+    <!-- Fixed width of the streams search field when the control group sits in the toolbar
+         (landscape); full-width there would cover the toolbar title. -->
+    <dimen name="streams_header_search_width">280dp</dimen>
+
 </resources>

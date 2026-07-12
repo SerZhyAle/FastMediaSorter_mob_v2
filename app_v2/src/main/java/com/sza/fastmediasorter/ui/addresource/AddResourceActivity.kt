@@ -228,6 +228,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("CloudStorageCard", "AddResource")
             showCloudStorageOptions()
         }
+
+        // S0991: import entry points next to the resource-type cards, sharing the same action source.
+        binding.btnImportFromFile.setOnClickListener { launchCompanionFileImport() }
+        binding.btnImportFromBarcode.isVisible = isBarcodeImportAvailable()
+        binding.btnImportFromBarcode.setOnClickListener { launchCompanionQrScan() }
+
         binding.cardGoogleDrive.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("GoogleDriveCard", "AddResource")
             viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name)
@@ -333,20 +339,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("LoadSshKey", "AddResource")
             sshKeyFilePickerLauncher.launch(arrayOf("*/*"))
         }
-        binding.btnSftpImportCompanion.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ImportCompanionConfig", "AddResource")
-            companionConfigPickerLauncher.launch(arrayOf("*/*"))
-        }
+        // S0991/S0992: both SFTP-header import buttons delegate to the single shared action source.
+        binding.btnSftpImportCompanion.setOnClickListener { launchCompanionFileImport() }
         // S0988: QR scan of a companion config. Hidden on camera-less devices and VR headsets
         // (Quest exposes no camera to CameraX), so the file import above stays the fallback there.
-        binding.btnSftpScanCompanionQr.isVisible =
-            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)
-        binding.btnSftpScanCompanionQr.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanCompanionQr", "AddResource")
-            companionQrScanLauncher.launch(
-                com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.createIntent(this)
-            )
-        }
+        binding.btnSftpScanCompanionQr.isVisible = isBarcodeImportAvailable()
+        binding.btnSftpScanCompanionQr.setOnClickListener { launchCompanionQrScan() }
+        // S0994: help link mirrors the file-import button's reachability (SFTP form is unreachable without companion).
+        binding.btnSftpCompanionPublishHelp.setOnClickListener { openCompanionPublishGuide() }
 
         // Profile presets
         binding.btnSmbProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = true) }
@@ -357,6 +357,36 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         formManager.setupCollapsibleSections()
         formManager.applyFlavorRestrictions()
     }
+
+    // S0991/S0992: single action source shared by the type-screen entries and the SFTP-header buttons,
+    // so the companion import path is wired once rather than duplicated per placement.
+    private fun launchCompanionFileImport() {
+        com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ImportCompanionConfig", "AddResource")
+        companionConfigPickerLauncher.launch(arrayOf("*/*"))
+    }
+
+    private fun launchCompanionQrScan() {
+        com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanCompanionQr", "AddResource")
+        companionQrScanLauncher.launch(
+            com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.createIntent(this)
+        )
+    }
+
+    private fun openCompanionPublishGuide() {
+        Timber.d("S0994: open companion publish-folders guide from add-resource")
+        com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("CompanionPublishGuide", "AddResource")
+        val factory = com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+        try {
+            startActivity(factory.openUrl(factory.companionPublishGuideUrl()))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Timber.w(e, "No browser to open companion publish-folders guide")
+            Toast.makeText(this, R.string.settings_no_browser_for_docs, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Barcode/QR import needs a camera; camera-less devices (incl. VR headsets) fall back to file import. */
+    private fun isBarcodeImportAvailable(): Boolean =
+        packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)
 
     override fun observeData() {
         copyResourceId?.let { viewModel.loadResourceForCopy(it) }

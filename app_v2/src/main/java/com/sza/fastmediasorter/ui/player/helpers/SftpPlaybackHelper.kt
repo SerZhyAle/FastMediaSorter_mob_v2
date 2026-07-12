@@ -49,15 +49,20 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     val serverHost = pathUri.host?.takeIf { it.isNotEmpty() } ?: credentials.server
     val serverPort = pathUri.port.takeIf { it > 0 } ?: credentials.port
 
+    // S1006: reach the resource on whichever address is live now (LAN at home, WAN in transit).
+    val resolvedEndpoint = endpointResolver.resolve(serverHost, serverPort)
+    val effectiveHost = resolvedEndpoint.host
+    val effectivePort = resolvedEndpoint.port
+
     // Activate video-player priority mode to suppress thumbnail pre-fetching while streaming
-    val resourceKey = "sftp://$serverHost:$serverPort"
+    val resourceKey = "sftp://$effectiveHost:$effectivePort"
     activeResourceKey = resourceKey
     ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
 
     val dataSourceFactory = SftpDataSourceFactory(
         sftpClient,
-        serverHost,
-        serverPort,
+        effectiveHost,
+        effectivePort,
         credentials.username,
         credentials.password,
         context

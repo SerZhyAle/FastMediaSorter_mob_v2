@@ -17,6 +17,7 @@ import android.view.ViewConfiguration
 import com.sza.fastmediasorter.domain.game.GameDirection
 import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardActorCell
+import com.sza.fastmediasorter.ui.game.helpers.GameBoardActorTransition
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardBaseCell
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardDefeatConnection
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardHighlightCell
@@ -24,9 +25,12 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardTheme
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
+import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
 
@@ -65,6 +69,8 @@ class GameBoardView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }
+    // S0993: solid exit fill for the contrast skin; colour set from the theme in applyTheme.
+    private val exitFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val playerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF1976D2") }
     private val kryvavitsaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFD32F2F") }
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF7B1FA2") }
@@ -97,6 +103,13 @@ class GameBoardView @JvmOverloads constructor(
         color = Color.parseColor("#33000000")
         style = Paint.Style.STROKE
         strokeWidth = 1f
+    }
+    // S0993: start-of-level guide arrow; amber reads over every skin's floor/wall/exit.
+    private val guideArrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FFFFA000")
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
     }
 
     private val scaleGestureDetector = ScaleGestureDetector(
@@ -160,6 +173,7 @@ class GameBoardView @JvmOverloads constructor(
         if (nextIntroKey != null && nextIntroKey != renderedIntroHighlightKey) {
             renderedIntroHighlightKey = nextIntroKey
             introHighlightUntilMs = SystemClock.uptimeMillis() + START_HIGHLIGHT_MS
+            Timber.d("S0993: intro window armed, guide arrow shown")
         } else if (nextIntroKey == null) {
             renderedIntroHighlightKey = null
             introHighlightUntilMs = 0L
@@ -202,9 +216,14 @@ class GameBoardView @JvmOverloads constructor(
             val top = scale.offsetY + cell.row * scale.cellSize
             cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
             if (cell.baseCell == GameBoardBaseCell.EXIT) {
-                canvas.drawRect(cellRect, floorPaint)
-                val door = theme.doorDrawable
-                if (door != null) drawActorDrawable(canvas, cellRect, door) else drawExit(canvas, cellRect)
+                if (theme.filledExitColor != null) {
+                    // S0993: contrast skin - exit is a solid colour block, not a framed square / door.
+                    canvas.drawRect(cellRect, exitFillPaint)
+                } else {
+                    canvas.drawRect(cellRect, floorPaint)
+                    val door = theme.doorDrawable
+                    if (door != null) drawActorDrawable(canvas, cellRect, door) else drawExit(canvas, cellRect)
+                }
             } else {
                 canvas.drawRect(cellRect, paintFor(cell.baseCell))
             }
@@ -220,6 +239,7 @@ class GameBoardView @JvmOverloads constructor(
             drawAnimatedActors(canvas, scale, currentRenderState)
         }
         drawIntroHighlights(canvas, scale, currentRenderState)
+        drawGuideArrow(canvas, scale, currentRenderState)
         currentRenderState.defeatConnection?.let { connection -> drawDefeatHighlights(canvas, scale, connection) }
         drawBoardBorder(canvas, scale, currentRenderState)
         currentRenderState.defeatConnection?.let { connection -> drawDefeatConnection(canvas, scale, connection) }
@@ -255,7 +275,22 @@ class GameBoardView @JvmOverloads constructor(
         GameBoardBaseCell.EXIT -> exitPaint
     }
 
+    // S0993: actor fill colour for the contrast skin; inherits the classic primitive hues.
+    private fun paintForActor(actorCell: GameBoardActorCell): Paint = when (actorCell) {
+        GameBoardActorCell.PLAYER -> playerPaint
+        GameBoardActorCell.KRYVAVITSA -> kryvavitsaPaint
+        GameBoardActorCell.SHADOW -> shadowPaint
+    }
+
     private fun drawActor(canvas: Canvas, bounds: RectF, actorCell: GameBoardActorCell) {
+        if (theme.filledActors) {
+            // S0993: contrast skin - actor fills the cell (minus a small inset so the grid stays visible),
+            // inheriting the existing actor hue. Solid blocks read on small screens where primitives blur.
+            val inset = bounds.width() * FILLED_ACTOR_INSET
+            cellRect.set(bounds.left + inset, bounds.top + inset, bounds.right - inset, bounds.bottom - inset)
+            canvas.drawRect(cellRect, paintForActor(actorCell))
+            return
+        }
         val drawable = when (actorCell) {
             GameBoardActorCell.PLAYER -> theme.playerDrawable
             GameBoardActorCell.KRYVAVITSA -> theme.kryvavitsaDrawable
@@ -292,15 +327,22 @@ class GameBoardView @JvmOverloads constructor(
         theme = GameBoardTheme.forMode(context, mode)
         floorPaint.color = theme.floorColor
         wallPaint.color = theme.wallColor
+        theme.filledExitColor?.let { exitFillPaint.color = it }
         themedMode = mode
+        if (mode == GameMode.CONTRAST) Timber.d("S0993: contrast skin active (filled tiles)")
     }
 
     private fun drawAnimatedActors(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
         val remaining = (actorAnimationUntilMs - SystemClock.uptimeMillis()).toFloat()
-        val progress = (1f - remaining / ACTOR_ANIMATION_MS.toFloat()).coerceIn(0f, 1f)
+        val rawProgress = (1f - remaining / ACTOR_ANIMATION_MS.toFloat()).coerceIn(0f, 1f)
+        // S0993: contrast skin quantizes the slide into discrete frames so an identical cube reads directionally.
+        val progress = if (theme.steppedMove) floor(rawProgress * STEP_FRAMES) / STEP_FRAMES else rawProgress
         // Stomp: a single up-then-down hop over the step reads as a heavy march instead of a glide.
         val bob = if (theme.stomp) -(sin(progress * PI).toFloat()) * scale.cellSize * STOMP_BOB_FACTOR else 0f
         renderState.actorTransitions.forEach { transition ->
+            if (theme.steppedMove && rawProgress < GHOST_UNTIL) {
+                drawSourceGhost(canvas, scale, transition)
+            }
             val column = transition.fromColumn + (transition.toColumn - transition.fromColumn) * progress
             val row = transition.fromRow + (transition.toRow - transition.fromRow) * progress
             val left = scale.offsetX + column * scale.cellSize
@@ -309,6 +351,18 @@ class GameBoardView @JvmOverloads constructor(
             drawActor(canvas, cellRect, transition.actorCell)
         }
         postInvalidateOnAnimation()
+    }
+
+    // S0993: a fading copy at the source cell early in the step makes "who moved from where" legible.
+    private fun drawSourceGhost(canvas: Canvas, scale: GameBoardScale, transition: GameBoardActorTransition) {
+        val left = scale.offsetX + transition.fromColumn * scale.cellSize
+        val top = scale.offsetY + transition.fromRow * scale.cellSize
+        cellRect.set(left, top, left + scale.cellSize, top + scale.cellSize)
+        val paint = paintForActor(transition.actorCell)
+        val fullAlpha = paint.alpha
+        paint.alpha = GHOST_ALPHA
+        drawActor(canvas, cellRect, transition.actorCell)
+        paint.alpha = fullAlpha
     }
 
     private fun drawExit(canvas: Canvas, bounds: RectF) {
@@ -405,6 +459,34 @@ class GameBoardView @JvmOverloads constructor(
         canvas.drawRect(boardRect, borderPaint)
     }
 
+    // S0993: player -> nearest-exit arrow, shown only inside the start-highlight window, in every mode.
+    private fun drawGuideArrow(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {
+        if (SystemClock.uptimeMillis() >= introHighlightUntilMs) return
+        val arrow = renderState.guideArrow ?: return
+        val startX = scale.offsetX + (arrow.fromColumn + CELL_CENTER) * scale.cellSize
+        val startY = scale.offsetY + (arrow.fromRow + CELL_CENTER) * scale.cellSize
+        val endX = scale.offsetX + (arrow.toColumn + CELL_CENTER) * scale.cellSize
+        val endY = scale.offsetY + (arrow.toRow + CELL_CENTER) * scale.cellSize
+        val dx = endX - startX
+        val dy = endY - startY
+        // Player already standing on the exit - no direction to point at.
+        if (dx == 0f && dy == 0f) return
+        guideArrowPaint.strokeWidth = max(MIN_ARROW_WIDTH, scale.cellSize * ARROW_WIDTH_FACTOR)
+        canvas.drawLine(startX, startY, endX, endY, guideArrowPaint)
+        val angle = atan2(dy, dx)
+        val headLength = scale.cellSize * ARROW_HEAD_FACTOR
+        val backAngle = angle + PI.toFloat()
+        val leftAngle = backAngle - ARROW_HEAD_ANGLE
+        val rightAngle = backAngle + ARROW_HEAD_ANGLE
+        val leftX = endX + headLength * cos(leftAngle)
+        val leftY = endY + headLength * sin(leftAngle)
+        val rightX = endX + headLength * cos(rightAngle)
+        val rightY = endY + headLength * sin(rightAngle)
+        canvas.drawLine(endX, endY, leftX, leftY, guideArrowPaint)
+        canvas.drawLine(endX, endY, rightX, rightY, guideArrowPaint)
+        postInvalidateOnAnimation()
+    }
+
     private fun drawDefeatConnection(canvas: Canvas, scale: GameBoardScale, connection: GameBoardDefeatConnection) {
         defeatPaint.strokeWidth = max(MIN_DEFEAT_WIDTH, scale.cellSize * DEFEAT_WIDTH_FACTOR)
         val playerCenterX = scale.offsetX + (connection.playerColumn + 0.5f) * scale.cellSize
@@ -496,5 +578,16 @@ class GameBoardView @JvmOverloads constructor(
         private const val POLYGON_RADIUS_FACTOR = 0.5f
         private const val ACTOR_DRAWABLE_INSET = 0.06f
         private const val STOMP_BOB_FACTOR = 0.16f
+        // S0993: contrast skin - solid cube inset, stepped-move frame count, source-ghost window/alpha.
+        private const val FILLED_ACTOR_INSET = 0.1f
+        private const val STEP_FRAMES = 4f
+        private const val GHOST_UNTIL = 0.5f
+        private const val GHOST_ALPHA = 90
+        // S0993: start-of-level guide arrow (all modes) - head angle/length, shaft width.
+        private const val ARROW_HEAD_ANGLE = 0.5f
+        private const val ARROW_HEAD_FACTOR = 0.45f
+        private const val ARROW_WIDTH_FACTOR = 0.12f
+        private const val MIN_ARROW_WIDTH = 5f
+        private const val CELL_CENTER = 0.5f
     }
 }

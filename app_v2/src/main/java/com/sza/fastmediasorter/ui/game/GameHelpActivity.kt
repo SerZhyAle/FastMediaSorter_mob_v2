@@ -31,6 +31,7 @@ class GameHelpActivity : BaseActivity<ActivityGameHelpBinding>() {
     }
 
     // S0804: the legend and explanation follow the active skin (icons swap to silhouettes/door, text retunes).
+    // S0993: CONTRAST intentionally reuses the classic (coloured-ball) legend - it matches the solid tiles.
     private fun applyMode(mode: GameMode) {
         val kryvavitsa = mode == GameMode.KRYVAVITSA
         binding.txtGameHelpIntro.setText(

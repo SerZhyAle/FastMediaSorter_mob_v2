@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -45,13 +46,16 @@ class OverlayHostService : Service() {
         overlayManager = ScreenGestureOverlayManager(
             context = this,
             overlayWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            onGestureMatched = { direction -> launchConsentActivity(direction) }
+            onGestureMatched = { zone, direction -> launchConsentActivity(zone, direction) }
         )
     }
 
-    private fun launchConsentActivity(direction: ScreenshotGestureDirection) {
+    private fun launchConsentActivity(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection
+    ) {
         serviceScope.launch {
-            val action = actionDispatcher.get().actionFor(direction)
+            val action = actionDispatcher.get().actionFor(zone, direction)
             if (actionDispatcher.get().handlePreCaptureAction(this@OverlayHostService, action)) {
                 // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): skip consent + capture.
                 return@launch
@@ -63,6 +67,7 @@ class OverlayHostService : Service() {
                         Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 )
                 putExtra(ScreenCaptureConsentActivity.EXTRA_GESTURE_DIRECTION, direction.name)
+                putExtra(ScreenCaptureConsentActivity.EXTRA_GESTURE_ZONE, zone.name)
             }
             startActivity(intent)
         }
@@ -83,18 +88,19 @@ class OverlayHostService : Service() {
         }
 
         val stripVisible = intent?.getBooleanExtra(EXTRA_STRIP_VISIBLE, false) ?: false
-        try {
-            if (!overlayVisible) {
-                overlayManager.show(stripVisible)
+        startForegroundCompat()
+        // S0847: rebuild the enabled bands on every (re-)start so a zone toggle or strip-visibility change
+        // is reflected. enabledZones is read off the persisted settings; the whole build stays on Main.
+        serviceScope.launch {
+            try {
+                val enabledZones = actionDispatcher.get().enabledZones()
+                overlayManager.hide()
+                overlayManager.show(stripVisible, enabledZones)
                 overlayVisible = true
-            } else {
-                // Re-issued start (S0724 strip-visibility toggle): recolour the live strip in place.
-                overlayManager.setStripVisible(stripVisible)
+            } catch (e: Exception) {
+                Timber.e(e, "OverlayHostService: failed to start overlay host")
+                stopOverlayHost()
             }
-            startForegroundCompat()
-        } catch (e: Exception) {
-            Timber.e(e, "OverlayHostService: failed to start overlay host")
-            stopOverlayHost()
         }
         return START_NOT_STICKY
     }

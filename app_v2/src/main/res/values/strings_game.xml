@@ -53,6 +53,7 @@
     <string name="game_mode_picker_unavailable">Game mode is unavailable.</string>
     <string name="game_mode_classic">Classic</string>
     <string name="game_mode_kryvavitsa">Kryvavitsa</string>
+    <string name="game_mode_contrast">Contrast</string>
     <string name="game_help_intro_kryvavitsa">Reach the door with the man before the woman with the machine gun and her knife-wielding helpers corner you.</string>
     <string name="game_help_legend_player_kryvavitsa">Man - the character you control</string>
     <string name="game_help_legend_kryvavitsa_kryvavitsa">Woman with a machine gun - the Kryvavitsa, hunts you</string>

@@ -1,0 +1,222 @@
+Starting a Gradle Daemon, 3 busy Daemons could not be reused, use --status for details
+Reusing configuration cache.
+Using the build cache is enabled, but no build caches are configured or enabled.
+> Task :app_v2:generatePhotosDebugAssets UP-TO-DATE
+> Task :app_v2:generateLiteDebugAssets UP-TO-DATE
+> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
+> Task :app_v2:generateLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:generateVrDebugAssets UP-TO-DATE
+> Task :app_v2:generateStandardReleaseAssets UP-TO-DATE
+> Task :app_v2:generateLiteReleaseAssets UP-TO-DATE
+> Task :app_v2:generatePhotosReleaseAssets UP-TO-DATE
+> Task :app_v2:generateLegacyReleaseAssets UP-TO-DATE
+> Task :app_v2:generateVrReleaseAssets UP-TO-DATE
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:generateDebugAssets UP-TO-DATE
+> Task :wear:generateReleaseAssets UP-TO-DATE
+> Task :wear:preReleaseBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :wear:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :wear:generateDebugResources
+> Task :wear:generateDebugBuildConfig
+> Task :wear:extractProguardFiles
+> Task :wear:packageDebugResources
+> Task :app_v2:verifyNoPlatformNames UP-TO-DATE
+> Task :app_v2:preBuild UP-TO-DATE
+> Task :app_v2:preStandardDebugBuild UP-TO-DATE
+> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :wear:javaPreCompileDebug
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
+> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
+> Task :wear:processDebugNavigationResources
+> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:generateStandardDebugGlobalSynthetics UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibStandardDebug UP-TO-DATE
+> Task :app_v2:mergeStandardDebugAssets UP-TO-DATE
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app_v2:compressStandardDebugAssets UP-TO-DATE
+> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
+> Task :app_v2:desugarStandardDebugFileDependencies UP-TO-DATE
+> Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app_v2:checkStandardDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:processStandardDebugMainManifest UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+> Task :app_v2:mergeLibDexStandardDebug UP-TO-DATE
+> Task :app_v2:mergeExtDexStandardDebug UP-TO-DATE
+> Task :app_v2:prePhotosStagingBuild UP-TO-DATE
+> Task :app_v2:processStandardDebugManifest UP-TO-DATE
+> Task :app_v2:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:processStandardDebugResources UP-TO-DATE
+> Task :app_v2:configureCMakeDebug[armeabi-v7a]
+> Task :app_v2:configureCMakeDebug[arm64-v8a]
+> Task :app_v2:buildCMakeDebug[arm64-v8a]
+> Task :app_v2:buildCMakeDebug[armeabi-v7a]
+> Task :app_v2:configureCMakeDebug[x86_64]
+> Task :app_v2:configureCMakeDebug[x86]
+> Task :app_v2:buildCMakeDebug[x86_64]
+> Task :app_v2:buildCMakeDebug[x86]
+> Task :app_v2:mergeStandardDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:validateSigningStandardDebug UP-TO-DATE
+> Task :app_v2:writeStandardDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writeStandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:preLiteDebugBuild UP-TO-DATE
+> Task :app_v2:mergeLiteDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLiteDebug UP-TO-DATE
+> Task :app_v2:generateLiteDebugResources UP-TO-DATE
+> Task :app_v2:mergeLiteDebugResources UP-TO-DATE
+> Task :app_v2:mergeStandardDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripStandardDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:packageLiteDebugResources UP-TO-DATE
+> Task :app_v2:generateLiteDebugBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileLiteDebug UP-TO-DATE
+> Task :app_v2:mergeLiteDebugAssets UP-TO-DATE
+> Task :app_v2:compressLiteDebugAssets UP-TO-DATE
+> Task :app_v2:generateLiteDebugGlobalSynthetics UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibLiteDebug UP-TO-DATE
+> Task :app_v2:checkLiteDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:desugarLiteDebugFileDependencies UP-TO-DATE
+> Task :app_v2:mergeExtDexLiteDebug UP-TO-DATE
+> Task :app_v2:mergeLibDexLiteDebug UP-TO-DATE
+> Task :app_v2:processLiteDebugNavigationResources UP-TO-DATE
+> Task :app_v2:checkLiteDebugAarMetadata UP-TO-DATE
+> Task :app_v2:parseLiteDebugLocalResources UP-TO-DATE
+> Task :app_v2:mapLiteDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:generateLiteDebugRFile UP-TO-DATE
+> Task :app_v2:compileLiteDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createLiteDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksLiteDebug UP-TO-DATE
+> Task :app_v2:processLiteDebugMainManifest UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLiteDebug UP-TO-DATE
+> Task :app_v2:processLiteDebugManifest UP-TO-DATE
+> Task :app_v2:processLiteDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:processLiteDebugResources UP-TO-DATE
+> Task :app_v2:mergeLiteDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:mergeLiteDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripLiteDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:validateSigningLiteDebug UP-TO-DATE
+> Task :app_v2:writeLiteDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writeLiteDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:prePhotosDebugBuild UP-TO-DATE
+> Task :app_v2:mergePhotosDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosDebug UP-TO-DATE
+> Task :app_v2:generatePhotosDebugResources UP-TO-DATE
+> Task :app_v2:mergePhotosDebugResources UP-TO-DATE
+> Task :app_v2:packagePhotosDebugResources UP-TO-DATE
+> Task :app_v2:processPhotosDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parsePhotosDebugLocalResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesPhotosDebug UP-TO-DATE
+> Task :app_v2:generatePhotosDebugBuildConfig UP-TO-DATE
+> Task :app_v2:generatePhotosDebugRFile UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLiteDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptLiteDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsPhotosDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptPhotosDebugKotlin UP-TO-DATE
+> Task :app_v2:compileStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app_v2:hiltSyncStandardDebug UP-TO-DATE
+> Task :app_v2:hiltAggregateDepsStandardDebug UP-TO-DATE
+> Task :app_v2:hiltJavaCompileStandardDebug UP-TO-DATE
+> Task :app_v2:transformStandardDebugClassesWithAsm UP-TO-DATE
+> Task :app_v2:dexBuilderStandardDebug UP-TO-DATE
+> Task :app_v2:mergeProjectDexStandardDebug UP-TO-DATE
+> Task :app_v2:processStandardDebugJavaRes UP-TO-DATE
+> Task :app_v2:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :app_v2:packageStandardDebug UP-TO-DATE
+> Task :app_v2:createStandardDebugApkListingFileRedirect UP-TO-DATE
+> Task :app_v2:assembleStandardDebug UP-TO-DATE
+> Task :app_v2:javaPreCompilePhotosDebug UP-TO-DATE
+> Task :app_v2:mergePhotosDebugAssets UP-TO-DATE
+> Task :app_v2:compressPhotosDebugAssets UP-TO-DATE
+> Task :app_v2:generatePhotosDebugGlobalSynthetics UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibPhotosDebug UP-TO-DATE
+> Task :app_v2:checkPhotosDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:desugarPhotosDebugFileDependencies UP-TO-DATE
+> Task :app_v2:mergeExtDexPhotosDebug UP-TO-DATE
+> Task :app_v2:mergeLibDexPhotosDebug UP-TO-DATE
+> Task :app_v2:checkPhotosDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mapPhotosDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compilePhotosDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createPhotosDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksPhotosDebug UP-TO-DATE
+> Task :app_v2:processPhotosDebugMainManifest UP-TO-DATE
+> Task :app_v2:processPhotosDebugManifest UP-TO-DATE
+> Task :app_v2:processPhotosDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:processPhotosDebugResources UP-TO-DATE
+> Task :app_v2:mergePhotosDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:mergePhotosDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripPhotosDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:validateSigningPhotosDebug UP-TO-DATE
+> Task :app_v2:writePhotosDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writePhotosDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:preLegacyDebugBuild UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyDebug UP-TO-DATE
+> Task :app_v2:generateLegacyDebugResources UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugResources UP-TO-DATE
+> Task :app_v2:packageLegacyDebugResources UP-TO-DATE
+> Task :app_v2:processLegacyDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parseLegacyDebugLocalResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLegacyDebug UP-TO-DATE
+> Task :app_v2:generateLegacyDebugBuildConfig UP-TO-DATE
+> Task :app_v2:generateLegacyDebugRFile UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLegacyDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptLegacyDebugKotlin UP-TO-DATE
+> Task :wear:kspDebugKotlin
+> Task :app_v2:javaPreCompileLegacyDebug UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:compressLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:generateLegacyDebugGlobalSynthetics UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibLegacyDebug UP-TO-DATE
+> Task :app_v2:checkLegacyDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:desugarLegacyDebugFileDependencies UP-TO-DATE
+> Task :app_v2:mergeExtDexLegacyDebug UP-TO-DATE
+> Task :app_v2:mergeLibDexLegacyDebug UP-TO-DATE
+> Task :app_v2:checkLegacyDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mapLegacyDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileLegacyDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createLegacyDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksLegacyDebug UP-TO-DATE
+> Task :app_v2:processLegacyDebugMainManifest UP-TO-DATE
+> Task :app_v2:processLegacyDebugManifest UP-TO-DATE
+> Task :app_v2:processLegacyDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:processLegacyDebugResources UP-TO-DATE
+> Task :app_v2:preLegacyStagingBuild UP-TO-DATE
+> Task :app_v2:configureCMakeDebug[arm64-v8a]-3
+> Task :app_v2:buildCMakeDebug[arm64-v8a]-2
+> Task :app_v2:configureCMakeDebug[armeabi-v7a]-2
+> Task :app_v2:buildCMakeDebug[armeabi-v7a]-2
+> Task :app_v2:configureCMakeDebug[x86]-2
+> Task :app_v2:buildCMakeDebug[x86]-2
+> Task :app_v2:configureCMakeDebug[x86_64]-2
+> Task :app_v2:buildCMakeDebug[x86_64]-2
+> Task :app_v2:mergeLegacyDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripLegacyDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:validateSigningLegacyDebug UP-TO-DATE
+> Task :app_v2:writeLegacyDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writeLegacyDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:preVrDebugBuild UP-TO-DATE
+> Task :app_v2:mergeVrDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:dataBindingMergeDependencyArtifactsVrDebug UP-TO-DATE
+> Task :app_v2:generateVrDebugResources UP-TO-DATE
+> Task :app_v2:mergeVrDebugResources UP-TO-DATE
+> Task :app_v2:packageVrDebugResources UP-TO-DATE
+> Task :app_v2:processVrDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parseVrDebugLocalResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesVrDebug UP-TO-DATE
+> Task :app_v2:generateVrDebugBuildConfig UP-TO-DATE
+> Task :app_v2:generateVrDebugRFile UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsVrDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptVrDebugKotlin UP-TO-DATE
+> Task :app_v2:compileLiteDebugKotlin
+> Task :app_v2:compilePhotosDebugKotlin

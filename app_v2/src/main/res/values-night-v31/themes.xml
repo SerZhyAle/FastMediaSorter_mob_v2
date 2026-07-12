@@ -2,7 +2,9 @@
 <resources>
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base">
         <item name="android:windowSplashScreenBackground">@color/item_normal</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
-        <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <!-- S0997: center = app logo + wordmark fading in; author logo moved to the branding slot. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
+        <item name="android:windowSplashScreenAnimationDuration">700</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/ic_splash_branding</item>
     </style>
 </resources>

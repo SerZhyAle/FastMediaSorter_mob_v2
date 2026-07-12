@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
@@ -69,6 +70,7 @@ class ScreenCaptureService : Service() {
     lateinit var saveFallbackNotifier: Lazy<com.sza.fastmediasorter.core.save.SaveFallbackNotifier>
 
     private var gestureDirection: String? = null
+    private var gestureZone: String? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -98,6 +100,7 @@ class ScreenCaptureService : Service() {
         val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
             ?: Activity.RESULT_CANCELED
         gestureDirection = intent?.getStringExtra(EXTRA_GESTURE_DIRECTION)
+        gestureZone = intent?.getStringExtra(EXTRA_GESTURE_ZONE)
         val resultData = intent?.readResultData()
         if (resultCode != Activity.RESULT_OK || resultData == null) {
             Timber.w("ScreenCaptureService: missing MediaProjection consent extras")
@@ -208,8 +211,12 @@ class ScreenCaptureService : Service() {
         val direction = gestureDirection?.let {
             runCatching { ScreenshotGestureDirection.valueOf(it) }.getOrNull()
         }
+        // S0847: zone identifies which of the four edge bands fired; absent -> LEFT_TOP (legacy single strip).
+        val zone = gestureZone?.let {
+            runCatching { ScreenshotGestureZone.valueOf(it) }.getOrNull()
+        } ?: ScreenshotGestureZone.LEFT_TOP
         val action = if (direction != null) {
-            actionDispatcher.get().actionFor(direction)
+            actionDispatcher.get().actionFor(zone, direction)
         } else {
             ScreenshotGestureAction.SILENT_SCREENSHOT
         }
@@ -336,16 +343,24 @@ class ScreenCaptureService : Service() {
         const val EXTRA_RESULT_CODE = "screen_capture_result_code"
         const val EXTRA_RESULT_DATA = "screen_capture_result_data"
         const val EXTRA_GESTURE_DIRECTION = "gesture_direction"
+        const val EXTRA_GESTURE_ZONE = "gesture_zone"
 
         private const val CHANNEL_ID = "screen_capture_service"
         private const val NOTIFICATION_ID = 0x4053
         private const val VIRTUAL_DISPLAY_NAME = "screen_capture_service"
 
-        fun start(context: Context, resultCode: Int, resultData: Intent, direction: String? = null) {
+        fun start(
+            context: Context,
+            resultCode: Int,
+            resultData: Intent,
+            direction: String? = null,
+            zone: String? = null
+        ) {
             val intent = Intent(context, ScreenCaptureService::class.java).apply {
                 putExtra(EXTRA_RESULT_CODE, resultCode)
                 putExtra(EXTRA_RESULT_DATA, resultData)
                 direction?.let { putExtra(EXTRA_GESTURE_DIRECTION, it) }
+                zone?.let { putExtra(EXTRA_GESTURE_ZONE, it) }
             }
             ContextCompat.startForegroundService(context, intent)
         }

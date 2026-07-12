@@ -29,6 +29,8 @@ object SupportIntentFactory {
     private const val CRASH_REPORT_EMAIL = "serzhyale@gmail.com"
     private const val PLAY_MARKET_URI_PREFIX = "market://details?id="
     private const val PLAY_WEB_URI_PREFIX = "https://play.google.com/store/apps/details?id="
+    private const val COMPANION_PUBLISH_GUIDE_URL =
+        "https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html"
 
     /**
      * Resolve a canonical [SupportDestination] into a launchable [Intent].
@@ -53,6 +55,9 @@ object SupportIntentFactory {
         "uk" -> DOCS_BASE_UK
         else -> DOCS_BASE_EN
     }
+
+    /** S0994: single source for the LITE companion publish-folders guide (EN-only page). */
+    fun companionPublishGuideUrl(): String = COMPANION_PUBLISH_GUIDE_URL
 
     private fun openHelp(context: Context): Intent =
         Intent(Intent.ACTION_VIEW, Uri.parse(helpUrl(context)))

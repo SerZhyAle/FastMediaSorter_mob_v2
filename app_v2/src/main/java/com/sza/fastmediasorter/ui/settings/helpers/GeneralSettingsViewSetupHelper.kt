@@ -569,6 +569,15 @@ class GeneralSettingsViewSetupHelper(
                 else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html"
             }, "No browser found to open documentation")
         }
+        // S0994: PC-side companion publish-folders guide, shown only when companion import is available (lite/vr hide it).
+        binding.btnCompanionPublishGuide.isVisible = viewModel.isCompanionImportAvailable
+        binding.btnCompanionPublishGuide.setOnClickListener {
+            Timber.d("S0994: open companion publish-folders guide from settings")
+            openUrl(
+                com.sza.fastmediasorter.ui.common.support.SupportIntentFactory.companionPublishGuideUrl(),
+                fragment.getString(R.string.settings_no_browser_for_docs),
+            )
+        }
         binding.btnOpenWelcome.setOnClickListener {
             fragment.startActivity(Intent(fragment.requireContext(), WelcomeActivity::class.java))
         }

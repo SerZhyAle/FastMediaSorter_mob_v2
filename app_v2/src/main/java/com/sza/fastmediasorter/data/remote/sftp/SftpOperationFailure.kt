@@ -11,13 +11,17 @@ import java.io.InterruptedIOException
  * upper layers can produce specific user-facing messages instead of generic
  * "operation failed" text.
  *
- * S0149 - conservative approach: only SSH_FX_PERMISSION_DENIED (3) maps to
- * the "access denied" category; all other failures fall into GENERIC.
+ * S0149 - conservative approach: SSH_FX_PERMISSION_DENIED (3) maps to the
+ * "access denied" category and SSH_FX_NO_SUCH_FILE (2) to NOT_FOUND (S1000);
+ * all other SFTP protocol failures fall into GENERIC.
  * TRANSIENT is reserved for connection/IO failures that bypass the SFTP protocol layer.
  */
 enum class SftpFailureCategory {
     /** SFTP status code 3 - server explicitly denied the operation. */
     PERMISSION_DENIED,
+
+    /** SFTP status code 2 - path/file does not exist on the server. */
+    NOT_FOUND,
 
     /** Any other SFTP protocol error or non-SFTP exception. */
     GENERIC,
@@ -59,6 +63,7 @@ data class SftpOperationFailure(
 
             val category = when {
                 sftpEx == null -> SftpFailureCategory.TRANSIENT
+                statusCode == ChannelSftp.SSH_FX_NO_SUCH_FILE -> SftpFailureCategory.NOT_FOUND
                 statusCode == ChannelSftp.SSH_FX_PERMISSION_DENIED -> SftpFailureCategory.PERMISSION_DENIED
                 else -> SftpFailureCategory.GENERIC
             }

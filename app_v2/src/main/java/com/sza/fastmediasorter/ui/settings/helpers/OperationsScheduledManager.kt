@@ -26,6 +26,8 @@ import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -47,6 +49,10 @@ class OperationsScheduledManager(
 ) {
 
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
+
+    // S0998: debounces the list->toggle reconcile so the stateIn(emptyList) seed emit and the real
+    // Room emit coalesce into one settled reconcile (no off->on flicker / double write on screen open).
+    private var reconcileJob: Job? = null
 
     fun setup() {
         updateScheduledNotificationPermissionButton()
@@ -114,6 +120,7 @@ class OperationsScheduledManager(
 
         fragment.collectOnLifecycle(scheduledViewModel.operations) { ops ->
             scheduledAdapter.submitList(ops)
+            scheduleToggleReconcile()
         }
     }
 
@@ -122,6 +129,36 @@ class OperationsScheduledManager(
         binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
         binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
         binding.layoutScheduledActions.isVisible = settings.enableScheduledOperations
+    }
+
+    /**
+     * S0998: (re)arm the debounced reconcile. Runs on the view lifecycle, cancelling any pending
+     * pass so only the settled list state drives one write. Not called from [render] - the toggle
+     * must stay hand-checkable (empty list) to reveal the Add button, and a settings-driven reconcile
+     * would immediately bounce a manual check back off.
+     */
+    private fun scheduleToggleReconcile() {
+        if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return
+        reconcileJob?.cancel()
+        reconcileJob = fragment.viewLifecycleOwner.lifecycleScope.launch {
+            delay(RECONCILE_DEBOUNCE_MS)
+            reconcileToggleWithList()
+        }
+    }
+
+    /**
+     * S0998: on the settings screen the master toggle mirrors the scheduled-operations list - an
+     * empty list unchecks it, a non-empty list re-checks it. Idempotent (writes only on real
+     * divergence) so it cannot loop with the settings-driven [render]. The toggle stays interactive:
+     * the user can still check it manually on an empty list to add the first operation, and deleting
+     * the last operation flips it back off.
+     */
+    private fun reconcileToggleWithList() {
+        val ops = scheduledViewModel.operations.value
+        val desired = ops.isNotEmpty()
+        if (viewModel.settings.value.enableScheduledOperations == desired) return
+        Timber.d("OperationsScheduledManager: reconciled toggle -> %b (ops=%d)", desired, ops.size)
+        viewModel.updateSettings(viewModel.settings.value.copy(enableScheduledOperations = desired))
     }
 
     fun onResume() {
@@ -221,5 +258,10 @@ class OperationsScheduledManager(
                 fragment.startActivity(intent)
             } catch (_: Exception) { }
         }
+    }
+
+    private companion object {
+        // Long enough to coalesce the stateIn seed + Room emit; imperceptible for a settings toggle.
+        private const val RECONCILE_DEBOUNCE_MS = 250L
     }
 }

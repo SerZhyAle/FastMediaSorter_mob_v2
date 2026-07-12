@@ -35,6 +35,41 @@ class CompanionConfigSerializerTest {
     }
 
     @Test
+    fun `round-trips a v2 config with resource params`() {
+        val dto = CompanionConfigDto(
+            schemaVersion = 2,
+            resourceName = "Home PC",
+            protocol = "sftp",
+            accessPaths = listOf(CompanionAccessPathDto(CompanionAccessPathDto.KIND_LAN, "192.168.1.23", 2022)),
+            username = "fms",
+            password = "s3cret",
+            hostKeyFingerprintSha256 = "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+            roots = listOf(
+                CompanionRootDto(
+                    virtualPath = "/Music",
+                    label = "Home Music",
+                    profile = "audio_library",
+                    mediaTypes = listOf("audio"),
+                    scanSubdirectories = true,
+                    showSubfoldersAsItems = false,
+                    showHiddenFiles = false,
+                    allFiles = false,
+                    isDestination = false,
+                    destinationColor = null,
+                    comment = "Vinyl rips",
+                    accessPin = "1234",
+                    slideshowInterval = 15
+                )
+            ),
+            createdAt = "2026-07-11T00:00:00Z"
+        )
+
+        val parsed = roundTrip(dto)
+
+        assertEquals(dto, parsed)
+    }
+
+    @Test
     fun `round-trips a passwordless no-fingerprint config`() {
         val dto = CompanionConfigDto(
             schemaVersion = 1,

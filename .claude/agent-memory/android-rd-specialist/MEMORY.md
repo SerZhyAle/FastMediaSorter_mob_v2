@@ -9,6 +9,7 @@
 - [Skill aliases](feedback_skill_aliases.md) - short slash aliases; explicit table, no invented letters
 - [Universal Agent Kit](reference_universal_agent_kit.md) - public distillation; portability+leanness
 - [fms_companion subproject](project_fms_companion_subproject.md) - S0421 Go+Wails, OUT of repo P:\windows\fms_companion
+- [FMS Windows rebrand](project_fms_windows_rebrand.md) - "Fast Media Sorter for Windows" display-only; URLs/Store/winget stay FastMediaSorter_Lite/LITE
 
 ## Devices & release
 - [Test device Galaxy S21+](reference_test_device_galaxy_s21.md) - SM-G996U1, Android 15; full access; not Wear
@@ -74,6 +75,7 @@
 - [MainActivity LOC ceiling](feedback_mainactivity_loc_ceiling.md) - ~1500; fold wiring into Main*Manager
 - [Players are a family](feedback_player_family_glue_mirroring.md) - shared engine propagates; per-host mirrored manually
 - [activity_welcome 3 widths](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new id in all three
+- [sw qualifier beats -land](project_res_sw_qualifier_beats_land.md) - values-swNNNdp shadows values-land; fix via swNNNdp-land bucket
 - [Sync docs/site on visible change](feedback_sync_docs_on_visible_change.md) - revisit affected docs + site copy
 - [HOW_TO path gate](reference_howto_settings_path_gate.md) + [parity](feedback_howto_settings_path_parity.md) - S0558 validates vs manifest; U+2192 lines need EN/RU/UK
 - [Play edge-to-edge warnings](project_play_setstatusbarcolor_false_positive.md) - #2 fixed by Material 1.14.0; #1 informational

@@ -6,8 +6,10 @@ import com.sza.fastmediasorter.data.companion.CompanionAccessPathDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.data.companion.CompanionConfigSerializer
+import com.sza.fastmediasorter.data.companion.CompanionResourceTokens
 import com.sza.fastmediasorter.data.companion.CompanionRootDto
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -36,6 +38,9 @@ class ExportCompanionConfigUseCase @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
+    // Broad catch is an intentional export-boundary guard: any path/credential/IO failure surfaces as
+    // Result.failure (logged), never a crash. Mirrors the import-side guard.
+    @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(resource: MediaResource, includePassword: Boolean): Result<File> =
         withContext(ioDispatcher) {
             try {
@@ -65,7 +70,7 @@ class ExportCompanionConfigUseCase @Inject constructor(
                     username = credentials.username,
                     password = if (includePassword) credentials.password else "",
                     hostKeyFingerprintSha256 = resource.hostKeyFingerprint.orEmpty(),
-                    roots = listOf(CompanionRootDto(virtualPath = pathInfo.remotePath, label = resource.name)),
+                    roots = listOf(buildRoot(resource, pathInfo.remotePath)),
                     createdAt = isoTimestamp()
                 )
 
@@ -76,6 +81,33 @@ class ExportCompanionConfigUseCase @Inject constructor(
                 Result.failure(e)
             }
         }
+
+    /**
+     * S1002: emits the resource's real params into a v2 root. Fields at their v1-import default are
+     * left null to keep the payload compact for the QR path; `mediaTypes` is emitted explicitly (unless
+     * `allFiles`) so the receiver reconstructs the exact media-type set regardless of the profile.
+     */
+    private fun buildRoot(resource: MediaResource, remotePath: String): CompanionRootDto = CompanionRootDto(
+        virtualPath = remotePath,
+        label = resource.name,
+        profile = resource.profile
+            .takeIf { it != ResourceProfile.NONE }
+            ?.let { CompanionResourceTokens.profileToToken(it) },
+        mediaTypes = if (resource.allFiles) {
+            null
+        } else {
+            CompanionResourceTokens.mediaTypesToTokens(resource.supportedMediaTypes).ifEmpty { null }
+        },
+        scanSubdirectories = resource.scanSubdirectories,
+        showSubfoldersAsItems = resource.showSubfoldersAsItems.takeIf { it },
+        showHiddenFiles = resource.showHiddenFiles.takeIf { it },
+        allFiles = resource.allFiles.takeIf { it },
+        isDestination = resource.isDestination.takeIf { it },
+        destinationColor = if (resource.isDestination) resource.destinationColor else null,
+        comment = resource.comment,
+        accessPin = resource.accessPin,
+        slideshowInterval = resource.slideshowInterval
+    )
 
     private fun writeConfig(resourceName: String, payload: String): File {
         val dir = File(context.cacheDir, SHARE_TEMP_DIR).apply { mkdirs() }

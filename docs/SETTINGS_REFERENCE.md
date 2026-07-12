@@ -20,6 +20,7 @@ _Generated from the app. Do not edit by hand._
 | Backup settings to Google Drive | Backs up all app settings to your Google Drive account. |
 | Clear Cache | Deletes all locally cached thumbnails and metadata to free up storage. |
 | Clear streaming cache | Deletes temporary files buffered during streaming playback. |
+| How to publish PC folders to Android | Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan). |
 | Downloadable Extensions | Opens the downloadable extensions manager where you can install optional feature modules. |
 | Export Favorites | Exports your saved favorites list to a file you can back up or transfer. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
@@ -224,7 +225,7 @@ _Available in: Standard, Legacy_
 | Voice recorder | Settings for recording voice notes with the microphone and choosing where recordings are saved. |
 | File deletion and trash | Settings that control how files are deleted and whether a trash folder is used. |
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
-| Left-edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
+| Edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
 | Screen recording | Settings for recording video of the screen and choosing where recordings are saved. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
 | Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
@@ -248,7 +249,19 @@ _Available in: Standard, Legacy_
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
+| Down gesture action | Chooses the action triggered by the downward swipe on the lower-left edge band. |
+| Right gesture action | Chooses the action triggered by the inward swipe on the lower-left edge band. |
+| Up gesture action | Chooses the action triggered by the upward swipe on the lower-left edge band. |
+| Down gesture action | Chooses the action triggered by the downward swipe on the upper-left edge band. |
+| Right gesture action | Chooses the action triggered by the inward swipe on the upper-left edge band. |
+| Up gesture action | Chooses the action triggered by the upward swipe on the upper-left edge band. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
+| Down gesture action | Chooses the action triggered by the downward swipe on the lower-right edge band. |
+| Right gesture action | Chooses the action triggered by the inward swipe on the lower-right edge band. |
+| Up gesture action | Chooses the action triggered by the upward swipe on the lower-right edge band. |
+| Down gesture action | Chooses the action triggered by the downward swipe on the upper-right edge band. |
+| Right gesture action | Chooses the action triggered by the inward swipe on the upper-right edge band. |
+| Up gesture action | Chooses the action triggered by the upward swipe on the upper-right edge band. |
 | Show the left-edge gesture strip | Shows a semi-transparent grey guide on the first 4 px of the left-edge gesture strip; the rest stays transparent, and the change takes effect only while the gesture overlay is enabled. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
@@ -261,9 +274,10 @@ _Available in: Standard, Legacy_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
 | Screen video recording | Enables the built-in screen video recording feature. |
-| Down gesture action | Chooses the action triggered by the downward screen gesture. |
-| Right gesture action | Chooses the action triggered by the rightward screen gesture. |
-| Up gesture action | Chooses the action triggered by the upward screen gesture. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
+| Left edge - lower band | Enables gesture detection on the lower-left screen-edge band (60-90% of height). |
+| Left edge - upper band | Enables gesture detection on the upper-left screen-edge band (10-40% of height). |
+| Right edge - lower band | Enables gesture detection on the lower-right screen-edge band (60-90% of height). |
+| Right edge - upper band | Enables gesture detection on the upper-right screen-edge band (10-40% of height). |

@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
@@ -31,6 +32,8 @@ class SftpMediaScannerTest {
     private val sftpClient = mockk<SftpClient>(relaxed = true)
     private val credentialsRepository = mockk<NetworkCredentialsRepository>()
     private val context = mockk<Context>(relaxed = true)
+    // S1006: resolver stubbed to echo the requested endpoint so scanning keeps its single-host behaviour.
+    private val endpointResolver = mockk<SftpEndpointResolver>()
 
     private lateinit var scanner: SftpMediaScanner
 
@@ -41,7 +44,8 @@ class SftpMediaScannerTest {
     fun setUp() {
         mockkObject(PermissionHelper)
         every { PermissionHelper.hasLocalNetworkPermission(any()) } returns true
-        scanner = SftpMediaScanner(sftpClient, credentialsRepository, context)
+        coEvery { endpointResolver.resolve(any(), any()) } answers { HostPort(firstArg(), secondArg()) }
+        scanner = SftpMediaScanner(sftpClient, credentialsRepository, endpointResolver, context)
         coEvery { credentialsRepository.getByCredentialId(any()) } returns credentials()
         coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns credentials()
     }

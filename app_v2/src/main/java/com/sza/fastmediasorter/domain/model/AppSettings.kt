@@ -194,9 +194,25 @@ data class AppSettings(
     // while the rest of the gesture zone stays transparent. Default off keeps the strip invisible.
     // Effective only while the gesture overlay itself is enabled.
     val screenshotGestureStripVisible: Boolean = false,
-    val screenshotGestureActionDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
-    val screenshotGestureActionRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureActionUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    // S0847: four independently-toggleable edge bands (2 left, 2 right at 10-40% / 60-90% of safe height),
+    // each with the DOWN/RIGHT/UP triple - up to 12 gestures. LEFT_TOP enabled by default and seeded from
+    // the pre-S0847 single-strip bindings; the other three bands are opt-in (disabled, DO_NOT_USE).
+    val screenshotGestureZoneLeftTopEnabled: Boolean = true,
+    val screenshotGestureZoneLeftBottomEnabled: Boolean = false,
+    val screenshotGestureZoneRightTopEnabled: Boolean = false,
+    val screenshotGestureZoneRightBottomEnabled: Boolean = false,
+    val screenshotGestureLeftTopDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
+    val screenshotGestureLeftTopRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureLeftTopUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureLeftBottomDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureLeftBottomRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureLeftBottomUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightTopDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightTopRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightTopUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightBottomDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightBottomRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    val screenshotGestureRightBottomUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotDestinationResourceId: String? = null,
     // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
     val copyScreenshotToClipboard: Boolean = false,
@@ -352,5 +368,40 @@ data class AppSettings(
         if (supportEpub) types.add(MediaType.EPUB)
         if (supportOfficeDocuments) types.add(MediaType.OFFICE_DOCUMENT)
         return types
+    }
+
+    /** S0847: whether the given edge band is enabled for gesture detection. */
+    fun screenshotGestureZoneEnabled(zone: ScreenshotGestureZone): Boolean = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> screenshotGestureZoneLeftTopEnabled
+        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGestureZoneLeftBottomEnabled
+        ScreenshotGestureZone.RIGHT_TOP -> screenshotGestureZoneRightTopEnabled
+        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGestureZoneRightBottomEnabled
+    }
+
+    /** S0847: resolves the action bound to a specific edge band + drag direction (one of 12 slots). */
+    fun screenshotGestureAction(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection
+    ): ScreenshotGestureAction = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGestureLeftTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGestureLeftTopRight
+            ScreenshotGestureDirection.UP -> screenshotGestureLeftTopUp
+        }
+        ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGestureLeftBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGestureLeftBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGestureLeftBottomUp
+        }
+        ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGestureRightTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGestureRightTopRight
+            ScreenshotGestureDirection.UP -> screenshotGestureRightTopUp
+        }
+        ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGestureRightBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGestureRightBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGestureRightBottomUp
+        }
     }
 }

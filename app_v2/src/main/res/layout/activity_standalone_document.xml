@@ -89,8 +89,9 @@
 
         <LinearLayout android:id="@+id/audioInfoOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:visibility="gone" />
 
-        <!-- PlayerView kept GONE for id parity (document managers reset it). -->
-        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:resize_mode="fit" />
+        <!-- PlayerView kept GONE for id parity (document managers reset it). S1007: not D-pad/keyboard
+             focusable for consistency with the other player hosts, though GONE already blocks focus. -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:resize_mode="fit" />
 
         <!-- Standard ImageView for id parity. -->
         <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />

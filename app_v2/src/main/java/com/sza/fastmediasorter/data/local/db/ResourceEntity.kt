@@ -99,5 +99,9 @@ data class ResourceEntity(
     val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive
 
     @ColumnInfo(name = "needs_sign_in", defaultValue = "0")
-    val needsSignIn: Boolean = false // S0200: Drive resource is in "requires sign-in" state (set by S0200AuthStateWipe; cleared on successful sign-in via clearNeedsSignInForCredentials)
+    val needsSignIn: Boolean = false, // S0200: Drive resource is in "requires sign-in" state (set by S0200AuthStateWipe; cleared on successful sign-in via clearNeedsSignInForCredentials)
+
+    // S1006: ordered alternate SFTP endpoints ("host:port;host:port"); null = single-path resource (unchanged behaviour)
+    @ColumnInfo(name = "alt_access_paths", defaultValue = "NULL")
+    val altAccessPaths: String? = null
 )

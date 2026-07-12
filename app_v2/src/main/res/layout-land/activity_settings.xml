@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/settings_search_hint"
-                android:imeOptions="actionSearch"
+                android:imeOptions="actionSearch|flagNoExtractUi"
                 android:inputType="text"
                 android:maxLines="1" />
 

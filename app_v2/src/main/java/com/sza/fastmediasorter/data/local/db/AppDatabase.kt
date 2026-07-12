@@ -29,7 +29,7 @@ import timber.log.Timber
         StreamSourceEntity::class,
         AppLaunchPanelTileEntity::class
     ],
-    version = 38,
+    version = 39,
     // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
     // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
     exportSchema = true

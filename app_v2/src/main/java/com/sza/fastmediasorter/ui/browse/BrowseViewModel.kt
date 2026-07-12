@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
+import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
+import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileFilter
@@ -470,7 +472,27 @@ class BrowseViewModel @Inject constructor(
         onHandleLoadingError = { resource, e -> auxManager.handleLoadingError(resource, e) },
         schedulePlayerWarmup = { files -> auxManager.schedulePlayerWarmupIfEligible(files) },
         updateResourceMetadata = { resource, fileCount, subfolderCount ->
-            metadataManager.updateMetadata(resource, fileCount, subfolderCount)
+            val persisted = metadataManager.updateMetadata(resource, fileCount, subfolderCount)
+            // S1001: merge the freshly persisted stats into the in-memory resource. Without this,
+            // every later full-entity write built from state.resource (scroll position, sort mode,
+            // display mode) carries the stale load-time stats and clobbers this DB update.
+            if (persisted != null) {
+                updateState { st ->
+                    val current = st.resource
+                    if (current != null && current.id == persisted.id) {
+                        st.copy(
+                            resource = current.copy(
+                                fileCount = persisted.fileCount,
+                                subfolderCount = persisted.subfolderCount,
+                                lastBrowseDate = persisted.lastBrowseDate,
+                                lastSyncDate = persisted.lastSyncDate
+                            )
+                        )
+                    } else {
+                        st
+                    }
+                }
+            }
         },
         startFileObserver = { fileObserverManager.start() },
         sortFiles = { files, mode, force -> sortFilterManager.sortFiles(files, mode, force) }
@@ -561,12 +583,18 @@ class BrowseViewModel @Inject constructor(
         context.getString(resolveFriendlyBrowseErrorRes(throwable))
 
     private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
-        // WifiRequiredException fires before any socket attempt - clearly a Wi-Fi gate rejection,
-        // not a generic outage. Must be checked by type before the message-based heuristics below.
-        if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
-
+        // Checked by type before the message-based heuristics: WifiRequiredException is a Wi-Fi
+        // gate rejection (not a generic outage), and SFTP protocol status is locale-independent
+        // unlike the server's text (Windows OpenSSH sends "cannot find the file specified", which
+        // no message rule below matches). Folded into one `when` to keep a single return. S1000.
+        val sftpCategory = SftpOperationFailure.fromThrowable(throwable).category
         val message = throwable.message.orEmpty()
         return when {
+            throwable is WifiRequiredException -> R.string.error_wifi_required_smb
+            sftpCategory == SftpFailureCategory.NOT_FOUND -> R.string.friendly_copy_error_not_found
+            sftpCategory == SftpFailureCategory.PERMISSION_DENIED ->
+                R.string.friendly_copy_error_access_denied
+
             message.contains("Authentication", ignoreCase = true) ||
                 message.contains("LOGON_FAILURE", ignoreCase = true) ||
                 message.contains("Not authenticated", ignoreCase = true) ->

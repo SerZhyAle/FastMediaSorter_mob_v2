@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.companion
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +22,11 @@ class CompanionConfigParserTest {
     private fun canonicalVector(): String =
         checkNotNull(javaClass.classLoader?.getResourceAsStream("companion/canonical_vector.json")) {
             "canonical_vector.json test resource missing"
+        }.use { it.readBytes().toString(Charsets.UTF_8) }
+
+    private fun canonicalVectorV2(): String =
+        checkNotNull(javaClass.classLoader?.getResourceAsStream("companion/canonical_vector_v2.json")) {
+            "canonical_vector_v2.json test resource missing"
         }.use { it.readBytes().toString(Charsets.UTF_8) }
 
     @Test
@@ -49,6 +55,48 @@ class CompanionConfigParserTest {
         assertEquals("Photos", roots[0].label)
         assertEquals("/Music", roots[1].virtualPath)
         assertEquals("Music", roots[1].label)
+        // S1002: a v1 config leaves every optional v2 param null (import applies v1 defaults).
+        assertNull(roots[0].profile)
+        assertNull(roots[0].mediaTypes)
+        assertNull(roots[0].accessPin)
+        assertNull(roots[0].slideshowInterval)
+        assertNull(roots[0].isDestination)
+    }
+
+    @Test
+    fun `parses v2 canonical vector with resource params`() {
+        val dto = parser.parse(canonicalVectorV2())
+
+        assertEquals(2, dto.schemaVersion)
+        val roots = requireNotNull(dto.roots)
+        assertEquals(2, roots.size)
+
+        val audio = roots[0]
+        assertEquals("/Music", audio.virtualPath)
+        assertEquals("Home Music", audio.label)
+        assertEquals("audio_library", audio.profile)
+        assertEquals(listOf("audio"), audio.mediaTypes)
+        assertEquals("Vinyl rips", audio.comment)
+        assertEquals("1234", audio.accessPin)
+        assertEquals(15, audio.slideshowInterval)
+        assertEquals(false, audio.isDestination)
+
+        val drop = roots[1]
+        assertEquals(true, drop.isDestination)
+        assertEquals(-14575885, drop.destinationColor)
+    }
+
+    @Test
+    fun `soft-ignores unknown profile token`() {
+        val json = "{\"schemaVersion\":2,\"resourceName\":\"Test\",\"protocol\":\"sftp\"," +
+            "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"192.168.1.5\",\"port\":22}]," +
+            "\"username\":\"fms\",\"password\":\"secret\",\"hostKeyFingerprintSha256\":\"\"," +
+            "\"roots\":[{\"virtualPath\":\"/Media\",\"label\":\"Media\",\"profile\":\"weird_token\"}]}"
+
+        // The parser never rejects an unknown profile token - resolution (and fallback) happens at import.
+        val dto = parser.parse(json)
+
+        assertEquals("weird_token", dto.roots?.first()?.profile)
     }
 
     @Test
@@ -68,7 +116,8 @@ class CompanionConfigParserTest {
 
     @Test
     fun `rejects unknown higher schemaVersion`() {
-        val bumped = canonicalVector().replaceFirst("\"schemaVersion\":1", "\"schemaVersion\":99")
+        // v2 is now supported; 3 is the first unsupported version.
+        val bumped = canonicalVector().replaceFirst("\"schemaVersion\":1", "\"schemaVersion\":3")
 
         val e = assertThrows(CompanionConfigException::class.java) { parser.parse(bumped) }
 

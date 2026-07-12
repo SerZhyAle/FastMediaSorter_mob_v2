@@ -110,6 +110,7 @@ class CloudFileOperationHandlerTest {
             sftpClient = mockk(),
             ftpClient = mockk(),
             credentialsRepository = mockk(),
+            endpointResolver = mockk(relaxed = true), // S1006: unused on the cloud path
             cloudPathParser = cloudPathParser,
             networkCredentialsResolver = mockk(),
             cloudAuthHelper = mockk(),

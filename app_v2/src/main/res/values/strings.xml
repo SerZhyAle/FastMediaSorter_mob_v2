@@ -1951,7 +1951,7 @@ Close the player and try again.</string>
     <string name="label_profile_photo_storage">Photo Storage</string>
     <string name="label_profile_documents">Documents</string>
     <string name="label_profile_all_files">File Manager Mode</string>
-    <string name="title_select_profile">Quick Setup Profile</string>
+    <string name="title_select_profile">Resource Profile</string>
     <string name="database_reset_dialog_title">Database reset</string>
     <string name="database_reset_dialog_message">The local database could not be opened or upgraded, so it was reset and the app can keep working. Some saved data (sources, accounts, favorites) may have been lost.\n\nReason: %1$s</string>
     <string name="database_reset_backup_note">A copy of the previous database was saved to:\n%1$s</string>
@@ -2538,7 +2538,7 @@ Close the player and try again.</string>
     <string name="screen_capture_service_notification_title">Screen capture</string>
     <string name="screen_capture_service_notification_text">Capturing the current screen..</string>
     <string name="setting_group_system_apps_title">Operating system interaction</string>
-    <string name="setting_subgroup_screen_gestures_title">Left-edge screen gestures</string>
+    <string name="setting_subgroup_screen_gestures_title">Edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
     <string name="setting_gesture_strip_visible_title">Show the left-edge gesture strip</string>
@@ -2988,7 +2988,6 @@ Close the player and try again.</string>
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Open in VR Cinema</string>
     <string name="vr_cinema_launch_unavailable">VR Cinema is unavailable right now</string>
-    <string name="companion_import_button">Import from companion</string>
     <string name="companion_import_success">Added from companion: %1$s (%2$s)</string>
     <string name="companion_import_version_error">This config was created by a newer companion version. Please update the app.</string>
     <string name="companion_import_invalid_error">This file is not a valid companion config.</string>
@@ -3006,9 +3005,16 @@ Close the player and try again.</string>
     <string name="companion_import_password_label">Password for this server</string>
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
-    <string name="companion_qr_scan_button">Scan QR code</string>
     <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
     <string name="companion_qr_scan_torch">Torch</string>
     <string name="companion_qr_camera_denied">Camera access is needed to scan the QR code</string>
     <string name="vr_cinema_program_title">VR Cinema</string>
+    <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
+    <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
+    <string name="setting_gesture_zone_right_top_title">Right edge - upper band</string>
+    <string name="setting_gesture_zone_right_bottom_title">Right edge - lower band</string>
+    <string name="resource_import_from_file">Import from file</string>
+    <string name="resource_import_from_barcode">Import by barcode</string>
+    <string name="resource_import_section_title">Import a ready configuration</string>
+    <string name="companion_publish_folders_guide">How to publish PC folders to Android</string>
 </resources>

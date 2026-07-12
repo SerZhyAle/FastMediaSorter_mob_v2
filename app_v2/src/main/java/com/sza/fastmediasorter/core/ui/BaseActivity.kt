@@ -284,6 +284,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // practice, but the guard mirrors dispatchTouchEvent so a future regression cannot
         // silently consume finger events here either.
         val isFinger = event.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER
+        // S0996: the mouse wheel must scroll the view under the pointer natively FIRST. Routing the
+        // wheel through the Activity helper pre-order (like hover/buttons) let handleScroll's
+        // unconditional consume swallow every wheel event, so any scrollable the helper could not
+        // resolve as a target - nested settings content under a ViewPager2, screens with no
+        // getMouseScrollTargetView override, any unfocused list under the cursor - never scrolled.
+        // Let super dispatch the wheel to the hovered view; only when nothing there consumes it,
+        // fall back to the helper's manual scroll of the explicit/focused container (S0289 case).
+        if (!isFinger && _binding != null && event.actionMasked == MotionEvent.ACTION_SCROLL) {
+            val nativeConsumed = super.dispatchGenericMotionEvent(event)
+            Timber.d("S0996: wheel native-first superConsumed=%b", nativeConsumed)
+            if (nativeConsumed) return true
+            return activityMouseDispatchHelper.handleGenericMotionEvent(event)
+        }
         if (!isFinger && _binding != null && activityMouseDispatchHelper.handleGenericMotionEvent(event)) {
             return true
         }

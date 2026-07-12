@@ -15,6 +15,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 
 **What do you want to do?**
 
+- <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to open my PC's folders on my phone by just scanning a code"_ → [Open PC Folders by Scanning a Code](scenario-companion-share.md)
 - <img src="../icons/doc/ic_camera_capture.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want my phone photos to back up to my PC automatically every night"_ → [Scheduled Camera Backup](scenario-camera-backup.md)
 - <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to watch movies/series from my PC on my phone, without copying anything"_ → [Home Cinema & VR Streaming](scenario-home-cinema.md)
 - <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an old tablet and want to turn it into a photo frame"_ → [Digital Photo Frame](scenario-photo-frame.md)
@@ -33,6 +34,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 
 | Guide | What you get | Time | Flavor |
 |-------|-------------|------|--------|
+| [<img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open PC Folders by Scanning a Code](scenario-companion-share.md) | Share PC folders from the Windows companion and connect them by scanning one QR code - no address, port, or password typing | ~5 min | Standard / Photos / Legacy |
 | [<img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Digital Photo Frame on Tablet](scenario-photo-frame.md) | Turn an old tablet into an always-on frame streaming photos from NAS or cloud, with optional music | ~15 min | Standard / Any |
 | [<img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> In-Car Music Player](scenario-car-music.md) | Play your full music library on Android head unit with steering wheel button support | ~10 min | Standard / Legacy |
 | [<img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Internet Radio & Streams](scenario-internet-radio.md) | Play internet radio and IPTV streams on any Android device - add a URL, import an .m3u playlist, or pick from a curated catalog | ~10 min | Standard / Legacy |

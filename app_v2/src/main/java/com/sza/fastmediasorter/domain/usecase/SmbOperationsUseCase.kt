@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -27,6 +28,7 @@ class SmbOperationsUseCase @Inject constructor(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: SftpEndpointResolver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
     private val statsSink: StatsSink
@@ -319,17 +321,23 @@ class SmbOperationsUseCase @Inject constructor(
         expectedFingerprint: String? = null
     ): Result<String> = withContext(ioDispatcher) {
         try {
+            // S1006: test the reachable endpoint of the resource's candidate set (LAN at home, WAN in
+            // transit); resolves to the given host unchanged for a single-address resource, so the test
+            // now passes whenever any candidate is reachable.
+            val endpoint = endpointResolver.resolve(host, port)
+            val useHost = endpoint.host
+            val usePort = endpoint.port
             val result = if (privateKey != null) {
-                sftpClient.testConnectionWithPrivateKey(host, port, username, privateKey, keyPassphrase, expectedFingerprint)
+                sftpClient.testConnectionWithPrivateKey(useHost, usePort, username, privateKey, keyPassphrase, expectedFingerprint)
             } else {
-                sftpClient.testConnection(host, port, username, password, expectedFingerprint)
+                sftpClient.testConnection(useHost, usePort, username, password, expectedFingerprint)
             }
-            
+
             if (result.isSuccess) {
                 // S0473: a remote source connected successfully.
                 statsSink.record(StatsEvent.SourceConnected())
                 val authMethod = if (privateKey != null) "private key" else "password"
-                Result.success("SFTP connection successful to $host:$port using $authMethod")
+                Result.success("SFTP connection successful to $useHost:$usePort using $authMethod")
             } else {
                 Result.failure(result.exceptionOrNull() ?: Exception("SFTP connection failed"))
             }
@@ -354,10 +362,26 @@ class SmbOperationsUseCase @Inject constructor(
 
             if (existingCredentials != null) {
                 Timber.d("saveSftpCredentials: Updating existing credentials for $host:$port (id=${existingCredentials.credentialId})")
+                // S0987: non-destructive merge on a host:port credential collision (shared one-row model).
+                // Never null an existing SSH key or clobber a stored secret with a blank - create/import
+                // callers that omit a field must not destroy the field the existing credential already holds.
+                val mergedPrivateKey = privateKey ?: existingCredentials.sshPrivateKey
+                val mergedEncryptedPassword = when {
+                    // Key-auth save: encryptedPassword carries the passphrase for the freshly provided key.
+                    privateKey != null ->
+                        com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: ""
+                    // Existing key cred (key wins at connect): keep its passphrase, drop the incoming
+                    // password - it would never be used and would corrupt the key's passphrase slot.
+                    existingCredentials.sshPrivateKey != null -> existingCredentials.encryptedPassword
+                    // Password cred: a blank must not clobber the stored password; an explicit one updates.
+                    password.isBlank() -> existingCredentials.encryptedPassword
+                    else -> com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password)
+                        ?: existingCredentials.encryptedPassword
+                }
                 val updatedEntity = existingCredentials.copy(
                     username = username,
-                    encryptedPassword = com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: "",
-                    sshPrivateKey = privateKey
+                    encryptedPassword = mergedEncryptedPassword,
+                    sshPrivateKey = mergedPrivateKey
                 )
                 credentialsRepository.update(updatedEntity)
                 Result.success(existingCredentials.credentialId)

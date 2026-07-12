@@ -13,19 +13,23 @@ import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.color.MaterialColors
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
+import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
+import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -42,10 +46,6 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
-import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
-import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
-import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
-import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -257,6 +257,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         controlsPlacement = StreamsControlsPlacementManager(
             controls = binding.streamControls,
             headerHost = binding.headerControlsHost,
+            searchField = binding.tilSearch,
         )
         val launchLandscape =
             resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE

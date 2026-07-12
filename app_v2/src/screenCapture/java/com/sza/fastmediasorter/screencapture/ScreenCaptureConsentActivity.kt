@@ -22,6 +22,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
     lateinit var settingsRepository: SettingsRepository
 
     private var gestureDirection: String? = null
+    private var gestureZone: String? = null
     private var consentLaunched = false
 
     private val consentLauncher = registerForActivityResult(
@@ -29,7 +30,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
     ) { result ->
         val data = result.data
         if (result.resultCode == Activity.RESULT_OK && data != null) {
-            ScreenCaptureService.start(this, result.resultCode, data, gestureDirection)
+            ScreenCaptureService.start(this, result.resultCode, data, gestureDirection, gestureZone)
         } else {
             Toast.makeText(this, R.string.msg_operation_cancelled, Toast.LENGTH_SHORT).show()
         }
@@ -39,6 +40,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         gestureDirection = intent?.getStringExtra(EXTRA_GESTURE_DIRECTION)
+        gestureZone = intent?.getStringExtra(EXTRA_GESTURE_ZONE)
         consentLaunched = savedInstanceState?.getBoolean(STATE_CONSENT_LAUNCHED) ?: false
         if (consentLaunched) return
         lifecycleScope.launch {
@@ -93,6 +95,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_GESTURE_DIRECTION = "gesture_direction"
+        const val EXTRA_GESTURE_ZONE = "gesture_zone"
         private const val STATE_CONSENT_LAUNCHED = "screen_capture_consent_launched"
     }
 }

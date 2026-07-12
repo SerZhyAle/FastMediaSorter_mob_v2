@@ -146,7 +146,9 @@
 
         <TextureView android:id="@+id/audioVideoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" />
 
-           <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+           <!-- S1007: not D-pad/keyboard focusable - the video surface itself must never wear the
+                app-wide TV focus decoration (core/ui/focus/FocusDecorationController); only real controls should. -->
+           <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
 
         <!-- Vinyl record playback indicator (rotating during audio playback) -->
         <ImageView android:id="@+id/vinylIndicator" android:layout_width="48dp" android:layout_height="48dp" android:layout_gravity="top|end" android:layout_margin="16dp" android:elevation="8dp" android:src="@drawable/ic_vinyl_record" android:visibility="gone" android:contentDescription="@string/vinyl_indicator_description" />

@@ -60,7 +60,9 @@ class BrowseLoadingAuxManager(
     // @Volatile: written on IO (warm-up scheduled after a scan), cancelled/read on main (cancelAll /
     // cancelPlayerWarmup) - without it the cancel edge can read a stale value and miss the live job.
     @Volatile private var playerWarmupJob: Job? = null
+
     @Volatile private var lastWarmupSignature: String? = null
+
     @Volatile private var audioMetadataEnrichmentJob: Job? = null
 
     private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
@@ -75,6 +77,16 @@ class BrowseLoadingAuxManager(
         // per-request socket timeout. Map by type so the user sees the scan-specific message.
         if (throwable is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
             return R.string.error_scan_timeout
+        }
+
+        // SFTP protocol status is locale-independent; the server's message text is not
+        // (Windows OpenSSH sends "cannot find the file specified", matched by no rule below). S1000.
+        when (com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure.fromThrowable(throwable).category) {
+            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.NOT_FOUND ->
+                return R.string.friendly_copy_error_not_found
+            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.PERMISSION_DENIED ->
+                return R.string.friendly_copy_error_access_denied
+            else -> Unit
         }
 
         val message = throwable.message.orEmpty()

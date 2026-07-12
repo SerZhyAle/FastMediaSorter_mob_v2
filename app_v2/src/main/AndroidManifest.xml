@@ -49,6 +49,10 @@
          lock while restoring full device reach; symmetric landscape entry pre-empts the mirror bug. -->
     <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
     <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
+    <!-- S0990: required=false advertises Android XR spatial-panel compatibility (Galaxy XR floats the
+         flat app in a Home Space panel) without filtering out phones/tablets - the standard bundle
+         already declares no required=true feature, so this is a pure coverage-add, no device-reach loss. -->
+    <uses-feature android:name="android.software.xr.api.spatial" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).

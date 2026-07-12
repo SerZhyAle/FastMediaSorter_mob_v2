@@ -28,8 +28,9 @@
                  streamControls group into here in landscape to free vertical space. -->
             <FrameLayout
                 android:id="@+id/headerControlsHost"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
                 android:focusable="false"
                 android:visibility="gone" />
 
@@ -70,7 +71,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/streams_search_hint"
-                    android:imeOptions="actionSearch"
+                    android:imeOptions="actionSearch|flagNoExtractUi"
                     android:inputType="text"
                     android:maxLines="1"
                     android:focusable="true"

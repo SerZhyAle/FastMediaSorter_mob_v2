@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
@@ -29,14 +30,23 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private val capabilityAvailability: CapabilityAvailability
 ) {
 
-    /** Resolves the action configured for [direction]. Callers feed the result to [handlePreCaptureAction]. */
-    suspend fun actionFor(direction: ScreenshotGestureDirection): ScreenshotGestureAction {
+    /**
+     * Resolves the action configured for [zone] + [direction] (one of the 12 edge-band slots, S0847).
+     * Callers feed the result to [handlePreCaptureAction].
+     */
+    suspend fun actionFor(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection
+    ): ScreenshotGestureAction {
         val settings = settingsRepository.get().getSettings().first()
-        return when (direction) {
-            ScreenshotGestureDirection.DOWN -> settings.screenshotGestureActionDown
-            ScreenshotGestureDirection.RIGHT -> settings.screenshotGestureActionRight
-            ScreenshotGestureDirection.UP -> settings.screenshotGestureActionUp
-        }
+        return settings.screenshotGestureAction(zone, direction)
+    }
+
+    /** S0847: the set of edge bands currently enabled - the overlay host shows a strip only for these. */
+    suspend fun enabledZones(): Set<ScreenshotGestureZone> {
+        val settings = settingsRepository.get().getSettings().first()
+        return ScreenshotGestureZone.entries
+            .filterTo(mutableSetOf()) { settings.screenshotGestureZoneEnabled(it) }
     }
 
     /**

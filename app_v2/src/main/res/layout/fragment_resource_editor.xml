@@ -33,7 +33,7 @@
 
             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilName" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="0dp" android:hint="@string/hint_resource_name">
 
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -65,7 +65,7 @@
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPath" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:hint="@string/hint_folder_path">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
@@ -80,13 +80,13 @@
 
                                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilHost" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_host">
 
-                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etHost" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etHost" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                                 </com.google.android.material.textfield.TextInputLayout>
 
                                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPort" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_port">
 
-                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLines="1" />
+                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -97,13 +97,13 @@
 
                                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilUsername" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_username">
 
-                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                                 </com.google.android.material.textfield.TextInputLayout>
 
                                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPassword" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_password" app:endIconMode="password_toggle">
 
-                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
+                                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -124,19 +124,19 @@
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilDomain" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:hint="@string/hint_domain" android:visibility="gone">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilShareName" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:hint="@string/hint_share_name" android:visibility="gone">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilServerPath" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:hint="@string/hint_server_path">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etServerPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etServerPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
@@ -148,7 +148,7 @@
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilCloudFolderId" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium" android:hint="@string/hint_cloud_folder_id">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etCloudFolderId" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etCloudFolderId" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
@@ -292,13 +292,13 @@
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilComment" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_comment">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAccessPin" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/hint_access_pin" app:endIconMode="password_toggle">
 
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAccessPin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAccessPin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:imeOptions="flagNoExtractUi" android:maxLength="6" android:maxLines="1" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
@@ -306,7 +306,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSlideshowInterval" style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/hint_slideshow_interval">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSlideshowInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLines="1" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSlideshowInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
@@ -27,6 +28,7 @@ class SftpOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sftpClient: SftpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: SftpEndpointResolver,
     private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
     private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
@@ -327,17 +329,21 @@ class SftpOperationStrategy @Inject constructor(
     }
     
     private suspend fun getConnectionInfo(pathInfo: SftpPathInfo): SftpClient.SftpConnectionInfo {
-        val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", pathInfo.host, pathInfo.port)
-            ?: credentialsRepository.getCredentialsByHost(pathInfo.host)
+        // S1006: reach the resource on whichever address is live now (LAN at home, WAN in transit).
+        val resolved = endpointResolver.resolve(pathInfo.host, pathInfo.port)
+        val host = resolved.host
+        val port = resolved.port
+        val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
+            ?: credentialsRepository.getCredentialsByHost(host)
 
         if (credentials == null) {
-            throw IllegalStateException("No credentials found for ${pathInfo.host}:${pathInfo.port}")
+            throw IllegalStateException("No credentials found for $host:$port")
         }
 
         val usernameToUse = pathInfo.username.takeIf { it.isNotBlank() } ?: credentials.username
         return SftpClient.SftpConnectionInfo(
-            host = pathInfo.host,
-            port = pathInfo.port,
+            host = host,
+            port = port,
             username = usernameToUse,
             password = credentials.password,
             privateKey = credentials.decryptedSshPrivateKey,

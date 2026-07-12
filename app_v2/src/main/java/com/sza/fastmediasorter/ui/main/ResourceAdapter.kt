@@ -462,7 +462,8 @@ class ResourceAdapter(
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
                         popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
-                        popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible = resource.type == ResourceType.SFTP
+                        popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible =
+                            resource.type == ResourceType.SFTP
                         // S0293 Phase 08: per-resource multi-window entry on main list
                         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                             isOpenInNewWindowVisible && onOpenInNewWindowClick != null
@@ -471,6 +472,7 @@ class ResourceAdapter(
                         popup.menu.findItem(R.id.action_launch_player)?.isVisible =
                             isQuickSlideshowEligible(resource)
                         popup.setForceShowIcon(true)
+                        tintPopupMenuIcons(view.context, popup.menu)
                         popup.setOnMenuItemClickListener { item ->
                             when (item.itemId) {
                                 R.id.action_open_resource -> { onItemClick(resource); true }
@@ -827,7 +829,8 @@ class ResourceAdapter(
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                             popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
                         popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
-                            popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible = resource.type == ResourceType.SFTP
+                            popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible =
+                                resource.type == ResourceType.SFTP
                             // S0293 Phase 08: per-resource multi-window entry on main list
                             popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
                                 isOpenInNewWindowVisible && onOpenInNewWindowClick != null
@@ -836,6 +839,7 @@ class ResourceAdapter(
                             popup.menu.findItem(R.id.action_launch_player)?.isVisible =
                                 isQuickSlideshowEligible(resource)
                             popup.setForceShowIcon(true)
+                            tintPopupMenuIcons(view.context, popup.menu)
 
                             popup.setOnMenuItemClickListener { item ->
                                 when (item.itemId) {
@@ -932,5 +936,25 @@ class ResourceAdapter(
     private class ResourceDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
         override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem == newItem
+    }
+}
+
+/**
+ * PopupMenu renders raw menu icons untinted. Most of this menu's vectors are plain white fills
+ * (shared with dark player overlays), so in the light theme they turn invisible/white. Tint
+ * mutated copies with colorControlNormal so icons always match the popup's own text color.
+ */
+private fun tintPopupMenuIcons(context: android.content.Context, menu: android.view.Menu) {
+    val tv = android.util.TypedValue()
+    val resolved = context.theme.resolveAttribute(androidx.appcompat.R.attr.colorControlNormal, tv, true) ||
+        context.theme.resolveAttribute(android.R.attr.colorControlNormal, tv, true)
+    if (!resolved) return
+    val color = if (tv.resourceId != 0) ContextCompat.getColor(context, tv.resourceId) else tv.data
+    for (i in 0 until menu.size()) {
+        val item = menu.getItem(i)
+        val icon = item.icon ?: continue
+        val wrapped = DrawableCompat.wrap(icon.mutate())
+        DrawableCompat.setTint(wrapped, color)
+        item.icon = wrapped
     }
 }

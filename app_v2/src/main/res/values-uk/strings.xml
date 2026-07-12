@@ -1600,7 +1600,7 @@
     <string name="label_profile_photo_storage">Фотосховище</string>
     <string name="label_profile_documents">Документи</string>
     <string name="label_profile_all_files">Файловий менеджер</string>
-    <string name="title_select_profile">Профіль швидкого налаштування</string>
+    <string name="title_select_profile">Профіль ресурсу</string>
 
 
     <!-- Injected missing keys 2026-03-08 -->
@@ -2456,7 +2456,7 @@
     <string name="screen_capture_service_notification_title">Знімок екрана</string>
     <string name="screen_capture_service_notification_text">Захоплюю поточний екран..</string>
     <string name="setting_group_system_apps_title">Взаємодія з операційною системою</string>
-    <string name="setting_subgroup_screen_gestures_title">Жести з лівого краю екрана</string>
+    <string name="setting_subgroup_screen_gestures_title">Жести з країв екрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестів</string>
     <string name="setting_gesture_overlay_summary">Показувати тонку смугу жестів біля лівого краю поверх інших застосунків</string>
     <string name="setting_gesture_strip_visible_title">Показувати смугу жесту біля лівого краю</string>
@@ -2914,7 +2914,6 @@
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Відкрити в VR-кінотеатрі</string>
     <string name="vr_cinema_launch_unavailable">VR-кінотеатр зараз недоступний</string>
-    <string name="companion_import_button">Імпорт із компаньйона</string>
     <string name="companion_import_success">Додано з компаньйона: %1$s (%2$s)</string>
     <string name="companion_import_version_error">Цю конфігурацію створено новішою версією компаньйона. Оновіть застосунок.</string>
     <string name="companion_import_invalid_error">Цей файл не є конфігурацією компаньйона.</string>
@@ -2932,9 +2931,16 @@
     <string name="companion_import_password_label">Пароль для цього сервера</string>
     <string name="companion_import_action">Імпортувати</string>
     <string name="companion_import_password_required">Введіть пароль для цього сервера.</string>
-    <string name="companion_qr_scan_button">Сканувати QR-код</string>
     <string name="companion_qr_scan_hint">Наведіть камеру на QR-код companion-застосунку</string>
     <string name="companion_qr_scan_torch">Ліхтарик</string>
     <string name="companion_qr_camera_denied">Для сканування QR-коду потрібен доступ до камери</string>
     <string name="vr_cinema_program_title">VR-кінотеатр</string>
+    <string name="setting_gesture_zone_left_top_title">Лівий край - верхня смуга</string>
+    <string name="setting_gesture_zone_left_bottom_title">Лівий край - нижня смуга</string>
+    <string name="setting_gesture_zone_right_top_title">Правий край - верхня смуга</string>
+    <string name="setting_gesture_zone_right_bottom_title">Правий край - нижня смуга</string>
+    <string name="resource_import_from_file">Імпорт із файлу</string>
+    <string name="resource_import_from_barcode">Імпорт за штрих-кодом</string>
+    <string name="resource_import_section_title">Імпорт готової конфігурації</string>
+    <string name="companion_publish_folders_guide">Як опублікувати теки ПК для Android</string>
 </resources>

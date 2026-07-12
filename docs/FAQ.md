@@ -97,6 +97,9 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 - **SFTP:** Secure, requires SSH server (port 22)
 - **FTP:** Less secure, older protocol (port 21)
 
+### Can I share PC folders with the app?
+**Yes** - Fast Media Sorter for Windows publishes chosen PC folders over SFTP and shows a QR code / `.fmscfg` config. On the phone, use **Import from companion** or **Scan QR code** on the Add Resource screen. See the PC-side guide: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html). Available in Standard, Photos, Legacy, XR/noLegal.
+
 ### Why are thumbnails not loading for network files?
 Network thumbnails generate **on-demand** to save bandwidth. Scroll slowly or wait a few seconds for them to appear.
 
@@ -163,7 +166,7 @@ Yes, just use the **command panel buttons** instead. Touch Zones are optional.
 ## Screen & Voice Capture
 
 ### What is the left-edge gesture strip?
-It's a quick-capture menu you open with a diagonal swipe from the left edge of the screen. Turn it on in **Settings → Operations → Left-edge screen gestures → Gesture overlay**. From the menu you can take a screenshot, snap a photo, crop and share the current image, open an app or panel shortcut, or start a screen, video, or voice recording - all without leaving what you're looking at. Available in Standard and XR/noLegal.
+It's a quick-capture menu you open with a diagonal swipe from the left edge of the screen. Turn it on in **Settings → Operations → Edge screen gestures → Gesture overlay**. From the menu you can take a screenshot, snap a photo, crop and share the current image, open an app or panel shortcut, or start a screen, video, or voice recording - all without leaving what you're looking at. Available in Standard and XR/noLegal.
 
 ### How do I record a quick voice note?
 Three ways: the **Voice recording** item in the overflow menu, the **Quick Recorder** home-screen widget, or the edge gesture's **Start audio recording** action. However you start it, a floating **Stop** control stays on screen - even over another app - until you tap it to save.

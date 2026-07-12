@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
@@ -126,17 +127,22 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     }
 
     private fun showStrip(stripVisible: Boolean) {
-        if (overlayManager != null) return
         // Accessibility (dialog-free) takes priority: if the legacy MediaProjection host was running
         // its own strip, shut it down so only one strip exists once accessibility is on.
         OverlayHostService.stop(this)
-        val manager = ScreenGestureOverlayManager(
-            context = this,
-            overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            onGestureMatched = { direction -> captureNow(direction) }
-        )
-        manager.show(stripVisible)
-        overlayManager = manager
+        // S0847: rebuild on every enable/refresh so a zone toggle change is reflected; enabledZones is
+        // read off the persisted settings. serviceScope is Main.immediate so the view work stays on Main.
+        serviceScope.launch {
+            val enabledZones = actionDispatcher.get().enabledZones()
+            overlayManager?.hide()
+            val manager = ScreenGestureOverlayManager(
+                context = this@ScreenshotAccessibilityService,
+                overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                onGestureMatched = { zone, direction -> captureNow(zone, direction) }
+            )
+            manager.show(stripVisible, enabledZones)
+            overlayManager = manager
+        }
     }
 
     private fun hideStrip() {
@@ -151,12 +157,12 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun captureNow(direction: ScreenshotGestureDirection) {
+    private fun captureNow(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         if (captureInProgress) return
         captureInProgress = true
         serviceScope.launch {
-            val action = actionDispatcher.get().actionFor(direction)
+            val action = actionDispatcher.get().actionFor(zone, direction)
             if (actionDispatcher.get().handlePreCaptureAction(this@ScreenshotAccessibilityService, action)) {
                 // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
                 captureInProgress = false

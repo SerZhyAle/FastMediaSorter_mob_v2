@@ -194,4 +194,6 @@
     <color name="color_media_image">#FF90CAF9</color>     <!-- Blue 200 -->
     <color name="color_media_docs">#FFFFCC80</color>      <!-- Orange 200 -->
     <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
+    <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
+    <color name="splash_content">#FFECEFF1</color>
 </resources>

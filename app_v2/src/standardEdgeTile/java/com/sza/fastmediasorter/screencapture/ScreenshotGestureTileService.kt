@@ -8,6 +8,7 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import timber.log.Timber
 
 /**
@@ -40,6 +41,8 @@ class ScreenshotGestureTileService : TileService() {
                     Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
             )
             putExtra(ScreenCaptureConsentActivity.EXTRA_GESTURE_DIRECTION, ScreenshotGestureDirection.DOWN.name)
+            // S0847: the tile is the single-tap equivalent of the LEFT_TOP down-swipe (the migrated legacy strip).
+            putExtra(ScreenCaptureConsentActivity.EXTRA_GESTURE_ZONE, ScreenshotGestureZone.LEFT_TOP.name)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val pendingIntent = PendingIntent.getActivity(

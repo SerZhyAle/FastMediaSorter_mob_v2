@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -74,8 +76,13 @@ class SettingsViewModel @Inject constructor(
     private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
     private val szaResourcesImporter: SzaResourcesImporter,
     private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase,
-    private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase
+    private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase,
+    private val remoteSourceGate: RemoteSourceAvailabilityGate
 ) : ViewModel() {
+
+    /** S0994: companion import (SFTP) availability gates the publish-folders help link in settings. */
+    val isCompanionImportAvailable: Boolean
+        get() = remoteSourceGate.isEnabled(RemoteSourceId.SFTP)
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
     val manualNetworkSyncState: StateFlow<ManualNetworkSyncUiState> = _manualNetworkSyncState.asStateFlow()
@@ -440,9 +447,23 @@ class SettingsViewModel @Inject constructor(
                 // ScreenGestures group (moved from Player tab)
                 gestureOverlayEnabled = defaults.gestureOverlayEnabled,
                 screenshotGestureStripVisible = defaults.screenshotGestureStripVisible,
-                screenshotGestureActionDown = defaults.screenshotGestureActionDown,
-                screenshotGestureActionRight = defaults.screenshotGestureActionRight,
-                screenshotGestureActionUp = defaults.screenshotGestureActionUp
+                // S0847: reset all four edge bands (toggles + 12 slots) to defaults.
+                screenshotGestureZoneLeftTopEnabled = defaults.screenshotGestureZoneLeftTopEnabled,
+                screenshotGestureZoneLeftBottomEnabled = defaults.screenshotGestureZoneLeftBottomEnabled,
+                screenshotGestureZoneRightTopEnabled = defaults.screenshotGestureZoneRightTopEnabled,
+                screenshotGestureZoneRightBottomEnabled = defaults.screenshotGestureZoneRightBottomEnabled,
+                screenshotGestureLeftTopDown = defaults.screenshotGestureLeftTopDown,
+                screenshotGestureLeftTopRight = defaults.screenshotGestureLeftTopRight,
+                screenshotGestureLeftTopUp = defaults.screenshotGestureLeftTopUp,
+                screenshotGestureLeftBottomDown = defaults.screenshotGestureLeftBottomDown,
+                screenshotGestureLeftBottomRight = defaults.screenshotGestureLeftBottomRight,
+                screenshotGestureLeftBottomUp = defaults.screenshotGestureLeftBottomUp,
+                screenshotGestureRightTopDown = defaults.screenshotGestureRightTopDown,
+                screenshotGestureRightTopRight = defaults.screenshotGestureRightTopRight,
+                screenshotGestureRightTopUp = defaults.screenshotGestureRightTopUp,
+                screenshotGestureRightBottomDown = defaults.screenshotGestureRightBottomDown,
+                screenshotGestureRightBottomRight = defaults.screenshotGestureRightBottomRight,
+                screenshotGestureRightBottomUp = defaults.screenshotGestureRightBottomUp
             )
         )
     }

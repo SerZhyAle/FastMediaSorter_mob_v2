@@ -47,6 +47,7 @@ class SmbFileOperationHandler @Inject constructor(
     private val sftpClient: com.sza.fastmediasorter.data.remote.sftp.SftpClient,
     private val ftpClient: com.sza.fastmediasorter.data.remote.ftp.FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver,
     private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
     private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
@@ -61,7 +62,10 @@ class SmbFileOperationHandler @Inject constructor(
     )
 
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy(context, sftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy(
+            context, sftpClient, credentialsRepository, endpointResolver,
+            stagingDir, stagingRegistry, destinationClassifier, destinationWriter
+        ),
         destinationClassifier = destinationClassifier,
         enableAtomic = true
     )

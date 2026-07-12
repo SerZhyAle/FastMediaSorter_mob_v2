@@ -30,7 +30,8 @@ class CompanionConfigParser @Inject constructor() {
         } catch (e: JsonSyntaxException) {
             throw CompanionConfigException(
                 CompanionConfigException.Reason.MALFORMED,
-                "Config is not valid JSON: ${e.message}"
+                "Config is not valid JSON: ${e.message}",
+                e
             )
         } ?: throw CompanionConfigException(CompanionConfigException.Reason.MALFORMED, "Config is empty")
         validate(dto)
@@ -46,6 +47,8 @@ class CompanionConfigParser @Inject constructor() {
         )
     }
 
+    // Any base64/gzip decode failure maps to the single MALFORMED reason; the original is chained as cause.
+    @Suppress("TooGenericExceptionCaught")
     private fun inflate(base64Gzip: String): String = try {
         val compressed = Base64.getDecoder().decode(base64Gzip)
         GZIPInputStream(ByteArrayInputStream(compressed)).use { stream ->
@@ -54,7 +57,8 @@ class CompanionConfigParser @Inject constructor() {
     } catch (e: Exception) {
         throw CompanionConfigException(
             CompanionConfigException.Reason.MALFORMED,
-            "Compressed payload undecodable: ${e.message}"
+            "Compressed payload undecodable: ${e.message}",
+            e
         )
     }
 
@@ -65,7 +69,7 @@ class CompanionConfigParser @Inject constructor() {
                 "Config schemaVersion ${dto.schemaVersion} is newer than supported $SUPPORTED_SCHEMA_VERSION"
             )
         }
-        if (dto.schemaVersion < 1) {
+        if (dto.schemaVersion < MIN_SCHEMA_VERSION) {
             invalid("schemaVersion missing or invalid")
         }
         if (dto.protocol != PROTOCOL_SFTP) {
@@ -94,7 +98,11 @@ class CompanionConfigParser @Inject constructor() {
         throw CompanionConfigException(CompanionConfigException.Reason.INVALID_CONTENT, detail)
 
     companion object {
-        const val SUPPORTED_SCHEMA_VERSION = 1
+        // S1002: v2 adds optional per-root resource params; v1 files still parse (fields default null).
+        const val SUPPORTED_SCHEMA_VERSION = 2
+        const val MIN_SCHEMA_VERSION = 1
+
+        // Transport-envelope marker, NOT the payload schemaVersion - stays frozen across schema bumps.
         const val COMPRESSED_PREFIX = "FMSCFG1:"
         const val PROTOCOL_SFTP = "sftp"
         const val FILE_EXTENSION = ".fmscfg"

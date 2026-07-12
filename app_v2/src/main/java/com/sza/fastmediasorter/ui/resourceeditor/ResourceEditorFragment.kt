@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
-import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
@@ -33,6 +32,7 @@ import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
+import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import dagger.hilt.android.AndroidEntryPoint
@@ -403,17 +403,10 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun showProfileSelectorDialog() {
-        val profiles = ResourceProfile.values()
-        val labels = profiles.map { getString(getProfileLabelResId(it)) }.toTypedArray()
-        val currentIndex = profiles.indexOf(viewModel.uiState.value.formData.profile).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.title_select_profile)
-            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
-                viewModel.onProfileSelected(profiles[which])
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        // S1003: the same picker the add-resource forms use - one dialog, one title, one label map.
+        ResourceProfileDialog.show(requireContext(), viewModel.uiState.value.formData.profile) { profile ->
+            viewModel.onProfileSelected(profile)
+        }
     }
 
     private fun pinWidgetForCurrentResource() {
@@ -441,15 +434,6 @@ class ResourceEditorFragment : Fragment() {
                 Toast.makeText(requireContext(), R.string.widget_already_added, Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun getProfileLabelResId(profile: ResourceProfile): Int = when (profile) {
-        ResourceProfile.NONE -> R.string.label_profile_none
-        ResourceProfile.AUDIO_LIBRARY -> R.string.label_profile_audio_library
-        ResourceProfile.VIDEO_LIBRARY -> R.string.label_profile_video_library
-        ResourceProfile.PHOTO_STORAGE -> R.string.label_profile_photo_storage
-        ResourceProfile.DOCUMENTS -> R.string.label_profile_documents
-        ResourceProfile.ALL_FILES -> R.string.label_profile_all_files
     }
 
     private fun observeUiState() {
@@ -630,7 +614,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbOffice.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
 
         // Profile selector button label
-        binding.btnProfileSelector.setText(getProfileLabelResId(formData.profile))
+        binding.btnProfileSelector.setText(ResourceProfileDialog.labelResId(formData.profile))
 
         // Update icon picker preview to match the current iconId (S0034 Phase 06)
         updateIconPickerPreview(formData.iconId)
@@ -678,14 +662,17 @@ class ResourceEditorFragment : Fragment() {
         binding.cbEpub.isEnabled = mediaEnabled
         binding.cbOffice.isEnabled = mediaEnabled
 
-        updateMediaTypesSectionVisibility(formData.allFiles)
+        updateMediaTypesSectionVisibility()
 
         binding.tilDomain.isVisible = false
         binding.tilShareName.isVisible = false
     }
 
-    private fun updateMediaTypesSectionVisibility(allFilesEnabled: Boolean) {
-        val shouldShowMediaTypes = hasMediaTypesBySchema && !allFilesEnabled
+    private fun updateMediaTypesSectionVisibility() {
+        // S1003: visibility follows the resource-type schema ONLY. Tying it to allFiles hid the
+        // whole card (togglers AND the profile selector) once the File Manager profile was chosen,
+        // leaving no way back; allFiles now just disables the type checkboxes, like the add form.
+        val shouldShowMediaTypes = hasMediaTypesBySchema
         binding.cardMediaTypes.isVisible = shouldShowMediaTypes
         binding.headerMediaTypes.isVisible = shouldShowMediaTypes
 
@@ -768,7 +755,7 @@ class ResourceEditorFragment : Fragment() {
 
         // Media types section (collapsible header + content)
         hasMediaTypesBySchema = visibleKeys.contains(ResourceFieldKey.MEDIA_TYPES)
-        updateMediaTypesSectionVisibility(viewModel.uiState.value.formData.allFiles)
+        updateMediaTypesSectionVisibility()
 
         // Scanning section (collapsible header + content)
         val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
@@ -809,7 +796,7 @@ class ResourceEditorFragment : Fragment() {
             binding.cardScanning.isVisible = false
             binding.headerScanning.isVisible = false
             hasMediaTypesBySchema = false
-            updateMediaTypesSectionVisibility(false)
+            updateMediaTypesSectionVisibility()
             binding.cardDestination.isVisible = false
             binding.headerDestination.isVisible = false
         }

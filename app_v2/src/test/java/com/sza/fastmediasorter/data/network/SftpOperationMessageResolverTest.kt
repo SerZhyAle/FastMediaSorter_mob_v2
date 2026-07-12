@@ -41,6 +41,15 @@ class SftpOperationMessageResolverTest {
     }
 
     @Test
+    fun `not-found maps to not-found resource`() {
+        val spec = SftpOperationMessageResolver.resolve(
+            failure(SftpFailureCategory.NOT_FOUND, statusCode = 2)
+        )
+        assertEquals(R.string.friendly_copy_error_not_found, spec.messageResId)
+        assertTrue(spec.logLabel.contains("not-found"))
+    }
+
+    @Test
     fun `generic maps to server-rejected resource`() {
         val spec = SftpOperationMessageResolver.resolve(
             failure(SftpFailureCategory.GENERIC, statusCode = 4)

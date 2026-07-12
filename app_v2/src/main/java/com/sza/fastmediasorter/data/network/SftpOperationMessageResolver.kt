@@ -66,6 +66,11 @@ object SftpOperationMessageResolver {
                 logLabel = "sftp/permission-denied[${failure.statusCode}]",
             )
 
+            SftpFailureCategory.NOT_FOUND -> MessageSpec(
+                messageResId = R.string.friendly_copy_error_not_found,
+                logLabel = "sftp/not-found[${failure.statusCode}]",
+            )
+
             SftpFailureCategory.GENERIC -> MessageSpec(
                 messageResId = R.string.error_sftp_server_rejected,
                 logLabel = "sftp/server-rejected[${failure.statusCode}]",

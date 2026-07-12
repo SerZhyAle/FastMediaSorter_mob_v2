@@ -61,7 +61,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Диктофон |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Віддалені ресурси (SMB/(S)FTP/Хмара) |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Заплановані операції за розкладом |
-| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з лівого краю екрана |
+| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з країв екрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляції |

@@ -50,6 +50,7 @@
             android:id="@+id/sir_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:imeOptions="flagNoExtractUi"
             android:textSize="@dimen/toggler_title_text_size" />
 
     </com.google.android.material.textfield.TextInputLayout>

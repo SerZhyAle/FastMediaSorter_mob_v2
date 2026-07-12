@@ -207,14 +207,15 @@ class DeviceProfilePresetApplier @Inject constructor(
             "backgroundAudioExitBehavior" ->
                 runCatching { BackgroundAudioExitBehavior.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(backgroundAudioExitBehavior = it) } ?: skip(field, raw, settings)
+            // S0847: legacy preset keys map onto the LEFT_TOP band (the pre-S0847 single left strip).
             "screenshotGestureActionDown" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionDown = it) }
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopDown = it) }
                     ?: skip(field, raw, settings)
             "screenshotGestureActionRight" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionRight = it) }
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopRight = it) }
                     ?: skip(field, raw, settings)
             "screenshotGestureActionUp" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureActionUp = it) }
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopUp = it) }
                     ?: skip(field, raw, settings)
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───

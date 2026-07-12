@@ -54,6 +54,11 @@ class PlayerTouchZoneCallbackImpl(
         val player = activity.activityBinding.playerView.player
         if (player != null) {
             if (player.isPlaying) player.pause() else player.play()
+            // S1005: reveal the transport controller on the video/audio center-tap. The unified player
+            // routes video taps here (9-zone PAUSE_RESUME) and its VideoTouchDelegate reveal is disabled,
+            // so without this exo_play_pause / btnPlaybackControl / seekbar stay unreachable after the
+            // 15s auto-hide. Callback fires only from the video/audio center zone - no effect on images.
+            activity.activityBinding.playerView.showController()
         }
     }
 

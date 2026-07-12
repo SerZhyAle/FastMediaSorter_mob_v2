@@ -6,8 +6,10 @@ import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
@@ -28,6 +30,10 @@ class SftpFileOperationHandlerTest {
 
     private val sftpClient = mockk<SftpClient>(relaxed = true)
     private val credentialsRepository = mockk<NetworkCredentialsRepository>()
+    // S1006: resolver echoes the requested endpoint so SFTP file ops keep their single-host behaviour.
+    private val endpointResolver = mockk<SftpEndpointResolver>().also {
+        coEvery { it.resolve(any(), any()) } answers { HostPort(firstArg(), secondArg()) }
+    }
 
     private fun handler(): SftpFileOperationHandler = SftpFileOperationHandler(
         context = mockk<Context>(relaxed = true),
@@ -35,6 +41,7 @@ class SftpFileOperationHandlerTest {
         smbClient = mockk<SmbClient>(relaxed = true),
         ftpClient = mockk<FtpClient>(relaxed = true),
         credentialsRepository = credentialsRepository,
+        endpointResolver = endpointResolver,
         stagingDir = mockk<StagingDirectoryProvider>(relaxed = true),
         stagingRegistry = mockk<LocalStagingRegistry>(relaxed = true),
         destinationClassifier = mockk<LocalDestinationClassifier>(relaxed = true),

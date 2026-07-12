@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.data.remote.sftp.SftpDownloadExhaustedException
 import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -40,6 +41,7 @@ class SftpFileOperationHandler @Inject constructor(
     private val smbClient: SmbClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: SftpEndpointResolver,
     private val stagingDir: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider,
     private val stagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry,
     private val destinationClassifier: LocalDestinationClassifier,
@@ -47,7 +49,10 @@ class SftpFileOperationHandler @Inject constructor(
 ) : BaseFileOperationHandler(context) {
 
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SftpOperationStrategy(context, sftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        SftpOperationStrategy(
+            context, sftpClient, credentialsRepository, endpointResolver,
+            stagingDir, stagingRegistry, destinationClassifier, destinationWriter
+        ),
         destinationClassifier = destinationClassifier,
         enableAtomic = true
     )
@@ -426,7 +431,11 @@ class SftpFileOperationHandler @Inject constructor(
                 return null
             }
 
-            val (host, port, remotePath) = pathInfo
+            val (rawHost, rawPort, remotePath) = pathInfo
+            // S1006: resolve to the reachable endpoint before the by-host credential lookup.
+            val resolved = endpointResolver.resolve(rawHost, rawPort)
+            val host = resolved.host
+            val port = resolved.port
             Timber.d("parseSftpPath: Extracted host=$host, port=$port, remotePath=$remotePath")
 
             var credentials = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)

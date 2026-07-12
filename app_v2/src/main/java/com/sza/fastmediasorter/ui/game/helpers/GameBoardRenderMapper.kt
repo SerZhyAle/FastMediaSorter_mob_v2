@@ -38,6 +38,10 @@ class GameBoardRenderMapper {
             GameBoardHighlightCell(position.row, position.col)
         }
         val startHighlights = (exitHighlights + GameBoardHighlightCell(player.row, player.col)).distinct()
+        // S0993: point the start-of-level arrow at the nearest exit (Manhattan) so large maps read fast.
+        val guideArrow = board.exitPositions()
+            .minByOrNull { exit -> exit.manhattanDistanceTo(player) }
+            ?.let { nearest -> GameBoardGuideArrow(player.row, player.col, nearest.row, nearest.col) }
         val actorTransitions = ready.turnMoves.map { move ->
             GameBoardActorTransition(
                 actorCell = move.actor.toActorCell(),
@@ -57,6 +61,7 @@ class GameBoardRenderMapper {
             playerRow = player.row,
             playerColumn = player.col,
             startHighlights = startHighlights,
+            guideArrow = guideArrow,
             turnKey = levelState.stats.turns,
             actorTransitions = actorTransitions,
             introHighlightKey = listOf(
@@ -113,6 +118,8 @@ data class GameBoardRenderState(
     val playerRow: Int,
     val playerColumn: Int,
     val startHighlights: List<GameBoardHighlightCell>,
+    // S0993: player -> nearest-exit vector drawn during the start-highlight window; null when no exit.
+    val guideArrow: GameBoardGuideArrow?,
     // Monotonic per-turn key; the view (re)starts the move animation only when it changes.
     val turnKey: Int,
     // Actor displacements for the latest turn; empty when nothing moved (no animation).
@@ -133,6 +140,14 @@ data class GameBoardActorTransition(
 data class GameBoardHighlightCell(
     val row: Int,
     val column: Int
+)
+
+// S0993: start-of-level direction hint from the player to the nearest exit.
+data class GameBoardGuideArrow(
+    val fromRow: Int,
+    val fromColumn: Int,
+    val toRow: Int,
+    val toColumn: Int
 )
 
 data class GameBoardDefeatConnection(

@@ -57,7 +57,9 @@
 
         <!-- Audio: artwork fallback to a music note, always-on controls, no hide-on-touch.
              Same controller layout as the unified player so the playback controls render consistently. -->
-        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+        <!-- S1007: not D-pad/keyboard focusable - the video/artwork surface itself must never wear the
+             app-wide TV focus decoration (core/ui/focus/FocusDecorationController); only real controls should. -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
 
         <!-- Dual-surface container holds photoView, which hidePhotoAndPlayerViews() resets before audio playback. -->
         <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
