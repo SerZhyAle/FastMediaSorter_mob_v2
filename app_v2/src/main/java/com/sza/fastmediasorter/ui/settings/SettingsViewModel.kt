@@ -446,12 +446,15 @@ class SettingsViewModel @Inject constructor(
                 linkAutoDownloadResourceId = defaults.linkAutoDownloadResourceId,
                 // ScreenGestures group (moved from Player tab)
                 gestureOverlayEnabled = defaults.gestureOverlayEnabled,
-                screenshotGestureStripVisible = defaults.screenshotGestureStripVisible,
-                // S0847: reset all four edge bands (toggles + 12 slots) to defaults.
+                // S0847: reset the four edge bands (toggles + 12 slots). S1008: + per-zone strip visibility.
                 screenshotGestureZoneLeftTopEnabled = defaults.screenshotGestureZoneLeftTopEnabled,
                 screenshotGestureZoneLeftBottomEnabled = defaults.screenshotGestureZoneLeftBottomEnabled,
                 screenshotGestureZoneRightTopEnabled = defaults.screenshotGestureZoneRightTopEnabled,
                 screenshotGestureZoneRightBottomEnabled = defaults.screenshotGestureZoneRightBottomEnabled,
+                screenshotGestureZoneLeftTopStripVisible = defaults.screenshotGestureZoneLeftTopStripVisible,
+                screenshotGestureZoneLeftBottomStripVisible = defaults.screenshotGestureZoneLeftBottomStripVisible,
+                screenshotGestureZoneRightTopStripVisible = defaults.screenshotGestureZoneRightTopStripVisible,
+                screenshotGestureZoneRightBottomStripVisible = defaults.screenshotGestureZoneRightBottomStripVisible,
                 screenshotGestureLeftTopDown = defaults.screenshotGestureLeftTopDown,
                 screenshotGestureLeftTopRight = defaults.screenshotGestureLeftTopRight,
                 screenshotGestureLeftTopUp = defaults.screenshotGestureLeftTopUp,

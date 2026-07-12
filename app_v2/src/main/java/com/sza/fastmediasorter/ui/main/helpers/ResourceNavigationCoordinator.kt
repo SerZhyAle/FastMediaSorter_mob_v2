@@ -142,7 +142,8 @@ class ResourceNavigationCoordinator(
                     // Format error message via NetworkErrorClassifier
                     val classifiedError = NetworkErrorClassifier.classify(error)
                     val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
-                        context, classifiedError, resource.type, resource.path, networkContextAnalyzer
+                        context, classifiedError, resource.type, resource.path, networkContextAnalyzer,
+                        resource.accessNote // S1014
                     )
                     NavigationResult.Error(userMessage, null)
                 }
@@ -159,7 +160,8 @@ class ResourceNavigationCoordinator(
             // Format error message via NetworkErrorClassifier
             val classifiedError = NetworkErrorClassifier.classify(e)
             val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
-                context, classifiedError, resource.type, resource.path, networkContextAnalyzer
+                context, classifiedError, resource.type, resource.path, networkContextAnalyzer,
+                resource.accessNote // S1014
             )
             NavigationResult.Error(userMessage, null)
         }

@@ -72,6 +72,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         return try {
             runTransfer(request)
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            Timber.d("S1021: BrowseFileTransferWorker caught CancellationException, workId=$id")
             withContext(NonCancellable) {
                 val event = BrowseFileTransferTerminalEvent.Cancelled(
                     workId = id.toString(),
@@ -80,6 +81,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 persistAndPublish(event)
             }
             throw cancelled
+        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+            // S1021: backstop - a Throwable that escapes runTransfer/executeInternal despite
+            // their own catches would otherwise vanish into WorkManager's internal (non-Timber)
+            // failure logging, invisible to the app's own log file.
+            Timber.d("S1021: BrowseFileTransferWorker.doWork caught Throwable, type=${t.javaClass.simpleName}")
+            Timber.e(t, "BrowseFileTransferWorker.doWork caught unexpected Throwable")
+            Result.failure()
         } finally {
             requestStore.clearActiveRequest()
         }
@@ -109,7 +117,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                             totalOperationBytes = latestTotalOperationBytes,
                         )
                         runCatching {
-                            setForeground(buildForegroundInfo(request, buildProgressText(snapshot), snapshot.percentOrNull()))
+                            setForeground(
+                                buildForegroundInfo(
+                                    request,
+                                    buildProgressText(snapshot),
+                                    snapshot.percentOrNull(),
+                                ),
+                            )
                         }.onFailure { Timber.w(it, "BrowseFileTransferWorker: setForeground failed") }
                         runCatching {
                             setProgressAsync(BrowseFileTransferProgressCodec.encodeProgress(id.toString(), snapshot))
@@ -179,7 +193,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 operationType = request.operationType,
                 processedCount = fileResult.processedCount,
                 failedCount = fileResult.failedCount,
-                details = fileResult.errors.take(5).joinToString("\n").ifBlank { null },
+                details = fileResult.errors.take(MAX_ERROR_DETAILS).joinToString("\n").ifBlank { null },
                 undoOperation = null,
             )
             is FileOperationResult.Failure -> BrowseFileTransferTerminalEvent.Failure(
@@ -211,8 +225,10 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         directorySources.forEach { source ->
             currentCoroutineContext().ensureActive()
             val result = when (request.operationType) {
-                FileOperationType.COPY -> directoryOperationHandler.executeCopyDirectory(source.path, request.destinationPath)
-                FileOperationType.MOVE -> directoryOperationHandler.executeMoveDirectory(source.path, request.destinationPath)
+                FileOperationType.COPY ->
+                    directoryOperationHandler.executeCopyDirectory(source.path, request.destinationPath)
+                FileOperationType.MOVE ->
+                    directoryOperationHandler.executeMoveDirectory(source.path, request.destinationPath)
                 else -> kotlin.Result.failure(IllegalArgumentException("Unsupported op=${request.operationType}"))
             }
             result.onSuccess { succeeded++ }
@@ -221,7 +237,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         return DirectoryOutcome(
             succeededCount = succeeded,
             failedCount = errors.size,
-            details = errors.take(5).joinToString("\n").ifBlank { null },
+            details = errors.take(MAX_ERROR_DETAILS).joinToString("\n").ifBlank { null },
         )
     }
 
@@ -248,12 +264,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun BrowseFileTransferRequest.toFileOperation(): FileOperation {
         val sources = sources.filterNot { it.isDirectory }.map { it.toFile() }
-        val destination = if (destinationPath.startsWith("smb://") ||
-            destinationPath.startsWith("sftp://") ||
-            destinationPath.startsWith("ftp://") ||
-            destinationPath.startsWith("cloud://") ||
-            destinationPath.startsWith("content://")
-        ) {
+        val destination = if (REMOTE_OR_CONTENT_PREFIXES.any { destinationPath.startsWith(it) }) {
             object : File(destinationPath) {
                 override fun getAbsolutePath(): String = destinationPath
                 override fun getPath(): String = destinationPath
@@ -285,11 +296,18 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             size = size,
         )
         path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") -> {
-            object : File(path) {
-                override fun getAbsolutePath(): String = path
-                override fun getPath(): String = path
-                override fun getName(): String = displayName
-                override fun length(): Long = size
+            // Capture the source fields into locals first: inside `object : File(..)` the bare name
+            // `path` resolves to the File.getPath() member being overridden - not this receiver's
+            // property - so returning `path` from getPath()/getAbsolutePath() recurses forever
+            // (StackOverflowError, silent until it hit executeInternal's later catch). S1021.
+            val sourcePath = path
+            val sourceName = displayName
+            val sourceSize = size
+            object : File(sourcePath) {
+                override fun getAbsolutePath(): String = sourcePath
+                override fun getPath(): String = sourcePath
+                override fun getName(): String = sourceName
+                override fun length(): Long = sourceSize
             }
         }
         else -> File(path)
@@ -323,7 +341,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             .addAction(buildCancelAction())
 
         if (progressPercent != null) {
-            builder.setProgress(100, progressPercent.coerceIn(0, 100), false)
+            builder.setProgress(PROGRESS_PERCENT_MAX, progressPercent.coerceIn(0, PROGRESS_PERCENT_MAX), false)
         } else {
             builder.setProgress(0, 0, true)
         }
@@ -348,7 +366,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_done))
-                builder.setContentText(context.getString(R.string.error_some_operations_failed, event.failedCount, event.processedCount + event.failedCount))
+                builder.setContentText(
+                    context.getString(
+                        R.string.error_some_operations_failed,
+                        event.failedCount,
+                        event.processedCount + event.failedCount,
+                    ),
+                )
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_auth_required))
@@ -368,7 +392,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
 
         notificationManager.notify(
-            NOTIF_ID_RESULT_BASE + Math.floorMod(id.hashCode(), 100),
+            NOTIF_ID_RESULT_BASE + Math.floorMod(id.hashCode(), RESULT_ID_MODULO),
             builder.build(),
         )
     }
@@ -385,7 +409,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
         return PendingIntent.getActivity(
             context,
-            Math.floorMod(request.sourceResourceId.toInt(), 10_000),
+            Math.floorMod(request.sourceResourceId.toInt(), REQUEST_CODE_MODULO),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -421,7 +445,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun BrowseFileTransferProgressSnapshot.percentOrNull(): Int? {
         return if (totalOperationBytes > 0L) {
-            ((completedOperationBytes * 100L) / totalOperationBytes).toInt().coerceIn(0, 99)
+            ((completedOperationBytes * PERCENT_SCALE) / totalOperationBytes)
+                .toInt().coerceIn(0, PROGRESS_PERCENT_CAP)
         } else {
             null
         }
@@ -452,5 +477,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         private const val NOTIF_ID_PROGRESS = 7300
         private const val NOTIF_ID_RESULT_BASE = 7400
         private const val RESULT_TIMEOUT_MS = 20 * 60 * 1000L
+        private const val MAX_ERROR_DETAILS = 5
+        private const val PROGRESS_PERCENT_MAX = 100
+        private const val PROGRESS_PERCENT_CAP = 99
+        private const val PERCENT_SCALE = 100L
+        private const val RESULT_ID_MODULO = 100
+        private const val REQUEST_CODE_MODULO = 10_000
+        private val REMOTE_OR_CONTENT_PREFIXES =
+            listOf("smb://", "sftp://", "ftp://", "cloud://", "content://")
     }
 }

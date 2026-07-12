@@ -92,7 +92,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         ScreenshotAccessibilityServiceHolder.instance = this
         serviceScope.launch {
             val settings = settingsRepository.get().getSettings().first()
-            applyOverlayState(settings.gestureOverlayEnabled, settings.screenshotGestureStripVisible)
+            applyOverlayState(settings.gestureOverlayEnabled)
         }
     }
 
@@ -116,31 +116,36 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     }
 
     /** Show/hide the edge gesture strip. Called on connect and pushed by the settings controller. */
-    fun applyOverlayState(enabled: Boolean, stripVisible: Boolean = false) {
+    fun applyOverlayState(enabled: Boolean) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
-        if (enabled) showStrip(stripVisible) else hideStrip()
+        if (enabled) showStrip() else hideStrip()
     }
 
-    /** S0724: recolour the live strip (grey vs transparent) when only the visibility setting changes. */
-    fun applyStripVisible(visible: Boolean) {
-        overlayManager?.setStripVisible(visible)
+    /** S1008: recolour the live strip per-zone (grey for enabled+visible bands) when only visibility changes. */
+    fun applyStripVisible() {
+        val manager = overlayManager ?: return
+        serviceScope.launch {
+            manager.setStripVisible(actionDispatcher.get().stripVisibleZones())
+        }
     }
 
-    private fun showStrip(stripVisible: Boolean) {
+    private fun showStrip() {
         // Accessibility (dialog-free) takes priority: if the legacy MediaProjection host was running
         // its own strip, shut it down so only one strip exists once accessibility is on.
         OverlayHostService.stop(this)
-        // S0847: rebuild on every enable/refresh so a zone toggle change is reflected; enabledZones is
-        // read off the persisted settings. serviceScope is Main.immediate so the view work stays on Main.
+        // S0847/S1008: rebuild on every enable/refresh so a zone/visibility change is reflected; enabled +
+        // strip-visible zones are read off the persisted settings. serviceScope is Main.immediate so the
+        // view work stays on Main.
         serviceScope.launch {
             val enabledZones = actionDispatcher.get().enabledZones()
+            val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
             overlayManager?.hide()
             val manager = ScreenGestureOverlayManager(
                 context = this@ScreenshotAccessibilityService,
                 overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 onGestureMatched = { zone, direction -> captureNow(zone, direction) }
             )
-            manager.show(stripVisible, enabledZones)
+            manager.show(stripVisibleZones, enabledZones)
             overlayManager = manager
         }
     }

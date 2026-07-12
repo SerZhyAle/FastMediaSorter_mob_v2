@@ -154,8 +154,17 @@ class ImportCompanionConfigUseCase @Inject constructor(
             }
         }
 
+        val primaryEndpoint = HostPort(host, port)
         val resources = config.roots.orEmpty().map { root ->
-            buildResource(root, host, port, credentialsId, canonicalFingerprint, config.resourceName, altEndpoints)
+            buildResource(
+                root = root,
+                primary = primaryEndpoint,
+                credentialsId = credentialsId,
+                canonicalFingerprint = canonicalFingerprint,
+                configName = config.resourceName,
+                altEndpoints = altEndpoints,
+                configAccessNote = config.accessNote
+            )
         }
 
         addResourceUseCase.addMultiple(resources).fold(
@@ -182,17 +191,18 @@ class ImportCompanionConfigUseCase @Inject constructor(
      * "Companion: <name>" comment) for every field a v1 config omits.
      *
      * Media-type precedence: explicit [CompanionRootDto.mediaTypes] > profile preset > v1 default.
-     * A destination must be writable, so `isDestination` clears the read-only default.
+     * S1016: read-only is the [CompanionRootDto.resolveReadOnly] policy - a root is writable when it
+     * carries `readOnly:false` or is a destination; absent `readOnly` stays read-only (back-compat).
      * Destination color for actual destination slots is reassigned by [AddResourceUseCase.addMultiple].
      */
     private fun buildResource(
         root: CompanionRootDto,
-        host: String,
-        port: Int,
+        primary: HostPort,
         credentialsId: String,
         canonicalFingerprint: String?,
         configName: String?,
-        altEndpoints: List<HostPort>
+        altEndpoints: List<HostPort>,
+        configAccessNote: String?
     ): MediaResource {
         val virtualPath = root.virtualPath.orEmpty()
         val label = root.label?.ifBlank { null } ?: virtualPath.trimStart('/')
@@ -209,7 +219,7 @@ class ImportCompanionConfigUseCase @Inject constructor(
         val base = MediaResource(
             id = 0,
             name = label,
-            path = SftpPathUtils.buildSftpPath(host = host, path = virtualPath, port = port),
+            path = SftpPathUtils.buildSftpPath(host = primary.host, path = virtualPath, port = primary.port),
             type = ResourceType.SFTP,
             credentialsId = credentialsId,
             supportedMediaTypes = mediaTypes,
@@ -218,15 +228,18 @@ class ImportCompanionConfigUseCase @Inject constructor(
             scanSubdirectories = root.scanSubdirectories ?: true,
             showSubfoldersAsItems = root.showSubfoldersAsItems ?: false,
             showHiddenFiles = root.showHiddenFiles ?: false,
-            // A destination must accept writes; otherwise keep the v1 read-only default.
-            isReadOnly = !isDestination,
+            // S1016: read-only policy per the frozen contract rule (readOnly==false OR isDestination
+            // == writable); absent readOnly stays read-only. Physical write capability is probed
+            // separately into MediaResource.isWritable, so only the policy flag is set here.
+            isReadOnly = root.resolveReadOnly(),
             isDestination = isDestination,
             comment = root.comment?.ifBlank { null } ?: configName?.let { "Companion: $it" },
             accessPin = root.accessPin?.ifBlank { null },
             profile = profile ?: ResourceProfile.NONE,
             rememberFileList = preset?.rememberFileList ?: false,
             hostKeyFingerprint = canonicalFingerprint,
-            altAccessPaths = altEndpoints // S1006: reachable-endpoint fallback candidates
+            altAccessPaths = altEndpoints, // S1006: reachable-endpoint fallback candidates
+            accessNote = configAccessNote // S1014: companion connectivity guidance shown on connect failure
         )
         // Only override the model defaults (interval 10, green color) when the config actually carries them.
         val withInterval = root.slideshowInterval?.takeIf { it > 0 }

@@ -31,6 +31,7 @@ class SftpEndpointResolverTest {
 
     private val dao = mockk<ResourceDao>()
     private val monitor = mockk<NetworkStateMonitor>(relaxed = true)
+    private val mdns = mockk<CompanionMdnsDiscovery>()
     private val callbackSlot = slot<NetworkStateMonitor.NetworkChangeCallback>()
 
     @Before
@@ -44,6 +45,8 @@ class SftpEndpointResolverTest {
         throwaway.close()
 
         every { monitor.registerCallback(capture(callbackSlot)) } just Runs
+        // S1013: no LAN-discovered companion in these tests - resolution uses the stored candidates only.
+        every { mdns.endpointForFingerprint(any()) } returns null
     }
 
     @After
@@ -61,7 +64,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `resolve picks the reachable alternate when the primary is dead`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor)
 
         val winner = resolver.resolve("127.0.0.1", deadPort)
 
@@ -71,7 +74,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `second resolve is served from cache without another db read`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor)
 
         resolver.resolve("127.0.0.1", deadPort)
         resolver.resolve("127.0.0.1", deadPort)
@@ -82,7 +85,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `network change clears the cache so the next resolve re-probes`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor)
 
         resolver.resolve("127.0.0.1", deadPort)
         callbackSlot.captured.onNetworkChanged()
@@ -94,7 +97,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `unknown single-address host resolves to itself without probing`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns emptyList()
-        val resolver = SftpEndpointResolver(dao, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor)
 
         val winner = resolver.resolve("10.0.0.99", 22)
 

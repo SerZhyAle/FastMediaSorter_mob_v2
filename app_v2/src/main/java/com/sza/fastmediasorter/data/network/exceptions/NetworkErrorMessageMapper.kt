@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
+import timber.log.Timber
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.
@@ -54,26 +55,44 @@ object NetworkErrorMessageMapper {
         exception: NetworkException,
         resourceType: ResourceType,
         resourcePath: String,
-        contextAnalyzer: NetworkContextAnalyzer
+        contextAnalyzer: NetworkContextAnalyzer,
+        accessNote: String? = null
     ): String {
         val isConnectivityError = exception is NetworkConnectionLostException
                 || exception is NetworkTimeoutException
-
-        if (isConnectivityError && !contextAnalyzer.hasAnyNetwork()) {
-            return context.getString(R.string.error_network_connection_lost)
+        if (!isConnectivityError) {
+            return context.getString(toMessageRes(exception))
         }
 
-        if (isConnectivityError && resourceType == ResourceType.SMB) {
-            val host = contextAnalyzer.extractHost(resourcePath)
-            if (contextAnalyzer.isCellularNetwork()) {
-                return context.getString(R.string.error_smb_mobile_network, host)
-            }
-            if (contextAnalyzer.isPrivateIpAddress(host)) {
-                return context.getString(R.string.error_smb_not_on_local_network)
-            }
+        val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP
+        if (!accessNote.isNullOrBlank() || companionResource) {
+            Timber.d("S1014: connection guidance shown for $resourceType, accessNote=${!accessNote.isNullOrBlank()}")
         }
 
-        return context.getString(toMessageRes(exception))
+        val contextual: String? = when {
+            // S1014: the companion knows its own network situation - prefer its guidance verbatim.
+            !accessNote.isNullOrBlank() -> accessNote
+            !contextAnalyzer.hasAnyNetwork() -> context.getString(R.string.error_network_connection_lost)
+            resourceType == ResourceType.SMB -> smbConnectivityMessage(context, resourcePath, contextAnalyzer)
+            // S1014: companion-style resources (SFTP/FTP) get actionable access guidance, not a bare timeout.
+            companionResource -> context.getString(R.string.error_companion_connect_guidance)
+            else -> null
+        }
+        return contextual ?: context.getString(toMessageRes(exception))
+    }
+
+    /** SMB-specific connectivity hint (cellular / off-local-network), or null to fall back to the default. */
+    private fun smbConnectivityMessage(
+        context: Context,
+        resourcePath: String,
+        contextAnalyzer: NetworkContextAnalyzer
+    ): String? {
+        val host = contextAnalyzer.extractHost(resourcePath)
+        return when {
+            contextAnalyzer.isCellularNetwork() -> context.getString(R.string.error_smb_mobile_network, host)
+            contextAnalyzer.isPrivateIpAddress(host) -> context.getString(R.string.error_smb_not_on_local_network)
+            else -> null
+        }
     }
 
     /**
@@ -87,8 +106,16 @@ object NetworkErrorMessageMapper {
         resourceType: ResourceType,
         resourcePath: String,
         contextAnalyzer: NetworkContextAnalyzer,
+        accessNote: String? = null,
     ): UiMessageSpec = UiMessageSpec(
         family = UiMessageFamily.ERROR,
-        shortMessage = toContextAwareMessage(context, exception, resourceType, resourcePath, contextAnalyzer),
+        shortMessage = toContextAwareMessage(
+            context,
+            exception,
+            resourceType,
+            resourcePath,
+            contextAnalyzer,
+            accessNote,
+        ),
     )
 }

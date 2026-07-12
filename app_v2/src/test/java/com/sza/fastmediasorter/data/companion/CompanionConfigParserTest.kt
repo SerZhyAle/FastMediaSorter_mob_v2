@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.companion
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -97,6 +98,43 @@ class CompanionConfigParserTest {
         val dto = parser.parse(json)
 
         assertEquals("weird_token", dto.roots?.first()?.profile)
+    }
+
+    @Test
+    fun `resolveReadOnly follows the S1016 contract vectors`() {
+        // Explicit read-only.
+        assertTrue(CompanionRootDto("/MOV", "MOV", readOnly = true).resolveReadOnly())
+        // Explicit writable.
+        assertFalse(CompanionRootDto("/Inbox", "Inbox", readOnly = false).resolveReadOnly())
+        // Writable destination (schemaVersion 2 payload).
+        assertFalse(
+            CompanionRootDto("/Sorted", "Sorted", readOnly = false, isDestination = true).resolveReadOnly()
+        )
+        // Absent readOnly, no destination -> read-only (back-compat default for pre-S1016 exports).
+        assertTrue(CompanionRootDto("/Photos", "Photos").resolveReadOnly())
+        // Absent readOnly, destination -> writable (destination is always writable).
+        assertFalse(CompanionRootDto("/Drop", "Drop", isDestination = true).resolveReadOnly())
+    }
+
+    @Test
+    fun `parses per-root readOnly flag`() {
+        val json = "{\"schemaVersion\":1,\"resourceName\":\"Test\",\"protocol\":\"sftp\"," +
+            "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"192.168.1.5\",\"port\":22}]," +
+            "\"username\":\"fms\",\"password\":\"secret\",\"hostKeyFingerprintSha256\":\"\"," +
+            "\"roots\":[" +
+            "{\"virtualPath\":\"/MOV\",\"label\":\"MOV\",\"readOnly\":true}," +
+            "{\"virtualPath\":\"/Inbox\",\"label\":\"Inbox\",\"readOnly\":false}," +
+            "{\"virtualPath\":\"/Photos\",\"label\":\"Photos\"}]}"
+
+        val roots = requireNotNull(parser.parse(json).roots)
+
+        assertEquals(true, roots[0].readOnly)
+        assertTrue(roots[0].resolveReadOnly())
+        assertEquals(false, roots[1].readOnly)
+        assertFalse(roots[1].resolveReadOnly())
+        // Absent field parses to null and resolves read-only.
+        assertNull(roots[2].readOnly)
+        assertTrue(roots[2].resolveReadOnly())
     }
 
     @Test

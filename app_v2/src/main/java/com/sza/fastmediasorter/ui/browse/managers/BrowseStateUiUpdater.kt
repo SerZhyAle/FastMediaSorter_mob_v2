@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
@@ -94,14 +95,17 @@ class BrowseStateUiUpdater(
     private fun updateSelectionPanel(state: BrowseState) {
         val hasSelection = state.selectedFiles.isNotEmpty()
         val resource = state.resource
-        val isWritable = (resource?.isWritable ?: false) && (resource?.isReadOnly != true)
+        // S1019: write affordance from the shared policy resolver so it matches the player and the
+        // operation-layer guards; clearing "read-only" now enables move/rename/delete for network resources.
+        val canWrite = resource?.allowsWriteOperations() ?: false
+        Timber.d("S1019: write-gate type=${resource?.type} readOnly=${resource?.isReadOnly} canWrite=$canWrite")
 
         binding.layoutOperations.isVisible = hasSelection || state.lastOperation != null
 
         binding.btnCopy.isVisible = hasSelection
-        binding.btnMove.isVisible = hasSelection && isWritable
-        binding.btnRename.isVisible = hasSelection && isWritable
-        binding.btnDelete.isVisible = hasSelection && isWritable
+        binding.btnMove.isVisible = hasSelection && canWrite
+        binding.btnRename.isVisible = hasSelection && canWrite
+        binding.btnDelete.isVisible = hasSelection && canWrite
         binding.btnUndo.isVisible = state.lastOperation != null
         binding.btnShare.isVisible = hasSelection
         val isLocalResource = resource?.type == ResourceType.LOCAL

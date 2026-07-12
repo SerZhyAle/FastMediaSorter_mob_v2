@@ -661,16 +661,6 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowGestureStripVisible",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the left-edge gesture strip",
-      "titleRu": "Показывать полосу жеста у левого края",
-      "titleUk": "Показувати смугу жесту біля лівого краю"
-    },
-    {
       "key": "rowGoToNextAfterCopy",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -821,6 +811,16 @@
       "titleUk": "Лівий край - нижня смуга"
     },
     {
+      "key": "rowZoneLeftBottomStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
       "key": "rowZoneLeftTopEnabled",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -829,6 +829,16 @@
       "titleEn": "Left edge - upper band",
       "titleRu": "Левый край - верхняя полоса",
       "titleUk": "Лівий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneLeftTopStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
     },
     {
       "key": "rowZoneRightBottomEnabled",
@@ -841,6 +851,16 @@
       "titleUk": "Правий край - нижня смуга"
     },
     {
+      "key": "rowZoneRightBottomStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
       "key": "rowZoneRightTopEnabled",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -849,6 +869,16 @@
       "titleEn": "Right edge - upper band",
       "titleRu": "Правый край - верхняя полоса",
       "titleUk": "Правий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneRightTopStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
     },
     {
       "key": "btnSetDefaultDocsViewer",

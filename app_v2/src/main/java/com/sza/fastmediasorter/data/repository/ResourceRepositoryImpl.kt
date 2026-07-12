@@ -512,7 +512,8 @@ class ResourceRepositoryImpl @Inject constructor(
             iconId = iconId,
             hostKeyFingerprint = hostKeyFingerprint,
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from entity to domain.
-            altAccessPaths = parseAltPaths(altAccessPaths) // S1006
+            altAccessPaths = parseAltPaths(altAccessPaths), // S1006
+            accessNote = accessNote // S1014
         )
     }
 
@@ -571,7 +572,8 @@ class ResourceRepositoryImpl @Inject constructor(
             iconId = iconId,
             hostKeyFingerprint = hostKeyFingerprint,
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from domain to entity.
-            altAccessPaths = serializeAltPaths(altAccessPaths) // S1006
+            altAccessPaths = serializeAltPaths(altAccessPaths), // S1006
+            accessNote = accessNote // S1014
         )
     }
 

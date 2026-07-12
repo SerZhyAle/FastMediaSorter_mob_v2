@@ -207,12 +207,36 @@ class BrowseLoadingAuxManager(
             append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}")
         }
 
+        // S1014: on a browse-scan connectivity failure of a companion/SFTP resource, show the companion's
+        // access note (or the default access guidance) instead of a bare timeout - this is the surface the
+        // user sees when opening a shared folder that cannot be reached on any address.
         sendEvent(BrowseEvent.ShowError(
-            message = getFriendlyBrowseErrorMessage(e),
+            message = companionConnectGuidance(resource, e) ?: getFriendlyBrowseErrorMessage(e),
             details = details,
             exception = e
         ))
         onHandleError(e)
+    }
+
+    /**
+     * S1014: actionable access guidance for a browse-scan connectivity failure of a companion-style
+     * (SFTP/FTP) resource - the companion's own access note when present, otherwise the default guidance.
+     * Returns null (fall back to the generic friendly error) for other resource types or non-connectivity
+     * failures.
+     */
+    private fun companionConnectGuidance(resource: MediaResource, e: Throwable): String? {
+        val msg = e.message.orEmpty()
+        val isConnectivity = msg.contains("timeout", ignoreCase = true) ||
+            msg.contains("timed out", ignoreCase = true) ||
+            msg.contains("unreachable", ignoreCase = true) ||
+            msg.contains("Connection", ignoreCase = true)
+        val companion = resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP
+        if (!isConnectivity || (!companion && resource.accessNote.isNullOrBlank())) {
+            return null
+        }
+        Timber.d("S1014: browse connect guidance for ${resource.type}, note=${!resource.accessNote.isNullOrBlank()}")
+        return resource.accessNote?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.error_companion_connect_guidance)
     }
 
     /**

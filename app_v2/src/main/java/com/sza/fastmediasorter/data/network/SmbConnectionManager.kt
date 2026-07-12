@@ -623,7 +623,9 @@ class SmbConnectionManager @Inject constructor(
                 append(" (cause: ${cause.javaClass.simpleName}: ${cause.message})")
             }
         }
-        Timber.w(e, errorDetail)
+        // S1027: message-only (the cause is already inlined above) - the full stack trace fired
+        // per file and flooded the log when a destination server was unreachable during a batch.
+        Timber.w(errorDetail)
 
         // Check for critical socket errors
         val isCriticalError = e.cause?.let { cause ->

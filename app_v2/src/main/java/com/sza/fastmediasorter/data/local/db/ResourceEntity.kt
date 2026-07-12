@@ -103,5 +103,9 @@ data class ResourceEntity(
 
     // S1006: ordered alternate SFTP endpoints ("host:port;host:port"); null = single-path resource (unchanged behaviour)
     @ColumnInfo(name = "alt_access_paths", defaultValue = "NULL")
-    val altAccessPaths: String? = null
+    val altAccessPaths: String? = null,
+
+    // S1014: companion connectivity guidance (accessNote); shown on connection failure. null = none.
+    @ColumnInfo(name = "access_note", defaultValue = "NULL")
+    val accessNote: String? = null
 )

@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -215,6 +216,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             fabScrollToBottom = binding.fabStreamsScrollToBottom,
         )
         scrollButtons.attach()
+        // Same edge-to-edge fix as S0778's miniControl: the bottom scroll-button group is anchored to the
+        // window edge (gravity bottom|end) and otherwise draws under the navigation bar / gesture inset.
+        binding.streamScrollButtonsBottom.applySystemBarInsetPadding(applyLeft = false, applyTop = false)
 
         gridModeManager = StreamGridModeManager(
             recyclerView = binding.rvStreams,

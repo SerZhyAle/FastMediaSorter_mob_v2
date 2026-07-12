@@ -20,7 +20,9 @@ data class CompanionConfigDto(
     @SerializedName("password") val password: String?,
     @SerializedName("hostKeyFingerprintSha256") val hostKeyFingerprintSha256: String?,
     @SerializedName("roots") val roots: List<CompanionRootDto>?,
-    @SerializedName("createdAt") val createdAt: String?
+    @SerializedName("createdAt") val createdAt: String?,
+    // S1014: optional human-readable connectivity guidance from the companion, shown on connect failure.
+    @SerializedName("accessNote") val accessNote: String? = null
 )
 
 data class CompanionAccessPathDto(
@@ -44,6 +46,12 @@ data class CompanionAccessPathDto(
 data class CompanionRootDto(
     @SerializedName("virtualPath") val virtualPath: String?,
     @SerializedName("label") val label: String?,
+    /**
+     * S1016: per-root read-only policy. Absent == true (read-only), so pre-S1016 exports and older
+     * parsers stay read-only. Additive like accessNote (S1014) / ipv6 - no schemaVersion bump.
+     * See [resolveReadOnly] for the write rule.
+     */
+    @SerializedName("readOnly") val readOnly: Boolean? = null,
     /** Resource profile/type token, e.g. "audio_library"; see [CompanionResourceTokens]. */
     @SerializedName("profile") val profile: String? = null,
     /** Explicit media-type tokens; overrides the profile-derived set when present. */
@@ -57,7 +65,14 @@ data class CompanionRootDto(
     @SerializedName("comment") val comment: String? = null,
     @SerializedName("accessPin") val accessPin: String? = null,
     @SerializedName("slideshowInterval") val slideshowInterval: Int? = null
-)
+) {
+    /**
+     * S1016: single source of the frozen contract write rule -
+     * `writable = (readOnly == false) OR (isDestination == true)`; anything else is read-only.
+     * A null/true [readOnly] with no destination resolves to read-only (back-compat default).
+     */
+    fun resolveReadOnly(): Boolean = !(readOnly == false || isDestination == true)
+}
 
 /** Typed parse/validation failure so the UI can map reasons to distinct messages. */
 class CompanionConfigException(

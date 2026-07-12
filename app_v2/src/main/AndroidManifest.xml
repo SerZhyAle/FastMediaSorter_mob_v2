@@ -26,6 +26,8 @@
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- S1013: receive multicast (mDNS/NSD) to discover companion `_sftp-fms._tcp` servers on the LAN -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <!-- Wi-Fi is used for network sources but not required for local files or cellular cloud access -->
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <!-- Keyboard/mouse/remote navigation is already supported; touchscreen is not mandatory -->

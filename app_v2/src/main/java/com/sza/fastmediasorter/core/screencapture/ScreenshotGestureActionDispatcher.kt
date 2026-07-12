@@ -49,6 +49,14 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             .filterTo(mutableSetOf()) { settings.screenshotGestureZoneEnabled(it) }
     }
 
+    /** S1008: the set of enabled bands whose grey strip guide should be visible (enabled AND strip-visible). */
+    suspend fun stripVisibleZones(): Set<ScreenshotGestureZone> {
+        val settings = settingsRepository.get().getSettings().first()
+        return ScreenshotGestureZone.entries.filterTo(mutableSetOf()) {
+            settings.screenshotGestureZoneEnabled(it) && settings.screenshotGestureZoneStripVisible(it)
+        }
+    }
+
     /**
      * Runs actions that need no screen capture and tells the caller whether to stop. Returns true when
      * [action] was fully handled here, so the caller skips consent/capture entirely:

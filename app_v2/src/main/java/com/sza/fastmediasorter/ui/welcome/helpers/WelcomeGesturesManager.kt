@@ -26,9 +26,6 @@ class WelcomeGesturesManager(
     private val overlayPermissionLauncher: ActivityResultLauncher<Intent>,
     private val activity: FragmentActivity,
     private val initialEnabled: Boolean,
-    // S0727: persisted strip-visibility snapshot, passed in by the controller's owner so setEnabled
-    // gets it without the controller reading settings on the Main thread.
-    private val initialStripVisible: Boolean,
     private val persist: (suspend (AppSettings) -> AppSettings) -> Unit,
 ) {
     fun setup() {
@@ -45,10 +42,10 @@ class WelcomeGesturesManager(
                     showGesturePermissionDialog(controller)
                     return@setOnCheckedChangeListener
                 }
-                controller.setEnabled(true, initialStripVisible)
+                controller.setEnabled(true)
                 persist { it.copy(gestureOverlayEnabled = true) }
             } else {
-                controller.setEnabled(false, initialStripVisible)
+                controller.setEnabled(false)
                 persist { it.copy(gestureOverlayEnabled = false) }
             }
         }
@@ -58,7 +55,7 @@ class WelcomeGesturesManager(
     fun onOverlayPermissionResult() {
         val controller = screenGestureControllers.firstOrNull() ?: return
         if (controller.isOverlayPermissionGranted(activity)) {
-            controller.setEnabled(true, initialStripVisible)
+            controller.setEnabled(true)
             persist { it.copy(gestureOverlayEnabled = true) }
         } else {
             row.setCheckedSilently(false)

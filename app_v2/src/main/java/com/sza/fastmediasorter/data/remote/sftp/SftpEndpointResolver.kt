@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.utils.SftpPathUtils
+import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -34,6 +35,7 @@ import javax.inject.Singleton
 @Singleton
 class SftpEndpointResolver @Inject constructor(
     private val resourceDao: ResourceDao,
+    private val mdnsDiscovery: CompanionMdnsDiscovery,
     networkStateMonitor: NetworkStateMonitor
 ) : NetworkStateMonitor.NetworkChangeCallback {
 
@@ -97,8 +99,13 @@ class SftpEndpointResolver @Inject constructor(
     private fun groupOf(entity: ResourceEntity): List<HostPort>? {
         val primaryInfo = SftpPathUtils.parseSftpPath(entity.path) ?: return null
         val primary = HostPort(primaryInfo.host, primaryInfo.port)
-        val all = (listOf(primary) + parseAltPaths(entity.altAccessPaths)).distinct()
-        // Only groups with a genuine alternate need resolution.
+        // S1013: a companion discovered on the LAN (matched by host-key fingerprint) is the preferred
+        // local candidate, ahead of the config's own addresses - covers a missing/stale LAN address.
+        val discovered = entity.hostKeyFingerprint
+            ?.let { SshFingerprintNormalizer.canonical(it) }
+            ?.let { mdnsDiscovery.endpointForFingerprint(it) }
+        val all = (listOfNotNull(discovered) + primary + parseAltPaths(entity.altAccessPaths)).distinct()
+        // Resolve when there is a genuine choice (a discovered LAN endpoint or a stored alternate).
         return if (all.size > 1) all else null
     }
 

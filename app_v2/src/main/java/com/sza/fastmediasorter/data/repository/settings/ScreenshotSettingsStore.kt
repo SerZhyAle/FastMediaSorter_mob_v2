@@ -12,8 +12,14 @@ class ScreenshotSettingsStore private constructor() {
     companion object {
         private val KEY_GESTURE_OVERLAY_ENABLED =
             booleanPreferencesKey("gesture_overlay_enabled")
+        // S1008: legacy single strip-visible key, read-only for LEFT_TOP migration (no longer written).
         private val KEY_GESTURE_STRIP_VISIBLE =
             booleanPreferencesKey("screenshot_gesture_strip_visible")
+        // S1008: four per-zone strip-visible toggles (grey guide on each band's edge).
+        private val KEY_ZONE_LEFT_TOP_STRIP_VISIBLE = booleanPreferencesKey("gesture_zone_left_top_strip_visible")
+        private val KEY_ZONE_LEFT_BOTTOM_STRIP_VISIBLE = booleanPreferencesKey("gesture_zone_left_bottom_strip_visible")
+        private val KEY_ZONE_RIGHT_TOP_STRIP_VISIBLE = booleanPreferencesKey("gesture_zone_right_top_strip_visible")
+        private val KEY_ZONE_RIGHT_BOTTOM_STRIP_VISIBLE = booleanPreferencesKey("gesture_zone_right_bottom_strip_visible")
         // S0847: legacy single-strip keys, read-only for LEFT_TOP migration (no longer written).
         private val KEY_SCREENSHOT_GESTURE_ACTION_DOWN =
             stringPreferencesKey("screenshot_gesture_action_down")
@@ -50,11 +56,14 @@ class ScreenshotSettingsStore private constructor() {
 
         data class Values(
             val gestureOverlayEnabled: Boolean,
-            val screenshotGestureStripVisible: Boolean,
             val zoneLeftTopEnabled: Boolean,
             val zoneLeftBottomEnabled: Boolean,
             val zoneRightTopEnabled: Boolean,
             val zoneRightBottomEnabled: Boolean,
+            val zoneLeftTopStripVisible: Boolean,
+            val zoneLeftBottomStripVisible: Boolean,
+            val zoneRightTopStripVisible: Boolean,
+            val zoneRightBottomStripVisible: Boolean,
             val leftTopDown: ScreenshotGestureAction,
             val leftTopRight: ScreenshotGestureAction,
             val leftTopUp: ScreenshotGestureAction,
@@ -74,11 +83,16 @@ class ScreenshotSettingsStore private constructor() {
 
         fun read(preferences: Preferences): Values = Values(
             gestureOverlayEnabled = preferences[KEY_GESTURE_OVERLAY_ENABLED] ?: false,
-            screenshotGestureStripVisible = preferences[KEY_GESTURE_STRIP_VISIBLE] ?: false,
             zoneLeftTopEnabled = preferences[KEY_ZONE_LEFT_TOP_ENABLED] ?: true,
             zoneLeftBottomEnabled = preferences[KEY_ZONE_LEFT_BOTTOM_ENABLED] ?: false,
             zoneRightTopEnabled = preferences[KEY_ZONE_RIGHT_TOP_ENABLED] ?: false,
             zoneRightBottomEnabled = preferences[KEY_ZONE_RIGHT_BOTTOM_ENABLED] ?: false,
+            // LEFT_TOP strip visibility falls back to the legacy single strip-visible key for existing users.
+            zoneLeftTopStripVisible =
+                preferences[KEY_ZONE_LEFT_TOP_STRIP_VISIBLE] ?: preferences[KEY_GESTURE_STRIP_VISIBLE] ?: false,
+            zoneLeftBottomStripVisible = preferences[KEY_ZONE_LEFT_BOTTOM_STRIP_VISIBLE] ?: false,
+            zoneRightTopStripVisible = preferences[KEY_ZONE_RIGHT_TOP_STRIP_VISIBLE] ?: false,
+            zoneRightBottomStripVisible = preferences[KEY_ZONE_RIGHT_BOTTOM_STRIP_VISIBLE] ?: false,
             // LEFT_TOP falls back to the legacy single-strip keys so existing users keep their bindings.
             leftTopDown = ScreenshotGestureAction.fromName(
                 preferences[KEY_LEFT_TOP_DOWN] ?: preferences[KEY_SCREENSHOT_GESTURE_ACTION_DOWN],
@@ -106,11 +120,14 @@ class ScreenshotSettingsStore private constructor() {
 
         fun write(preferences: MutablePreferences, settings: AppSettings) {
             preferences[KEY_GESTURE_OVERLAY_ENABLED] = settings.gestureOverlayEnabled
-            preferences[KEY_GESTURE_STRIP_VISIBLE] = settings.screenshotGestureStripVisible
             preferences[KEY_ZONE_LEFT_TOP_ENABLED] = settings.screenshotGestureZoneLeftTopEnabled
             preferences[KEY_ZONE_LEFT_BOTTOM_ENABLED] = settings.screenshotGestureZoneLeftBottomEnabled
             preferences[KEY_ZONE_RIGHT_TOP_ENABLED] = settings.screenshotGestureZoneRightTopEnabled
             preferences[KEY_ZONE_RIGHT_BOTTOM_ENABLED] = settings.screenshotGestureZoneRightBottomEnabled
+            preferences[KEY_ZONE_LEFT_TOP_STRIP_VISIBLE] = settings.screenshotGestureZoneLeftTopStripVisible
+            preferences[KEY_ZONE_LEFT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGestureZoneLeftBottomStripVisible
+            preferences[KEY_ZONE_RIGHT_TOP_STRIP_VISIBLE] = settings.screenshotGestureZoneRightTopStripVisible
+            preferences[KEY_ZONE_RIGHT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGestureZoneRightBottomStripVisible
             preferences[KEY_LEFT_TOP_DOWN] = settings.screenshotGestureLeftTopDown.name
             preferences[KEY_LEFT_TOP_RIGHT] = settings.screenshotGestureLeftTopRight.name
             preferences[KEY_LEFT_TOP_UP] = settings.screenshotGestureLeftTopUp.name

@@ -175,7 +175,10 @@ class SftpConnectionPool {
             Thread.currentThread().interrupt()
             throw CancellationException("SFTP interrupted", e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP [FILE_OPS] operation failed")
+            // S1027: concise cause instead of a full stack trace - this fires per file, and a
+            // read-only source floods the log with identical 18-line traces (e.g. "permission
+            // denied" on delete). The caller classifies and surfaces the failure with context.
+            Timber.w("SFTP [FILE_OPS] operation failed: ${e.message}")
             Result.failure(e)
         }
     }

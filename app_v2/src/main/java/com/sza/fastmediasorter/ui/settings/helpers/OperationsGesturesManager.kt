@@ -65,19 +65,14 @@ class OperationsGesturesManager(
                     showGesturePermissionDialog(controller)
                     return@setOnCheckedChangeListener
                 }
-                controller.setEnabled(true, viewModel.settings.value.screenshotGestureStripVisible)
+                controller.setEnabled(true)
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
             } else {
-                controller.setEnabled(false, viewModel.settings.value.screenshotGestureStripVisible)
+                controller.setEnabled(false)
                 viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
             }
         }
-        binding.rowGestureStripVisible.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(screenshotGestureStripVisible = isChecked))
-            // Push the explicit value so a live strip recolours immediately (no-op while overlay is off).
-            controller.setStripVisible(isChecked, viewModel.settings.value.gestureOverlayEnabled)
-        }
+        // S1008: the per-zone strip-visibility toggles live inside each zone block, wired in setupZones().
         binding.rowCopyScreenshotToClipboard.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
@@ -112,29 +107,56 @@ class OperationsGesturesManager(
         if (binding.rowGestureOverlayEnabled.isChecked != settings.gestureOverlayEnabled) {
             binding.rowGestureOverlayEnabled.setCheckedSilently(settings.gestureOverlayEnabled)
         }
-        if (binding.rowGestureStripVisible.isChecked != settings.screenshotGestureStripVisible) {
-            binding.rowGestureStripVisible.setCheckedSilently(settings.screenshotGestureStripVisible)
-        }
         if (binding.rowCopyScreenshotToClipboard.isChecked != settings.copyScreenshotToClipboard) {
             binding.rowCopyScreenshotToClipboard.setCheckedSilently(settings.copyScreenshotToClipboard)
         }
         renderZone(
-            settings, ScreenshotGestureZone.LEFT_TOP, binding.rowZoneLeftTopEnabled, binding.containerZoneLeftTop,
-            binding.rowGestureLeftTopUp, binding.rowGestureLeftTopRight, binding.rowGestureLeftTopDown
+            settings,
+            ScreenshotGestureZone.LEFT_TOP,
+            ZoneViews(
+                binding.rowZoneLeftTopEnabled,
+                binding.containerZoneLeftTop,
+                binding.rowZoneLeftTopStripVisible,
+                binding.rowGestureLeftTopUp,
+                binding.rowGestureLeftTopRight,
+                binding.rowGestureLeftTopDown,
+            ),
         )
         renderZone(
-            settings, ScreenshotGestureZone.LEFT_BOTTOM, binding.rowZoneLeftBottomEnabled,
-            binding.containerZoneLeftBottom, binding.rowGestureLeftBottomUp,
-            binding.rowGestureLeftBottomRight, binding.rowGestureLeftBottomDown
+            settings,
+            ScreenshotGestureZone.LEFT_BOTTOM,
+            ZoneViews(
+                binding.rowZoneLeftBottomEnabled,
+                binding.containerZoneLeftBottom,
+                binding.rowZoneLeftBottomStripVisible,
+                binding.rowGestureLeftBottomUp,
+                binding.rowGestureLeftBottomRight,
+                binding.rowGestureLeftBottomDown,
+            ),
         )
         renderZone(
-            settings, ScreenshotGestureZone.RIGHT_TOP, binding.rowZoneRightTopEnabled, binding.containerZoneRightTop,
-            binding.rowGestureRightTopUp, binding.rowGestureRightTopRight, binding.rowGestureRightTopDown
+            settings,
+            ScreenshotGestureZone.RIGHT_TOP,
+            ZoneViews(
+                binding.rowZoneRightTopEnabled,
+                binding.containerZoneRightTop,
+                binding.rowZoneRightTopStripVisible,
+                binding.rowGestureRightTopUp,
+                binding.rowGestureRightTopRight,
+                binding.rowGestureRightTopDown,
+            ),
         )
         renderZone(
-            settings, ScreenshotGestureZone.RIGHT_BOTTOM, binding.rowZoneRightBottomEnabled,
-            binding.containerZoneRightBottom, binding.rowGestureRightBottomUp,
-            binding.rowGestureRightBottomRight, binding.rowGestureRightBottomDown
+            settings,
+            ScreenshotGestureZone.RIGHT_BOTTOM,
+            ZoneViews(
+                binding.rowZoneRightBottomEnabled,
+                binding.containerZoneRightBottom,
+                binding.rowZoneRightBottomStripVisible,
+                binding.rowGestureRightBottomUp,
+                binding.rowGestureRightBottomRight,
+                binding.rowGestureRightBottomDown,
+            ),
         )
         refreshLabel(
             settings.screenshotDestinationResourceId,
@@ -142,81 +164,136 @@ class OperationsGesturesManager(
         ) { binding.tvScreenshotDestination.text = it }
     }
 
+    // Bundles one zone's view refs so renderZone/bindZone stay under the LongParameterList threshold
+    // instead of taking six individual view params each.
+    private data class ZoneViews(
+        val toggle: SettingsToggleRow,
+        val container: View,
+        val stripToggle: SettingsToggleRow,
+        val upRow: SettingsSelectionRow,
+        val rightRow: SettingsSelectionRow,
+        val downRow: SettingsSelectionRow,
+    )
+
     // S0847: wire the four edge-band groups. Each group persists its enable flag + rebuilds the live
     // overlay, and its three pickers write the zone-scoped action slots via the shared action catalog.
+    // S1008: each group also owns a per-zone strip-visibility toggle inside its container.
     private fun setupZones() {
-        bindZone(
-            ScreenshotGestureZone.LEFT_TOP, binding.rowZoneLeftTopEnabled, binding.containerZoneLeftTop,
-            binding.rowGestureLeftTopUp, binding.rowGestureLeftTopRight, binding.rowGestureLeftTopDown,
-            setEnabled = { s, e -> s.copy(screenshotGestureZoneLeftTopEnabled = e) },
-            setAction = { s, d, a ->
-                when (d) {
-                    ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftTopUp = a)
-                    ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftTopRight = a)
-                    ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftTopDown = a)
-                }
-            },
-        )
-        bindZone(
-            ScreenshotGestureZone.LEFT_BOTTOM, binding.rowZoneLeftBottomEnabled, binding.containerZoneLeftBottom,
-            binding.rowGestureLeftBottomUp, binding.rowGestureLeftBottomRight, binding.rowGestureLeftBottomDown,
-            setEnabled = { s, e -> s.copy(screenshotGestureZoneLeftBottomEnabled = e) },
-            setAction = { s, d, a ->
-                when (d) {
-                    ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftBottomUp = a)
-                    ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftBottomRight = a)
-                    ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftBottomDown = a)
-                }
-            },
-        )
-        bindZone(
-            ScreenshotGestureZone.RIGHT_TOP, binding.rowZoneRightTopEnabled, binding.containerZoneRightTop,
-            binding.rowGestureRightTopUp, binding.rowGestureRightTopRight, binding.rowGestureRightTopDown,
-            setEnabled = { s, e -> s.copy(screenshotGestureZoneRightTopEnabled = e) },
-            setAction = { s, d, a ->
-                when (d) {
-                    ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightTopUp = a)
-                    ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightTopRight = a)
-                    ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightTopDown = a)
-                }
-            },
-        )
-        bindZone(
-            ScreenshotGestureZone.RIGHT_BOTTOM, binding.rowZoneRightBottomEnabled, binding.containerZoneRightBottom,
-            binding.rowGestureRightBottomUp, binding.rowGestureRightBottomRight, binding.rowGestureRightBottomDown,
-            setEnabled = { s, e -> s.copy(screenshotGestureZoneRightBottomEnabled = e) },
-            setAction = { s, d, a ->
-                when (d) {
-                    ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightBottomUp = a)
-                    ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightBottomRight = a)
-                    ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightBottomDown = a)
-                }
-            },
-        )
+        bindLeftTopZone()
+        bindLeftBottomZone()
+        bindRightTopZone()
+        bindRightBottomZone()
     }
+
+    private fun bindLeftTopZone() = bindZone(
+        ScreenshotGestureZone.LEFT_TOP,
+        ZoneViews(
+            binding.rowZoneLeftTopEnabled,
+            binding.containerZoneLeftTop,
+            binding.rowZoneLeftTopStripVisible,
+            binding.rowGestureLeftTopUp,
+            binding.rowGestureLeftTopRight,
+            binding.rowGestureLeftTopDown,
+        ),
+        setEnabled = { s, e -> s.copy(screenshotGestureZoneLeftTopEnabled = e) },
+        setStripVisible = { s, v -> s.copy(screenshotGestureZoneLeftTopStripVisible = v) },
+        setAction = { s, d, a ->
+            when (d) {
+                ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftTopUp = a)
+                ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftTopRight = a)
+                ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftTopDown = a)
+            }
+        },
+    )
+
+    private fun bindLeftBottomZone() = bindZone(
+        ScreenshotGestureZone.LEFT_BOTTOM,
+        ZoneViews(
+            binding.rowZoneLeftBottomEnabled,
+            binding.containerZoneLeftBottom,
+            binding.rowZoneLeftBottomStripVisible,
+            binding.rowGestureLeftBottomUp,
+            binding.rowGestureLeftBottomRight,
+            binding.rowGestureLeftBottomDown,
+        ),
+        setEnabled = { s, e -> s.copy(screenshotGestureZoneLeftBottomEnabled = e) },
+        setStripVisible = { s, v -> s.copy(screenshotGestureZoneLeftBottomStripVisible = v) },
+        setAction = { s, d, a ->
+            when (d) {
+                ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftBottomUp = a)
+                ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftBottomRight = a)
+                ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftBottomDown = a)
+            }
+        },
+    )
+
+    private fun bindRightTopZone() = bindZone(
+        ScreenshotGestureZone.RIGHT_TOP,
+        ZoneViews(
+            binding.rowZoneRightTopEnabled,
+            binding.containerZoneRightTop,
+            binding.rowZoneRightTopStripVisible,
+            binding.rowGestureRightTopUp,
+            binding.rowGestureRightTopRight,
+            binding.rowGestureRightTopDown,
+        ),
+        setEnabled = { s, e -> s.copy(screenshotGestureZoneRightTopEnabled = e) },
+        setStripVisible = { s, v -> s.copy(screenshotGestureZoneRightTopStripVisible = v) },
+        setAction = { s, d, a ->
+            when (d) {
+                ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightTopUp = a)
+                ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightTopRight = a)
+                ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightTopDown = a)
+            }
+        },
+    )
+
+    private fun bindRightBottomZone() = bindZone(
+        ScreenshotGestureZone.RIGHT_BOTTOM,
+        ZoneViews(
+            binding.rowZoneRightBottomEnabled,
+            binding.containerZoneRightBottom,
+            binding.rowZoneRightBottomStripVisible,
+            binding.rowGestureRightBottomUp,
+            binding.rowGestureRightBottomRight,
+            binding.rowGestureRightBottomDown,
+        ),
+        setEnabled = { s, e -> s.copy(screenshotGestureZoneRightBottomEnabled = e) },
+        setStripVisible = { s, v -> s.copy(screenshotGestureZoneRightBottomStripVisible = v) },
+        setAction = { s, d, a ->
+            when (d) {
+                ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightBottomUp = a)
+                ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightBottomRight = a)
+                ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightBottomDown = a)
+            }
+        },
+    )
 
     private fun bindZone(
         zone: ScreenshotGestureZone,
-        toggle: SettingsToggleRow,
-        container: View,
-        upRow: SettingsSelectionRow,
-        rightRow: SettingsSelectionRow,
-        downRow: SettingsSelectionRow,
+        views: ZoneViews,
         setEnabled: (AppSettings, Boolean) -> AppSettings,
+        setStripVisible: (AppSettings, Boolean) -> AppSettings,
         setAction: (AppSettings, ScreenshotGestureDirection, ScreenshotGestureAction) -> AppSettings,
     ) {
-        toggle.setOnCheckedChangeListener { isChecked ->
+        views.toggle.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(setEnabled(viewModel.settings.value, isChecked))
-            container.isVisible = isChecked
+            views.container.isVisible = isChecked
             // Rebuild the live overlay so the band appears/disappears (no-op while the overlay master is off).
             val controller = screenGestureControllers.firstOrNull() ?: return@setOnCheckedChangeListener
-            val settings = viewModel.settings.value
-            controller.setEnabled(settings.gestureOverlayEnabled, settings.screenshotGestureStripVisible)
+            controller.setEnabled(viewModel.settings.value.gestureOverlayEnabled)
         }
-        bindPicker(upRow, zone, ScreenshotGestureDirection.UP, setAction)
-        bindPicker(rightRow, zone, ScreenshotGestureDirection.RIGHT, setAction)
-        bindPicker(downRow, zone, ScreenshotGestureDirection.DOWN, setAction)
+        // S1008: per-zone strip visibility; refreshes the live strip colour (no-op while the overlay is off).
+        views.stripToggle.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings(setStripVisible(viewModel.settings.value, isChecked))
+            val controller = screenGestureControllers.firstOrNull() ?: return@setOnCheckedChangeListener
+            controller.setStripVisible(viewModel.settings.value.gestureOverlayEnabled)
+        }
+        bindPicker(views.upRow, zone, ScreenshotGestureDirection.UP, setAction)
+        bindPicker(views.rightRow, zone, ScreenshotGestureDirection.RIGHT, setAction)
+        bindPicker(views.downRow, zone, ScreenshotGestureDirection.DOWN, setAction)
     }
 
     private fun bindPicker(
@@ -236,31 +313,26 @@ class OperationsGesturesManager(
         }
     }
 
-    private fun renderZone(
-        settings: AppSettings,
-        zone: ScreenshotGestureZone,
-        toggle: SettingsToggleRow,
-        container: View,
-        upRow: SettingsSelectionRow,
-        rightRow: SettingsSelectionRow,
-        downRow: SettingsSelectionRow,
-    ) {
+    private fun renderZone(settings: AppSettings, zone: ScreenshotGestureZone, views: ZoneViews) {
         val enabled = settings.screenshotGestureZoneEnabled(zone)
-        if (toggle.isChecked != enabled) toggle.setCheckedSilently(enabled)
-        container.isVisible = enabled
+        if (views.toggle.isChecked != enabled) views.toggle.setCheckedSilently(enabled)
+        views.container.isVisible = enabled
+        // S1008: reflect the per-zone strip-visibility toggle that lives inside the container.
+        val stripVisible = settings.screenshotGestureZoneStripVisible(zone)
+        if (views.stripToggle.isChecked != stripVisible) views.stripToggle.setCheckedSilently(stripVisible)
         val ctx = fragment.requireContext()
         fun label(direction: ScreenshotGestureDirection): CharSequence =
             gestureActionPickerManager.labelFor(ctx, settings.screenshotGestureAction(zone, direction))
-        upRow.setValue(label(ScreenshotGestureDirection.UP))
-        rightRow.setValue(label(ScreenshotGestureDirection.RIGHT))
-        downRow.setValue(label(ScreenshotGestureDirection.DOWN))
+        views.upRow.setValue(label(ScreenshotGestureDirection.UP))
+        views.rightRow.setValue(label(ScreenshotGestureDirection.RIGHT))
+        views.downRow.setValue(label(ScreenshotGestureDirection.DOWN))
     }
 
     /** Re-applies the overlay state after returning from the system permission screen. */
     fun onOverlayPermissionResult() {
         val controller = screenGestureControllers.firstOrNull() ?: return
         if (controller.isOverlayPermissionGranted(fragment.requireContext())) {
-            controller.setEnabled(true, viewModel.settings.value.screenshotGestureStripVisible)
+            controller.setEnabled(true)
             viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
         } else {
             binding.rowGestureOverlayEnabled.setCheckedSilently(false)

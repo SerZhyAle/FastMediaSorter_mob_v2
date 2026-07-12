@@ -1184,6 +1184,7 @@
     <ID>ArgumentListWrapping:LinkAutoDownloadCoordinator.kt$LinkAutoDownloadCoordinator$(previewHost)</ID>
     <ID>ArgumentListWrapping:LinkAutoDownloadCoordinatorTest.kt$LinkAutoDownloadCoordinatorTest$( accountId = "acc1", displayName = "Test", savedAt = Instant.now(), lastUsedAt = null, cookieCount = 3, )</ID>
     <ID>ArgumentListWrapping:LinkAutoDownloadCoordinatorTest.kt$LinkAutoDownloadCoordinatorTest$( accountId = "acc1", displayName = "Test", savedAt = Instant.now(), lastUsedAt = null, cookieCount = 5, )</ID>
+    <ID>ArgumentListWrapping:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$("S0980: batch-open openInPlayer=$openInPlayer firstUri=${result.summary.firstSavedUri != null}")</ID>
     <ID>ArgumentListWrapping:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$(R.string.link_autodownload_error_corrupted)</ID>
     <ID>ArgumentListWrapping:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$(R.string.link_autodownload_error_mime_blocked)</ID>
     <ID>ArgumentListWrapping:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$(R.string.s0116_toast_mux_failed, result.codec)</ID>
@@ -2301,7 +2302,7 @@
     <ID>CyclomaticComplexMethod:KeyboardShortcutHandler.kt$KeyboardShortcutHandler$private fun mapPlayer( keyCode: Int, ctrl: Boolean, shift: Boolean, alt: Boolean, ): InputAction?</ID>
     <ID>CyclomaticComplexMethod:LayoutSettingsSearchSource.kt$LayoutSettingsSearchSource$private fun buildEntry( parser: XmlResourceParser, viewId: Int, layoutResId: Int, kind: EntryKind, ancestorIds: List&lt;Int&gt; ): RawSettingsSearchEntry?</ID>
     <ID>CyclomaticComplexMethod:LinkAutoDownloadCoordinator.kt$LinkAutoDownloadCoordinator$private suspend fun handleUrl( url: String, settings: AppSettings, callbacks: Callbacks, accountId: String? = null, originalUrl: String = url, canonicalAudioOnly: Boolean = false, ): Result</ID>
-    <ID>CyclomaticComplexMethod:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$suspend fun present( result: LinkAutoDownloadCoordinator.Result, hostActivity: AppCompatActivity, isAuthRetry: Boolean = false, onAuthRetryRequested: suspend (originalUrl: String) -&gt; Unit = {}, )</ID>
+    <ID>CyclomaticComplexMethod:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$suspend fun present( result: LinkAutoDownloadCoordinator.Result, hostActivity: AppCompatActivity, notificationShown: Boolean = false, isAuthRetry: Boolean = false, onAuthRetryRequested: suspend (originalUrl: String) -&gt; Unit = {}, )</ID>
     <ID>CyclomaticComplexMethod:LinkDownloadWriter.kt$LinkDownloadWriter$private fun sniffMedia(file: File): String?</ID>
     <ID>CyclomaticComplexMethod:LocalCastProxyServer.kt$LocalCastProxyServer.InternalServer$override fun serve(session: IHTTPSession): Response</ID>
     <ID>CyclomaticComplexMethod:LocalCopyFileOperation.kt$LocalCopyFileOperation$suspend fun execute( operation: FileOperation.Copy, progressCallback: ByteProgressCallback? = null ): FileOperationResult</ID>
@@ -6685,6 +6686,7 @@
     <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$LinkAutoDownloadCoordinator.Result.Failed.DownloadCorrupted -&gt; toast(R.string.link_autodownload_error_corrupted)</ID>
     <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked -&gt; toast(R.string.link_autodownload_error_mime_blocked)</ID>
     <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$LinkAutoDownloadCoordinator.Result.Failed.StreamingDisabled -&gt; toast(R.string.s0116_toast_streaming_disabled)</ID>
+    <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$Timber.d("S0980: batch-open openInPlayer=$openInPlayer firstUri=${result.summary.firstSavedUri != null}")</ID>
     <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$hostActivity.supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)</ID>
     <ID>MaxLineLength:LinkAutoDownloadResultPresenter.kt$LinkAutoDownloadResultPresenter$is LinkAutoDownloadCoordinator.Result.Failed.MuxFailed -&gt; toast(R.string.s0116_toast_mux_failed, result.codec)</ID>
     <ID>MaxLineLength:LinkDownloadUserAgents.kt$LinkDownloadUserAgents$"Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"</ID>

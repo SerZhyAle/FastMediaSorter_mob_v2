@@ -87,15 +87,16 @@ class OverlayHostService : Service() {
             return START_NOT_STICKY
         }
 
-        val stripVisible = intent?.getBooleanExtra(EXTRA_STRIP_VISIBLE, false) ?: false
         startForegroundCompat()
-        // S0847: rebuild the enabled bands on every (re-)start so a zone toggle or strip-visibility change
-        // is reflected. enabledZones is read off the persisted settings; the whole build stays on Main.
+        // S0847/S1008: rebuild the enabled bands on every (re-)start so a zone toggle or strip-visibility
+        // change is reflected. Enabled + strip-visible zones are read off the persisted settings; the whole
+        // build stays on Main.
         serviceScope.launch {
             try {
                 val enabledZones = actionDispatcher.get().enabledZones()
+                val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
                 overlayManager.hide()
-                overlayManager.show(stripVisible, enabledZones)
+                overlayManager.show(stripVisibleZones, enabledZones)
                 overlayVisible = true
             } catch (e: Exception) {
                 Timber.e(e, "OverlayHostService: failed to start overlay host")
@@ -167,14 +168,14 @@ class OverlayHostService : Service() {
     companion object {
         private const val ACTION_START = "com.sza.fastmediasorter.action.OVERLAY_HOST_START"
         private const val ACTION_STOP = "com.sza.fastmediasorter.action.OVERLAY_HOST_STOP"
-        private const val EXTRA_STRIP_VISIBLE = "com.sza.fastmediasorter.extra.OVERLAY_STRIP_VISIBLE"
         private const val CHANNEL_ID = "screen_capture_overlay_host"
         private const val NOTIFICATION_ID = 0x4054
 
-        fun start(context: Context, stripVisible: Boolean) {
+        // S1008: enabled + strip-visible zones are resolved inside onStartCommand off the persisted
+        // settings, so a plain (re-)start refreshes both the band set and the per-zone strip colour.
+        fun start(context: Context) {
             val intent = Intent(context, OverlayHostService::class.java).apply {
                 action = ACTION_START
-                putExtra(EXTRA_STRIP_VISIBLE, stripVisible)
             }
             // Invariant: the sole caller runs in a foreground context (ScreenGestureOverlayStartupCoordinator
             // .restoreIfNeeded via ProcessLifecycleOwner.onStart), so the Android-15 visible-overlay FGS-start

@@ -619,6 +619,8 @@ Close the player and try again.</string>
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Connection timed out. Check your network and try again.</string>
+    <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
+    <string name="error_companion_connect_guidance">Couldn\'t reach the shared folder. On the same Wi-Fi as the PC it connects on its own; from another network the PC must allow access - set up port forwarding on the router or the internet access in the companion app.</string>
     <string name="error_network_access_denied">Access denied. Check your credentials.</string>
     <string name="error_network_not_found">File or resource not found.</string>
     <string name="error_network_connection_lost">No connection.</string>
@@ -2541,7 +2543,7 @@ Close the player and try again.</string>
     <string name="setting_subgroup_screen_gestures_title">Edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
-    <string name="setting_gesture_strip_visible_title">Show the left-edge gesture strip</string>
+    <string name="setting_gesture_strip_visible_title">Show the gesture strip</string>
     <string name="setting_gesture_strip_visible_summary">Show a semi-transparent grey guide on the first 4 px; the rest stays transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource - by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>

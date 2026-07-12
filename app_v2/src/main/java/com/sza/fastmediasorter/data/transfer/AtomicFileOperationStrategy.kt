@@ -81,13 +81,10 @@ class AtomicFileOperationStrategy(
             return delegate.copyFile(source, destination, overwrite, progressCallback)
         }
 
-        Timber.d("AtomicFileOperationStrategy.copyFile: Using atomic pattern")
-        Timber.d("  Source: $source")
-        Timber.d("  Destination: $destination")
-        
+        // S1027: dropped the per-file Using-atomic / Source / Destination / Temp debug lines -
+        // ~6 lines per file that flooded large-folder transfers. Failures are still logged below.
         val tempDestination = TempFileNamingStrategy.getTempPath(destination)
-        Timber.d("  Temp destination: $tempDestination")
-        
+
         val outcome = try {
             // Step 0: Check destination exists BEFORE copying if overwrite=false
             // This prevents unnecessary data transfer if file already exists
@@ -117,16 +114,14 @@ class AtomicFileOperationStrategy(
             }
             
             // Step 2: Copy to temporary destination
-            Timber.d("AtomicFileOperationStrategy: Starting copy to temp destination")
             val copyResult = delegate.copyFile(source, tempDestination, overwrite = true, progressCallback)
-            
+
             if (copyResult.isFailure) {
                 Timber.e("AtomicFileOperationStrategy: Copy to temp destination failed")
                 AtomicCopyOutcome.Failed(
                     copyResult.exceptionOrNull() ?: Exception("Copy to temp destination failed")
                 )
             } else {
-                Timber.d("AtomicFileOperationStrategy: Copy to temp completed, size check...")
                 finalizeSuccessfulCopy(source, tempDestination, destination, overwrite)
             }
         } catch (e: CancellationException) {
@@ -241,7 +236,6 @@ class AtomicFileOperationStrategy(
         if (overwrite) {
             val destExists = pathExists(destination).getOrNull() ?: false
             if (destExists) {
-                Timber.d("AtomicFileOperationStrategy: Destination exists, deleting before rename")
                 val deleteResult = deletePath(destination)
                 if (deleteResult.isFailure) {
                     Timber.e("AtomicFileOperationStrategy: Failed to delete existing destination")
@@ -252,7 +246,6 @@ class AtomicFileOperationStrategy(
             }
         }
 
-        Timber.d("AtomicFileOperationStrategy: Renaming temp to final destination")
         val renameResult = renamePath(tempDestination, destination)
 
         if (renameResult.isFailure) {
@@ -262,7 +255,7 @@ class AtomicFileOperationStrategy(
             )
         }
 
-        Timber.i("AtomicFileOperationStrategy: Atomic copy completed successfully")
+        // S1027: per-file success is already visible via the upload/download result line; no log here.
         return AtomicCopyOutcome.Success
     }
 

@@ -99,6 +99,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var s0386UpgradeReconciliation: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0386UpgradeReconciliation>
 
+    /** S0981: run-once flip of linkAutoDownloadOpenInPlayer from the old ON default to OFF. */
+    @Inject
+    lateinit var s0981OpenInPlayerDefaultOff:
+        dagger.Lazy<com.sza.fastmediasorter.data.migration.S0981OpenInPlayerDefaultOff>
+
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
 
@@ -281,6 +286,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0386UpgradeReconciliation.get().runIfNeeded()
+        }
+
+        // S0981: run-once flip of linkAutoDownloadOpenInPlayer from the old ON default to OFF -
+        // the field's code default changed but pre-existing installs already persisted `true`.
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            s0981OpenInPlayerDefaultOff.get().runIfNeeded()
         }
 
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)

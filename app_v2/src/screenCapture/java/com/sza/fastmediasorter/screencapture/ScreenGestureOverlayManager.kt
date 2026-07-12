@@ -44,7 +44,9 @@ class ScreenGestureOverlayManager(
 
     private val bandViews = LinkedHashMap<ScreenshotGestureZone, View>()
     private var stripWidthPx = 0
-    private var stripVisible = false
+
+    // S1008: the subset of shown bands whose grey guide is visible; the rest render transparent.
+    private var stripVisibleZones: Set<ScreenshotGestureZone> = emptySet()
 
     // Single-touch state: Android routes a whole gesture (down..up) to the view that received DOWN, so
     // one band owns a gesture at a time and sharing these across bands is safe.
@@ -52,9 +54,9 @@ class ScreenGestureOverlayManager(
     private var downX = 0f
     private var downY = 0f
 
-    fun show(stripVisible: Boolean = false, enabledZones: Set<ScreenshotGestureZone>) {
+    fun show(stripVisibleZones: Set<ScreenshotGestureZone> = emptySet(), enabledZones: Set<ScreenshotGestureZone>) {
         if (bandViews.isNotEmpty()) return
-        this.stripVisible = stripVisible
+        this.stripVisibleZones = stripVisibleZones
         val geom = computeGeometry()
         stripWidthPx = geom.stripWidth
         for (zone in enabledZones) {
@@ -68,11 +70,11 @@ class ScreenGestureOverlayManager(
         stripWidthPx = 0
     }
 
-    /** S0724/S0847: recolour every live band (grey when visible, transparent when hidden) without
-     *  re-adding the windows; if nothing is shown yet, the value is applied by the next [show]. */
-    fun setStripVisible(visible: Boolean) {
-        if (stripVisible == visible) return
-        stripVisible = visible
+    /** S0724/S0847/S1008: recolour every live band (grey for zones in [zones], transparent otherwise)
+     *  without re-adding the windows; if nothing is shown yet, the set is applied by the next [show]. */
+    fun setStripVisible(zones: Set<ScreenshotGestureZone>) {
+        if (stripVisibleZones == zones) return
+        stripVisibleZones = zones
         bandViews.forEach { (zone, view) -> applyBandBackground(zone, view) }
     }
 
@@ -114,12 +116,16 @@ class ScreenGestureOverlayManager(
     }
 
     private fun applyBandBackground(zone: ScreenshotGestureZone, view: View) {
-        if (!stripVisible) {
+        if (zone !in stripVisibleZones) {
             view.setBackgroundColor(Color.TRANSPARENT)
             return
         }
-        val currentWidthPx = stripWidthPx.takeIf { it > 0 } ?: view.width.coerceAtLeast(EDGE_VISIBLE_WIDTH_PX)
-        val visibleEdgeWidthPx = EDGE_VISIBLE_WIDTH_PX.coerceAtMost(currentWidthPx)
+        // S1008 device-test: the right edge needed a wider guide to stay perceptible on some panels;
+        // the left edge already worked at the original width, so the two sides are no longer tied
+        // to one shared constant.
+        val edgeVisibleWidthPx = if (zone.isRightEdge) EDGE_VISIBLE_WIDTH_RIGHT_PX else EDGE_VISIBLE_WIDTH_LEFT_PX
+        val currentWidthPx = stripWidthPx.takeIf { it > 0 } ?: view.width.coerceAtLeast(edgeVisibleWidthPx)
+        val visibleEdgeWidthPx = edgeVisibleWidthPx.coerceAtMost(currentWidthPx)
         view.background = EdgeGuideDrawable(
             color = STRIP_VISIBLE_EDGE_COLOR,
             visibleWidthPx = visibleEdgeWidthPx,
@@ -222,17 +228,25 @@ class ScreenGestureOverlayManager(
     )
 
     companion object {
-        // S0724 follow-up: only the first 4 px stay visibly guided; the rest of the gesture zone
+        // S0724 follow-up: only the first few px stay visibly guided; the rest of the gesture zone
         // remains transparent so the user can discover the edge without seeing the full hit area.
+        // S1008 device-test (2026-07-12/13): the right-edge guide was imperceptible at the true
+        // physical edge on some panels even though it was present in the composited framebuffer
+        // (screenshot showed it, the eye did not); widening it 1px off the absolute edge fixed that
+        // on the test device. The left edge worked fine at the original width, so the two are kept
+        // independent rather than forced to match.
         private const val STRIP_VISIBLE_EDGE_COLOR = 0x80808080.toInt()
-        private const val EDGE_VISIBLE_WIDTH_PX = 4
+        private const val EDGE_VISIBLE_WIDTH_LEFT_PX = 4
+        private const val EDGE_VISIBLE_WIDTH_RIGHT_PX = 5
         private const val STRIP_WIDTH_DP = 18
+
         // S0847 band geometry over the safe height: TOP band 10%..40%, BOTTOM band 60%..90%; the middle
         // 40%..60% is intentionally left free so the two same-edge bands never touch.
         private const val BAND_TOP_START = 0.10f
         private const val BAND_BOTTOM_START = 0.60f
         private const val BAND_HEIGHT = 0.30f
         private const val GESTURE_DISTANCE_PX = 120.0
+
         // Three non-overlapping angle windows (degrees) for the inward drag.
         private const val UP_MIN_ANGLE_DEGREES = -70.0
         private const val UP_MAX_ANGLE_DEGREES = -20.0

@@ -194,6 +194,7 @@ class FileOperationUseCase @Inject constructor(
         }
         
         // Execute operation in separate coroutine to allow progress updates
+        Timber.d("S1021: launch transfer coroutine op=${operation.javaClass.simpleName} n=$totalFiles")
         val resultDeferred = launch(Dispatchers.IO) {
             val result = executeInternal(operation, progressCallback)
             send(FileOperationProgress.Completed(result))
@@ -222,118 +223,43 @@ class FileOperationUseCase @Inject constructor(
         } else 0L
 
         try {
+            Timber.d("S1021: executeInternal entered try block, opType=${operation.javaClass.simpleName}")
             // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
             fun File.isNetworkPath(protocol: String): Boolean {
                 val pathStr = this.path
-                val result = pathStr.startsWith("$protocol://") || 
-                             pathStr.startsWith("/$protocol://") || 
-                             pathStr.startsWith("/$protocol:/") ||
-                             pathStr.startsWith("$protocol:/")  // Single colon case
-                Timber.d("FileOperation.isNetworkPath: path='$pathStr', protocol='$protocol', result=$result")
-                return result
-            }
-            
-            // Check if operation involves SMB or SFTP paths
-            val hasSmbPath = when (operation) {
-                is FileOperation.Copy -> {
-                    val sourceSmbCount = operation.sources.count { it.isNetworkPath("smb") }
-                    val destIsSmb = operation.destination.isNetworkPath("smb")
-                    Timber.d("FileOperation.Copy: sources=$sourceSmbCount/${operation.sources.size} SMB, dest=${if (destIsSmb) "SMB" else "Local"}")
-                    sourceSmbCount > 0 || destIsSmb
-                }
-                is FileOperation.Move -> {
-                    val sourceSmbCount = operation.sources.count { it.isNetworkPath("smb") }
-                    val destIsSmb = operation.destination.isNetworkPath("smb")
-                    Timber.d("FileOperation.Move: sources=$sourceSmbCount/${operation.sources.size} SMB, dest=${if (destIsSmb) "SMB" else "Local"}")
-                    sourceSmbCount > 0 || destIsSmb
-                }
-                is FileOperation.Delete -> {
-                    val smbCount = operation.files.count { it.isNetworkPath("smb") }
-                    Timber.d("FileOperation.Delete: $smbCount/${operation.files.size} SMB files")
-                    smbCount > 0
-                }
-                is FileOperation.Rename -> {
-                    val isSmb = operation.file.isNetworkPath("smb")
-                    Timber.d("FileOperation.Rename: file=${if (isSmb) "SMB" else "Local"}")
-                    isSmb
-                }
+                // S1027: no per-call log here - it fired for every source x every protocol probe
+                // (~1500 lines on a 369-file transfer). The per-operation summary below is enough.
+                return pathStr.startsWith("$protocol://") ||
+                    pathStr.startsWith("/$protocol://") ||
+                    pathStr.startsWith("/$protocol:/") ||
+                    pathStr.startsWith("$protocol:/") // Single colon case
             }
 
-            val hasSftpPath = when (operation) {
-                is FileOperation.Copy -> {
-                    val sourceSftpCount = operation.sources.count { it.isNetworkPath("sftp") }
-                    val destIsSftp = operation.destination.isNetworkPath("sftp")
-                    Timber.d("FileOperation.Copy: sources=$sourceSftpCount/${operation.sources.size} SFTP, dest=${if (destIsSftp) "SFTP" else "Local"}")
-                    sourceSftpCount > 0 || destIsSftp
-                }
-                is FileOperation.Move -> {
-                    val sourceSftpCount = operation.sources.count { it.isNetworkPath("sftp") }
-                    val destIsSftp = operation.destination.isNetworkPath("sftp")
-                    Timber.d("FileOperation.Move: sources=$sourceSftpCount/${operation.sources.size} SFTP, dest=${if (destIsSftp) "SFTP" else "Local"}")
-                    sourceSftpCount > 0 || destIsSftp
-                }
-                is FileOperation.Delete -> {
-                    val sftpCount = operation.files.count { it.isNetworkPath("sftp") }
-                    Timber.d("FileOperation.Delete: $sftpCount/${operation.files.size} SFTP files")
-                    sftpCount > 0
-                }
-                is FileOperation.Rename -> {
-                    val isSftp = operation.file.isNetworkPath("sftp")
-                    Timber.d("FileOperation.Rename: file=${if (isSftp) "SFTP" else "Local"}")
-                    isSftp
-                }
+            // S1027: one helper over source+destination replaces four near-identical when-blocks
+            // that each also logged per branch (16 lines/operation). Copy/Move look at sources and
+            // destination; Delete at the file list; Rename at the single file.
+            fun hasProtocol(protocol: String): Boolean = when (operation) {
+                is FileOperation.Copy ->
+                    operation.sources.any { it.isNetworkPath(protocol) } ||
+                        operation.destination.isNetworkPath(protocol)
+                is FileOperation.Move ->
+                    operation.sources.any { it.isNetworkPath(protocol) } ||
+                        operation.destination.isNetworkPath(protocol)
+                is FileOperation.Delete -> operation.files.any { it.isNetworkPath(protocol) }
+                is FileOperation.Rename -> operation.file.isNetworkPath(protocol)
             }
 
-            val hasFtpPath = when (operation) {
-                is FileOperation.Copy -> {
-                    val sourceFtpCount = operation.sources.count { it.isNetworkPath("ftp") }
-                    val destIsFtp = operation.destination.isNetworkPath("ftp")
-                    Timber.d("FileOperation.Copy: sources=$sourceFtpCount/${operation.sources.size} FTP, dest=${if (destIsFtp) "FTP" else "Local"}")
-                    sourceFtpCount > 0 || destIsFtp
-                }
-                is FileOperation.Move -> {
-                    val sourceFtpCount = operation.sources.count { it.isNetworkPath("ftp") }
-                    val destIsFtp = operation.destination.isNetworkPath("ftp")
-                    Timber.d("FileOperation.Move: sources=$sourceFtpCount/${operation.sources.size} FTP, dest=${if (destIsFtp) "FTP" else "Local"}")
-                    sourceFtpCount > 0 || destIsFtp
-                }
-                is FileOperation.Delete -> {
-                    val ftpCount = operation.files.count { it.isNetworkPath("ftp") }
-                    Timber.d("FileOperation.Delete: $ftpCount/${operation.files.size} FTP files")
-                    ftpCount > 0
-                }
-                is FileOperation.Rename -> {
-                    val isFtp = operation.file.isNetworkPath("ftp")
-                    Timber.d("FileOperation.Rename: file=${if (isFtp) "FTP" else "Local"}")
-                    isFtp
-                }
-            }
+            val hasSmbPath = hasProtocol("smb")
+            val hasSftpPath = hasProtocol("sftp")
+            val hasFtpPath = hasProtocol("ftp")
+            val hasCloudPath = hasProtocol("cloud")
 
-            val hasCloudPath = when (operation) {
-                is FileOperation.Copy -> {
-                    val sourceCloudCount = operation.sources.count { it.isNetworkPath("cloud") }
-                    val destIsCloud = operation.destination.isNetworkPath("cloud")
-                    Timber.d("FileOperation.Copy: sources=$sourceCloudCount/${operation.sources.size} Cloud, dest=${if (destIsCloud) "Cloud" else "Local"}")
-                    sourceCloudCount > 0 || destIsCloud
-                }
-                is FileOperation.Move -> {
-                    val sourceCloudCount = operation.sources.count { it.isNetworkPath("cloud") }
-                    val destIsCloud = operation.destination.isNetworkPath("cloud")
-                    Timber.d("FileOperation.Move: sources=$sourceCloudCount/${operation.sources.size} Cloud, dest=${if (destIsCloud) "Cloud" else "Local"}")
-                    sourceCloudCount > 0 || destIsCloud
-                }
-                is FileOperation.Delete -> {
-                    val cloudCount = operation.files.count { it.isNetworkPath("cloud") }
-                    Timber.d("FileOperation.Delete: $cloudCount/${operation.files.size} Cloud files")
-                    cloudCount > 0
-                }
-                is FileOperation.Rename -> {
-                    val isCloud = operation.file.isNetworkPath("cloud")
-                    Timber.d("FileOperation.Rename: file=${if (isCloud) "Cloud" else "Local"}")
-                    isCloud
-                }
-            }
-
+            // S1027: single per-operation classification summary (replaced the 16 per-branch lines).
+            Timber.d(
+                "FileOperation.${operation.javaClass.simpleName}: " +
+                    "smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath",
+            )
+            Timber.d("S1021: classified smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath")
             val result = when {
                 hasCloudPath -> {
                     Timber.d("FileOperation: Using Cloud handler")
@@ -355,6 +281,7 @@ class FileOperationUseCase @Inject constructor(
                     
                     if (useSmb) {
                         Timber.d("FileOperation: Mixed SMB↔SFTP - using SMB handler (dest=SMB)")
+                        Timber.d("S1021: dispatching Mixed SMB<->SFTP move to SMB handler")
                         when (operation) {
                             is FileOperation.Copy -> smbFileOperationHandler.executeCopy(operation, progressCallback)
                             is FileOperation.Move -> smbFileOperationHandler.executeMove(operation, progressCallback)
@@ -363,6 +290,7 @@ class FileOperationUseCase @Inject constructor(
                         }
                     } else {
                         Timber.d("FileOperation: Mixed SMB↔SFTP - using SFTP handler (dest=SFTP)")
+                        Timber.d("S1021: dispatching Mixed SMB<->SFTP move to SFTP handler")
                         when (operation) {
                             is FileOperation.Copy -> sftpFileOperationHandler.executeCopy(operation, progressCallback)
                             is FileOperation.Move -> sftpFileOperationHandler.executeMove(operation, progressCallback)
@@ -462,9 +390,16 @@ class FileOperationUseCase @Inject constructor(
         } catch (e: Exception) {
             StructuredLogger.e(e, "EXCEPTION in executeInternal")
             return FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
+        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+            // S1021: catch(Exception) above never sees an Error (OOM/StackOverflow/..) - it would
+            // otherwise escape this use case, the Worker's CancellationException-only catch, and
+            // doWork() itself uncaught, silent to Timber and visible only in WorkManager's own log.
+            Timber.d("S1021: Throwable escaped executeInternal, type=${t.javaClass.simpleName}")
+            Timber.e(t, "Throwable escaped FileOperationUseCase.executeInternal")
+            return FileOperationResult.Failure("${t.javaClass.simpleName}: ${t.message}")
         }
     }
-    
+
     suspend fun execute(
         operation: FileOperation,
         progressCallback: ByteProgressCallback? = null

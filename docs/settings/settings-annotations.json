@@ -269,11 +269,6 @@
     "ru": "Включает оверлей жестов на левом крае экрана для запуска операций свайпом.",
     "uk": "Вмикає оверлей жестів на лівому краї екрана для запуску операцій свайпом."
   },
-  "rowGestureStripVisible": {
-    "en": "Shows a semi-transparent grey guide on the first 4 px of the left-edge gesture strip; the rest stays transparent, and the change takes effect only while the gesture overlay is enabled.",
-    "ru": "Показывает полупрозрачную серую направляющую на первых 4 px полосы жеста у левого края; остальная часть остаётся прозрачной, и изменение действует только при включённом оверлее жестов.",
-    "uk": "Показує напівпрозору сіру напрямну на перших 4 px смуги жесту біля лівого краю; решта лишається прозорою, і зміна діє лише за ввімкненого оверлея жестів."
-  },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",
     "ru": "Автоматически переходит к следующему файлу в списке после завершения копирования.",
@@ -1014,6 +1009,11 @@
     "ru": "Включает распознавание жестов на верхней левой краевой полосе (10-40% высоты).",
     "uk": "Вмикає розпізнавання жестів на верхній лівій краєвій смузі (10-40% висоти)."
   },
+  "rowZoneLeftTopStripVisible": {
+    "en": "Shows the grey guide strip on the upper-left screen-edge band; visible only while that band is enabled.",
+    "ru": "Показывает серую направляющую полосу на верхней левой краевой полосе; видна только при включённой полосе.",
+    "uk": "Показує сіру напрямну смугу на верхній лівій краєвій смузі; видно лише за ввімкненої смуги."
+  },
   "rowGestureLeftTopUp": {
     "en": "Chooses the action triggered by the upward swipe on the upper-left edge band.",
     "ru": "Выбирает действие для жеста вверх на верхней левой краевой полосе.",
@@ -1033,6 +1033,11 @@
     "en": "Enables gesture detection on the lower-left screen-edge band (60-90% of height).",
     "ru": "Включает распознавание жестов на нижней левой краевой полосе (60-90% высоты).",
     "uk": "Вмикає розпізнавання жестів на нижній лівій краєвій смузі (60-90% висоти)."
+  },
+  "rowZoneLeftBottomStripVisible": {
+    "en": "Shows the grey guide strip on the lower-left screen-edge band; visible only while that band is enabled.",
+    "ru": "Показывает серую направляющую полосу на нижней левой краевой полосе; видна только при включённой полосе.",
+    "uk": "Показує сіру напрямну смугу на нижній лівій краєвій смузі; видно лише за ввімкненої смуги."
   },
   "rowGestureLeftBottomUp": {
     "en": "Chooses the action triggered by the upward swipe on the lower-left edge band.",
@@ -1054,6 +1059,11 @@
     "ru": "Включает распознавание жестов на верхней правой краевой полосе (10-40% высоты).",
     "uk": "Вмикає розпізнавання жестів на верхній правій краєвій смузі (10-40% висоти)."
   },
+  "rowZoneRightTopStripVisible": {
+    "en": "Shows the grey guide strip on the upper-right screen-edge band; visible only while that band is enabled.",
+    "ru": "Показывает серую направляющую полосу на верхней правой краевой полосе; видна только при включённой полосе.",
+    "uk": "Показує сіру напрямну смугу на верхній правій краєвій смузі; видно лише за ввімкненої смуги."
+  },
   "rowGestureRightTopUp": {
     "en": "Chooses the action triggered by the upward swipe on the upper-right edge band.",
     "ru": "Выбирает действие для жеста вверх на верхней правой краевой полосе.",
@@ -1073,6 +1083,11 @@
     "en": "Enables gesture detection on the lower-right screen-edge band (60-90% of height).",
     "ru": "Включает распознавание жестов на нижней правой краевой полосе (60-90% высоты).",
     "uk": "Вмикає розпізнавання жестів на нижній правій краєвій смузі (60-90% висоти)."
+  },
+  "rowZoneRightBottomStripVisible": {
+    "en": "Shows the grey guide strip on the lower-right screen-edge band; visible only while that band is enabled.",
+    "ru": "Показывает серую направляющую полосу на нижней правой краевой полосе; видна только при включённой полосе.",
+    "uk": "Показує сіру напрямну смугу на нижній правій краєвій смузі; видно лише за ввімкненої смуги."
   },
   "rowGestureRightBottomUp": {
     "en": "Chooses the action triggered by the upward swipe on the lower-right edge band.",

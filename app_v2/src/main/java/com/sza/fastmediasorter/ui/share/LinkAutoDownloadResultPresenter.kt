@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
@@ -286,14 +287,28 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         }
     }
 
-    private fun launchPlayer(host: AppCompatActivity, uri: android.net.Uri) {
+    private suspend fun launchPlayer(host: AppCompatActivity, uri: android.net.Uri) {
+        // S0981: this fires from a replay=1 collector at Lifecycle.State.STARTED (see MainActivity's
+        // shareResultBus.pending collector), so it can race the host coming back from background -
+        // e.g. the user reopens the app right as the download finishes and the cached Pending
+        // re-emits mid-transition, before the Activity is actually interactive. Starting a new
+        // Activity at that instant can leave it in the back stack without visually snapping to
+        // front. Wait for genuine RESUMED before launching; repeatOnLifecycle cancels this collector
+        // (and this suspend point) if the host drops below STARTED again, so no leak/hang risk.
         try {
-            // S0393: route through the dispatcher (resolves media family -> specialized host); legacy
-            // StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for non-SEND intents.
-            val intent = Intent(host, StandalonePlayerDispatcherActivity::class.java)
-                .setData(uri)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            host.startActivity(intent)
+            host.lifecycle.withResumed {
+                // S0393: route through the dispatcher (resolves media family -> specialized host);
+                // legacy StandalonePlayerActivity is @Deprecated. Dispatcher reads intent.data for
+                // non-SEND intents.
+                // S0981: FLAG_ACTIVITY_NEW_TASK mirrors LinkDownloadWorker's notification-tap
+                // PendingIntent for the same target - the dispatcher/standalone hosts share
+                // MainActivity's task affinity, so this only guarantees "bring the existing task to
+                // front", not a genuine new task.
+                val intent = Intent(host, StandalonePlayerDispatcherActivity::class.java)
+                    .setData(uri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                host.startActivity(intent)
+            }
         } catch (throwable: Throwable) {
             Timber.e(throwable, "failed to launch player for %s", uri)
         }

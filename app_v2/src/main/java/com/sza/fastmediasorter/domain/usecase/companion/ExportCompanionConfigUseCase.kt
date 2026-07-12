@@ -90,6 +90,9 @@ class ExportCompanionConfigUseCase @Inject constructor(
     private fun buildRoot(resource: MediaResource, remotePath: String): CompanionRootDto = CompanionRootDto(
         virtualPath = remotePath,
         label = resource.name,
+        // S1016: emit readOnly:false for a writable share so an Android->Android round-trip keeps it
+        // writable; a read-only resource omits the field (absent == read-only, compact payload).
+        readOnly = if (resource.isReadOnly) null else false,
         profile = resource.profile
             .takeIf { it != ResourceProfile.NONE }
             ?.let { CompanionResourceTokens.profileToToken(it) },

@@ -40,12 +40,13 @@ Curated stream catalog `delivery/stream-catalog/streams.csv` ships as **mutable*
 
 **Never auto-prune in this sweep.** Pruning is human-gated opt-in: a geo-restricted stream reads `dead`/404 from build machine yet plays on user's device. Review `temp/stream-catalog-liveness.csv`; only if a row is genuinely dead after review (ideally a second-network re-probe) run `scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead` manually, outside this sweep.
 
-If `streams.csv` changed (append, or later manual prune), re-package and re-upload asset or change never reaches users - app fetches release asset, not repo file:
+If `streams.csv` changed (append, or later manual prune), re-package and re-upload asset or change never reaches users - app fetches release asset, not repo file. **Always publish through the guarded packer** below - never `Compress-Archive` the CSV and `gh release upload` it by hand:
 
 ```powershell
-Compress-Archive -Path delivery/stream-catalog/streams.csv -DestinationPath temp/stream-catalog.zip -Force
-gh release upload delivery-so-v1 temp/stream-catalog.zip --clobber
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -SkipLiveness -Publish
 ```
+
+This bundles `streams.csv` **and** `favicon-atlas.png` and enforces the S0925 guard. A raw `Compress-Archive -Path .\streams.csv` ships a CSV-only zip with no atlas - the app then gets `atlasPng=null`, `FaviconAtlasStore.write(null, coords)` deletes the atlas and writes empty coords, and **every** channel loses its favicon app-wide (recurred 2026-07-12). `-SkipLiveness` skips the ~2489-URL probe and does not mutate the CSV, so the published pair stays consistent.
 
 (Hosting / release tag in `delivery/stream-catalog/README.md`.)
 

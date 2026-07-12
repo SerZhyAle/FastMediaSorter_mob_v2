@@ -70,7 +70,9 @@ $benignPatterns = @(
     'Bluetooth binder is null', 'BatteryExternalStats', 'KernelCpuSpeedReader',  # system services, not app
     'OCR engines not installed', 'UnsatisfiedLinkError loading', # expected optional-native fallback
     'NetworkReachabilityGate: no-(network|wifi)',              # offline gate, expected
-    'SpellCheckerSession'                                       # IME service noise
+    'SpellCheckerSession',                                      # IME service noise
+    'BufferQueueProducer.*(cancelBuffer|requestBuffer).*no connected producer'  # S0484: app-scoped but
+    # a well-known harmless SurfaceTexture teardown race (player/view surface torn down mid-frame)
 ) -join '|'
 
 # Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
@@ -90,7 +92,12 @@ $foreignTagPatterns = @(
     'TransitionChain', 'IPCThreadState', 'SystemServiceRegistry', 'FeatureFlagsImplExport',
     'NsdService', 'AtomicFile', 'ShortcutService', 'JobScheduler', '\bJobStatus\b',
     'libprocessgroup', 'Nl80211Native', 'ImeLatencyLogger', 'RemoteFillService',
-    'ClipboardService', 'NwpModelManager'
+    'ClipboardService', 'NwpModelManager',
+    # S0484 2026-07-12 sweep: PID-cross-checked against the app's "Start proc" lines, confirmed
+    # none belong to our process - other-app / system_server / codec-HAL noise (S0976).
+    'SmsApplication', 'TaskPersister', '\badbd\b', 'BpTransactionCompletedListener',
+    'WifiMulticastLockManager', 'MediaControlProfile', 'WorkSourceUtil',
+    'C2IgbaBuffer', 'Codec2-Component-Aidl', '\beptr\b', '\bsystem_server\b'
 ) -join '|'
 
 # Benign (tag, message-signature) pairs (S0976). Unlike $foreignTagPatterns these tags either name

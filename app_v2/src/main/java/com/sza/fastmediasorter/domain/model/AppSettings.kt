@@ -190,10 +190,6 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
-    // S0724: show a semi-transparent grey guide only on the first 4 px of the left-edge gesture strip,
-    // while the rest of the gesture zone stays transparent. Default off keeps the strip invisible.
-    // Effective only while the gesture overlay itself is enabled.
-    val screenshotGestureStripVisible: Boolean = false,
     // S0847: four independently-toggleable edge bands (2 left, 2 right at 10-40% / 60-90% of safe height),
     // each with the DOWN/RIGHT/UP triple - up to 12 gestures. LEFT_TOP enabled by default and seeded from
     // the pre-S0847 single-strip bindings; the other three bands are opt-in (disabled, DO_NOT_USE).
@@ -201,6 +197,13 @@ data class AppSettings(
     val screenshotGestureZoneLeftBottomEnabled: Boolean = false,
     val screenshotGestureZoneRightTopEnabled: Boolean = false,
     val screenshotGestureZoneRightBottomEnabled: Boolean = false,
+    // S1008: per-zone visibility of the semi-transparent grey guide on the first 4 px of the band's edge
+    // (S0724 generalised from the single left strip to all four bands). Effective only while the band is
+    // enabled and the gesture overlay is on. LEFT_TOP migrates the pre-S1008 single strip-visible flag.
+    val screenshotGestureZoneLeftTopStripVisible: Boolean = false,
+    val screenshotGestureZoneLeftBottomStripVisible: Boolean = false,
+    val screenshotGestureZoneRightTopStripVisible: Boolean = false,
+    val screenshotGestureZoneRightBottomStripVisible: Boolean = false,
     val screenshotGestureLeftTopDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
     val screenshotGestureLeftTopRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotGestureLeftTopUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
@@ -278,9 +281,13 @@ data class AppSettings(
     // (direct media or HTML-embedded media candidate) into the resource referenced by
     // `linkAutoDownloadResourceId` (or Downloads when null/unavailable).
     // `linkAutoDownloadOpenInPlayer` controls whether the resulting file opens automatically.
+    // S0981: default OFF - owner call after device-test surfaced that a background-triggered
+    // player launch can fail to visually snap to foreground; opt-in avoids surprising the user
+    // with a launch they did not just initiate. Pre-existing installs are force-reset once by
+    // S0981OpenInPlayerDefaultOff (data/migration) since this default is fully persisted on save.
     val linkAutoDownloadEnabled: Boolean = true,
     val linkAutoDownloadResourceId: Long? = null,
-    val linkAutoDownloadOpenInPlayer: Boolean = true,
+    val linkAutoDownloadOpenInPlayer: Boolean = false,
 
     // S0116 §5.1 pillar J: quality preference applied to streaming variant selection
     // and direct-file candidates with declared resolution.
@@ -376,6 +383,14 @@ data class AppSettings(
         ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGestureZoneLeftBottomEnabled
         ScreenshotGestureZone.RIGHT_TOP -> screenshotGestureZoneRightTopEnabled
         ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGestureZoneRightBottomEnabled
+    }
+
+    /** S1008: whether the given edge band shows the grey strip guide (visible only while the band is enabled). */
+    fun screenshotGestureZoneStripVisible(zone: ScreenshotGestureZone): Boolean = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> screenshotGestureZoneLeftTopStripVisible
+        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGestureZoneLeftBottomStripVisible
+        ScreenshotGestureZone.RIGHT_TOP -> screenshotGestureZoneRightTopStripVisible
+        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGestureZoneRightBottomStripVisible
     }
 
     /** S0847: resolves the action bound to a specific edge band + drag direction (one of 12 slots). */

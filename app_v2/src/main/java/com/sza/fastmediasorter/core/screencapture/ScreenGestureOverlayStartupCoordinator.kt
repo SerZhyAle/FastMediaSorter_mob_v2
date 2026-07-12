@@ -23,11 +23,10 @@ class ScreenGestureOverlayStartupCoordinator @Inject constructor(
     suspend fun restoreIfNeeded() {
         if (controllers.isEmpty()) return
 
-        // S0727: read the full settings snapshot once off-Main, then pass strip visibility into
-        // setEnabled so the controller does no settings IO on Main.immediate below.
+        // S0727: read the master toggle once off-Main. S1008: the host resolves the enabled + strip-visible
+        // zone sets itself off the persisted settings, so no strip state is threaded onto Main.immediate below.
         val settings = settingsRepository.get().getSettings().first()
         if (!settings.gestureOverlayEnabled) return
-        val stripVisible = settings.screenshotGestureStripVisible
 
         withContext(Dispatchers.Main.immediate) {
             controllers.forEach { controller ->
@@ -37,7 +36,7 @@ class ScreenGestureOverlayStartupCoordinator @Inject constructor(
                     )
                     return@forEach
                 }
-                controller.setEnabled(true, stripVisible)
+                controller.setEnabled(true)
                 Timber.i(
                     "ScreenGestureOverlayStartupCoordinator: overlay restore requested on startup"
                 )

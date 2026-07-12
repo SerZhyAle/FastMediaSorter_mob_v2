@@ -72,6 +72,7 @@
 - [Settings-search gate axes](project_settings_search_gate_axes.md) - 3 ANDed: section / CapabilityGate / DeviceFeatureGate
 - [Reuse existing settings](feedback_reuse_existing_settings.md) - grep AppSettings+fragment before adding
 - [Resource vs Folder terms](feedback_resource_vs_folder_terminology.md) - resource=registered entity; folder=FS dir
+- [Write-permission gating](project_write_permission_gating.md) - isWritable(probe/connectivity) vs isReadOnly(policy); use allowsWriteOperations() (S1019)
 - [MainActivity LOC ceiling](feedback_mainactivity_loc_ceiling.md) - ~1500; fold wiring into Main*Manager
 - [Players are a family](feedback_player_family_glue_mirroring.md) - shared engine propagates; per-host mirrored manually
 - [activity_welcome 3 widths](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new id in all three

@@ -100,6 +100,9 @@ The shared folders behave like any other resource in the app. For example:
 - The QR code (or `.fmscfg` file) encodes the connection: host, port, credential, the shared folder paths, and the server's host-key fingerprint. Dense shares are sent compressed, so even many folders fit in one code.
 - The phone reads that payload, verifies it, and creates one **read-only SFTP resource per folder**. The server key is pinned on first use (TOFU), so the phone can warn you if the PC is ever impersonated.
 - Because it is your local Wi-Fi and read-only, the phone browses and streams the files without changing anything on the PC.
+- **On the same Wi-Fi, the phone finds the PC by itself.** The companion announces the share on the local network, and the phone matches it by the pinned key - so even if the PC's address on the network changes, the share keeps working without re-scanning.
+- **One import can work at home and away.** The code can carry more than one address - the local one, an IPv6 one, and an internet port-forward. The phone tries them and uses whichever is reachable right now: the local address at home, the internet one on mobile data. The same resource keeps working as you move between networks, as long as the PC is actually reachable from where you are.
+- **If it cannot connect, the app explains what to do** - get on the same Wi-Fi, or set up access on the PC - instead of a bare error. When the companion includes a note about access, the phone shows it.
 
 ---
 
@@ -111,7 +114,7 @@ The shared folders behave like any other resource in the app. For example:
 | Camera says access is needed | Grant the camera permission when prompted - it is used only for the scan |
 | "This file is not a valid companion config" | The code or file is not from the Windows companion. Re-export it from the **Share** tab |
 | "Created by a newer companion version" | Update FastMediaSorter on the phone, or re-export from a matching companion version |
-| Resource added but folders are empty | Make sure the PC helper is still running and the phone is on the **same Wi-Fi** (not mobile data) |
-| Works on Wi-Fi but not mobile data | Expected - the share lives on your local network only |
+| Resource added but folders are empty | Make sure the PC helper is still running. On the **same Wi-Fi** the app finds the PC on its own; if it still fails, the app shows what to check |
+| Works on Wi-Fi but not on mobile data | To reach the PC from another network, it must be reachable from the internet - set up port forwarding or IPv6 in the companion's **Share** settings. Without that, the share works on the same Wi-Fi only |
 
 → More help: [TROUBLESHOOTING.md](../TROUBLESHOOTING.md) &bull; Foundations: [Connect to NAS / Windows Share (SMB)](scenario-smb-setup.md)

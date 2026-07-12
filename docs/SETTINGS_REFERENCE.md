@@ -262,7 +262,6 @@ _Available in: Standard, Legacy_
 | Down gesture action | Chooses the action triggered by the downward swipe on the upper-right edge band. |
 | Right gesture action | Chooses the action triggered by the inward swipe on the upper-right edge band. |
 | Up gesture action | Chooses the action triggered by the upward swipe on the upper-right edge band. |
-| Show the left-edge gesture strip | Shows a semi-transparent grey guide on the first 4 px of the left-edge gesture strip; the rest stays transparent, and the change takes effect only while the gesture overlay is enabled. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
 | Auto-download incoming links | Automatically downloads a file when a link is shared into the app. |
@@ -278,6 +277,10 @@ _Available in: Standard, Legacy_
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
 | Left edge - lower band | Enables gesture detection on the lower-left screen-edge band (60-90% of height). |
+| Show the gesture strip | Shows the grey guide strip on the lower-left screen-edge band; visible only while that band is enabled. |
 | Left edge - upper band | Enables gesture detection on the upper-left screen-edge band (10-40% of height). |
+| Show the gesture strip | Shows the grey guide strip on the upper-left screen-edge band; visible only while that band is enabled. |
 | Right edge - lower band | Enables gesture detection on the lower-right screen-edge band (60-90% of height). |
+| Show the gesture strip | Shows the grey guide strip on the lower-right screen-edge band; visible only while that band is enabled. |
 | Right edge - upper band | Enables gesture detection on the upper-right screen-edge band (10-40% of height). |
+| Show the gesture strip | Shows the grey guide strip on the upper-right screen-edge band; visible only while that band is enabled. |
