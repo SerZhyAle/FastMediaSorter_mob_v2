@@ -39,7 +39,6 @@ class S0981OpenInPlayerDefaultOff @Inject constructor(
         if (prefs.getBoolean(KEY_DONE, false)) return
         try {
             val settings = settingsRepository.getSettings().first()
-            Timber.d("S0981: default-migration check wasOn=${settings.linkAutoDownloadOpenInPlayer}")
             if (settings.linkAutoDownloadOpenInPlayer) {
                 settingsRepository.updateSettings(settings.copy(linkAutoDownloadOpenInPlayer = false))
                 Timber.i("Open-in-player default migration: forced linkAutoDownloadOpenInPlayer OFF")

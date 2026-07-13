@@ -163,6 +163,32 @@ class ScreenCaptureService : Service() {
         try {
             val bitmap = withContext(Dispatchers.Default) { imageToBitmap(image) }
             val settings = settingsRepository.get().getSettings().first()
+
+            // Copy to clipboard from the live bitmap before the save use case recycles it;
+            // independent of the post-capture action and the save destination.
+            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
+                toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
+            val action = resolveGestureAction()
+
+            // S1042: OCR actions skip the gallery save - stage the raw frame to a private temp file and
+            // open the unified crop/OCR/translate screen, which saves only the cropped result. No
+            // "saved to gallery" toast, since the raw screenshot is not persisted to the gallery.
+            if (action == ScreenshotGestureAction.OCR_TRANSLATE) {
+                val tempFile = withContext(Dispatchers.IO) {
+                    actionDispatcher.get().stageOcrSourceFile(applicationContext, bitmap)
+                }
+                if (tempFile != null) {
+                    actionDispatcher.get().launchOcrCropFlow(applicationContext, tempFile)
+                    finishSuccessfully()
+                } else {
+                    Timber.e("ScreenCaptureService: failed to stage OCR source frame")
+                    finishWithError()
+                }
+                return
+            }
+
             val resources = resourceRepository.get().getAllResourcesSync()
             val target = ScreenshotDestinationPolicy().resolve(
                 selectedResourceId = settings.screenshotDestinationResourceId,
@@ -172,12 +198,6 @@ class ScreenCaptureService : Service() {
             val selectedResourceName = resources
                 .firstOrNull { it.id.toString() == settings.screenshotDestinationResourceId }
                 ?.name.orEmpty()
-
-            // Copy to clipboard from the live bitmap before the save use case recycles it;
-            // independent of the post-capture action and the save destination.
-            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
-                toast(getString(R.string.screen_capture_copied_to_clipboard))
-            }
 
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {
@@ -190,7 +210,7 @@ class ScreenCaptureService : Service() {
                             background = true
                         )
                     }
-                    runPostSaveAction(result.savedUri)
+                    actionDispatcher.get().runPostSave(applicationContext, action, result.savedUri)
                     finishSuccessfully()
                 }
                 is SaveScreenshotUseCase.SaveResult.Failure -> {
@@ -206,7 +226,8 @@ class ScreenCaptureService : Service() {
         }
     }
 
-    private suspend fun runPostSaveAction(savedUri: android.net.Uri?) {
+    /** Resolves the configured gesture action for the fired zone+direction; absent -> silent save. */
+    private suspend fun resolveGestureAction(): ScreenshotGestureAction {
         // Direction was gated to non-DO_NOT_USE in the overlay host; absent/unknown -> silent save.
         val direction = gestureDirection?.let {
             runCatching { ScreenshotGestureDirection.valueOf(it) }.getOrNull()
@@ -215,12 +236,11 @@ class ScreenCaptureService : Service() {
         val zone = gestureZone?.let {
             runCatching { ScreenshotGestureZone.valueOf(it) }.getOrNull()
         } ?: ScreenshotGestureZone.LEFT_TOP
-        val action = if (direction != null) {
+        return if (direction != null) {
             actionDispatcher.get().actionFor(zone, direction)
         } else {
             ScreenshotGestureAction.SILENT_SCREENSHOT
         }
-        actionDispatcher.get().runPostSave(applicationContext, action, savedUri)
     }
 
     private fun imageToBitmap(image: Image): Bitmap {

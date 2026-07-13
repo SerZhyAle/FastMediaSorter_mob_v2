@@ -5,8 +5,13 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.model.ResourceType
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,17 +36,27 @@ import javax.inject.Singleton
  */
 @Singleton
 class NetworkStateMonitor @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    @param:ApplicationScope private val appScope: CoroutineScope
 ) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    
+
     // Callbacks for network changes
     private val callbacks = mutableListOf<NetworkChangeCallback>()
-    
-    // Current network state (network handle + interface name for stability)
+
+    // Raw last-seen network id (updated on every transition, before debounce settles).
     @Volatile
     private var lastNetworkId: String? = null
-    
+
+    // The network id consumers were last notified about. A raw transition only fires a callback once
+    // the transport settles on a genuinely different id than this; a wlan<->cellular round-trip that
+    // returns here within the settle window is suppressed (S1040).
+    @Volatile
+    private var lastNotifiedNetworkId: String? = null
+
+    private val debounceLock = Any()
+    private var settleJob: Job? = null
+
     @Volatile
     private var isMonitoring = false
     
@@ -70,7 +85,9 @@ class NetworkStateMonitor @Inject constructor(
         
         override fun onLost(network: Network) {
             Timber.w("NetworkStateMonitor: Network lost - ${network.networkHandle}")
+            cancelSettleEvaluation()
             lastNetworkId = null
+            lastNotifiedNetworkId = null
             notifyNetworkLost()
         }
         
@@ -112,21 +129,66 @@ class NetworkStateMonitor @Inject constructor(
     }
     
     /**
-     * Handle network change event.
-     * Compares current network ID with previous to detect actual changes.
+     * Handle network change event. Only genuine raw transitions (a different network id than the
+     * one last seen) schedule a debounced evaluation; capability/link ticks on the same network are
+     * ignored. A transition back to the already-notified network cancels a pending evaluation, so a
+     * transient wlan<->cellular round-trip never reaches consumers (S1040).
      */
     private fun handleNetworkChange(network: Network) {
         val currentNetworkId = getNetworkId(network)
-        
-        if (lastNetworkId != null && lastNetworkId != currentNetworkId) {
-            Timber.w("NetworkStateMonitor: Network changed: $lastNetworkId → $currentNetworkId")
-            notifyNetworkChanged()
-        } else if (lastNetworkId == null) {
+        val previousRaw = lastNetworkId
+
+        if (previousRaw == null) {
             Timber.i("NetworkStateMonitor: Network established: $currentNetworkId")
+            lastNetworkId = currentNetworkId
+            lastNotifiedNetworkId = currentNetworkId
+            return
         }
-        
+        if (currentNetworkId == previousRaw) return
+
         lastNetworkId = currentNetworkId
+        Timber.d("NetworkStateMonitor: Raw transition $previousRaw → $currentNetworkId (settle ${SETTLE_WINDOW_MS}ms)")
+
+        if (currentNetworkId == lastNotifiedNetworkId) {
+            cancelSettleEvaluation()
+        } else {
+            scheduleSettleEvaluation(currentNetworkId)
+        }
     }
+
+    /**
+     * After a raw transition, wait [SETTLE_WINDOW_MS] for the transport to stabilise, then notify
+     * consumers only if the settled network still differs from the one they know about. Rapid flaps
+     * cancel and reschedule this, so only the trailing stable state is acted on.
+     */
+    private fun scheduleSettleEvaluation(latestNetworkId: String) {
+        synchronized(debounceLock) {
+            settleJob?.cancel()
+            settleJob = appScope.launch {
+                delay(SETTLE_WINDOW_MS)
+                val settledId = getActiveNetworkId() ?: latestNetworkId
+                val previous = lastNotifiedNetworkId
+                Timber.d("S1040: settle previous=$previous settled=$settledId invalidate=${settledId != previous}")
+                if (settledId == previous) {
+                    Timber.d("NetworkStateMonitor: Flap settled back on $settledId - no invalidation")
+                    return@launch
+                }
+                lastNotifiedNetworkId = settledId
+                Timber.w("NetworkStateMonitor: Network changed (settled): $previous → $settledId")
+                notifyNetworkChanged()
+            }
+        }
+    }
+
+    private fun cancelSettleEvaluation() {
+        synchronized(debounceLock) {
+            settleJob?.cancel()
+            settleJob = null
+        }
+    }
+
+    private fun getActiveNetworkId(): String? =
+        connectivityManager.activeNetwork?.let { getNetworkId(it) }
     
     /**
      * Generate unique network identifier from network handle and interface name.
@@ -226,6 +288,7 @@ class NetworkStateMonitor @Inject constructor(
             val activeNetwork = connectivityManager.activeNetwork
             if (activeNetwork != null) {
                 lastNetworkId = getNetworkId(activeNetwork)
+                lastNotifiedNetworkId = lastNetworkId
                 Timber.d("NetworkStateMonitor: Initial network: $lastNetworkId")
             }
         } catch (e: Exception) {
@@ -245,11 +308,20 @@ class NetworkStateMonitor @Inject constructor(
         
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback)
+            cancelSettleEvaluation()
             isMonitoring = false
             lastNetworkId = null
+            lastNotifiedNetworkId = null
             Timber.i("NetworkStateMonitor: Stopped monitoring network state")
         } catch (e: Exception) {
             Timber.e(e, "NetworkStateMonitor: Failed to stop monitoring")
         }
+    }
+
+    companion object {
+        // Settle window before a network transition is acted on. Sized to outlast the observed
+        // 1-3s wlan<->cellular round-trip flaps so a transport that returns to the same network is
+        // never surfaced as a change (S1040).
+        private const val SETTLE_WINDOW_MS = 4_000L
     }
 }

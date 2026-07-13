@@ -111,9 +111,15 @@ class CameraOcrTranslateActivity :
             callback = this
         )
 
-        // Automatically launch camera on startup if we don't have results yet
+        // Automatically start on first creation: from an existing image (S1042 - e.g. a screenshot
+        // routed here by the gesture) when EXTRA_SOURCE_IMAGE_PATH is set, otherwise the camera.
         if (savedInstanceState == null) {
-            flowManager.startCapture()
+            val sourcePath = intent?.getStringExtra(EXTRA_SOURCE_IMAGE_PATH)
+            if (!sourcePath.isNullOrBlank()) {
+                flowManager.startWithImage(java.io.File(sourcePath))
+            } else {
+                flowManager.startCapture()
+            }
         }
     }
 
@@ -420,8 +426,17 @@ class CameraOcrTranslateActivity :
     }
 
     companion object {
+        /** S1042: absolute path of an app-owned source image (e.g. staged screenshot) to OCR instead of capturing. */
+        const val EXTRA_SOURCE_IMAGE_PATH = "source_image_path"
+
         fun createIntent(context: Context): Intent {
             return Intent(context, CameraOcrTranslateActivity::class.java)
+        }
+
+        /** S1042: open the OCR/translate flow over an existing image at [sourceImagePath] (skips the camera). */
+        fun createIntent(context: Context, sourceImagePath: String): Intent {
+            return Intent(context, CameraOcrTranslateActivity::class.java)
+                .putExtra(EXTRA_SOURCE_IMAGE_PATH, sourceImagePath)
         }
     }
 }

@@ -9,6 +9,7 @@ import android.view.WindowManager
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout
 
 /**
  * S0924: visually rotates the camera settings dialog content with physical device rotation while the
@@ -28,10 +29,12 @@ class CameraSettingsDialogRotationManager(context: Context) {
 
     private val container = RotatingContentContainer(context)
     private var dialog: Dialog? = null
+    private var columnFlow: ColumnFlowLayout? = null
     private var appliedBucket = -1
 
     /** Wrap [contentRoot] in the rotate-and-swap-measure container; pass the result to `setView`. */
     fun wrap(contentRoot: View): View {
+        columnFlow = contentRoot.findViewById(R.id.cameraSettingsFlow)
         (contentRoot.parent as? ViewGroup)?.removeView(contentRoot)
         container.removeAllViews()
         container.addView(
@@ -62,14 +65,25 @@ class CameraSettingsDialogRotationManager(context: Context) {
             Surface.ROTATION_270 -> ROTATE_270
             else -> ROTATE_0
         }
+        val landscape = bucket == Surface.ROTATION_90 || bucket == Surface.ROTATION_270
+        columnFlow?.columnCount = if (landscape) LANDSCAPE_COLUMNS else PORTRAIT_COLUMNS
         container.setContentRotation(degrees)
-        reshapeWindow(landscape = bucket == Surface.ROTATION_90 || bucket == Surface.ROTATION_270)
+        reshapeWindow(landscape)
     }
 
     /**
      * Size the floating window to the rotated content. Portrait: match-width, wrap-height (default
-     * AlertDialog behaviour). Landscape: wide-and-short, capped by [R.dimen.dialog_landscape_max_height]
-     * on the post-rotation vertical axis and inset from system bars / display cutout.
+     * AlertDialog behaviour). Landscape: wide-and-short.
+     *
+     * The host Activity is portrait-locked, so `displayMetrics` always report portrait axes:
+     * `widthPixels` is the short screen axis (physical vertical when the phone is held sideways) and
+     * `heightPixels` the long one (physical horizontal). The content is turned 90 deg, so the window
+     * HEIGHT (screen Y) drives the dialog's physical WIDTH while the window WIDTH (screen X) drives its
+     * physical HEIGHT. Both extents fill the full available screen axis (inset from system bars /
+     * cutout): the physical width is never narrower than the portrait dialog's height, and the
+     * physical height uses the whole short axis so the two-column content and the action row fit
+     * without scrolling where possible. Content flows into two columns in landscape (see
+     * [applyRotation]) to halve its height.
      */
     private fun reshapeWindow(landscape: Boolean) {
         val window = dialog?.window ?: return
@@ -84,10 +98,9 @@ class CameraSettingsDialogRotationManager(context: Context) {
         }
         val metrics = res.displayMetrics
         val safe = safeInsets(window.decorView)
-        val availableWidth = metrics.widthPixels - safe.first
-        val maxHeight = res.getDimensionPixelSize(R.dimen.dialog_landscape_max_height)
-        val availableHeight = (metrics.heightPixels - safe.second).coerceAtMost(maxHeight)
-        window.setLayout(availableWidth, availableHeight)
+        val windowHeight = metrics.heightPixels - safe.second
+        val windowWidth = metrics.widthPixels - safe.first
+        window.setLayout(windowWidth, windowHeight)
         container.requestLayout()
     }
 
@@ -157,5 +170,8 @@ class CameraSettingsDialogRotationManager(context: Context) {
 
         // Extra breathing room beyond system insets so the rotated window never touches the screen edge.
         const val WINDOW_EDGE_MARGIN_PX = 24
+
+        const val PORTRAIT_COLUMNS = 1
+        const val LANDSCAPE_COLUMNS = 2
     }
 }

@@ -41,8 +41,7 @@ import java.util.Locale
  * foreground, so the result never came back and no photo was ever saved (S0790-S0794 device fail).
  *
  * @param autoAction one of [PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO] /
- *   [PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW] / [PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE],
- *   or null for a plain silent save.
+ *   [PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW], or null for a plain silent save.
  */
 class PhotoCaptureLaunchManager(
     private val activity: Activity,

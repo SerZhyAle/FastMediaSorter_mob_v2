@@ -24,7 +24,6 @@ import kotlin.math.roundToLong
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class CameraSettingsDialogFragment : DialogFragment() {
 
@@ -98,7 +97,6 @@ class CameraSettingsDialogFragment : DialogFragment() {
                 state.collect { bucket -> rotationManager.applyRotation(bucket) }
             }
         }
-        Timber.d("S0924: dialog rotation registered for bucket=${state.value}")
     }
 
     private fun preview() {

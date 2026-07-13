@@ -71,8 +71,10 @@ object AppLaunchPanelRouteIntents {
     fun takePhotoEdit(context: Context): Intent =
         PhotoCaptureLaunchActivity.intent(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW).withPanelFlags()
 
+    // S1042: OCR/translate opens the unified crop + language + OCR/translate screen (camera source),
+    // matching the gesture path - no longer a plain capture routed into the full-screen viewer.
     fun takePhotoOcrTranslate(context: Context): Intent =
-        PhotoCaptureLaunchActivity.intent(context, PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE).withPanelFlags()
+        CameraOcrTranslateActivity.createIntent(context).withPanelFlags()
 
     fun startVideoRecording(context: Context): Intent =
         CameraLaunchActivity.videoIntent(context).withPanelFlags()

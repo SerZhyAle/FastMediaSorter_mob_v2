@@ -307,8 +307,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 shareResultBus.clearReplayCache()
                 return@collectOnLifecycle
             }
-            val kind = pending.result::class.java.simpleName
-            Timber.d("S0981: fg-present notif=${pending.notificationShown} kind=$kind")
             runCatching {
                 shareResultPresenter.present(
                     result = pending.result,

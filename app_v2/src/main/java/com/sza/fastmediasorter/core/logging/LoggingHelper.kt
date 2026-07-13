@@ -194,8 +194,14 @@ object LoggingHelper {
         )
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
         private val maxLogFiles = 5
-        private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
-        private val fileNameFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
+        }
+        private val fileNameFormat = object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue() = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        }
+        private fun formatTs(d: Date): String = dateFormat.get()!!.format(d)
+        private fun formatFileName(d: Date): String = fileNameFormat.get()!!.format(d)
         private val debugMirrorFileName = "fastmediasorter_debug_live.log"
         private val debugMirrorScheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
             Thread(runnable, "fms-log-mirror").apply { isDaemon = true }
@@ -253,7 +259,7 @@ object LoggingHelper {
                         val sanitizedTarget = com.sza.fastmediasorter.core.security.SecretMasker
                             .sanitize(newMirrorFile.absolutePath)
                         synchronized(this) {
-                            printWriter?.println("${dateFormat.format(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget")
+                            printWriter?.println("${formatTs(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget")
                             printWriter?.flush()
                         }
                         flushDebugMirrorDelta()
@@ -290,7 +296,7 @@ object LoggingHelper {
                         else -> '?'
                     }
                     
-                    val timestamp = dateFormat.format(Date())
+                    val timestamp = formatTs(Date())
                     
                     synchronized(this) {
                         // Check if file needs rotation
@@ -419,19 +425,19 @@ object LoggingHelper {
         }
         
         private fun openNewLogFile() {
-            val fileName = "fastmediasorter_${fileNameFormat.format(Date())}.log"
+            val fileName = "fastmediasorter_${formatFileName(Date())}.log"
             currentLogFile = File(logDir, fileName)
             // Explicit UTF-8: platform default charset on some devices is CP866/OEM,
             // which corrupts Cyrillic resource/file names in the log file.
             printWriter = PrintWriter(OutputStreamWriter(FileOutputStream(currentLogFile, true), Charsets.UTF_8), true)
-            printWriter?.println("=== Log started: ${dateFormat.format(Date())} ===")
+            printWriter?.println("=== Log started: ${formatTs(Date())} ===")
             printWriter?.println("=== App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
             printWriter?.flush()
         }
         
         private fun closeCurrentFile() {
             try {
-                printWriter?.println("=== Log closed: ${dateFormat.format(Date())} ===")
+                printWriter?.println("=== Log closed: ${formatTs(Date())} ===")
                 printWriter?.close()
             } catch (e: Exception) {
                 // Ignore
@@ -462,8 +468,8 @@ object LoggingHelper {
         fun writeCrashSynchronously(thread: Thread, throwable: Throwable) {
             try {
                 val now = Date()
-                val timestamp = dateFormat.format(now)
-                val crashFile = File(logDir, "fastmediasorter_crash_${fileNameFormat.format(now)}.log")
+                val timestamp = formatTs(now)
+                val crashFile = File(logDir, "fastmediasorter_crash_${formatFileName(now)}.log")
 
                 PrintWriter(OutputStreamWriter(FileOutputStream(crashFile, false), Charsets.UTF_8), true).use { pw ->
                     pw.println("=== CRASH REPORT: $timestamp ===")

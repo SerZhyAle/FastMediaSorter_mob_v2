@@ -173,7 +173,6 @@ class GameBoardView @JvmOverloads constructor(
         if (nextIntroKey != null && nextIntroKey != renderedIntroHighlightKey) {
             renderedIntroHighlightKey = nextIntroKey
             introHighlightUntilMs = SystemClock.uptimeMillis() + START_HIGHLIGHT_MS
-            Timber.d("S0993: intro window armed, guide arrow shown")
         } else if (nextIntroKey == null) {
             renderedIntroHighlightKey = null
             introHighlightUntilMs = 0L
@@ -329,7 +328,6 @@ class GameBoardView @JvmOverloads constructor(
         wallPaint.color = theme.wallColor
         theme.filledExitColor?.let { exitFillPaint.color = it }
         themedMode = mode
-        if (mode == GameMode.CONTRAST) Timber.d("S0993: contrast skin active (filled tiles)")
     }
 
     private fun drawAnimatedActors(canvas: Canvas, scale: GameBoardScale, renderState: GameBoardRenderState) {

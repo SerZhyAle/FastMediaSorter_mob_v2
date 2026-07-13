@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0813: title on its own full-width line; Spinners -> SettingsDropdownRow,
      MaterialSwitch -> SettingsToggleRow; Cancel/Apply moved to a dedicated bottom row.
-     Every view id must mirror layout-land/dialog_camera_settings.xml (one ViewBinding). -->
+     S0924: setting rows live in a ColumnFlowLayout that switches to 2 columns in landscape (driven
+     by CameraSettingsDialogRotationManager); title + action row stay full-width outside it. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -20,6 +21,11 @@
             android:text="@string/camera_settings_title"
             android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold" />
+
+        <com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout
+            android:id="@+id/cameraSettingsFlow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowCameraTimer"
@@ -165,6 +171,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
             app:str_title="@string/camera_setting_hdr" />
+
+        </com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

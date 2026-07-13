@@ -18,7 +18,6 @@
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
     <string name="camera_ocr_crop_title">Выделите область</string>
-    <string name="camera_ocr_crop_hint">Передвиньте рамку для обрезки или нажмите OK, чтобы взять всё фото</string>
     <string name="camera_ocr_crop_retry">Переснять</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
@@ -2973,4 +2972,14 @@
     <string name="resource_import_from_barcode">Импорт по штрих-коду</string>
     <string name="resource_import_section_title">Импорт готовой конфигурации</string>
     <string name="companion_publish_folders_guide">Как опубликовать папки ПК для Android</string>
+    <string name="setting_edge_gesture_config_button">Настроить жесты</string>
+    <string name="edge_gesture_config_dialog_title">Краевые жесты</string>
+    <string name="edge_gesture_tab_left_top">Слева сверху</string>
+    <string name="edge_gesture_tab_left_bottom">Слева снизу</string>
+    <string name="edge_gesture_tab_right_top">Справа сверху</string>
+    <string name="edge_gesture_tab_right_bottom">Справа снизу</string>
+    <string name="edge_gesture_general_group_title">Общие настройки жестов</string>
+    <string name="edge_gesture_schema_content_description">Карта краевых жестов: коснитесь направления зоны, чтобы назначить действие</string>
+    <string name="edge_gesture_schema_state_assigned">назначено</string>
+    <string name="edge_gesture_schema_state_available">доступно</string>
 </resources>

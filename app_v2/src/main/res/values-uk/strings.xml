@@ -17,7 +17,6 @@
     <string name="camera_ocr_camera_error">Не вдалося запустити камеру або зробити знімок</string>
     <string name="camera_ocr_engine_error">Служба перекладу наразі недоступна</string>
     <string name="camera_ocr_crop_title">Виділіть область</string>
-    <string name="camera_ocr_crop_hint">Перемістіть рамку для обрізки або натисніть OK, щоб узяти все фото</string>
     <string name="camera_ocr_crop_retry">Перезняти</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Рамка виділення області</string>
@@ -2945,4 +2944,14 @@
     <string name="resource_import_from_barcode">Імпорт за штрих-кодом</string>
     <string name="resource_import_section_title">Імпорт готової конфігурації</string>
     <string name="companion_publish_folders_guide">Як опублікувати теки ПК для Android</string>
+    <string name="setting_edge_gesture_config_button">Налаштувати жести</string>
+    <string name="edge_gesture_config_dialog_title">Крайові жести</string>
+    <string name="edge_gesture_tab_left_top">Ліворуч зверху</string>
+    <string name="edge_gesture_tab_left_bottom">Ліворуч знизу</string>
+    <string name="edge_gesture_tab_right_top">Праворуч зверху</string>
+    <string name="edge_gesture_tab_right_bottom">Праворуч знизу</string>
+    <string name="edge_gesture_general_group_title">Загальні налаштування жестів</string>
+    <string name="edge_gesture_schema_content_description">Карта крайових жестів: торкніться напрямку зони, щоб призначити дію</string>
+    <string name="edge_gesture_schema_state_assigned">призначено</string>
+    <string name="edge_gesture_schema_state_available">доступно</string>
 </resources>

@@ -5,11 +5,13 @@
 - [Don't ask when architecture answers](feedback_no_owner_questions_when_architecture_already_answers.md) + [research forks](feedback_research_over_owner_question.md) - contracts decide; forks: research+recommend
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix [HH:MM:SS]
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - `..` not `...`, hyphen, ё; docs+UI only
+- [Target audience: non-technical](feedback_target_audience_non_technical.md) - for grandma & gym-goer, not nerds; zero jargon, zero mandatory setup
 - [Finish mechanical follow-ups](feedback_finish_mechanical_followups_in_context.md) - don't park a scoped mechanical tail
 - [Skill aliases](feedback_skill_aliases.md) - short slash aliases; explicit table, no invented letters
 - [Universal Agent Kit](reference_universal_agent_kit.md) - public distillation; portability+leanness
 - [fms_companion subproject](project_fms_companion_subproject.md) - S0421 Go+Wails, OUT of repo P:\windows\fms_companion
 - [FMS Windows rebrand](project_fms_windows_rebrand.md) - "Fast Media Sorter for Windows" display-only; URLs/Store/winget stay FastMediaSorter_Lite/LITE
+- [.fmscfg contract v2 forward-compat](project_fmscfg_contract_v2_forward_compat.md) - S0988 producer-frozen-shape + consumer-tolerant; client MUST accept schemaVersion 2
 
 ## Devices & release
 - [Test device Galaxy S21+](reference_test_device_galaxy_s21.md) - SM-G996U1, Android 15; full access; not Wear
@@ -95,6 +97,7 @@
 - [Quest panel opaque](reference_quest_panel_not_introspectable.md) + [HUD pitfalls](project_vr_hud_quirks.md) - uiautomator sees vrshell only; column-major, Skia RGBA
 - [VR native 2 texture channels](project_vr_native_two_texture_channels.md) - queueFrame(main)+queueHud; UI on HUD quad ray UV
 - [Player progressBar owner](project_player_progressbar_single_owner.md) - PlayerLoadingIndicatorCoordinator; PdfViewer rogue writer
+- [Glide listener fires before view bind](project_glide_requestlistener_fires_before_view_bind.md) - onResourceReady runs before setImageDrawable; view.drawable still null, use view.post{} (S1041)
 - [Shared-state audit tool](reference_shared_state_audit_tool.md) - audit-shared-state-writers.ps1
 - [Camera capture permission-free](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE
 - [Headless capture + noHistory trap](project_headless_camera_capture_trampoline.md) - ImageCapture-only; noHistory loses result
@@ -139,6 +142,7 @@
 - [Workflow journal recovery](reference_workflow_journal_recovery.md) + [args trap](reference_workflow_args_trap.md) - recover from journal.jsonl; resume drops args
 
 ## Subagents & process
+- [Verify build on device first](feedback_verify_build_on_device_before_diagnosing.md) - "doesn't work" -> confirm NEW build installed (same-version APK keeps old); use dav, key off S-tag/version
 - [Subagent skips final phase](feedback_subagent_impl_skips_final_phase.md) + [no git/build](feedback_parallel_agents_no_git_build.md) - impl agents truncate cleanup; git stash clobbers; central build
 - [Concurrent /spec-all red tree](project_spec_all_concurrent_tree_red.md) - whole-tree fail may be sibling WIP; not their files
 - [Frozen app? check TracerPid](feedback_frozen_app_check_tracerpid.md) - GC ProfileSaver stall = native LLDB via ptrace

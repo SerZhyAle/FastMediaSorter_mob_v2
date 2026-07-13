@@ -60,7 +60,6 @@ class CompanionQrScanActivity : AppCompatActivity() {
         runOnUiThread {
             if (finishedWithResult) return@runOnUiThread
             finishedWithResult = true
-            Timber.d("S0988: QR payload decoded (len=${payload.length})")
             setResult(RESULT_OK, Intent().putExtra(EXTRA_PAYLOAD, payload))
             finish()
         }

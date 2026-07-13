@@ -22,6 +22,18 @@ appId: com.sza.fastmediasorter.debug
 # --- General tab: flip two non-disruptive toggles off then on, by row id.
 #     Re-scroll before each tap in case rows shift. Compact-elements is deliberately avoided:
 #     it recreates the activity to re-apply density, which invalidates the scrolled position. ---
+# The Interface section (headerInterface) is collapsed by default (GeneralSettingsFragment registers
+# every section with defaultExpanded=false), so rowEnableFavorites / rowAllowSeparateWindow are absent
+# from the view tree until it is expanded - scrollUntilVisible alone can never reach them (S1017).
+# One expand covers both rows: they share containerInterface. Clean install => store empty => collapsed.
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerInterface"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/headerInterface"
+- waitForAnimationToEnd
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"

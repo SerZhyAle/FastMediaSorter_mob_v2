@@ -162,7 +162,6 @@ class ScreenGestureOverlayManager(
                 val angle = Math.toDegrees(atan2(dy, inwardDx).toDouble())
                 val direction = directionForAngle(angle) ?: return false
                 gestureTriggered = true
-                Timber.d("S0847: band $zone matched $direction")
                 onGestureMatched(zone, direction)
                 view.performClick()
                 return true

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.screencapture
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
+import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.PhotoCaptureLaunchActivity
@@ -18,6 +20,8 @@ import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
 import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 /**
@@ -91,13 +95,15 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             true
         }
         ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> {
-            val action = if (capabilityAvailability.isTranslationAvailable()) {
-                PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE
+            // S1042: route straight to the unified OCR/translate crop screen (camera source), giving the
+            // same crop + language + OCR/translate UI as photos. Fall back to a plain photo save where
+            // translation is unavailable for this flavor.
+            if (capabilityAvailability.isTranslationAvailable()) {
+                launchOcrCaptureFlow(context)
             } else {
                 Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, saving photo")
-                null
+                launchPhotoCapture(context, autoAction = null)
             }
-            launchPhotoCapture(context, action)
             true
         }
         ScreenshotGestureAction.START_VIDEO_RECORDING -> {
@@ -202,6 +208,10 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             ScreenshotGestureAction.START_VIDEO_RECORDING,
             ScreenshotGestureAction.START_AUDIO_RECORDING,
             ScreenshotGestureAction.START_SCREEN_RECORDING,
+            // S1042: OCR_TRANSLATE is handled pre-save by the capture service (stages the raw frame to a
+            // temp file and calls launchOcrCropFlow, so only the cropped result reaches the gallery); it
+            // never arrives here. Grouped with the no-ops to keep the when total.
+            ScreenshotGestureAction.OCR_TRANSLATE,
             ScreenshotGestureAction.DO_NOT_USE -> return
 
             ScreenshotGestureAction.OPEN_IN_PLAYER -> openInViewer(context, savedUri, autoAction = null)
@@ -214,16 +224,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
                     // should overwrite it in place (keeping a separate copy only on explicit "Save as..").
                     overwriteSourceOnSave = true,
                 )
-
-            ScreenshotGestureAction.OCR_TRANSLATE -> {
-                val autoAction = if (capabilityAvailability.isTranslationAvailable()) {
-                    PhotoVideoStandaloneActivity.AUTO_ACTION_TRANSLATE
-                } else {
-                    Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, opening player instead")
-                    null
-                }
-                openInViewer(context, savedUri, autoAction)
-            }
 
             ScreenshotGestureAction.SEND_TO_RECIPIENTS -> {
                 openInViewer(context, savedUri, autoAction = PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
@@ -270,7 +270,48 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to open viewer") }
     }
 
+    /** S1042: open the unified OCR/translate crop screen with the camera as source (take-photo action). */
+    private fun launchOcrCaptureFlow(context: Context) {
+        val intent = CameraOcrTranslateActivity.createIntent(context)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to open OCR capture flow") }
+    }
+
+    /**
+     * S1042: open the unified OCR/translate crop screen over an already-captured [sourceFile]
+     * (a staged screenshot). Called by the capture service for the OCR_TRANSLATE screenshot action.
+     */
+    fun launchOcrCropFlow(context: Context, sourceFile: File) {
+        val intent = CameraOcrTranslateActivity.createIntent(context, sourceFile.absolutePath)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to open OCR crop flow") }
+    }
+
+    /**
+     * S1042: writes [bitmap] to a private app-cache PNG so the OCR crop flow can decode it without the
+     * raw screenshot touching the gallery. Shared by both capture backends (MediaProjection service on
+     * standard, accessibility service on noLegal). Returns the file, or null on failure; the crop flow
+     * deletes it after decode. Compress off the main thread (callers wrap in Dispatchers.IO).
+     */
+    fun stageOcrSourceFile(context: Context, bitmap: Bitmap): File? = runCatching {
+        val dir = File(context.cacheDir, "ocr_capture").apply { mkdirs() }
+        val file = File(dir, "ocr_${System.currentTimeMillis()}.png")
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, OCR_SOURCE_PNG_QUALITY, out)
+            out.flush()
+        }
+        file
+    }.getOrElse {
+        Timber.e(it, "ScreenshotGestureActionDispatcher: stageOcrSourceFile failed")
+        null
+    }
+
     private companion object {
         private const val MIME_PNG = "image/png"
+
+        // Lossless PNG for the temp OCR source frame - quality is ignored for PNG but required by the API.
+        private const val OCR_SOURCE_PNG_QUALITY = 100
     }
 }

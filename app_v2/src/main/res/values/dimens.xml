@@ -721,7 +721,8 @@
     <dimen name="item_resource_btnMoveDown_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnMoveUp_padding">@dimen/layout_spacing_normal</dimen>
 
-    <!-- Landscape dialog constraints - referenced only from layout-land/ files -->
+    <!-- Landscape dialog constraints. dialog_landscape_max_height also caps the physical height of
+         S0924's rotated camera settings dialog (its physical width fills the full long screen axis). -->
     <dimen name="dialog_landscape_max_height">320dp</dimen>
     <dimen name="dialog_landscape_list_max_height">240dp</dimen>
 

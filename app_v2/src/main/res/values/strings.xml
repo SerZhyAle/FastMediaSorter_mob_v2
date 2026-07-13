@@ -84,7 +84,6 @@
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
     <string name="camera_ocr_crop_title">Select area</string>
-    <string name="camera_ocr_crop_hint">Drag the frame to crop, or tap OK to use the whole photo</string>
     <string name="camera_ocr_crop_retry">Retry</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
@@ -3019,4 +3018,14 @@ Close the player and try again.</string>
     <string name="resource_import_from_barcode">Import by barcode</string>
     <string name="resource_import_section_title">Import a ready configuration</string>
     <string name="companion_publish_folders_guide">How to publish PC folders to Android</string>
+    <string name="setting_edge_gesture_config_button">Configure gestures</string>
+    <string name="edge_gesture_config_dialog_title">Edge gestures</string>
+    <string name="edge_gesture_tab_left_top">Left top</string>
+    <string name="edge_gesture_tab_left_bottom">Left bottom</string>
+    <string name="edge_gesture_tab_right_top">Right top</string>
+    <string name="edge_gesture_tab_right_bottom">Right bottom</string>
+    <string name="edge_gesture_general_group_title">General gesture settings</string>
+    <string name="edge_gesture_schema_content_description">Edge gesture map: tap a zone direction to assign an action</string>
+    <string name="edge_gesture_schema_state_assigned">assigned</string>
+    <string name="edge_gesture_schema_state_available">available</string>
 </resources>

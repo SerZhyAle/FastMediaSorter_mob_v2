@@ -27,6 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -222,6 +223,21 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             // MediaProjection path so the option also works on the API 30+ accessibility flow.
             if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
                 toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
+            // S1042: OCR actions skip the gallery save - stage the raw frame to a private temp file and
+            // open the unified crop/OCR/translate screen, which saves only the cropped result. Mirrors
+            // the standard MediaProjection path (ScreenCaptureService); no "saved to gallery" toast.
+            if (pendingAction == ScreenshotGestureAction.OCR_TRANSLATE) {
+                val tempFile = withContext(Dispatchers.IO) {
+                    actionDispatcher.get().stageOcrSourceFile(this@ScreenshotAccessibilityService, bitmap)
+                }
+                if (tempFile != null) {
+                    actionDispatcher.get().launchOcrCropFlow(this@ScreenshotAccessibilityService, tempFile)
+                } else {
+                    toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)
+                }
+                return
             }
 
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
