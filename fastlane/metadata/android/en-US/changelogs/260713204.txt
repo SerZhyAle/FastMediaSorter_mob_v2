@@ -1,0 +1,6 @@
+• Windows Companion - discover, pair, and import shared folders and SFTP access from a desktop companion app.
+• Shared-folder resources - import a companion-shared folder as writable, or share/import SFTP access as a file.
+• Companion config import - schema-v2 config keeps working with older app versions too.
+• Sharing receivers - Messenger, Viber, and short-video social apps can share straight into FastMediaSorter.
+• Screenshot OCR - crop and translate text directly from a screenshot.
+..
