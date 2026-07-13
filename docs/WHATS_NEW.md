@@ -6,7 +6,41 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7070.937** (July 2026)
+**Current release: 2.60.7132.046** (July 2026)
+
+> Changes since version 2.60.7070.937
+
+---
+
+## What's New
+
+- **Windows Companion** - discover, pair, and import shared folders and SFTP access from a desktop companion app.
+- **Shared-folder resources** - import a companion-shared folder as writable, or share/import SFTP access as a file.
+- **Companion config import** - schema-v2 config keeps working with older app versions too.
+- **Sharing receivers** - Messenger, Viber, and short-video social apps can share straight into FastMediaSorter.
+- **Screenshot OCR** - crop and translate text directly from a screenshot.
+- **Screen Capture edge gestures** - configurable swipe zones across all four screen edges.
+- **Quick-launch panel** - close button, camera/video gesture actions, and search-filter on long picker lists.
+- **Contrast mini-game** - new mode with a start-of-level exit arrow.
+- **Branded splash screen** on launch.
+- **Resource statistics** persist after browsing, not just on entry.
+- **Unified Resource Profile dialog** for viewing and editing resource details.
+- **Stream URLs with embedded credentials** - manually-added HTTP streams parse Basic-Auth from the URL.
+
+## What's Fixed
+
+- VR install prompt no longer appears when opening 3D content on the VR edition.
+- SFTP resource with a missing path shows a clear "not found" message.
+- OCR and translation now work on Google Play builds.
+- Audio permissions no longer silently disabled on minified release builds.
+- Filter dialog, Settings search, and text fields stay reachable above the keyboard.
+- Live streams that silently freeze now auto-recover.
+- Edge-gesture strips only show on zones you configured, not every zone.
+- Focus indicator for remote/D-pad now covers the whole app.
+
+---
+
+## Previous Release: 2.60.7070.937 (July 2026)
 
 > Changes since version 2.60.7042.357
 
