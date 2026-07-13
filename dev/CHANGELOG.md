@@ -22174,3 +22174,4 @@ Format: | datetime | file | target | description |
 | 2026-07-13 18:47:49 | `app_v2/src/main/java/com/sza/fastmediasorter/core/screencapture/ScreenshotGestureActionDispatcher.kt` | `spec-all` | S1042/S1041 Verified: remove debug probes; restore plain OCR-crop launch failure log [branch: DEBUG-v024] |
 | 2026-07-13 19:40:55 | `PLAN/S1043_maestro-settings-tab-flaky.md` | `spec` | Scaffold strategic spec skeleton S1043 [branch: DEBUG-v024] |
 | 2026-07-13 20:49:32 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7132.046 - plateau merge from DEBUG-v024 [branch: DEBUG-v024] |
+| 2026-07-13 20:59:13 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7132.046 from ALL_FEATURES diff [branch: DEBUG-v025] |

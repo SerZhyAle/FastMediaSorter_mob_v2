@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-07-13*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -17,10 +17,13 @@ This document is the curated showcase of standout user-facing features. The comp
 - **First-run device profile setup** `[Standard / VR]`: Select a device profile (phone, tablet, TV, head unit, media player, photo frame, VR headset, etc.) on first launch with auto-detection recommendations. The chosen profile applies optimized default settings (content types, layouts, security, screen behavior) tailored to the device's usage.
 - **Onboarding functionality setup** `[Standard / VR]`: During first-run setup, turn on the capabilities you need (file manager, audio, video, documents, text recognition, translation) and download optional elements inline - each feature activates as soon as its download finishes, with no trip to Settings.
 - **One-tap "Enable all"** `[Standard / VR]`: On the first welcome page, "Enable all" sets the universal profile, switches on every available function, requests all permissions one dialog at a time, offers the app as default player for every supported media type, and finishes setup in a single step.
+- **Product-branded splash screen** `[Standard / Lite / Photos / Legacy / VR]`: The cold-start splash shows the app logo and wordmark fading in at center, with the author's branding in the small bottom-center slot.
 
 ## 1. Sources & Storage
-- **Scan a code to open your PC's folders** `[Standard / Photos / Legacy]`: Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and hold your phone up to the QR code it shows - each folder becomes a ready-to-use, read-only network resource with the server key pinned automatically. No address, port, key, or password typing. If the phone has no camera, import the same access as a small `.fmscfg` file (pick it, or tap a Telegram/email attachment). See [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md).
+- **Scan a code to open your PC's folders** `[Standard / Photos / Legacy / VR]`: Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and hold your phone up to the QR code it shows - each folder becomes a ready-to-use network resource with the server key pinned automatically, writable when the sharer marks it so. The app auto-discovers the companion on your Wi-Fi and keeps reconnecting as you move between home and mobile networks, with clear guidance if a folder can't be reached. No address, port, key, or password typing. If the phone has no camera, import the same access as a small `.fmscfg` file (pick it, or tap a Telegram/email attachment); imported setups now carry the full resource configuration, not just the connection. See [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md).
+- **More ways to start an import** `[Standard / Photos / Legacy]`: Import-from-file and Import-by-barcode entries sit next to the resource-type cards and in the SFTP form header, plus an in-app guide link to the PC-side publishing steps - so the companion setup is reachable from wherever you add a resource.
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
+- **Unified Resource Profile dialog** `[Standard]`: One Resource Profile dialog for both adding and editing a resource - choosing a profile like File Manager no longer hides the media-type togglers, and presets set the same types everywhere.
 - **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
 - **Drag to reorder resources** `[Standard]`: Long-press and drag entries in your resource list to set the exact order they appear in.
 
@@ -32,6 +35,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **External image editing** `[Standard / VR]`: When you open an image from another app, edit it right there - crop, save a cropped copy, make a compressed copy, and toggle screen rotation - the same image actions as the in-app player.
 - **File details sheet** `[Standard]`: Open a bottom sheet showing a file's metadata - size, dates, path, resolution or duration - straight from the browser.
 - **Drag multi-select** `[Standard / VR]`: Select many items at once by dragging across them with touch, or band-select with a mouse, in both Browse and the Duplicates list.
+- **Resource statistics persist** `[Standard / Lite / Photos / Legacy / VR]`: File count, subfolder count, last-opened and last-sync time are saved when you browse a resource and stay put instead of resetting when you leave the screen.
 
 ## 3. File Operations
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files seamlessly between Local, SMB, FTP, SFTP, and Cloud endpoints in any combination with background progress and speed/ETA diagnostics.
@@ -43,8 +47,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Download by link** `[Standard]`: Paste a URL into the Download-by-link dialog and the file downloads straight to your chosen folder, no browser needed.
 - **Fallback save** `[Standard]`: When a chosen destination is unavailable, the file is saved to a configured fallback location instead of failing.
 - **Screen capture: photo, video and audio recording** `[Standard]`: Take a screenshot, record the screen with microphone audio (stoppable from the notification or an in-app timer card), or start a quick audio recording - from Operations settings or an edge gesture, using Android's system capture consent; a floating indicator with a Stop control shows over whatever app is open while the quick recording runs.
-- **App panel: system shortcuts and app features** `[Standard]`: The quick-launch panel can now hold not only other apps but also parts of the operating system and the app's own features and resources (calculator, mini-game, photo-OCR-translate, streams, a specific resource), and it arrives pre-filled with a useful set by default.
-- **Edge-gesture quick actions** `[Standard]`: Assign a left-edge swipe to auto-capture a photo (plain, or straight into edit, Send to, or OCR-translate), start video/audio/screen recording, or open the app/quick-launch panel; repeating a recording gesture stops and saves it.
+- **App panel: system shortcuts and app features** `[Standard]`: The quick-launch panel can hold other apps, parts of the operating system, camera/video capture gestures, and the app's own features and resources (calculator, mini-game, photo-OCR-translate, streams, a specific resource); an explicit close button dismisses it, and picker lists get a search filter for finding an entry fast.
+- **Edge-gesture quick actions** `[Standard]`: Assign a swipe on any of four independently toggleable screen-edge bands (two left, two right) to auto-capture a photo (plain, or straight into edit, Send to, or OCR-translate), start video/audio/screen recording, or open the app/quick-launch panel; repeating a recording gesture stops and saves it. Each band can show a thin visible guide strip on its screen edge so you know where to swipe.
 - **Camera zoom, night mode & GPS geotagging** `[Standard / Lite / Photos / Legacy]`: Zoom presets (0.5x-30x) with a draggable slider, a device-gated night mode, fixed on-screen controls with a Send To action for the latest capture, and opt-in EXIF GPS geotagging.
 - **Copy or move an opened file** `[Standard]`: When you open a file from another app, copy or move it straight to a configured destination folder from within the viewer.
 
@@ -55,7 +59,7 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 5. Image & GIF Viewer
 - **Crop & Color adjustment filters** `[Standard / VR]`: Destructively rotate, flip, and crop images directly on the source, or apply adjustments (brightness, contrast, saturation) and color filters (Sepia, Negative).
 - **Animated GIF speed controls** `[Standard / VR]`: Fine-tune GIF playback speed (0.25x to 4x) and export individual frames as static images.
-- **Send to..** `[Standard / VR]`: One high-priority command gathers every way to send the current file out - system Share, Email, Telegram and other messengers, Google Keep, Google Lens, Print, Open in another app - into a single list. The list shows only the receivers you enabled in settings that fit the current file type, so the file menu stays short instead of listing a dozen separate items. Works from the browser, the player, and standalone viewers.
+- **Send to..** `[Standard / Lite / Photos / Legacy / VR]`: One high-priority command gathers every way to send the current file out - system Share, Email, Telegram, Messenger, Viber, short-video social apps and other messengers, Google Keep, Google Lens, Print, Open in another app - into a single list. The list shows only the receivers you enabled in settings that fit the current file type, so the file menu stays short instead of listing a dozen separate items. Works from the browser, the player, and standalone viewers.
 - **Standalone image viewer actions** `[Standard / Lite / Photos / Legacy]`: From the standalone image viewer, print the picture or copy and move it to another folder - without opening the full app.
 
 ## 6. Drawing & Annotations Editor
@@ -101,6 +105,7 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 13. Offline OCR & Translation
 - **Offline OCR & Translation engine** `[Standard / VR]`: Extract text from images/PDFs and translate it completely offline using ML Kit and Tesseract with custom models.
 - **Photo OCR capture flow** `[Standard / VR]`: In-app camera translation with area cropping, language selector on the crop screen, and editable results saved as `.txt`.
+- **Screenshot OCR entry point** `[Standard]`: Trigger OCR/translate straight from a screenshot - it opens the same crop and language-selection flow as a photo, with only the cropped frame saved to the gallery.
 - **On-demand delivery** `[Standard / VR]`: OCR, translation, the FFmpeg DTS decoder and the audio-player background videos are off by default and installed on demand the first time you enable them; declining the download leaves the feature unavailable without affecting the rest of the app, and once installed they survive app updates and cache clears.
 
 ## 14. Network & Cloud Integration
@@ -126,14 +131,14 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Settings reference page** `[Standard]`: Browse an in-app reference describing every setting, searchable from the settings screen.
 - **Collapsible settings groups** `[Standard / VR]`: Settings sections fold into tidy collapsible groups so long screens stay easy to scan.
 - **Exit button minimizes when background functions are active** `[Standard / Lite / Photos / Legacy]`: The top-left exit button minimizes the app instead of closing it while background music, recording, or scheduled file operations are running; it fully closes only when nothing runs in the background, and a long-press always force-closes.
-- **Focus indicator & automatic initial focus** `[Standard / Lite / Photos / Legacy]`: Every focused control is outlined in place with an accent highlight under keyboard, D-pad or gamepad control (not touch); opening any screen places focus on a real control automatically, so the first remote/D-pad key acts immediately.
+- **Focus indicator & automatic initial focus** `[Standard / Lite / Photos / Legacy]`: Every focused control app-wide is outlined in place with an accent highlight under keyboard, D-pad or gamepad control (not touch), except the player's video/artwork surface itself; opening any screen places focus on a real control automatically, so the first remote/D-pad key acts immediately.
 - **More OS shortcut tiles** `[Standard / Lite / Photos / Legacy]`: The quick-launch panel adds more Android system-settings shortcuts - accessibility, data usage, developer options, NFC, screen rotation and Wi-Fi tethering.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity - files sorted, space freed, time in the player and more - stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.
 
 ## 18. Bonus Mini-Game
-- **Kryvavitsa and the Monster** `[Standard / Lite / Photos / Legacy]`: A hidden, opt-in turn-based grid puzzle with switchable visual modes (Classic abstract shapes or the Kryvavitsa skin) - enable it in Settings, then guide the monster to the exit past roaming enemies across levels with score and a turn counter. Launch it from the menu or a home-screen widget; plays with touch, keyboard, D-pad, or swipe.
+- **Kryvavitsa and the Monster** `[Standard / Lite / Photos / Legacy]`: A hidden, opt-in turn-based grid puzzle with switchable visual modes (Classic abstract shapes, Kryvavitsa skin, or a high-contrast mode for small-screen readability) - enable it in Settings, then guide the monster to the exit past roaming enemies across levels with score and a turn counter; an arrow briefly points toward the nearest exit at the start of each level. Launch it from the menu or a home-screen widget; plays with touch, keyboard, D-pad, or swipe.
 
 ## 19. Internet Streams
 - **Internet Streams** `[Standard / Legacy / noLegal / VR / Lite (progressive-audio only)]`: Dedicated Streams screen for internet audio, video, and RTSP sources. Add a stream URL manually, import a remote `.m3u` playlist, or download a curated station catalog via Extensions.
@@ -147,7 +152,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Home-screen shortcut & card actions** `[Standard / Legacy / noLegal / VR]`: Pin a stream to the home screen for one-tap launch, and open a per-card actions menu directly from the streams list.
 - **Stream defaults & input parity** `[Standard / Legacy / noLegal / VR]`: Set a default sort order and media-type filter for the streams list, with full TV-remote and mouse navigation parity.
 - **Fullscreen stream player & landscape grid** `[Standard / Photos / Legacy / noLegal / VR]`: Watch a live channel full-screen, browse streams as a multi-column grid with per-tile status dots in landscape, and the list remembers your filter, sort and scroll position.
-- **Resilient stream playback** `[Standard / Legacy / noLegal / VR]`: A health probe and bandwidth-adaptive buffering smooth startup, with distinct buffering and reconnecting states.
+- **Resilient stream playback** `[Standard / Legacy / noLegal / VR]`: A health probe and bandwidth-adaptive buffering smooth startup, with distinct buffering and reconnecting states; a watchdog also detects a stream that silently freezes mid-playback and automatically re-anchors and retries before falling back to the channel-unavailable dialog.
 - **Persistent last-frame stream thumbnails** `[Standard / Legacy / noLegal / VR]`: Grid mode saves each captured live-stream frame to app-private storage, so a channel shows its last known frame immediately on next launch instead of a blank tile.
 - **Stream country metadata with filter and sort** `[Standard / Legacy / VR / noLegal]`: Shows each catalog channel's country as a flag+code chip and lets you filter and sort the stream list by country.
 - **Favorite live channels** `[Standard / Legacy / noLegal / VR]`: Add a live channel to the shared Favorites list, independent of pinning.
