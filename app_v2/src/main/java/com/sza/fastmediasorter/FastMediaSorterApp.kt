@@ -50,7 +50,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         lateinit var appContext: Context
             private set
 
-        private const val ENABLE_DEBUG_STRICT_MODE = false
+        private const val ENABLE_DEBUG_STRICT_MODE = true
 
         // Field-name fragments that mark a value as a credential / token.
         // Matched case-insensitively against lowercase AppSettings field names.
@@ -98,6 +98,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     /** S0386 Phase 13: run-once de-bundle upgrade reconciliation (force-OFF un-installed toggles). */
     @Inject
     lateinit var s0386UpgradeReconciliation: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0386UpgradeReconciliation>
+
+    /** S0981: run-once flip of linkAutoDownloadOpenInPlayer from the old ON default to OFF. */
+    @Inject
+    lateinit var s0981OpenInPlayerDefaultOff:
+        dagger.Lazy<com.sza.fastmediasorter.data.migration.S0981OpenInPlayerDefaultOff>
 
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
@@ -177,7 +182,6 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // (a main-thread .get() that still beats this warm-up blocks on the @Singleton lock) - S0869 §3.
         applicationScope.launch(Dispatchers.IO) {
             try {
-                Timber.d("S0869: Room warm-up start (thread=${Thread.currentThread().name})")
                 appDatabase.get()
             } catch (e: Exception) {
                 // provideAppDatabase already owns backup+reset+notice recovery (S0731); this guard only
@@ -282,6 +286,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0386UpgradeReconciliation.get().runIfNeeded()
+        }
+
+        // S0981: run-once flip of linkAutoDownloadOpenInPlayer from the old ON default to OFF -
+        // the field's code default changed but pre-existing installs already persisted `true`.
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            s0981OpenInPlayerDefaultOff.get().runIfNeeded()
         }
 
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)

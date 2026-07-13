@@ -33,7 +33,10 @@ enum class GameEnemyType {
 // from the level snapshot so switching modes never resets an in-progress game.
 enum class GameMode {
     CLASSIC,
-    KRYVAVITSA;
+    KRYVAVITSA,
+
+    // S0993: high-contrast readability skin - solid full-colour tiles for small screens.
+    CONTRAST;
 
     companion object {
         fun fromStorageName(name: String?): GameMode = entries.firstOrNull { it.name == name } ?: CLASSIC

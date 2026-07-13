@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import java.io.File
 import javax.inject.Inject
 
@@ -22,7 +23,8 @@ class SaveTextFileToResourceUseCase @Inject constructor(
         fileName: String,
         content: String,
     ): Result<String> {
-        if (resource.isReadOnly || !resource.isWritable) {
+        // S1019: shared write-policy resolver so a destination offered in the UI is not rejected here.
+        if (!resource.allowsWriteOperations()) {
             return Result.failure(IllegalStateException("Destination is not writable"))
         }
 

@@ -299,16 +299,8 @@
         android:visibility="gone"
         tools:visibility="gone">
 
-        <TextView
-            android:id="@+id/tvCropHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:gravity="center_horizontal"
-            android:text="@string/camera_ocr_crop_hint"
-            android:textColor="@color/camera_ocr_text_primary"
-            android:textSize="14sp" />
-
+        <!-- S1042: no crop hint - the crop frame + OK button are self-explanatory, and the removed
+             two-line hint was pushing the preview so its bottom edge hid under the bottom command bar. -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"

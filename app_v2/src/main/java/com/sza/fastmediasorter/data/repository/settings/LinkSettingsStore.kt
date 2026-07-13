@@ -36,7 +36,8 @@ object LinkSettingsStore {
     fun read(preferences: Preferences): Values = Values(
         linkAutoDownloadEnabled = preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] ?: true,
         linkAutoDownloadResourceId = preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID],
-        linkAutoDownloadOpenInPlayer = preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] ?: true,
+        // S0981: default OFF - see AppSettings.linkAutoDownloadOpenInPlayer KDoc.
+        linkAutoDownloadOpenInPlayer = preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] ?: false,
         // S0116 §5.1 pillar J: whitelist guard mirrors the videoSnapshotFormat pattern.
         linkDownloadMaxResolution = preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION]
             ?.takeIf { it in setOf("480p", "720p", "1080p", "best") } ?: "1080p",

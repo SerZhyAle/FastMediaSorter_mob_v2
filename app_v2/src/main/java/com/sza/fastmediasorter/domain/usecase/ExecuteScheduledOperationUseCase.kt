@@ -45,7 +45,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val appendToScheduledLogUseCase: AppendToScheduledLogUseCase,
     private val statsSink: StatsSink,
 ) {
-    private val logDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    private val logDateFormat = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    }
 
     suspend operator fun invoke(operationId: Long): ScheduledExecutionResult {
         val operation = scheduledOperationRepository.getById(operationId)
@@ -55,7 +57,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             return ScheduledExecutionResult(operationId, 0, listOf("Operation is disabled"))
         }
 
-        val ts = logDateFormat.format(Date())
+        val ts = logDateFormat.get()!!.format(Date())
         val opName = operation.operationType.name
 
         // In release builds log only the fact that the scheduler fired.

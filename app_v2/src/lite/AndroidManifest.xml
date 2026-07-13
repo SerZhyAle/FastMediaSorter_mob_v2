@@ -84,6 +84,12 @@
             android:name="com.dropbox.core.android.AuthActivity"
             tools:node="remove" />
 
+        <!-- S0984: lite has no SFTP (SUPPORT_LOCAL_NETWORK=false), so the companion `.fmscfg`
+             importer would only create a dead resource - drop it (and its exported VIEW filter). -->
+        <activity
+            android:name=".ui.companionimport.CompanionConfigImportActivity"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

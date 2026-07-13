@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- smallestWidth outranks orientation in resource matching, so values-sw480dp
+         (resource_grid_column_count=1) silently beats values-land in landscape.
+         This combined bucket restores a 2-column resource list in landscape. -->
+    <integer name="resource_grid_column_count">2</integer>
+</resources>

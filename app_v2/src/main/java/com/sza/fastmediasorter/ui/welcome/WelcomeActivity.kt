@@ -111,12 +111,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         // Apply edge-to-edge insets: skip button below status bar, bottom nav above nav bar
         applyEdgeToEdgeInsets()
 
+        // S0910: enable-all MUST attach before permissionsManager. permissionsManager.attach() registers
+        // the special-settings launcher, and on a mid-run recreation (rotation / process death) that
+        // register() SYNCHRONOUSLY redelivers the pending MANAGE_MEDIA result - which finishes the grant-all
+        // run and clears grantAllInProgress. enableAllManager.attach() re-arms grantAllOnComplete (guarded on
+        // grantAllInProgress), so it must run first, while grantAllInProgress is still the restored `true`;
+        // otherwise the re-arm no-ops and the default-player stage never starts (the S0910 stall).
+        enableAllManager.attach(this, permissionsManager) { completeWelcomeFlow() }
+
         // The permissions page (S0402) owns ActivityResult launchers - wire it before the pager binds.
         permissionsManager.attach(this)
-
-        // The enable-all sequence (S0409) owns its own launcher; re-wire host refs on every (re)creation
-        // so the default-player walk resumes after a rotation.
-        enableAllManager.attach(this, permissionsManager) { completeWelcomeFlow() }
 
         setupViewPager()
         setupButtons()

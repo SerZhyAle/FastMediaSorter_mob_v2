@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
@@ -28,7 +29,15 @@ class MainPanelItemActionsManager(
     private val settingsRepository: SettingsRepository,
     private val unpinStreamSource: UnpinStreamSourceUseCase,
     private val currentSettings: () -> AppSettings?,
+    private val resourceVrCinema: ResourceVrCinemaLaunchManager,
 ) {
+
+    // S0963 (Pillar 2): open a resource in the immersive VR browser. Delegates to the XR-gated
+    // launch manager; the item is only visible when [isVrCinemaAvailable] is true.
+    fun openResourceInVrCinema(resource: MediaResource) = resourceVrCinema.launch(resource)
+
+    /** S0963: XR availability mirror gating the resource "Open in VR Cinema" entry. */
+    fun isVrCinemaAvailable(): Boolean = resourceVrCinema.isAvailable
 
     // S0293 Phase 08: launch BrowseActivity for the given resource as a new task so the
     // platform places it in a separate window (Quest 3 panel / DeX desktop / ChromeOS).

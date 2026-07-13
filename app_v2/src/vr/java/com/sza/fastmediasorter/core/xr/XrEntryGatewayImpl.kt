@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
 import com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity
+import com.sza.fastmediasorter.ui.xr.ImmersiveBrowseActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +40,16 @@ class XrEntryGatewayImpl @Inject constructor(
             Timber.w("XrEntryGatewayImpl: createImmersiveIntent -> missing fileUriString")
             return null
         }
-        return Intent(appContext, DiagnosticXrActivity::class.java).apply {
+        if (input.launchMode == VrLaunchMode.RESOURCE_BROWSE && input.resourceId == null) {
+            Timber.w("XrEntryGatewayImpl: createImmersiveIntent -> missing resourceId")
+            return null
+        }
+        val target = if (input.launchMode == VrLaunchMode.RESOURCE_BROWSE) {
+            ImmersiveBrowseActivity::class.java
+        } else {
+            DiagnosticXrActivity::class.java
+        }
+        return Intent(appContext, target).apply {
             action = Intent.ACTION_MAIN
             if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

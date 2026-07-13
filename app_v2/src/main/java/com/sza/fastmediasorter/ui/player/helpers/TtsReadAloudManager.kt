@@ -76,7 +76,6 @@ class TtsReadAloudManager(
             tts?.shutdown()
             tts = null
             isInitialized = false
-            Timber.d("S0897: TTS init failed - engine reset for retry")
             updateState(TtsState.ERROR)
             Toast.makeText(context, R.string.tts_not_available, Toast.LENGTH_SHORT).show()
         }

@@ -35,6 +35,7 @@ import javax.inject.Singleton
 class SftpMediaScanner @Inject constructor(
     private val sftpClient: SftpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: SftpEndpointResolver,
     @ApplicationContext private val context: Context
 ) : MediaScanner {
 
@@ -512,7 +513,11 @@ class SftpMediaScanner @Inject constructor(
         return try {
             // Parse path using utility
             val pathInfo = SftpPathUtils.parseSftpPath(path) ?: return null
-            val (host, port, remotePath) = pathInfo
+            val (rawHost, rawPort, remotePath) = pathInfo
+            // S1006: reach the resource on whichever address is live now (LAN at home, WAN in transit).
+            val resolved = endpointResolver.resolve(rawHost, rawPort)
+            val host = resolved.host
+            val port = resolved.port
 
             // Try to get credentials from database using credentialsId first
             val credentials = if (credentialsId != null) {

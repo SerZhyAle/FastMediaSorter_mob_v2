@@ -22,7 +22,13 @@ class GameBoardTheme private constructor(
     val playerDrawable: Drawable?,
     val kryvavitsaDrawable: Drawable?,
     val shadowDrawable: Drawable?,
-    val doorDrawable: Drawable?
+    val doorDrawable: Drawable?,
+    // S0993: actor drawn as a solid cell fill (contrast skin) instead of a primitive/sprite.
+    val filledActors: Boolean = false,
+    // S0993: when non-null, the exit is a solid fill of this colour instead of a framed square / door.
+    val filledExitColor: Int? = null,
+    // S0993: move animation uses discrete stepped frames + a source ghost so a solid cube reads directionally.
+    val steppedMove: Boolean = false
 ) {
     companion object {
         // Classic values mirror the historical hardcoded board paints so the skin is pixel-identical.
@@ -30,6 +36,10 @@ class GameBoardTheme private constructor(
         private const val CLASSIC_WALL = "#FF5F6368"
         private const val KRYVAVITSA_FLOOR = "#FFECECEC"
         private const val KRYVAVITSA_WALL = "#FF111111"
+        // S0993: contrast skin inherits existing hues at full value; floor/wall pushed to max separation.
+        private const val CONTRAST_FLOOR = "#FFFFFFFF"
+        private const val CONTRAST_WALL = "#FF000000"
+        private const val CONTRAST_EXIT = "#FF2E7D32"
 
         fun forMode(context: Context, mode: GameMode): GameBoardTheme = when (mode) {
             GameMode.CLASSIC -> GameBoardTheme(
@@ -49,6 +59,18 @@ class GameBoardTheme private constructor(
                 kryvavitsaDrawable = AppCompatResources.getDrawable(context, R.drawable.ic_game_fig_kryvavitsa),
                 shadowDrawable = AppCompatResources.getDrawable(context, R.drawable.ic_game_fig_shadow),
                 doorDrawable = AppCompatResources.getDrawable(context, R.drawable.ic_game_door)
+            )
+            GameMode.CONTRAST -> GameBoardTheme(
+                floorColor = Color.parseColor(CONTRAST_FLOOR),
+                wallColor = Color.parseColor(CONTRAST_WALL),
+                stomp = false,
+                playerDrawable = null,
+                kryvavitsaDrawable = null,
+                shadowDrawable = null,
+                doorDrawable = null,
+                filledActors = true,
+                filledExitColor = Color.parseColor(CONTRAST_EXIT),
+                steppedMove = true
             )
         }
     }

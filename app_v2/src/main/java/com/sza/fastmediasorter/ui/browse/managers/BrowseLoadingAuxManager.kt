@@ -60,7 +60,9 @@ class BrowseLoadingAuxManager(
     // @Volatile: written on IO (warm-up scheduled after a scan), cancelled/read on main (cancelAll /
     // cancelPlayerWarmup) - without it the cancel edge can read a stale value and miss the live job.
     @Volatile private var playerWarmupJob: Job? = null
+
     @Volatile private var lastWarmupSignature: String? = null
+
     @Volatile private var audioMetadataEnrichmentJob: Job? = null
 
     private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
@@ -75,6 +77,16 @@ class BrowseLoadingAuxManager(
         // per-request socket timeout. Map by type so the user sees the scan-specific message.
         if (throwable is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
             return R.string.error_scan_timeout
+        }
+
+        // SFTP protocol status is locale-independent; the server's message text is not
+        // (Windows OpenSSH sends "cannot find the file specified", matched by no rule below). S1000.
+        when (com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure.fromThrowable(throwable).category) {
+            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.NOT_FOUND ->
+                return R.string.friendly_copy_error_not_found
+            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.PERMISSION_DENIED ->
+                return R.string.friendly_copy_error_access_denied
+            else -> Unit
         }
 
         val message = throwable.message.orEmpty()
@@ -195,12 +207,36 @@ class BrowseLoadingAuxManager(
             append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}")
         }
 
+        // S1014: on a browse-scan connectivity failure of a companion/SFTP resource, show the companion's
+        // access note (or the default access guidance) instead of a bare timeout - this is the surface the
+        // user sees when opening a shared folder that cannot be reached on any address.
         sendEvent(BrowseEvent.ShowError(
-            message = getFriendlyBrowseErrorMessage(e),
+            message = companionConnectGuidance(resource, e) ?: getFriendlyBrowseErrorMessage(e),
             details = details,
             exception = e
         ))
         onHandleError(e)
+    }
+
+    /**
+     * S1014: actionable access guidance for a browse-scan connectivity failure of a companion-style
+     * (SFTP/FTP) resource - the companion's own access note when present, otherwise the default guidance.
+     * Returns null (fall back to the generic friendly error) for other resource types or non-connectivity
+     * failures.
+     */
+    private fun companionConnectGuidance(resource: MediaResource, e: Throwable): String? {
+        val msg = e.message.orEmpty()
+        val isConnectivity = msg.contains("timeout", ignoreCase = true) ||
+            msg.contains("timed out", ignoreCase = true) ||
+            msg.contains("unreachable", ignoreCase = true) ||
+            msg.contains("Connection", ignoreCase = true)
+        val companion = resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP
+        if (!isConnectivity || (!companion && resource.accessNote.isNullOrBlank())) {
+            return null
+        }
+        Timber.d("S1014: browse connect guidance for ${resource.type}, note=${!resource.accessNote.isNullOrBlank()}")
+        return resource.accessNote?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.error_companion_connect_guidance)
     }
 
     /**

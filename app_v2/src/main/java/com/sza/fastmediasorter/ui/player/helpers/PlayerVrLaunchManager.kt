@@ -20,13 +20,13 @@ import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
+import com.sza.fastmediasorter.core.xr.toLaunchUriString
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -408,14 +408,6 @@ internal class PlayerVrLaunchManager(
         MediaType.VIDEO -> VrMediaType.VIDEO
         MediaType.GIF -> VrMediaType.GIF
         else -> error("Unsupported VR launch media type: $this")
-    }
-
-    private fun MediaFile.toLaunchUriString(): String {
-        return when {
-            path.startsWith("file://") || path.startsWith("content://") -> path
-            path.startsWith("/") -> Uri.fromFile(File(path)).toString()
-            else -> path
-        }
     }
 
     private data class SurfaceState(

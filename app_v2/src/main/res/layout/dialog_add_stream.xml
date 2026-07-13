@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:inputType="textUri"
             android:maxLines="1"
-            android:imeOptions="actionNext" />
+            android:imeOptions="actionNext|flagNoExtractUi" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -38,6 +38,6 @@
             android:layout_height="wrap_content"
             android:inputType="textCapSentences"
             android:maxLines="1"
-            android:imeOptions="actionDone" />
+            android:imeOptions="actionDone|flagNoExtractUi" />
     </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>

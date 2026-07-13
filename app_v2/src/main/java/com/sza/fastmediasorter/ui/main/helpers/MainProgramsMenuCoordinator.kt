@@ -24,10 +24,21 @@ class MainProgramsMenuCoordinator(
     private val quickCaptureMenuManager: MainQuickCaptureMenuManager,
     private val linkDownloadMenuManager: MainLinkDownloadMenuManager,
     private val screenRecordingMenuManager: MainScreenRecordingMenuManager,
-    private val isNewWindowAvailable: () -> Boolean,
-    private val launchInNewWindow: (Intent) -> Unit,
-    private val confirmRemoveProgram: (Int, (AppSettings) -> AppSettings) -> Unit,
+    private val hostActions: ProgramsHostActions,
 ) {
+
+    /**
+     * Host callbacks the coordinator delegates to, all resolved by MainActivity (via its panel-item
+     * actions manager). Bundled into one holder so the constructor stays under the detekt
+     * LongParameterList threshold as new program entries (S0962: VR Cinema) are added.
+     */
+    class ProgramsHostActions(
+        val isNewWindowAvailable: () -> Boolean,
+        val launchInNewWindow: (Intent) -> Unit,
+        val confirmRemoveProgram: (Int, (AppSettings) -> AppSettings) -> Unit,
+        // S0962 (VR Cinema, Pillar 1): tap handler - prompts for a resource, then opens the browser.
+        val onVrCinemaSelected: () -> Unit,
+    )
 
     /**
      * Resolved per-scenario visibility for one menu build - MainActivity folds in its runtime flags +
@@ -35,6 +46,7 @@ class MainProgramsMenuCoordinator(
      */
     data class ProgramsMenuGate(
         val streams: Boolean,
+        val vrCinema: Boolean,
         val quickVoice: Boolean,
         val quickCamera: Boolean,
         val calculator: Boolean,
@@ -47,7 +59,8 @@ class MainProgramsMenuCoordinator(
     // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
     // the three-dots menu button stays visible even when every other program is disabled.
     fun itemCount(gate: ProgramsMenuGate): Int =
-        1 + (if (gate.calculator) 1 else 0) + (if (gate.cameraOcr) 1 else 0) +
+        1 + (if (gate.vrCinema) 1 else 0) + (if (gate.calculator) 1 else 0) +
+            (if (gate.cameraOcr) 1 else 0) +
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
             linkDownloadMenuManager.itemCount(gate.linkDownload) +
@@ -58,10 +71,22 @@ class MainProgramsMenuCoordinator(
     fun populate(popup: PopupMenu, excludeStreams: Boolean, gate: ProgramsMenuGate): Int {
         popup.menu.clear()
         // S0758: each item's explicit order = its canonical position in the owner's programs menu order.
-        // Sorted display order after S0913: Streams, quick-launch panel [S0757], quick-capture,
-        // calculator, camera-OCR, screen recording [S0913 - right after camera-OCR], link download,
-        // mini-game. The panel mirrors this menu (single source of truth), so the order carries there too.
+        // Sorted display order after S0962: Streams, VR Cinema [S0962], quick-launch panel [S0757],
+        // quick-capture, calculator, camera-OCR, screen recording [S0913 - right after camera-OCR],
+        // link download, mini-game. The panel mirrors this menu (single source of truth), so the order
+        // carries there too.
         streamsMenuManager.populate(popup, !excludeStreams && gate.streams, MENU_ORDER_STREAMS)
+        // S0962 (VR Cinema, Pillar 1): immersive-cinema program - shown only when XR is available and the
+        // VR-3D master toggle is on (gate.vrCinema). Master-gated with no per-item toggle and not a window,
+        // so newWindowActionFor/removeActionFor both leave it on their `else -> null` branch.
+        if (gate.vrCinema) {
+            popup.menu.add(
+                0,
+                MENU_ITEM_VR_CINEMA,
+                MENU_ORDER_VR_CINEMA,
+                R.string.vr_cinema_program_title,
+            ).setIcon(R.drawable.ic_vr_headset)
+        }
         // S0757: Quick Launch Panel - always present (no on/off; also reachable via tile/gesture/widget).
         popup.menu.add(
             0,
@@ -116,6 +141,10 @@ class MainProgramsMenuCoordinator(
                 activity.startActivity(Intent(activity, AppLaunchPanelActivity::class.java))
                 true
             }
+            MENU_ITEM_VR_CINEMA -> {
+                hostActions.onVrCinemaSelected()
+                true
+            }
             else -> false
         }
     }
@@ -125,7 +154,7 @@ class MainProgramsMenuCoordinator(
      * the item is not a standalone window (quick capture / link download act in-place, not as a window).
      */
     fun newWindowActionFor(itemId: Int): (() -> Unit)? {
-        if (!isNewWindowAvailable()) return null
+        if (!hostActions.isNewWindowAvailable()) return null
         val intent = when (itemId) {
             MainStreamsMenuManager.MENU_ITEM_STREAMS -> Intent(activity, StreamsActivity::class.java)
             MENU_ITEM_APP_LAUNCH_PANEL -> Intent(activity, AppLaunchPanelActivity::class.java)
@@ -136,7 +165,7 @@ class MainProgramsMenuCoordinator(
                 com.sza.fastmediasorter.core.game.GameLaunchIntents.game(activity)
             else -> null
         }
-        return intent?.let { resolved -> { launchInNewWindow(resolved) } }
+        return intent?.let { resolved -> { hostActions.launchInNewWindow(resolved) } }
     }
 
     /**
@@ -168,21 +197,23 @@ class MainProgramsMenuCoordinator(
     }
 
     private fun removeProgramAction(titleRes: Int, apply: (AppSettings) -> AppSettings): () -> Unit = {
-        confirmRemoveProgram(titleRes, apply)
+        hostActions.confirmRemoveProgram(titleRes, apply)
     }
 
     companion object {
         const val MENU_ITEM_CALCULATOR = 1
         const val MENU_ITEM_CAMERA_OCR = 9
         const val MENU_ITEM_APP_LAUNCH_PANEL = 15
+        const val MENU_ITEM_VR_CINEMA = 17
 
         private const val MENU_ORDER_STREAMS = 1
-        private const val MENU_ORDER_APP_LAUNCH_PANEL = 2
-        private const val MENU_ORDER_QUICK_CAPTURE = 3
-        private const val MENU_ORDER_CALCULATOR = 4
-        private const val MENU_ORDER_CAMERA_OCR = 5
-        private const val MENU_ORDER_SCREEN_RECORDING = 6
-        private const val MENU_ORDER_LINK_DOWNLOAD = 7
-        private const val MENU_ORDER_MINI_GAME = 8
+        private const val MENU_ORDER_VR_CINEMA = 2
+        private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
+        private const val MENU_ORDER_QUICK_CAPTURE = 4
+        private const val MENU_ORDER_CALCULATOR = 5
+        private const val MENU_ORDER_CAMERA_OCR = 6
+        private const val MENU_ORDER_SCREEN_RECORDING = 7
+        private const val MENU_ORDER_LINK_DOWNLOAD = 8
+        private const val MENU_ORDER_MINI_GAME = 9
     }
 }

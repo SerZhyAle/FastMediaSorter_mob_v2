@@ -109,7 +109,7 @@ class ApplyProfilePresetUseCaseTest {
         assertTrue(saved.copyScreenshotToClipboard)
         assertEquals(
             com.sza.fastmediasorter.domain.model.ScreenshotGestureAction.OPEN_IN_PLAYER,
-            saved.screenshotGestureActionDown
+            saved.screenshotGestureLeftTopDown
         )
         assertEquals(setOf("email", "telegram"), saved.enabledShareTargets)
         assertEquals(setOf("print"), saved.disabledShareTargets)
@@ -181,7 +181,7 @@ class ApplyProfilePresetUseCaseTest {
         val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertEquals(defaults.screenshotGestureActionDown, saved.screenshotGestureActionDown)
+        assertEquals(defaults.screenshotGestureLeftTopDown, saved.screenshotGestureLeftTopDown)
     }
 
     @Test

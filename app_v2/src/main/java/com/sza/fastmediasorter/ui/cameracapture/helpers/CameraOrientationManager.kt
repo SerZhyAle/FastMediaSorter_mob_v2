@@ -3,10 +3,16 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.content.Context
 import android.view.OrientationEventListener
 import android.view.Surface
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Buckets the physical device angle for the portrait-locked camera host (S0754) and exposes two
  * view-agnostic callbacks: one keeps overlay controls upright, the other updates CameraX targetRotation.
+ *
+ * S0924: also publishes the current [Surface] rotation bucket as [rotationBucket] so a late/dynamic
+ * consumer (the on-demand settings dialog) can subscribe without a second [OrientationEventListener].
  */
 class CameraOrientationManager(
     context: Context,
@@ -15,6 +21,12 @@ class CameraOrientationManager(
 ) {
 
     private var currentRotation = Surface.ROTATION_0
+
+    // S0924: single source of truth for the device rotation bucket, seeded with the initial value.
+    private val rotationBucketState = MutableStateFlow(currentRotation)
+
+    /** Current `Surface.ROTATION_*` bucket as observable state for late subscribers (S0924). */
+    val rotationBucket: StateFlow<Int> = rotationBucketState.asStateFlow()
 
     private val listener = object : OrientationEventListener(context.applicationContext) {
         override fun onOrientationChanged(orientation: Int) {
@@ -42,6 +54,7 @@ class CameraOrientationManager(
 
     private fun dispatch() {
         onTargetRotationChanged(currentRotation)
+        rotationBucketState.value = currentRotation
         // Overlay counter-rotation must be the negative of the device's clockwise angle reported by
         // OrientationEventListener; the landscape branches previously carried the wrong sign, so
         // both landscape sides netted 180 deg (upside-down) while inverted portrait stayed upright.

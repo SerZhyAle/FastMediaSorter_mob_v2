@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
@@ -69,6 +70,7 @@ class ScreenCaptureService : Service() {
     lateinit var saveFallbackNotifier: Lazy<com.sza.fastmediasorter.core.save.SaveFallbackNotifier>
 
     private var gestureDirection: String? = null
+    private var gestureZone: String? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -98,6 +100,7 @@ class ScreenCaptureService : Service() {
         val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
             ?: Activity.RESULT_CANCELED
         gestureDirection = intent?.getStringExtra(EXTRA_GESTURE_DIRECTION)
+        gestureZone = intent?.getStringExtra(EXTRA_GESTURE_ZONE)
         val resultData = intent?.readResultData()
         if (resultCode != Activity.RESULT_OK || resultData == null) {
             Timber.w("ScreenCaptureService: missing MediaProjection consent extras")
@@ -160,6 +163,32 @@ class ScreenCaptureService : Service() {
         try {
             val bitmap = withContext(Dispatchers.Default) { imageToBitmap(image) }
             val settings = settingsRepository.get().getSettings().first()
+
+            // Copy to clipboard from the live bitmap before the save use case recycles it;
+            // independent of the post-capture action and the save destination.
+            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
+                toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
+            val action = resolveGestureAction()
+
+            // S1042: OCR actions skip the gallery save - stage the raw frame to a private temp file and
+            // open the unified crop/OCR/translate screen, which saves only the cropped result. No
+            // "saved to gallery" toast, since the raw screenshot is not persisted to the gallery.
+            if (action == ScreenshotGestureAction.OCR_TRANSLATE) {
+                val tempFile = withContext(Dispatchers.IO) {
+                    actionDispatcher.get().stageOcrSourceFile(applicationContext, bitmap)
+                }
+                if (tempFile != null) {
+                    actionDispatcher.get().launchOcrCropFlow(applicationContext, tempFile)
+                    finishSuccessfully()
+                } else {
+                    Timber.e("ScreenCaptureService: failed to stage OCR source frame")
+                    finishWithError()
+                }
+                return
+            }
+
             val resources = resourceRepository.get().getAllResourcesSync()
             val target = ScreenshotDestinationPolicy().resolve(
                 selectedResourceId = settings.screenshotDestinationResourceId,
@@ -169,12 +198,6 @@ class ScreenCaptureService : Service() {
             val selectedResourceName = resources
                 .firstOrNull { it.id.toString() == settings.screenshotDestinationResourceId }
                 ?.name.orEmpty()
-
-            // Copy to clipboard from the live bitmap before the save use case recycles it;
-            // independent of the post-capture action and the save destination.
-            if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
-                toast(getString(R.string.screen_capture_copied_to_clipboard))
-            }
 
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {
                 is SaveScreenshotUseCase.SaveResult.Success -> {
@@ -187,7 +210,7 @@ class ScreenCaptureService : Service() {
                             background = true
                         )
                     }
-                    runPostSaveAction(result.savedUri)
+                    actionDispatcher.get().runPostSave(applicationContext, action, result.savedUri)
                     finishSuccessfully()
                 }
                 is SaveScreenshotUseCase.SaveResult.Failure -> {
@@ -203,17 +226,21 @@ class ScreenCaptureService : Service() {
         }
     }
 
-    private suspend fun runPostSaveAction(savedUri: android.net.Uri?) {
+    /** Resolves the configured gesture action for the fired zone+direction; absent -> silent save. */
+    private suspend fun resolveGestureAction(): ScreenshotGestureAction {
         // Direction was gated to non-DO_NOT_USE in the overlay host; absent/unknown -> silent save.
         val direction = gestureDirection?.let {
             runCatching { ScreenshotGestureDirection.valueOf(it) }.getOrNull()
         }
-        val action = if (direction != null) {
-            actionDispatcher.get().actionFor(direction)
+        // S0847: zone identifies which of the four edge bands fired; absent -> LEFT_TOP (legacy single strip).
+        val zone = gestureZone?.let {
+            runCatching { ScreenshotGestureZone.valueOf(it) }.getOrNull()
+        } ?: ScreenshotGestureZone.LEFT_TOP
+        return if (direction != null) {
+            actionDispatcher.get().actionFor(zone, direction)
         } else {
             ScreenshotGestureAction.SILENT_SCREENSHOT
         }
-        actionDispatcher.get().runPostSave(applicationContext, action, savedUri)
     }
 
     private fun imageToBitmap(image: Image): Bitmap {
@@ -336,16 +363,24 @@ class ScreenCaptureService : Service() {
         const val EXTRA_RESULT_CODE = "screen_capture_result_code"
         const val EXTRA_RESULT_DATA = "screen_capture_result_data"
         const val EXTRA_GESTURE_DIRECTION = "gesture_direction"
+        const val EXTRA_GESTURE_ZONE = "gesture_zone"
 
         private const val CHANNEL_ID = "screen_capture_service"
         private const val NOTIFICATION_ID = 0x4053
         private const val VIRTUAL_DISPLAY_NAME = "screen_capture_service"
 
-        fun start(context: Context, resultCode: Int, resultData: Intent, direction: String? = null) {
+        fun start(
+            context: Context,
+            resultCode: Int,
+            resultData: Intent,
+            direction: String? = null,
+            zone: String? = null
+        ) {
             val intent = Intent(context, ScreenCaptureService::class.java).apply {
                 putExtra(EXTRA_RESULT_CODE, resultCode)
                 putExtra(EXTRA_RESULT_DATA, resultData)
                 direction?.let { putExtra(EXTRA_GESTURE_DIRECTION, it) }
+                zone?.let { putExtra(EXTRA_GESTURE_ZONE, it) }
             }
             ContextCompat.startForegroundService(context, intent)
         }

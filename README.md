@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.7070.937 (July 2026)
+## What's New in v2.60.7132.046 (July 2026)
 
 **New:**
-Standalone document viewer opens PDF hyperlinks and supports long-press text selection, more Android settings tiles in the quick-launch panel.
+Windows Companion (discover, pair, shared-folder import, SFTP access), Messenger/Viber/short-video sharing receivers, screenshot OCR, Screen Capture edge-swipe gestures on all four edges, quick-launch panel close button and camera/video gesture actions, Contrast mini-game, branded splash screen, persistent resource statistics, unified Resource Profile dialog, credential-embedded stream URLs.
 
 **Fixed:**
-Audio permission no longer silently disabled on release builds, stopping a quick voice recording no longer crashes, enable-all onboarding resumes after the app restarts.
+VR install prompt no longer appears for 3D content on the VR edition, SFTP missing-path shows a clear message, OCR/translation now work on Google Play builds, audio permissions no longer silently disabled on minified builds, filter/search fields stay reachable above the keyboard, frozen live streams auto-recover, edge-gesture strips only show configured zones, remote/D-pad focus indicator covers the whole app.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -72,9 +72,11 @@ Audio permission no longer silently disabled on release builds, stopping a quick
 
 ## Windows Version 🖥️
 
-Looking for a desktop solution? Check out **FastMediaSorter LITE** - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
+Looking for a desktop solution? Check out **Fast Media Sorter for Windows** (formerly FastMediaSorter LITE) - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
 
-🔗 **[FastMediaSorter LITE for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+
+📄 [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - share your PC folders with the app over SFTP (companion import / QR scan on the phone).
 
 Features include:
 

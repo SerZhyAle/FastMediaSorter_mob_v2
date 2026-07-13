@@ -73,7 +73,7 @@
 
         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/folder_path" app:helperText="@string/folder_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" android:text="@string/dialog_folder_selection_etManualPath_text" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" android:imeOptions="flagNoExtractUi" android:text="@string/dialog_folder_selection_etManualPath_text" />
 
         </com.google.android.material.textfield.TextInputLayout>
 

@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -96,6 +97,7 @@ class PlaybackSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         try {
             setupViews()
             setupBackgroundAudioSection()

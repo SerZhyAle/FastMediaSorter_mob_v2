@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -367,6 +368,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     @Inject internal lateinit var ftpClientLazy: Lazy<FtpClient>
     @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
+
+    // S1006: reachable-endpoint resolver forwarded to VideoPlayerManager for multi-path SFTP playback.
+    @Inject lateinit var endpointResolver: SftpEndpointResolver
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
 
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory

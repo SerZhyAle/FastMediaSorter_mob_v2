@@ -27,6 +27,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             credentialsRepository = activity.credentialsRepository,
             smbClient = activity.smbClient,
             sftpClient = activity.sftpClient,
+            endpointResolver = activity.endpointResolver,
             ftpClient = activity.ftpClient,
             googleDriveClient = activity.googleDriveClient,
             oneDriveClient = activity.oneDriveClient,

@@ -168,6 +168,14 @@ abstract class ResourceDao {
     @Query("UPDATE resources SET icon_id = :iconId WHERE id = :resourceId")
     abstract suspend fun updateIcon(resourceId: Long, iconId: String?)
 
+    // S1001: single-field writers must not rewrite the whole row - a full-entity @Update built
+    // from a stale in-memory copy clobbers concurrently written stats (fileCount/lastBrowseDate).
+    @Query("UPDATE resources SET lastViewedFile = :path WHERE id = :resourceId")
+    abstract suspend fun updateLastViewedFile(resourceId: Long, path: String?)
+
+    @Query("UPDATE resources SET lastScrollPosition = :position WHERE id = :resourceId")
+    abstract suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
+
     @Query("SELECT * FROM resources WHERE icon_id IS NULL")
     abstract suspend fun findResourcesWithoutIcon(): List<ResourceEntity>
 

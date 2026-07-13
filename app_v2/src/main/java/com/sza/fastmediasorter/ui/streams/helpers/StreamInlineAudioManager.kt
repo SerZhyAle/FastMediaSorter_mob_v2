@@ -12,12 +12,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -137,9 +137,10 @@ class StreamInlineAudioManager(
         } else {
             // Background playback OFF: mirror local audio - play in-app, with no foreground service and
             // no media notification; StreamsActivity stops this on screen leave / background (S0577).
-            // The Icy-MetaData request header keeps ICY now-playing flowing on the in-app player too.
-            val httpFactory = DefaultHttpDataSource.Factory()
-                .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
+            // S1015: reuse the shared factory (Icy-MetaData + userinfo Basic-Auth) instead of a local
+            // one-off - NetworkAwareMediaSourceFactory's http/https branch already does the same for the
+            // background-service twin, and a duplicated factory here had silently dropped the auth fix.
+            val httpFactory = StreamDataSourceFactoryProvider.create(miniControl.context)
             // S0896: this OFF-mode local player had no audio-focus/becoming-noisy handling, unlike
             // its service-mode twin (audioController.playAudioWithMetadata -> AudioPlaybackService).
             val audioAttributes = AudioAttributes.Builder()
@@ -148,7 +149,11 @@ class StreamInlineAudioManager(
                 .build()
             val local = ExoPlayer.Builder(miniControl.context)
                 .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
-                .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+                .setAudioAttributes(
+                    audioAttributes,
+                    /* handleAudioFocus= */
+                    true
+                )
                 .setHandleAudioBecomingNoisy(true)
                 .build()
             Timber.d("S0896: StreamInlineAudioManager OFF-mode player built with handleAudioFocus")
@@ -202,7 +207,6 @@ class StreamInlineAudioManager(
                 p.playWhenReady = false
                 p.stop()
                 p.clearMediaItems()
-                Timber.d("S0900: service player quiesced on stop")
             }
         }
         player = null

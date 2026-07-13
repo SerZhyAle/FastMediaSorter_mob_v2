@@ -61,7 +61,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recorder |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Remote resources (SMB/(S)FTP/Cloud) |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Scheduled operations by schedule |
-| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Left-edge screen gestures |
+| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Edge screen gestures |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen recording |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Streams |

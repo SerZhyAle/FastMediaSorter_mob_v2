@@ -92,10 +92,11 @@ class BrowseResourceStateManager(
     /** Persist [filePath] as the last viewed file for the current resource. */
     fun saveLastViewedFile(filePath: String) {
         val resource = stateFlow.value.resource ?: return
-        val updatedResource = resource.copy(lastViewedFile = filePath)
-        updateState { it.copy(resource = updatedResource) }
+        // S1001: targeted single-column write - a full-entity update from this (possibly stale)
+        // in-memory copy clobbers statistics written by BrowseMetadataManager during load.
+        updateState { it.copy(resource = it.resource?.copy(lastViewedFile = filePath) ?: it.resource) }
         scope.launch(ioDispatcher + exceptionHandler) {
-            updateResourceUseCase(updatedResource)
+            updateResourceUseCase.saveLastViewedFile(resource.id, filePath)
             Timber.d("BrowseResourceStateManager: saved lastViewedFile=$filePath for '${resource.name}'")
         }
     }
@@ -103,11 +104,11 @@ class BrowseResourceStateManager(
     /** Persist [position] as the last scroll position for the current resource. */
     fun saveScrollPosition(position: Int) {
         val resource = stateFlow.value.resource ?: return
-        val updatedResource = resource.copy(lastScrollPosition = position)
-        updateState { it.copy(resource = updatedResource) }
+        // S1001: targeted single-column write - fires on every onPause; see saveLastViewedFile.
+        updateState { it.copy(resource = it.resource?.copy(lastScrollPosition = position) ?: it.resource) }
         scope.launch(ioDispatcher + exceptionHandler) {
             withContext(NonCancellable) {
-                updateResourceUseCase(updatedResource)
+                updateResourceUseCase.saveScrollPosition(resource.id, position)
                 Timber.d("BrowseResourceStateManager: saved lastScrollPosition=$position for '${resource.name}'")
             }
         }

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import timber.log.Timber
 import java.io.File
 
@@ -26,12 +27,13 @@ internal fun resolvePlayerFilePermissions(
     val isNetworkResource = resource != null &&
         (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)
 
-    var canWrite: Boolean
+    // S1019: resource-level write permission from the shared resolver so the player and browse never
+    // diverge. Policy (isReadOnly) and the per-type rule (network -> policy, local/cloud -> probe) live there.
+    var canWrite: Boolean = resource?.allowsWriteOperations() ?: false
     val canRead: Boolean
     if (isNetworkResource) {
-        canWrite = true; canRead = true
+        canRead = true
     } else if (currentFilePath.startsWith("content://")) {
-        canWrite = resource?.isWritable ?: false
         canRead = try {
             DocumentFile.fromSingleUri(context, Uri.parse(currentFilePath))?.canRead() ?: false
         } catch (e: Exception) {
@@ -40,10 +42,10 @@ internal fun resolvePlayerFilePermissions(
         }
     } else {
         val file = File(currentFilePath)
-        canWrite = resource?.isWritable ?: file.canWrite()
+        // Raw file with no resource context: fall back to the filesystem's own writability.
+        if (resource == null) canWrite = file.canWrite()
         canRead = file.canRead()
     }
-    if (resource?.isReadOnly == true) canWrite = false
 
     return PlayerFilePermissions(canWrite, canRead)
 }

@@ -1,21 +1,21 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
 /**
- * Silent-freeze detector for the stream-playback path (S0936).
+ * Silent-freeze detector + bounded recovery for the stream-playback path (S0936).
  *
  * `StreamPlaybackHelper.streamPlaybackListener` only recovers on a thrown `PlaybackException`
  * (behind-live-window desync / transient network errors) - a stream that stalls WITHOUT
  * throwing (position frozen while `STATE_READY`, or stuck `STATE_BUFFERING` that never reaches
- * `STATE_READY`) has no recovery path and, before S0937, no diagnostic trace either.
+ * `STATE_READY`) has no error to recover from and, before S0937, no diagnostic trace either.
  *
- * This phase only detects and logs the two stall shapes - it triggers no recovery, so it is
- * behavior-neutral. The poll thresholds below are provisional defaults pending owner
- * ratification (S0936 strategic spec §3.3); Phase 02 turns a confirmed stall into bounded
- * recovery once a device repro confirms the shape and the owner ratifies the constants.
+ * Both stall shapes were confirmed on-device (silent stall: BUFFERING with no PlaybackException)
+ * and the owner ratified the thresholds below, so a confirmed stall now triggers a bounded
+ * re-prepare within [STREAM_MAX_WATCHDOG_RECOVERIES]; exhaustion surfaces the regular error path.
  *
  * Extension functions on [VideoPlayerManager], mirroring [PlaybackHealthHelper]'s pattern: the
  * shared `retryHandler`, manager-held state fields, no new class instance, no Hilt.
@@ -42,11 +42,9 @@ internal fun VideoPlayerManager.checkStreamStall() {
     if (positionDelta < STALL_MIN_PROGRESS_MS) {
         streamStallPolls++
         if (streamStallPolls >= STALL_MAX_POLLS) {
-            Timber.w(
-                "Stream stall detected (position frozen) polls=%d path=%s",
-                streamStallPolls,
-                currentFilePath
-            )
+            streamStallPolls = 0
+            recoverFromStreamStall("position frozen")
+            return
         }
     } else {
         streamStallPolls = 0
@@ -78,7 +76,7 @@ internal fun VideoPlayerManager.armStreamBufferingTimeout() {
 
 /**
  * Fires after [BUFFERING_STALL_TIMEOUT_MS] still buffering. A stream still downloading on a weak
- * link (`isLoading` true and the buffer growing) is legitimate - re-arm instead of logging.
+ * link (`isLoading` true and the buffer growing) is legitimate - re-arm instead of recovering.
  */
 internal fun VideoPlayerManager.checkStreamBufferingTimeout(bufferedAtArm: Long) {
     val player = exoPlayer ?: return
@@ -89,10 +87,60 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout(bufferedAtArm: Long)
         armStreamBufferingTimeout()
         return
     }
-    Timber.w("Stream stall detected (buffering timeout) path=%s", currentFilePath)
+    recoverFromStreamStall("buffering timeout")
+}
+
+/**
+ * Bounded stall recovery. Runs synchronously on the main thread inside the watchdog runnable, so
+ * the captured player cannot be swapped mid-flight (unlike `onPlayerError`'s delayed branches).
+ *
+ * Unlike the `onPlayerError` recovery path - where the player has already transitioned to `IDLE`
+ * and a bare `prepare()` restarts it - a silent stall leaves the player in `BUFFERING`/`READY`,
+ * where `prepare()` is a no-op. `stop()` forces `IDLE` first so the re-prepare rebuilds the whole
+ * loading pipeline; a live stream then starts back at its default (live-edge) position, which is
+ * exactly the re-anchor the error path achieves with `seekToDefaultPosition()`.
+ */
+internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
+    val stalledPlayer = exoPlayer ?: return
+    if (streamWatchdogRecoveries >= STREAM_MAX_WATCHDOG_RECOVERIES) {
+        Timber.w(
+            "Stream stall - watchdog budget exhausted (%d attempts, %s) path=%s",
+            streamWatchdogRecoveries,
+            reason,
+            currentFilePath
+        )
+        cancelStreamStallWatchdog()
+        streamWatchdogReconnecting = false
+        playerCallback.onBuffering(false)
+        playerCallback.onStreamWaitPhase(null)
+        playerCallback.onPlaybackError(
+            PlaybackException(
+                "Stream stalled ($reason) and the watchdog recovery budget is exhausted",
+                null,
+                PlaybackException.ERROR_CODE_TIMEOUT
+            )
+        )
+        return
+    }
+    streamWatchdogRecoveries++
+    streamWatchdogReconnecting = true
+    Timber.w(
+        "Stream stall - watchdog re-anchor (attempt %d, %s) path=%s",
+        streamWatchdogRecoveries,
+        reason,
+        currentFilePath
+    )
+    playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
+    val wasLive = stalledPlayer.isCurrentMediaItemLive
+    val resumePosition = if (wasLive) 0L else stalledPlayer.currentPosition
+    stalledPlayer.stop()
+    stalledPlayer.prepare()
+    // Non-live (http VOD) streams have no live edge to re-anchor to - restore where the user was.
+    if (!wasLive && resumePosition > 0L) stalledPlayer.seekTo(resumePosition)
 }
 
 private const val STALL_POLL_INTERVAL_MS = 3_000L
 private const val STALL_MIN_PROGRESS_MS = 500L
 private const val STALL_MAX_POLLS = 3
 private const val BUFFERING_STALL_TIMEOUT_MS = 15_000L
+internal const val STREAM_MAX_WATCHDOG_RECOVERIES = 3

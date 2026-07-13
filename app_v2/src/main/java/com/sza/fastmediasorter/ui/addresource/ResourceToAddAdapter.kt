@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemResourceToAddBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 
 
 private const val PAYLOAD_SELECTION = "payload_selection"
@@ -122,8 +123,9 @@ class ResourceToAddAdapter(
                 setupMediaTypeButton(btnTypePdf, resource, MediaType.PDF, activeColor, isDownloads)
                 setupMediaTypeButton(btnTypeOffice, resource, MediaType.OFFICE_DOCUMENT, activeColor, isDownloads)
 
-                // Disable destination checkbox if read-only or not writable
-                val canBeDestination = resource.isWritable && !resource.isReadOnly
+                // S1019: destination eligibility via the shared write-policy resolver (a destination
+                // must accept writes) - consistent with the browse/player write gates.
+                val canBeDestination = resource.allowsWriteOperations()
                 cbDestination.isEnabled = canBeDestination
                 cbDestination.isVisible = true // Always visible to maintain layout
                 if (!canBeDestination) {

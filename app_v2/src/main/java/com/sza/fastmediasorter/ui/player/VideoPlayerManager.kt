@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.player.StreamProtocolSupport
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -91,6 +92,8 @@ class VideoPlayerManager(
     internal val credentialsRepository: NetworkCredentialsRepository,
     internal val smbClient: SmbClient,
     internal val sftpClient: SftpClient,
+    // S1006: picks the reachable SFTP endpoint (companion LAN vs WAN) before streaming.
+    internal val endpointResolver: SftpEndpointResolver,
     internal val ftpClient: FtpClient,
     internal val googleDriveClient: GoogleDriveRestClient,
     internal val oneDriveClient: OneDriveRestClient,
@@ -313,12 +316,17 @@ class VideoPlayerManager(
     internal var playbackStuckCount = 0
 
     // Stream stall watchdog (S0936): detects a silent freeze the stream-listener's error-driven
-    // recovery cannot see (no PlaybackException thrown). This phase only detects and logs;
-    // Phase 02 turns a confirmed stall into bounded recovery once device-repro + owner ratify it.
+    // recovery cannot see (no PlaybackException thrown) and heals it with a bounded re-prepare.
     internal var streamStallRunnable: Runnable? = null
     internal var streamStallLastPosition = 0L
     internal var streamStallPolls = 0
     internal var streamBufferingSince = 0L
+    // Watchdog recovery budget - separate from the error-driven behindLiveRecoveries/transientRetries
+    // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's exhaustion.
+    internal var streamWatchdogRecoveries = 0
+    // True while a watchdog-triggered re-prepare is in flight, so the listener labels the resulting
+    // BUFFERING as RECONNECTING (owner-ratified: same label as error-driven recovery).
+    internal var streamWatchdogReconnecting = false
 
     // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
@@ -595,7 +603,11 @@ class VideoPlayerManager(
     // Public API - Stereo / color adjustments
     // ═══════════════════════════════════════════════════════════════════════
 
-    /** Apply stereo crop effect matching [mode], with VR paths deferring per-eye crop to VrStereoRenderer. */
+    /**
+     * Apply stereo crop matching [mode]. Under VR immersive the 2D crop is skipped (full SBS/OU frame
+     * passed through) and per-eye crop is done by the vr-flavor OpenXR renderer - DiagnosticXrRuntime
+     * over the native xr_session (per-eye swapchains).
+     */
     fun applyStereoEffect(mode: StereoMode) = playbackControlsHelper.applyStereoEffect(mode)
 
     fun setHueAdjustmentDegrees(hueDegrees: Float) = playbackControlsHelper.setHueAdjustmentDegrees(hueDegrees)

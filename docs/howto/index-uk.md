@@ -15,6 +15,7 @@ permalink: /docs/howto/index-uk.html
 
 **Що ви хочете зробити?**
 
+- <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу відкрити папки ПК на телефоні, просто відсканувавши код»_ → [Відкрийте папки ПК скануванням коду](scenario-companion-share-uk.md)
 - <img src="../icons/doc/ic_camera_capture.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб фото з телефону автоматично копіювалися на ПК кожної ночі»_ → [Автобекап фото на ПК](scenario-camera-backup-uk.md)
 - <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися фільми/серіали з ПК на телефоні, без копіювання файлів»_ → [Домашній кінотеатр та VR](scenario-home-cinema-uk.md)
 - <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Є старий планшет - хочу зробити з нього фоторамку»_ → [Цифрова фоторамка](scenario-photo-frame-uk.md)
@@ -33,6 +34,7 @@ permalink: /docs/howto/index-uk.html
 
 | Посібник | Що ви отримаєте | Час | Версія |
 |----------|----------------|-----|--------|
+| [<img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Відкрийте папки ПК скануванням коду](scenario-companion-share-uk.md) | Відкрийте доступ до папок ПК у компаньйоні Windows і підключіть їх скануванням одного QR-коду - без введення адреси, порту й пароля | ~5 хв | Standard / Photos / Legacy |
 | [<img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Цифрова фоторамка на планшеті](scenario-photo-frame-uk.md) | Планшет на підставці показує ваші фото з NAS або хмари - цілодобово, з музикою | ~15 хв | Standard / Будь-яка |
 | [<img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Музика в автомобілі](scenario-car-music-uk.md) | Android-магнітола відтворює всю колекцію, керування кнопками керма | ~10 хв | Standard / Legacy |
 | [<img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md) | Відтворення інтернет-радіо та IPTV-потоків на будь-якому Android-пристрої - додайте URL, імпортуйте .m3u або оберіть зі списку станцій каталогу | ~10 хв | Standard / Legacy |

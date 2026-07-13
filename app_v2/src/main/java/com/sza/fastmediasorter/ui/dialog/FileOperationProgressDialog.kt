@@ -42,6 +42,8 @@ class FileOperationProgressDialog(
     private var startTime: Long = 0
     private var lastUpdateTime: Long = 0
     private var isStarted: Boolean = false
+    // S1027: only log Processing when the file changes, not on every byte-progress tick.
+    private var lastLoggedIndex: Int = -1
     private val SHOW_DELAY_MS = 2000L
     private val UPDATE_INTERVAL_MS = 3000L
 
@@ -190,7 +192,11 @@ class FileOperationProgressDialog(
     }
 
     private fun applyProgressToUI(progress: FileOperationProgress.Processing) {
-        Timber.d("FileOperationProgressDialog: Processing ${progress.currentFile} (${progress.currentIndex + 1}/${progress.totalFiles})")
+        if (progress.currentIndex != lastLoggedIndex) {
+            lastLoggedIndex = progress.currentIndex
+            val fileNo = progress.currentIndex + 1
+            Timber.d("FileOpProgress: Processing ${progress.currentFile} ($fileNo/${progress.totalFiles})")
+        }
 
         if (progress.speedBytesPerSecond > 0) {
             speedSamples.addLast(progress.speedBytesPerSecond)

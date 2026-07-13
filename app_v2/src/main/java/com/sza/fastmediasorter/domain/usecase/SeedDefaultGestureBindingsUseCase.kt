@@ -8,11 +8,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Seeds the three left-edge gesture direction bindings with sensible defaults on a fresh install:
- * up -> open the launch panel, right -> capture then open the editor, down -> silent capture.
- * No-op on flavors without the screen-gesture capability (empty controller set). It never turns the
- * overlay on (that stays an explicit user opt-in) and never overwrites an existing configuration -
- * the one-shot first-run guard lives in the caller.
+ * Seeds the LEFT_TOP edge-band gesture direction bindings with sensible defaults on a fresh install:
+ * up -> open the launch panel, right -> capture then open the editor, down -> silent capture. The other
+ * three bands (S0847) stay disabled with DO_NOT_USE slots (opt-in). No-op on flavors without the
+ * screen-gesture capability (empty controller set). It never turns the overlay on (that stays an explicit
+ * user opt-in) and never overwrites an existing configuration - the one-shot first-run guard lives in the caller.
  */
 class SeedDefaultGestureBindingsUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
@@ -23,11 +23,11 @@ class SeedDefaultGestureBindingsUseCase @Inject constructor(
         val current = settingsRepository.getSettings().first()
         settingsRepository.updateSettings(
             current.copy(
-                screenshotGestureActionUp = ScreenshotGestureAction.OPEN_PANEL,
-                screenshotGestureActionRight = ScreenshotGestureAction.OPEN_IN_DRAW,
-                screenshotGestureActionDown = ScreenshotGestureAction.SILENT_SCREENSHOT,
+                screenshotGestureLeftTopUp = ScreenshotGestureAction.OPEN_PANEL,
+                screenshotGestureLeftTopRight = ScreenshotGestureAction.OPEN_IN_DRAW,
+                screenshotGestureLeftTopDown = ScreenshotGestureAction.SILENT_SCREENSHOT,
             )
         )
-        Timber.i("Seeded default left-edge gesture bindings on first run")
+        Timber.i("Seeded default LEFT_TOP edge-band gesture bindings on first run")
     }
 }

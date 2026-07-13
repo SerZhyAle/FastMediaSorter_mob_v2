@@ -91,7 +91,23 @@ $netErrors      = [Math]::Max(0, $allErrors - $expectedErrors)
 # -Exceptions flags those as crash blocks. Grep the file directly for true crashes / ANRs /
 # native tombstones (raw match works regardless of log format; the count is not loaded into the
 # agent context).
-$crashCount  = @(Select-String -Path $LogFile -Pattern 'FATAL EXCEPTION|ANR in |beginning of crash dump|beginning of crash' -ErrorAction SilentlyContinue).Count
+#
+# Package-scoped: a full *:V capture spans the WHOLE device, so an unrelated process crashing
+# or ANR-ing (Play Services indexing, systemui, etc. - all routine on a long AVD session) would
+# otherwise flip this verdict to FAIL even though our app never faulted (seen 2026-07-12: "ANR in
+# com.google.android.gms .. executing service .icing.service.IndexWorkerService, waited 200001ms",
+# fully unrelated to FastMediaSorter). "ANR in <pkg>" names the package on the same line, so that
+# is matched directly; FATAL EXCEPTION / tombstone dumps put the process name a few lines below
+# (AndroidRuntime's "Process: <pkg>, PID: .." line / debuggerd's process header), so those pull a
+# short trailing context window before checking for our package.
+$AppPackagePattern = 'com\.sza\.fastmediasorter(\.debug)?'
+$anrMatches = @(Select-String -Path $LogFile -Pattern "ANR in $AppPackagePattern" -ErrorAction SilentlyContinue)
+$crashDumpMatches = @(Select-String -Path $LogFile -Pattern 'FATAL EXCEPTION|beginning of crash dump|beginning of crash' -Context 0, 4 -ErrorAction SilentlyContinue) |
+    Where-Object {
+        $window = @($_.Line) + @($_.Context.PostContext)
+        ($window -join "`n") -match $AppPackagePattern
+    }
+$crashCount  = $anrMatches.Count + $crashDumpMatches.Count
 $crashBlocks = ($crashCount -gt 0)
 
 $priorCrash = (Get-Count -ExtraArgs @('-AppOnly', '-Pattern', 'PREVIOUS SESSION ENDED WITH A CRASH')) -gt 0

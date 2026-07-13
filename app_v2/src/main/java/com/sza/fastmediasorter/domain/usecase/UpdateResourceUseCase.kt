@@ -25,4 +25,26 @@ class UpdateResourceUseCase @Inject constructor(
             Result.failure(e)
         }
     }
+
+    /**
+     * S1001: targeted single-column write. Browse persists the last viewed file on every
+     * file open from an in-memory resource copy that may be stale; a full-entity update
+     * there clobbers freshly written statistics (fileCount/lastBrowseDate/lastSyncDate).
+     */
+    suspend fun saveLastViewedFile(resourceId: Long, path: String?): Result<Unit> = try {
+        repository.updateLastViewedFile(resourceId, path)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        StructuredLogger.e(e, "FAILURE update lastViewedFile")
+        Result.failure(e)
+    }
+
+    /** S1001: targeted single-column write - see [saveLastViewedFile]. Fires on every onPause. */
+    suspend fun saveScrollPosition(resourceId: Long, position: Int): Result<Unit> = try {
+        repository.updateLastScrollPosition(resourceId, position)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        StructuredLogger.e(e, "FAILURE update lastScrollPosition")
+        Result.failure(e)
+    }
 }

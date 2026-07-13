@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -35,13 +36,15 @@ class SmbOperationsUseCaseTest {
     private val sftpClient = mockk<SftpClient>(relaxed = true)
     private val ftpClient = mockk<FtpClient>(relaxed = true)
     private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
+    // S1006: relaxed - these tests exercise SMB/saveSftpCredentials, not the resolve() path.
+    private val endpointResolver = mockk<SftpEndpointResolver>(relaxed = true)
     private lateinit var useCase: SmbOperationsUseCase
 
     @Before
     fun setup() {
         useCase = SmbOperationsUseCase(
-            smbClient, sftpClient, ftpClient, credentialsRepository, UnconfinedTestDispatcher(),
-            mockk(relaxed = true),
+            smbClient, sftpClient, ftpClient, credentialsRepository, endpointResolver,
+            UnconfinedTestDispatcher(), mockk(relaxed = true),
         )
     }
 
@@ -232,5 +235,42 @@ class SmbOperationsUseCaseTest {
         coVerify { smbClient.clearConnectionPool() }
         coVerify { sftpClient.disconnectAll() }
         coVerify { ftpClient.disconnect() }
+    }
+
+    private fun sftpKeyCred() = NetworkCredentialsEntity(
+        id = 2, credentialId = "sftp1", type = "SFTP", server = "sftp.host", port = 22,
+        username = "u", encryptedPassword = "enc-passphrase", domain = "", shareName = null,
+        sshPrivateKey = "existing-key", accountId = "",
+    )
+
+    // S0987: the two non-destructive merge branches (preserve key on null, preserve password on blank)
+    // never reach CryptoHelper.encrypt, so unlike the other credential-save paths they are JVM-testable.
+
+    @Test
+    fun `saveSftpCredentials preserves existing SSH key and passphrase when privateKey null (S0987)`() = runTest {
+        coEvery { credentialsRepository.getByTypeServerAndPort("SFTP", "sftp.host", 22) } returns sftpKeyCred()
+        val captured = mutableListOf<NetworkCredentialsEntity>()
+        coEvery { credentialsRepository.update(capture(captured)) } returns Unit
+
+        val result = useCase.saveSftpCredentials("sftp.host", 22, "u", password = "imported-pw", privateKey = null)
+
+        assertTrue(result.isSuccess)
+        // Key must not be nulled; its passphrase (encryptedPassword) preserved, incoming password dropped.
+        assertEquals("existing-key", captured.first().sshPrivateKey)
+        assertEquals("enc-passphrase", captured.first().encryptedPassword)
+    }
+
+    @Test
+    fun `saveSftpCredentials preserves stored password when incoming password blank (S0987)`() = runTest {
+        val pwCred = sftpKeyCred().copy(sshPrivateKey = null, encryptedPassword = "enc-pw")
+        coEvery { credentialsRepository.getByTypeServerAndPort("SFTP", "sftp.host", 22) } returns pwCred
+        val captured = mutableListOf<NetworkCredentialsEntity>()
+        coEvery { credentialsRepository.update(capture(captured)) } returns Unit
+
+        val result = useCase.saveSftpCredentials("sftp.host", 22, "u", password = "", privateKey = null)
+
+        assertTrue(result.isSuccess)
+        assertEquals("enc-pw", captured.first().encryptedPassword)
+        assertEquals(null, captured.first().sshPrivateKey)
     }
 }

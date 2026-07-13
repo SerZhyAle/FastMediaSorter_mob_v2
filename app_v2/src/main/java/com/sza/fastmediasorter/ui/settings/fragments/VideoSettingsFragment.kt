@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class VideoSettingsFragment : BaseSettingsFragment() {
@@ -131,7 +130,6 @@ class VideoSettingsFragment : BaseSettingsFragment() {
         // Open destination-only resource picker
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectSnapshotResource, binding.btnSelectSnapshotResource.contentDescription)
-        Timber.d("S0842: snapshot dest picker is icon-only")
         binding.btnSelectSnapshotResource.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog(
                 context = requireContext(),

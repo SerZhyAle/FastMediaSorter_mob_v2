@@ -116,7 +116,7 @@
     <!-- Lyrics (Audio files) -->
     <item
         android:id="@+id/menu_lyrics"
-        android:icon="@drawable/ic_microphone"
+        android:icon="@drawable/ic_book"
         android:title="@string/lyrics"
         app:showAsAction="never" />
 

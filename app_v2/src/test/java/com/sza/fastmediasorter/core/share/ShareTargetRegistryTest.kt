@@ -38,9 +38,30 @@ class ShareTargetRegistryTest {
 
     @Test
     fun `all keeps system_share last as the catch-all`() {
-        val registry = ShareTargetRegistry(setOf(target("system_share"), target("telegram")))
+        val registry = ShareTargetRegistry(
+            setOf(
+                target("system_share"),
+                target("tiktok"),
+                target("instagram"),
+                target("messenger"),
+                target("viber"),
+                target("whatsapp"),
+                target("telegram"),
+            ),
+        )
 
-        assertEquals(listOf("telegram", "system_share"), registry.all().map { it.id })
+        assertEquals(
+            listOf(
+                "telegram",
+                "whatsapp",
+                "viber",
+                "messenger",
+                "instagram",
+                "tiktok",
+                "system_share",
+            ),
+            registry.all().map { it.id },
+        )
     }
 
     @Test

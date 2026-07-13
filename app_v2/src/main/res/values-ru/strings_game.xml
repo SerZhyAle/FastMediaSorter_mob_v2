@@ -53,6 +53,7 @@
     <string name="game_mode_picker_unavailable">Режим игры недоступен.</string>
     <string name="game_mode_classic">Классика</string>
     <string name="game_mode_kryvavitsa">Крывавица</string>
+    <string name="game_mode_contrast">На контрасте</string>
     <string name="game_help_intro_kryvavitsa">Дойдите мужчиной до двери, пока женщина с автоматом и её помощницы с ножами не загнали вас в угол.</string>
     <string name="game_help_legend_player_kryvavitsa">Мужчина - персонаж, которым вы управляете</string>
     <string name="game_help_legend_kryvavitsa_kryvavitsa">Женщина с автоматом - Крывавица, идёт к игроку</string>

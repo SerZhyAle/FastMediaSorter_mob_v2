@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-05*
+*Last updated: 2026-07-07*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -19,6 +19,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **One-tap "Enable all"** `[Standard / VR]`: On the first welcome page, "Enable all" sets the universal profile, switches on every available function, requests all permissions one dialog at a time, offers the app as default player for every supported media type, and finishes setup in a single step.
 
 ## 1. Sources & Storage
+- **Scan a code to open your PC's folders** `[Standard / Photos / Legacy]`: Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and hold your phone up to the QR code it shows - each folder becomes a ready-to-use, read-only network resource with the server key pinned automatically. No address, port, key, or password typing. If the phone has no camera, import the same access as a small `.fmscfg` file (pick it, or tap a Telegram/email attachment). See [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md).
 - **Multiple resource types** `[Standard / VR]`: Connect Local folders, network locations (SMB/NAS, FTP, SFTP), and cloud drives (Google Drive, Dropbox, OneDrive) in a unified interface.
 - **Share resources between devices** `[Standard / VR]`: Export a configured resource - including its access credentials - to a small file, then import it on another device by opening the file, sharing it, or via Settings -> Backup & Restore. The file holds passwords in plain text, so share it only with people you trust.
 - **Drag to reorder resources** `[Standard]`: Long-press and drag entries in your resource list to set the exact order they appear in.
@@ -89,6 +90,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Read Aloud (TTS) & Text selection** `[Standard / VR]`: Synthesizes page text via Text-to-Speech (TTS) and copy text fragments using long-press drag handles.
 - **PDF page to Google Lens** `[Standard / VR]`: Send the current PDF page straight to Google Lens to search or extract its text.
 - **Print from the standalone viewer** `[Standard / VR]`: Print documents and text directly from the standalone viewer.
+- **Open PDF hyperlinks** `[Standard]`: Tap a hyperlink inside a PDF to open it, and long-press to select text, in the standalone document viewer.
 
 ## 12. Text Editor
 - **In-place Markdown editor** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or remote storage with live syntax highlighting, Markdown rendering, and auto-save.
@@ -125,6 +127,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Collapsible settings groups** `[Standard / VR]`: Settings sections fold into tidy collapsible groups so long screens stay easy to scan.
 - **Exit button minimizes when background functions are active** `[Standard / Lite / Photos / Legacy]`: The top-left exit button minimizes the app instead of closing it while background music, recording, or scheduled file operations are running; it fully closes only when nothing runs in the background, and a long-press always force-closes.
 - **Focus indicator & automatic initial focus** `[Standard / Lite / Photos / Legacy]`: Every focused control is outlined in place with an accent highlight under keyboard, D-pad or gamepad control (not touch); opening any screen places focus on a real control automatically, so the first remote/D-pad key acts immediately.
+- **More OS shortcut tiles** `[Standard / Lite / Photos / Legacy]`: The quick-launch panel adds more Android system-settings shortcuts - accessibility, data usage, developer options, NFC, screen rotation and Wi-Fi tethering.
 
 ## 17. Usage Statistics
 - **Local usage statistics** `[Standard / VR]`: An opt-in, off-by-default summary of your own activity - files sorted, space freed, time in the player and more - stored only on your device. Enable it in General settings to show the Statistics window, then send the summary to the author with one button or export it as a text file; turning collection off wipes the detailed activity, while the first-launch date and launch count are kept.

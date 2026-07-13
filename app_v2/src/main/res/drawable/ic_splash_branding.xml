@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Splash screen icon wrapper - 108dp × 108dp matches the adaptive-icon foreground
-    area required by Android 12+ (API 31+) windowSplashScreenAnimatedIcon.
-    @drawable/ic_logo resolves automatically to drawable-night variant in dark mode.
+    S0997: author logo, small, in the platform branding slot (windowSplashScreenBrandingImage,
+    bottom-center, API 31+) - the owner-ratified home for the personal logo that used to fill
+    the splash center. @drawable/ic_logo resolves to its drawable-night variant in dark mode.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:width="108dp"
-        android:height="108dp"
+        android:width="44dp"
+        android:height="44dp"
         android:gravity="center">
         <bitmap
             android:src="@drawable/ic_logo"

@@ -463,8 +463,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             viewModel.state.value.mediaType == MediaType.VIDEO
         ) {
             viewModel.state.value.mediaFile?.let { file ->
-                Timber.d("S0893: StandalonePlayer onStart - rebuilding video released on background")
-                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+                viewManager.show(file, MediaType.VIDEO, onVideoReady = { pv -> setupVideoControls(pv) })
             }
         }
     }

@@ -116,7 +116,13 @@ class LinkDownloadWriter @Inject constructor(
                 when (val result = fileOperationUseCase.execute(operation)) {
                     is FileOperationResult.Success -> {
                         Timber.i("LinkDownloadWriter: saved '%s' to resource '%s'", fileName, resource.name)
-                        return@withContext WriteResult.Saved(resource.name, fileName, destinationUri = null)
+                        // S0980: expose the real written path so the "open in player" setting can launch
+                        // the saved file. Only local resources yield a playable file:// URI; a network/cloud
+                        // copy has no local URI, so leave it null (the presenter then falls back to a toast).
+                        val savedUri = result.copiedFilePaths.firstOrNull()
+                            ?.takeIf { !resource.type.isNetworkResource }
+                            ?.let { Uri.fromFile(File(it)) }
+                        return@withContext WriteResult.Saved(resource.name, fileName, destinationUri = savedUri)
                     }
                     is FileOperationResult.AuthenticationRequired -> {
                         Timber.w("LinkDownloadWriter: auth required for '%s' (%s)", resource.name, result.provider)

@@ -42,11 +42,16 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         # Chaquopy 17.x must not see non-noLegal variants (minSdk/ABI incompatibilities).
         # -Pchaquopy.enabled=false overrides local.properties so standard/lite/etc. variants are enabled.
         Write-Host "  Pass 1: non-noLegal flavors..." -ForegroundColor DarkGray
+        # --max-workers=4 (2026-07-12): the full 12-variant one-shot invocation with the
+        # default 8 workers OOMs the Kotlin daemon (GC overhead limit exceeded) under parallel
+        # compilation of this many flavors at once - see agent-memory project_build_gotchas.md
+        # #13. Capping concurrency here trades some wall-clock for not crashing the daemon.
         & $gradlew `
             assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
             assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
             :wear:assembleDebug :wear:assembleRelease `
             "-Pchaquopy.enabled=false" `
+            --max-workers=4 `
             --configuration-cache `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
 
@@ -59,6 +64,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         & $gradlew `
             assembleNoLegalDebug assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
+            --max-workers=4 `
             --no-configuration-cache `
             | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
 

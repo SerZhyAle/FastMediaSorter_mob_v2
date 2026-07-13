@@ -11,6 +11,7 @@ appId: com.sza.fastmediasorter.debug
 
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/titleText"
@@ -28,6 +29,7 @@ appId: com.sza.fastmediasorter.debug
     text: "Отправить отчёт о сбое?"
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/titleText"

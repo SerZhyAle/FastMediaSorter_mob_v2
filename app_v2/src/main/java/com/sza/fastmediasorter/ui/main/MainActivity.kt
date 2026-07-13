@@ -73,11 +73,13 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -129,6 +131,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
     private lateinit var panelItemActions: MainPanelItemActionsManager
+    // S0984: builds the "share SFTP access" dialog; lazy since only SFTP resources reach it.
+    private val sftpShareManager by lazy { MainSftpShareManager(this) }
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
@@ -205,6 +209,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
+    @Inject
+    lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
 
     // S0774: empty except on standard (fms.screenCapture=on) + noLegal; gates the screen-recording scenario.
     @Inject
@@ -291,21 +299,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker. The worker's foreground notification is the primary feedback channel; this collector is a fallback for when the user has the app foregrounded at the moment of completion (auth-required dialogs and open-in-player intents need an Activity context).
         collectOnLifecycle(shareResultBus.pending) { pending ->
-            val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
-                pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
-                pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
             val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
-            // Suppression: the worker already posted a result notification for these success kinds - skip the in-Activity toast to avoid double-feedback. SocialPreviewOnly's "Sign in" notification action is the primary path; the in-Activity dialog is also redundant.
-            if (pending.notificationShown && (isSuccess || isAuthGated)) {
+            // S0202: SocialPreviewOnly already surfaces a "Sign in" notification action, so the in-Activity
+            // dialog is redundant - suppress it. S0981: success kinds are NOT suppressed here; the presenter
+            // honours linkAutoDownloadOpenInPlayer (auto-open) and suppresses only the duplicate toast.
+            if (pending.notificationShown && isAuthGated) {
+                shareResultBus.clearReplayCache()
                 return@collectOnLifecycle
             }
             runCatching {
                 shareResultPresenter.present(
                     result = pending.result,
                     hostActivity = this@MainActivity,
+                    notificationShown = pending.notificationShown,
                     isAuthRetry = false,
                 )
             }.onFailure { Timber.w(it, "shareResultPresenter.present failed") }
+            // S0981: consume-once. replay = 1 would otherwise re-deliver the same terminal result on
+            // every return to MainActivity (or recreation), re-opening the player over the current screen.
+            shareResultBus.clearReplayCache()
         }
 
         // Fix old cloud paths format (cloud:/ → cloud://)
@@ -688,6 +700,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // flags are mutated by the settings collector, so this is recomputed on every menu build.
     private fun currentProgramsMenuGate() = MainProgramsMenuCoordinator.ProgramsMenuGate(
         streams = capabilityAvailability.isStreamsAvailable() && isStreamsEnabled,
+        // S0962 (VR Cinema, Pillar 1): visible only on an XR device with the VR-3D master toggle on; the
+        // launch manager mirrors that runtime state (same gate as the file/resource context-menu items).
+        vrCinema = resourceVrCinemaLaunchManager.isAvailable,
         quickVoice = isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
         quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
             (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
@@ -787,6 +802,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settingsRepository = settingsRepository,
             unpinStreamSource = unpinStreamSource,
             currentSettings = { latestSettings },
+            resourceVrCinema = resourceVrCinemaLaunchManager,
         )
         programsMenuCoordinator = MainProgramsMenuCoordinator(
             activity = this,
@@ -795,9 +811,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
             screenRecordingMenuManager = screenRecordingMenuManager,
-            isNewWindowAvailable = { panelItemActions.isNewWindowAvailable() },
-            launchInNewWindow = { intent -> panelItemActions.launchInNewWindow(intent) },
-            confirmRemoveProgram = { titleRes, apply -> panelItemActions.confirmRemoveProgram(titleRes, apply) },
+            hostActions = MainProgramsMenuCoordinator.ProgramsHostActions(
+                isNewWindowAvailable = { panelItemActions.isNewWindowAvailable() },
+                launchInNewWindow = { intent -> panelItemActions.launchInNewWindow(intent) },
+                confirmRemoveProgram = { titleRes, apply ->
+                    panelItemActions.confirmRemoveProgram(titleRes, apply)
+                },
+                // S0962 (VR Cinema, Pillar 1): tap prompts for a resource, then opens the immersive browser.
+                onVrCinemaSelected = { resourceVrCinemaLaunchManager.promptResourceAndLaunch() },
+            ),
         )
         // S0755: programs panel renders the same menu the dropdown builds (single source of order/gates).
         programsPanelManager = MainProgramsPanelManager(
@@ -926,12 +948,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             },
+            onShareSftpAccessClick = { resource ->
+                sftpShareManager.show(resource) { includePassword ->
+                    viewModel.shareSftpResourceConfig(resource, includePassword)
+                }
+            },
             onAddToHomeScreenClick = { resource ->
                 pinResourceLaunchWidget(resource)
             },
             // S0293 Phase 08: visible only when multi-window is effectively available (preference OR runtime)
             isOpenInNewWindowVisible = mainAllowSeparateWindow,
-            onOpenInNewWindowClick = { resource -> panelItemActions.openResourceInNewWindow(resource.id) }
+            onOpenInNewWindowClick = { resource -> panelItemActions.openResourceInNewWindow(resource.id) },
+            // S0963 (Pillar 2): resource "Open in VR Cinema" entry; visibility mirrors XR availability.
+            isOpenInVrCinemaVisible = panelItemActions.isVrCinemaAvailable(),
+            onOpenInVrCinemaClick = { resource -> panelItemActions.openResourceInVrCinema(resource) }
         )
 
         binding.rvResources.adapter = resourceAdapter
@@ -1180,6 +1210,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
                         .isMultiWindowActiveNow(this@MainActivity)
             )
+            // S0963: re-mirror XR availability (VR-3D master toggle) onto the resource VR Cinema entry.
+            resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
             // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to

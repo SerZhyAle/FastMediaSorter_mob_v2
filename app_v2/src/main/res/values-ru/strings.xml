@@ -18,7 +18,6 @@
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
     <string name="camera_ocr_crop_title">Выделите область</string>
-    <string name="camera_ocr_crop_hint">Передвиньте рамку для обрезки или нажмите OK, чтобы взять всё фото</string>
     <string name="camera_ocr_crop_retry">Переснять</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
@@ -228,6 +227,8 @@
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Соединение истекло. Проверьте сеть и повторите попытку.</string>
+    <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
+    <string name="error_companion_connect_guidance">Не удалось подключиться к общей папке. В той же сети Wi-Fi, что и ПК, она подключается сама; из другой сети ПК должен быть доступен - настройте проброс порта на роутере или доступ из интернета в приложении-компаньоне.</string>
     <string name="error_network_access_denied">Доступ запрещён. Проверьте учётные данные.</string>
     <string name="error_network_not_found">Файл или ресурс не найден.</string>
     <string name="error_network_connection_lost">Соединения нет.</string>
@@ -1604,7 +1605,7 @@
     <string name="label_profile_photo_storage">Фотохранилище</string>
     <string name="label_profile_documents">Документы</string>
     <string name="label_profile_all_files">Файловый менеджер</string>
-    <string name="title_select_profile">Профиль быстрой настройки</string>
+    <string name="title_select_profile">Профиль ресурса</string>
 
 
     <!-- Injected missing keys 2026-03-08 -->
@@ -2493,10 +2494,10 @@
     <string name="screen_capture_service_notification_title">Снимок экрана</string>
     <string name="screen_capture_service_notification_text">Захватываю текущий экран..</string>
     <string name="setting_group_system_apps_title">Взаимодействие с операционной системой</string>
-    <string name="setting_subgroup_screen_gestures_title">Жесты с левого края экрана</string>
+    <string name="setting_subgroup_screen_gestures_title">Жесты с краёв экрана</string>
     <string name="setting_gesture_overlay_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_summary">Показывать тонкую полосу жестов у левого края поверх других приложений</string>
-    <string name="setting_gesture_strip_visible_title">Показывать полосу жеста у левого края</string>
+    <string name="setting_gesture_strip_visible_title">Показывать полосу жеста</string>
     <string name="setting_gesture_strip_visible_summary">Показывать полупрозрачную серую направляющую на первых 4 px; остальная часть прозрачна</string>
     <string name="setting_gesture_overlay_help_title">Оверлей жестов</string>
     <string name="setting_gesture_overlay_help_message">У левого края экрана расположена тонкая невидимая полоса. Чтобы снять текущий экран, проведите от полосы по диагонали вниз и вправо (примерно 45°). Снимок сохраняется в выбранный ресурс - по умолчанию в папку скриншотов устройства. Нужно разрешение «Поверх других приложений». Полоса занимает левый край от 10 до 75 процентов высоты; верхний угол оставлен свободным, чтобы не срабатывать случайно.</string>
@@ -2942,4 +2943,43 @@
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Открыть в VR-кинотеатре</string>
     <string name="vr_cinema_launch_unavailable">VR-кинотеатр сейчас недоступен</string>
+    <string name="companion_import_success">Добавлено из компаньона: %1$s (%2$s)</string>
+    <string name="companion_import_version_error">Эта конфигурация создана более новой версией компаньона. Обновите приложение.</string>
+    <string name="companion_import_invalid_error">Этот файл не является конфигурацией компаньона.</string>
+    <string name="companion_import_failed">Не удалось импортировать из компаньона. Проверьте файл и повторите попытку.</string>
+    <string name="resource_menu_share_sftp_access">Поделиться доступом..</string>
+    <string name="sftp_share_export_title">Поделиться доступом к SFTP</string>
+    <string name="sftp_share_export_warning">Файл содержит пароль доступа. Отправляйте его только доверенным людям.</string>
+    <string name="sftp_share_omit_password">Не включать пароль</string>
+    <string name="sftp_share_private_network_warning">Сервер в вашей локальной сети - получатель подключится только из этой же сети.</string>
+    <string name="sftp_share_export_failed">Не удалось создать файл доступа.</string>
+    <string name="sftp_share_export_action">Поделиться</string>
+    <string name="companion_import_title">Импорт доступа</string>
+    <string name="companion_import_confirm_message">Добавить SFTP-ресурс «%1$s» на %2$s (папок: %3$d)?</string>
+    <string name="companion_import_no_fingerprint_warning">Сервер не верифицирован - подключайтесь, только если доверяете отправителю.</string>
+    <string name="companion_import_password_label">Пароль для этого сервера</string>
+    <string name="companion_import_action">Импортировать</string>
+    <string name="companion_import_password_required">Введите пароль для этого сервера.</string>
+    <string name="companion_qr_scan_hint">Наведите камеру на QR-код companion-приложения</string>
+    <string name="companion_qr_scan_torch">Фонарик</string>
+    <string name="companion_qr_camera_denied">Для сканирования QR-кода нужен доступ к камере</string>
+    <string name="vr_cinema_program_title">VR-кинотеатр</string>
+    <string name="setting_gesture_zone_left_top_title">Левый край - верхняя полоса</string>
+    <string name="setting_gesture_zone_left_bottom_title">Левый край - нижняя полоса</string>
+    <string name="setting_gesture_zone_right_top_title">Правый край - верхняя полоса</string>
+    <string name="setting_gesture_zone_right_bottom_title">Правый край - нижняя полоса</string>
+    <string name="resource_import_from_file">Импорт из файла</string>
+    <string name="resource_import_from_barcode">Импорт по штрих-коду</string>
+    <string name="resource_import_section_title">Импорт готовой конфигурации</string>
+    <string name="companion_publish_folders_guide">Как опубликовать папки ПК для Android</string>
+    <string name="setting_edge_gesture_config_button">Настроить жесты</string>
+    <string name="edge_gesture_config_dialog_title">Краевые жесты</string>
+    <string name="edge_gesture_tab_left_top">Слева сверху</string>
+    <string name="edge_gesture_tab_left_bottom">Слева снизу</string>
+    <string name="edge_gesture_tab_right_top">Справа сверху</string>
+    <string name="edge_gesture_tab_right_bottom">Справа снизу</string>
+    <string name="edge_gesture_general_group_title">Общие настройки жестов</string>
+    <string name="edge_gesture_schema_content_description">Карта краевых жестов: коснитесь направления зоны, чтобы назначить действие</string>
+    <string name="edge_gesture_schema_state_assigned">назначено</string>
+    <string name="edge_gesture_schema_state_available">доступно</string>
 </resources>

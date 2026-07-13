@@ -44,4 +44,16 @@
         <item>Полный Side-by-Side</item>
         <item>Полный Over-Under</item>
     </string-array>
+
+    <!-- S0964: подписи immersive-HUD панели (рисуются на Canvas, передаются в HudCanvasRenderer). -->
+    <string name="vr_hud_audio_label">АУДИО</string>
+    <string name="vr_hud_subs_label">СУБТИТРЫ</string>
+    <string name="vr_hud_subs_off">Выкл</string>
+    <string name="vr_hud_no_tracks">-</string>
+    <string name="vr_hud_prev">НАЗАД</string>
+    <string name="vr_hud_play">ИГРАТЬ</string>
+    <string name="vr_hud_pause">ПАУЗА</string>
+    <string name="vr_hud_next">ВПЕРЁД</string>
+    <string name="vr_hud_volume_label">ГРОМКОСТЬ</string>
+    <string name="vr_hud_depth_label">ГЛУБИНА СТЕРЕО</string>
 </resources>

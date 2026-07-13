@@ -70,8 +70,54 @@ $benignPatterns = @(
     'Bluetooth binder is null', 'BatteryExternalStats', 'KernelCpuSpeedReader',  # system services, not app
     'OCR engines not installed', 'UnsatisfiedLinkError loading', # expected optional-native fallback
     'NetworkReachabilityGate: no-(network|wifi)',              # offline gate, expected
-    'SpellCheckerSession'                                       # IME service noise
+    'SpellCheckerSession',                                      # IME service noise
+    'BufferQueueProducer.*(cancelBuffer|requestBuffer).*no connected producer'  # S0484: app-scoped but
+    # a well-known harmless SurfaceTexture teardown race (player/view surface torn down mid-frame)
 ) -join '|'
+
+# Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
+# emulator/system/GMS/Maestro-harness noise that is never our app process, so a match can never
+# hide an app defect. Non-anchored substring match on the parsed tag token (S0976). Keep each
+# entry a distinctive tag name; word-boundary the short/generic ones so they do not over-match.
+$foreignTagPatterns = @(
+    # GMS / Play services (other process)
+    'Finsky', 'GoogleApiManager', 'RoleControllerServiceImpl', 'MDDMetricsProcessor',
+    'DocsApplication', 'DefaultHttpIssuer', '\bDck\b',
+    # Maestro test harness (dev.mobile.maestro)
+    'HCPackageInfoUtils', 'mobile\.maestro',
+    # Emulator graphics / codec stack
+    '\bMESA\b', 'GFXSTREAM', 'Codec2-AIDL', 'c2-service-goldfish', 'ConsumerBase',
+    '\bmediaserver\b', 'LegacyGraphicsTracker', 'SurfaceSyncGroup',
+    # System / window-manager / platform services (other process)
+    'TransitionChain', 'IPCThreadState', 'SystemServiceRegistry', 'FeatureFlagsImplExport',
+    'NsdService', 'AtomicFile', 'ShortcutService', 'JobScheduler', '\bJobStatus\b',
+    'libprocessgroup', 'Nl80211Native', 'ImeLatencyLogger', 'RemoteFillService',
+    'ClipboardService', 'NwpModelManager',
+    # S0484 2026-07-12 sweep: PID-cross-checked against the app's "Start proc" lines, confirmed
+    # none belong to our process - other-app / system_server / codec-HAL noise (S0976).
+    'SmsApplication', 'TaskPersister', '\badbd\b', 'BpTransactionCompletedListener',
+    'WifiMulticastLockManager', 'MediaControlProfile', 'WorkSourceUtil',
+    'C2IgbaBuffer', 'Codec2-Component-Aidl', '\beptr\b', '\bsystem_server\b'
+) -join '|'
+
+# Benign (tag, message-signature) pairs (S0976). Unlike $foreignTagPatterns these tags either name
+# our own package (com.sza.fastmediasorter.debug) or are generic enough that a blanket drop could
+# swallow a future real app error - so a cluster is benign ONLY when its tag AND message both match.
+# A cluster matched here is kept and reported as benign (not dropped, not actionable).
+$benignTagSignaturePairs = @(
+    @{ tag = 'WindowOrganizerController'; sig = 'non-organized|not .*organized' },  # task-reorg on our task
+    @{ tag = 'AppOps';                    sig = 'attributionTag' },                 # missing attributionTag, harmless
+    @{ tag = 'PermissionService';         sig = 'WRITE_EXTERNAL_STORAGE' },         # not requested on scoped storage - expected
+    @{ tag = 'PackageManager';            sig = 'alignment|mobile\.maestro' },      # Maestro alignment probe, not our error
+    @{ tag = '.*';                        sig = 'Failed to query component interface for required system resources' }
+)
+
+function Test-BenignPair([string]$tag, [string]$msg) {
+    foreach ($pair in $benignTagSignaturePairs) {
+        if ($tag -match $pair.tag -and $msg -match $pair.sig) { return $true }
+    }
+    return $false
+}
 
 # User-facing error-surface markers - lines that map to a visible red toast / snackbar.
 $toastPatterns = 'Toast|Snackbar|showError|showErrorMessage|notifyError|UiError|error_toast|ErrorEvent'
@@ -107,13 +153,14 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
 
     if (Test-StackFrame $msg) { continue }            # stack frames fold into their cluster head
     if ($tag -match $systemTagHint) { continue }      # system/native noise, not the app
+    if ($tag -match $foreignTagPatterns) { continue } # foreign/other-process noise (GMS/Maestro/emulator), S0976
 
     # Toast surface detection on tag or message.
     if (("$tag $msg") -match $toastPatterns) {
         $toastHits += [pscustomobject]@{ tag = $tag; msg = $msg }
     }
 
-    $isBenign = (("$tag $msg") -match $benignPatterns)
+    $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg)
 
     # Normalize the message head: drop volatile path/number tails so identical errors cluster.
     $head = ($msg -replace '\d+', '#') -replace '\s+', ' '

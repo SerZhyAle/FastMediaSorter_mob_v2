@@ -51,32 +51,17 @@ data class ResourceFormData(
 /**
  * Applies a [ResourceProfile] preset to this form data, overwriting relevant fields.
  * Selecting [ResourceProfile.NONE] is a no-op (returns unchanged data).
+ *
+ * Delegates to [mediaPreset] so the profile->media-type mapping lives in one place shared with
+ * companion-config import (S1002). A null preset field leaves the current form value unchanged.
  */
-fun ResourceFormData.applyProfile(profile: ResourceProfile): ResourceFormData = when (profile) {
-    ResourceProfile.NONE -> this
-    ResourceProfile.AUDIO_LIBRARY -> copy(
+fun ResourceFormData.applyProfile(profile: ResourceProfile): ResourceFormData {
+    if (profile == ResourceProfile.NONE) return this
+    val preset = profile.mediaPreset()
+    return copy(
         profile = profile,
-        supportedMediaTypes = setOf(MediaType.AUDIO),
-        allFiles = false,
-        rememberFileList = true
-    )
-    ResourceProfile.VIDEO_LIBRARY -> copy(
-        profile = profile,
-        supportedMediaTypes = setOf(MediaType.VIDEO, MediaType.AUDIO),
-        allFiles = false
-    )
-    ResourceProfile.PHOTO_STORAGE -> copy(
-        profile = profile,
-        supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.GIF),
-        allFiles = false
-    )
-    ResourceProfile.DOCUMENTS -> copy(
-        profile = profile,
-        supportedMediaTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT),
-        allFiles = false
-    )
-    ResourceProfile.ALL_FILES -> copy(
-        profile = profile,
-        allFiles = true
+        supportedMediaTypes = preset.supportedMediaTypes ?: supportedMediaTypes,
+        allFiles = preset.allFiles,
+        rememberFileList = preset.rememberFileList ?: rememberFileList
     )
 }

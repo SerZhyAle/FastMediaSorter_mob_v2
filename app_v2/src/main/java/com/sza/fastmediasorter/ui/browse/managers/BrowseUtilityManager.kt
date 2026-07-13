@@ -72,7 +72,6 @@ class BrowseUtilityManager(
         val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let {
             buildBreadcrumb(state)
         } ?: buildRootPathDisplay(resource.path, resource.name, state.isCloudResource)
-        Timber.d("S0906: pathDisplay resolved to '$pathDisplay' (cloud=${state.isCloudResource})")
 
         val modeLabel = if (resource.allFiles) {
             " • " + context.getString(R.string.all_files)

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.helpers
 
 import android.content.Context
-import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -15,12 +14,12 @@ import com.sza.fastmediasorter.core.xr.VrLaunchPoint
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
+import com.sza.fastmediasorter.core.xr.toLaunchUriString
 import com.sza.fastmediasorter.domain.model.MediaFile
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -96,10 +95,4 @@ class BrowseVrCinemaLaunchManager @Inject constructor(
     }
 
     private fun MediaFile.isLocalPath(): Boolean = path.startsWith("/") || path.startsWith("file://")
-
-    private fun MediaFile.toLaunchUriString(): String = when {
-        path.startsWith("file://") || path.startsWith("content://") -> path
-        path.startsWith("/") -> Uri.fromFile(File(path)).toString()
-        else -> path
-    }
 }

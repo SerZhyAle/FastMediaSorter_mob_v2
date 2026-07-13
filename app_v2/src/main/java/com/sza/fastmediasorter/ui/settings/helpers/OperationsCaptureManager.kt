@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import timber.log.Timber
 
 /**
  * Owns the capture subgroup of the Operations tab: camera-photos, video-recording, and
@@ -78,7 +77,6 @@ class OperationsCaptureManager(
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectCameraPhotosDest, binding.btnSelectCameraPhotosDest.contentDescription)
-        Timber.d("S0842: camera-photos dest picker is icon-only")
         binding.btnSelectCameraPhotosDest.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.cameraPhotosDestinationResourceId?.toLongOrNull()
@@ -103,7 +101,6 @@ class OperationsCaptureManager(
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectVideoRecordingDest, binding.btnSelectVideoRecordingDest.contentDescription)
-        Timber.d("S0842: video-recording dest picker is icon-only")
         binding.btnSelectVideoRecordingDest.setOnClickListener {
             pickDestination(
                 viewModel.settings.value.videoRecordingDestinationResourceId?.toLongOrNull()
@@ -141,7 +138,6 @@ class OperationsCaptureManager(
             }
             // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
             TooltipCompat.setTooltipText(binding.btnSelectMicRecordingDest, binding.btnSelectMicRecordingDest.contentDescription)
-            Timber.d("S0842: mic-recording dest picker is icon-only")
             binding.btnSelectMicRecordingDest.setOnClickListener {
                 pickDestination(
                     viewModel.settings.value.micRecordingDestinationResourceId?.toLongOrNull()
@@ -164,7 +160,6 @@ class OperationsCaptureManager(
             }
             // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
             TooltipCompat.setTooltipText(binding.btnSelectScreenRecordingDest, binding.btnSelectScreenRecordingDest.contentDescription)
-            Timber.d("S0842: screen-recording dest picker is icon-only")
             binding.btnSelectScreenRecordingDest.setOnClickListener {
                 pickDestination(
                     viewModel.settings.value.screenRecordingDestinationResourceId?.toLongOrNull()

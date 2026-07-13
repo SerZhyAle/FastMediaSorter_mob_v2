@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.view.View
 import android.widget.Toast
@@ -18,7 +19,11 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -268,7 +273,12 @@ class StandaloneViewManager(
     private fun activePlayer(mediaType: MediaType?): Player? =
         if (mediaType == MediaType.AUDIO) audioServiceController?.player else exoPlayer
 
-    fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
+    fun show(
+        mediaFile: MediaFile,
+        mediaType: MediaType,
+        onVideoReady: ((PlayerView) -> Unit)? = null,
+        onImageReady: (() -> Unit)? = null,
+    ) {
         Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
         currentMediaType = mediaType
         // S0859: playVideo()/playAudio() are only reachable through here - release any previous
@@ -278,7 +288,7 @@ class StandaloneViewManager(
         releaseAudioController()
         hidePhotoAndPlayerViews()
         when (mediaType) {
-            MediaType.IMAGE -> showImage(mediaFile)
+            MediaType.IMAGE -> showImage(mediaFile, onImageReady)
             MediaType.GIF   -> showGif(mediaFile)
             MediaType.VIDEO -> playVideo(mediaFile, onVideoReady)
             MediaType.AUDIO -> playAudio(mediaFile)
@@ -391,15 +401,47 @@ class StandaloneViewManager(
 
     // ── Image ───────────────────────────────────────────────────────────────
 
-    private fun showImage(mediaFile: MediaFile) {
+    private fun showImage(mediaFile: MediaFile, onImageReady: (() -> Unit)? = null) {
         // photoView lives inside photoDualSurfaceContainer - both must be visible
         // Container is nullable (config-variant view, absent in some layouts)
         safeViews.photoDualSurfaceContainerOrNull?.let { it.isVisible = true }
         safeViews.photoView.isVisible = true
         Glide.with(safeViews.photoView)
             .load(mediaFile.path.toUri())
+            // S1041: fire onImageReady only once the drawable is decoded AND bound to the view, so a
+            // caller's auto-action (OCR/translate) reads a non-null photoView.drawable instead of racing
+            // the async load. A failed decode must not trigger the action.
+            .listener(onImageReadyListener(onImageReady))
             .into(safeViews.photoView)
     }
+
+    /** S1041: wraps [onImageReady] in a Glide listener that fires once the decoded drawable is bound. */
+    private fun onImageReadyListener(onImageReady: (() -> Unit)?): RequestListener<Drawable>? =
+        onImageReady?.let {
+            object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>,
+                    isFirstResource: Boolean,
+                ): Boolean = false
+
+                override fun onResourceReady(
+                    resource: Drawable,
+                    model: Any,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean,
+                ): Boolean {
+                    // RequestListener.onResourceReady runs BEFORE Glide binds the drawable into the
+                    // ImageView (the target's onResourceReady sets it right after this returns false).
+                    // post() defers the callback to the next main-thread message, by which point
+                    // photoView.drawable is non-null - reading it earlier reintroduces the S1041 race.
+                    safeViews.photoView.post { it() }
+                    return false
+                }
+            }
+        }
 
     /**
      * S0390: re-decode an image whose bytes were overwritten in place (crop). Glide keys on the URI,

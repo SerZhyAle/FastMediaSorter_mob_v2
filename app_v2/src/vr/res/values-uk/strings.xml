@@ -44,4 +44,16 @@
         <item>Повний Side-by-Side</item>
         <item>Повний Over-Under</item>
     </string-array>
+
+    <!-- S0964: підписи immersive-HUD панелі (малюються на Canvas, передаються в HudCanvasRenderer). -->
+    <string name="vr_hud_audio_label">АУДІО</string>
+    <string name="vr_hud_subs_label">СУБТИТРИ</string>
+    <string name="vr_hud_subs_off">Вимк</string>
+    <string name="vr_hud_no_tracks">-</string>
+    <string name="vr_hud_prev">НАЗАД</string>
+    <string name="vr_hud_play">ГРАТИ</string>
+    <string name="vr_hud_pause">ПАУЗА</string>
+    <string name="vr_hud_next">ВПЕРЕД</string>
+    <string name="vr_hud_volume_label">ГУЧНІСТЬ</string>
+    <string name="vr_hud_depth_label">ГЛИБИНА СТЕРЕО</string>
 </resources>

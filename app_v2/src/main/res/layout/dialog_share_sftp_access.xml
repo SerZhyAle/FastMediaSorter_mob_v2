@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large">
+
+        <TextView
+            android:id="@+id/textShareWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sftp_share_export_warning"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorPrimary" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkboxOmitPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding_normal"
+            android:text="@string/sftp_share_omit_password" />
+
+        <TextView
+            android:id="@+id/textPrivateNetworkWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding_normal"
+            android:text="@string/sftp_share_private_network_warning"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorError"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>

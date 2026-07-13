@@ -80,7 +80,7 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
             R.string.screenshot_overlay_permission_rationale
         }
 
-    override fun setEnabled(enabled: Boolean, stripVisible: Boolean) {
+    override fun setEnabled(enabled: Boolean) {
         if (!enabled) {
             OverlayHostService.stop(appContext)
             ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(false)
@@ -90,27 +90,27 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
         // Runtime priority: accessibility (dialog-free) wins when enabled, with the legacy overlay
         // host shut down; otherwise the MediaProjection fallback runs if draw-over-apps is granted.
         // Granting neither leaves the toggle effectively off. The accessibility service lifecycle is
-        // system-owned; we only push strip visibility to the live instance (if connected).
+        // system-owned; the host resolves the per-zone strip colours itself off the persisted settings.
         when {
             accessibilityPathActive(appContext) -> {
                 OverlayHostService.stop(appContext)
-                ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(true, stripVisible)
+                ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(true)
             }
             Settings.canDrawOverlays(appContext) -> {
                 ScreenshotAccessibilityServiceHolder.instance?.applyOverlayState(false)
-                OverlayHostService.start(appContext, stripVisible)
+                OverlayHostService.start(appContext)
             }
         }
     }
 
-    override fun setStripVisible(visible: Boolean, overlayEnabled: Boolean) {
-        // S0724: recolour the live strip on whichever path currently hosts it; no-op while disabled.
+    override fun setStripVisible(overlayEnabled: Boolean) {
+        // S1008: refresh the live per-zone strip colours on whichever path currently hosts it; no-op while disabled.
         if (!overlayEnabled) return
         when {
             accessibilityPathActive(appContext) ->
-                ScreenshotAccessibilityServiceHolder.instance?.applyStripVisible(visible)
+                ScreenshotAccessibilityServiceHolder.instance?.applyStripVisible()
             Settings.canDrawOverlays(appContext) ->
-                OverlayHostService.start(appContext, visible)
+                OverlayHostService.start(appContext)
         }
     }
 

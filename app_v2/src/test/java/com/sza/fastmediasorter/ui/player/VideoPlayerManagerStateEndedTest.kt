@@ -55,6 +55,7 @@ class VideoPlayerManagerStateEndedTest {
             credentialsRepository = mockk(relaxed = true),
             smbClient = mockk(relaxed = true),
             sftpClient = mockk(relaxed = true),
+            endpointResolver = mockk(relaxed = true), // S1006
             ftpClient = mockk(relaxed = true),
             googleDriveClient = mockk(relaxed = true),
             oneDriveClient = mockk(relaxed = true),

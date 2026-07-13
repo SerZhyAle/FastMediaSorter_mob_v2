@@ -23,6 +23,16 @@
         android:importantForAccessibility="no"
         android:textSize="@dimen/resource_card_title_text_size" />
 
+    <!-- S0947: general leading image (app icon / resource thumbnail / icon res); hidden unless the
+         option carries a LeadingVisual. Mutually exclusive with the flag glyph above. -->
+    <ImageView
+        android:id="@+id/ivOptionIcon"
+        android:layout_width="@dimen/settings_width_icon"
+        android:layout_height="@dimen/settings_width_icon"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tvOptionLabel"
         android:layout_width="0dp"

@@ -38,6 +38,7 @@ class GameModeMenuManager(
         fun labelRes(mode: GameMode): Int = when (mode) {
             GameMode.CLASSIC -> R.string.game_mode_classic
             GameMode.KRYVAVITSA -> R.string.game_mode_kryvavitsa
+            GameMode.CONTRAST -> R.string.game_mode_contrast
         }
     }
 }

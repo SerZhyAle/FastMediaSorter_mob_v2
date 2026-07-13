@@ -787,10 +787,6 @@ class PhotoVideoStandaloneActivity :
                 autoActionConsumed = true
                 ensureDrawHelper().enterDrawMode()
             }
-            AUTO_ACTION_TRANSLATE -> {
-                autoActionConsumed = true
-                translateCurrentImage()
-            }
             AUTO_ACTION_SEND_TO -> {
                 autoActionConsumed = true
                 fileOperations.shareCurrentFile()
@@ -877,9 +873,13 @@ class PhotoVideoStandaloneActivity :
             if (file.path != lastShownPath) {
                 val onVideoReady: ((PlayerView) -> Unit)? =
                     if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
-                viewManager.show(file, type, onVideoReady)
+                // S1041: defer the launch auto-action (OCR/translate) until the image drawable is
+                // decoded - firing it synchronously after show() raced the async Glide load and read a
+                // null bitmap, spuriously toasting ocr_extract_image_failed on the gesture-screenshot flow.
+                val onImageReady: (() -> Unit)? =
+                    if (type == MediaType.IMAGE) ({ maybeRunAutoAction(type) }) else null
+                viewManager.show(file, type, onVideoReady, onImageReady)
                 lastShownPath = file.path
-                maybeRunAutoAction(type)
                 // S0610: build the Copy/Move destination grids for the shown file (runs in a coroutine
                 // inside the manager, so it does not delay first render).
                 destinationButtonsManager.populateDestinationButtons()
@@ -1098,8 +1098,7 @@ class PhotoVideoStandaloneActivity :
         super.onStart()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && viewModel.state.value.mediaType == MediaType.VIDEO) {
             viewModel.state.value.mediaFile?.let { file ->
-                Timber.d("S0893: PhotoVideoStandalone onStart - rebuilding video released on background")
-                viewManager.show(file, MediaType.VIDEO) { pv -> setupVideoControls(pv) }
+                viewManager.show(file, MediaType.VIDEO, onVideoReady = { pv -> setupVideoControls(pv) })
             }
         }
     }
@@ -1202,7 +1201,6 @@ class PhotoVideoStandaloneActivity :
         /** Names a one-shot action to run after the image is shown (set by the screenshot gesture dispatcher). */
         const val EXTRA_AUTO_ACTION = "auto_action"
         const val AUTO_ACTION_DRAW = "draw"
-        const val AUTO_ACTION_TRANSLATE = "translate"
         const val AUTO_ACTION_SEND_TO = "send_to"
         const val AUTO_ACTION_CROP_AND_SHARE = "crop_and_share"
 

@@ -370,13 +370,13 @@
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilDefaultUser" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/default_user" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/tilDefaultPassword" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultUser" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultUser" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilDefaultPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:hint="@string/default_password" app:endIconMode="password_toggle" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/iconHelpDefaultCredentials" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toEndOf="@+id/tilDefaultUser" app:layout_constraintTop_toTopOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -804,6 +804,9 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/how_to_guides" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
+                        <!-- S0994: PC-side companion publish-folders guide; hidden when companion import unavailable (lite/vr). -->
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnCompanionPublishGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/companion_publish_folders_guide" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" app:iconSize="@dimen/settings_icon_size" />
+
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/privacy_policy" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_info" app:iconSize="@dimen/settings_icon_size" />
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenSourceLicenses" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_source_licenses_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_info" app:iconSize="@dimen/settings_icon_size" />
@@ -811,7 +814,7 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_image" app:iconSize="@dimen/settings_icon_size" />
 
                         <!-- Flow distributes buttons across lines based on available width -->
-                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="0dp" app:flow_verticalGap="0dp" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="0dp" app:flow_verticalGap="0dp" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnCompanionPublishGuide,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

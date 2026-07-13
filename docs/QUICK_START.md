@@ -194,7 +194,7 @@ Tap **"+"** → **Cloud Storage**
 
 ### Screen Capture & Edge Gestures
 
-- Turn on **Settings → Operations → Left-edge screen gestures → Gesture overlay**, then swipe from the left edge to take a screenshot, snap a photo, or start a screen/voice/video recording - see the edge-gestures scenario in [HOW_TO.md](HOW_TO.md) for details
+- Turn on **Settings → Operations → Edge screen gestures → Gesture overlay**, then swipe from the left edge to take a screenshot, snap a photo, or start a screen/voice/video recording - see the edge-gestures scenario in [HOW_TO.md](HOW_TO.md) for details
 
 ### Link Auto-Download
 

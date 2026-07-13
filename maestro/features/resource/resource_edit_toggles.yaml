@@ -1,0 +1,58 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: edit a resource in the Resource Editor - exercise its collapsible sections and media-type
+#   toggles, then prove the edit stuck via a rename round-trip.
+# Precondition: All-Files access granted (create step needs it).
+# Oracle: after renaming and saving, the new name renders in the main list (rename is the strong,
+#   assertable proof; the checkbox/section taps are exercised for crash-safety).
+# Residue: leaves a "DownloadEdited" resource behind (not self-cleaning) - delete via
+#   resource_lifecycle if a pristine list is needed.
+
+# --- Create a resource to edit; leaves "Download" visible on the Local tab ---
+- runFlow: resource_create_local.yaml
+
+# --- Open the editor (long-press on a resource opens Edit) ---
+- longPressOn:
+    text: "Download"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etName"
+    timeout: 10000
+
+# --- Exercise the editor's collapsible sections (crash-safety).
+#     A LOCAL resource has no media-type card, so we expand the sections it does have. ---
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerScanning"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/headerScanning"
+- waitForAnimationToEnd
+
+# --- Rename and save (the strong oracle) ---
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/etName"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etName"
+- eraseText: 40
+- inputText: "DownloadEdited"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSave"
+
+# --- Back on main: the renamed resource is listed ---
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    text: "Локальные"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      text: "DownloadEdited"
+    timeout: 10000
+- assertVisible:
+    text: "DownloadEdited"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

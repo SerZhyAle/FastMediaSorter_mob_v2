@@ -1,0 +1,15 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Dismiss the one-shot "optimize cache size?" recommendation dialog that SettingsActivity can pop
+# on first open when the device storage differs from the recommended cache size. It renders as a
+# blocking AlertDialog over the settings content, so titleText is not visible until it is closed.
+# Keep-current is the non-destructive choice. Guarded on the dialog title so it is a no-op on
+# devices / runs where the dialog does not appear.
+- runFlow:
+    when:
+      visible:
+        text: "Оптимизировать размер кэша?"
+    commands:
+      - tapOn:
+          text: "Оставить текущий"
+      - waitForAnimationToEnd

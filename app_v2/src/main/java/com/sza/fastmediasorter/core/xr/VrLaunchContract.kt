@@ -9,6 +9,7 @@ import java.io.Serializable
 enum class VrLaunchMode : Serializable {
     DIAGNOSTIC_PLAYLIST,
     FILE_URI,
+    RESOURCE_BROWSE,
 }
 
 enum class VrLaunchDeliveryMode : Serializable {
@@ -76,6 +77,7 @@ data class StartVrPlaybackRequest(
     val source: VrLaunchPoint,
     val snapshot: PlayerStateSnapshot? = null,
     val deliveryMode: VrLaunchDeliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
+    val resourceId: Long? = null,
 ) : Serializable {
 
     companion object {
@@ -90,6 +92,18 @@ data class StartVrPlaybackRequest(
             snapshot = snapshot,
             deliveryMode = deliveryMode,
         )
+
+        fun resourceBrowse(
+            resourceId: Long,
+            source: VrLaunchPoint,
+            deliveryMode: VrLaunchDeliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
+        ): StartVrPlaybackRequest = StartVrPlaybackRequest(
+            launchMode = VrLaunchMode.RESOURCE_BROWSE,
+            mediaType = VrMediaType.VIDEO,
+            source = source,
+            deliveryMode = deliveryMode,
+            resourceId = resourceId,
+        )
     }
 }
 
@@ -99,10 +113,15 @@ data class VrLaunchInput(
     val mediaType: VrMediaType,
     val deliveryMode: VrLaunchDeliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
     val snapshot: PlayerStateSnapshot? = null,
+    val resourceId: Long? = null,
 ) : Serializable {
 
     fun requireFileUriString(): String = requireNotNull(fileUriString) {
         "VrLaunchInput requires a fileUriString when launchMode=FILE_URI"
+    }
+
+    fun requireResourceId(): Long = requireNotNull(resourceId) {
+        "VrLaunchInput requires a resourceId when launchMode=RESOURCE_BROWSE"
     }
 
     companion object {
@@ -122,6 +141,7 @@ data class VrLaunchInput(
             mediaType = request.mediaType,
             deliveryMode = request.deliveryMode,
             snapshot = request.snapshot,
+            resourceId = request.resourceId,
         )
     }
 }

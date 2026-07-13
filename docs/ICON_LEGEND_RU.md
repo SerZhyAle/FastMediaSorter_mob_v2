@@ -61,7 +61,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Диктофон |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Удалённые ресурсы (SMB/(S)FTP/Облако) |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Запланированные операции по расписанию |
-| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жесты с левого края экрана |
+| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жесты с краёв экрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запись видео с экрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команды отправить файл в.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляции |

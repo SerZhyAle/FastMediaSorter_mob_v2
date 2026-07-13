@@ -90,7 +90,6 @@ class AudioPlayerViewModel @Inject constructor(
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
-                    Timber.d("S0902: audio STATE_ENDED - pause+seekTo(0), no auto-restart")
                     _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
                     // S0902: pause before seeking - playWhenReady stays true otherwise and the
                     // track auto-restarts from 0, looping indefinitely (mirrors VideoPlayerViewModel).
@@ -244,7 +243,6 @@ class AudioPlayerViewModel @Inject constructor(
      * onCleared was the only prior teardown edge.
      */
     fun onHostStopped() {
-        Timber.d("S0902: audio host stopped - pausing player")
         exoPlayer.pause()
     }
 

@@ -137,8 +137,15 @@ void xr_hud_init() {
     // меньше"). The banner bitmap stays 1024x128 (8:1 aspect), so the quad now
     // letterboxes the texture top/bottom; this matches the visible text height the
     // owner sees in screenshots.
-    g_hudState.quad.width = 0.3f;
-    g_hudState.quad.height = 0.113f;
+    // S0964: an explicit override (panel mode) wins over the banner defaults and must
+    // survive re-entry - xr_hud_init re-runs on every session start.
+    if (g_hudState.overrideWidth > 0.0f && g_hudState.overrideHeight > 0.0f) {
+        g_hudState.quad.width = g_hudState.overrideWidth;
+        g_hudState.quad.height = g_hudState.overrideHeight;
+    } else {
+        g_hudState.quad.width = 0.3f;
+        g_hudState.quad.height = 0.113f;
+    }
     
     // S0290 (owner round 3 2026-05-22): HUD centered in front of head so screenshots
     // show the filename + stereo type banner clearly. Was {0, -0.2, -1.5} (below center).
@@ -154,6 +161,20 @@ void xr_hud_init() {
     g_hudState.smoothedUv[1] = {0.5f, 0.5f};
     g_hudState.hasIntersection[0] = false;
     g_hudState.hasIntersection[1] = false;
+}
+
+// S0964: requested from the JNI bridge (any thread). Floats are written whole; the render
+// thread picks the new size up next frame - no lock needed for this tear-safe pair.
+void xr_hud_set_quad_size(float widthMeters, float heightMeters) {
+    if (widthMeters <= 0.0f || heightMeters <= 0.0f) {
+        LOGE("xr_hud_set_quad_size REJECTED: w=%.3f h=%.3f", widthMeters, heightMeters);
+        return;
+    }
+    g_hudState.overrideWidth = widthMeters;
+    g_hudState.overrideHeight = heightMeters;
+    g_hudState.quad.width = widthMeters;
+    g_hudState.quad.height = heightMeters;
+    LOGD("xr_hud_set_quad_size: %.3fx%.3f m", widthMeters, heightMeters);
 }
 
 void xr_hud_update(const XrPosef& headPose, float deltaTime) {

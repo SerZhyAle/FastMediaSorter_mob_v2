@@ -1,0 +1,66 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Add Resource - each source-type card opens its own form without a crash.
+# Oracle: tapping a type card reveals that type's form container (exact id); each card is
+#   verified in its own relaunch cycle so intra-screen back behaviour never affects the next.
+# Cloud is intentionally skipped here: it launches an OAuth consent flow with no stable
+#   in-app form anchor to assert on the emulator.
+
+# --- Local folder ---
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutLocalFolder"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+- stopApp
+
+# --- Network (SMB) folder ---
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardNetworkFolder"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutSmbFolder"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etSmbServer"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+- stopApp
+
+# --- SFTP / FTP folder ---
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardSftpFolder"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutSftpFolder"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etSftpHost"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

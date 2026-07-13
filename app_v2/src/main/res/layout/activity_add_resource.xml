@@ -87,6 +87,18 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
+        <TextView android:id="@+id/tvImportSectionTitle" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_marginTop="@dimen/resource_section_margin_top" android:text="@string/resource_import_section_title" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+
+        <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
+        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="@dimen/resource_margin_4dp">
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromFile" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" android:textAllCaps="false" app:icon="@drawable/ic_import" />
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromBarcode" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="@string/resource_import_from_barcode" android:textAllCaps="false" app:icon="@drawable/ic_qr_scan" />
+
+        </LinearLayout>
+
     </GridLayout>
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btnAddToResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_to_resources_button" android:visibility="gone" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:layout_marginStart="@dimen/padding_large" android:layout_marginEnd="@dimen/padding_large" android:layout_marginBottom="@dimen/padding_large" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
@@ -122,7 +134,7 @@
             <!-- PIN Code (Optional) -->
             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
 
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etLocalPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etLocalPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:imeOptions="flagNoExtractUi" android:maxLength="6" android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -152,13 +164,13 @@
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbUsername" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_username">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPassword" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_password" app:endIconMode="password_toggle">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -179,13 +191,13 @@
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbShareName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_share_name" app:helperText="@string/smb_share_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbResourceName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -304,20 +316,20 @@
                         <!-- Comment and PIN Code in one row -->
                         <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbComment" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_comment">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPinCode" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:imeOptions="flagNoExtractUi" android:maxLength="6" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
                         <!-- Domain and Port in one row (optional, advanced) -->
                         <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:ffp_ratio="two_one">
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="@string/default_smb_port" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="flagNoExtractUi" android:text="@string/default_smb_port" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 
@@ -345,6 +357,21 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
+            <!-- S0991/S0992: companion import entry points relocated to the SFTP-form header, sharing labels with the type-screen entries. -->
+            <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+
+                <!-- S0421: one-action import of a Windows-companion .fmscfg config -->
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpImportCompanion" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" app:icon="@drawable/ic_import" />
+
+                <!-- S0988: camera QR scan of the same companion config; hidden on camera-less/VR devices -->
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpScanCompanionQr" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="@string/resource_import_from_barcode" app:icon="@drawable/ic_qr_scan" />
+
+            </LinearLayout>
+
+            <!-- S0994: help link to the PC-side companion publish-folders guide; visibility mirrors the file-import button. -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpCompanionPublishHelp" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:text="@string/companion_publish_folders_guide" android:contentDescription="@string/companion_publish_folders_guide" app:icon="@drawable/ic_help_outline_24" app:iconGravity="textStart" />
+
             <!-- Protocol Selection -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/protocol_selection" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
@@ -367,7 +394,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPort" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_port">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="flagNoExtractUi" android:text="" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -389,13 +416,13 @@
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpUsername" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_username">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPassword" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_password" app:endIconMode="password_toggle">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -409,7 +436,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPrivateKey" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/sftp_private_key" app:helperText="@string/sftp_private_key_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" android:layout_marginEnd="@dimen/margin_small">
 
-                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPrivateKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textMultiLine" android:minLines="3" android:maxLines="5" android:scrollbars="vertical" android:fontFamily="monospace" android:textSize="@dimen/text_size_small"/>
+                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPrivateKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textMultiLine" android:imeOptions="flagNoExtractUi" android:minLines="3" android:maxLines="5" android:scrollbars="vertical" android:fontFamily="monospace" android:textSize="@dimen/text_size_small"/>
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -420,7 +447,7 @@
                 <!-- SSH Key Passphrase (Optional) -->
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_key_passphrase" app:helperText="@string/sftp_key_passphrase_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -447,7 +474,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_host_key_fingerprint_hint" app:helperText="@string/sftp_host_key_fingerprint_helper" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:maxLines="1" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -466,7 +493,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -559,10 +586,10 @@
                         <!-- Comment and PIN Code in one row -->
                         <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_comment">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
-                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:imeOptions="flagNoExtractUi" android:maxLength="6" android:maxLines="1" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
 

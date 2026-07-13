@@ -19,7 +19,6 @@ object SmbCacheEvictor {
         val files = cacheDir.listFiles() ?: return
         var totalBytes = files.sumOf { it.length() }
         if (totalBytes <= capBytes) return
-        Timber.d("S0902: evicting ${cacheDir.name} cache, $totalBytes bytes over $capBytes cap")
 
         val oldestFirst = files
             .filter { it != keep }

@@ -14,6 +14,11 @@ class HudInteractionDispatcher(
         fun onVolumeChanged(volume: Float)
         fun onDepthChanged(depth: Float)
         fun onHoverStateChanged(isHovered: Boolean)
+
+        // S0964: track cycle rows; default no-ops so the diagnostic call site (banner-only HUD)
+        // does not have to care about track rows.
+        fun onAudioTrackCycle(step: Int) {}
+        fun onSubtitleTrackCycle(step: Int) {}
     }
 
     private var wasHovered = false
@@ -49,14 +54,7 @@ class HudInteractionDispatcher(
         isTriggerPressed = isClick
 
         if (clickTriggered) {
-            // Check buttons
-            if (renderer.prevRect.contains(px, py)) {
-                listener.onPrevClick()
-            } else if (renderer.playPauseRect.contains(px, py)) {
-                listener.onPlayPauseClick()
-            } else if (renderer.nextRect.contains(px, py)) {
-                listener.onNextClick()
-            }
+            dispatchButtonClick(px, py)
         }
 
         // Check sliders (handle dragging or clicking on slider tracks)
@@ -70,6 +68,25 @@ class HudInteractionDispatcher(
                 renderer.depth = dep
                 listener.onDepthChanged(dep)
             }
+        }
+    }
+
+    /** Extracted from [dispatch] to keep its cyclomatic complexity under the detekt threshold. */
+    private fun dispatchButtonClick(px: Float, py: Float) {
+        if (renderer.prevRect.contains(px, py)) {
+            listener.onPrevClick()
+        } else if (renderer.playPauseRect.contains(px, py)) {
+            listener.onPlayPauseClick()
+        } else if (renderer.nextRect.contains(px, py)) {
+            listener.onNextClick()
+        } else if (renderer.audioRowEnabled && renderer.audioPrevRect.contains(px, py)) {
+            listener.onAudioTrackCycle(-1)
+        } else if (renderer.audioRowEnabled && renderer.audioNextRect.contains(px, py)) {
+            listener.onAudioTrackCycle(1)
+        } else if (renderer.subsRowEnabled && renderer.subsPrevRect.contains(px, py)) {
+            listener.onSubtitleTrackCycle(-1)
+        } else if (renderer.subsRowEnabled && renderer.subsNextRect.contains(px, py)) {
+            listener.onSubtitleTrackCycle(1)
         }
     }
 

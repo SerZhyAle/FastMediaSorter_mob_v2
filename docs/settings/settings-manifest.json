@@ -296,9 +296,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SECTION_HEADER",
-      "titleEn": "Left-edge screen gestures",
-      "titleRu": "Жесты с левого края экрана",
-      "titleUk": "Жести з лівого краю екрана"
+      "titleEn": "Edge screen gestures",
+      "titleRu": "Жесты с краёв экрана",
+      "titleUk": "Жести з країв екрана"
     },
     {
       "key": "headerScreenRecording",
@@ -531,6 +531,66 @@
       "titleUk": "Повертати екран разом із ОС (крім плеєра)"
     },
     {
+      "key": "rowGestureLeftBottomDown",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureLeftBottomRight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureLeftBottomUp",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureLeftTopDown",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureLeftTopRight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureLeftTopUp",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
       "key": "rowGestureOverlayEnabled",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -541,14 +601,64 @@
       "titleUk": "Оверлей жестів"
     },
     {
-      "key": "rowGestureStripVisible",
+      "key": "rowGestureRightBottomDown",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the left-edge gesture strip",
-      "titleRu": "Показывать полосу жеста у левого края",
-      "titleUk": "Показувати смугу жесту біля лівого краю"
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureRightBottomRight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureRightBottomUp",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureRightTopDown",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureRightTopRight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureRightTopUp",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
     },
     {
       "key": "rowGoToNextAfterCopy",
@@ -661,36 +771,6 @@
       "titleUk": "Відеозапис екрана"
     },
     {
-      "key": "rowScreenshotGestureActionDown",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Down gesture action",
-      "titleRu": "Действие жеста вниз",
-      "titleUk": "Дія жесту вниз"
-    },
-    {
-      "key": "rowScreenshotGestureActionRight",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Right gesture action",
-      "titleRu": "Действие жеста вправо",
-      "titleUk": "Дія жесту праворуч"
-    },
-    {
-      "key": "rowScreenshotGestureActionUp",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Up gesture action",
-      "titleRu": "Действие жеста вверх",
-      "titleUk": "Дія жесту вгору"
-    },
-    {
       "key": "rowUseTrash",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -719,6 +799,86 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
+    },
+    {
+      "key": "rowZoneLeftBottomEnabled",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Left edge - lower band",
+      "titleRu": "Левый край - нижняя полоса",
+      "titleUk": "Лівий край - нижня смуга"
+    },
+    {
+      "key": "rowZoneLeftBottomStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneLeftTopEnabled",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Left edge - upper band",
+      "titleRu": "Левый край - верхняя полоса",
+      "titleUk": "Лівий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneLeftTopStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneRightBottomEnabled",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Right edge - lower band",
+      "titleRu": "Правый край - нижняя полоса",
+      "titleUk": "Правий край - нижня смуга"
+    },
+    {
+      "key": "rowZoneRightBottomStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneRightTopEnabled",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Right edge - upper band",
+      "titleRu": "Правый край - верхняя полоса",
+      "titleUk": "Правий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneRightTopStripVisible",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
     },
     {
       "key": "btnSetDefaultDocsViewer",
@@ -869,6 +1029,16 @@
       "titleEn": "Clear streaming cache",
       "titleRu": "Очистить кэш стриминга",
       "titleUk": "Очистити кеш стримінгу"
+    },
+    {
+      "key": "btnCompanionPublishGuide",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "How to publish PC folders to Android",
+      "titleRu": "Как опубликовать папки ПК для Android",
+      "titleUk": "Як опублікувати теки ПК для Android"
     },
     {
       "key": "btnDownloadableExtensions",

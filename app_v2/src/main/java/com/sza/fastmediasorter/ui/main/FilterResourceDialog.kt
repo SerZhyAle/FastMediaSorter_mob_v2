@@ -111,10 +111,14 @@ class FilterResourceDialog : DialogFragment() {
         binding.chipGroupResourceType.removeAllViews()
         
         // S0391: chips reflect the availability node (compile support AND user toggle), not just flavor.
+        // HTTP_STREAM/RTSP_STREAM excluded: no UI entry point creates a resource of these types
+        // (AddResourceActivity only offers LOCAL/SMB/SFTP/FTP/CLOUD), so a filter chip for them
+        // can never match a real resource - dead/confusing option in this dialog.
         val allowedResourceTypes = ResourceType.values().filter { type ->
             when (type) {
                 ResourceType.LOCAL -> true
                 ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> false
                 else -> RemoteSourceId.networkFromResourceType(type)
                     ?.let { remoteSourceGate.isEnabled(it) } ?: true
             }

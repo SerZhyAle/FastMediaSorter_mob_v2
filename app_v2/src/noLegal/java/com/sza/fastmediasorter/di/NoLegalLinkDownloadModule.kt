@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.di
 import com.sza.fastmediasorter.data.link.nolegal.ArtStationExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.DailymotionExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.DeviantArtExtractionStrategy
+import com.sza.fastmediasorter.data.link.nolegal.HumanizedCarouselPacer
 import com.sza.fastmediasorter.data.link.nolegal.NewPipeSiteExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.TelegramExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.VimeoExtractionStrategy
 import com.sza.fastmediasorter.data.link.nolegal.YtDlpExtractionStrategy
+import com.sza.fastmediasorter.domain.usecase.link.LinkDownloadPacer
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import dagger.Binds
 import dagger.Module
@@ -48,4 +50,9 @@ abstract class NoLegalLinkDownloadModule {
     @Binds
     @IntoSet
     abstract fun bindTelegram(impl: TelegramExtractionStrategy): UrlExtractionStrategy
+
+    // S0973: only the noLegal flavor contributes a pacer, so carousel pauses are noLegal-only.
+    @Binds
+    @IntoSet
+    abstract fun bindHumanizedPacer(impl: HumanizedCarouselPacer): LinkDownloadPacer
 }

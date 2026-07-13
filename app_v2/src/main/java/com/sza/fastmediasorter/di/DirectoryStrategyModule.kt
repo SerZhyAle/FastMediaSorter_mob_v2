@@ -73,12 +73,13 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         sftpClient: SftpClient,
         credentialsRepository: NetworkCredentialsRepository,
+        endpointResolver: com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver,
         stagingDir: StagingDirectoryProvider,
         stagingRegistry: LocalStagingRegistry,
         destinationClassifier: LocalDestinationClassifier,
         destinationWriter: LocalDestinationWriter
     ): FileOperationStrategy = SftpOperationStrategy(
-        context, sftpClient, credentialsRepository, stagingDir, stagingRegistry,
+        context, sftpClient, credentialsRepository, endpointResolver, stagingDir, stagingRegistry,
         destinationClassifier, destinationWriter
     )
 

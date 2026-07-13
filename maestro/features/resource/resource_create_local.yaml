@@ -1,0 +1,54 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: create a LOCAL resource from the Download quick-folder chip.
+# Precondition: All-Files access (MANAGE_EXTERNAL_STORAGE) granted for the debug package -
+#   without it btnAddManually opens the access-permission dialog instead of the folder picker.
+#   Grant once: adb shell appops set com.sza.fastmediasorter.debug MANAGE_EXTERNAL_STORAGE allow
+# Oracle: the "Download" resource appears in the Local tab of the main list after registration.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+
+# Folder-selection dialog: pick the Download quick-folder chip (registers the path, no SAF).
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnDownload"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnDownload"
+
+# The picked folder lands in the "resources to add" staging list, then gets registered.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnAddToResources"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddToResources"
+
+# Back on main: the new LOCAL resource is listed.
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    text: "Локальные"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      text: "Download"
+    timeout: 10000
+- assertVisible:
+    text: "Download"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

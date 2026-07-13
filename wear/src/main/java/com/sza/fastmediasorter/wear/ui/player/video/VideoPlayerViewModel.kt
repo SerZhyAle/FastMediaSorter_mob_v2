@@ -159,7 +159,6 @@ class VideoPlayerViewModel @Inject constructor(
     }
     
     fun dismissBatteryWarning() {
-        Timber.d("S0902: battery warning dismissed - starting playback")
         prefs.edit().putBoolean(KEY_BATTERY_WARNING_SHOWN, true).apply()
         _uiState.update { it.copy(showBatteryWarning = false) }
         // S0902: loadMediaFile/loadSmbFile defer playWhenReady while the warning is showing -
@@ -288,7 +287,6 @@ class VideoPlayerViewModel @Inject constructor(
      * onCleared was the only prior teardown edge.
      */
     fun onHostStopped() {
-        Timber.d("S0902: video host stopped - pausing player")
         exoPlayer.pause()
     }
 

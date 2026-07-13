@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -156,6 +157,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
+
     // S0783: favicon sprite-atlas sidecar (shared with the streams catalog) so the Favorites list can
     // paint a live channel's logo on its STREAM rows, mirroring StreamsActivity.
     @Inject lateinit var faviconAtlasStore: com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -176,14 +178,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
     @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
     @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
+
     // S0901: application-lifetime scope so a mic recording save survives BrowseActivity teardown.
-    @Inject @ApplicationScope lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     // S0783: decodes a favicon atlas tile index into a bitmap, re-reading the atlas file on each decode.
     // Lazy so it is built after Hilt field injection (mirrors StreamsActivity).
     private val faviconSlicer by lazy {
         com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
     }
+
     // S0783: the loaded url->tile-index map, read on the bind-time resolver lambda. Volatile so a load
     // completing after the list is bound is visible to later binds without further synchronisation.
     @Volatile
@@ -512,7 +518,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val hasDestinations = getDestinationsUseCase.getDestinationsExcluding(resource.id).isNotEmpty()
                     initializer.mediaFileAdapter.setResourcePermissions(
                         hasDestinations = hasDestinations,
-                        isWritable = resource.isWritable && !resource.isReadOnly
+                        isWritable = resource.allowsWriteOperations() // S1019: shared write-policy resolver
                     )
                 }
             }

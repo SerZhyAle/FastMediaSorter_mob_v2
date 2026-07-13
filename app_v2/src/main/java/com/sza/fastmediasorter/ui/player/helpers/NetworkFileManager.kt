@@ -8,16 +8,17 @@ import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
@@ -143,8 +144,9 @@ class NetworkFileManager(
     suspend fun prepareFileForWrite(mediaFile: MediaFile): File? {
         val resource = callback.getCurrentResource()
         
-        // Check if resource is writable
-        if (resource == null || !resource.isWritable) {
+        // S1019: shared write-policy resolver - matches the UI affordance so an offered edit is not
+        // blocked here for a network resource the user marked writable.
+        if (resource == null || !resource.allowsWriteOperations()) {
             Timber.w("prepareFileForWrite: Resource is read-only")
             withContext(Dispatchers.Main) {
                 callback.showError(context.getString(R.string.error_reason_read_only))

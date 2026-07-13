@@ -175,6 +175,36 @@ class CameraOcrFlowManager(
         }
     }
 
+    /**
+     * S1042: enter the flow from an already-captured image (e.g. a screenshot) instead of the camera.
+     * Decodes [sourceFile] into the oriented working bitmap and jumps straight to the crop step,
+     * reusing the identical crop -> language -> OCR/translate path. [sourceFile] is app-owned and is
+     * deleted once decoded (the gallery only receives the cropped result, per S1042 owner input).
+     */
+    fun startWithImage(sourceFile: File) {
+        callback.showLoading(R.string.camera_ocr_loading_processing, 0)
+        scope.launch {
+            val bitmap = withContext(Dispatchers.IO) {
+                cropRegionManager.loadOrientedBitmap(sourceFile)
+            }
+            storageManager.cleanupTempFile(sourceFile)
+
+            if (bitmap == null) {
+                callback.hideLoading()
+                callback.showToast(R.string.camera_ocr_camera_error)
+                callback.finishFlow()
+                return@launch
+            }
+
+            currentTimestamp = newTimestamp()
+            recycleOrientedBitmap()
+            orientedBitmap = bitmap
+            callback.hideLoading()
+            callback.showCropStep(bitmap)
+            emitCropLanguages()
+        }
+    }
+
     /** Called by the Activity when the camera returned RESULT_OK. Shows the crop step. */
     fun onPhotoCaptured() {
         val tempFile = pendingTempFile ?: return

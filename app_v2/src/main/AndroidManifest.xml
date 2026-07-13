@@ -26,6 +26,8 @@
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- S1013: receive multicast (mDNS/NSD) to discover companion `_sftp-fms._tcp` servers on the LAN -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <!-- Wi-Fi is used for network sources but not required for local files or cellular cloud access -->
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <!-- Keyboard/mouse/remote navigation is already supported; touchscreen is not mandatory -->
@@ -49,6 +51,10 @@
          lock while restoring full device reach; symmetric landscape entry pre-empts the mirror bug. -->
     <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
     <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
+    <!-- S0990: required=false advertises Android XR spatial-panel compatibility (Galaxy XR floats the
+         flat app in a Home Space panel) without filtering out phones/tablets - the standard bundle
+         already declares no required=true feature, so this is a pure coverage-add, no device-reach loss. -->
+    <uses-feature android:name="android.software.xr.api.spatial" android:required="false" />
 
     <!-- Keep screen on. tools:remove undoes the android:maxSdkVersion="25" contributed
          by the Chucker debug library (com.github.chuckerteam.chucker:library:4.0.0).
@@ -167,7 +173,11 @@
         <package android:name="org.telegram.messenger.beta" />
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.viber.voip" />
+        <package android:name="com.facebook.orca" />
         <package android:name="com.instagram.android" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.ss.android.ugc.trill" />
         <!-- S0459: Google Lens probes these packages (GoogleLensShare); without visibility on API 30+
              resolveActivity() returns null even when installed and Lens always falls back to chooser. -->
         <package android:name="com.google.ar.lens" />
@@ -606,6 +616,47 @@
                 <data android:mimeType="application/vnd.fms.resources+xml" />
             </intent-filter>
         </activity>
+
+        <!-- S0984: companion `.fmscfg` SFTP-access receiver. VIEW (tap an attachment) + SEND (share sheet).
+             The vendor MIME is what our own export sets, giving a reliable friend-to-friend SEND path.
+             application/octet-stream on VIEW IS registered here on purpose (owner requirement 2026-07-10
+             23:37 "import on tap"): Telegram/email deliver `.fmscfg` as octet-stream, so tap-to-import is
+             impossible without it. This reverses the S0422 chooser-noise decision for `.fmscfg` only;
+             non-config files are rejected by CompanionConfigParser content validation in the activity. -->
+        <activity android:name=".ui.companionimport.CompanionConfigImportActivity" android:exported="true" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|locale|layoutDirection|density" android:theme="@style/Theme.FastMediaSorter.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/vnd.fms.companion-config+json" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.fmscfg" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.fms.companion-config+json" />
+            </intent-filter>
+        </activity>
+
+        <!-- S0988: in-app camera QR scan for the companion config; internal (started for a result
+             from AddResource), never exported. -->
+        <activity android:name=".ui.companionimport.qr.CompanionQrScanActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.FastMediaSorter" />
 
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 

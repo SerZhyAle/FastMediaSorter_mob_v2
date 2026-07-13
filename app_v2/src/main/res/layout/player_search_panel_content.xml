@@ -24,7 +24,7 @@
         android:background="@android:color/transparent"
         android:padding="@dimen/player_search_panel_padding"
         android:singleLine="true"
-        android:imeOptions="actionSearch"
+        android:imeOptions="actionSearch|flagNoExtractUi"
         android:inputType="text" />
 
     <TextView

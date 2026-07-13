@@ -209,5 +209,7 @@ private class FakeResourceRepository : ResourceRepository {
     override suspend fun deleteAllResources() = Unit
     override suspend fun testConnection(resource: MediaResource): Result<String> = Result.success("ok")
     override suspend fun updateIcon(resourceId: Long, iconId: String?) = Unit
+    override suspend fun updateLastViewedFile(resourceId: Long, path: String?) = Unit
+    override suspend fun updateLastScrollPosition(resourceId: Long, position: Int) = Unit
     override suspend fun backfillMissingIcons(resolveIcon: (path: String, profileName: String, typeName: String) -> String?): Int = 0
 }

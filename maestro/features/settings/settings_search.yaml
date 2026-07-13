@@ -1,0 +1,37 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: settings search opens, filters, and reports an empty state.
+# Oracle: a no-match query surfaces the empty-results text - deterministic proof that the search
+#   index runs and filters (independent of which exact settings are indexed for the locale).
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+# Open search
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchButton"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchInput"
+    timeout: 8000
+
+# A query that matches nothing must show the empty-results text.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchInput"
+- inputText: "zzzzzzq"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

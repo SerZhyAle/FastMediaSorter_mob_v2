@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -91,7 +93,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         ScreenshotAccessibilityServiceHolder.instance = this
         serviceScope.launch {
             val settings = settingsRepository.get().getSettings().first()
-            applyOverlayState(settings.gestureOverlayEnabled, settings.screenshotGestureStripVisible)
+            applyOverlayState(settings.gestureOverlayEnabled)
         }
     }
 
@@ -115,28 +117,38 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     }
 
     /** Show/hide the edge gesture strip. Called on connect and pushed by the settings controller. */
-    fun applyOverlayState(enabled: Boolean, stripVisible: Boolean = false) {
+    fun applyOverlayState(enabled: Boolean) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
-        if (enabled) showStrip(stripVisible) else hideStrip()
+        if (enabled) showStrip() else hideStrip()
     }
 
-    /** S0724: recolour the live strip (grey vs transparent) when only the visibility setting changes. */
-    fun applyStripVisible(visible: Boolean) {
-        overlayManager?.setStripVisible(visible)
+    /** S1008: recolour the live strip per-zone (grey for enabled+visible bands) when only visibility changes. */
+    fun applyStripVisible() {
+        val manager = overlayManager ?: return
+        serviceScope.launch {
+            manager.setStripVisible(actionDispatcher.get().stripVisibleZones())
+        }
     }
 
-    private fun showStrip(stripVisible: Boolean) {
-        if (overlayManager != null) return
+    private fun showStrip() {
         // Accessibility (dialog-free) takes priority: if the legacy MediaProjection host was running
         // its own strip, shut it down so only one strip exists once accessibility is on.
         OverlayHostService.stop(this)
-        val manager = ScreenGestureOverlayManager(
-            context = this,
-            overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            onGestureMatched = { direction -> captureNow(direction) }
-        )
-        manager.show(stripVisible)
-        overlayManager = manager
+        // S0847/S1008: rebuild on every enable/refresh so a zone/visibility change is reflected; enabled +
+        // strip-visible zones are read off the persisted settings. serviceScope is Main.immediate so the
+        // view work stays on Main.
+        serviceScope.launch {
+            val enabledZones = actionDispatcher.get().enabledZones()
+            val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
+            overlayManager?.hide()
+            val manager = ScreenGestureOverlayManager(
+                context = this@ScreenshotAccessibilityService,
+                overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                onGestureMatched = { zone, direction -> captureNow(zone, direction) }
+            )
+            manager.show(stripVisibleZones, enabledZones)
+            overlayManager = manager
+        }
     }
 
     private fun hideStrip() {
@@ -151,12 +163,12 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun captureNow(direction: ScreenshotGestureDirection) {
+    private fun captureNow(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         if (captureInProgress) return
         captureInProgress = true
         serviceScope.launch {
-            val action = actionDispatcher.get().actionFor(direction)
+            val action = actionDispatcher.get().actionFor(zone, direction)
             if (actionDispatcher.get().handlePreCaptureAction(this@ScreenshotAccessibilityService, action)) {
                 // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
                 captureInProgress = false
@@ -211,6 +223,21 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             // MediaProjection path so the option also works on the API 30+ accessibility flow.
             if (settings.copyScreenshotToClipboard && imageClipboardWriter.get().copyBitmap(bitmap)) {
                 toast(getString(R.string.screen_capture_copied_to_clipboard))
+            }
+
+            // S1042: OCR actions skip the gallery save - stage the raw frame to a private temp file and
+            // open the unified crop/OCR/translate screen, which saves only the cropped result. Mirrors
+            // the standard MediaProjection path (ScreenCaptureService); no "saved to gallery" toast.
+            if (pendingAction == ScreenshotGestureAction.OCR_TRANSLATE) {
+                val tempFile = withContext(Dispatchers.IO) {
+                    actionDispatcher.get().stageOcrSourceFile(this@ScreenshotAccessibilityService, bitmap)
+                }
+                if (tempFile != null) {
+                    actionDispatcher.get().launchOcrCropFlow(this@ScreenshotAccessibilityService, tempFile)
+                } else {
+                    toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)
+                }
+                return
             }
 
             when (val result = saveScreenshotUseCase.get().invoke(bitmap, target)) {

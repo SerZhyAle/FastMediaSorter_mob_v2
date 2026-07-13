@@ -13,7 +13,7 @@ import dagger.multibindings.IntoSet
 import dagger.multibindings.Multibinds
 
 /**
- * Declares the `Set<ShareTarget>` multibinding seam (S0452 foundation) and registers the ten
+ * Declares the `Set<ShareTarget>` multibinding seam (S0452 foundation) and registers the available
  * receivers of the unified «Send to..» menu (S0459).
  *
  * Each receiver is a pure declaration - id, title, default ([ShareTargetDefault], ADR-7),
@@ -36,6 +36,12 @@ abstract class ShareTargetModule {
             "org.thunderdog.challegram",
             "org.telegram.plus",
             "org.telegram.messenger.beta",
+        )
+        internal val VIBER_PACKAGES = listOf("com.viber.voip")
+        internal val MESSENGER_PACKAGES = listOf("com.facebook.orca")
+        internal val TIKTOK_PACKAGES = listOf(
+            "com.zhiliaoapp.musically",
+            "com.ss.android.ugc.trill",
         )
 
         @Provides
@@ -178,6 +184,32 @@ abstract class ShareTargetModule {
 
         @Provides
         @IntoSet
+        fun viberTarget(): ShareTarget = ShareTarget(
+            id = "viber",
+            titleRes = R.string.share_target_title_app,
+            iconRes = R.drawable.ic_send_phone_chat,
+            defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
+            availability = ShareTargetAvailability.PACKAGE_INSTALLED,
+            packages = VIBER_PACKAGES,
+            subtitleRes = R.string.share_target_desc_package_app,
+            helpMessageRes = R.string.share_target_help_package_app,
+        )
+
+        @Provides
+        @IntoSet
+        fun messengerTarget(): ShareTarget = ShareTarget(
+            id = "messenger",
+            titleRes = R.string.share_target_title_app,
+            iconRes = R.drawable.ic_send_bolt_chat,
+            defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
+            availability = ShareTargetAvailability.PACKAGE_INSTALLED,
+            packages = MESSENGER_PACKAGES,
+            subtitleRes = R.string.share_target_desc_package_app,
+            helpMessageRes = R.string.share_target_help_package_app,
+        )
+
+        @Provides
+        @IntoSet
         fun instagramTarget(): ShareTarget = ShareTarget(
             id = "instagram",
             titleRes = R.string.share_target_title_app,
@@ -189,6 +221,20 @@ abstract class ShareTargetModule {
             // ADR-4: Instagram's ACTION_SEND share flow accepts a single item; it does not handle
             // ACTION_SEND_MULTIPLE. Single-file receiver - applies to the first file on a multi-select.
             batchCapable = false,
+            subtitleRes = R.string.share_target_desc_package_app,
+            helpMessageRes = R.string.share_target_help_package_app,
+        )
+
+        @Provides
+        @IntoSet
+        fun tiktokTarget(): ShareTarget = ShareTarget(
+            id = "tiktok",
+            titleRes = R.string.share_target_title_app,
+            iconRes = R.drawable.ic_send_music_note,
+            defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
+            availability = ShareTargetAvailability.PACKAGE_INSTALLED,
+            packages = TIKTOK_PACKAGES,
+            applicableTypes = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.GIF),
             subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )

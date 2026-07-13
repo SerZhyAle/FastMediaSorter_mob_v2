@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.data.network.datasource.SmbDataSourceFactory
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,6 +41,7 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     @ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
+    private val endpointResolver: SftpEndpointResolver,
     private val ftpClient: FtpClient,
     private val googleDriveClient: GoogleDriveRestClient,
     private val oneDriveClient: OneDriveRestClient,
@@ -88,9 +90,12 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
         val (host, embeddedPort) = splitHostPort(uri.host.orEmpty())
 
         return when (uri.scheme?.lowercase()) {
-            "sftp" -> SftpDataSourceFactory(
-                sftpClient, host, port(uri, embeddedPort ?: extraPort, DEFAULT_SFTP_PORT), user, pass, context
-            )
+            "sftp" -> {
+                // S1006: use the reachable endpoint for this resource (LAN at home, WAN in transit).
+                // Cache-only on the player thread - browse warmed it; falls back to the URI host otherwise.
+                val ep = endpointResolver.resolveCached(host, port(uri, embeddedPort ?: extraPort, DEFAULT_SFTP_PORT))
+                SftpDataSourceFactory(sftpClient, ep.host, ep.port, user, pass, context)
+            }
             "ftp" -> FtpDataSourceFactory(
                 ftpClient, host, port(uri, embeddedPort ?: extraPort, DEFAULT_FTP_PORT), user, pass, context
             )

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import android.os.Handler
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.MimeTypes
@@ -13,11 +14,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
-import android.widget.Toast
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
-import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
@@ -30,14 +30,15 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-import com.sza.fastmediasorter.ui.player.ImageLoadingManager
-import com.sza.fastmediasorter.utils.SmbPathUtils
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
+import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -82,6 +83,7 @@ class PlayerMediaLoaderManager(
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
     private var servicePlaybackPlayer: Player? = null
+
     // S0851: guards the one-shot order-mode re-arm; reset when a new service player is bound (resume).
     private var serviceOrderModeReappliedForTimeline = false
     private var audioPrefetchJob: Job? = null
@@ -162,8 +164,8 @@ class PlayerMediaLoaderManager(
             config = videoPlayerManager.stereoDetectionConfig,
         )
 
-        // Propagate to ViewModel so the 3D tab reflects the current mode
-        // and VrStereoRenderer picks it up via stereoMode flow.
+        // Propagate to ViewModel so the 3D tab reflects the current mode and the vr-flavor OpenXR
+        // renderer (DiagnosticXrRuntime) picks it up via the stereoMode flow.
         if (detected != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN &&
             detected != com.sza.fastmediasorter.domain.model.StereoMode.AUTO) {
             viewModel.setAutoDetectedStereoMode(detected)
@@ -188,7 +190,8 @@ class PlayerMediaLoaderManager(
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
         imageLoadingManager.hideAnimatedBadge()
-        textViewerManagerProvider().displayText(mediaFile, isWritable = resource?.isWritable == true)
+        // S1019: text edit affordance via the shared write-policy resolver.
+        textViewerManagerProvider().displayText(mediaFile, isWritable = resource?.allowsWriteOperations() == true)
     }
 
     /** Play video or audio file with comprehensive media type routing */
@@ -766,12 +769,11 @@ class PlayerMediaLoaderManager(
      */
     private fun reapplyServiceOrderModeOnTimelineReady() {
         val controller = audioServiceController ?: return
-        val player = controller.player ?: return
-        if (serviceOrderModeReappliedForTimeline || player.mediaItemCount <= 1) return
+        val player = controller.player
+        if (player == null || serviceOrderModeReappliedForTimeline || player.mediaItemCount <= 1) return
         serviceOrderModeReappliedForTimeline = true
         val mode = viewModel.state.value.playbackOrderMode
         controller.applyPlaybackOrderMode(mode)
-        Timber.d("S0851: re-armed order mode $mode on timeline-ready, items=${player.mediaItemCount}")
     }
 
     private fun unbindServicePlaybackListener() {
@@ -1024,6 +1026,13 @@ class PlayerMediaLoaderManager(
         } else {
             // For video: auto-hide controls after 15 seconds
             binding.playerView.controllerShowTimeoutMs = VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS.toInt()
+
+            // S1005: reveal the transport controller when a video opens (mirrors the audio branch). The
+            // unified player has no tap gesture that shows the controller for video (VideoTouchDelegate
+            // reveal is disabled), so without this the controls never appear on open; auto-hide still
+            // fires after VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS and a center-tap re-reveals them.
+            binding.playerView.showController()
+            Timber.d("S1005: video controls shown on open")
 
             // Restore PlayerView's video/content layer for real video playback.
             exoContentFrame?.isVisible = true

@@ -47,6 +47,7 @@ import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
+import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import timber.log.Timber
@@ -215,6 +216,7 @@ class GeneralSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         setupGmsBanner()
         setupSavedAuthorizationsRow()
         logHelper.setupVersionInfo()

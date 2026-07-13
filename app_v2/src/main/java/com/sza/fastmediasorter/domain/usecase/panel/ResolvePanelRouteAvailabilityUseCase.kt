@@ -80,6 +80,25 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_LINK_DOWNLOAD ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.linkAutoDownloadEnabled)
+            // S0978: photo-capture routes gate exactly like KEY_QUICK_CAMERA (images capability + the
+            // global camera-capture toggle); the OCR-translate variant additionally needs the translation
+            // capability compiled in, and the video route gates on the video capability + video toggle.
+            InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,
+            InternalRouteCatalog.KEY_TAKE_PHOTO_EDIT ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsImages,
+                    enabledAtRuntime = !settings.disableCameraCapture,
+                )
+            InternalRouteCatalog.KEY_TAKE_PHOTO_OCR_TRANSLATE ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsImages && capability.isTranslationAvailable(),
+                    enabledAtRuntime = !settings.disableCameraCapture,
+                )
+            InternalRouteCatalog.KEY_START_VIDEO_RECORDING ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsVideo,
+                    enabledAtRuntime = !settings.disableVideoCapture,
+                )
             else -> Availability(availableInBuild = false, enabledAtRuntime = false)
         }
 }

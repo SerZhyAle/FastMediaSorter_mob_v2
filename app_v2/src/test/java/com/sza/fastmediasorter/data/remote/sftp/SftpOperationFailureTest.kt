@@ -23,6 +23,16 @@ class SftpOperationFailureTest {
     }
 
     @Test
+    fun `no-such-file status maps to NOT_FOUND`() {
+        // S1000: Windows OpenSSH sends a locale-dependent "cannot find the file specified" text,
+        // so classification must key off the protocol id, not the message.
+        val ex = SftpException(ChannelSftp.SSH_FX_NO_SUCH_FILE, "GetFileAttributesEx: not there")
+        val failure = SftpOperationFailure.fromThrowable(ex)
+        assertEquals(SftpFailureCategory.NOT_FOUND, failure.category)
+        assertEquals(ChannelSftp.SSH_FX_NO_SUCH_FILE, failure.statusCode)
+    }
+
+    @Test
     fun `other sftp status maps to GENERIC`() {
         val ex = SftpException(ChannelSftp.SSH_FX_FAILURE, "failure")
         val failure = SftpOperationFailure.fromThrowable(ex)

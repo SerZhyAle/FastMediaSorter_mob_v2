@@ -102,6 +102,41 @@ enum class ResourceProfile {
 }
 
 /**
+ * Media-type set and flags implied by a [ResourceProfile]. Single source of truth reused by the
+ * resource form ([ResourceFormData.applyProfile]) and companion-config import (S1002) so the
+ * "audio library" preset never drifts between the two call sites.
+ *
+ * A `null` field means "leave the caller's current value unchanged": [supportedMediaTypes] is null
+ * for NONE/ALL_FILES (they do not narrow the type set), and [rememberFileList] is null for every
+ * profile except AUDIO_LIBRARY (only that one opts into DB persistence).
+ */
+data class ProfileMediaPreset(
+    val supportedMediaTypes: Set<MediaType>?,
+    val allFiles: Boolean,
+    val rememberFileList: Boolean?
+)
+
+/** The preset a [ResourceProfile] applies. Mirrors the historical [ResourceFormData.applyProfile] branches. */
+fun ResourceProfile.mediaPreset(): ProfileMediaPreset = when (this) {
+    ResourceProfile.NONE ->
+        ProfileMediaPreset(supportedMediaTypes = null, allFiles = false, rememberFileList = null)
+    ResourceProfile.AUDIO_LIBRARY ->
+        ProfileMediaPreset(setOf(MediaType.AUDIO), allFiles = false, rememberFileList = true)
+    ResourceProfile.VIDEO_LIBRARY ->
+        ProfileMediaPreset(setOf(MediaType.VIDEO, MediaType.AUDIO), allFiles = false, rememberFileList = null)
+    ResourceProfile.PHOTO_STORAGE ->
+        ProfileMediaPreset(setOf(MediaType.IMAGE, MediaType.GIF), allFiles = false, rememberFileList = null)
+    ResourceProfile.DOCUMENTS ->
+        ProfileMediaPreset(
+            setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT),
+            allFiles = false,
+            rememberFileList = null
+        )
+    ResourceProfile.ALL_FILES ->
+        ProfileMediaPreset(supportedMediaTypes = null, allFiles = true, rememberFileList = null)
+}
+
+/**
  * Filter criteria for media files
  * According to specification: filename (case-insensitive), creation date (>=Date;<=Date), file size (>=Mb;<=Mb)
  */
@@ -145,6 +180,9 @@ data class FileFilter(
  * Domain model for Resource (Folder)
  * Represents a folder that can contain media files
  */
+/** S1006: one SFTP endpoint candidate. The ordered list on [MediaResource] drives reachable-endpoint fallback. */
+data class HostPort(val host: String, val port: Int)
+
 data class MediaResource(
     val id: Long = 0,
     val name: String,
@@ -192,7 +230,9 @@ data class MediaResource(
 
     val iconId: String? = null, // Format: ico-XX-NNN; null until S0034 backfill assigns one
     val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
-    val needsSignIn: Boolean = false // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
+    val needsSignIn: Boolean = false, // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
+    val altAccessPaths: List<HostPort> = emptyList(), // S1006: reachable-endpoint fallback candidates (companion LAN + WAN); empty = single-path
+    val accessNote: String? = null // S1014: companion connectivity guidance shown on connection failure; null = none
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

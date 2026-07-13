@@ -46,6 +46,7 @@ class CloudFileOperationHandler @Inject constructor(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val endpointResolver: com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver,
     private val cloudPathParser: CloudPathParser,
     private val networkCredentialsResolver: NetworkCredentialsResolver,
     private val cloudAuthHelper: CloudAuthenticationHelper,
@@ -71,7 +72,10 @@ class CloudFileOperationHandler @Inject constructor(
     )
 
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SftpOperationStrategy(context, sftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
+        SftpOperationStrategy(
+            context, sftpClient, credentialsRepository, endpointResolver,
+            stagingDir, stagingRegistry, destinationClassifier, destinationWriter
+        ),
         destinationClassifier = destinationClassifier,
         enableAtomic = true
     )

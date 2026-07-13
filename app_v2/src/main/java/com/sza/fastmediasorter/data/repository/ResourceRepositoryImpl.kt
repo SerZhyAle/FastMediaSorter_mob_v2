@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -285,6 +286,14 @@ class ResourceRepositoryImpl @Inject constructor(
         resourceDao.updateIcon(resourceId, iconId)
     }
 
+    override suspend fun updateLastViewedFile(resourceId: Long, path: String?) {
+        resourceDao.updateLastViewedFile(resourceId, path)
+    }
+
+    override suspend fun updateLastScrollPosition(resourceId: Long, position: Int) {
+        resourceDao.updateLastScrollPosition(resourceId, position)
+    }
+
     override suspend fun backfillMissingIcons(
         resolveIcon: (path: String, profileName: String, typeName: String) -> String?
     ): Int {
@@ -502,7 +511,9 @@ class ResourceRepositoryImpl @Inject constructor(
             lastSpeedTestDate = lastSpeedTestDate,
             iconId = iconId,
             hostKeyFingerprint = hostKeyFingerprint,
-            needsSignIn = needsSignIn // S0200: propagate the "needs sign-in" flag from entity to domain.
+            needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from entity to domain.
+            altAccessPaths = parseAltPaths(altAccessPaths), // S1006
+            accessNote = accessNote // S1014
         )
     }
 
@@ -560,7 +571,29 @@ class ResourceRepositoryImpl @Inject constructor(
             lastSpeedTestDate = lastSpeedTestDate,
             iconId = iconId,
             hostKeyFingerprint = hostKeyFingerprint,
-            needsSignIn = needsSignIn // S0200: propagate the "needs sign-in" flag from domain to entity.
+            needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from domain to entity.
+            altAccessPaths = serializeAltPaths(altAccessPaths), // S1006
+            accessNote = accessNote // S1014
         )
+    }
+
+    // S1006: alternate SFTP endpoints round-trip as "host:port;host:port". Serialisation is confined to
+    // these two helpers so the storage form never leaks into the domain model. A malformed stored value
+    // degrades to an empty list rather than crashing the resource load.
+    private fun parseAltPaths(serialized: String?): List<HostPort> {
+        if (serialized.isNullOrBlank()) return emptyList()
+        return serialized.split(';').mapNotNull { entry ->
+            val trimmed = entry.trim()
+            if (trimmed.isEmpty()) return@mapNotNull null
+            val sep = trimmed.lastIndexOf(':')
+            if (sep <= 0 || sep == trimmed.length - 1) return@mapNotNull null
+            val port = trimmed.substring(sep + 1).toIntOrNull() ?: return@mapNotNull null
+            HostPort(trimmed.substring(0, sep), port)
+        }
+    }
+
+    private fun serializeAltPaths(paths: List<HostPort>): String? {
+        if (paths.isEmpty()) return null
+        return paths.joinToString(";") { "${it.host}:${it.port}" }
     }
 }

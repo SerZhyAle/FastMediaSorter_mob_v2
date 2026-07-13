@@ -135,7 +135,9 @@ object SmbErrorClassifier {
             }
             true
         } catch (e: Exception) {
-            Timber.w("Fast connectivity check failed to $host:$port after ${timeoutMs}ms")
+            // S1027: log the real cause (refused / no-route / timeout) instead of a fixed
+            // "after Nms" text that misleads when the failure is an immediate active refusal.
+            Timber.w("SMB connectivity check failed to $host:$port: ${e.javaClass.simpleName}: ${e.message}")
             false
         }
     }

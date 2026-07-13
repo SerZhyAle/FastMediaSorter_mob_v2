@@ -1,0 +1,97 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: settings toggle robustness sweep - flip real toggles and walk every tab without a crash.
+# Oracle (robustness): after each toggle press and each tab switch the settings title still
+#   renders and no crash-report prompt appears. Toggle rows are tapped by their stable row id
+#   (SettingsToggleRow shares an inner str_switch, so the ROW id is the reliable handle).
+# Scope note: only the General tab's rows are pressed by id (confirmed on-screen). Media /
+#   Playback / Operations are walked (switch + scroll) to catch inflation/listener crashes;
+#   extend with their row ids once confirmed via Maestro Studio on device.
+
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+# --- General tab: flip two non-disruptive toggles off then on, by row id.
+#     Re-scroll before each tap in case rows shift. Compact-elements is deliberately avoided:
+#     it recreates the activity to re-apply density, which invalidates the scrolled position. ---
+# The Interface section (headerInterface) is collapsed by default (GeneralSettingsFragment registers
+# every section with defaultExpanded=false), so rowEnableFavorites / rowAllowSeparateWindow are absent
+# from the view tree until it is expanded - scrollUntilVisible alone can never reach them (S1017).
+# One expand covers both rows: they share containerInterface. Clean install => store empty => collapsed.
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerInterface"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/headerInterface"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+    visibilityPercentage: 10
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+
+# --- Walk the remaining tabs by title ---
+- tapOn:
+    text: "Медиа"
+- waitForAnimationToEnd
+- scroll
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
+
+- tapOn:
+    text: "Плеер"
+- waitForAnimationToEnd
+- scroll
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
+
+- tapOn:
+    text: "Управление"
+- waitForAnimationToEnd
+- scroll
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
+
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

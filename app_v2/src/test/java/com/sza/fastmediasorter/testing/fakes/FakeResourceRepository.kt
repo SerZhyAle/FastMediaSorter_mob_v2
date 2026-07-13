@@ -137,6 +137,22 @@ class FakeResourceRepository : ResourceRepository {
         }
     }
 
+    override suspend fun updateLastViewedFile(resourceId: Long, path: String?) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(lastViewedFile = path)
+            publish()
+        }
+    }
+
+    override suspend fun updateLastScrollPosition(resourceId: Long, position: Int) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(lastScrollPosition = position)
+            publish()
+        }
+    }
+
     override suspend fun backfillMissingIcons(
         resolveIcon: (path: String, profileName: String, typeName: String) -> String?,
     ): Int {

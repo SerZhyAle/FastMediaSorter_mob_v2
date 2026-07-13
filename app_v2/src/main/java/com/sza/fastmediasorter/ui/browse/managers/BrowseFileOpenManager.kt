@@ -78,11 +78,12 @@ class BrowseFileOpenManager(
             foundIndex
         }
 
-        val updatedResource = resource.copy(lastViewedFile = file.path)
-        updateState { it.copy(resource = updatedResource) }
+        // S1001: targeted single-column write - a full-entity update from this (possibly stale)
+        // in-memory copy clobbers statistics written by BrowseMetadataManager during load.
+        updateState { it.copy(resource = it.resource?.copy(lastViewedFile = file.path) ?: it.resource) }
 
         scope.launch(ioDispatcher) {
-            updateResourceUseCase(updatedResource)
+            updateResourceUseCase.saveLastViewedFile(resource.id, file.path)
             Timber.d("BrowseFileOpenManager.openFile: saved lastViewedFile=${file.path}")
         }
 

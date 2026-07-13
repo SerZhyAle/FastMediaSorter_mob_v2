@@ -41,7 +41,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPicker
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -414,7 +413,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.btnSelectLinkAutodownloadResource,
             binding.btnSelectLinkAutodownloadResource.contentDescription,
         )
-        Timber.d("S0842: link-autodownload dest picker is icon-only")
         binding.btnSelectLinkAutodownloadResource.setOnClickListener {
             showDestinationPicker(
                 currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId

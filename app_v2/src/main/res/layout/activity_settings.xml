@@ -44,7 +44,7 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
 
-            <EditText android:id="@+id/searchInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/settings_search_hint" android:imeOptions="actionSearch" android:inputType="text" android:maxLines="1" />
+            <EditText android:id="@+id/searchInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/settings_search_hint" android:imeOptions="actionSearch|flagNoExtractUi" android:inputType="text" android:maxLines="1" />
 
             <ImageButton android:id="@+id/searchCloseButton" android:layout_width="@dimen/button_height" android:layout_height="@dimen/button_height" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/settings_search_close" android:src="@drawable/ic_cancel" app:tint="?attr/colorOnSurface" />
         </LinearLayout>

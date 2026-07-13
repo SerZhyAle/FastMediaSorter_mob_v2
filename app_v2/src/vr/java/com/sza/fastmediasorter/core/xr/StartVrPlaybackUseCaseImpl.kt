@@ -107,6 +107,9 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
     }
 
     private fun validateRequest(request: StartVrPlaybackRequest): VrLaunchUnavailableReason? {
+        if (request.launchMode == VrLaunchMode.RESOURCE_BROWSE) {
+            return if (request.resourceId == null) VrLaunchUnavailableReason.InvalidUri else null
+        }
         if (request.launchMode != VrLaunchMode.FILE_URI) {
             return null
         }

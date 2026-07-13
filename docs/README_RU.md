@@ -66,9 +66,11 @@ FastMediaSorter - это универсальный медиабраузер, п
 
 ## Версия для Windows 🖥️
 
-Ищете решение для настольного компьютера? Попробуйте **FastMediaSorter LITE** - легкое приложение Windows Forms для быстрой сортировки, просмотра и управления изображениями и видео:
+Ищете решение для настольного компьютера? Попробуйте **Fast Media Sorter for Windows** (ранее FastMediaSorter LITE) - лёгкое приложение Windows Forms для быстрой сортировки, просмотра и управления изображениями и видео:
 
-🔗 **[FastMediaSorter LITE для Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+
+📄 [Как опубликовать папки ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - поделитесь папками ПК с приложением по SFTP (companion-импорт / скан QR на телефоне).
 
 Особенности:
 

@@ -36,6 +36,7 @@ class FtpFileOperationHandlerTest {
         smbClient = mockk<SmbClient>(relaxed = true),
         sftpClient = mockk<SftpClient>(relaxed = true),
         credentialsRepository = credentialsRepository,
+        endpointResolver = mockk(relaxed = true), // S1006: unused on the FTP path
         stagingDir = mockk<StagingDirectoryProvider>(relaxed = true),
         stagingRegistry = mockk<LocalStagingRegistry>(relaxed = true),
         destinationClassifier = mockk<LocalDestinationClassifier>(relaxed = true),

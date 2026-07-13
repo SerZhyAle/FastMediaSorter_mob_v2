@@ -39,18 +39,18 @@ class ScreenGestureOverlayControllerImpl @Inject constructor(
     override fun fallbackPermissionSettingsIntent(context: Context): Intent =
         permissionSettingsIntent(context)
 
-    override fun setEnabled(enabled: Boolean, stripVisible: Boolean) {
+    override fun setEnabled(enabled: Boolean) {
         if (enabled && Settings.canDrawOverlays(appContext)) {
-            OverlayHostService.start(appContext, stripVisible)
+            OverlayHostService.start(appContext)
         } else {
             OverlayHostService.stop(appContext)
         }
     }
 
-    override fun setStripVisible(visible: Boolean, overlayEnabled: Boolean) {
-        // Only meaningful while the host is running; re-issuing start refreshes the live strip colour.
+    override fun setStripVisible(overlayEnabled: Boolean) {
+        // Only meaningful while the host is running; re-issuing start re-reads the per-zone strip colours.
         if (overlayEnabled && Settings.canDrawOverlays(appContext)) {
-            OverlayHostService.start(appContext, visible)
+            OverlayHostService.start(appContext)
         }
     }
 }

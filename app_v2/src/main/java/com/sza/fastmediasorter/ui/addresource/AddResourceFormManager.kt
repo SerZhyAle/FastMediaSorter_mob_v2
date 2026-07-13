@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.addresource
 
-import android.app.AlertDialog
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -14,7 +14,10 @@ import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.mediaPreset
+import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.utils.NetworkUtils
@@ -204,113 +207,62 @@ internal class AddResourceFormManager(
     // ========== Profile Presets ==========
 
     fun showProfilePresetDialog(isSmb: Boolean) {
-        val profiles = ResourceProfile.values()
-        val labels = profiles.map { activity.getString(getProfileLabelResId(it)) }.toTypedArray()
+        // S1003: one shared dialog + one domain preset for both forms and the resource editor.
         val current = if (isSmb) smbProfilePreset else sftpProfilePreset
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.select_resource_type))
-            .setSingleChoiceItems(labels, profiles.indexOf(current).coerceAtLeast(0)) { dialog, which ->
-                val selected = profiles[which]
-                if (isSmb) {
-                    smbProfilePreset = selected
-                    binding.btnSmbProfilePreset.text = activity.getString(getProfileLabelResId(selected))
-                    applyProfilePresetToSmb(selected)
-                } else {
-                    sftpProfilePreset = selected
-                    binding.btnSftpProfilePreset.text = activity.getString(getProfileLabelResId(selected))
-                    applyProfilePresetToSftp(selected)
-                }
-                dialog.dismiss()
+        ResourceProfileDialog.show(activity, current) { selected ->
+            if (isSmb) {
+                smbProfilePreset = selected
+                binding.btnSmbProfilePreset.text = activity.getString(ResourceProfileDialog.labelResId(selected))
+                applyProfilePreset(selected, binding.cbSmbAllFiles, binding.cbSmbRememberFileList, smbTypeCheckboxes())
+            } else {
+                sftpProfilePreset = selected
+                binding.btnSftpProfilePreset.text = activity.getString(ResourceProfileDialog.labelResId(selected))
+                applyProfilePreset(selected, binding.cbSftpAllFiles, binding.cbSftpRememberFileList, sftpTypeCheckboxes())
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun getProfileLabelResId(profile: ResourceProfile): Int = when (profile) {
-        ResourceProfile.NONE -> R.string.label_profile_none
-        ResourceProfile.AUDIO_LIBRARY -> R.string.label_profile_audio_library
-        ResourceProfile.PHOTO_STORAGE -> R.string.label_profile_photo_storage
-        ResourceProfile.VIDEO_LIBRARY -> R.string.label_profile_video_library
-        ResourceProfile.DOCUMENTS -> R.string.label_profile_documents
-        ResourceProfile.ALL_FILES -> R.string.label_profile_all_files
-    }
-
-    private fun applyProfilePresetToSmb(profile: ResourceProfile) {
-        if (binding.cbSmbAllFiles.isChecked) binding.cbSmbAllFiles.isChecked = false
-        when (profile) {
-            ResourceProfile.AUDIO_LIBRARY -> {
-                binding.cbSmbSupportAudio.isChecked  = binding.cbSmbSupportAudio.isVisible
-                binding.cbSmbSupportImage.isChecked  = false; binding.cbSmbSupportVideo.isChecked = false
-                binding.cbSmbSupportGif.isChecked    = false; binding.cbSmbSupportText.isChecked  = false
-                binding.cbSmbSupportPdf.isChecked    = false; binding.cbSmbSupportEpub.isChecked  = false
-                binding.cbSmbSupportOffice.isChecked  = false
-                binding.cbSmbRememberFileList.isChecked = true
-            }
-            ResourceProfile.VIDEO_LIBRARY -> {
-                binding.cbSmbSupportVideo.isChecked  = binding.cbSmbSupportVideo.isVisible
-                binding.cbSmbSupportAudio.isChecked  = false; binding.cbSmbSupportImage.isChecked = false
-                binding.cbSmbSupportGif.isChecked    = false; binding.cbSmbSupportText.isChecked  = false
-                binding.cbSmbSupportPdf.isChecked    = false; binding.cbSmbSupportEpub.isChecked  = false
-                binding.cbSmbSupportOffice.isChecked  = false
-            }
-            ResourceProfile.PHOTO_STORAGE -> {
-                binding.cbSmbSupportImage.isChecked  = binding.cbSmbSupportImage.isVisible
-                binding.cbSmbSupportGif.isChecked    = binding.cbSmbSupportGif.isVisible
-                binding.cbSmbSupportVideo.isChecked  = false; binding.cbSmbSupportAudio.isChecked = false
-                binding.cbSmbSupportText.isChecked   = false; binding.cbSmbSupportPdf.isChecked   = false
-                binding.cbSmbSupportEpub.isChecked   = false
-                binding.cbSmbSupportOffice.isChecked  = false
-            }
-            ResourceProfile.DOCUMENTS -> {
-                binding.cbSmbSupportText.isChecked   = binding.cbSmbSupportText.isVisible
-                binding.cbSmbSupportPdf.isChecked    = binding.cbSmbSupportPdf.isVisible
-                binding.cbSmbSupportEpub.isChecked   = binding.cbSmbSupportEpub.isVisible
-                binding.cbSmbSupportOffice.isChecked  = binding.cbSmbSupportOffice.isVisible
-                binding.cbSmbSupportImage.isChecked  = false; binding.cbSmbSupportVideo.isChecked = false
-                binding.cbSmbSupportAudio.isChecked  = false; binding.cbSmbSupportGif.isChecked   = false
-            }
-            ResourceProfile.ALL_FILES -> binding.cbSmbAllFiles.isChecked = true
-            else -> Unit
         }
     }
 
-    private fun applyProfilePresetToSftp(profile: ResourceProfile) {
-        if (binding.cbSftpAllFiles.isChecked) binding.cbSftpAllFiles.isChecked = false
-        when (profile) {
-            ResourceProfile.AUDIO_LIBRARY -> {
-                binding.cbSftpSupportAudio.isChecked  = binding.cbSftpSupportAudio.isVisible
-                binding.cbSftpSupportImage.isChecked  = false; binding.cbSftpSupportVideo.isChecked = false
-                binding.cbSftpSupportGif.isChecked    = false; binding.cbSftpSupportText.isChecked  = false
-                binding.cbSftpSupportPdf.isChecked    = false; binding.cbSftpSupportEpub.isChecked  = false
-                binding.cbSftpSupportOffice.isChecked  = false
-                binding.cbSftpRememberFileList.isChecked = true
-            }
-            ResourceProfile.VIDEO_LIBRARY -> {
-                binding.cbSftpSupportVideo.isChecked  = binding.cbSftpSupportVideo.isVisible
-                binding.cbSftpSupportAudio.isChecked  = false; binding.cbSftpSupportImage.isChecked = false
-                binding.cbSftpSupportGif.isChecked    = false; binding.cbSftpSupportText.isChecked  = false
-                binding.cbSftpSupportPdf.isChecked    = false; binding.cbSftpSupportEpub.isChecked  = false
-                binding.cbSftpSupportOffice.isChecked  = false
-            }
-            ResourceProfile.PHOTO_STORAGE -> {
-                binding.cbSftpSupportImage.isChecked  = binding.cbSftpSupportImage.isVisible
-                binding.cbSftpSupportGif.isChecked    = binding.cbSftpSupportGif.isVisible
-                binding.cbSftpSupportVideo.isChecked  = false; binding.cbSftpSupportAudio.isChecked = false
-                binding.cbSftpSupportText.isChecked   = false; binding.cbSftpSupportPdf.isChecked   = false
-                binding.cbSftpSupportEpub.isChecked   = false
-                binding.cbSftpSupportOffice.isChecked  = false
-            }
-            ResourceProfile.DOCUMENTS -> {
-                binding.cbSftpSupportText.isChecked   = binding.cbSftpSupportText.isVisible
-                binding.cbSftpSupportPdf.isChecked    = binding.cbSftpSupportPdf.isVisible
-                binding.cbSftpSupportEpub.isChecked   = binding.cbSftpSupportEpub.isVisible
-                binding.cbSftpSupportOffice.isChecked  = binding.cbSftpSupportOffice.isVisible
-                binding.cbSftpSupportImage.isChecked  = false; binding.cbSftpSupportVideo.isChecked = false
-                binding.cbSftpSupportAudio.isChecked  = false; binding.cbSftpSupportGif.isChecked   = false
-            }
-            ResourceProfile.ALL_FILES -> binding.cbSftpAllFiles.isChecked = true
-            else -> Unit
+    private fun smbTypeCheckboxes(): Map<MediaType, MaterialCheckBox> = mapOf(
+        MediaType.IMAGE to binding.cbSmbSupportImage,
+        MediaType.VIDEO to binding.cbSmbSupportVideo,
+        MediaType.AUDIO to binding.cbSmbSupportAudio,
+        MediaType.GIF to binding.cbSmbSupportGif,
+        MediaType.TEXT to binding.cbSmbSupportText,
+        MediaType.PDF to binding.cbSmbSupportPdf,
+        MediaType.EPUB to binding.cbSmbSupportEpub,
+        MediaType.OFFICE_DOCUMENT to binding.cbSmbSupportOffice
+    )
+
+    private fun sftpTypeCheckboxes(): Map<MediaType, MaterialCheckBox> = mapOf(
+        MediaType.IMAGE to binding.cbSftpSupportImage,
+        MediaType.VIDEO to binding.cbSftpSupportVideo,
+        MediaType.AUDIO to binding.cbSftpSupportAudio,
+        MediaType.GIF to binding.cbSftpSupportGif,
+        MediaType.TEXT to binding.cbSftpSupportText,
+        MediaType.PDF to binding.cbSftpSupportPdf,
+        MediaType.EPUB to binding.cbSftpSupportEpub,
+        MediaType.OFFICE_DOCUMENT to binding.cbSftpSupportOffice
+    )
+
+    /**
+     * S1003: apply the domain preset ([ResourceProfile.mediaPreset], S1002) to a form's checkbox
+     * block - replaces two hand-rolled per-protocol copies that had drifted from the editor
+     * (create's VIDEO_LIBRARY checked video only; the domain preset is video + audio).
+     * Null preset fields mean "leave unchanged" (NONE/ALL_FILES do not narrow the type set);
+     * a checkbox hidden by the flavor never gets checked.
+     */
+    private fun applyProfilePreset(
+        profile: ResourceProfile,
+        allFilesBox: FormCheckboxRow,
+        rememberListBox: FormCheckboxRow,
+        typeBoxes: Map<MediaType, MaterialCheckBox>
+    ) {
+        val preset = profile.mediaPreset()
+        allFilesBox.isChecked = preset.allFiles
+        preset.supportedMediaTypes?.let { types ->
+            typeBoxes.forEach { (type, box) -> box.isChecked = box.isVisible && type in types }
         }
+        preset.rememberFileList?.let { rememberListBox.isChecked = it }
     }
 
     // ========== SMB / SFTP Resource Builders ==========

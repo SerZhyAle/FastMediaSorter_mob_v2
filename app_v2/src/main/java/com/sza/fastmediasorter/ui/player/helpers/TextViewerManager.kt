@@ -547,7 +547,6 @@ class TextViewerManager(
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
         // Stop in-flight read-aloud before swapping the source (TTS reads originalTextWithoutNumbers).
         ttsManager?.stop()
-        Timber.d("S0897: file swap - TTS stopped")
         currentFile = mediaFile
         viewerLoader.load(mediaFile, isWritable)
     }
@@ -708,7 +707,6 @@ class TextViewerManager(
     fun closeTextViewerFromBackPress() {
         if (currentFile != null) {
             ttsManager?.stop()
-            Timber.d("S0897: text-viewer close - TTS stopped")
             closePager()
             safeViews.textViewerContainer.isVisible = false
             safeViews.textScrollView.isVisible = false

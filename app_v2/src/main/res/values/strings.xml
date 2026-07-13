@@ -84,7 +84,6 @@
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
     <string name="camera_ocr_crop_title">Select area</string>
-    <string name="camera_ocr_crop_hint">Drag the frame to crop, or tap OK to use the whole photo</string>
     <string name="camera_ocr_crop_retry">Retry</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
@@ -619,6 +618,8 @@ Close the player and try again.</string>
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Connection timed out. Check your network and try again.</string>
+    <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
+    <string name="error_companion_connect_guidance">Couldn\'t reach the shared folder. On the same Wi-Fi as the PC it connects on its own; from another network the PC must allow access - set up port forwarding on the router or the internet access in the companion app.</string>
     <string name="error_network_access_denied">Access denied. Check your credentials.</string>
     <string name="error_network_not_found">File or resource not found.</string>
     <string name="error_network_connection_lost">No connection.</string>
@@ -1951,7 +1952,7 @@ Close the player and try again.</string>
     <string name="label_profile_photo_storage">Photo Storage</string>
     <string name="label_profile_documents">Documents</string>
     <string name="label_profile_all_files">File Manager Mode</string>
-    <string name="title_select_profile">Quick Setup Profile</string>
+    <string name="title_select_profile">Resource Profile</string>
     <string name="database_reset_dialog_title">Database reset</string>
     <string name="database_reset_dialog_message">The local database could not be opened or upgraded, so it was reset and the app can keep working. Some saved data (sources, accounts, favorites) may have been lost.\n\nReason: %1$s</string>
     <string name="database_reset_backup_note">A copy of the previous database was saved to:\n%1$s</string>
@@ -2538,10 +2539,10 @@ Close the player and try again.</string>
     <string name="screen_capture_service_notification_title">Screen capture</string>
     <string name="screen_capture_service_notification_text">Capturing the current screen..</string>
     <string name="setting_group_system_apps_title">Operating system interaction</string>
-    <string name="setting_subgroup_screen_gestures_title">Left-edge screen gestures</string>
+    <string name="setting_subgroup_screen_gestures_title">Edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
-    <string name="setting_gesture_strip_visible_title">Show the left-edge gesture strip</string>
+    <string name="setting_gesture_strip_visible_title">Show the gesture strip</string>
     <string name="setting_gesture_strip_visible_summary">Show a semi-transparent grey guide on the first 4 px; the rest stays transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource - by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>
@@ -2988,4 +2989,43 @@ Close the player and try again.</string>
     <string name="app_launch_panel_os_vpn">VPN</string>
     <string name="action_open_in_vr_cinema">Open in VR Cinema</string>
     <string name="vr_cinema_launch_unavailable">VR Cinema is unavailable right now</string>
+    <string name="companion_import_success">Added from companion: %1$s (%2$s)</string>
+    <string name="companion_import_version_error">This config was created by a newer companion version. Please update the app.</string>
+    <string name="companion_import_invalid_error">This file is not a valid companion config.</string>
+    <string name="companion_import_failed">Companion import failed. Check the file and try again.</string>
+    <string name="resource_menu_share_sftp_access">Share access..</string>
+    <string name="sftp_share_export_title">Share SFTP access</string>
+    <string name="sftp_share_export_warning">This file contains the access password. Send it only to people you trust.</string>
+    <string name="sftp_share_omit_password">Do not include the password</string>
+    <string name="sftp_share_private_network_warning">This server is on your local network - the recipient can connect only from the same network.</string>
+    <string name="sftp_share_export_failed">Could not create the access file.</string>
+    <string name="sftp_share_export_action">Share</string>
+    <string name="companion_import_title">Import access</string>
+    <string name="companion_import_confirm_message">Add the SFTP resource &quot;%1$s&quot; on %2$s with %3$d folder(s)?</string>
+    <string name="companion_import_no_fingerprint_warning">This server has not been verified - connect only if you trust the sender.</string>
+    <string name="companion_import_password_label">Password for this server</string>
+    <string name="companion_import_action">Import</string>
+    <string name="companion_import_password_required">Enter the password for this server.</string>
+    <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
+    <string name="companion_qr_scan_torch">Torch</string>
+    <string name="companion_qr_camera_denied">Camera access is needed to scan the QR code</string>
+    <string name="vr_cinema_program_title">VR Cinema</string>
+    <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
+    <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
+    <string name="setting_gesture_zone_right_top_title">Right edge - upper band</string>
+    <string name="setting_gesture_zone_right_bottom_title">Right edge - lower band</string>
+    <string name="resource_import_from_file">Import from file</string>
+    <string name="resource_import_from_barcode">Import by barcode</string>
+    <string name="resource_import_section_title">Import a ready configuration</string>
+    <string name="companion_publish_folders_guide">How to publish PC folders to Android</string>
+    <string name="setting_edge_gesture_config_button">Configure gestures</string>
+    <string name="edge_gesture_config_dialog_title">Edge gestures</string>
+    <string name="edge_gesture_tab_left_top">Left top</string>
+    <string name="edge_gesture_tab_left_bottom">Left bottom</string>
+    <string name="edge_gesture_tab_right_top">Right top</string>
+    <string name="edge_gesture_tab_right_bottom">Right bottom</string>
+    <string name="edge_gesture_general_group_title">General gesture settings</string>
+    <string name="edge_gesture_schema_content_description">Edge gesture map: tap a zone direction to assign an action</string>
+    <string name="edge_gesture_schema_state_assigned">assigned</string>
+    <string name="edge_gesture_schema_state_available">available</string>
 </resources>
