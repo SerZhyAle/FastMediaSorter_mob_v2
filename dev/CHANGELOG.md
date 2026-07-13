@@ -22175,3 +22175,5 @@ Format: | datetime | file | target | description |
 | 2026-07-13 19:40:55 | `PLAN/S1043_maestro-settings-tab-flaky.md` | `spec` | Scaffold strategic spec skeleton S1043 [branch: DEBUG-v024] |
 | 2026-07-13 20:49:32 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7132.046 - plateau merge from DEBUG-v024 [branch: DEBUG-v024] |
 | 2026-07-13 20:59:13 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7132.046 from ALL_FEATURES diff [branch: DEBUG-v025] |
+| 2026-07-13 21:06:55 | `PLAN/S1044_features-uk-translation-gap.md` | `spec` | Scaffold strategic spec skeleton S1044 [branch: DEBUG-v025] |
+| 2026-07-13 21:18:31 | `docs/FEATURES.md` | `docs/FEATURES*.md (EN/RU/UK)` | Trim boring/self-evident bullets from public feature showcase across EN/RU/UK (25 each): branding cosmetics, table-stakes UI patterns, redundant/administrative entries [branch: DEBUG-v025] |
