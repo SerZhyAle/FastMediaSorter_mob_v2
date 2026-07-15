@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.7132.046 (July 2026)
+## What's New in v2.60.7160.058 (July 2026)
 
 **New:**
-Windows Companion (discover, pair, shared-folder import, SFTP access), Messenger/Viber/short-video sharing receivers, screenshot OCR, Screen Capture edge-swipe gestures on all four edges, quick-launch panel close button and camera/video gesture actions, Contrast mini-game, branded splash screen, persistent resource statistics, unified Resource Profile dialog, credential-embedded stream URLs.
+Camera launch widget, animated WebP and APNG playback in the image viewer, share an SFTP resource as a QR code, pin stream tiles with a badge, private screens hidden in Recents and screenshot-blocked, edge-gesture configuration dialog.
 
 **Fixed:**
-VR install prompt no longer appears for 3D content on the VR edition, SFTP missing-path shows a clear message, OCR/translation now work on Google Play builds, audio permissions no longer silently disabled on minified builds, filter/search fields stay reachable above the keyboard, frozen live streams auto-recover, edge-gesture strips only show configured zones, remote/D-pad focus indicator covers the whole app.
+Video player shows controls on open and center-tap, draw-editor Save-as always writes a real file extension, file transfer fails fast on an unreachable destination, streams search and filter reset on re-entry, screenshot-gesture edge bands stay flush after rotation, OCR crop handle clears the bottom action bar, main-screen top panels align in a uniform grid, scheduled-operations master toggle stays in sync with its children.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
