@@ -99,6 +99,7 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
             if (resourceId != -1L && resourceName != null) {
                 val iconRes = resolveIcon(resourcePath, resourceTypeName)
                 views.setImageViewResource(R.id.widget_resource_icon, iconRes)
+                views.setTextViewText(R.id.widget_resource_label, resourceName)
 
                 val intent = BrowseActivity.createIntent(context, resourceId).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

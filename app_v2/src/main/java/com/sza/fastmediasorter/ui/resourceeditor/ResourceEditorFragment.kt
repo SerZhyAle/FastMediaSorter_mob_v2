@@ -6,6 +6,7 @@ import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -28,7 +29,7 @@ import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
-import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
+import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
@@ -49,7 +50,7 @@ class ResourceEditorFragment : Fragment() {
 
     private val viewModel: ResourceFormViewModel by viewModels()
 
-    @Inject lateinit var resourceLaunchWidgetPinManager: ResourceLaunchWidgetPinManager
+    @Inject lateinit var resourceShortcutPinManager: ResourceShortcutPinManager
 
     private var mode: ResourceEditorMode = ResourceEditorMode.CREATE
     private var resourceId: Long? = null
@@ -337,7 +338,7 @@ class ResourceEditorFragment : Fragment() {
         }
 
         binding.btnAddToHomeScreen.setOnClickListener {
-            pinWidgetForCurrentResource()
+            pinShortcutForCurrentResource()
         }
     }
 
@@ -409,31 +410,21 @@ class ResourceEditorFragment : Fragment() {
         }
     }
 
-    private fun pinWidgetForCurrentResource() {
-        val formData = viewModel.uiState.value.formData
+    private fun pinShortcutForCurrentResource() {
         val currentResourceId = resourceId ?: return
-        when (
-            resourceLaunchWidgetPinManager.requestPin(
-                resourceId = currentResourceId,
-                resourceName = formData.name,
-                resourcePath = formData.path,
-                resourceType = formData.type,
-            )
-        ) {
-            ResourceLaunchWidgetPinManager.PinResult.Requested -> Unit
-            ResourceLaunchWidgetPinManager.PinResult.Unsupported -> {
-                Toast.makeText(requireContext(), R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
-            }
-            ResourceLaunchWidgetPinManager.PinResult.KeyguardLocked -> {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setMessage(R.string.widget_unlock_screen_prompt)
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
-            }
-            ResourceLaunchWidgetPinManager.PinResult.AlreadyExists -> {
-                Toast.makeText(requireContext(), R.string.widget_already_added, Toast.LENGTH_SHORT).show()
+        val formData = viewModel.uiState.value.formData
+        // Same icon the editor previews for this resource, so the pinned shortcut matches it.
+        val iconRes = ResourceIconRegistry.resolveDrawable(formData.iconId) ?: R.drawable.ic_resource_local
+        val icon = ContextCompat.getDrawable(requireContext(), iconRes)
+        val message = if (icon == null) {
+            R.string.resource_shortcut_unsupported
+        } else {
+            when (resourceShortcutPinManager.requestPin(currentResourceId, formData.name, icon)) {
+                ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
+                ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
             }
         }
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
     private fun observeUiState() {

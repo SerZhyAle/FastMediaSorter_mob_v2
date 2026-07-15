@@ -380,6 +380,8 @@
     <color name="camera_capture_text_shadow">#CC000000</color>
     <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
     <color name="camera_capture_slider_inactive">#66FFFFFF</color>
+    <!-- S1066: ~50% black scrim over the parts of the shown frame outside the result frame (owner-chosen). -->
+    <color name="camera_result_frame_scrim">#80000000</color>
 
     <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
          so the five media-type segments stay visually distinct; legend always shows value text,

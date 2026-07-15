@@ -1114,27 +1114,6 @@
 
                     </LinearLayout>
 
-                    <!-- S1051: accessibility-shortcut control (relocated from the edge-gesture dialog); visibility follows the silent-capture capability (noLegal), tap opens the OS accessibility screen with the S0449 fallback. -->
-                    <TextView
-                        android:id="@+id/tvAccessibilityShortcutHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:text="@string/setting_screenshot_accessibility_shortcut_hint"
-                        android:textSize="@dimen/toggler_desc_text_size"
-                        android:textColor="@color/text_color_secondary" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnOpenAccessibilitySettings"
-                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/setting_screenshot_accessibility_shortcut_button"
-                        android:textAllCaps="false" />
-
                     <!-- S0435: Incoming-links subgroup (moved from Behaviour). Landscape: resource + open-in-player on one row. -->
                     <LinearLayout android:id="@+id/layoutIncomingLinksSubgroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1240,6 +1219,28 @@
                             android:textAllCaps="false" />
 
                     </LinearLayout>
+
+                    <!-- S1051: accessibility-shortcut control (relocated from the edge-gesture dialog); visibility follows the silent-capture capability (noLegal), tap opens the OS accessibility screen with the S0449 fallback. Anchored at the very bottom of the OS-interaction group, directly above the screen-gestures group. -->
+                    <TextView
+                        android:id="@+id/tvAccessibilityShortcutHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:text="@string/setting_screenshot_accessibility_shortcut_hint"
+                        android:textSize="@dimen/toggler_desc_text_size"
+                        android:textColor="@color/text_color_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenAccessibilitySettings"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/setting_screenshot_accessibility_shortcut_button"
+                        android:textAllCaps="false" />
 
                 </LinearLayout>
             </LinearLayout>

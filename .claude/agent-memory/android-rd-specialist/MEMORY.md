@@ -80,7 +80,7 @@
 - [Players are a family](feedback_player_family_glue_mirroring.md) - shared engine propagates; per-host mirrored manually
 - [activity_welcome 3 widths](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new id in all three
 - [sw qualifier beats -land](project_res_sw_qualifier_beats_land.md) - values-swNNNdp shadows values-land; fix via swNNNdp-land bucket
-- [Main top panels width grid](project_main_top_panels_width_grid.md) - S1037+S1049 series; 3 activity_main.xml variants (w600dp beats -land)
+- [Main top panels width grid](project_main_top_panels_width_grid.md) - S1037/S1049/S1068; S1068=portrait flush x=0 + first-cell accent, land keeps anchor
 - [Sync docs/site on visible change](feedback_sync_docs_on_visible_change.md) - revisit affected docs + site copy
 - [HOW_TO path gate](reference_howto_settings_path_gate.md) + [parity](feedback_howto_settings_path_parity.md) - S0558 validates vs manifest; U+2192 lines need EN/RU/UK
 - [Play edge-to-edge warnings](project_play_setstatusbarcolor_false_positive.md) - #2 fixed by Material 1.14.0; #1 informational

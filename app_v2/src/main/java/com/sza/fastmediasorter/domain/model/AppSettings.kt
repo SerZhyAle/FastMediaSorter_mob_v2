@@ -173,6 +173,8 @@ data class AppSettings(
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     val cameraGeotagEnabled: Boolean = false, // S0766: opt-in GPS geotag of in-app camera photos (default off)
+    // S1066: remembered in-app camera aspect ratio (CameraX AspectRatio: 0 = 4:3 default, 1 = 16:9).
+    val cameraAspectRatio: Int = 0,
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.

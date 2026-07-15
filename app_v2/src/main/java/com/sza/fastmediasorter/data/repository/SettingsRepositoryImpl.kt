@@ -432,6 +432,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     cameraGeotagEnabled = capture.cameraGeotagEnabled,
+                    cameraAspectRatio = capture.cameraAspectRatio,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],

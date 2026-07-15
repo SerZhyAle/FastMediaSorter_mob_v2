@@ -2994,4 +2994,6 @@
     <string name="streams_pin">Закріпити</string>
     <string name="streams_unpin">Відкріпити</string>
     <string name="streams_pinned_badge">Закріплено</string>
+    <string name="resource_shortcut_created">Ярлик додано на домашній екран</string>
+    <string name="resource_shortcut_unsupported">Ваш лаунчер не підтримує ярлики на домашньому екрані</string>
 </resources>

@@ -15,4 +15,20 @@
         android:contentDescription="@string/setting_camera_ocr_translation_title"
         android:src="@drawable/ic_widget_camera_ocr_translate_accent" />
 
+    <TextView
+        android:id="@+id/widget_camera_ocr_translate_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:shadowColor="@color/black"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:text="@string/widget_camera_ocr_translate_label"
+        android:textColor="@color/white"
+        android:textSize="11sp" />
+
 </LinearLayout>

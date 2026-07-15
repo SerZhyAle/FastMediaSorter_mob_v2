@@ -3022,4 +3022,6 @@
     <string name="streams_pin">Закрепить</string>
     <string name="streams_unpin">Открепить</string>
     <string name="streams_pinned_badge">Закреплён</string>
+    <string name="resource_shortcut_created">Ярлык добавлен на домашний экран</string>
+    <string name="resource_shortcut_unsupported">Ваш лаунчер не поддерживает ярлыки на домашнем экране</string>
 </resources>

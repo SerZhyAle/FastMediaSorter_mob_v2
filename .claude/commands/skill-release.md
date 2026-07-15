@@ -5,7 +5,7 @@
 > 2. Strictly technical language - dry prose in all outputs and commits.
 > 3. Hard blockers only - stop and report only for: merge conflict, commit/push failure, not on DEBUG branch, release worktree missing. Dirty working tree NOT a blocker - Step 1b auto-commits + pushes via `.\a.ps1 c`. Everything else: decide and proceed.
 
-Merge current `DEBUG-v00N` into `main`, tag release, update `WHATS_NEW.md` + `README.md` from git history, open next DEBUG branch, build release artifacts, publish standard AAB to Google Play, publish requested-flavor APK assets to GitHub Releases - one unattended pipeline. Default: only `standard` built+published; pass extra flavor names (or `all`) to widen GitHub spectrum (see Usage / `$FLAVORS`).
+Merge current `DEBUG-v00N` into `main`, tag release, update `WHATS_NEW.md` + `README.md` from git history, open next DEBUG branch, build release artifacts, publish standard AAB to Google Play, publish requested-flavor APK assets to GitHub Releases, archive every shipped spec - one unattended pipeline. Default: only `standard` built+published; pass extra flavor names (or `all`) to widen GitHub spectrum (see Usage / `$FLAVORS`).
 
 > Terminology: `/skill-release` is the single **release** entry point (as defined in `docs/BUILD_VS_RELEASE.md`) and the only flow that spends paid GitHub Actions minutes. A local **build** on a `DEBUG-v0NN` branch is free.
 
@@ -455,6 +455,37 @@ Sanity: confirm inventory carries specs that shipped this window. `PLAN/` gitign
 
 ---
 
+### Step 12c - Archive shipped specs
+
+Everything that reached `main` this plateau sits at `Implemented` or `Verified`; those specs no longer belong in the active `PLAN/` workspace. Archive them all in one sweep - each `archive.ps1` moves `PLAN/Sxxxx_<slug>.md` (+ tactical folder) to git-ignored `temp/done/` and flips the journal record to `Archived` (`priority -> 0`). `PLAN/` + `spec-catalog.jsonl` are git-ignored, so this touches no tracked file and needs no commit - pure workspace declutter with zero git-flow impact. Archived records stay addressable (`select.ps1 -Id Sxxxx` resolves them via the archive fallback) and files stay under `temp/done/`, so an `Implemented` (not yet device-verified) spec swept here is trivially restored if it later turns out broken.
+
+```powershell
+# Enumerate every Implemented + Verified spec, archive each (continue on per-id failure).
+& {
+    $ids = @()
+    foreach ($st in 'Implemented','Verified') {
+        $j = pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Status $st -Format json
+        if ($j -and $j.Trim() -ne '[]') { $ids += (ConvertFrom-Json $j | ForEach-Object { $_.id }) }
+    }
+    $ids = @($ids | Sort-Object -Unique)
+    if ($ids.Count -eq 0) { 'ARCHIVED: 0 (no Implemented/Verified specs)'; return }
+    $ok = 0; $failed = @()
+    foreach ($id in $ids) {
+        pwsh -NoProfile -File scripts/spec_catalog/archive.ps1 -Id $id
+        if ($LASTEXITCODE -eq 0) { $ok++ } else { $failed += $id }
+    }
+    "ARCHIVED: $ok of $($ids.Count)$(if ($failed) { ' | FAILED: ' + ($failed -join ', ') })"
+}
+```
+
+Record the `ARCHIVED: N` count as `$ARCHIVED_COUNT` for the final report.
+
+- Not a hard blocker: a per-id `archive.ps1` non-zero exit drops that id to `FAILED` and the sweep continues - list any failures in the final report, never abort the pipeline for it.
+- These are shipped features, not removals - archiving is pure bookkeeping, so no `docs/ALL_FEATURES.jsonl` change (do NOT pass any `-FuncOp DELETE`).
+- Debug-tag safety net: `Implemented`/`Verified` specs carry no `Timber.d("Sxxxx:` tags by invariant (tags exist only while `BlockNeedUserTest`), so no tag cleanup is expected. If a stray tag for an archived id somehow survives, delete it per CLAUDE.md "Debug Verification Tags".
+
+---
+
 ### Step 13 - Final report
 
 After all steps complete, output single structured summary:
@@ -471,6 +502,7 @@ Release pipeline complete.
   Google Drive: standard ZIP (password 1) synced by a.ps1 r
   4pda:        manual post pending (channel 4)
   IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
+  Specs archived: $ARCHIVED_COUNT Implemented+Verified specs -> temp/done/
 
 Manual follow-ups (if any):
   [INVENTORY MISSED] Sxxxx - confirm whether spec delivered user-visible change; add record via scripts/all_features/add.ps1

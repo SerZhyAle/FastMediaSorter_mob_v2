@@ -18,6 +18,7 @@ class CameraSettingsCallbackHandler(
     private val sessionManager: CameraCaptureSessionManager,
     private val flowManager: CameraCaptureFlowManager,
     private val onGridToggled: () -> Unit,
+    private val onAspectRatioApplied: () -> Unit,
     private val rotationBucket: StateFlow<Int>,
 ) : CameraSettingsDialogFragment.Callbacks {
 
@@ -60,6 +61,8 @@ class CameraSettingsCallbackHandler(
         flowManager.setGridEnabled(state.gridEnabled)
         onGridToggled()
         sessionManager.setAspectRatioAndResolution(state.aspectRatio, state.resolution)
+        // S1066: the selected ratio drives the result frame (photo) - rebuild it after an apply.
+        onAspectRatioApplied()
     }
 
     override fun onCameraSettingsCancelled(state: CameraSettingsDialogFragment.CameraSettingsState) {

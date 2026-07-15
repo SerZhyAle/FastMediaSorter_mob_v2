@@ -17,7 +17,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:scaleType="fillCenter" />
+        app:scaleType="fitCenter" />
+
+    <!-- S1066: result frame - marks the saved-file bounds inside the full-frame preview (photo, 16:9). -->
+    <com.sza.fastmediasorter.ui.cameracapture.ResultFrameOverlayView
+        android:id="@+id/resultFrameOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/previewViewCamera"
+        app:layout_constraintEnd_toEndOf="@id/previewViewCamera"
+        app:layout_constraintStart_toStartOf="@id/previewViewCamera"
+        app:layout_constraintTop_toTopOf="@id/previewViewCamera"
+        tools:visibility="visible" />
 
     <com.sza.fastmediasorter.ui.cameracapture.FocusRingOverlayView
         android:id="@+id/focusRingOverlay"

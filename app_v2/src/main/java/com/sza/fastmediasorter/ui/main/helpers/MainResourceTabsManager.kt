@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.res.Configuration
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
@@ -10,7 +11,6 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.main.ResourceTab
 import kotlinx.coroutines.CoroutineScope
-import timber.log.Timber
 
 /**
  * Owns the resource-type TabLayout: gate-aware tab construction, width-aware mode/gravity, and
@@ -83,9 +83,47 @@ class MainResourceTabsManager(
             tabLayout.tabMode = TabLayout.MODE_FIXED
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         }
+        applyLeadingCellAccent(fixedGrid)
 
         // S0781: (re)bind per-tab long-press to collapse + apply the persisted collapsed state.
         collapseManager.onTabsRebuilt()
+    }
+
+    /**
+     * S1068: in the portrait fixed-grid bucket the first tab ("All") is the accented leading cell -
+     * one base module (48dp) wider than the 2-module (96dp) tab, i.e. 108dp = 225% - so its right edge
+     * lands on the same grid boundary as the command bar and panels while the strip starts flush at x=0.
+     * The remaining tabs stay a uniform 96dp. Outside portrait (fixed/fill mode) the explicit widths are
+     * cleared back to WRAP_CONTENT so the tabs stretch to full width as before (S1049); MainActivity uses
+     * android:configChanges (no re-inflate on rotation) so this reset must run to undo a prior portrait pin.
+     */
+    private fun applyLeadingCellAccent(fixedGrid: Boolean) {
+        val strip = tabLayout.getChildAt(0) as? ViewGroup ?: return
+        val firstWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_first_tab_width)
+        val restWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_tab_min_width)
+        for (i in 0 until strip.childCount) {
+            val tabView = strip.getChildAt(i)
+            if (fixedGrid) {
+                val target = if (i == 0) firstWidth else restWidth
+                val lp = tabView.layoutParams
+                if (lp.width != target) {
+                    lp.width = target
+                    tabView.layoutParams = lp
+                }
+                tabView.minimumWidth = target
+            } else {
+                // Land/wide: normally the mode switch to FIXED already reset each tab LP to width=0
+                // (fill/stretch), so leave that untouched. Only undo a leftover portrait pin (width>0),
+                // which survives the rare rotate-into-narrow-landscape path where the mode stays
+                // SCROLLABLE (MainActivity reuses this view across rotations via configChanges).
+                val lp = tabView.layoutParams
+                if (lp.width > 0) {
+                    lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                    tabView.layoutParams = lp
+                }
+                tabView.minimumWidth = 0
+            }
+        }
     }
 
     private fun addTab(tab: ResourceTab, textRes: Int, iconRes: Int) {

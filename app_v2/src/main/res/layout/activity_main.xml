@@ -21,11 +21,10 @@
             android:orientation="horizontal"
             android:padding="@dimen/control_bar_padding">
 
-            <!-- S1049: shared leading anchor - row 1's first button starts at the same X as the
-                 programs/streams panels' leading control and the resource-tabs paddingStart. -->
-            <Space
-                android:layout_width="@dimen/main_top_panel_leading_anchor"
-                android:layout_height="match_parent" />
+            <!-- S1068 (portrait): the S1049 leading-anchor Space is removed so Exit sits flush at x=0,
+                 aligned with the programs panel's leading three-dots and the streams cast entry. Exit is
+                 the accented leading cell (+12dp over the 48dp module) via its minWidth below. Land/wide
+                 keep the anchor in their own activity_main.xml copies. -->
 
             <!-- Exit -->
             <com.google.android.material.button.MaterialButton
@@ -44,7 +43,7 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="@dimen/main_panel_item_min_width"
+                android:minWidth="@dimen/main_panel_first_item_width"
                 android:minHeight="0dp"
                 android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
@@ -383,6 +382,10 @@
 
         <!-- Resource Type Tabs. S0914-R1: no accent (form's colorSurface, theme-default tab colours) -
              owner decision 2026-07-03; programs/streams panels keep their accent, filter does not. -->
+        <!-- S1068 (portrait): no paddingStart - the first tab ("All") sits flush at x=0 like the command
+             bar's Exit and the panels' leading controls. tabMaxWidth is raised to the first-tab accent
+             width so MainResourceTabsManager can pin tab 0 to 108dp (225%) and the rest to 96dp (200%);
+             land/wide keep the anchored paddingStart in their own activity_main.xml copies. -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"
@@ -391,10 +394,9 @@
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
-            android:paddingStart="@dimen/main_top_panel_leading_anchor"
             app:tabMode="fixed"
             app:tabMinWidth="@dimen/main_panel_tab_min_width"
-            app:tabMaxWidth="@dimen/main_panel_tab_min_width"
+            app:tabMaxWidth="@dimen/main_panel_first_tab_width"
             app:tabIndicatorFullWidth="false"
             app:tabInlineLabel="@bool/is_tab_inline" />
 

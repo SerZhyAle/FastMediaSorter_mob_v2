@@ -33,6 +33,9 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/etFilterName"
 - inputText: "IMG"
+# S1065: dismiss the IME so it does not cover btnApplyFilter (rendered below the input) - a soft
+# keyboard left up makes the Apply button unhittable ("element not found") on the emulator.
+- hideKeyboard
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
 
