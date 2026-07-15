@@ -44,7 +44,7 @@ class SftpResourceStrategy(
     }
 
     override fun normalizeBeforeSave(formData: ResourceFormData): ResourceFormData {
-        val normalizedPath = normalizeNetworkPath(formData.path)
+        val normalizedPath = normalizeNetworkResourcePath(formData.path)
         return formData.copy(
             name = formData.name.trim(),
             host = formData.host.trim().replace(',', '.'),
@@ -73,14 +73,5 @@ class SftpResourceStrategy(
             ResourceFieldSchema(ResourceFieldKey.ACCESS_PIN, required = false),
             ResourceFieldSchema(ResourceFieldKey.SLIDESHOW_INTERVAL, required = false)
         )
-    }
-
-    private fun normalizeNetworkPath(path: String): String {
-        val cleaned = path.trim().replace('\\', '/').replace(Regex("/+"), "/")
-        if (cleaned.isBlank()) {
-            return "/"
-        }
-        val withLeadingSlash = if (cleaned.startsWith('/')) cleaned else "/$cleaned"
-        return if (withLeadingSlash.length > 1) withLeadingSlash.trimEnd('/') else withLeadingSlash
     }
 }

@@ -1083,12 +1083,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     override val actionCurrentResource: MediaResource? get() = viewModel.state.value.resource
     override val overlayMountTarget: ViewGroup get() = activityBinding.mediaContentArea
     override val imagePinchTarget: View get() = activityBinding.photoView
-    override fun imageDisplayRect(): RectF = activityBinding.photoView.displayRect
+    // Only the visible photoView carries a live zoom/pan matrix; when the non-zoomable imageView is the
+    // active surface, photoView may still hold a stale drawable, so report an empty rect to fall back to
+    // the legacy full-view crop mapping.
+    override fun imageDisplayRect(): RectF =
+        if (activityBinding.photoView.isVisible) (activityBinding.photoView.displayRect ?: RectF()) else RectF()
 
-    // S0393: the in-app player can display via either photoView (zoomable) or imageView (non-zoomable),
-    // so normalize BOTH to FIT_CENTER before crop (restores pre-seam PlayerCropDelegate behaviour).
+    // The crop overlay maps its selection through imageDisplayRect(), so the zoomable photoView keeps its
+    // current zoom/pan (WYSIWYG). Only the non-zoomable imageView is normalized (its crop uses the legacy
+    // full-view mapping).
     override fun prepareImageSurfacesForCrop() {
-        activityBinding.photoView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         activityBinding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
     }
     override val displayedBitmap: Bitmap? get() = viewModel.currentDisplayedBitmap
@@ -1167,6 +1171,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
 
     // Handled internally: PlayerDeleteUndoCoordinator advances the file list or emits FinishActivity.
     override fun requestFinishAfterDelete() = Unit
+
+    // S0995: apply the session frame rotation to whichever surface is live. The video handle re-composes
+    // the effect chain (no-op without an active video); the image manager rotates the visible image view.
+    // Both paths are safe to call regardless of the current media type.
+    internal fun applyContentRotation(angleDegrees: Int) {
+        videoPlayerHandle.setContentRotationDegrees(angleDegrees)
+        if (::imageLoadingManager.isInitialized) imageLoadingManager.applyRotation(angleDegrees)
+    }
 
     private fun applyPlaybackOrderModeToActivePlayer(mode: PlaybackOrderMode) {
         when (viewModel.state.value.currentFile?.type) {

@@ -37,6 +37,8 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnRename"
 - inputText: "ops_renamed_by_maestro.png"
+# S1065: hide the IME so it does not cover the rename dialog's confirm button.
+- hideKeyboard
 - tapOn:
     text: "(OK|ОК|Rename|Переименовать)"
 - extendedWaitUntil:

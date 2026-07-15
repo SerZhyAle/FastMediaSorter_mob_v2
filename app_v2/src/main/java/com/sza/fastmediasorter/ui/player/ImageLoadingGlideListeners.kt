@@ -34,6 +34,8 @@ internal class ImageLoadingGlideListeners(
     private val setCurrentIsAnimatedContent: (Boolean) -> Unit,
     private val setPhotoViewImageLoaded: (Boolean) -> Unit,
     private val logMemoryStats: (String) -> Unit,
+    // S0995: re-apply the session frame rotation after scale type is set on the freshly-bound image.
+    private val reapplyRotation: () -> Unit,
 ) {
 
     fun createDrawableListener(): RequestListener<Drawable> = object : RequestListener<Drawable> {
@@ -78,18 +80,23 @@ internal class ImageLoadingGlideListeners(
             dataSource: DataSource,
             isFirstResource: Boolean,
         ): Boolean {
-            if (isWebpModel(model)) {
-                Timber.i(
-                    "WebP display ready: ${describeModel(model)} dataSource=$dataSource drawable=${resource.javaClass.simpleName} animatable=${resource is Animatable} size=${resource.intrinsicWidth}x${resource.intrinsicHeight}"
-                )
-            }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
+            // Badge + play/pause follow the DECODED drawable, not the file extension: an animated
+            // WebP/APNG decodes to an Animatable (AnimatedImageDrawable), a static one does not.
+            val isAnimatable = resource is Animatable
+            setCurrentIsAnimatedContent(isAnimatable)
+            callback.setAnimatedBadgeVisible(isAnimatable)
+            val ext = modelExtension(model)
+            if (ext == "webp" || ext == "apng" || isWebpModel(model)) {
+                Timber.d("S1026: animated-image decoded animatable=$isAnimatable ext=$ext")
+            }
             // S0704: image ready - drop IMAGE_GLIDE and cancel its pending show + safety so a fast
             // load can never resurrect the spinner over the displayed image.
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             setPhotoViewImageLoaded(true)
             if (!callback.isDestroyed()) {
                 applyScaleType(resource.intrinsicWidth, resource.intrinsicHeight)
+                reapplyRotation()
                 logMemoryStats("AFTER onResourceReady")
                 val loadedBitmap = (resource as? BitmapDrawable)?.bitmap
                 callback.onStaticImageLoaded(loadedBitmap)
@@ -144,11 +151,16 @@ internal class ImageLoadingGlideListeners(
                 )
             }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())
+            // GifDrawable is always Animatable - mirror the drawable listener so the badge/toggle
+            // light up now that displayImage no longer shows the badge eagerly by extension.
+            setCurrentIsAnimatedContent(true)
+            callback.setAnimatedBadgeVisible(true)
             // S0704: GIF ready - drop IMAGE_GLIDE and cancel its pending show + safety.
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             setPhotoViewImageLoaded(true)
             if (!callback.isDestroyed()) {
                 applyScaleType(resource.intrinsicWidth, resource.intrinsicHeight)
+                reapplyRotation()
                 logMemoryStats("AFTER GIF onResourceReady")
                 callback.onImageContentLoaded()
             }
@@ -172,6 +184,9 @@ internal class ImageLoadingGlideListeners(
         val modelValue = model?.toString().orEmpty().substringBefore('?').lowercase()
         return modelValue.endsWith(".webp") || modelValue.contains("image/webp")
     }
+
+    private fun modelExtension(model: Any?): String =
+        model?.toString().orEmpty().substringBefore('?').substringAfterLast('.', "").lowercase()
 
     private fun describeModel(model: Any?): String {
         val modelValue = model?.toString().orEmpty().substringBefore('?')

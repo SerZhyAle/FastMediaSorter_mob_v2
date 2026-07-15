@@ -26,9 +26,10 @@ class AppDatabaseSchemaExportTest {
                 "exportSchema must stay true with room.schemaLocation set.",
             schemaDir.isDirectory
         )
-        val schemaFile = File(schemaDir, "$CURRENT_VERSION.json")
+        val currentVersion = readDatabaseVersionFromSource()
+        val schemaFile = File(schemaDir, "$currentVersion.json")
         assertTrue(
-            "Missing exported schema $CURRENT_VERSION.json under ${schemaDir.absolutePath}. " +
+            "Missing exported schema $currentVersion.json under ${schemaDir.absolutePath}. " +
                 "Build to regenerate it and commit the file.",
             schemaFile.isFile
         )
@@ -37,7 +38,7 @@ class AppDatabaseSchemaExportTest {
             ?.groupValues?.get(1)?.toInt()
         assertEquals(
             "Exported schema version must match @Database(version) in AppDatabase.",
-            CURRENT_VERSION,
+            currentVersion,
             version
         )
     }
@@ -57,9 +58,38 @@ class AppDatabaseSchemaExportTest {
         return File(rel)
     }
 
+    /**
+     * S1050: read the guarded version straight from @Database(version) in AppDatabase.kt so it can
+     * never drift from a hardcoded constant again (the previous CURRENT_VERSION was stale by 4).
+     * Room's @Database is not guaranteed RUNTIME-retained, so parse the source rather than reflect.
+     */
+    private fun readDatabaseVersionFromSource(): Int {
+        val src = resolveAppDatabaseSource()
+        assertTrue(
+            "AppDatabase.kt source not found for the schema-version guard: ${src.absolutePath}",
+            src.isFile
+        )
+        return Regex("@Database\\s*\\([^)]*?version\\s*=\\s*(\\d+)")
+            .find(src.readText())
+            ?.groupValues?.get(1)?.toInt()
+            ?: throw AssertionError("Could not parse @Database(version) from ${src.absolutePath}")
+    }
+
+    private fun resolveAppDatabaseSource(): File {
+        val rel = "src/main/java/$DB_SOURCE_REL"
+        var dir: File? = File(System.getProperty("user.dir") ?: ".").absoluteFile
+        repeat(MAX_WALK_UP_LEVELS) {
+            listOf(File(dir, rel), File(dir, "app_v2/$rel"))
+                .firstOrNull { it.isFile }
+                ?.let { return it }
+            dir = dir?.parentFile
+        }
+        return File(rel)
+    }
+
     private companion object {
-        // Keep in lockstep with AppDatabase @Database(version = ..).
-        const val CURRENT_VERSION = 36
         const val DB_QUALIFIED_NAME = "com.sza.fastmediasorter.data.local.db.AppDatabase"
+        const val DB_SOURCE_REL = "com/sza/fastmediasorter/data/local/db/AppDatabase.kt"
+        const val MAX_WALK_UP_LEVELS = 4
     }
 }

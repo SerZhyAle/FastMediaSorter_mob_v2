@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import androidx.media3.common.Effect
 import androidx.media3.effect.Brightness
 import androidx.media3.effect.HslAdjustment
+import androidx.media3.effect.ScaleAndRotateTransformation
 import timber.log.Timber
 
 /**
@@ -68,4 +69,34 @@ class VideoColorProcessor(
     }
 
     private fun normalizeBrightness(adjustment: Float): Float = adjustment.coerceIn(-1f, 1f)
+
+    companion object {
+        // S0995: quarter/half/full turn in degrees for the rotation-effect math (avoids magic numbers).
+        private const val HALF_TURN_DEGREES = 180
+        private const val FULL_TURN_DEGREES = 360
+
+        /**
+         * S0995: build a pure-visual, clockwise frame-rotation [Effect] for the composed video pipeline,
+         * or null at angle 0 (keeps the zero-cost path). Media3 rotation is counter-clockwise-positive,
+         * so a clockwise [angleDegrees] maps to (360 - angle). At 90/270 the frame's aspect swaps, so a
+         * uniform down-scale (short side / long side of the decoded [videoWidth]x[videoHeight]) refits the
+         * rotated frame into the unchanged PlayerView slot without crop or stretch. Aspect-fit exactness
+         * is a device-verification item (BlockNeedUserTest), not a compile-time contract.
+         */
+        fun buildRotationEffect(angleDegrees: Int, videoWidth: Int, videoHeight: Int): Effect? {
+            val normalized = ((angleDegrees % FULL_TURN_DEGREES) + FULL_TURN_DEGREES) % FULL_TURN_DEGREES
+            if (normalized == 0) return null
+            val clockwiseAsCcw = (FULL_TURN_DEGREES - normalized).toFloat()
+            val swapsAspect = normalized % HALF_TURN_DEGREES != 0
+            val fitScale = if (swapsAspect && videoWidth > 0 && videoHeight > 0) {
+                minOf(videoWidth, videoHeight).toFloat() / maxOf(videoWidth, videoHeight)
+            } else {
+                1f
+            }
+            return ScaleAndRotateTransformation.Builder()
+                .setScale(fitScale, fitScale)
+                .setRotationDegrees(clockwiseAsCcw)
+                .build()
+        }
+    }
 }

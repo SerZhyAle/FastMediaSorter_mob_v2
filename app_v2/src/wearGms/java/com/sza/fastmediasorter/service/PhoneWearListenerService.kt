@@ -69,7 +69,7 @@ class PhoneWearListenerService : WearableListenerService() {
                     envelope.data.decodeToString(),
                     WearPlaybackStatePayload::class.java
                 )
-                WearSyncEvents.watchPlaybackStateFlow.emit(payload)
+                WearSyncEvents.emitWatchPlaybackState(payload)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deserialize playback state payload")
             }
@@ -84,7 +84,7 @@ class PhoneWearListenerService : WearableListenerService() {
                     envelope.data.decodeToString(),
                     WearSourcesExportPayload::class.java
                 )
-                WearSyncEvents.watchSourcesReceivedFlow.emit(payload)
+                WearSyncEvents.emitWatchSources(payload)
             } catch (e: Exception) {
                 Timber.e(e, "failed to deserialize sources export payload")
             }
@@ -124,7 +124,7 @@ class PhoneWearListenerService : WearableListenerService() {
             .apply()
         // Broadcast result to any active WearSyncViewModel via the companion object flow
         serviceScope.launch {
-            WearSyncEvents.ackFlow.emit(json)
+            WearSyncEvents.emitAck(json)
         }
     }
 

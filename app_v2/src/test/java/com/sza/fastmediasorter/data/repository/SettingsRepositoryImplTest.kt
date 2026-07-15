@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -10,17 +11,27 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
@@ -41,9 +52,20 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class SettingsRepositoryImplTest {
 
+    @get:Rule
+    val tempFolder = TemporaryFolder()
+
     private lateinit var mockContext: Context
     private lateinit var mockDataStore: DataStore<Preferences>
     private lateinit var repo: SettingsRepositoryImpl
+
+    // S1045: real DataStore + real context for genuine persistence round-trips of the key mapping.
+    private val realStoreScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    @After
+    fun tearDown() {
+        realStoreScope.cancel()
+    }
 
     @Before
     fun setup() {
@@ -119,5 +141,31 @@ class SettingsRepositoryImplTest {
 
         assertTrue("writer A's field must survive writer B's write", state.value.enableOcr)
         assertTrue("writer B's field must survive writer A's write", state.value.enableTranslation)
+    }
+
+    // S1045: secureSensitiveScreens must default to true on a fresh install (absent key) and
+    // survive a save-false -> load-false round-trip through a real DataStore.
+    @Test
+    fun `secureSensitiveScreens defaults true and round-trips false through DataStore`() = runTest {
+        val realStore = PreferenceDataStoreFactory.create(scope = realStoreScope) {
+            tempFolder.newFile("s1045_settings.preferences_pb")
+        }
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realStore
+        )
+
+        assertTrue(
+            "unset key must load as secure-by-default true",
+            realRepo.getSettings().first().secureSensitiveScreens
+        )
+
+        val current = realRepo.getSettings().first()
+        realRepo.updateSettings(current.copy(secureSensitiveScreens = false))
+
+        assertFalse(
+            "saved false must load back as false",
+            realRepo.getSettings().first().secureSensitiveScreens
+        )
     }
 }

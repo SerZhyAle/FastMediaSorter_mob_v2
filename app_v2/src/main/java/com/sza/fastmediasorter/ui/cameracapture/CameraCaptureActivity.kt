@@ -193,9 +193,14 @@ class CameraCaptureActivity :
 
         // S0766: warm the location source as early as possible (only when opted in + permission held),
         // so a fix is ready by the first shutter; consent is taken in settings, never re-prompted here.
+        // S1066: restore the remembered aspect ratio in the same read - photo keeps the full-frame
+        // ViewPort so this only toggles the result frame + crop; video rebinds to the ratio.
         lifecycleScope.launch {
-            geotagEnabled = settingsRepository.getSettings().first().cameraGeotagEnabled
+            val settings = settingsRepository.getSettings().first()
+            geotagEnabled = settings.cameraGeotagEnabled
             if (geotagEnabled && hasLocationPermission()) locationProvider.start(this@CameraCaptureActivity)
+            sessionManager.setAspectRatioAndResolution(settings.cameraAspectRatio, sessionManager.currentResolution())
+            renderResultFrame()
         }
     }
 
@@ -243,6 +248,7 @@ class CameraCaptureActivity :
             sessionManager = sessionManager,
             flowManager = flowManager,
             onGridToggled = ::renderGridOverlay,
+            onAspectRatioApplied = ::handleAspectRatioApplied,
             rotationBucket = orientationManager.rotationBucket,
         )
     }
@@ -367,6 +373,7 @@ class CameraCaptureActivity :
             binding.cameraZoomValue.visibility = View.GONE
         }
         rotationManager.reapply()
+        renderResultFrame()
     }
 
     // endregion
@@ -412,6 +419,8 @@ class CameraCaptureActivity :
         )
         gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, gestureCallbackHandler)
         gestureManager.attach()
+        // S1066: scale the result frame together with the preview under the soft digital zoom.
+        sessionManager.previewScaleLinkedViews = listOf(binding.resultFrameOverlay)
     }
 
     /**
@@ -456,6 +465,7 @@ class CameraCaptureActivity :
             applyCaptureModeUi()
             renderModeTabs()
             saveDestinationLabelManager.refresh()
+            renderResultFrame()
         }
     }
 
@@ -679,5 +689,24 @@ class CameraCaptureActivity :
 
     private fun renderGridOverlay() {
         binding.cameraGridOverlay.visibility = if (flowManager.gridEnabled) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * S1066: shows the result frame only when the session reports a selected ratio narrower than the
+     * shown sensor frame (photo mode, 16:9 inside 4:3); hidden at 4:3 and in video mode, where the
+     * preview already equals the file. Re-run on bind, mode switch and format apply.
+     */
+    private fun renderResultFrame() {
+        binding.resultFrameOverlay.visibility =
+            if (sessionManager.shouldShowResultFrame()) View.VISIBLE else View.GONE
+    }
+
+    /** S1066: after the settings dialog applies a ratio, rebuild the result frame and remember the choice. */
+    private fun handleAspectRatioApplied() {
+        renderResultFrame()
+        val value = sessionManager.currentAspectRatio() ?: 0
+        lifecycleScope.launch {
+            settingsRepository.updateSettings { it.copy(cameraAspectRatio = value) }
+        }
     }
 }

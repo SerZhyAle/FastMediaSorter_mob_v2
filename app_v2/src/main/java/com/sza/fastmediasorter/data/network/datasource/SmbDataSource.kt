@@ -448,6 +448,10 @@ class SmbDataSource(
                         
                         try {
                             reopenConnection()
+                            // S1033: deliberate blocking sleep, not delay(). readInternal runs on the
+                            // dedicated smbWatchdogExecutor (cached pool for blocking SMB I/O), reached
+                            // only from ExoPlayer's non-suspend read() override - no coroutine seam, and
+                            // no shared IO-dispatcher thread is starved.
                             Thread.sleep((100 * attempts).toLong())
                             continue
                         } catch (reconnectError: Exception) {
@@ -479,6 +483,8 @@ class SmbDataSource(
                             // Close current connection to force pool cleanup
                             closeQuietly()
                             reopenConnection()
+                            // S1033: deliberate blocking sleep, not delay() - same dedicated
+                            // watchdog-executor rationale as the EOF-retry site above.
                             Thread.sleep((200 * attempts).toLong())
                             continue
                         } catch (reconnectError: Exception) {

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1035: landscape counterpart of layout/dialog_edge_gesture_config. The schema keeps the same drawing
+     as portrait (fixed size, not stretched) and sits in the top-left corner; every other element - header,
+     tabs, the active zone block and the general group - stacks in a single column to its right. Every id
+     mirrors the portrait layout so EdgeGestureConfigManager binds identically in both orientations. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:padding="@dimen/padding_normal">
+
+        <!-- Same schema image as portrait: fixed size, pinned top-left, never stretched to half the width. -->
+        <com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureSchemaView
+            android:id="@+id/edgeGestureSchema"
+            android:layout_width="220dp"
+            android:layout_height="200dp"
+            android:layout_gravity="top"
+            android:layout_marginEnd="@dimen/padding_normal" />
+
+        <!-- Right column: every other dialog element in one stack. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Header: title + close (DialogCancel taxonomy, S0538). -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/edge_gesture_config_dialog_title"
+                    android:textSize="@dimen/text_size_title_dialog"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClose"
+                    style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:text="@string/close" />
+
+            </LinearLayout>
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabsEdgeGestureZones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabMode="scrollable" />
+
+            <FrameLayout
+                android:id="@+id/containerZoneTabContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small">
+
+                <LinearLayout
+                    android:id="@+id/blockZoneLeftTop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowZoneLeftTopEnabled" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_zone_left_top_title" />
+                    <LinearLayout android:id="@+id/containerZoneLeftTop" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow android:id="@+id/rowZoneLeftTopStripVisible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_strip_visible_title" app:str_subtitle="@string/setting_gesture_strip_visible_summary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftTopUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_up_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftTopRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_right_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftTopDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/blockZoneLeftBottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowZoneLeftBottomEnabled" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_zone_left_bottom_title" />
+                    <LinearLayout android:id="@+id/containerZoneLeftBottom" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow android:id="@+id/rowZoneLeftBottomStripVisible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_strip_visible_title" app:str_subtitle="@string/setting_gesture_strip_visible_summary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftBottomUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_up_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftBottomRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_right_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureLeftBottomDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/blockZoneRightTop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowZoneRightTopEnabled" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_zone_right_top_title" />
+                    <LinearLayout android:id="@+id/containerZoneRightTop" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow android:id="@+id/rowZoneRightTopStripVisible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_strip_visible_title" app:str_subtitle="@string/setting_gesture_strip_visible_summary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightTopUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_up_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightTopRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_right_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightTopDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/blockZoneRightBottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowZoneRightBottomEnabled" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_zone_right_bottom_title" />
+                    <LinearLayout android:id="@+id/containerZoneRightBottom" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow android:id="@+id/rowZoneRightBottomStripVisible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:str_title="@string/setting_gesture_strip_visible_title" app:str_subtitle="@string/setting_gesture_strip_visible_summary" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightBottomUp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_up_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightBottomRight" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_right_title" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowGestureRightBottomDown" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" app:ssr_title="@string/setting_screenshot_gesture_action_down_title" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <!-- General gesture settings: screenshot destination, clipboard, edit-panel, permission rows. -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerEdgeGestureGeneral"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                app:csh_icon="@drawable/ic_gesture"
+                app:csh_showHelp="false"
+                app:csh_title="@string/edge_gesture_general_group_title" />
+
+            <LinearLayout
+                android:id="@+id/containerEdgeGestureGeneral"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/margin_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditAppPanel"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_apps"
+                    app:iconGravity="textStart"
+                    android:text="@string/app_launch_panel_settings_edit_button" />
+
+                <!-- S0648: button-pattern destination selector (label + value + Select). -->
+                <LinearLayout
+                    android:id="@+id/layoutScreenshotDestinationSelector"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="@dimen/margin_small">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_screenshot_destination_title"
+                        android:textColor="@color/text_color_primary"
+                        android:textSize="@dimen/toggler_title_text_size"
+                        android:layout_marginBottom="@dimen/margin_small" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSelectScreenshotDestination"
+                            style="@style/Widget.Material3.Button.IconButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            android:contentDescription="@string/setting_select_destination"
+                            app:icon="@drawable/ic_resource"
+                            app:iconTint="?attr/colorOnSurface" />
+
+                        <TextView
+                            android:id="@+id/tvScreenshotDestination"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/setting_screenshot_destination_default"
+                            android:textColor="@color/text_color_secondary"
+                            android:textSize="@dimen/toggler_title_text_size" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowCopyScreenshotToClipboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_title="@string/setting_copy_screenshot_to_clipboard_title"
+                    app:str_subtitle="@string/setting_copy_screenshot_to_clipboard_summary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

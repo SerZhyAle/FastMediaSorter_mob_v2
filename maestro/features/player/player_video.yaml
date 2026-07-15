@@ -52,9 +52,20 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/playerView"
 # Reveal the Media3 controller overlay (custom_player_controls*); its play/pause button id is
-# btnPlaybackControl (the unified player has no btnPlayPause).
+# btnPlaybackControl (the unified player has no btnPlayPause). A single tap races the controller
+# auto-hide: if it lands while the overlay is still showing it hides it, so the button stays absent
+# (S1065). Tap, then re-tap only if the control is still not shown, ending revealed either way.
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/playerView"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/playerView"
+      - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"

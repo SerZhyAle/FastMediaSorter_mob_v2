@@ -825,5 +825,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 isPlaying?.let { putExtra(EXTRA_RESUME_IS_PLAYING, it) }
             }
         }
+
+        /**
+         * Intent a pinned home-screen shortcut carries to open one resource. A pinned shortcut's
+         * intent must declare an action, so ACTION_VIEW is set explicitly; the target is resolved
+         * from EXTRA_RESOURCE_ID exactly like every other launch path.
+         */
+        fun createLaunchShortcutIntent(context: Context, resourceId: Long): Intent =
+            createIntent(context, resourceId).apply {
+                action = Intent.ACTION_VIEW
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
     }
 }

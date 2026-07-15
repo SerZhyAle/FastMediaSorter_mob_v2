@@ -160,6 +160,9 @@ $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
 $runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# S1031 public-mutable-reactive-state ratchet gate. Bans a public (non-private) val/var of
+# Mutable(StateFlow|LiveData|SharedFlow). Kotlin/Mixed only. Baseline ratchets DOWN.
+$runsPublicMutableFlowGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
 # committed per-module baseline (only NEW findings fail). Kotlin/Mixed only - it invokes
 # gradle, so it is scoped to changes that actually touch .kt to keep other paths fast.
@@ -344,6 +347,20 @@ if ($runsNeuroslopGate) {
 }
 else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsPublicMutableFlowGate) {
+    # S1031: under -ScopeToFile the gate judges a real delta on the changed file (growth vs HEAD)
+    # and stays FATAL - a NEW public mutable reactive-state declaration in this change fails,
+    # while other tickets' pre-existing findings no longer trip it (mirrors neuroslop).
+    Invoke-Step "public-mutable-flow-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-public-mutable-flow.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', $File) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "public-mutable-flow-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsOrientationFeatureGate) {

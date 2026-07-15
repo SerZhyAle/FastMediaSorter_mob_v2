@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
@@ -111,6 +112,15 @@ class OverlayHostService : Service() {
         stopForegroundCompat()
         serviceScope.cancel()
         super.onDestroy()
+    }
+
+    // S1048: a Service still receives onConfigurationChanged on rotation even without a manifest
+    // configChanges declaration (that flag only matters for Activities); without this override the
+    // bands kept their pre-rotation WindowManager coordinates, drifting off the physical edge.
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (!overlayVisible) return
+        overlayManager.relayout()
     }
 
     private fun stopOverlayHost() {

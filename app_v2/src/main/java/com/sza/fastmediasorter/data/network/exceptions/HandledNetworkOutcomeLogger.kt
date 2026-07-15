@@ -40,6 +40,7 @@ object HandledNetworkOutcomeLogger {
             is WifiRequiredException -> "wifi-required"
             is LocalNetworkPermissionDeniedException -> "local-network-permission"
             is NetworkAccessDeniedException -> "access-denied"
+            is NetworkHostKeyChangedException -> "host-key-changed"
             is NetworkTimeoutException -> "timeout"
             is ScanTimeoutException -> "scan-timeout"
             is NetworkFileNotFoundException -> "not-found"

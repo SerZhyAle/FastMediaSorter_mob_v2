@@ -70,6 +70,27 @@ class ScreenGestureOverlayManager(
         stripWidthPx = 0
     }
 
+    /** S1048: recompute geometry against current display metrics and reposition every live band in
+     *  place. Call from the host's onConfigurationChanged - a rotation (sensor auto-rotate, or an
+     *  app forcing orientation, e.g. YouTube's "expand to fullscreen" button) otherwise leaves each
+     *  band's WindowManager x/y/width/height baked in [show] re-interpreted in the new orientation's
+     *  coordinate space, so bands drift off the physical edge (observed: one landing near center). */
+    fun relayout() {
+        if (bandViews.isEmpty()) return
+        val geom = computeGeometry()
+        stripWidthPx = geom.stripWidth
+        bandViews.forEach { (zone, view) ->
+            val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
+            val frame = bandFrame(zone, geom)
+            params.x = frame.x
+            params.y = frame.y
+            params.width = frame.width
+            params.height = frame.height
+            windowManager.updateViewLayout(view, params)
+            applyBandBackground(zone, view)
+        }
+    }
+
     /** S0724/S0847/S1008: recolour every live band (grey for zones in [zones], transparent otherwise)
      *  without re-adding the windows; if nothing is shown yet, the set is applied by the next [show]. */
     fun setStripVisible(zones: Set<ScreenshotGestureZone>) {
@@ -78,7 +99,9 @@ class ScreenGestureOverlayManager(
         bandViews.forEach { (zone, view) -> applyBandBackground(zone, view) }
     }
 
-    private fun addBand(zone: ScreenshotGestureZone, geom: Geometry) {
+    // S1048: shared by addBand and relayout so the initial placement and the post-rotation
+    // reposition can never drift apart into two competing geometry formulas.
+    private fun bandFrame(zone: ScreenshotGestureZone, geom: Geometry): BandFrame {
         val startFraction = if (zone.isBottomBand) BAND_BOTTOM_START else BAND_TOP_START
         val top = geom.safeTop + (geom.safeHeight * startFraction).roundToInt()
         val height = (geom.safeHeight * BAND_HEIGHT).roundToInt().coerceAtLeast(geom.stripWidth * 4)
@@ -87,6 +110,11 @@ class ScreenGestureOverlayManager(
         } else {
             geom.safeLeft
         }
+        return BandFrame(x = x, y = top, width = geom.stripWidth, height = height)
+    }
+
+    private fun addBand(zone: ScreenshotGestureZone, geom: Geometry) {
+        val frame = bandFrame(zone, geom)
         val view = View(overlayContext).apply {
             isClickable = false
             isFocusable = false
@@ -94,8 +122,8 @@ class ScreenGestureOverlayManager(
         }
         applyBandBackground(zone, view)
         val params = WindowManager.LayoutParams(
-            geom.stripWidth,
-            height,
+            frame.width,
+            frame.height,
             overlayWindowType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -103,8 +131,8 @@ class ScreenGestureOverlayManager(
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.START or Gravity.TOP
-            this.x = x
-            this.y = top
+            this.x = frame.x
+            this.y = frame.y
             title = "screen_gesture_overlay_${zone.name.lowercase()}"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 layoutInDisplayCutoutMode =
@@ -225,6 +253,8 @@ class ScreenGestureOverlayManager(
         val screenWidth: Int,
         val stripWidth: Int
     )
+
+    private data class BandFrame(val x: Int, val y: Int, val width: Int, val height: Int)
 
     companion object {
         // S0724 follow-up: only the first few px stay visibly guided; the rest of the gesture zone

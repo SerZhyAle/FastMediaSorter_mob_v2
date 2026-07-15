@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
@@ -31,11 +32,17 @@ class FileOperationUseCaseTest {
     private val ftpHandler = mockk<FtpFileOperationHandler>()
     private val cloudHandler = mockk<CloudFileOperationHandler>()
     private val localStrategy = mockk<LocalOperationStrategy>(relaxed = true)
+    private val reachabilityChecker = mockk<HostReachabilityChecker>()
     private lateinit var useCase: FileOperationUseCase
 
     @Before
     fun setup() {
-        useCase = FileOperationUseCase(context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy, mockk(relaxed = true))
+        // Default to reachable so protocol-routing tests exercise the dispatch path, not the probe.
+        coEvery { reachabilityChecker.isReachable(any(), any(), any()) } returns true
+        useCase = FileOperationUseCase(
+            context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy,
+            mockk(relaxed = true), reachabilityChecker,
+        )
     }
 
     private fun netFile(path: String): File = object : File(path) {
@@ -122,5 +129,57 @@ class FileOperationUseCaseTest {
         useCase.clearHistory()
         assertNull(useCase.getLastOperation())
         assertTrue(!useCase.canUndo())
+    }
+
+    @Test
+    fun `S1025 unreachable smb destination aborts before dispatch`() = runTest {
+        coEvery { reachabilityChecker.isReachable(any(), any(), any()) } returns false
+
+        val result = useCase.execute(copyOp("smb://h/s/a.jpg", "smb://downhost/s/dest"))
+
+        assertTrue(result is FileOperationResult.Failure)
+        assertEquals(R.string.transfer_destination_unreachable, (result as FileOperationResult.Failure).errorRes)
+        // Aborted before the per-file loop: no handler was invoked.
+        coVerify(exactly = 0) { smbHandler.executeCopy(any(), any()) }
+    }
+
+    @Test
+    fun `S1025 probe parses host and port from smb destination`() = runTest {
+        coEvery { reachabilityChecker.isReachable(any(), any(), any()) } returns false
+
+        useCase.execute(copyOp("smb://h/s/a.jpg", "smb://nas.local:1445/s/dest"))
+
+        coVerify { reachabilityChecker.isReachable("nas.local", 1445, any()) }
+    }
+
+    @Test
+    fun `S1025 reachable smb destination proceeds to handler`() = runTest {
+        coEvery { smbHandler.executeCopy(any(), any()) } returns
+            FileOperationResult.Success(1, copyOp("smb://h/s/a", "smb://h/s/b"))
+
+        useCase.execute(copyOp("smb://h/s/a.jpg", "smb://h/s/dest"))
+
+        coVerify { reachabilityChecker.isReachable(any(), any(), any()) }
+        coVerify { smbHandler.executeCopy(any(), any()) }
+    }
+
+    @Test
+    fun `S1025 cloud destination is not probed`() = runTest {
+        coEvery { cloudHandler.executeCopy(any(), any()) } returns
+            FileOperationResult.Success(1, copyOp("cloud://x/a", "cloud://x/b"))
+
+        useCase.execute(copyOp("cloud://x/a.jpg", "cloud://x/dest"))
+
+        coVerify(exactly = 0) { reachabilityChecker.isReachable(any(), any(), any()) }
+    }
+
+    @Test
+    fun `S1025 delete has no destination and is not probed`() = runTest {
+        coEvery { smbHandler.executeDelete(any()) } returns
+            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
+
+        useCase.execute(FileOperation.Delete(listOf(netFile("smb://h/s/a.jpg"))))
+
+        coVerify(exactly = 0) { reachabilityChecker.isReachable(any(), any(), any()) }
     }
 }

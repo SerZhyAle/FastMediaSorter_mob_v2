@@ -99,6 +99,8 @@ class CommandPanelController(
         fun onCompressCopyClicked()
         fun onDrawOverlayClicked()
         fun onRotationToggleClicked()
+        // S0995: manual 90° visual frame rotation (image/video); distinct from the screen sensor toggle.
+        fun onRotateContent90Clicked()
     }
 
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -615,6 +617,12 @@ class CommandPanelController(
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.RANDOM) {
                 item.isEnabled = (cachedState?.files?.size ?: 0) > 1
             }
+            // S0995: a11y description distinct from the short title (states the direction/magnitude).
+            if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT) {
+                androidx.core.view.MenuItemCompat.setContentDescription(
+                    item, context.getString(R.string.rotate_content_90_desc)
+                )
+            }
         }
 
         // S0459: tint the «Send to..» submenu header icon to match the other (runtime-tinted) items;
@@ -723,6 +731,7 @@ class CommandPanelController(
             R.id.menu_compress_copy -> callback.onCompressCopyClicked()
             R.id.menu_draw_overlay -> callback.onDrawOverlayClicked()
             R.id.menu_rotation_toggle -> callback.onRotationToggleClicked()
+            R.id.menu_rotate_content -> callback.onRotateContent90Clicked()
         }
     }
 

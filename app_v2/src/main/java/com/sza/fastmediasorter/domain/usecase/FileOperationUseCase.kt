@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.domain.usecase
 import android.app.PendingIntent
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -101,6 +103,8 @@ class FileOperationUseCase @Inject constructor(
     private val localOperationStrategy: LocalOperationStrategy,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops entirely when collection is disabled.
     private val statsSink: StatsSink,
+    // S1025: single pre-flight probe of the network destination before the batch loop.
+    private val hostReachabilityChecker: HostReachabilityChecker,
 ) {
 
     private var lastOperation: OperationHistory? = null
@@ -194,7 +198,6 @@ class FileOperationUseCase @Inject constructor(
         }
         
         // Execute operation in separate coroutine to allow progress updates
-        Timber.d("S1021: launch transfer coroutine op=${operation.javaClass.simpleName} n=$totalFiles")
         val resultDeferred = launch(Dispatchers.IO) {
             val result = executeInternal(operation, progressCallback)
             send(FileOperationProgress.Completed(result))
@@ -223,30 +226,28 @@ class FileOperationUseCase @Inject constructor(
         } else 0L
 
         try {
-            Timber.d("S1021: executeInternal entered try block, opType=${operation.javaClass.simpleName}")
-            // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
-            fun File.isNetworkPath(protocol: String): Boolean {
-                val pathStr = this.path
-                // S1027: no per-call log here - it fired for every source x every protocol probe
-                // (~1500 lines on a 369-file transfer). The per-operation summary below is enough.
-                return pathStr.startsWith("$protocol://") ||
-                    pathStr.startsWith("/$protocol://") ||
-                    pathStr.startsWith("/$protocol:/") ||
-                    pathStr.startsWith("$protocol:/") // Single colon case
-            }
+            // S1028: File-mangling-tolerant protocol match now lives in PathUtils; this thin
+            // extension keeps the call ergonomics. S1027: no per-call log here - it fired for every
+            // source x every protocol probe (~1500 lines on a 369-file transfer).
+            fun File.isNetworkPath(protocol: String): Boolean =
+                PathUtils.fileMatchesProtocol(this.path, protocol)
 
             // S1027: one helper over source+destination replaces four near-identical when-blocks
             // that each also logged per branch (16 lines/operation). Copy/Move look at sources and
             // destination; Delete at the file list; Rename at the single file.
-            fun hasProtocol(protocol: String): Boolean = when (operation) {
-                is FileOperation.Copy ->
-                    operation.sources.any { it.isNetworkPath(protocol) } ||
-                        operation.destination.isNetworkPath(protocol)
-                is FileOperation.Move ->
-                    operation.sources.any { it.isNetworkPath(protocol) } ||
-                        operation.destination.isNetworkPath(protocol)
-                is FileOperation.Delete -> operation.files.any { it.isNetworkPath(protocol) }
-                is FileOperation.Rename -> operation.file.isNetworkPath(protocol)
+            fun hasProtocol(protocol: String): Boolean {
+                val result = when (operation) {
+                    is FileOperation.Copy ->
+                        operation.sources.any { it.isNetworkPath(protocol) } ||
+                            operation.destination.isNetworkPath(protocol)
+                    is FileOperation.Move ->
+                        operation.sources.any { it.isNetworkPath(protocol) } ||
+                            operation.destination.isNetworkPath(protocol)
+                    is FileOperation.Delete -> operation.files.any { it.isNetworkPath(protocol) }
+                    is FileOperation.Rename -> operation.file.isNetworkPath(protocol)
+                }
+                Timber.d("S1028: network-path classified proto=$protocol net=$result")
+                return result
             }
 
             val hasSmbPath = hasProtocol("smb")
@@ -259,7 +260,24 @@ class FileOperationUseCase @Inject constructor(
                 "FileOperation.${operation.javaClass.simpleName}: " +
                     "smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath",
             )
-            Timber.d("S1021: classified smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath")
+
+            // S1025: one destination-reachability probe before entering any per-file loop. Keys off
+            // the DESTINATION scheme only (smb/sftp/ftp Copy/Move); Cloud keeps its own auth gate and
+            // Delete/Rename/local yield no endpoint, so they skip the probe. On failure abort the
+            // whole batch - the in-loop per-file precheck/retry stays for transient errors.
+            resolveDestinationEndpoint(operation)?.let { endpoint ->
+                val reachable = hostReachabilityChecker.isReachable(
+                    endpoint.host, endpoint.port, DESTINATION_PROBE_TIMEOUT_MS,
+                )
+                Timber.d("S1025: preflight destination probe host=${endpoint.host} reachable=$reachable")
+                if (!reachable) {
+                    return FileOperationResult.Failure(
+                        error = context.getString(R.string.transfer_destination_unreachable),
+                        errorRes = R.string.transfer_destination_unreachable,
+                    )
+                }
+            }
+
             val result = when {
                 hasCloudPath -> {
                     Timber.d("FileOperation: Using Cloud handler")
@@ -281,7 +299,6 @@ class FileOperationUseCase @Inject constructor(
                     
                     if (useSmb) {
                         Timber.d("FileOperation: Mixed SMB↔SFTP - using SMB handler (dest=SMB)")
-                        Timber.d("S1021: dispatching Mixed SMB<->SFTP move to SMB handler")
                         when (operation) {
                             is FileOperation.Copy -> smbFileOperationHandler.executeCopy(operation, progressCallback)
                             is FileOperation.Move -> smbFileOperationHandler.executeMove(operation, progressCallback)
@@ -290,7 +307,6 @@ class FileOperationUseCase @Inject constructor(
                         }
                     } else {
                         Timber.d("FileOperation: Mixed SMB↔SFTP - using SFTP handler (dest=SFTP)")
-                        Timber.d("S1021: dispatching Mixed SMB<->SFTP move to SFTP handler")
                         when (operation) {
                             is FileOperation.Copy -> sftpFileOperationHandler.executeCopy(operation, progressCallback)
                             is FileOperation.Move -> sftpFileOperationHandler.executeMove(operation, progressCallback)
@@ -394,7 +410,6 @@ class FileOperationUseCase @Inject constructor(
             // S1021: catch(Exception) above never sees an Error (OOM/StackOverflow/..) - it would
             // otherwise escape this use case, the Worker's CancellationException-only catch, and
             // doWork() itself uncaught, silent to Timber and visible only in WorkManager's own log.
-            Timber.d("S1021: Throwable escaped executeInternal, type=${t.javaClass.simpleName}")
             Timber.e(t, "Throwable escaped FileOperationUseCase.executeInternal")
             return FileOperationResult.Failure("${t.javaClass.simpleName}: ${t.message}")
         }
@@ -538,6 +553,34 @@ class FileOperationUseCase @Inject constructor(
     }
 
     /**
+     * S1025: derive the network endpoint of a Copy/Move destination for the pre-flight probe.
+     * Returns null for non-Copy/Move ops and for cloud/local destinations (probe skipped). The raw
+     * path may be slash-mangled by File(..) (`smb:/host`), so scheme detection reuses the tolerant
+     * [PathUtils.fileMatchesProtocol] and the authority is taken after the scheme, ignoring leading
+     * slashes.
+     */
+    private fun resolveDestinationEndpoint(operation: FileOperation): NetworkEndpoint? {
+        val destPath = when (operation) {
+            is FileOperation.Copy -> operation.destination.path
+            is FileOperation.Move -> operation.destination.path
+            else -> return null
+        }
+        val (scheme, defaultPort) = when {
+            PathUtils.fileMatchesProtocol(destPath, "smb") -> "smb" to SMB_DEFAULT_PORT
+            PathUtils.fileMatchesProtocol(destPath, "sftp") -> "sftp" to SFTP_DEFAULT_PORT
+            PathUtils.fileMatchesProtocol(destPath, "ftp") -> "ftp" to FTP_DEFAULT_PORT
+            else -> return null
+        }
+        val authority = destPath.substringAfter("$scheme:").trimStart('/').substringBefore("/")
+        if (authority.isBlank()) return null
+        val host = authority.substringBefore(":")
+        val port = authority.substringAfter(":", defaultPort.toString()).toIntOrNull() ?: defaultPort
+        return NetworkEndpoint(host, port)
+    }
+
+    private data class NetworkEndpoint(val host: String, val port: Int)
+
+    /**
      * Custom exception to indicate batch delete permission is required.
      * Contains PendingIntent to show system permission dialog.
      */
@@ -545,4 +588,11 @@ class FileOperationUseCase @Inject constructor(
         val pendingIntent: PendingIntent,
         val uris: List<Uri>
     ) : Exception("Batch delete permission required")
+
+    private companion object {
+        const val SMB_DEFAULT_PORT = 445
+        const val SFTP_DEFAULT_PORT = 22
+        const val FTP_DEFAULT_PORT = 21
+        const val DESTINATION_PROBE_TIMEOUT_MS = 3000
+    }
 }

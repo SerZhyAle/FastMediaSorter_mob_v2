@@ -36,6 +36,9 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/btnSort"
 - tapOn:
     text: 'Дата \(Новые\)'
+# S1065: let the sort bottom-sheet finish dismissing before asserting the list, so the assert does
+# not race the closing sheet still covering rvMediaFiles.
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
@@ -51,6 +54,8 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/etFilterName"
 - inputText: "zzqq_nomatch_xyz"
+# S1065: dismiss the IME so it does not cover btnApplyFilter (rendered below the input).
+- hideKeyboard
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
 - extendedWaitUntil:

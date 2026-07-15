@@ -439,7 +439,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
         val shareFile = runCatching {
             withContext(Dispatchers.IO) {
                 val shareDir = File(activity.cacheDir, "draw_share").apply { mkdirs() }
-                val normalizedName = if (fileName.contains('.')) fileName else "$fileName.jpg"
+                val normalizedName = ImageEditorFileNamer.ensureExtension(fileName)
                 File(shareDir, normalizedName.ifBlank { "drawing.jpg" }).apply {
                     writeBytes(bytes)
                 }
@@ -580,9 +580,11 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                     val isLocalFile = currentFile.path.startsWith("/")
 
                     // Append extension when original file has none (e.g. /3DVR/ assets without ext)
-                    val effectiveFilename = if (!filename.contains('.')) {
-                        filename + if (outputFormat == Bitmap.CompressFormat.JPEG) ".jpg" else ".png"
-                    } else filename
+                    // or ends in a bare dot; fallback matches the encoding format (jpg/png).
+                    val effectiveFilename = ImageEditorFileNamer.ensureExtension(
+                        filename,
+                        if (outputFormat == Bitmap.CompressFormat.JPEG) "jpg" else "png",
+                    )
 
                     // Read image rect on main thread - PhotoView shifts up when toolbar is visible;
                     // crop must reflect actual image position at draw time, not full canvas size

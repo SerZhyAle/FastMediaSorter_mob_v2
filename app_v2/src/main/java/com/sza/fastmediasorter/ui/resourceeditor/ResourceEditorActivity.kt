@@ -18,6 +18,9 @@ import timber.log.Timber
 @AndroidEntryPoint
 class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
 
+    // S1045: edits/copies resource credentials (passwords, passphrases).
+    override fun isSensitiveScreen(): Boolean = true
+
     override fun getViewBinding(): ActivityResourceEditorBinding {
         return ActivityResourceEditorBinding.inflate(layoutInflater)
     }

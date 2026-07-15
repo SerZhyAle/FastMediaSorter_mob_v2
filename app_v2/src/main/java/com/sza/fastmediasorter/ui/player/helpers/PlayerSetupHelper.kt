@@ -6,6 +6,7 @@ import androidx.media3.common.Effect
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.ui.PlayerView
+import com.sza.fastmediasorter.ui.player.VideoColorProcessor
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -101,6 +102,10 @@ internal fun VideoPlayerManager.applyConfiguredVideoEffects() {
     stereoVideoProcessor.buildGlEffect(stereoVideoProcessor.getCurrentMode())?.let(effects::add)
     videoColorProcessor.buildHueEffect()?.let(effects::add)
     videoColorProcessor.buildBrightnessEffect()?.let(effects::add)
+    // S0995: manual clockwise frame rotation, composed last so it rotates the final (stereo+colour)
+    // frame. Null (omitted) at angle 0 - keeps the existing zero-cost path when no rotation is set.
+    VideoColorProcessor.buildRotationEffect(contentRotationDegrees, lastVideoWidth, lastVideoHeight)
+        ?.let(effects::add)
 
     // Guard: skip scheduling when no effects are active and none were previously installed.
     if (effects.isEmpty() && !effectsPipelineActive) {

@@ -65,6 +65,10 @@ import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import timber.log.Timber
 import javax.inject.Inject
 
+// S0995: one quarter turn per tap; a full turn wraps the cumulative angle back to 0.
+private const val ROTATION_STEP_DEGREES = 90
+private const val FULL_ROTATION_DEGREES = 360
+
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -137,7 +141,11 @@ class PlayerViewModel @Inject constructor(
         val playerRotationSensorEnabled: Boolean = true,
         val showRotationToggle: Boolean = false,  // true when the player is not following the OS && hasAccelerometer
         val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
-        val shuffleIndices: List<Int> = emptyList()
+        val shuffleIndices: List<Int> = emptyList(),
+        // S0995: cumulative visual frame rotation (0/90/180/270) applied to the current image/video.
+        // Session-scoped: never persisted, carried across file navigation, cleared on ViewModel destroy
+        // (player exit). Distinct from the screen-orientation sensor and from destructive file rotation.
+        val sessionRotationAngle: Int = 0
     ) {
         // Player rotation follows the OS solely via the player-scope flag, independent of the program flag.
         val effectiveFollowSystemRotation: Boolean get() = playerFollowSystemRotation
@@ -717,6 +725,17 @@ class PlayerViewModel @Inject constructor(
             val appSettings = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(appSettings.copy(playerRotationSensorEnabled = newEnabled))
             sendEvent(PlayerEvent.RotationSensorToggled(newEnabled))
+        }
+    }
+
+    /**
+     * S0995: advance the session frame rotation by one clockwise quarter turn (0->90->180->270->0).
+     * State-only; the host reads [PlayerState.sessionRotationAngle] and applies it to the live surface
+     * (video effect + image view). Not persisted; the screen sensor and file bytes are untouched.
+     */
+    fun rotateSession90() {
+        updateState {
+            it.copy(sessionRotationAngle = (it.sessionRotationAngle + ROTATION_STEP_DEGREES) % FULL_ROTATION_DEGREES)
         }
     }
 

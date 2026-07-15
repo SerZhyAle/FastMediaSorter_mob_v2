@@ -279,4 +279,11 @@
         android:title="@string/rotation_toggle_title"
         app:showAsAction="never" />
 
+    <!-- S0995: manual 90° visual frame rotation (image/video) - id pool for the dynamic overflow -->
+    <item
+        android:id="@+id/menu_rotate_content"
+        android:icon="@drawable/ic_rotate_90"
+        android:title="@string/rotate_content_90_title"
+        app:showAsAction="never" />
+
 </menu>

@@ -453,6 +453,13 @@ class VideoPlayerManager(
     @Volatile internal var videoSizeKnown: Boolean = false
     @Volatile internal var pendingEffectsApply: Boolean = false
 
+    // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
+    @Volatile internal var lastVideoWidth: Int = 0
+    @Volatile internal var lastVideoHeight: Int = 0
+    // S0995: cumulative visual frame rotation (0/90/180/270) composed into the effect chain. Lives on
+    // the manager (not the per-file ExoPlayer) so the angle carries to the next video in the session.
+    @Volatile internal var contentRotationDegrees: Int = 0
+
     // Debounce handler for applyConfiguredVideoEffects() - see PlayerSetupHelper.kt.
     // 80 ms window coalesces rapid slider drags into a single pipeline rebuild,
     // preventing TexturePool race crash in Media3 1.2.x.
@@ -563,6 +570,9 @@ class VideoPlayerManager(
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
             if (videoSize.width <= 0 || videoSize.height <= 0) return
+            // S0995: remember decoded dims so the rotation effect can refit the frame at 90/270.
+            lastVideoWidth = videoSize.width
+            lastVideoHeight = videoSize.height
             if (!videoSizeKnown) {
                 videoSizeKnown = true
                 Timber.d("VideoPlayerManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height} - size known")
@@ -624,6 +634,19 @@ class VideoPlayerManager(
     fun getBrightnessProgress(): Int = playbackControlsHelper.getBrightnessProgress()
 
     fun getBrightnessPercentOffset(): Int = playbackControlsHelper.getBrightnessPercentOffset()
+
+    /**
+     * S0995: set the pure-visual clockwise frame rotation and re-compose the effect chain. Idempotent
+     * on an unchanged angle. The 80ms-debounce / defer-until-videoSizeKnown / drain-before-release
+     * Media3 1.2.1 workarounds inside [applyConfiguredVideoEffects] cover the rotation effect too.
+     */
+    fun setContentRotationDegrees(degrees: Int) {
+        if (contentRotationDegrees == degrees) return
+        contentRotationDegrees = degrees
+        applyConfiguredVideoEffects()
+    }
+
+    fun getContentRotationDegrees(): Int = contentRotationDegrees
 
     // ═══════════════════════════════════════════════════════════════════════
     // Public API - Playback dispatch

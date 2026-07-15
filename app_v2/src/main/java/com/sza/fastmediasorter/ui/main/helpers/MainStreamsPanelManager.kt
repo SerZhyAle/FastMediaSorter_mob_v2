@@ -139,8 +139,11 @@ class MainStreamsPanelManager(
 
     /**
      * S0779: the orientation-driven label rule (landscape = labels, portrait = icons) covers both the
-     * channel chips and the entry button. In portrait the entry collapses to icon-only with a compact
-     * touch-target width so more pinned channels fit horizontally.
+     * channel chips and the entry button. In portrait the entry collapses to icon-only.
+     * S1037: in portrait the entry occupies the shared top-panel leading zone so the first channel
+     * starts at the same X as the programs items and resource tabs; landscape keeps its label width.
+     * S1068: in portrait that leading zone is the accented first cell (60dp = base module +12dp), aligning
+     * the streams entry with the command bar Exit, programs three-dots and first tab; landscape unchanged.
      */
     private fun applyShowLabels() {
         val resources = panel.root.resources
@@ -149,7 +152,7 @@ class MainStreamsPanelManager(
         val entry = panel.btnStreamsPanelEntry
         entry.text = if (showLabels) entry.context.getString(R.string.streams_title) else ""
         entry.minWidth = resources.getDimensionPixelSize(
-            if (showLabels) R.dimen.main_streams_entry_min_width else R.dimen.control_button_size
+            if (showLabels) R.dimen.main_streams_entry_min_width else R.dimen.main_panel_first_item_width
         )
     }
 

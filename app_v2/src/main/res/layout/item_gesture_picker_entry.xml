@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1038: selectable action row in the grouped gesture-action picker. Two-line entry (label +
+  explanation) from item_permission_entry, plus the activated-row highlight and trailing check from
+  item_list_selection so the current selection reads with or without colour. Focusable/clickable for
+  D-pad and keyboard. No hardcoded colors - theme attributes only.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_tiny"
+    android:layout_marginBottom="@dimen/margin_tiny"
+    android:minHeight="@dimen/destination_button_min_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_list_selection_row"
+    android:foreground="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="@dimen/margin_small"
+    android:paddingBottom="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_gesture_entry_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/list_selection_row_text" />
+
+        <TextView
+            android:id="@+id/tv_gesture_entry_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/item_check"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/margin_large"
+        android:src="@drawable/ic_check"
+        android:tint="?attr/colorOnPrimaryContainer"
+        android:visibility="gone"
+        android:contentDescription="@null" />
+
+</LinearLayout>

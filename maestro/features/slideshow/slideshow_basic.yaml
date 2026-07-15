@@ -35,9 +35,21 @@ appId: com.sza.fastmediasorter.debug
       id: "com.sza.fastmediasorter.debug:id/photoView"
     timeout: 15000
 
-# Player controls auto-hide; tap the image surface to reveal the top command panel.
+# Player controls auto-hide; tapping the image surface toggles the top command panel. A single tap
+# races the auto-hide: if it lands while controls are still showing it hides them, so btnSlideshowCmd
+# stays absent (S1065). Tap, then re-tap only if the command button is still not shown, so the panel
+# ends up revealed regardless of the toggle phase.
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/photoView"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/photoView"
+      - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"

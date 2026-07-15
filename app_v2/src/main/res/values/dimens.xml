@@ -130,7 +130,6 @@
     <dimen name="settings_tab_corner_radius">8dp</dimen>
     <dimen name="settings_tab_bottom_cover_height">2dp</dimen>
     <dimen name="settings_tab_land_width">140dp</dimen>
-    <dimen name="control_button_spacing_large">24dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>
     <dimen name="dialog_padding_large">24dp</dimen>

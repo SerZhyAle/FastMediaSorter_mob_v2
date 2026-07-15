@@ -92,6 +92,10 @@ class ImageLoadingManager(
         fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
     }
 
+    // S0995: cumulative visual frame rotation (0/90/180/270) for the currently displayed image.
+    // Re-applied after every Glide load so the angle carries to the next file within the session.
+    private var sessionRotationAngle: Int = 0
+
     // Context for scale type determination (set before loading image)
     private var currentCropSetting: Boolean = true
     private var currentIsFullscreenOrSlideshow: Boolean = false
@@ -342,6 +346,47 @@ class ImageLoadingManager(
         }
     }
 
+    /**
+     * S0995: set the session frame rotation and apply it to whichever image view is live. Called on
+     * the rotate command tap; the stored angle is re-applied after each subsequent image load so the
+     * rotation carries to the next file. Pure visual - no bitmap edit, no screen sensor.
+     */
+    fun applyRotation(angle: Int) {
+        sessionRotationAngle = angle
+        applyRotationToCurrentView()
+    }
+
+    /**
+     * Apply [sessionRotationAngle] to the visible image view. PhotoView recomputes its fit around the
+     * rotation via its matrix; the plain ImageView needs an explicit down-scale at 90/270 because
+     * fitCenter does not swap the width/height fit basis for a [View.rotation] of a quarter turn.
+     */
+    private fun applyRotationToCurrentView() {
+        val angle = sessionRotationAngle.toFloat()
+        when {
+            binding.photoView.isVisible -> binding.photoView.setRotationTo(angle)
+            binding.imageView.isVisible -> {
+                val view = binding.imageView
+                view.rotation = angle
+                view.scaleX = 1f
+                view.scaleY = 1f
+                if (sessionRotationAngle % HALF_TURN_DEGREES == 0) return
+                val vw = view.width.toFloat()
+                val vh = view.height.toFloat()
+                if (vw <= 0f || vh <= 0f) {
+                    // View not laid out yet - retry once dimensions are known.
+                    view.post { applyRotationToCurrentView() }
+                    return
+                }
+                // Rotated a quarter turn, the view's footprint is vh wide x vw tall; scale it down so
+                // that footprint fits back inside the vw x vh slot with aspect preserved (no crop).
+                val fitScale = minOf(vw / vh, vh / vw)
+                view.scaleX = fitScale
+                view.scaleY = fitScale
+            }
+        }
+    }
+
     // Display image in ImageView or PhotoView based on settings
     fun displayImage(path: String) {
         isInImageDisplayMode = true
@@ -457,8 +502,11 @@ class ImageLoadingManager(
             // During slideshow, force size limit to prevent OOM crashes
             val isSlideshowActive = callback.isSlideshowActive()
             val isAnimatedContent = animatedImageController.isAnimatedContent(currentFile, path)
-            currentIsAnimatedContent = isAnimatedContent
-            callback.setAnimatedBadgeVisible(isAnimatedContent)
+            // S1026: badge + play/pause key on the DECODED drawable (resource is Animatable), set by
+            // the Glide listeners, not on file extension - a static .webp must show no badge and a
+            // no-op toggle. Extension still selects PhotoView so animated files keep gesture routing.
+            currentIsAnimatedContent = false
+            callback.setAnimatedBadgeVisible(false)
             val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages && currentFile != null && !isSlideshowActive)
             if (pathExtension == "webp") {
                 Timber.i(
@@ -926,6 +974,8 @@ class ImageLoadingManager(
             setCurrentIsAnimatedContent = { currentIsAnimatedContent = it },
             setPhotoViewImageLoaded = { isPhotoViewImageLoaded = it },
             logMemoryStats = ::logMemoryStats,
+            // S0995: re-apply the session rotation once the new image is bound so it carries to the next file.
+            reapplyRotation = ::applyRotationToCurrentView,
         )
     }
 
@@ -997,5 +1047,8 @@ class ImageLoadingManager(
     companion object {
         // Global counter for cache clears; System.gc() every 100 clears reclaims memory aggressively.
         private var cacheClears = 0
+
+        // S0995: 0 and 180 keep the width/height fit basis; 90 and 270 swap it (need scale compensation).
+        private const val HALF_TURN_DEGREES = 180
     }
 }

@@ -230,7 +230,10 @@ class SaveDrawingUseCase @Inject constructor(
         val trimmed = input.trim()
         if (trimmed.isEmpty()) return trimmed
         val fallbackExtension = fallbackName.substringAfterLast('.', "jpg").ifBlank { "jpg" }
-        return if ('.' in trimmed) trimmed else "$trimmed.$fallbackExtension"
+        // Detect a real extension via the substring after the last dot so a bare trailing dot
+        // ("foo.") is treated as MISSING, not as already-extensioned (mirrors ImageEditorFileNamer).
+        val hasExtension = trimmed.substringAfterLast('.', "").isNotBlank()
+        return if (hasExtension) trimmed else "${trimmed.trimEnd('.')}.$fallbackExtension"
     }
 
     private fun validateName(fileName: String) {

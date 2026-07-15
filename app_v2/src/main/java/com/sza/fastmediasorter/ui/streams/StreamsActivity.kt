@@ -464,12 +464,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         viewModel.playByUrl(url)
     }
 
-    /** S0637: build a home-screen shortcut for the chosen channel; report if the launcher refuses. */
+    /**
+     * S0637: build a home-screen shortcut for the chosen channel; report if the launcher refuses.
+     * S1067: resolve the channel's favicon tile from the atlas (same source as the list/grid icon) and
+     * bake it into the shortcut so the pin shows the channel thumbnail, not a blank generic tile. The
+     * tile decode is a background file read, so the whole flow runs on lifecycleScope; a missing
+     * favicon yields null and the manager falls back to the generic media-kind vector.
+     */
     private fun onAddShortcut(source: StreamSourceEntity) {
-        val requested = StreamShortcutPinManager(this).requestPin(source)
-        val message =
-            if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        Timber.d("S1067: pin shortcut requested for %s (faviconIndex=%s)", source.url, faviconCoords[source.url])
+        lifecycleScope.launch {
+            val iconTile = faviconCoords[source.url]?.let { faviconSlicer.tileFor(it) }
+            val requested = StreamShortcutPinManager(this@StreamsActivity).requestPin(source, iconTile)
+            val message =
+                if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
+            Toast.makeText(this@StreamsActivity, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun onPlay(source: StreamSourceEntity) {

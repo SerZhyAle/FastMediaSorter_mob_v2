@@ -108,6 +108,12 @@ sealed class MainEvent {
     data class ShareResourceFile(val filePath: String) : MainEvent()
     // S0984: an SFTP access .fmscfg has been written to [filePath]; the host shares it via ACTION_SEND.
     data class ShareCompanionConfigFile(val filePath: String) : MainEvent()
+    // S1039: show the compact .fmscfg [payload] as a QR (via CompanionQrShareActivity).
+    data class ShowCompanionQr(
+        val payload: String,
+        val resourceName: String,
+        val passwordIncluded: Boolean
+    ) : MainEvent()
 }
 
 @HiltViewModel
@@ -359,12 +365,30 @@ class MainViewModel @Inject constructor(
      * to share it via the system share sheet. [includePassword] is driven by the export dialog.
      */
     fun shareSftpResourceConfig(resource: MediaResource, includePassword: Boolean) {
-        Timber.d("S0984: export SFTP access requested (includePassword=$includePassword)")
         viewModelScope.launch {
             exportCompanionConfigUseCase(resource, includePassword).fold(
                 onSuccess = { file -> sendEvent(MainEvent.ShareCompanionConfigFile(file.absolutePath)) },
                 onFailure = { e ->
                     Timber.e(e, "SFTP config export failed")
+                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                }
+            )
+        }
+    }
+
+    /**
+     * S1039: exports the same SFTP access as a compact QR payload and signals the host to display it
+     * (CompanionQrShareActivity). [includePassword] mirrors [shareSftpResourceConfig].
+     */
+    fun shareSftpResourceConfigAsQr(resource: MediaResource, includePassword: Boolean) {
+        Timber.d("S1039: QR share requested (includePassword=$includePassword)")
+        viewModelScope.launch {
+            exportCompanionConfigUseCase.exportQrPayload(resource, includePassword).fold(
+                onSuccess = { export ->
+                    sendEvent(MainEvent.ShowCompanionQr(export.payload, resource.name, export.passwordIncluded))
+                },
+                onFailure = { e ->
+                    Timber.e(e, "SFTP QR export failed")
                     sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
                 }
             )

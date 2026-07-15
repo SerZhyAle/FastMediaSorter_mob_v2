@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1035: faint vertical separator between the four zone tabs in portrait. Drawn via the tab strip's
+     showDividers so it is not measured into the tab height; vertical insets keep it a short hairline. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetTop="6dp"
+    android:insetBottom="6dp">
+    <shape android:shape="rectangle">
+        <size android:width="1dp" />
+        <solid android:color="?attr/colorOutlineVariant" />
+    </shape>
+</inset>

@@ -670,6 +670,17 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_black_screen).isVisible = isVideo
             popup.menu.findItem(R.id.menu_save_frame).isVisible = isVideo
             popup.menu.findItem(R.id.menu_sleep_timer).isVisible = isVideo
+            // S0995: manual visual rotation applies to every surface this host renders (image/gif/video).
+            val rotatable = viewModel.state.value.mediaType.let {
+                it == MediaType.IMAGE || it == MediaType.GIF || it == MediaType.VIDEO
+            }
+            popup.menu.findItem(R.id.menu_rotate_content_standalone).let { rotateItem ->
+                rotateItem.isVisible = rotatable
+                // S0995: a11y description distinct from the visible title (direction/magnitude).
+                androidx.core.view.MenuItemCompat.setContentDescription(
+                    rotateItem, getString(R.string.rotate_content_90_desc)
+                )
+            }
             popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
@@ -708,6 +719,13 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_save_frame -> { saveCurrentFrame(); true }
                     R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
                     R.id.menu_black_screen -> { blackScreenManager.show(); true }
+                    R.id.menu_rotate_content_standalone -> {
+                        viewModel.rotateSession90()
+                        val newAngle = viewModel.state.value.sessionRotationAngle
+                        Timber.d("S0995: standalone rotate90 tap -> $newAngle")
+                        photoVideoHandle.setContentRotationDegrees(newAngle)
+                        true
+                    }
                     else -> false
                 }
             }
@@ -1128,7 +1146,9 @@ class PhotoVideoStandaloneActivity :
     override val actionCurrentResource: MediaResource? get() = null
     override val overlayMountTarget: ViewGroup get() = binding.mediaContentArea
     override val imagePinchTarget: View get() = binding.photoView
-    override fun imageDisplayRect(): RectF = binding.photoView.displayRect
+    // Null when photoView has no drawable; an empty rect makes the crop delegate fall back to the
+    // legacy full-view mapping instead of dividing by a zero-size rect.
+    override fun imageDisplayRect(): RectF = binding.photoView.displayRect ?: RectF()
     // S0410: the draw overlay merges its strokes onto this base bitmap.
     override val displayedBitmap: Bitmap? get() = binding.photoView.drawable?.toBitmap()
 

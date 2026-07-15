@@ -14,6 +14,9 @@ import com.bumptech.glide.load.engine.cache.LruResourceCache
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
+import com.sza.fastmediasorter.core.util.AnimatedImageSupportUtils
+import com.sza.fastmediasorter.data.glide.AnimatedImageByteBufferDecoder
+import com.sza.fastmediasorter.data.glide.AnimatedImageStreamDecoder
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailModelLoader
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
@@ -33,6 +36,7 @@ import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
+import java.nio.ByteBuffer
 
 /**
  * Glide configuration module.
@@ -193,6 +197,23 @@ class GlideAppModule : AppGlideModule() {
             )
         )
         
+        // Animated WebP / APNG -> AnimatedImageDrawable (API 28+). Prepended so it wins over Glide's
+        // downsampler for animated files only; its header sniff returns false for everything else
+        // (static WebP/PNG, JPG, GIF), leaving the built-in decoders in charge. Below API 28 the
+        // decoders are not registered -> animated WebP/APNG keep the static first-frame path.
+        if (AnimatedImageSupportUtils.isAnimatedImageDecodeSupported()) {
+            registry.prepend(
+                InputStream::class.java,
+                Drawable::class.java,
+                AnimatedImageStreamDecoder(),
+            )
+            registry.prepend(
+                ByteBuffer::class.java,
+                Drawable::class.java,
+                AnimatedImageByteBufferDecoder(),
+            )
+        }
+
         Timber.d("GlideAppModule: Registered NetworkFileModelLoaderFactory, NetworkVideoFrameDecoder, GoogleDriveThumbnailModelLoader, PdfPageDecoder, EpubCoverDecoder, NetworkPdfThumbnailLoader, and NetworkEpubCoverLoader")
     }
     

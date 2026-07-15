@@ -49,11 +49,33 @@ object PathUtils {
     }
     
     /**
-     * Check if path is a network path (SMB, SFTP, FTP, Cloud).
+     * Check if path is a network path (SMB, SFTP, FTP, and optionally Cloud).
+     *
+     * @param includeCloud when false, `cloud://` paths are NOT treated as network
+     *   (callers that dispatch only over SMB/SFTP/FTP pass false). Default true
+     *   preserves the original scheme set (SMB, SFTP, FTP, Cloud).
      */
-    fun isNetworkPath(path: String): Boolean {
+    fun isNetworkPath(path: String, includeCloud: Boolean = true): Boolean {
         val scheme = getScheme(path)?.lowercase()
-        return scheme in listOf("smb", "sftp", "ftp", "cloud")
+        val schemes = if (includeCloud) {
+            listOf("smb", "sftp", "ftp", "cloud")
+        } else {
+            listOf("smb", "sftp", "ftp")
+        }
+        return scheme in schemes
+    }
+
+    /**
+     * Check if a raw java.io.File path carries the given protocol, tolerating the
+     * slash-mangling File(..) applies to `scheme://` URIs. Body preserved verbatim
+     * from FileOperationUseCase's former local matcher so live copy/move/delete/rename
+     * dispatch keeps classifying paths exactly as before.
+     */
+    fun fileMatchesProtocol(rawFilePath: String, protocol: String): Boolean {
+        return rawFilePath.startsWith("$protocol://") ||
+            rawFilePath.startsWith("/$protocol://") ||
+            rawFilePath.startsWith("/$protocol:/") ||
+            rawFilePath.startsWith("$protocol:/") // Single colon case
     }
     
     /**

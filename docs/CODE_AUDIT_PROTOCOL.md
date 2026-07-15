@@ -100,7 +100,7 @@ Class-size methodology - rank by responsibility, not by raw line count:
 
 Readability checks:
 
-- no `!!` without a justified reason; prefer `?.`, `requireNotNull(x) { "why" }`, or a sealed/early-return path
+- no `!!` without a justified reason; prefer `?.`, `requireNotNull(x) { "why" }`, or a sealed/early-return path. Mechanically ratcheted by `scripts/quality/assert-non-null-assertion.ps1` (S1032, under the neuroslop umbrella): the `src/main` count may not grow, only burn down
 - bounded nesting depth; collapse arrow code with early returns and guard clauses
 - nullability is expressed in types, not defended with scattered null checks
 - screen and domain state is modeled with sealed classes or enums, not loose booleans and flags

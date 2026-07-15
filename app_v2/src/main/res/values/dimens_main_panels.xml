@@ -3,11 +3,27 @@
 <resources>
     <dimen name="main_panel_row_height">48dp</dimen>
     <dimen name="main_panel_item_min_width">48dp</dimen>
+    <!-- S1068: the leading cell of each portrait top panel is emphasised by +0.25 module (+12dp) over
+         the base item module (48dp -> 60dp), so the first element reads as an accent while its right
+         edge stays on the shared 48dp lattice (60,108,156,..). Portrait only; land/wide keep the
+         S1037 leading anchor (main_top_panel_leading_anchor). -->
+    <dimen name="main_panel_first_item_width">60dp</dimen>
+    <!-- S1049: resource tabs carry a text label (not just an icon), so each tab is two item-modules
+         wide - owner decision, strategic §6. -->
+    <dimen name="main_panel_tab_min_width">96dp</dimen>
+    <!-- S1068: first resource tab ("All") gets the same +12dp accent on top of the 2-module tab width
+         (96 -> 108dp = 225%), so its right edge (108) lands on the leading-cell boundary shared with
+         the other panels. Portrait only. -->
+    <dimen name="main_panel_first_tab_width">108dp</dimen>
     <dimen name="main_panel_item_spacing">2dp</dimen>
+    <!-- S1037: shared leading X for the first working button of each top panel (programs items /
+         streams channels / resource tabs) in portrait. A leading service control (programs panel
+         menu, streams entry) occupies this zone without pushing the working content past the other
+         panels' start, so the three rows read as one aligned grid regardless of device width. -->
+    <dimen name="main_top_panel_leading_anchor">56dp</dimen>
     <dimen name="main_panel_favicon_size">28dp</dimen>
-    <!-- Streams entry button: about one channel chip wide, with an extra trailing gap (S0756). -->
+    <!-- Streams entry button: about one channel chip wide (landscape label mode; S0756). Portrait width
+         is pinned to main_top_panel_leading_anchor by MainStreamsPanelManager (S1037). -->
     <dimen name="main_streams_entry_min_width">56dp</dimen>
-    <dimen name="main_streams_entry_margin_end">12dp</dimen>
-    <dimen name="main_stream_channel_min_width">56dp</dimen>
     <dimen name="main_panel_fading_edge">24dp</dimen>
 </resources>

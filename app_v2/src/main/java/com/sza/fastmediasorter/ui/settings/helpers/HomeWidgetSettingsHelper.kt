@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
@@ -18,17 +18,18 @@ import kotlinx.coroutines.launch
  *
  * Opens an availability-filtered picker of pinnable widgets ([HomeWidgetCatalog.availableEntries])
  * and pins the chosen one through the system flow ([HomeWidgetPinner]), with an explicit
- * unsupported-launcher fallback toast. The fragment owns no business logic (Rule 3).
+ * unsupported-launcher fallback toast. Binding-agnostic (takes the button view directly) so any
+ * settings fragment can host the action; the fragment owns no business logic (Rule 3).
  */
-class GeneralSettingsWidgetHelper(
-    private val binding: FragmentSettingsGeneralBinding,
+class HomeWidgetSettingsHelper(
+    private val button: MaterialButton,
     private val fragment: Fragment,
     private val catalog: HomeWidgetCatalog,
     private val pinner: HomeWidgetPinner,
 ) {
 
     fun setup() {
-        binding.buttonAddHomeWidget.setOnClickListener { onAddWidgetClicked() }
+        button.setOnClickListener { onAddWidgetClicked() }
     }
 
     private fun onAddWidgetClicked() {

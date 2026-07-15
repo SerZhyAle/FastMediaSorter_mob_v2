@@ -18,3 +18,18 @@ interface ResourceStrategy {
     fun normalizeBeforeSave(formData: ResourceFormData): ResourceFormData
     fun fieldSchema(): List<ResourceFieldSchema>
 }
+
+/**
+ * Shared leading-slash path normalization for network resource strategies (SFTP/FTP): trims,
+ * unifies separators, collapses repeats, forces a single leading slash, drops a trailing slash
+ * unless the path is root. Named distinctly from PathUtils.isNetworkPath /
+ * CloudFileOperationPathUtils.normalizeNetworkPath (a different rule, S1028) to avoid conflation.
+ */
+internal fun normalizeNetworkResourcePath(path: String): String {
+    val cleaned = path.trim().replace('\\', '/').replace(Regex("/+"), "/")
+    if (cleaned.isBlank()) {
+        return "/"
+    }
+    val withLeadingSlash = if (cleaned.startsWith('/')) cleaned else "/$cleaned"
+    return if (withLeadingSlash.length > 1) withLeadingSlash.trimEnd('/') else withLeadingSlash
+}

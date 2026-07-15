@@ -12,8 +12,12 @@ appId: com.sza.fastmediasorter.debug
 - runFlow: ../_shared/go_home.yaml
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnAddResource"
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+# S1065: AddResourceActivity opens as a separate activity; assert-immediately raced its inflation
+# on warmed/landscape runs. Wait for the picker instead of asserting the same frame as the tap.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+    timeout: 8000
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
 - extendedWaitUntil:
@@ -32,8 +36,12 @@ appId: com.sza.fastmediasorter.debug
 - runFlow: ../_shared/go_home.yaml
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnAddResource"
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+# S1065: AddResourceActivity opens as a separate activity; assert-immediately raced its inflation
+# on warmed/landscape runs. Wait for the picker instead of asserting the same frame as the tap.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+    timeout: 8000
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/cardNetworkFolder"
 - extendedWaitUntil:
@@ -52,8 +60,12 @@ appId: com.sza.fastmediasorter.debug
 - runFlow: ../_shared/go_home.yaml
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnAddResource"
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+# S1065: AddResourceActivity opens as a separate activity; assert-immediately raced its inflation
+# on warmed/landscape runs. Wait for the picker instead of asserting the same frame as the tap.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+    timeout: 8000
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/cardSftpFolder"
 - extendedWaitUntil:

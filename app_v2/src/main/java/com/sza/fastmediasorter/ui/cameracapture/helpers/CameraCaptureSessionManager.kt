@@ -6,10 +6,13 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
+import android.util.Rational
 import android.util.Size
 import android.view.Surface
+import android.view.View
 import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.CaptureRequestOptions
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
@@ -18,12 +21,14 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCase
-import androidx.camera.extensions.ExtensionMode
-import androidx.camera.extensions.ExtensionsManager
-import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.ViewPort
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionsManager
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
@@ -123,6 +128,12 @@ class CameraCaptureSessionManager(
 
     /** Invoked on the main thread after every successful bind / lens switch. */
     var onCapabilitiesChanged: ((CameraRuntimeCapabilities) -> Unit)? = null
+
+    /**
+     * S1066: overlays (e.g. the result frame) that must scale in lockstep with the preview under the
+     * soft digital zoom, so they keep marking the same region of the digitally-zoomed image.
+     */
+    var previewScaleLinkedViews: List<View> = emptyList()
 
     @SuppressLint("MissingPermission")
     fun bind(
@@ -325,10 +336,7 @@ class CameraCaptureSessionManager(
         camera?.cameraControl?.setZoomRatio(opticalRatio)
         // S0753: beyond the optical/CameraX max, keep zooming by scaling (cropping) the preview.
         digitalZoomFactor = if (opticalRatio > 0f) (ratio / opticalRatio).coerceAtLeast(1f) else 1f
-        previewView?.let {
-            it.scaleX = digitalZoomFactor
-            it.scaleY = digitalZoomFactor
-        }
+        applyDigitalZoomScale(digitalZoomFactor)
     }
 
     /** S0753: linear (0..1) zoom for the perceptually-linear slider; stays within the optical range. */
@@ -339,9 +347,19 @@ class CameraCaptureSessionManager(
 
     private fun resetDigitalZoom() {
         digitalZoomFactor = 1f
+        applyDigitalZoomScale(1f)
+    }
+
+    /** S1066: scales the preview and every preview-linked overlay (result frame) together, so the frame
+     *  keeps marking the same image region under the soft digital zoom. */
+    private fun applyDigitalZoomScale(scale: Float) {
         previewView?.let {
-            it.scaleX = 1f
-            it.scaleY = 1f
+            it.scaleX = scale
+            it.scaleY = scale
+        }
+        previewScaleLinkedViews.forEach {
+            it.scaleX = scale
+            it.scaleY = scale
         }
     }
 
@@ -399,12 +417,17 @@ class CameraCaptureSessionManager(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     // S0753: match the saved photo to a digital (soft) zoom by cropping it off-thread.
+                    // S1066: and, in photo mode, crop the full 4:3 sensor frame down to the selected
+                    // 16:9 result frame so the file equals the on-screen frame. Both run on the crop
+                    // worker so capture never blocks the UI; 4:3 needs neither.
                     val factor = digitalZoomFactor
-                    if (factor > 1f) {
+                    val needsAspectCrop = !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
+                    if (factor > 1f || needsAspectCrop) {
                         val executor = cropExecutor
                             ?: Executors.newSingleThreadExecutor().also { cropExecutor = it }
                         executor.execute {
-                            cropCenter(outputFile, factor)
+                            if (factor > 1f) cropCenter(outputFile, factor)
+                            if (needsAspectCrop) cropToSixteenNine(outputFile)
                             ContextCompat.getMainExecutor(previewView.context).execute { onSaved() }
                         }
                     } else {
@@ -448,6 +471,43 @@ class CameraCaptureSessionManager(
     }
 
     /**
+     * S1066: centre-crops a captured JPEG to the 16:9 result frame inside the full 4:3 sensor frame the
+     * ViewPort delivered, so the saved file equals the on-screen result frame. The sensor JPEG is
+     * stored landscape, so 16:9 (wider than 4:3) keeps the full long edge and trims the short edge;
+     * the pixels stay in their stored orientation, so TAG_ORIENTATION and the other tags remain valid
+     * and are re-applied via [restoreExif] (S0765). A frame already at or below 16:9 is left untouched.
+     */
+    private fun cropToSixteenNine(file: File) {
+        runCatching {
+            val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
+
+            @Suppress("DEPRECATION")
+            val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
+            val w = decoder.width
+            val h = decoder.height
+            val longEdge = maxOf(w, h)
+            val shortEdge = minOf(w, h)
+            val targetShort = (longEdge.toLong() * SIXTEEN_NINE_SHORT / SIXTEEN_NINE_LONG).toInt()
+            if (targetShort >= shortEdge) {
+                decoder.recycle()
+                return
+            }
+            val rect = if (w >= h) {
+                val top = (h - targetShort) / 2
+                Rect(0, top, w, top + targetShort)
+            } else {
+                val left = (w - targetShort) / 2
+                Rect(left, 0, left + targetShort, h)
+            }
+            val cropped = decoder.decodeRegion(rect, null)
+            decoder.recycle()
+            FileOutputStream(file).use { cropped.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
+            cropped.recycle()
+            originalExif?.let { restoreExif(it, file) }
+        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: aspect crop failed") }
+    }
+
+    /**
      * S0765: re-applies the [source] EXIF tags onto [target] after a re-encode that drops metadata.
      * Orientation is copied unchanged (the crop did not physically rotate pixels), so a viewer rotates
      * the cropped shot exactly like the original full-frame capture.
@@ -472,6 +532,8 @@ class CameraCaptureSessionManager(
         videoCapture = null
         camera = null
         previewView = null
+        // S1066: drop the overlay references so a closed session never pins a destroyed view.
+        previewScaleLinkedViews = emptyList()
         // S0767: orderly shutdown() (never shutdownNow) lets an in-flight crop finish writing its JPEG
         // and releases the worker thread deterministically instead of waiting for GC, without blocking
         // the calling (main) thread; nulling the field lets a later bind()+crop recreate it.
@@ -577,8 +639,23 @@ class CameraCaptureSessionManager(
             }
         }
 
+        // S1066: bind preview + capture in one UseCaseGroup sharing a single ViewPort so both look at
+        // the same sensor FOV (WYSIWYG). Photo mode keeps the ViewPort at the full native frame (4:3)
+        // and the on-screen result frame + a post-capture crop apply the selected ratio; video mode
+        // sets the ViewPort to the selected ratio so the preview equals the recorded region (owner
+        // decision 2026-07-15). Built explicitly (not via previewView.getViewPort(), which would take
+        // the view's tall aspect) with FILL_CENTER = the largest centred crop of the target ratio; the
+        // PreviewView FIT_CENTER only letterboxes that region for display, so pixels stay faithful.
+        val viewPort = ViewPort.Builder(effectiveAspectRational(), targetRotation)
+            .setScaleType(ViewPort.FILL_CENTER)
+            .build()
+        val useCaseGroup = UseCaseGroup.Builder()
+            .setViewPort(viewPort)
+            .addUseCase(preview)
+            .addUseCase(captureUseCase)
+            .build()
         provider.unbindAll()
-        val boundCamera = provider.bindToLifecycle(lifecycleOwner, selector, preview, captureUseCase)
+        val boundCamera = provider.bindToLifecycle(lifecycleOwner, selector, useCaseGroup)
 
         camera = boundCamera
         resetDigitalZoom()
@@ -609,26 +686,53 @@ class CameraCaptureSessionManager(
     }
 
     private fun applyPreviewOutputConfig(builder: Preview.Builder) {
-        buildResolutionSelector()?.let(builder::setResolutionSelector)
+        builder.setResolutionSelector(buildResolutionSelector())
     }
 
     private fun applyImageOutputConfig(builder: ImageCapture.Builder) {
-        buildResolutionSelector()?.let(builder::setResolutionSelector)
+        builder.setResolutionSelector(buildResolutionSelector())
     }
 
-    private fun buildResolutionSelector(): ResolutionSelector? {
-        if (selectedAspectRatio == null && selectedResolution == null) return null
+    private fun buildResolutionSelector(): ResolutionSelector {
         val builder = ResolutionSelector.Builder()
-        selectedAspectRatio?.let {
-            builder.setAspectRatioStrategy(AspectRatioStrategy(it, AspectRatioStrategy.FALLBACK_RULE_AUTO))
-        }
-        selectedResolution?.let {
+        val aspect = effectiveAspectRatioInt()
+        builder.setAspectRatioStrategy(AspectRatioStrategy(aspect, AspectRatioStrategy.FALLBACK_RULE_AUTO))
+        // S1066: honour a chosen resolution only when it matches the effective readout aspect, so a
+        // full-frame 4:3 photo is never forced onto a 16:9 sensor size the ViewPort would then re-crop.
+        selectedResolution?.takeIf { resolutionMatchesAspect(it, aspect) }?.let {
             builder.setResolutionStrategy(
                 ResolutionStrategy(it, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
             )
         }
         return builder.build()
     }
+
+    /**
+     * S1066: aspect the sensor actually reads out. Video follows the selected ratio (preview equals the
+     * recorded region); photo stays at the full native frame (4:3) - the selected ratio is applied as
+     * an on-screen result frame plus a post-capture crop, so the preview shows the whole sensor frame.
+     */
+    private fun effectiveAspectRatioInt(): Int =
+        if (videoMode) (selectedAspectRatio ?: AspectRatio.RATIO_4_3) else AspectRatio.RATIO_4_3
+
+    /** S1066: [effectiveAspectRatioInt] as a [Rational] for the shared [ViewPort] (sensor-natural, landscape). */
+    private fun effectiveAspectRational(): Rational =
+        if (effectiveAspectRatioInt() == AspectRatio.RATIO_16_9) RATIONAL_16_9 else RATIONAL_4_3
+
+    private fun resolutionMatchesAspect(size: Size, aspect: Int): Boolean {
+        if (size.height == 0) return false
+        val ratio = size.width.toFloat() / size.height.toFloat()
+        val target = if (aspect == AspectRatio.RATIO_16_9) SIXTEEN_NINE else FOUR_THREE
+        return kotlin.math.abs(ratio - target) < ASPECT_MATCH_EPSILON
+    }
+
+    /**
+     * S1066: true when a result frame must be drawn over the preview - photo mode with a selected ratio
+     * narrower than the full sensor frame (16:9 inside 4:3). Video previews the recorded region, so no
+     * frame; 4:3 fills the shown frame, so no frame (spec ADR-1, §6.4).
+     */
+    fun shouldShowResultFrame(): Boolean =
+        !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
 
     private fun applyCamera2Options() {
         val control = camera?.cameraControl ?: return
@@ -661,6 +765,15 @@ class CameraCaptureSessionManager(
     companion object {
         private const val FOCUS_AUTO_CANCEL_SECONDS = 3L
         private const val JPEG_QUALITY = 95
+
+        // S1066: sensor-natural (landscape) aspect ratios for the shared ViewPort and the JPEG crop.
+        private val RATIONAL_4_3 = Rational(4, 3)
+        private val RATIONAL_16_9 = Rational(16, 9)
+        private const val FOUR_THREE = 4f / 3f
+        private const val SIXTEEN_NINE = 16f / 9f
+        private const val ASPECT_MATCH_EPSILON = 0.02f
+        private const val SIXTEEN_NINE_LONG = 16
+        private const val SIXTEEN_NINE_SHORT = 9
 
         /**
          * S0765: EXIF tags carried across the digital-zoom re-encode so a cropped shot keeps the same

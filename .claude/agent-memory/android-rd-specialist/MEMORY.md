@@ -40,6 +40,7 @@
 - [Third-party branding not a blocker](feedback_third_party_branding_not_a_blocker.md) - producer logo by its content = ok
 - [photos/lite OCR src sets](project_photos_flavor_ocr_break.md) - Tesseract src/ocrEnabled, NoOp src/ocrDisabled
 - [S0386 native-attach broken API36](project_s0386_native_attach_broken_api36.md) - de-bundled .so fails real arm64/API36; S0923 guards
+- [Native .so: bundle for standard, on-demand only noLegal](project_native_so_bundle_standard_vs_ondemand_nolegal.md) - Play bans .so download (S0971); FFmpeg=audio-only
 - [screenCapture standard vs noLegal](project_screencapture_nolegal_only.md) - capture+edge gestures in standard; noLegal silent path
 - [screenCapture gates gesture](project_screencapture_gates_gesture_capability.md) - fms.screenCapture=on default; standard covers twin
 - [manifest.srcFile overrides flavor](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - use addStaticManifestFile
@@ -55,7 +56,7 @@
 ## detekt / gates / logging
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
-- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale, `gradlew --stop`; never-baselined fails scoped -> --rerun-tasks
+- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale, `gradlew --stop`; stale report -> delete detekt.xml first, not --rerun-tasks
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after a gate, add DON'T rule to CLAUDE.md + skills
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
@@ -79,6 +80,7 @@
 - [Players are a family](feedback_player_family_glue_mirroring.md) - shared engine propagates; per-host mirrored manually
 - [activity_welcome 3 widths](project_welcome_layout_variants.md) - layout/ + sw480dp/ + sw720dp/; new id in all three
 - [sw qualifier beats -land](project_res_sw_qualifier_beats_land.md) - values-swNNNdp shadows values-land; fix via swNNNdp-land bucket
+- [Main top panels width grid](project_main_top_panels_width_grid.md) - S1037/S1049/S1068; S1068=portrait flush x=0 + first-cell accent, land keeps anchor
 - [Sync docs/site on visible change](feedback_sync_docs_on_visible_change.md) - revisit affected docs + site copy
 - [HOW_TO path gate](reference_howto_settings_path_gate.md) + [parity](feedback_howto_settings_path_parity.md) - S0558 validates vs manifest; U+2192 lines need EN/RU/UK
 - [Play edge-to-edge warnings](project_play_setstatusbarcolor_false_positive.md) - #2 fixed by Material 1.14.0; #1 informational
@@ -123,6 +125,7 @@
 - [noLegal features doc](feedback_features_nolegal.md) - docs/FEATURES* standard/VR; noLegal gitignored
 - [spec_catalog exit-code](project_spec_catalog_exit_code_contract.md) + [insert -File](project_insert_ps1_file_validation.md) - trap{exit 1}+exit 0; next-id.ps1 first
 - [Catalog scan roots](project_catalog_scan_source_sets.md) + [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) - scan.ps1 hard-codes $srcRoots; set.ps1 aborts
+- [Catalog -Search coverage](reference_catalog_search_coverage.md) - query.ps1 -Search first (multi-word fixed); role 100% filled; bulk fill via generate/apply-role-drafts.ps1
 - [Big-file decomposition](project_s0002_decomposition_toolkit.md) - compression tactics; temp/ scripts wiped
 
 ## PowerShell / shell traps

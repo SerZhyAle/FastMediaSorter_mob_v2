@@ -203,6 +203,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0473: opt-in local usage statistics (default OFF for privacy).
         private val KEY_ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
 
+        // S1045: secure-by-default flag for credential-bearing screens (blocks screenshots/Recents).
+        private val KEY_SECURE_SENSITIVE_SCREENS = booleanPreferencesKey("secure_sensitive_screens")
+
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
         // declarations are gone; orphan DataStore entries left over in existing installs are
@@ -429,6 +432,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     cameraGeotagEnabled = capture.cameraGeotagEnabled,
+                    cameraAspectRatio = capture.cameraAspectRatio,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
@@ -460,6 +464,18 @@ class SettingsRepositoryImpl @Inject constructor(
                     screenshotGestureRightBottomDown = screenshot.rightBottomDown,
                     screenshotGestureRightBottomRight = screenshot.rightBottomRight,
                     screenshotGestureRightBottomUp = screenshot.rightBottomUp,
+                    screenshotGesturePayloadLeftTopDown = screenshot.payloadLeftTopDown,
+                    screenshotGesturePayloadLeftTopRight = screenshot.payloadLeftTopRight,
+                    screenshotGesturePayloadLeftTopUp = screenshot.payloadLeftTopUp,
+                    screenshotGesturePayloadLeftBottomDown = screenshot.payloadLeftBottomDown,
+                    screenshotGesturePayloadLeftBottomRight = screenshot.payloadLeftBottomRight,
+                    screenshotGesturePayloadLeftBottomUp = screenshot.payloadLeftBottomUp,
+                    screenshotGesturePayloadRightTopDown = screenshot.payloadRightTopDown,
+                    screenshotGesturePayloadRightTopRight = screenshot.payloadRightTopRight,
+                    screenshotGesturePayloadRightTopUp = screenshot.payloadRightTopUp,
+                    screenshotGesturePayloadRightBottomDown = screenshot.payloadRightBottomDown,
+                    screenshotGesturePayloadRightBottomRight = screenshot.payloadRightBottomRight,
+                    screenshotGesturePayloadRightBottomUp = screenshot.payloadRightBottomUp,
                     screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
                     copyScreenshotToClipboard = screenshot.copyScreenshotToClipboard,
                     screenCaptureDisclosureAccepted = screenshot.screenCaptureDisclosureAccepted,
@@ -526,6 +542,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Absent key → true: local-only usage statistics are enabled by default on a
                     // fresh install (nothing leaves the device; user can opt out in onboarding/Settings).
                     enableStatistics = preferences[KEY_ENABLE_STATISTICS] ?: true,
+
+                    // S1045: absent key → true (secure by default on fresh install).
+                    secureSensitiveScreens = preferences[KEY_SECURE_SENSITIVE_SCREENS] ?: true,
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -722,6 +741,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
             // S0473: local usage statistics (opt-in)
             preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
+            // S1045: secure sensitive screens (opt-out)
+            preferences[KEY_SECURE_SENSITIVE_SCREENS] = settings.secureSensitiveScreens
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name

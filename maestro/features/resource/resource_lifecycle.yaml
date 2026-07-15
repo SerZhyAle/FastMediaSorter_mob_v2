@@ -26,6 +26,8 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/etName"
 - eraseText: 40
 - inputText: "ZzLifecycleTmp"
+# S1065: hide the IME so it does not cover btnSave.
+- hideKeyboard
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSave"
 - runFlow: ../../_shared/go_home.yaml

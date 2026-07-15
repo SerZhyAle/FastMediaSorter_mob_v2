@@ -91,16 +91,6 @@
       "titleUk": "+ Додати"
     },
     {
-      "key": "btnEditAppPanel",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Edit app panel",
-      "titleRu": "Редакция панели программ",
-      "titleUk": "Редакція панелі програм"
-    },
-    {
       "key": "btnOpenAccessibilitySettings",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -119,6 +109,16 @@
       "titleEn": "Set as default",
       "titleRu": "Задать по-умолчанию",
       "titleUk": "Задати за замовчуванням"
+    },
+    {
+      "key": "btnOpenEdgeGestureConfig",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Configure gestures",
+      "titleRu": "Настроить жесты",
+      "titleUk": "Налаштувати жести"
     },
     {
       "key": "btnResetOperationsSection",
@@ -171,16 +171,6 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
-      "key": "btnSelectScreenshotDestination",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "BUTTON",
-      "titleEn": "Select resource..",
-      "titleRu": "Выбрать ресурс..",
-      "titleUk": "Вибрати ресурс.."
-    },
-    {
       "key": "btnSelectVideoRecordingDest",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -191,14 +181,14 @@
       "titleUk": "Вибрати ресурс.."
     },
     {
-      "key": "btnTakeScreenshotNow",
+      "key": "buttonAddHomeWidget",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "BUTTON",
-      "titleEn": "Screenshot test",
-      "titleRu": "Тест скриншота (снимка экрана)",
-      "titleUk": "Тест знімка екрана"
+      "titleEn": "Add widget to home screen..",
+      "titleRu": "Добавить виджет на домашний экран..",
+      "titleUk": "Додати віджет на головний екран.."
     },
     {
       "key": "etMaxRecipients",
@@ -431,16 +421,6 @@
       "titleUk": "Керування та клавіші"
     },
     {
-      "key": "rowCopyScreenshotToClipboard",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Save screenshots to clipboard",
-      "titleRu": "Сохранять скриншоты в буфер обмена",
-      "titleUk": "Зберігати скриншоти в буфер обміну"
-    },
-    {
       "key": "rowDefaultRememberFileList",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -531,66 +511,6 @@
       "titleUk": "Повертати екран разом із ОС (крім плеєра)"
     },
     {
-      "key": "rowGestureLeftBottomDown",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Down gesture action",
-      "titleRu": "Действие жеста вниз",
-      "titleUk": "Дія жесту вниз"
-    },
-    {
-      "key": "rowGestureLeftBottomRight",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Right gesture action",
-      "titleRu": "Действие жеста вправо",
-      "titleUk": "Дія жесту праворуч"
-    },
-    {
-      "key": "rowGestureLeftBottomUp",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Up gesture action",
-      "titleRu": "Действие жеста вверх",
-      "titleUk": "Дія жесту вгору"
-    },
-    {
-      "key": "rowGestureLeftTopDown",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Down gesture action",
-      "titleRu": "Действие жеста вниз",
-      "titleUk": "Дія жесту вниз"
-    },
-    {
-      "key": "rowGestureLeftTopRight",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Right gesture action",
-      "titleRu": "Действие жеста вправо",
-      "titleUk": "Дія жесту праворуч"
-    },
-    {
-      "key": "rowGestureLeftTopUp",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Up gesture action",
-      "titleRu": "Действие жеста вверх",
-      "titleUk": "Дія жесту вгору"
-    },
-    {
       "key": "rowGestureOverlayEnabled",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -599,66 +519,6 @@
       "titleEn": "Gesture overlay",
       "titleRu": "Оверлей жестов",
       "titleUk": "Оверлей жестів"
-    },
-    {
-      "key": "rowGestureRightBottomDown",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Down gesture action",
-      "titleRu": "Действие жеста вниз",
-      "titleUk": "Дія жесту вниз"
-    },
-    {
-      "key": "rowGestureRightBottomRight",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Right gesture action",
-      "titleRu": "Действие жеста вправо",
-      "titleUk": "Дія жесту праворуч"
-    },
-    {
-      "key": "rowGestureRightBottomUp",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Up gesture action",
-      "titleRu": "Действие жеста вверх",
-      "titleUk": "Дія жесту вгору"
-    },
-    {
-      "key": "rowGestureRightTopDown",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Down gesture action",
-      "titleRu": "Действие жеста вниз",
-      "titleUk": "Дія жесту вниз"
-    },
-    {
-      "key": "rowGestureRightTopRight",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Right gesture action",
-      "titleRu": "Действие жеста вправо",
-      "titleUk": "Дія жесту праворуч"
-    },
-    {
-      "key": "rowGestureRightTopUp",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Up gesture action",
-      "titleRu": "Действие жеста вверх",
-      "titleUk": "Дія жесту вгору"
     },
     {
       "key": "rowGoToNextAfterCopy",
@@ -799,86 +659,6 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
-    },
-    {
-      "key": "rowZoneLeftBottomEnabled",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Left edge - lower band",
-      "titleRu": "Левый край - нижняя полоса",
-      "titleUk": "Лівий край - нижня смуга"
-    },
-    {
-      "key": "rowZoneLeftBottomStripVisible",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the gesture strip",
-      "titleRu": "Показывать полосу жеста",
-      "titleUk": "Показувати смугу жесту"
-    },
-    {
-      "key": "rowZoneLeftTopEnabled",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Left edge - upper band",
-      "titleRu": "Левый край - верхняя полоса",
-      "titleUk": "Лівий край - верхня смуга"
-    },
-    {
-      "key": "rowZoneLeftTopStripVisible",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the gesture strip",
-      "titleRu": "Показывать полосу жеста",
-      "titleUk": "Показувати смугу жесту"
-    },
-    {
-      "key": "rowZoneRightBottomEnabled",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Right edge - lower band",
-      "titleRu": "Правый край - нижняя полоса",
-      "titleUk": "Правий край - нижня смуга"
-    },
-    {
-      "key": "rowZoneRightBottomStripVisible",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the gesture strip",
-      "titleRu": "Показывать полосу жеста",
-      "titleUk": "Показувати смугу жесту"
-    },
-    {
-      "key": "rowZoneRightTopEnabled",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Right edge - upper band",
-      "titleRu": "Правый край - верхняя полоса",
-      "titleUk": "Правий край - верхня смуга"
-    },
-    {
-      "key": "rowZoneRightTopStripVisible",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show the gesture strip",
-      "titleRu": "Показывать полосу жеста",
-      "titleUk": "Показувати смугу жесту"
     },
     {
       "key": "btnSetDefaultDocsViewer",
@@ -1281,6 +1061,16 @@
       "titleUk": "Про систему"
     },
     {
+      "key": "btnTakeScreenshotNow",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Screenshot test",
+      "titleRu": "Тест скриншота (снимка экрана)",
+      "titleUk": "Тест знімка екрана"
+    },
+    {
       "key": "btnUserGuide",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1299,16 +1089,6 @@
       "titleEn": "Wear Companion",
       "titleRu": "Wear-компаньон",
       "titleUk": "Wear-супутник"
-    },
-    {
-      "key": "buttonAddHomeWidget",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "BUTTON",
-      "titleEn": "Add widget to home screen..",
-      "titleRu": "Добавить виджет на домашний экран..",
-      "titleUk": "Додати віджет на головний екран.."
     },
     {
       "key": "etIconSize",
@@ -1529,6 +1309,16 @@
       "titleEn": "Show resource actions in menu ⋮",
       "titleRu": "Операции с ресурсами в меню ⋮",
       "titleUk": "Операції з ресурсами в меню ⋮"
+    },
+    {
+      "key": "rowSecureSensitiveScreens",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Secure sensitive screens",
+      "titleRu": "Защищать секретные экраны",
+      "titleUk": "Захищати секретні екрани"
     },
     {
       "key": "rowShowHiddenFiles",

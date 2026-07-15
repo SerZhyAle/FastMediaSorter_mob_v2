@@ -380,6 +380,8 @@
     <color name="camera_capture_text_shadow">#CC000000</color>
     <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
     <color name="camera_capture_slider_inactive">#66FFFFFF</color>
+    <!-- S1066: ~50% black scrim over the parts of the shown frame outside the result frame (owner-chosen). -->
+    <color name="camera_result_frame_scrim">#80000000</color>
 
     <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
          so the five media-type segments stay visually distinct; legend always shows value text,
@@ -405,6 +407,9 @@
     <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
          legible on top of an arbitrary captured video frame or favicon. -->
     <color name="stream_grid_overlay_scrim">#99000000</color>
+    <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
+         red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
+    <color name="stream_pin_badge_bg">#FFC62828</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
 </resources>

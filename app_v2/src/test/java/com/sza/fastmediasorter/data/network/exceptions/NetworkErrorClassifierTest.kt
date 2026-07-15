@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.data.network.exceptions
 
+import com.jcraft.jsch.JSchException
+import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
@@ -210,5 +213,53 @@ class NetworkErrorClassifierTest {
         val cause = RuntimeException("root cause")
         val result = NetworkErrorClassifier.classify(SocketTimeoutException("timeout").also { it.initCause(cause) })
         assertNotNull(result.cause)
+    }
+
+    // ── S1055: SSH host-key change / auth reject on the live path ─────────────
+
+    @Test
+    fun `classify JSch reject HostKey as NetworkHostKeyChangedException`() {
+        val result = NetworkErrorClassifier.classify(JSchException("reject HostKey: 192.168.1.10"))
+        assertTrue(result is NetworkHostKeyChangedException)
+        assertFalse(NetworkErrorClassifier.isTransient(result))
+    }
+
+    @Test
+    fun `classify HostKeyMismatchException message as NetworkHostKeyChangedException`() {
+        val result = NetworkErrorClassifier.classify(
+            HostKeyMismatchException(expected = "SHA256:aaa", actual = "SHA256:bbb")
+        )
+        assertTrue(result is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `classify JSch Auth fail as NetworkAccessDeniedException`() {
+        val result = NetworkErrorClassifier.classify(JSchException("Auth fail"))
+        assertTrue(result is NetworkAccessDeniedException)
+        assertFalse(NetworkErrorClassifier.isTransient(result))
+    }
+
+    @Test
+    fun `classify JSch USERAUTH fail as NetworkAccessDeniedException`() {
+        val result = NetworkErrorClassifier.classify(JSchException("USERAUTH fail"))
+        assertTrue(result is NetworkAccessDeniedException)
+    }
+
+    @Test
+    fun `classify wrapped Auth fail cause as NetworkAccessDeniedException`() {
+        val wrapped = IOException("Failed to establish SFTP connection: Auth fail", JSchException("Auth fail"))
+        val result = NetworkErrorClassifier.classify(wrapped)
+        assertTrue(result is NetworkAccessDeniedException)
+    }
+
+    @Test
+    fun `classify SFTP permission denied does not become NetworkHostKeyChangedException`() {
+        val result = NetworkErrorClassifier.classify(RuntimeException("permission denied"))
+        assertFalse(result is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `isTransient false for NetworkHostKeyChangedException`() {
+        assertFalse(NetworkErrorClassifier.isTransient(NetworkHostKeyChangedException()))
     }
 }

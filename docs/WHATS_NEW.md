@@ -6,7 +6,35 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7132.046** (July 2026)
+**Current release: 2.60.7160.058** (July 2026)
+
+> Changes since version 2.60.7132.046
+
+---
+
+## What's New
+
+- **Camera launch widget** - snap a photo straight from your home screen.
+- **Animated WebP & APNG** - short animations now play in the image viewer.
+- **Share resource as a QR code** - hand off an SFTP resource by scanning it.
+- **Pin stream tiles** - keep favourite streams on top with a pinned badge.
+- **Private screens** - settings and resource screens hide in Recents and block screenshots.
+- **Edge-gesture settings** - configure screen-edge gestures from one dialog.
+
+## What's Fixed
+
+- Video player shows controls on open and on center-tap.
+- Draw editor Save-as always writes a real file extension.
+- File transfer fails fast when the destination is unreachable.
+- Streams search and filter reset when re-entering the screen.
+- Screenshot-gesture edge bands stay flush after rotation.
+- OCR crop handle stays clear of the bottom action bar.
+- Main-screen top panels line up their buttons in a uniform grid.
+- Scheduled-operations master toggle stays in sync with its children.
+
+---
+
+## Previous Release: 2.60.7132.046 (July 2026)
 
 > Changes since version 2.60.7070.937
 

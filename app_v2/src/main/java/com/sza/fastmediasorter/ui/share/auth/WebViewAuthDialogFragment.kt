@@ -10,6 +10,7 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.view.WindowManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AlertDialog
@@ -18,6 +19,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -25,14 +27,23 @@ import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.HttpCookie
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class WebViewAuthDialogFragment : DialogFragment() {
 
     private val viewModel: WebViewAuthViewModel by viewModels()
+
+    // S1045: the live 3rd-party login WebView shows a password field; a Dialog window does NOT inherit
+    // the host Activity's FLAG_SECURE, so this fragment secures its own window (gated on the setting).
+    @Inject lateinit var settingsRepository: SettingsRepository
+
     private var webView: WebView? = null
     private var saveButton: MaterialButton? = null
     // S0892: held so the account-name dialog is dismissed on view teardown (no WindowLeaked on config change).
@@ -91,6 +102,22 @@ class WebViewAuthDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
+        applySecureFlagIfEnabled()
+    }
+
+    /**
+     * S1045: secure-first - protect the login window before its first frame, then relax only if the
+     * user disabled the protection. One-shot read (short-lived modal), no reactive re-apply.
+     */
+    private fun applySecureFlagIfEnabled() {
+        dialog?.window?.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE,
+        )
+        viewLifecycleOwner.lifecycleScope.launch {
+            val enabled = settingsRepository.getSettings().first().secureSensitiveScreens
+            if (!enabled) dialog?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 
     override fun onResume() {

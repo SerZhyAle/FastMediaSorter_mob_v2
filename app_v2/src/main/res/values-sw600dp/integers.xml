@@ -7,4 +7,7 @@
     <integer name="grid_column_count_list">3</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">2</integer>
+
+    <!-- S0999: two-column "Send file to.." list on >=600dp width (also covers wide portrait). -->
+    <integer name="settings_send_commands_columns">2</integer>
 </resources>

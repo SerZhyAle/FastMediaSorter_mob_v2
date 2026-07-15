@@ -59,6 +59,27 @@
         app:layout_constraintStart_toStartOf="@id/ivFrame"
         app:layout_constraintBottom_toBottomOf="@id/ivFrame" />
 
+    <!-- S1062: pinned-state indicator badge, top-left over the frame. Pure indicator (not clickable/
+         focusable) - pin/unpin is driven only through the overflow menu. Shown at bind time when pinned. -->
+    <TextView
+        android:id="@+id/tvPinBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_stream_pin_badge"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:maxLines="1"
+        android:text="@string/streams_pinned_badge"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/ivFrame"
+        app:layout_constraintStart_toStartOf="@id/ivFrame" />
+
     <!-- S0701: per-tile overflow (три точки) mirroring the list row's btnOverflow, anchored top-right of
          the frame so the same secondary commands (shortcut/edit/share/remove) are reachable in grid mode. -->
     <ImageButton

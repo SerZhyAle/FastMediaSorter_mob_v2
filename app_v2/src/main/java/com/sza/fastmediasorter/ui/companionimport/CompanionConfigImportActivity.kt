@@ -61,7 +61,6 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             finish()
             return
         }
-        Timber.d("S0984: companion config import received (action=${intent?.action})")
         loadAndConfirm(uri)
     }
 

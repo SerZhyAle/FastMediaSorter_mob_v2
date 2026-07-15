@@ -137,6 +137,14 @@ class MainProgramsPanelManager(
         val context = panel.root.context
         val showLabels = context.resources.getBoolean(R.bool.main_programs_panel_show_labels)
 
+        // S1068: portrait leading-cell accent - the panel-menu three-dots is this row's first cell and
+        // matches the command bar / tabs leading width (60dp = base module +12dp) so every row's second
+        // cell shares one X. Land/wide (label mode) keep the S1037 leading-anchor width. Re-runs on config
+        // change via refresh() (MainActivity uses configChanges, no re-inflate), so it stays orientation-correct.
+        panel.btnProgramsPanelMenu.minWidth = context.resources.getDimensionPixelSize(
+            if (showLabels) R.dimen.main_top_panel_leading_anchor else R.dimen.main_panel_first_item_width
+        )
+
         // Build the same menu the dropdown uses, then read its (order-sorted) items as the panel model.
         val scratch = PopupMenu(context, panel.root)
         populateMenu(scratch, excludeStreams)

@@ -66,25 +66,31 @@ if ($MaxLoc)        { $result = @($result | Where-Object { $_.loc -le $MaxLoc })
 if ($ClassMatches)  { $result = @($result | Where-Object { $_.class -like $ClassMatches }) }
 if ($PathMatches)   { $result = @($result | Where-Object { $_.path -like $PathMatches }) }
 if ($Search) {
-    $term = $Search.ToLower()
+    # Tokenise on whitespace and require EVERY token to be present (AND). A single -like over the
+    # whole phrase fails for multi-word queries ("screen capture") because those words never appear
+    # as one adjacent substring in class/path/function names.
+    $terms = @(($Search.ToLower() -split '\s+') | Where-Object { $_ })
+    # The fixed root package poisons substring search: every path contains "fastmediasorter", so
+    # domain terms like "sort"/"sorter"/"media" would otherwise match all records. Strip the prefix
+    # from the match haystack (genuine "Sorter" in a class name or subpackage still matches).
+    $pkgPrefix = "com/sza/fastmediasorter/"
     $result = @($result | Where-Object {
-        $injectedStr = if ($_.injected) { ($_.injected -join " ").ToLower() } else { "" }
-        $depsStr = if ($_.constructorDeps) { ($_.constructorDeps -join " ").ToLower() } else { "" }
+        $injectedStr = if ($_.injected) { ($_.injected -join " ") } else { "" }
+        $depsStr = if ($_.constructorDeps) { ($_.constructorDeps -join " ") } else { "" }
         $funcsStr = ""
         if ($_.functions) {
-            $funcTexts = $_.functions | ForEach-Object { "$($_.name) $($_.description)" }
-            $funcsStr = ($funcTexts -join " ").ToLower()
+            $funcsStr = (($_.functions | ForEach-Object { "$($_.name) $($_.description)" }) -join " ")
         }
-        $roleStr = if ($_.role) { $_.role.ToLower() } else { "" }
-        $classStr = if ($_.class) { $_.class.ToLower() } else { "" }
-        $pathStr = if ($_.path) { $_.path.ToLower() } else { "" }
-
-        ($classStr    -like "*$term*") -or
-        ($pathStr     -like "*$term*") -or
-        ($roleStr     -like "*$term*") -or
-        ($injectedStr -like "*$term*") -or
-        ($depsStr     -like "*$term*") -or
-        ($funcsStr    -like "*$term*")
+        $roleStr = if ($_.role) { $_.role } else { "" }
+        $classStr = if ($_.class) { $_.class } else { "" }
+        $pathStr = if ($_.path) { $_.path } else { "" }
+        if ($pathStr.StartsWith($pkgPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            $pathStr = $pathStr.Substring($pkgPrefix.Length)
+        }
+        $hay = "$classStr $pathStr $roleStr $injectedStr $depsStr $funcsStr".ToLower()
+        $ok = $true
+        foreach ($t in $terms) { if ($hay -notlike "*$t*") { $ok = $false; break } }
+        $ok
     })
 }
 if ($Injected)      { $result = @($result | Where-Object { $_.injected -contains $Injected }) }

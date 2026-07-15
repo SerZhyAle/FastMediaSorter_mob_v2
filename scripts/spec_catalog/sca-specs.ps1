@@ -83,10 +83,10 @@ function Get-StaleMarker {
     }
 }
 
-$fmt = '{0,-6} {1,-7} {2,-34} {3,-18} {4,5} {5,11} {6,-2} {7}'
-$hdr = $fmt -f 'ID', 'Pri/T', 'Name', 'Status', 'Crtd', 'Updated', 'S', 'File'
+$fmt = '{0,-6} {1,-7} {2,-18} {3,5} {4,11} {5,-2} {6}'
+$hdr = $fmt -f 'ID', 'Pri/T', 'Status', 'Crtd', 'Updated', 'S', 'Name'
 Write-Host $hdr -ForegroundColor Cyan
-Write-Host ('-' * 105) -ForegroundColor DarkGray
+Write-Host ('-' * 84) -ForegroundColor DarkGray
 
 $stalePending = 0
 foreach ($e in $sorted) {
@@ -103,7 +103,7 @@ foreach ($e in $sorted) {
     if ($e.level -eq 'alert') { $color = 'Red'; $stalePending++ }
     elseif ($e.level -eq 'warn') { if ($color -ne 'Red') { $color = 'Yellow' }; $stalePending++ }
 
-    $line = $fmt -f $r.id, $priTier, $r.name, $r.status, (Format-Created $r.created), (Format-Updated $r.updated), $stMark, $r.file
+    $line = $fmt -f $r.id, $priTier, $r.status, (Format-Created $r.created), (Format-Updated $r.updated), $stMark, $r.name
     Write-Host $line -ForegroundColor $color
 }
 

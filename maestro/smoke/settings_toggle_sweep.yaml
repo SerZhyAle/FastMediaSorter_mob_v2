@@ -18,6 +18,12 @@ appId: com.sza.fastmediasorter.debug
     visible:
       id: "com.sza.fastmediasorter.debug:id/titleText"
     timeout: 10000
+# S1043: SettingsActivity persists the last-active tab across sessions (intentional UX), so a prior
+# flow can leave it on Медиа/Плеер/Управление. headerInterface lives only on the Общие tab - select
+# it explicitly here so this flow is independent of whatever tab was left active.
+- tapOn:
+    text: "Общие"
+- waitForAnimationToEnd
 
 # --- General tab: flip two non-disruptive toggles off then on, by row id.
 #     Re-scroll before each tap in case rows shift. Compact-elements is deliberately avoided:
@@ -29,11 +35,21 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/headerInterface"
-    visibilityPercentage: 10
+    visibilityPercentage: 100
+    centerElement: true
     timeout: 8000
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/headerInterface"
-- waitForAnimationToEnd
+# S1043: the Interface section may already be expanded from an earlier settings flow in the suite
+# (screen_tour / settings_search). An unconditional tap on the header would then COLLAPSE it and hide
+# the rows. Expand only when the first row is not already present, so the section ends up expanded
+# regardless of the prior toggle state.
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerInterface"
+      - waitForAnimationToEnd
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"

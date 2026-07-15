@@ -12,6 +12,9 @@ import com.jcraft.jsch.Session
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
+import com.sza.fastmediasorter.data.network.exceptions.NetworkHostKeyChangedException
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
 import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
@@ -74,16 +77,19 @@ class SftpDataSource(
             )
             val pooledConnection = sftpClient.getConnectionForExoPlayer(connectionInfo)
             session = pooledConnection.session
-            channel = pooledConnection.channel
+            // S1032: capture the nullable var into a local val so the null-guard smart-casts,
+            // removing the redundant non-null assertions here and at attemptOpen below.
+            val openChannel = pooledConnection.channel
+            channel = openChannel
             connectionAcquired = true
 
-            Timber.d("SftpDataSource: Got pooled connection - session=${session?.isConnected}, channel=${channel?.isConnected}")
+            Timber.d("SftpDataSource: Got pooled connection - session=${session?.isConnected}, channel=${openChannel?.isConnected}")
 
-            if (channel == null || !channel!!.isConnected) {
+            if (openChannel == null || !openChannel.isConnected) {
                 throw IOException("Failed to get connected SFTP channel from pool")
             }
 
-            return attemptOpen(channel!!, remotePath, dataSpec)
+            return attemptOpen(openChannel, remotePath, dataSpec)
         } catch (e: Exception) {
             val isJSchEx = generateSequence<Throwable>(e) { it.cause }.any { it is JSchException }
             if (isJSchEx && connectionAcquired) {
@@ -97,11 +103,12 @@ class SftpDataSource(
                     val retryInfo = SftpClient.SftpConnectionInfo(host, port, username, password)
                     val retryConn = sftpClient.getConnectionForExoPlayer(retryInfo)
                     session = retryConn.session
-                    channel = retryConn.channel
+                    val retryChannel = retryConn.channel
+                    channel = retryChannel
                     connectionAcquired = true
-                    if (channel == null || !channel!!.isConnected) throw IOException("SFTP retry: channel not connected")
+                    if (retryChannel == null || !retryChannel.isConnected) throw IOException("SFTP retry: channel not connected")
                     val encodedPath = uri?.encodedPath ?: throw IOException("SFTP retry: URI unavailable")
-                    return attemptOpen(channel!!, Uri.decode(encodedPath), dataSpec)
+                    return attemptOpen(retryChannel, Uri.decode(encodedPath), dataSpec)
                 } catch (retryEx: Exception) {
                     // Retry failed - rethrow original exception to preserve ExoPlayer's error code
                     if (connectionAcquired) channelBroken = true
@@ -163,6 +170,12 @@ class SftpDataSource(
             channelBroken = true
             throw e
         } catch (e: Exception) {
+            // S1055: a classified host-key change or auth rejection is non-transient - reconnecting is
+            // futile and would mask a security event, so propagate it typed without a reconnect attempt.
+            if (isNonTransientSecurity(e)) {
+                channelBroken = true
+                throw IOException("SFTP read aborted (${e.javaClass.simpleName})", e)
+            }
             // One transparent reconnect - same strategy as SftpClientFirstResult on SftpException 4.
             // If the reconnect also fails, propagate so ExoPlayer handles it.
             Timber.w("SftpDataSource: transient read error, reconnecting - ${e.message}")
@@ -171,6 +184,11 @@ class SftpDataSource(
                 inputStream!!.read(buffer, offset, bytesToRead)
             } catch (retryEx: Exception) {
                 channelBroken = true
+                // S1055: the reconnect's own connect may reveal a changed host key or rejected
+                // credentials - surface that typed so ExoPlayer shows a security/re-pair error.
+                if (isNonTransientSecurity(retryEx)) {
+                    throw IOException("SFTP reconnect aborted (${retryEx.javaClass.simpleName})", retryEx)
+                }
                 Timber.e(retryEx, "SftpDataSource: Error reading from SFTP file")
                 throw IOException("Failed to read from SFTP file: ${retryEx.message}", retryEx)
             }
@@ -246,6 +264,15 @@ class SftpDataSource(
         Timber.d(
             "SftpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
+    }
+
+    /**
+     * S1055: true when the throwable classifies as a non-transient security/credential outcome
+     * (changed host key or rejected auth) that must not trigger a transparent reconnect.
+     */
+    private fun isNonTransientSecurity(throwable: Throwable): Boolean {
+        val classified = NetworkErrorClassifier.classifySilently(throwable)
+        return classified is NetworkHostKeyChangedException || classified is NetworkAccessDeniedException
     }
 
     private fun maybeTouchPlaybackTransport() {

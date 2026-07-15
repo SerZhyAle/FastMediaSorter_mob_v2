@@ -129,9 +129,12 @@ class StreamsViewModel @Inject constructor(
     }
 
     /**
-     * S0659: seed [_filter] from the persisted last session, else from the user defaults. Only sort,
-     * media-kind and query carry over; the catalog-derived facets (category/topic/language) stay at
-     * defaults. Skips if the user already changed the filter while the read was in flight.
+     * S0659: seed [_filter] from the persisted last session, else from the user defaults. Only sort and
+     * media-kind carry over; the catalog-derived facets (category/topic/language) stay at defaults. Skips
+     * if the user already changed the filter while the read was in flight.
+     *
+     * S1054: the free-text query is deliberately NOT restored - it stays empty on every open so the search
+     * field and the applied text filter can never diverge (empty field + already-filtered list).
      */
     private suspend fun seedInitialFilter() {
         if (initialFilterApplied) return
@@ -142,7 +145,7 @@ class StreamsViewModel @Inject constructor(
         _filter.value = _filter.value.copy(
             sort = session.lastSort?.toSortMode() ?: defaults.streamsDefaultSort.toSortMode(),
             mediaKind = session.lastMediaFilter?.toMediaKind() ?: defaults.streamsDefaultMediaFilter.toMediaKind(),
-            query = session.lastQuery ?: "",
+            // S1054: query intentionally omitted - starts empty each open (default StreamsFilter().query).
             // S0697: restore the facet selections + pinned-only toggle too. A restored facet value that no
             // longer exists in the catalog simply yields an empty list with the filter shown active, so the
             // user can clear it - no crash, no silent wrong data.
@@ -270,9 +273,9 @@ class StreamsViewModel @Inject constructor(
     }
 
     /**
-     * S0659: persist the user-chosen sort/media-filter/query so the next open restores them. Marks the
-     * seed as applied so the async init seed can never overwrite a change the user just made. Only the
-     * three remembered fields are written; facets are session-scoped and intentionally not persisted.
+     * S0659: persist the user-chosen sort/media-filter (plus facets) so the next open restores them. Marks
+     * the seed as applied so the async init seed can never overwrite a change the user just made.
+     * S1054: the free-text query is not written - it is a one-shot input that resets on every open.
      */
     private fun persistSession() {
         initialFilterApplied = true
@@ -281,7 +284,6 @@ class StreamsViewModel @Inject constructor(
             sessionStore.writeFilterState(
                 sort = filter.sort.name,
                 mediaFilter = filter.mediaKind.name,
-                query = filter.query,
                 category = filter.category,
                 language = filter.language,
                 country = filter.country,

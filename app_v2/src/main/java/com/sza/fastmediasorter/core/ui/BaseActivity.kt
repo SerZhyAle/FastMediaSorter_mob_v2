@@ -138,6 +138,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         collectOnLifecycle(keepScreenSettingsRepository.getSettings()) { settings ->
             keepScreenAwakeDecision = keepScreenAwakeFor(settings)
             applyKeepScreenAwake()
+            // S1045: drive the secure flag from the same settings stream (initial + reactive apply).
+            lastSecureFlagSettings = settings
+            applySecureFlagIfEnabled(settings)
         }
         
         // Defer heavy initialization to allow first frame to render quickly
@@ -183,6 +186,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         super.onResume()
         // Reapply wake lock in case it was cleared by system
         applyKeepScreenAwake()
+        // S1045: some OEMs clear window flags on background - re-apply from the last settings snapshot.
+        lastSecureFlagSettings?.let { applySecureFlagIfEnabled(it) }
         if (viewsReady) {
             onResumeWithViews()
         } else {
@@ -217,6 +222,14 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     // Cached decision so onCreate/onResume can re-apply the flag synchronously between settings emissions.
     private var keepScreenAwakeDecision: Boolean = true
+
+    // S1045: subclasses exposing credentials override to true so the secure flag is applied when the
+    // user setting is ON. Default false clears the flag for ordinary screens.
+    protected open fun isSensitiveScreen(): Boolean = false
+
+    // S1045: last settings snapshot so onResume can re-apply the secure flag synchronously (mirrors
+    // keepScreenAwakeDecision), since some OEMs clear window flags while the Activity is backgrounded.
+    private var lastSecureFlagSettings: AppSettings? = null
 
     /**
      * Called when the device configuration changes (e.g., screen rotation).
@@ -362,6 +375,16 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    // S1045: block screenshots / Recents preview on credential-bearing screens when the setting is ON.
+    private fun applySecureFlagIfEnabled(settings: AppSettings) {
+        val secure = isSensitiveScreen() && settings.secureSensitiveScreens
+        if (secure) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 

@@ -18,6 +18,7 @@
       - assert-nontimber-log.ps1           (Tier 1: Log.*/println/System.out)
       - assert-stub-todo.ps1               (Tier 1: TODO()/NotImplementedError stubs)
       - assert-em-dash.ps1                 (em-dash/en-dash in *.kt -> use hyphen)
+      - assert-non-null-assertion.ps1      (S1032: `!!` non-null assertions in *.kt)
 
     Ratchet contract: baselines only go DOWN via each child's -UpdateBaseline;
     raising a baseline is forbidden without an offsetting refactor. Cleanup of the
@@ -60,7 +61,8 @@ $children = @(
     'assert-globalscope.ps1',
     'assert-nontimber-log.ps1',
     'assert-stub-todo.ps1',
-    'assert-em-dash.ps1'
+    'assert-em-dash.ps1',
+    'assert-non-null-assertion.ps1'
 )
 
 $failures = 0

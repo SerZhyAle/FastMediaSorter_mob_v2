@@ -385,6 +385,13 @@ class PlayerCommandPanelCallbackImpl(
         viewModel.toggleRotationSensor()
     }
 
+    override fun onRotateContent90Clicked() {
+        viewModel.rotateSession90()
+        val newAngle = viewModel.state.value.sessionRotationAngle
+        Timber.d("S0995: internal rotate90 tap -> $newAngle")
+        activity.applyContentRotation(newAngle)
+    }
+
     // Builds a content:// URI for a local file via FileProvider; returns null for network paths
     // where async download would be needed (network sharing remains via the legacy share path).
     private fun buildShareUri(path: String): Uri? {

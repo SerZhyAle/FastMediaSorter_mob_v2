@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.stats.EditKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -185,11 +186,9 @@ class NetworkImageEditUseCase @Inject constructor(
         return execute(networkPath, EditOperation.Adjust(adjustments))
     }
 
-    private fun isNetworkPath(path: String): Boolean {
-        return path.startsWith("smb://") || 
-               path.startsWith("sftp://") || 
-               path.startsWith("ftp://")
-    }
+    // S1028: cloud excluded - this use case handles only SMB/SFTP/FTP downloads/uploads.
+    private fun isNetworkPath(path: String): Boolean =
+        PathUtils.isNetworkPath(path, includeCloud = false)
 
     private suspend fun downloadToTemp(networkPath: String): File? {
         // Create temp directory in app cache

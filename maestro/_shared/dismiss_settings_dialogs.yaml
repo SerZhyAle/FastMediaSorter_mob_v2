@@ -5,6 +5,21 @@ appId: com.sza.fastmediasorter.debug
 # blocking AlertDialog over the settings content, so titleText is not visible until it is closed.
 # Keep-current is the non-destructive choice. Guarded on the dialog title so it is a no-op on
 # devices / runs where the dialog does not appear.
+#
+# S1065: the dialog is raised after an ASYNC storage check, so it can surface a beat after the
+# activity opens. A single guarded check that runs too early misses it and it then blocks titleText
+# for the caller. Settle and re-check twice so a late-appearing dialog is still dismissed; each pass
+# is a no-op when the dialog is absent.
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible:
+        text: "Оптимизировать размер кэша?"
+    commands:
+      - tapOn:
+          text: "Оставить текущий"
+      - waitForAnimationToEnd
+- waitForAnimationToEnd
 - runFlow:
     when:
       visible:

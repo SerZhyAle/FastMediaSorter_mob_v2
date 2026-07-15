@@ -32,6 +32,8 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/etFilterName"
 - inputText: "IMG_copy_01"
+# S1065: hide the IME so it does not cover btnApplyFilter (rendered below the input).
+- hideKeyboard
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
 - extendedWaitUntil:
@@ -91,6 +93,8 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/etFilterName"
 - inputText: "IMG_move_01"
+# S1065: hide the IME so it does not cover btnApplyFilter (rendered below the input).
+- hideKeyboard
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
 - extendedWaitUntil:

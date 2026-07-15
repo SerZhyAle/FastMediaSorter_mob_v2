@@ -55,6 +55,7 @@ import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankMa
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
@@ -93,7 +94,7 @@ import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
-import com.sza.fastmediasorter.widget.ResourceLaunchWidgetPinManager
+import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -256,7 +257,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
     @Inject
-    lateinit var resourceLaunchWidgetPinManager: ResourceLaunchWidgetPinManager
+    lateinit var resourceShortcutPinManager: ResourceShortcutPinManager
 
     // S0756: pinned channels + favicon atlas for the main-window streams panel.
     @Inject
@@ -949,12 +950,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .show()
             },
             onShareSftpAccessClick = { resource ->
-                sftpShareManager.show(resource) { includePassword ->
-                    viewModel.shareSftpResourceConfig(resource, includePassword)
+                sftpShareManager.show(resource) { includePassword, method ->
+                    when (method) {
+                        MainSftpShareManager.ShareMethod.FILE ->
+                            viewModel.shareSftpResourceConfig(resource, includePassword)
+                        MainSftpShareManager.ShareMethod.QR ->
+                            viewModel.shareSftpResourceConfigAsQr(resource, includePassword)
+                    }
                 }
             },
             onAddToHomeScreenClick = { resource ->
-                pinResourceLaunchWidget(resource)
+                pinResourceLaunchShortcut(resource)
             },
             // S0293 Phase 08: visible only when multi-window is effectively available (preference OR runtime)
             isOpenInNewWindowVisible = mainAllowSeparateWindow,
@@ -1358,29 +1364,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun pinResourceLaunchWidget(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
-        when (
-            resourceLaunchWidgetPinManager.requestPin(
-                resourceId = resource.id,
-                resourceName = resource.name,
-                resourcePath = resource.path,
-                resourceType = resource.type,
-            )
-        ) {
-            ResourceLaunchWidgetPinManager.PinResult.Requested -> Unit
-            ResourceLaunchWidgetPinManager.PinResult.Unsupported -> {
-                Toast.makeText(this, R.string.widget_pin_not_supported, Toast.LENGTH_SHORT).show()
-            }
-            ResourceLaunchWidgetPinManager.PinResult.KeyguardLocked -> {
-                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setMessage(R.string.widget_unlock_screen_prompt)
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
-            }
-            ResourceLaunchWidgetPinManager.PinResult.AlreadyExists -> {
-                Toast.makeText(this, R.string.widget_already_added, Toast.LENGTH_SHORT).show()
-            }
+    private fun pinResourceLaunchShortcut(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
+        // Reuse the exact drawable the resource shows in the grid so the pinned icon matches it.
+        val icon = ResourceIconComposer.compose(this, resource)
+        val message = when (resourceShortcutPinManager.requestPin(resource.id, resource.name, icon)) {
+            ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
+            ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
         }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     companion object {

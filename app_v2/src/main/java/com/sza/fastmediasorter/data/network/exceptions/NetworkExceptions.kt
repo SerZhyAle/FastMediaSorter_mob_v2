@@ -10,7 +10,16 @@ sealed class NetworkException(message: String, cause: Throwable? = null) : IOExc
 /**
  * Authentication/authorization errors (401, 403, wrong credentials)
  */
-class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) : 
+class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) :
+    NetworkException(message, cause)
+
+/**
+ * S1055 - the pinned server host key no longer matches the one recorded at pairing (possible
+ * impersonation / MITM). Security-critical: a direct [NetworkException] subtype (never a
+ * [NetworkConnectionLostException]), so it is non-transient by construction and is never auto-retried
+ * or auto-accepted. Surfaced to the user as a security warning, not a routine connectivity error.
+ */
+class NetworkHostKeyChangedException(message: String = "Server host key changed", cause: Throwable? = null) :
     NetworkException(message, cause)
 
 /**

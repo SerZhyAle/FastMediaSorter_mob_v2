@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.TooltipCompat
@@ -10,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -230,21 +228,6 @@ class OperationsCaptureManager(
                 settings.screenRecordingDestinationResourceId,
                 R.string.setting_screen_recording_destination_default_downloads
             ) { binding.tvScreenRecordingDest.text = it }
-        }
-    }
-
-    /**
-     * S0559: store-safe menu-screenshot test action. The button now lives inside the screen-gestures
-     * card (after the gesture-action rows), not its own card, so its own visibility is gated here on
-     * the launcher set: shown only when a [MenuScreenshotLauncher] is bound (standard + noLegal),
-     * gone otherwise. On standard the enclosing gestures card is itself hidden, so the button never
-     * appears there regardless.
-     */
-    fun setupScreenshotAction(launchers: Set<MenuScreenshotLauncher>, activity: Activity) {
-        val launcher = launchers.firstOrNull()
-        binding.btnTakeScreenshotNow.isVisible = launcher != null
-        if (launcher != null) {
-            binding.btnTakeScreenshotNow.setOnClickListener { launcher.launch(activity) }
         }
     }
 }

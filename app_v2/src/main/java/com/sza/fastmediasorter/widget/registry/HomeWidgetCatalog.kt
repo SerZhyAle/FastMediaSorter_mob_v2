@@ -6,9 +6,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.widget.AudioNowPlayingWidgetProvider
 import com.sza.fastmediasorter.widget.CalculatorWidgetProvider
+import com.sza.fastmediasorter.widget.CameraLaunchWidgetProvider
 import com.sza.fastmediasorter.widget.CameraOcrTranslateWidgetProvider
 import com.sza.fastmediasorter.widget.CameraPhotosWidgetProvider
 import com.sza.fastmediasorter.widget.CameraQuickCaptureWidgetProvider
+import com.sza.fastmediasorter.widget.CaptureOcrPanelWidgetProvider
 import com.sza.fastmediasorter.widget.ContinueReadingWidgetProvider
 import com.sza.fastmediasorter.widget.FavoritesWidgetProvider
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
@@ -18,6 +20,7 @@ import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,6 +55,20 @@ class HomeWidgetCatalog @Inject constructor(
             labelRes = R.string.widget_camera_ocr_translate_label,
             iconRes = R.drawable.ic_camera_ocr_translate,
             descriptionRes = R.string.widget_camera_ocr_translate_description,
+        ),
+        HomeWidgetEntry(
+            // Removed via manifest tools:node="remove" in lite/photos (ENABLE_TRANSLATION=false);
+            // the installedProviders gate hides it there without a compile-time flavor flag.
+            providerClass = CaptureOcrPanelWidgetProvider::class.java,
+            labelRes = R.string.widget_capture_ocr_panel_label,
+            iconRes = R.drawable.ic_camera_ocr_translate,
+            descriptionRes = R.string.widget_capture_ocr_panel_description,
+        ),
+        HomeWidgetEntry(
+            providerClass = CameraLaunchWidgetProvider::class.java,
+            labelRes = R.string.widget_camera_launch_label,
+            iconRes = R.drawable.ic_widget_camera_launch_accent,
+            descriptionRes = R.string.widget_camera_launch_description,
         ),
         HomeWidgetEntry(
             providerClass = CameraPhotosWidgetProvider::class.java,
@@ -134,9 +151,11 @@ class HomeWidgetCatalog @Inject constructor(
             .map { it.provider.className }
             .toSet()
         val settings = settingsRepository.getSettings().first()
-        return allEntries.filter { entry ->
+        val entries = allEntries.filter { entry ->
             entry.providerClass.name in installed &&
                 (entry.settingGate?.invoke(settings) ?: true)
         }
+        Timber.d("S1069: widget picker entries=${entries.size}")
+        return entries
     }
 }

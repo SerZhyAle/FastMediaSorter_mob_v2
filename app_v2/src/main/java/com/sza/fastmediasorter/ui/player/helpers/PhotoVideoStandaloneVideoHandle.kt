@@ -39,6 +39,11 @@ class PhotoVideoStandaloneVideoHandle(
 
     override fun getBrightnessPercentOffset(): Int = viewManager.getBrightnessPercentOffset()
 
+    override fun setContentRotationDegrees(degrees: Int) =
+        viewManager.setContentRotationDegrees(degrees)
+
+    override fun getContentRotationDegrees(): Int = viewManager.getContentRotationDegrees()
+
     override fun getPlaybackSpeed(): Float = viewManager.getPlaybackSpeed(currentMediaType())
 
     override fun setPlaybackSpeed(speed: Float) =

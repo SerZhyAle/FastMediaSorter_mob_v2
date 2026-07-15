@@ -195,6 +195,12 @@ class StandaloneViewManager(
     // Media3 1.2.1 deferral flags - mirrors VideoPlayerManager logic.
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
+    // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
+    private var standaloneVideoWidth = 0
+    private var standaloneVideoHeight = 0
+    // S0995: cumulative visual frame rotation (0/90/180/270), applied to photoView (image/gif) and to
+    // the video effect chain. Carried across folder paging by re-applying after each image load.
+    private var contentRotationDegrees = 0
     private var audioServiceController: AudioServiceController? = null
     private var audioFocusManager: AudioFocusManager? = null
     private var resumeVideoOnResume = false
@@ -246,6 +252,27 @@ class StandaloneViewManager(
 
     fun getBrightnessPercentOffset(): Int =
         ((getBrightnessProgress() - DEFAULT_BRIGHTNESS_PROGRESS) * 100f / DEFAULT_BRIGHTNESS_PROGRESS).toInt()
+
+    /**
+     * S0995: set the session frame rotation and apply it to the active surface. Image/gif rotate via
+     * PhotoView's matrix; video re-composes its effect chain with a rotation effect. Pure visual - no
+     * bitmap edit, no screen sensor. The stored angle is re-applied after each image load (folder paging).
+     */
+    fun setContentRotationDegrees(degrees: Int) {
+        contentRotationDegrees = degrees
+        when (currentMediaType) {
+            MediaType.IMAGE, MediaType.GIF -> applyPhotoViewRotation()
+            MediaType.VIDEO -> applyVideoColorEffects()
+            else -> Unit
+        }
+    }
+
+    fun getContentRotationDegrees(): Int = contentRotationDegrees
+
+    /** S0995: PhotoView recomputes its fit around the rotation via its own matrix. */
+    private fun applyPhotoViewRotation() {
+        safeViews.photoView.setRotationTo(contentRotationDegrees.toFloat())
+    }
 
     fun getPlaybackSpeed(mediaType: MediaType?): Float =
         activePlayer(mediaType)?.playbackParameters?.speed ?: 1.0f
@@ -411,35 +438,39 @@ class StandaloneViewManager(
             // S1041: fire onImageReady only once the drawable is decoded AND bound to the view, so a
             // caller's auto-action (OCR/translate) reads a non-null photoView.drawable instead of racing
             // the async load. A failed decode must not trigger the action.
-            .listener(onImageReadyListener(onImageReady))
+            .listener(imageBoundListener(onImageReady))
             .into(safeViews.photoView)
     }
 
-    /** S1041: wraps [onImageReady] in a Glide listener that fires once the decoded drawable is bound. */
-    private fun onImageReadyListener(onImageReady: (() -> Unit)?): RequestListener<Drawable>? =
-        onImageReady?.let {
-            object : RequestListener<Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<Drawable>,
-                    isFirstResource: Boolean,
-                ): Boolean = false
+    /**
+     * S1041/S0995: fires [onImageReady] once the decoded drawable is bound AND re-applies the session
+     * frame rotation so it carries to the next paged file. A failed decode triggers neither.
+     */
+    private fun imageBoundListener(onImageReady: (() -> Unit)?): RequestListener<Drawable> =
+        object : RequestListener<Drawable> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<Drawable>,
+                isFirstResource: Boolean,
+            ): Boolean = false
 
-                override fun onResourceReady(
-                    resource: Drawable,
-                    model: Any,
-                    target: Target<Drawable>?,
-                    dataSource: DataSource,
-                    isFirstResource: Boolean,
-                ): Boolean {
-                    // RequestListener.onResourceReady runs BEFORE Glide binds the drawable into the
-                    // ImageView (the target's onResourceReady sets it right after this returns false).
-                    // post() defers the callback to the next main-thread message, by which point
-                    // photoView.drawable is non-null - reading it earlier reintroduces the S1041 race.
-                    safeViews.photoView.post { it() }
-                    return false
+            override fun onResourceReady(
+                resource: Drawable,
+                model: Any,
+                target: Target<Drawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean,
+            ): Boolean {
+                // RequestListener.onResourceReady runs BEFORE Glide binds the drawable into the
+                // ImageView (the target's onResourceReady sets it right after this returns false).
+                // post() defers to the next main-thread message, by which point photoView.drawable is
+                // non-null - reading/rotating it earlier reintroduces the S1041 race.
+                safeViews.photoView.post {
+                    applyPhotoViewRotation()
+                    onImageReady?.invoke()
                 }
+                return false
             }
         }
 
@@ -455,6 +486,7 @@ class StandaloneViewManager(
             .skipMemoryCache(true)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .signature(ObjectKey(System.currentTimeMillis()))
+            .listener(imageBoundListener(null))
             .into(safeViews.photoView)
     }
 
@@ -464,6 +496,26 @@ class StandaloneViewManager(
         Glide.with(safeViews.photoView)
             .asGif()
             .load(mediaFile.path.toUri())
+            // S0995: re-apply the session rotation once the animated drawable is bound.
+            .listener(object : RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>,
+                    isFirstResource: Boolean,
+                ): Boolean = false
+
+                override fun onResourceReady(
+                    resource: com.bumptech.glide.load.resource.gif.GifDrawable,
+                    model: Any,
+                    target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean,
+                ): Boolean {
+                    safeViews.photoView.post { applyPhotoViewRotation() }
+                    return false
+                }
+            })
             .into(safeViews.photoView)
     }
 
@@ -516,7 +568,12 @@ class StandaloneViewManager(
         // restored after every player recreation to keep Control dialog and gestures consistent.
         val effects = listOfNotNull(
             videoColorProcessor.buildHueEffect(),
-            videoColorProcessor.buildBrightnessEffect()
+            videoColorProcessor.buildBrightnessEffect(),
+            // S0995: manual clockwise frame rotation, composed with the colour chain (single
+            // setVideoEffects call). Null (omitted) at angle 0 - keeps the existing zero-cost path.
+            VideoColorProcessor.buildRotationEffect(
+                contentRotationDegrees, standaloneVideoWidth, standaloneVideoHeight
+            )
         )
         // Media3 1.2.1 deferral: Presentation.createForWidthAndHeight crashes with -1,-1 when
         // setVideoEffects() is called before the decoder emits the first frame.
@@ -850,6 +907,9 @@ class StandaloneViewManager(
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
             if (videoSize.width <= 0 || videoSize.height <= 0) return
+            // S0995: remember decoded dims so the rotation effect can refit the frame at 90/270.
+            standaloneVideoWidth = videoSize.width
+            standaloneVideoHeight = videoSize.height
             if (!standaloneVideoSizeKnown) {
                 standaloneVideoSizeKnown = true
                 Timber.d("StandaloneViewManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height}")
