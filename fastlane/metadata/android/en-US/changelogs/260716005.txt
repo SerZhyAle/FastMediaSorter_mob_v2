@@ -1,0 +1,7 @@
+• Camera launch widget - snap a photo straight from your home screen.
+• Animated WebP & APNG - short animations now play in the image viewer.
+• Share resource as a QR code - hand off an SFTP resource by scanning it.
+• Pin stream tiles - keep favourite streams on top with a pinned badge.
+• Private screens - settings and resource screens hide in Recents and block screenshots.
+• Edge-gesture settings - configure screen-edge gestures from one dialog.
+..
