@@ -424,6 +424,14 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- S1045: block screenshots / Recents preview on credential-bearing screens (default ON). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSecureSensitiveScreens"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_title="@string/settings_secure_sensitive_screens_title"
+                        app:str_subtitle="@string/settings_secure_sensitive_screens_summary" />
+
                     <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. Help icon explains the feature. -->
                     <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
@@ -432,9 +440,6 @@
                         <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
-
-                    <!-- Add an existing widget to the home screen via the in-app picker + system pinning -->
-                    <com.google.android.material.button.MaterialButton android:id="@+id/buttonAddHomeWidget" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:clickable="true" android:focusable="true" android:text="@string/settings_add_home_widget_title" app:icon="@drawable/ic_add" app:iconGravity="start" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -752,6 +757,22 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- S1052 (was S0559): menu-screenshot test tool. This whole group is BuildConfig.DEBUG-gated;
+                         GeneralSettingsFragment additionally shows it only when a MenuScreenshotLauncher is bound (standard + noLegal). -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTakeScreenshotNow"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:clickable="true"
+                        android:ellipsize="end"
+                        android:focusable="true"
+                        android:maxLines="2"
+                        android:textAllCaps="false"
+                        android:textSize="@dimen/toggler_title_text_size"
+                        android:text="@string/settings_take_screenshot_now" />
 
                 </LinearLayout>
             </LinearLayout>

@@ -44,36 +44,7 @@ class ExportCompanionConfigUseCase @Inject constructor(
     suspend operator fun invoke(resource: MediaResource, includePassword: Boolean): Result<File> =
         withContext(ioDispatcher) {
             try {
-                val pathInfo = SftpPathUtils.parseSftpPath(resource.path)
-                    ?: return@withContext Result.failure(
-                        IllegalArgumentException("Resource path is not a valid SFTP path: ${resource.path}")
-                    )
-                val credentialsId = resource.credentialsId
-                    ?: return@withContext Result.failure(
-                        IllegalStateException("SFTP resource has no stored credentials")
-                    )
-                val credentials = smbOperationsUseCase.getSftpCredentials(credentialsId).getOrElse { e ->
-                    return@withContext Result.failure(e)
-                }
-
-                val dto = CompanionConfigDto(
-                    schemaVersion = CompanionConfigParser.SUPPORTED_SCHEMA_VERSION,
-                    resourceName = resource.name,
-                    protocol = CompanionConfigParser.PROTOCOL_SFTP,
-                    accessPaths = listOf(
-                        CompanionAccessPathDto(
-                            kind = CompanionAccessPathDto.KIND_LAN,
-                            host = pathInfo.host,
-                            port = pathInfo.port
-                        )
-                    ),
-                    username = credentials.username,
-                    password = if (includePassword) credentials.password else "",
-                    hostKeyFingerprintSha256 = resource.hostKeyFingerprint.orEmpty(),
-                    roots = listOf(buildRoot(resource, pathInfo.remotePath)),
-                    createdAt = isoTimestamp()
-                )
-
+                val dto = buildConfigDto(resource, includePassword)
                 val file = writeConfig(resource.name, serializer.serialize(dto))
                 Result.success(file)
             } catch (e: Exception) {
@@ -81,6 +52,60 @@ class ExportCompanionConfigUseCase @Inject constructor(
                 Result.failure(e)
             }
         }
+
+    /**
+     * S1039: builds the compact `FMSCFG1:` payload for the QR share path - same credential fetch and
+     * DTO as [invoke], only the transport differs (a compressed string, no file written).
+     */
+    @Suppress("TooGenericExceptionCaught")
+    suspend fun exportQrPayload(
+        resource: MediaResource,
+        includePassword: Boolean
+    ): Result<CompanionQrExport> = withContext(ioDispatcher) {
+        try {
+            val dto = buildConfigDto(resource, includePassword)
+            Result.success(
+                CompanionQrExport(
+                    payload = serializer.serializeCompressed(dto),
+                    passwordIncluded = !dto.password.isNullOrBlank()
+                )
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Companion QR export failed for '${resource.name}'")
+            Result.failure(e)
+        }
+    }
+
+    // S1039: single source of the credential fetch + S0421-contract DTO build shared by the file and QR
+    // paths (removes the S1029 duplicate-domain smell); throws on failure so each caller wraps to Result.
+    private suspend fun buildConfigDto(resource: MediaResource, includePassword: Boolean): CompanionConfigDto {
+        val pathInfo = requireNotNull(SftpPathUtils.parseSftpPath(resource.path)) {
+            "Resource path is not a valid SFTP path: ${resource.path}"
+        }
+        val credentialsId = checkNotNull(resource.credentialsId) { "SFTP resource has no stored credentials" }
+        val credentials = smbOperationsUseCase.getSftpCredentials(credentialsId).getOrThrow()
+
+        return CompanionConfigDto(
+            schemaVersion = CompanionConfigParser.SUPPORTED_SCHEMA_VERSION,
+            resourceName = resource.name,
+            protocol = CompanionConfigParser.PROTOCOL_SFTP,
+            accessPaths = listOf(
+                CompanionAccessPathDto(
+                    kind = CompanionAccessPathDto.KIND_LAN,
+                    host = pathInfo.host,
+                    port = pathInfo.port
+                )
+            ),
+            username = credentials.username,
+            password = if (includePassword) credentials.password else "",
+            hostKeyFingerprintSha256 = resource.hostKeyFingerprint.orEmpty(),
+            roots = listOf(buildRoot(resource, pathInfo.remotePath)),
+            createdAt = isoTimestamp()
+        )
+    }
+
+    /** S1039: result of [exportQrPayload] - the QR payload plus whether it embeds the password. */
+    data class CompanionQrExport(val payload: String, val passwordIncluded: Boolean)
 
     /**
      * S1002: emits the resource's real params into a v2 root. Fields at their v1-import default are

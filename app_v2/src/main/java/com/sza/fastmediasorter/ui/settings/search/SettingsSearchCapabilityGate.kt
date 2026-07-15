@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.settings.search
 
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
 import javax.inject.Inject
@@ -33,15 +35,19 @@ import javax.inject.Singleton
 @Singleton
 class SettingsSearchCapabilityGate @Inject constructor(
     private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
+    private val menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val mediaCapabilities: MediaCapabilities,
     private val capabilityAvailability: CapabilityAvailability
 ) {
 
     // Gating-container view-id -> "is the capability present". Mirrors the runtime gate:
     //  - OperationsGesturesManager.setup: groupScreenGestures GONE when the controller set is empty.
-    // The S0559 screenshot-test button (btnTakeScreenshotNow) now lives inside groupScreenGestures,
-    // so it is covered by this same container gate; its own launcher set is a superset of the
-    // controller set, so no flavor shows the card without a bound launcher.
+    // S1035: the card now holds only the master toggle + the "Configure gestures" launcher
+    // (btnOpenEdgeGestureConfig); the per-zone/direction detail rows moved to
+    // EdgeGestureConfigDialogFragment, whose layout is not in the search catalog, so search now
+    // surfaces the entry point only (owner §6.6). Both are covered by this container gate.
+    // S1052: the S0559 screenshot-test button relocated out of this card into the General-tab debug
+    // section; it is gated by its own per-row branch below, not this container.
     private val capabilityByContainer: Map<Int, () -> Boolean> = mapOf(
         R.id.groupScreenGestures to { screenGestureControllers.isNotEmpty() }
     )
@@ -83,11 +89,15 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "rowOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
         // Downloadable extensions - GeneralSettingsFragment.
         "btnDownloadableExtensions" -> capabilityAvailability.isExtensionsScreenAvailable()
-        // S0621: accessibility-shortcut button lives in the gestures group, which is now visible on
-        // standard once the controller set is non-empty. The button is meaningful only where the
-        // silent accessibility path exists; OperationsGesturesManager hides it on standard, so mirror
-        // that here keyed on the controller capability.
-        "btnOpenAccessibilitySettings" -> screenGestureControllers.any { it.isFallbackCaptureAvailable() }
+        // S1051: btnOpenAccessibilitySettings now lives in the always-available System-apps group
+        // (relocated out of the edge-gesture dialog, S1035). The owning fragment hides it unless the
+        // silent-capture capability is present, so mirror that per-row here to avoid a dead search hit.
+        "btnOpenAccessibilitySettings" -> screenGestureControllers.firstOrNull()?.isFallbackCaptureAvailable() == true
+        // S1052: menu-screenshot test relocated into the General-tab debug section (out of the gesture
+        // card, so it loses that container gate). Build-type gate (BuildConfig.DEBUG) + flavor axis
+        // (launcher bound = standard + noLegal); mirrors GeneralSettingsFragment.setupScreenshotTestButton
+        // so search never surfaces it in a release build.
+        "btnTakeScreenshotNow" -> BuildConfig.DEBUG && menuScreenshotLaunchers.isNotEmpty()
         else -> true
     }
 }

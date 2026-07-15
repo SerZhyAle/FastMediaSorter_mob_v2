@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.companion
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -67,6 +68,44 @@ class CompanionConfigSerializerTest {
         val parsed = roundTrip(dto)
 
         assertEquals(dto, parsed)
+    }
+
+    @Test
+    fun `round-trips a config through the compressed transport`() {
+        val dto = CompanionConfigDto(
+            schemaVersion = 2,
+            resourceName = "Home PC",
+            protocol = "sftp",
+            accessPaths = listOf(CompanionAccessPathDto(CompanionAccessPathDto.KIND_LAN, "192.168.1.23", 2022)),
+            username = "fms",
+            password = "s3cret",
+            hostKeyFingerprintSha256 = "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+            roots = listOf(
+                CompanionRootDto(
+                    virtualPath = "/Music",
+                    label = "Home Music",
+                    profile = "audio_library",
+                    mediaTypes = listOf("audio"),
+                    scanSubdirectories = true,
+                    showSubfoldersAsItems = false,
+                    showHiddenFiles = false,
+                    allFiles = false,
+                    isDestination = false,
+                    destinationColor = null,
+                    comment = "Vinyl rips",
+                    accessPin = "1234",
+                    slideshowInterval = 15
+                )
+            ),
+            createdAt = "2026-07-11T00:00:00Z"
+        )
+
+        val compressed = serializer.serializeCompressed(dto)
+
+        assertTrue(compressed.startsWith(CompanionConfigParser.COMPRESSED_PREFIX))
+        assertEquals(dto, parser.parse(compressed))
+        // Density is the point of this transport: it must beat plain JSON for a multi-field DTO.
+        assertTrue(compressed.length < serializer.serialize(dto).length)
     }
 
     @Test

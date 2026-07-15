@@ -23,6 +23,7 @@ object NetworkErrorMessageMapper {
         is NetworkTimeoutException -> R.string.error_network_timeout
         is ScanTimeoutException -> R.string.error_scan_timeout
         is NetworkAccessDeniedException -> R.string.error_network_access_denied
+        is NetworkHostKeyChangedException -> R.string.error_network_host_key_changed
         is NetworkFileNotFoundException -> R.string.error_network_not_found
         // WifiRequiredException is a NetworkConnectionLostException subclass - must come first
         // so the more specific branch wins before the generic connection-lost branch.
@@ -58,6 +59,14 @@ object NetworkErrorMessageMapper {
         contextAnalyzer: NetworkContextAnalyzer,
         accessNote: String? = null
     ): String {
+        // S1055: on the resource-open/navigation surface an access-denied on a companion (SFTP/FTP)
+        // resource means a credential failure (share deleted+recreated), not a file-permission result,
+        // so guide the user to re-pair rather than showing the generic "access denied". Host-key changes
+        // are already handled by the exhaustive toMessageRes branch below (non-connectivity early return).
+        if (exception is NetworkAccessDeniedException &&
+            (resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP)) {
+            return context.getString(R.string.error_companion_repair_needed)
+        }
         val isConnectivityError = exception is NetworkConnectionLostException
                 || exception is NetworkTimeoutException
         if (!isConnectivityError) {

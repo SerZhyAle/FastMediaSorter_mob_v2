@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import kotlin.math.abs
 import kotlin.math.min
+import timber.log.Timber
 
 /**
  * Draws a bright-red, wide-stroke draggable rectangle over the captured photo for the Camera-OCR
@@ -35,6 +36,7 @@ class CropOverlayView @JvmOverloads constructor(
     private val minSidePx = MIN_SIDE_DP * density
     private val handleSlopPx = HANDLE_SLOP_DP * density
     private val keyStepPx = KEY_STEP_DP * density
+    private val bottomSafeInsetPx = BOTTOM_SAFE_INSET_DP * density
 
     private val selection = RectF()
 
@@ -55,6 +57,8 @@ class CropOverlayView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeWidth = STROKE_DP * density
         color = ContextCompat.getColor(context, R.color.crop_frame_red)
+        // 25% translucent so the thick red edge does not fully mask the text line it sits on.
+        alpha = BORDER_ALPHA
     }
 
     private val scrimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -128,13 +132,21 @@ class CropOverlayView @JvmOverloads constructor(
         contentRect.set(left, top, left + drawnW, top + drawnH)
     }
 
+    /**
+     * Lowest Y the frame's bottom edge may reach: a safe band above the content bottom so the bottom
+     * handle never sits crammed against the command bar below the overlay (S1047 - the edge was
+     * ungrabbable there). Floored at min-side above the top for degenerate short content.
+     */
+    private fun effectiveBottom(): Float =
+        (contentRect.bottom - bottomSafeInsetPx).coerceAtLeast(contentRect.top + minSidePx)
+
     private fun applyDefaultFrame() {
         if (contentRect.isEmpty) return
         selection.set(
             contentRect.left + defaultInsetPx,
             contentRect.top + defaultInsetPx,
             contentRect.right - defaultInsetPx,
-            contentRect.bottom - defaultInsetPx
+            effectiveBottom()
         )
         // Tiny content rect: the inset could invert the frame - fall back to the full content rect.
         if (selection.right - selection.left < minSidePx || selection.bottom - selection.top < minSidePx) {
@@ -274,8 +286,9 @@ class CropOverlayView @JvmOverloads constructor(
         var ny = dy
         if (selection.left + nx < contentRect.left) nx = contentRect.left - selection.left
         if (selection.right + nx > contentRect.right) nx = contentRect.right - selection.right
+        val maxBottom = effectiveBottom()
         if (selection.top + ny < contentRect.top) ny = contentRect.top - selection.top
-        if (selection.bottom + ny > contentRect.bottom) ny = contentRect.bottom - selection.bottom
+        if (selection.bottom + ny > maxBottom) ny = maxBottom - selection.bottom
         selection.offset(nx, ny)
     }
 
@@ -288,8 +301,11 @@ class CropOverlayView @JvmOverloads constructor(
     private fun clampTop(value: Float): Float =
         value.coerceIn(contentRect.top, selection.bottom - minSidePx)
 
-    private fun clampBottom(value: Float): Float =
-        value.coerceIn(selection.top + minSidePx, contentRect.bottom)
+    private fun clampBottom(value: Float): Float {
+        // Cap at the reserved-band bottom, guarded so the lower bound never exceeds the upper.
+        val maxBottom = effectiveBottom().coerceAtLeast(selection.top + minSidePx)
+        return value.coerceIn(selection.top + minSidePx, maxBottom)
+    }
 
     private enum class Handle {
         NONE, INSIDE, LEFT, RIGHT, TOP, BOTTOM, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
@@ -302,5 +318,7 @@ class CropOverlayView @JvmOverloads constructor(
         private const val KEY_STEP_DP = 16f
         private const val STROKE_DP = 6f
         private const val SCRIM_ALPHA = 102 // ~40%
+        private const val BOTTOM_SAFE_INSET_DP = 48f
+        private const val BORDER_ALPHA = 191 // 75% opaque (25% transparent)
     }
 }

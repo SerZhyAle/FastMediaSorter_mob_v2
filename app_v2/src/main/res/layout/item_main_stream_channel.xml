@@ -14,7 +14,7 @@
         android:id="@+id/channelRoot"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:minWidth="@dimen/main_stream_channel_min_width"
+        android:minWidth="@dimen/main_panel_item_min_width"
         android:background="?attr/selectableItemBackground"
         android:focusable="true"
         android:clickable="true"

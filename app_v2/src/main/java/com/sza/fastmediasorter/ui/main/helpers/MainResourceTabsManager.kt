@@ -70,9 +70,13 @@ class MainResourceTabsManager(
         // Restore active tab (falls back to ALL when the active source is no longer built).
         tabLayout.getTabAt(getTabIndexForResourceTab(getActiveTab()))?.select()
 
-        // Width-aware mode: scrollable on narrow phones to avoid truncated labels.
+        // S1049: the portrait-only fixed-grid bucket (main_resource_tabs_fixed_grid) always goes scrollable +
+        // start-aligned so app:tabMinWidth/tabMaxWidth (main_panel_tab_min_width, 2x the shared item module)
+        // are respected exactly instead of being overridden by fill-stretch. Landscape/w600dp leave this bool
+        // false and keep the pre-existing width-aware fixed/fill split below, unchanged.
+        val fixedGrid = tabLayout.resources.getBoolean(R.bool.main_resource_tabs_fixed_grid)
         val screenWidthDp = configuration.screenWidthDp
-        if (screenWidthDp < 480) {
+        if (fixedGrid || screenWidthDp < NARROW_TAB_LAYOUT_MAX_WIDTH_DP) {
             tabLayout.tabMode = TabLayout.MODE_SCROLLABLE
             tabLayout.tabGravity = TabLayout.GRAVITY_START
         } else {
@@ -129,4 +133,9 @@ class MainResourceTabsManager(
     /** Tab at [index] in the built set; ALL when out of range. */
     fun getResourceTabForIndex(index: Int): ResourceTab =
         builtTabs.getOrElse(index) { ResourceTab.ALL }
+
+    companion object {
+        /** Below this width, resource tabs stay scrollable regardless of the fixed-grid bucket (S1049). */
+        private const val NARROW_TAB_LAYOUT_MAX_WIDTH_DP = 480
+    }
 }

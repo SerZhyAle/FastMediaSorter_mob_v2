@@ -658,6 +658,9 @@
              from AddResource), never exported. -->
         <activity android:name=".ui.companionimport.qr.CompanionQrScanActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.FastMediaSorter" />
 
+        <!-- S1039: renders a resource's .fmscfg as a QR (FLAG_SECURE, internal only, no intent filters). -->
+        <activity android:name=".ui.companionimport.qr.CompanionQrShareActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.FastMediaSorter" />
+
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->

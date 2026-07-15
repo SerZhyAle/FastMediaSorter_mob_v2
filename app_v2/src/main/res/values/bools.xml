@@ -6,4 +6,7 @@
     <bool name="main_programs_panel_show_labels">false</bool>
     <!-- S0756: streams panel shows channel labels by available window width (compact = thumbnail only). -->
     <bool name="main_streams_panel_show_labels">false</bool>
+    <!-- S1049: portrait resource tabs use a fixed two-item-module width (main_panel_tab_min_width),
+         left-aligned, instead of stretching to fill the row. -->
+    <bool name="main_resource_tabs_fixed_grid">true</bool>
 </resources>

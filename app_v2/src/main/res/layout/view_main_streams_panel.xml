@@ -19,18 +19,20 @@
         android:background="@color/main_streams_panel_accent"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/main_panel_item_spacing">
+        android:paddingStart="0dp"
+        android:paddingEnd="@dimen/main_panel_item_spacing">
 
         <!-- S0779: entry button. Label ("Streams") shows in landscape only (width-saving in portrait); the
              text + min-width are driven from MainStreamsPanelManager.applyShowLabels(). Open / Open-in-new-window
              / Configure / Collapse / Hide / Disable live on its long-press menu, so the separate three-dots
-             button (S0770) was removed. -->
+             button (S0770) was removed.
+             S1037: in portrait the manager pins its min-width to the shared leading anchor (no trailing margin),
+             so the first channel starts at the same X as the programs items and resource tabs. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStreamsPanelEntry"
             style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/main_panel_row_height"
-            android:layout_marginEnd="@dimen/main_streams_entry_margin_end"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:foreground="@drawable/focus_button_background"
             android:focusable="true"

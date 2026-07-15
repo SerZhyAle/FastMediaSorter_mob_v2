@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
@@ -31,16 +30,20 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.settings.DefaultAppsDialogFragment
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
+import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
-import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
+import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
+import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -61,21 +64,16 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
 
-    // Empty except on standard + noLegal, where the shared capture engine binds the menu launcher.
-    @Inject
-    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
-
     // S0774: empty except on standard + noLegal; gates the screen-recording settings rows.
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
 
-    private val gestureActionPickerManager by lazy {
-        // S0797: hide the "start screen recording" action where the capture engine is absent.
-        ScreenshotGestureActionPickerManager(
-            capabilityAvailability,
-            screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
-        )
-    }
+    // Home-widget picker (relocated from General into the OS-interaction group).
+    @Inject
+    lateinit var homeWidgetCatalog: HomeWidgetCatalog
+
+    @Inject
+    lateinit var homeWidgetPinner: HomeWidgetPinner
 
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
@@ -93,8 +91,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
     private val gesturesManager by lazy {
         OperationsGesturesManager(
-            binding, viewModel, this, screenGestureControllers, gestureActionPickerManager,
-            overlayPermissionLauncher, { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel
+            binding, viewModel, this, screenGestureControllers,
+            overlayPermissionLauncher, { isUpdatingFromSettings }
         )
     }
 
@@ -323,7 +321,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Capture group (camera photos, video recording, microphone).
         captureManager.setup()
-        captureManager.setupScreenshotAction(menuScreenshotLaunchers, requireActivity())
 
         // Screen-gesture overlay group (noLegal-only capability).
         gesturesManager.setup()
@@ -331,6 +328,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // S0880: default-player registration UI now lives in DefaultAppsDialogFragment; this is its launcher.
         binding.btnOpenDefaultAppsDialog.setOnClickListener {
             DefaultAppsDialogFragment().show(childFragmentManager, DefaultAppsDialogFragment.TAG)
+        }
+
+        // Home-widget picker launcher (relocated from General into the OS-interaction group).
+        HomeWidgetSettingsHelper(binding.buttonAddHomeWidget, this, homeWidgetCatalog, homeWidgetPinner).setup()
+
+        // S1035: launcher for the extracted edge-gesture configuration dialog (gated by OperationsGesturesManager).
+        binding.btnOpenEdgeGestureConfig.setOnClickListener {
+            EdgeGestureConfigDialogFragment().show(childFragmentManager, EdgeGestureConfigDialogFragment.TAG)
         }
 
         // OCR/Translation toggles (containerAdditionalPrograms).
@@ -384,6 +389,26 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
 
         // System apps group rows.
+        // S1051: accessibility-shortcut control relocated here from the edge-gesture dialog. Visibility
+        // follows the same silent-capture capability (noLegal); the click reuses the fragment's
+        // overlayPermissionLauncher (the dialog used that very launcher before the move).
+        val a11yController = screenGestureControllers.firstOrNull()
+        val supportsA11ySilent = a11yController?.isFallbackCaptureAvailable() == true
+        binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
+        binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
+        if (a11yController != null) {
+            binding.btnOpenAccessibilitySettings.setOnClickListener {
+                Timber.d("S1051: accessibility shortcut tapped from OS-interaction settings")
+                try {
+                    overlayPermissionLauncher.launch(a11yController.permissionSettingsIntent(requireContext()))
+                } catch (e: android.content.ActivityNotFoundException) {
+                    // Accessibility settings screen unreachable on this ROM: fall back to the educational
+                    // dialog, which routes to alternative entry points (S0449 ADR-1).
+                    Timber.w(e, "Accessibility settings intent unresolved; showing fallback dialog")
+                    showAccessibilityFallbackDialog(a11yController)
+                }
+            }
+        }
         // S0162: hide rotation row on non-sensor devices.
         val hasAccelerometer = requireContext().packageManager
             .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
@@ -593,6 +618,27 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 ))
             }
         }
+    }
+
+    /**
+     * S1051: educational gate shown when the direct accessibility-settings intent is unavailable
+     * (relocated from EdgeGestureConfigManager). Sideloaded (noLegal) builds cannot flip the toggle
+     * directly - the exact tap sequence is spelled out, with a shortcut to the fallback capture method.
+     */
+    private fun showAccessibilityFallbackDialog(controller: ScreenGestureOverlayController) {
+        val builder = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.screenshot_gesture_permission_dialog_title)
+            .setMessage(controller.permissionRationaleResId())
+            .setPositiveButton(R.string.screenshot_gesture_open_settings) { _, _ ->
+                overlayPermissionLauncher.launch(controller.permissionSettingsIntent(requireContext()))
+            }
+            .setNegativeButton(R.string.cancel, null)
+        if (controller.isFallbackCaptureAvailable()) {
+            builder.setNeutralButton(R.string.screenshot_gesture_use_old_method) { _, _ ->
+                overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(requireContext()))
+            }
+        }
+        builder.show()
     }
 
     /**

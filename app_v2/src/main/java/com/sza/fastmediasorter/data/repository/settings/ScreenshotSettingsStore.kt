@@ -45,6 +45,20 @@ class ScreenshotSettingsStore private constructor() {
         private val KEY_RIGHT_BOTTOM_DOWN = stringPreferencesKey("gesture_right_bottom_down")
         private val KEY_RIGHT_BOTTOM_RIGHT = stringPreferencesKey("gesture_right_bottom_right")
         private val KEY_RIGHT_BOTTOM_UP = stringPreferencesKey("gesture_right_bottom_up")
+        // S1038: 12 generic per-slot string payloads (zone x direction), value-agnostic per ADR-3
+        // (URL for "open URL", app package for S1036). Absent key = empty payload.
+        private val KEY_PAYLOAD_LEFT_TOP_DOWN = stringPreferencesKey("gesture_payload_left_top_down")
+        private val KEY_PAYLOAD_LEFT_TOP_RIGHT = stringPreferencesKey("gesture_payload_left_top_right")
+        private val KEY_PAYLOAD_LEFT_TOP_UP = stringPreferencesKey("gesture_payload_left_top_up")
+        private val KEY_PAYLOAD_LEFT_BOTTOM_DOWN = stringPreferencesKey("gesture_payload_left_bottom_down")
+        private val KEY_PAYLOAD_LEFT_BOTTOM_RIGHT = stringPreferencesKey("gesture_payload_left_bottom_right")
+        private val KEY_PAYLOAD_LEFT_BOTTOM_UP = stringPreferencesKey("gesture_payload_left_bottom_up")
+        private val KEY_PAYLOAD_RIGHT_TOP_DOWN = stringPreferencesKey("gesture_payload_right_top_down")
+        private val KEY_PAYLOAD_RIGHT_TOP_RIGHT = stringPreferencesKey("gesture_payload_right_top_right")
+        private val KEY_PAYLOAD_RIGHT_TOP_UP = stringPreferencesKey("gesture_payload_right_top_up")
+        private val KEY_PAYLOAD_RIGHT_BOTTOM_DOWN = stringPreferencesKey("gesture_payload_right_bottom_down")
+        private val KEY_PAYLOAD_RIGHT_BOTTOM_RIGHT = stringPreferencesKey("gesture_payload_right_bottom_right")
+        private val KEY_PAYLOAD_RIGHT_BOTTOM_UP = stringPreferencesKey("gesture_payload_right_bottom_up")
         private val KEY_SCREENSHOT_DESTINATION_RESOURCE_ID =
             stringPreferencesKey("screenshot_destination_resource_id")
         private val KEY_COPY_SCREENSHOT_TO_CLIPBOARD =
@@ -53,6 +67,9 @@ class ScreenshotSettingsStore private constructor() {
             booleanPreferencesKey("screen_capture_disclosure_accepted")
 
         private val NONE = ScreenshotGestureAction.DO_NOT_USE
+
+        // S1038: empty payload persists as an absent key rather than a stored empty string.
+        private fun String.orNull(): String? = takeIf { it.isNotEmpty() }
 
         data class Values(
             val gestureOverlayEnabled: Boolean,
@@ -76,6 +93,18 @@ class ScreenshotSettingsStore private constructor() {
             val rightBottomDown: ScreenshotGestureAction,
             val rightBottomRight: ScreenshotGestureAction,
             val rightBottomUp: ScreenshotGestureAction,
+            val payloadLeftTopDown: String,
+            val payloadLeftTopRight: String,
+            val payloadLeftTopUp: String,
+            val payloadLeftBottomDown: String,
+            val payloadLeftBottomRight: String,
+            val payloadLeftBottomUp: String,
+            val payloadRightTopDown: String,
+            val payloadRightTopRight: String,
+            val payloadRightTopUp: String,
+            val payloadRightBottomDown: String,
+            val payloadRightBottomRight: String,
+            val payloadRightBottomUp: String,
             val screenshotDestinationResourceId: String?,
             val copyScreenshotToClipboard: Boolean,
             val screenCaptureDisclosureAccepted: Boolean,
@@ -113,6 +142,18 @@ class ScreenshotSettingsStore private constructor() {
             rightBottomDown = ScreenshotGestureAction.fromName(preferences[KEY_RIGHT_BOTTOM_DOWN], NONE),
             rightBottomRight = ScreenshotGestureAction.fromName(preferences[KEY_RIGHT_BOTTOM_RIGHT], NONE),
             rightBottomUp = ScreenshotGestureAction.fromName(preferences[KEY_RIGHT_BOTTOM_UP], NONE),
+            payloadLeftTopDown = preferences[KEY_PAYLOAD_LEFT_TOP_DOWN] ?: "",
+            payloadLeftTopRight = preferences[KEY_PAYLOAD_LEFT_TOP_RIGHT] ?: "",
+            payloadLeftTopUp = preferences[KEY_PAYLOAD_LEFT_TOP_UP] ?: "",
+            payloadLeftBottomDown = preferences[KEY_PAYLOAD_LEFT_BOTTOM_DOWN] ?: "",
+            payloadLeftBottomRight = preferences[KEY_PAYLOAD_LEFT_BOTTOM_RIGHT] ?: "",
+            payloadLeftBottomUp = preferences[KEY_PAYLOAD_LEFT_BOTTOM_UP] ?: "",
+            payloadRightTopDown = preferences[KEY_PAYLOAD_RIGHT_TOP_DOWN] ?: "",
+            payloadRightTopRight = preferences[KEY_PAYLOAD_RIGHT_TOP_RIGHT] ?: "",
+            payloadRightTopUp = preferences[KEY_PAYLOAD_RIGHT_TOP_UP] ?: "",
+            payloadRightBottomDown = preferences[KEY_PAYLOAD_RIGHT_BOTTOM_DOWN] ?: "",
+            payloadRightBottomRight = preferences[KEY_PAYLOAD_RIGHT_BOTTOM_RIGHT] ?: "",
+            payloadRightBottomUp = preferences[KEY_PAYLOAD_RIGHT_BOTTOM_UP] ?: "",
             screenshotDestinationResourceId = preferences[KEY_SCREENSHOT_DESTINATION_RESOURCE_ID],
             copyScreenshotToClipboard = preferences[KEY_COPY_SCREENSHOT_TO_CLIPBOARD] ?: false,
             screenCaptureDisclosureAccepted = preferences[KEY_SCREEN_CAPTURE_DISCLOSURE_ACCEPTED] ?: false,
@@ -140,6 +181,28 @@ class ScreenshotSettingsStore private constructor() {
             preferences[KEY_RIGHT_BOTTOM_DOWN] = settings.screenshotGestureRightBottomDown.name
             preferences[KEY_RIGHT_BOTTOM_RIGHT] = settings.screenshotGestureRightBottomRight.name
             preferences[KEY_RIGHT_BOTTOM_UP] = settings.screenshotGestureRightBottomUp.name
+            // S1038: store the payload only when set; an empty value removes the key (default is empty).
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_DOWN, settings.screenshotGesturePayloadLeftTopDown.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_RIGHT, settings.screenshotGesturePayloadLeftTopRight.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_UP, settings.screenshotGesturePayloadLeftTopUp.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_BOTTOM_DOWN, settings.screenshotGesturePayloadLeftBottomDown.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_LEFT_BOTTOM_RIGHT,
+                settings.screenshotGesturePayloadLeftBottomRight.orNull()
+            )
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_BOTTOM_UP, settings.screenshotGesturePayloadLeftBottomUp.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_DOWN, settings.screenshotGesturePayloadRightTopDown.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_RIGHT, settings.screenshotGesturePayloadRightTopRight.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_UP, settings.screenshotGesturePayloadRightTopUp.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_RIGHT_BOTTOM_DOWN,
+                settings.screenshotGesturePayloadRightBottomDown.orNull()
+            )
+            preferences.setOrRemove(
+                KEY_PAYLOAD_RIGHT_BOTTOM_RIGHT,
+                settings.screenshotGesturePayloadRightBottomRight.orNull()
+            )
+            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_BOTTOM_UP, settings.screenshotGesturePayloadRightBottomUp.orNull())
             preferences.setOrRemove(
                 KEY_SCREENSHOT_DESTINATION_RESOURCE_ID,
                 settings.screenshotDestinationResourceId

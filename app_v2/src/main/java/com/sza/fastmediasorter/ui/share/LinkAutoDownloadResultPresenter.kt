@@ -62,7 +62,6 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
 
         when (result) {
             is LinkAutoDownloadCoordinator.Result.Saved -> {
-                Timber.d("S0980: saved-open openInPlayer=$openInPlayer uri=${result.openInPlayerUri != null}")
                 if (openInPlayer && result.openInPlayerUri != null) {
                     launchPlayer(hostActivity, result.openInPlayerUri)
                 } else if (!notificationShown) {
@@ -79,7 +78,6 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 }
             }
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
-                Timber.d("S0980: batch-open openInPlayer=$openInPlayer firstUri=${result.summary.firstSavedUri != null}")
                 if (result.summary.failureCount == 0) {
                     // S0980: a fully-successful batch (e.g. an Instagram carousel) opens its first saved
                     // file when the setting is on, matching single-item behaviour and the notification tap.

@@ -28,6 +28,21 @@ interface VideoPlayerHandle {
     fun setBrightnessProgress(progress: Int)
     fun getBrightnessPercentOffset(): Int
 
+    // ── Manual frame rotation (S0995) ─────────────────────────────────────────
+
+    /**
+     * Apply a pure-visual frame rotation of [degrees] (∈ {0,90,180,270}, clockwise) to the active
+     * video surface. This is NOT the screen-orientation sensor and NOT a destructive file edit -
+     * it rotates only the rendered frame; controls stay upright. No-op when no video is active.
+     *
+     * Default no-op: hosts without a rotatable frame (audio/document/text and the deprecated
+     * standalone host) inherit it unchanged; the image/video handles override with the real apply.
+     */
+    fun setContentRotationDegrees(degrees: Int) {}
+
+    /** Current visual frame rotation in degrees (0 when not determinable). Default 0 for frameless hosts. */
+    fun getContentRotationDegrees(): Int = 0
+
     // ── Playback speed ────────────────────────────────────────────────────────
 
     /** Returns the current playback speed; defaults to 1.0 when not determinable. */

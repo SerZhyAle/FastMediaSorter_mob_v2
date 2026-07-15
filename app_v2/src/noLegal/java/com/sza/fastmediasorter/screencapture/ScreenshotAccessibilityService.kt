@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.screencapture
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityService.ScreenshotResult
 import android.accessibilityservice.AccessibilityService.TakeScreenshotCallback
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Build
 import android.view.Display
@@ -114,6 +115,14 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         teardown()
         serviceScope.cancel()
         super.onDestroy()
+    }
+
+    // S1048: AccessibilityService gets onConfigurationChanged like any other Service; without this
+    // override the accessibility-hosted strip kept its pre-rotation WindowManager coordinates.
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val manager = overlayManager ?: return
+        manager.relayout()
     }
 
     /** Show/hide the edge gesture strip. Called on connect and pushed by the settings controller. */

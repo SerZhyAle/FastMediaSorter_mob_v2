@@ -57,6 +57,10 @@ object NetworkErrorClassifier {
             return ClassificationResult(throwable, usedFallback = false)
         }
 
+        // S1055: SSH-specific reconnect outcomes (host-key change / auth reject) short-circuit ahead of
+        // the generic message heuristics so they are never folded into a transient, retryable outcome.
+        sshOutcome(throwable)?.let { return ClassificationResult(it, usedFallback = false) }
+
         return when {
             // OS-level socket block for missing ACCESS_LOCAL_NETWORK (Android 17+)
             throwable is SecurityException &&
@@ -221,6 +225,26 @@ object NetworkErrorClassifier {
                 )
             }
         }
+    }
+
+    /**
+     * S1055: recognise the two SSH-specific reconnect outcomes that must never be treated as transient -
+     * a pinned host-key change (security event) and an authentication rejection (credentials no longer
+     * valid, e.g. the share was deleted and re-created). Matches both the raw JSch verdict and the typed
+     * [com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException] message. Specific auth tokens
+     * only ("auth fail" / "auth cancel" / "userauth") so a normal SFTP file "permission denied" status is
+     * not swallowed. Returns null when the throwable is neither, so normal classification continues.
+     */
+    private fun sshOutcome(throwable: Throwable): NetworkException? = when {
+        throwable.messageContains("hostkey", "host key", "host-key") -> {
+            Timber.d("S1055: classified host-key change on live SFTP path")
+            NetworkHostKeyChangedException("Server host key changed: ${throwable.message}", throwable)
+        }
+        throwable.messageContains("auth fail", "auth cancel", "userauth") -> {
+            Timber.d("S1055: classified SSH auth failure on live SFTP path")
+            NetworkAccessDeniedException("SFTP auth failed: ${throwable.message}", throwable)
+        }
+        else -> null
     }
 
     /**

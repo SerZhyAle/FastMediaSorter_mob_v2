@@ -405,6 +405,9 @@
     <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
          legible on top of an arbitrary captured video frame or favicon. -->
     <color name="stream_grid_overlay_scrim">#99000000</color>
+    <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
+         red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
+    <color name="stream_pin_badge_bg">#FFC62828</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
 </resources>

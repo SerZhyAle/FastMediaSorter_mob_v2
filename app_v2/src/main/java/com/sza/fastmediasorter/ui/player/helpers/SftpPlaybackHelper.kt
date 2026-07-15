@@ -96,7 +96,9 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     // S0865: release any player a concurrent playVideo() raced in during the TS-probe suspension above.
     releaseIfRacedPlayer()
 
+    Timber.d("S1056: SFTP renderers factory applied")
     exoPlayer = ExoPlayer.Builder(context)
+        .setRenderersFactory(createPlaybackRenderersFactory(context))
         .setMediaSourceFactory(
             (dataSourceFactory as DataSource.Factory).buildBdTsMediaSourceFactory(format)
         )

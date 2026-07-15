@@ -165,7 +165,6 @@ class CompanionMdnsDiscovery @Inject constructor(
         val canonical = rawFp?.let { SshFingerprintNormalizer.canonical(it) }
         if (host == null || port <= 0 || canonical == null) return
         discovered[canonical] = HostPort(host, port)
-        Timber.d("S1013: discovered companion $host:$port fp=${canonical.take(FP_LOG_CHARS)}")
     }
 
     companion object {

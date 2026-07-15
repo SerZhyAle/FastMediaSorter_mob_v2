@@ -2,4 +2,8 @@
 <resources>
     <bool name="is_tab_inline">true</bool>
     <bool name="is_resource_actions_inline">true</bool>
+    <!-- S1049: w600dp (tablet-width bucket, takes precedence over values-land in Android's qualifier
+         resolution) keeps the pre-existing width-aware fixed/fill resource-tabs behaviour - only the
+         plain portrait bucket (values/bools.xml default) uses the fixed two-module grid. -->
+    <bool name="main_resource_tabs_fixed_grid">false</bool>
 </resources>

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.settings.search
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.ui.settings.SettingsSearchDestination
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
@@ -26,20 +27,6 @@ class SettingsSearchCapabilityGateTest {
         val gate = gate(controllers = nonEmptyControllers())
 
         assertTrue(gate.isAvailable(entry(ancestorIds = listOf(R.id.groupScreenGestures))))
-    }
-
-    @Test
-    fun `suppresses accessibility-shortcut button when no controller offers the silent path`() {
-        val gate = gate(controllers = controllersWithSilentPath(false))
-
-        assertFalse(gate.isAvailable(entry(key = "btnOpenAccessibilitySettings")))
-    }
-
-    @Test
-    fun `keeps accessibility-shortcut button when a controller offers the silent path`() {
-        val gate = gate(controllers = controllersWithSilentPath(true))
-
-        assertTrue(gate.isAvailable(entry(key = "btnOpenAccessibilitySettings")))
     }
 
     @Test
@@ -162,6 +149,37 @@ class SettingsSearchCapabilityGateTest {
         assertTrue(gate.isAvailable(entry(key = "btnDownloadableExtensions")))
     }
 
+    // S1051: relocated to the always-available System-apps group, so its per-row branch is now the
+    // only gate on a genuinely-indexed search result - mirror the runtime isFallbackCaptureAvailable() gate.
+    @Test
+    fun `suppresses accessibility-shortcut button when no controller offers the silent path`() {
+        assertFalse(gate(controllers = emptySet()).isAvailable(entry(key = "btnOpenAccessibilitySettings")))
+        assertFalse(
+            gate(controllers = controllersWithSilentPath(available = false))
+                .isAvailable(entry(key = "btnOpenAccessibilitySettings"))
+        )
+    }
+
+    @Test
+    fun `keeps accessibility-shortcut button when a controller offers the silent path`() {
+        val gate = gate(controllers = controllersWithSilentPath(available = true))
+
+        assertTrue(gate.isAvailable(entry(key = "btnOpenAccessibilitySettings")))
+    }
+
+    // S1052: relocated into the General-tab debug section, losing the groupScreenGestures container
+    // gate, so this per-row branch is now the only search gate. BuildConfig.DEBUG is true in the
+    // unit-test variant, so these exercise the flavor (launcher-bound) axis of the composite gate.
+    @Test
+    fun `suppresses screenshot-test button when no menu-screenshot launcher is bound`() {
+        assertFalse(gate(launchers = emptySet()).isAvailable(entry(key = "btnTakeScreenshotNow")))
+    }
+
+    @Test
+    fun `keeps screenshot-test button when a menu-screenshot launcher is bound`() {
+        assertTrue(gate(launchers = menuLaunchers()).isAvailable(entry(key = "btnTakeScreenshotNow")))
+    }
+
     @Test
     fun `does not gate default-player keys - registry owns them`() {
         val gate = gate(media = mediaCaps(supportsDefaultPlayer = false))
@@ -173,18 +191,22 @@ class SettingsSearchCapabilityGateTest {
 
     private fun gate(
         controllers: Set<ScreenGestureOverlayController> = nonEmptyControllers(),
+        launchers: Set<MenuScreenshotLauncher> = emptySet(),
         media: MediaCapabilities = mediaCaps(),
         capability: CapabilityAvailability = capabilityAvailability()
     ) = SettingsSearchCapabilityGate(
         screenGestureControllers = controllers,
+        menuScreenshotLaunchers = launchers,
         mediaCapabilities = media,
         capabilityAvailability = capability
     )
 
     private fun nonEmptyControllers(): Set<ScreenGestureOverlayController> = setOf(mockk(relaxed = true))
 
+    private fun menuLaunchers(): Set<MenuScreenshotLauncher> = setOf(mockk(relaxed = true))
+
     private fun controllersWithSilentPath(available: Boolean): Set<ScreenGestureOverlayController> =
-        setOf(mockk { every { isFallbackCaptureAvailable() } returns available })
+        setOf(mockk(relaxed = true) { every { isFallbackCaptureAvailable() } returns available })
 
     private fun capabilityAvailability(
         stub: CapabilityAvailability.() -> Unit = {}

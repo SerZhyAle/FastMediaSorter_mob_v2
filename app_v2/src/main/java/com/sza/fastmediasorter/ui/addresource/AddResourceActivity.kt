@@ -31,6 +31,9 @@ import javax.inject.Inject
 @android.annotation.SuppressLint("SetTextI18n")
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
+    // S1045: hosts typed/pre-filled SMB/SFTP/FTP passwords and SSH passphrases.
+    override fun isSensitiveScreen(): Boolean = true
+
     private val viewModel: AddResourceViewModel by viewModels()
 
     private var copyResourceId: Long? = null
@@ -373,7 +376,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     private fun openCompanionPublishGuide() {
-        Timber.d("S0994: open companion publish-folders guide from add-resource")
         com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("CompanionPublishGuide", "AddResource")
         val factory = com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
         try {

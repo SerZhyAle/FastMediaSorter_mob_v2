@@ -7,4 +7,7 @@
     <!-- S0779: streams panel shows the entry label + channel labels in landscape only (portrait = icons,
          to fit more pinned channels horizontally). -->
     <bool name="main_streams_panel_show_labels">true</bool>
+    <!-- S1049: landscape resource tabs keep the pre-existing width-aware fixed/fill or scrollable
+         behaviour - the portrait fixed-grid does not apply here. -->
+    <bool name="main_resource_tabs_fixed_grid">false</bool>
 </resources>

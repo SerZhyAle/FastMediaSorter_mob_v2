@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -37,6 +38,10 @@ import kotlinx.coroutines.launch
  * S0701: each tile now also carries the same play-status dot (bottom-left) and overflow menu (top-right)
  * as the list row, and S0695's long-press pin/unpin toggle - so grid mode is not a feature-poor sibling
  * of the list. The secondary-command callbacks mirror [StreamSourceAdapter].
+ *
+ * S1062: the overflow menu leads with an explicit Pin/Unpin item (label reflects [StreamSourceEntity.pinned])
+ * and a pinned tile shows a small red top-left badge - a non-clickable indicator, since pin state is only
+ * changed through the menu.
  */
 class StreamGridAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
@@ -97,6 +102,8 @@ class StreamGridAdapter(
             cancelFaviconLoad()
             binding.tvTitle.text = StreamTitleFormatter.display(source.title)
             bindPlayStatus(source.lastPlayOutcome)
+            // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
+            binding.tvPinBadge.isVisible = source.pinned
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin on a tile too (mirrors the list row).
             binding.root.setOnLongClickListener {
@@ -106,6 +113,10 @@ class StreamGridAdapter(
             }
             binding.btnGridOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
+                    // S1062: pin/unpin is the topmost menu item; the label reflects the current state and
+                    // reuses the already-injected onPin toggle (unpins if pinned, else pins).
+                    val pinLabel = if (source.pinned) R.string.streams_unpin else R.string.streams_pin
+                    menu.add(Menu.NONE, ID_TOGGLE_PIN, Menu.NONE, pinLabel)
                     // S0938: reorder commands lead the menu for a pinned tile when more than one channel
                     // is pinned. Edge commands are disabled at the ends of the pinned block.
                     val pinnedRows = currentList.filter { it.pinned }
@@ -138,6 +149,7 @@ class StreamGridAdapter(
                     menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
+                            ID_TOGGLE_PIN -> { onPin(source); true }
                             ID_MOVE_UP -> { onMoveUp(source); true }
                             ID_MOVE_DOWN -> { onMoveDown(source); true }
                             ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
@@ -217,6 +229,7 @@ class StreamGridAdapter(
         const val ID_MOVE_UP = 6 // S0938
         const val ID_MOVE_DOWN = 7 // S0938
         const val ID_MOVE_TO_TOP = 8 // S0938
+        const val ID_TOGGLE_PIN = 9 // S1062
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

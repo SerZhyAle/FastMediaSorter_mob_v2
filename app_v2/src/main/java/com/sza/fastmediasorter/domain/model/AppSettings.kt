@@ -216,6 +216,21 @@ data class AppSettings(
     val screenshotGestureRightBottomDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotGestureRightBottomRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
     val screenshotGestureRightBottomUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
+    // S1038: generic per-slot string payload, one per zone x direction slot (mirrors the 12 action
+    // fields above). Value-agnostic and shared per ADR-3: it holds the target URL for the S1038
+    // "open URL" action and the app package for the S1036 app-selection action. Empty string = unset.
+    val screenshotGesturePayloadLeftTopDown: String = "",
+    val screenshotGesturePayloadLeftTopRight: String = "",
+    val screenshotGesturePayloadLeftTopUp: String = "",
+    val screenshotGesturePayloadLeftBottomDown: String = "",
+    val screenshotGesturePayloadLeftBottomRight: String = "",
+    val screenshotGesturePayloadLeftBottomUp: String = "",
+    val screenshotGesturePayloadRightTopDown: String = "",
+    val screenshotGesturePayloadRightTopRight: String = "",
+    val screenshotGesturePayloadRightTopUp: String = "",
+    val screenshotGesturePayloadRightBottomDown: String = "",
+    val screenshotGesturePayloadRightBottomRight: String = "",
+    val screenshotGesturePayloadRightBottomUp: String = "",
     val screenshotDestinationResourceId: String? = null,
     // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
     val copyScreenshotToClipboard: Boolean = false,
@@ -352,7 +367,11 @@ data class AppSettings(
     // OFF, S0656 flips the default ON now that the privacy concern is resolved). Gates the detailed
     // StatsSink write path; the always-on baseline launch record is independent of this flag. Never
     // applied by a device profile (empty CSV row), so a profile cannot silently change collection.
-    val enableStatistics: Boolean = true
+    val enableStatistics: Boolean = true,
+
+    // S1045: secure by default - block screenshots/Recents preview on screens exposing credentials.
+    // User-disableable so power users on trusted devices can screen-record credential screens.
+    val secureSensitiveScreens: Boolean = true
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.
@@ -417,6 +436,37 @@ data class AppSettings(
             ScreenshotGestureDirection.DOWN -> screenshotGestureRightBottomDown
             ScreenshotGestureDirection.RIGHT -> screenshotGestureRightBottomRight
             ScreenshotGestureDirection.UP -> screenshotGestureRightBottomUp
+        }
+    }
+
+    /**
+     * S1038: resolves the generic per-slot payload for a specific edge band + drag direction (one of
+     * 12 slots). Value-agnostic and shared with S1036 per ADR-3 - the URL for the "open URL" action
+     * here, the app package for the S1036 app-selection action. Empty string means no payload set.
+     */
+    fun screenshotGesturePayload(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection
+    ): String = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadLeftTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadLeftTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesturePayloadLeftTopUp
+        }
+        ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadLeftBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadLeftBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesturePayloadLeftBottomUp
+        }
+        ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadRightTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadRightTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesturePayloadRightTopUp
+        }
+        ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadRightBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadRightBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesturePayloadRightBottomUp
         }
     }
 }

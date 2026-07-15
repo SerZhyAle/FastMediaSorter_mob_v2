@@ -431,6 +431,7 @@
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
+            android:paddingStart="@dimen/main_top_panel_leading_anchor"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabIndicatorFullWidth="false"

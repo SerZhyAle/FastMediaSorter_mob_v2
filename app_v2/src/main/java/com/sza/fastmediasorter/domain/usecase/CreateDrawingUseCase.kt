@@ -139,7 +139,10 @@ class CreateDrawingUseCase @Inject constructor(
     }
 
     private fun ensureJpegExtension(name: String): String {
-        return if (name.contains('.')) name else "$name.jpg"
+        // A bare trailing dot ("foo.") has no real extension - detect via substringAfterLast, not
+        // contains('.'), then strip the dangling dot before appending (mirrors ImageEditorFileNamer).
+        val hasExtension = name.substringAfterLast('.', "").isNotBlank()
+        return if (hasExtension) name else "${name.trimEnd('.')}.jpg"
     }
 
     private fun buildBlankDrawingBytes(): ByteArray {

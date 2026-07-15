@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.model.ResourceType
 
 /**
@@ -36,8 +37,8 @@ class CloudFileOperationPathUtils(private val cloudPathParser: CloudPathParser) 
     }
 
     fun isNetworkPath(path: String): Boolean {
-        val normalized = normalizeNetworkPath(path)
-        return normalized.startsWith("smb://") || normalized.startsWith("sftp://") || normalized.startsWith("ftp://")
+        // S1028: cloud excluded here - this classifier gates only SMB/SFTP/FTP handling.
+        return PathUtils.isNetworkPath(normalizeNetworkPath(path), includeCloud = false)
     }
 
     fun extractSftpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String {

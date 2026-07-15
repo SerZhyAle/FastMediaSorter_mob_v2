@@ -15,6 +15,8 @@ import com.sza.fastmediasorter.data.transfer.strategies.FtpToLocalStrategy
 import com.sza.fastmediasorter.data.transfer.strategies.FtpToFtpStrategy
 import com.sza.fastmediasorter.data.transfer.access.SftpFileAccess
 import com.sza.fastmediasorter.data.transfer.access.FtpFileAccess
+import com.sza.fastmediasorter.data.network.HostReachabilityCheckerImpl
+import com.sza.fastmediasorter.domain.usecase.HostReachabilityChecker
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -76,4 +78,8 @@ abstract class TransferModule {
     @Binds
     @IntoSet
     abstract fun bindFtpFileAccess(impl: FtpFileAccess): FileAccess
+
+    // S1025: pre-flight destination reachability probe for batch transfers.
+    @Binds
+    abstract fun bindHostReachabilityChecker(impl: HostReachabilityCheckerImpl): HostReachabilityChecker
 }

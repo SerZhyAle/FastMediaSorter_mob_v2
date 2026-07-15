@@ -35,6 +35,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+// S0995: one quarter turn per tap; a full turn wraps the cumulative angle back to 0.
+private const val ROTATION_STEP_DEGREES = 90
+private const val FULL_ROTATION_DEGREES = 360
+
 @HiltViewModel
 class StandalonePlayerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -55,7 +59,11 @@ class StandalonePlayerViewModel @Inject constructor(
         /** True once the opened file's folder is enumerable and holds >1 host-supported neighbour. */
         val supportsFolderPaging: Boolean = false,
         /** True while slideshow auto-advance is running; the host reflects this in its toggle. */
-        val isSlideshowActive: Boolean = false
+        val isSlideshowActive: Boolean = false,
+        // S0995: cumulative visual frame rotation (0/90/180/270) applied to the current image/video.
+        // Session-scoped: never persisted, carried across folder paging, cleared on ViewModel destroy.
+        // Distinct from the screen-orientation sensor toggle and from destructive file rotation.
+        val sessionRotationAngle: Int = 0
     )
 
     sealed class StandalonePlayerEvent {
@@ -89,6 +97,17 @@ class StandalonePlayerViewModel @Inject constructor(
 
     fun toggleRotationSensor() {
         _rotationSensorEnabled.value = !_rotationSensorEnabled.value
+    }
+
+    /**
+     * S0995: advance the session frame rotation by one clockwise quarter turn (0->90->180->270->0).
+     * State-only; the host reads [StandalonePlayerState.sessionRotationAngle] and applies it to the
+     * live surface. Not persisted; distinct from [toggleRotationSensor] and destructive file rotation.
+     */
+    fun rotateSession90() {
+        updateState {
+            it.copy(sessionRotationAngle = (it.sessionRotationAngle + ROTATION_STEP_DEGREES) % FULL_ROTATION_DEGREES)
+        }
     }
 
     /**

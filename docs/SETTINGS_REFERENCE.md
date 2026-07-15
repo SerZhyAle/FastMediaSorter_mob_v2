@@ -45,9 +45,9 @@ _Generated from the app. Do not edit by hand._
 | Current Session Log | Opens the log for the current app session only. |
 | Sync Now | Triggers an immediate manual sync with configured remote resources. |
 | About system | Displays device and app version information useful for troubleshooting. |
+| Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | User Guide | Opens the full user guide for the app. |
 | Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
-| Add widget to home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
 | Backups, restore and settings export | Settings for backing up, restoring, and exporting app data and configuration. |
 | Authorization and accounts | Settings for linked accounts and authorization with cloud and remote services. |
@@ -70,6 +70,7 @@ _Generated from the app. Do not edit by hand._
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
 | Statistics | Opens the usage statistics screen. |
 | Show resource actions in menu ⋮ | Moves resource-level actions (add, edit, remove resource) into the overflow menu. |
+| Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
@@ -205,17 +206,16 @@ _Available in: Standard, Legacy_
 | Setting | What it does |
 |---|---|
 | + Add | Adds a new Quick Sort destination folder to the list. |
-| Edit app panel | Opens the editor for the app panel, where you choose and arrange the apps shown on it. |
-| Open accessibility settings | Opens the Android accessibility settings, needed to grant gesture overlay permission. This enables silent screenshots only - screen video recording always asks Android for its own permission (the 'this app / entire screen' chooser) at the start of every recording, and that step cannot be skipped. |
+| Open accessibility settings | Opens the Android accessibility settings, where you grant the service that powers silent screenshot capture via the edge gesture. Shown only where the silent-capture method is available. |
 | Set as default | Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents. |
+| Configure gestures | Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
 | Select resource.. | Selects the destination resource where screen recordings are saved. |
-| Select resource.. | Chooses the folder or resource where captured screenshots are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
-| Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
+| Add widget to home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
@@ -239,7 +239,6 @@ _Available in: Standard, Legacy_
 | Confirm before delete | Shows a confirmation dialog before deleting a file from inside the player. |
 | Confirm before move | Shows a confirmation dialog before moving a file to a different destination. |
 | Controls & Keybindings | Opens the controls and key-binding configuration for navigation and playback. |
-| Save screenshots to clipboard | Automatically copies screenshots taken within the app to the clipboard. |
 | Remember file lists (default for new resources) | Pre-enables the "remember file list" option for newly added resources by default. |
 | Show detailed errors | Shows technical error details (codes and context) alongside the human-readable message. |
 | Mini-game | Enables the hidden mini-game built into the app. |
@@ -249,19 +248,7 @@ _Available in: Standard, Legacy_
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
-| Down gesture action | Chooses the action triggered by the downward swipe on the lower-left edge band. |
-| Right gesture action | Chooses the action triggered by the inward swipe on the lower-left edge band. |
-| Up gesture action | Chooses the action triggered by the upward swipe on the lower-left edge band. |
-| Down gesture action | Chooses the action triggered by the downward swipe on the upper-left edge band. |
-| Right gesture action | Chooses the action triggered by the inward swipe on the upper-left edge band. |
-| Up gesture action | Chooses the action triggered by the upward swipe on the upper-left edge band. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
-| Down gesture action | Chooses the action triggered by the downward swipe on the lower-right edge band. |
-| Right gesture action | Chooses the action triggered by the inward swipe on the lower-right edge band. |
-| Up gesture action | Chooses the action triggered by the upward swipe on the lower-right edge band. |
-| Down gesture action | Chooses the action triggered by the downward swipe on the upper-right edge band. |
-| Right gesture action | Chooses the action triggered by the inward swipe on the upper-right edge band. |
-| Up gesture action | Chooses the action triggered by the upward swipe on the upper-right edge band. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
 | Auto-download incoming links | Automatically downloads a file when a link is shared into the app. |
@@ -276,11 +263,3 @@ _Available in: Standard, Legacy_
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
-| Left edge - lower band | Enables gesture detection on the lower-left screen-edge band (60-90% of height). |
-| Show the gesture strip | Shows the grey guide strip on the lower-left screen-edge band; visible only while that band is enabled. |
-| Left edge - upper band | Enables gesture detection on the upper-left screen-edge band (10-40% of height). |
-| Show the gesture strip | Shows the grey guide strip on the upper-left screen-edge band; visible only while that band is enabled. |
-| Right edge - lower band | Enables gesture detection on the lower-right screen-edge band (60-90% of height). |
-| Show the gesture strip | Shows the grey guide strip on the lower-right screen-edge band; visible only while that band is enabled. |
-| Right edge - upper band | Enables gesture detection on the upper-right screen-edge band (10-40% of height). |
-| Show the gesture strip | Shows the grey guide strip on the upper-right screen-edge band; visible only while that band is enabled. |

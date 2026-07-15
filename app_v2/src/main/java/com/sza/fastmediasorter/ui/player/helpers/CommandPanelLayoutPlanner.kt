@@ -9,6 +9,11 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
+// S0995: overflow-only priority for ROTATE_CONTENT, one step below DRAW_OVERLAY(650) so it stays the
+// lowest-priority command. Named (not a bare literal) so the newest entry passes the detekt MagicNumber
+// gate; the pre-existing entries' literal priorities are already covered by the detekt baseline.
+private const val ROTATE_CONTENT_PRIORITY = 660
+
 /**
  * Priority-driven portrait layout planner for the player command panel center group.
  *
@@ -190,7 +195,12 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         CROP_TO_FILE(630, R.id.menu_crop_to_file, true, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
         COMPRESS_COPY(640, R.id.menu_compress_copy, true, R.string.menu_compress_copy, R.drawable.ic_compress),
         // S0107: Draw overlay - annotate static images (IMAGE only, not GIF/APNG)
-        DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay);
+        DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay),
+        // S0995: manual 90° visual frame rotation (image + video). Overflow-only (barCapable = false),
+        // lowest priority so it never displaces a primary action onto the bar. Distinct from
+        // ROTATION_TOGGLE (screen sensor) and from destructive file rotation.
+        ROTATE_CONTENT(ROTATE_CONTENT_PRIORITY, R.id.menu_rotate_content, false,
+            R.string.rotate_content_90_title, R.drawable.ic_rotate_90);
     }
 
     data class LayoutResult(
@@ -326,6 +336,9 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             if (isStaticBitmap) add(PlayerCommand.COMPRESS_COPY)
             // S0107: Draw overlay - static images only (same guard as crop)
             if (isStaticBitmap) add(PlayerCommand.DRAW_OVERLAY)
+            // S0995: manual visual rotation for anything with a rotatable frame - image/gif and video
+            // (not audio, which has no frame). isVideo already excludes audio via the !isAudio guard.
+            if (isImage || (isVideo && !isAudio)) add(PlayerCommand.ROTATE_CONTENT)
         }.sortedBy { it.priority }
     }
 

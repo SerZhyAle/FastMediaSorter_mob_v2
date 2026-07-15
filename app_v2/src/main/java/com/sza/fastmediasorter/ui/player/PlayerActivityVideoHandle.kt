@@ -41,6 +41,13 @@ internal class PlayerActivityVideoHandle(
     override fun getBrightnessPercentOffset(): Int =
         videoPlayerManagerProvider()?.getBrightnessPercentOffset() ?: 0
 
+    override fun setContentRotationDegrees(degrees: Int) {
+        videoPlayerManagerProvider()?.setContentRotationDegrees(degrees)
+    }
+
+    override fun getContentRotationDegrees(): Int =
+        videoPlayerManagerProvider()?.getContentRotationDegrees() ?: 0
+
     override fun getPlaybackSpeed(): Float =
         if (isAudioServiceActive()) {
             audioPlayerProvider()?.playbackParameters?.speed ?: 1.0f

@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.logging.LogExportHelper
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
@@ -42,9 +43,6 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.BuildConfig
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsWidgetHelper
-import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
-import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
@@ -66,9 +64,12 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
-    @Inject lateinit var homeWidgetCatalog: HomeWidgetCatalog
-    @Inject lateinit var homeWidgetPinner: HomeWidgetPinner
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+
+    // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
+    // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
     // S0547: gate the Downloadable Extensions row - lite/photos ship no downloadable sets, so the
     // screen would open empty. Same contract the welcome page already uses.
@@ -205,9 +206,6 @@ class GeneralSettingsFragment : Fragment() {
     private val profileHelper by lazy {
         GeneralSettingsProfileHelper(binding, profileViewModel, this)
     }
-    private val widgetHelper by lazy {
-        GeneralSettingsWidgetHelper(binding, this, homeWidgetCatalog, homeWidgetPinner)
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsGeneralBinding.inflate(inflater, container, false)
@@ -226,7 +224,6 @@ class GeneralSettingsFragment : Fragment() {
         viewSetupHelper.setup()
         colorThemeHelper.setup()
         profileHelper.setup()
-        widgetHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }
         observersHelper.observeData()
@@ -235,6 +232,7 @@ class GeneralSettingsFragment : Fragment() {
         cacheHelper.checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
         setupCollapsibleSections()
+        setupScreenshotTestButton()
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
         backupHelper.updateBackupAccountInfo()
@@ -297,6 +295,21 @@ class GeneralSettingsFragment : Fragment() {
     private fun setupSavedAuthorizationsRow() {
         binding.rowSavedAuthorizations.setOnRowClickListener {
             AuthSessionsActivity.start(requireContext())
+        }
+    }
+
+    // S1052: menu-screenshot test is a debug-only tool relocated here from the destinations tab. The
+    // enclosing debug section is already BuildConfig.DEBUG-gated; the button adds the flavor axis -
+    // shown only when a MenuScreenshotLauncher is bound (standard + noLegal). Mirrors the composite
+    // gate in SettingsSearchCapabilityGate so search visibility cannot drift from UI visibility.
+    private fun setupScreenshotTestButton() {
+        val launcher = menuScreenshotLaunchers.firstOrNull()
+        binding.btnTakeScreenshotNow.isVisible = BuildConfig.DEBUG && launcher != null
+        if (BuildConfig.DEBUG && launcher != null) {
+            binding.btnTakeScreenshotNow.setOnClickListener {
+                Timber.d("S1052: screenshot-test tapped from General-tab debug section")
+                launcher.launch(requireActivity())
+            }
         }
     }
 

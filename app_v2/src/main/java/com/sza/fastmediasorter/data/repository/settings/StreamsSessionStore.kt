@@ -13,8 +13,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0659: last-session state of the "Трансляции" list (sort, media filter, search query) plus the last
- * catalog-refresh timestamp. This is ephemeral session memory, NOT a user setting, so it lives in its
+ * S0659: last-session state of the "Трансляции" list (sort, media filter) plus the last
+ * catalog-refresh timestamp. S1054: the free-text search query is intentionally NOT persisted - it is a
+ * one-shot input that resets on every screen open, so it is absent from this contract.
+ * This is ephemeral session memory, NOT a user setting, so it lives in its
  * own DataStore file ("streams_session") and is intentionally kept out of the main settings DataStore /
  * [com.sza.fastmediasorter.domain.model.AppSettings] (research H concern).
  *
@@ -33,14 +35,13 @@ class StreamsSessionStore @Inject constructor(
 ) {
 
     /**
-     * Snapshot of the last session. Null sort/media-filter/query/category/language/country/pinned mean
+     * Snapshot of the last session. Null sort/media-filter/category/language/country/pinned mean
      * "no remembered value" -> the caller falls back to the user defaults. [lastCatalogRefreshAt] is epoch
      * millis, 0 = never. [lastScrollPosition] is the first-visible adapter position, null = top/none.
      */
     data class Session(
         val lastSort: String?,
         val lastMediaFilter: String?,
-        val lastQuery: String?,
         val lastCategory: String?,
         val lastLanguage: String?,
         val lastCountry: String?,
@@ -55,7 +56,6 @@ class StreamsSessionStore @Inject constructor(
         return Session(
             lastSort = prefs[KEY_LAST_SORT],
             lastMediaFilter = prefs[KEY_LAST_MEDIA_FILTER],
-            lastQuery = prefs[KEY_LAST_QUERY],
             lastCategory = prefs[KEY_LAST_CATEGORY],
             lastLanguage = prefs[KEY_LAST_LANGUAGE],
             lastCountry = prefs[KEY_LAST_COUNTRY],
@@ -73,7 +73,6 @@ class StreamsSessionStore @Inject constructor(
     suspend fun writeFilterState(
         sort: String,
         mediaFilter: String,
-        query: String,
         category: String?,
         language: String?,
         country: String?,
@@ -82,7 +81,6 @@ class StreamsSessionStore @Inject constructor(
         context.streamsSessionDataStore.edit { prefs ->
             prefs[KEY_LAST_SORT] = sort
             prefs[KEY_LAST_MEDIA_FILTER] = mediaFilter
-            prefs[KEY_LAST_QUERY] = query
             if (category != null) prefs[KEY_LAST_CATEGORY] = category else prefs.remove(KEY_LAST_CATEGORY)
             if (language != null) prefs[KEY_LAST_LANGUAGE] = language else prefs.remove(KEY_LAST_LANGUAGE)
             if (country != null) prefs[KEY_LAST_COUNTRY] = country else prefs.remove(KEY_LAST_COUNTRY)
@@ -112,7 +110,6 @@ class StreamsSessionStore @Inject constructor(
     private companion object {
         val KEY_LAST_SORT = stringPreferencesKey("last_sort")
         val KEY_LAST_MEDIA_FILTER = stringPreferencesKey("last_media_filter")
-        val KEY_LAST_QUERY = stringPreferencesKey("last_query")
         val KEY_LAST_CATEGORY = stringPreferencesKey("last_category")
         val KEY_LAST_LANGUAGE = stringPreferencesKey("last_language")
         val KEY_LAST_COUNTRY = stringPreferencesKey("last_country")

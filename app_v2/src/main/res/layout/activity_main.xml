@@ -21,6 +21,12 @@
             android:orientation="horizontal"
             android:padding="@dimen/control_bar_padding">
 
+            <!-- S1049: shared leading anchor - row 1's first button starts at the same X as the
+                 programs/streams panels' leading control and the resource-tabs paddingStart. -->
+            <Space
+                android:layout_width="@dimen/main_top_panel_leading_anchor"
+                android:layout_height="match_parent" />
+
             <!-- Exit -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExit"
@@ -38,20 +44,15 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_cancel"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
-
-            <!-- Larger space between Exit and Add Resource -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_large"
-                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Add Resource -->
             <com.google.android.material.button.MaterialButton
@@ -71,19 +72,15 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_add"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
-
-            <Space
-                android:layout_width="2dp"
-                android:layout_height="match_parent" />
 
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
@@ -103,19 +100,15 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_search"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
-
-            <Space
-                android:layout_width="2dp"
-                android:layout_height="match_parent" />
 
             <!-- Refresh -->
             <com.google.android.material.button.MaterialButton
@@ -135,19 +128,15 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_refresh"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
-
-            <Space
-                android:layout_width="2dp"
-                android:layout_height="match_parent" />
 
             <LinearLayout
                 android:id="@+id/layoutMainDropdownMenu"
@@ -210,19 +199,15 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:padding="0dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_settings"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
-
-            <Space
-                android:layout_width="2dp"
-                android:layout_height="match_parent" />
 
             <!-- Toggle List/Grid View -->
 
@@ -238,9 +223,9 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 android:visibility="gone"
                 app:icon="@drawable/ic_view_grid"
@@ -249,10 +234,6 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal"
                 tools:visibility="visible" />
-
-            <Space
-                android:layout_width="2dp"
-                android:layout_height="match_parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFavorites"
@@ -271,9 +252,9 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_star_filled"
                 app:iconGravity="textStart"
@@ -298,9 +279,9 @@
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:minWidth="0dp"
+                android:minWidth="@dimen/main_panel_item_min_width"
                 android:minHeight="0dp"
-                android:paddingHorizontal="2dp"
+                android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
                 app:icon="@drawable/ic_play"
                 app:iconGravity="textStart"
@@ -410,7 +391,10 @@
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
+            android:paddingStart="@dimen/main_top_panel_leading_anchor"
             app:tabMode="fixed"
+            app:tabMinWidth="@dimen/main_panel_tab_min_width"
+            app:tabMaxWidth="@dimen/main_panel_tab_min_width"
             app:tabIndicatorFullWidth="false"
             app:tabInlineLabel="@bool/is_tab_inline" />
 

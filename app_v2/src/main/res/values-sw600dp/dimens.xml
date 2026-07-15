@@ -29,7 +29,6 @@
     <dimen name="empty_state_padding">48dp</dimen>
     <dimen name="empty_state_icon_size">96dp</dimen>
     <dimen name="control_bar_padding">8dp</dimen>
-    <dimen name="control_button_spacing_large">32dp</dimen>
     <dimen name="control_button_spacing_small">12dp</dimen>
     <dimen name="control_button_play_width">140dp</dimen>
     

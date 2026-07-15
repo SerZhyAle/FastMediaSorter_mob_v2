@@ -65,7 +65,6 @@ class SftpEndpointResolver @Inject constructor(
         val winner = probe(candidates) ?: candidates.first()
         // Cache under every candidate key so a later resolve by any address in the group is a hit.
         candidates.forEach { winnerByRequested[key(it.host, it.port)] = winner }
-        Timber.d("S1006: resolved ${winner.host}:${winner.port} from ${candidates.size} candidates")
         return winner
     }
 

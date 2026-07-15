@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.dialog.helpers
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,12 +22,8 @@ class GifEditorHelper(
     /**
      * Check if path is a network file (SMB/S/FTP/Cloud)
      */
-    fun isNetworkPath(path: String): Boolean {
-        return path.startsWith("smb://") || 
-               path.startsWith("sftp://") || 
-               path.startsWith("ftp://") || 
-               path.startsWith("cloud://")
-    }
+    fun isNetworkPath(path: String): Boolean =
+        PathUtils.isNetworkPath(path, includeCloud = true)
     
     /**
      * Prepare GIF file for editing

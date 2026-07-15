@@ -15,6 +15,8 @@ answer "where does X happen?" questions without scanning the whole codebase.
 | `scripts/set.ps1` | Update manual fields on a record. |
 | `scripts/query.ps1` | Filter records by layer / status / side effects / LOC / etc. |
 | `scripts/remove.ps1` | Delete a record (rare - scan auto-removes stale entries). |
+| `scripts/generate-role-drafts.ps1` | Draft `role` for empty-role records (from KDoc, else synthesised) into a review TSV. |
+| `scripts/apply-role-drafts.ps1` | Apply reviewed role drafts back into the catalogue (only fills empty roles). |
 
 ## Record fields
 
@@ -121,7 +123,7 @@ All filters are AND'd. Supported: `-Layer`, `-Status`, `-SideEffect`,
 `-UserFeedback`, `-Tests` / `-NoTests`, `-TouchedSince`, `-TouchedBefore`,
 `-Json`.
 
-`-Search <Term>` searches (case-insensitively) across class name, path, role description, injected types, constructor dependencies, and function names/descriptions.
+`-Search <Term>` searches (case-insensitively) across class name, path, role description, injected types, constructor dependencies, and function names/descriptions. Multi-word queries are whitespace-tokenised and AND'd (every word must be present); the fixed `com/sza/fastmediasorter/` package prefix is stripped from the path before matching, so domain terms like `sort` / `sorter` / `media` no longer match every record.
 
 `-Injected <Type>` matches only `@Inject constructor` parameters; `-DependsOn
 <Type>` matches the broader `constructorDeps` (any constructor parameter type),
@@ -135,6 +137,26 @@ pwsh -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.
 
 Rare - `scan.ps1` already removes records for deleted files. Use this only
 for cleaning up wrongly-added manual entries.
+
+### generate-role-drafts.ps1 / apply-role-drafts.ps1 - bulk backfill `role`
+
+Two-step bootstrap to fill `role` on many records at once (e.g. after a large
+scan leaves hundreds of empty roles). `generate` writes a review TSV - draft from
+the class KDoc where present, else synthesised from the class name + top function
+names. Review/edit the TSV (blank a `draftRole` cell to skip that row), then
+`apply` writes non-empty drafts back - only into records whose `role` is still
+empty, and across **every** record sharing a `path::class`.
+
+```powershell
+# Draft roles for feature entry points (ViewModel/Manager/UseCase/... ); -IncludeAll for every class
+pwsh -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2 [-IncludeAll] [-Limit 30]
+
+# Preview, then apply the reviewed TSV (re-renders Markdown)
+pwsh -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2 -DryRun
+pwsh -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2
+```
+
+For a single record, `set.ps1 -Role` remains the direct path.
 
 ## When to use the catalogue
 
@@ -152,7 +174,8 @@ writes remain script-only through `scan.ps1`, `set.ps1`, and `remove.ps1`.
 Never hand-edit catalogue records.
 
 **After changes to any file's public API:** re-run `scan.ps1` for the module.
-New records start with empty `role`/`status`; fill them with `set.ps1`.
+New records start with empty `role`/`status`; fill one with `set.ps1`, or
+bulk-backfill many via `generate-role-drafts.ps1` + `apply-role-drafts.ps1`.
 
 **Commit rule:** `.jsonl` and `.md` must stay in sync. Commit them together
 with the code change that caused the update.

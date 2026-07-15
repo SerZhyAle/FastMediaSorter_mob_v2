@@ -7,6 +7,9 @@
     <integer name="grid_column_count_landscape">3</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">1</integer>
+    <!-- S0999: column count for the Playback "Send file to.." toggle list. Narrow portrait = 1;
+         values-land / values-sw600dp widen to 2. Extensible to 3+ via new width buckets, no Kotlin change. -->
+    <integer name="settings_send_commands_columns">1</integer>
 
     <!-- Input field length limits -->
     <integer name="input_max_length_tiny">2</integer>

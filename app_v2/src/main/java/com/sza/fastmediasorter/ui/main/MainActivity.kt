@@ -949,8 +949,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .show()
             },
             onShareSftpAccessClick = { resource ->
-                sftpShareManager.show(resource) { includePassword ->
-                    viewModel.shareSftpResourceConfig(resource, includePassword)
+                sftpShareManager.show(resource) { includePassword, method ->
+                    when (method) {
+                        MainSftpShareManager.ShareMethod.FILE ->
+                            viewModel.shareSftpResourceConfig(resource, includePassword)
+                        MainSftpShareManager.ShareMethod.QR ->
+                            viewModel.shareSftpResourceConfigAsQr(resource, includePassword)
+                    }
                 }
             },
             onAddToHomeScreenClick = { resource ->

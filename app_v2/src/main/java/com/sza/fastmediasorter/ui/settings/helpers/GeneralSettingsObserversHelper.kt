@@ -47,6 +47,9 @@ class GeneralSettingsObserversHelper(
             // S0473: opt-in statistics toggle initial/observed state.
             if (binding.rowEnableStatistics.isChecked != settings.enableStatistics)
                 binding.rowEnableStatistics.setCheckedSilently(settings.enableStatistics)
+            // S1045: secure-sensitive-screens toggle initial/observed state.
+            if (binding.rowSecureSensitiveScreens.isChecked != settings.secureSensitiveScreens)
+                binding.rowSecureSensitiveScreens.setCheckedSilently(settings.secureSensitiveScreens)
             // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
             if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
                 binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)

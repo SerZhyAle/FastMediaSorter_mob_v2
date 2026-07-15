@@ -100,6 +100,13 @@ class GeneralSettingsViewSetupHelper(
             if (viewModel.settings.value.enableStatistics == isChecked) return@setOnCheckedChangeListener
             viewModel.setStatisticsCollectionEnabled(isChecked)
         }
+        // S1045: secure-sensitive-screens toggle (default ON) - plain settings write like enableFavorites.
+        binding.rowSecureSensitiveScreens.setOnCheckedChangeListener { isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.secureSensitiveScreens == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(secureSensitiveScreens = isChecked))
+        }
         // S0028: Multi-window toggle. Relocated from VideoSettings to General → Interface (bottom of section).
         binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
@@ -572,7 +579,6 @@ class GeneralSettingsViewSetupHelper(
         // S0994: PC-side companion publish-folders guide, shown only when companion import is available (lite/vr hide it).
         binding.btnCompanionPublishGuide.isVisible = viewModel.isCompanionImportAvailable
         binding.btnCompanionPublishGuide.setOnClickListener {
-            Timber.d("S0994: open companion publish-folders guide from settings")
             openUrl(
                 com.sza.fastmediasorter.ui.common.support.SupportIntentFactory.companionPublishGuideUrl(),
                 fragment.getString(R.string.settings_no_browser_for_docs),

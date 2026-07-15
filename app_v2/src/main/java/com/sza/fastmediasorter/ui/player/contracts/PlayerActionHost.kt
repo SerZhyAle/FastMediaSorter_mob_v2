@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.contracts
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.view.View
-import android.widget.ImageView
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -40,13 +39,14 @@ interface PlayerActionHost {
     val imagePinchTarget: View
 
     /**
-     * Normalize the image surface(s) to FIT_CENTER before mounting the crop overlay, so the overlay's
-     * normalized rect maps onto the displayed image. Default handles the pinch target; the in-app host
-     * overrides to also normalize its secondary `imageView` surface (S0393 - parity with the pre-seam
-     * `PlayerCropDelegate`, which set FIT_CENTER on both photoView and imageView).
+     * Hook fired before the crop overlay mounts. The overlay maps its selection through the live
+     * on-screen image rect ([imageDisplayRect]), so the zoomable pinch target must KEEP its current
+     * zoom/pan - resetting it here would crop the fit-to-view image instead of what the user sees.
+     * Default is a no-op; the in-app host overrides only to normalize its non-zoomable secondary
+     * `imageView` surface, whose crop still uses the legacy full-view mapping.
      */
     fun prepareImageSurfacesForCrop() {
-        (imagePinchTarget as? ImageView)?.scaleType = ImageView.ScaleType.FIT_CENTER
+        // No-op by default: preserve the pinch target's zoom/pan so the crop is WYSIWYG.
     }
 
     /** Current on-screen image rectangle (for overlay-to-image mapping). */

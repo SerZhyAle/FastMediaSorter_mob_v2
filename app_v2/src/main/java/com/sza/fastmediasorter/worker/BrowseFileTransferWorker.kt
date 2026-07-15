@@ -72,7 +72,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         return try {
             runTransfer(request)
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
-            Timber.d("S1021: BrowseFileTransferWorker caught CancellationException, workId=$id")
             withContext(NonCancellable) {
                 val event = BrowseFileTransferTerminalEvent.Cancelled(
                     workId = id.toString(),
@@ -85,7 +84,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             // S1021: backstop - a Throwable that escapes runTransfer/executeInternal despite
             // their own catches would otherwise vanish into WorkManager's internal (non-Timber)
             // failure logging, invisible to the app's own log file.
-            Timber.d("S1021: BrowseFileTransferWorker.doWork caught Throwable, type=${t.javaClass.simpleName}")
             Timber.e(t, "BrowseFileTransferWorker.doWork caught unexpected Throwable")
             Result.failure()
         } finally {

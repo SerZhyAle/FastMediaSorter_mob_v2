@@ -77,10 +77,10 @@ class SmbConnectionManager @Inject constructor(
         //
         // Tier selection is driven by NetworkSpeedTestUseCase results (readSpeedMbps):
         //   FAST  (> 100 Mbps): 5 s - fast network, slow QUERY_DIRECTORY means broken NAS
-        //   MEDIUM (10–100 Mbps): 10 s - average home NAS / WiFi
+        //   MEDIUM (10-100 Mbps): 10 s - average home NAS / WiFi
         //   SLOW  (< 10 Mbps or no data): 20 s - conservative; also used when isDegraded
         private const val TRANSACTION_TIMEOUT_FAST_MS = 5_000L   // > 100 Mbps
-        private const val TRANSACTION_TIMEOUT_MEDIUM_MS = 10_000L // 10–100 Mbps
+        private const val TRANSACTION_TIMEOUT_MEDIUM_MS = 10_000L // 10-100 Mbps
         private const val TRANSACTION_TIMEOUT_SLOW_MS = 20_000L   // < 10 Mbps or unknown
 
         // Socket SO_TIMEOUT (controls streaming reads, e.g. file downloads).
@@ -206,7 +206,7 @@ class SmbConnectionManager @Inject constructor(
         }
     }
 
-    /** Get or create medium-tier SMB client (transaction timeout = 10 s). Used for connections where speed test confirmed 10–100 Mbps. */
+    /** Get or create medium-tier SMB client (transaction timeout = 10 s). Used for connections where speed test confirmed 10-100 Mbps. */
     private fun getMediumClient(): SMBClient {
         return mediumClient ?: synchronized(this) {
             mediumClient ?: SMBClient(mediumConfig).also { mediumClient = it }
@@ -415,7 +415,7 @@ class SmbConnectionManager @Inject constructor(
         val pwdLen = connectionInfo.password.length
         Timber.d("SMB Auth: user='${connectionInfo.username}', hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=$pwdLen")
         if (connectionInfo.username.isNotEmpty() && pwdLen == 0) {
-            Timber.e("SMB Auth: password is EMPTY for non-anonymous user '${connectionInfo.username}' – possible Keystore decryption failure")
+            Timber.e("SMB Auth: password is EMPTY for non-anonymous user '${connectionInfo.username}' - possible Keystore decryption failure")
         }
 
         val authContext = if (connectionInfo.username.isEmpty()) {
@@ -613,7 +613,10 @@ class SmbConnectionManager @Inject constructor(
             Timber.e("SMB $errorType - forcing connection reset for ${connectionInfo.server}")
             // Close all connections to this server to free up credits/clean corrupted state
             pool.removeMatchingAndCloseAsync { poolKey -> poolKey.server == connectionInfo.server }
-            // Small delay to let server recover
+            // S1033: deliberate blocking sleep, not delay(). This function returns SmbResult<T>
+            // synchronously and is owner-scoped to stay non-suspend; it runs on the SMB pool path,
+            // never the main thread. The brief pause lets the server free credits / reset the
+            // corrupted connection before the caller retries.
             Thread.sleep(500)
         }
 

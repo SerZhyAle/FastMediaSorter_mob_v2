@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrShareActivity
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.main.MainEvent
@@ -109,6 +110,11 @@ internal class MainEventHandler(
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
             is MainEvent.ShareCompanionConfigFile -> shareCompanionConfigFile(event.filePath)
+            is MainEvent.ShowCompanionQr -> activity.startActivity(
+                CompanionQrShareActivity.createIntent(
+                    activity, event.payload, event.resourceName, event.passwordIncluded
+                )
+            )
         }
     }
 

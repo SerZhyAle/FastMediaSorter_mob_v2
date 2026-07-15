@@ -18,9 +18,12 @@
         android:background="@color/main_programs_panel_accent"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/main_panel_item_spacing">
+        android:paddingStart="0dp"
+        android:paddingEnd="@dimen/main_panel_item_spacing">
 
-        <!-- S0807: panel-level menu trigger; matches the top command bar three-dots for continuity. -->
+        <!-- S0807: panel-level menu trigger; matches the top command bar three-dots for continuity.
+             S1037: spans the shared leading anchor (gravity start keeps the icon at the row edge) so the
+             first program item begins at the same X as the streams channels and resource tabs. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnProgramsPanelMenu"
             style="@style/Widget.FastMediaSorter.Button.Text"
@@ -31,11 +34,12 @@
             android:focusable="true"
             android:clickable="true"
             android:contentDescription="@string/more_actions"
+            android:gravity="start|center_vertical"
             android:insetLeft="0dp"
             android:insetTop="0dp"
             android:insetRight="0dp"
             android:insetBottom="0dp"
-            android:minWidth="@dimen/main_panel_item_min_width"
+            android:minWidth="@dimen/main_top_panel_leading_anchor"
             android:minHeight="0dp"
             android:paddingHorizontal="@dimen/main_panel_item_spacing"
             android:text=""

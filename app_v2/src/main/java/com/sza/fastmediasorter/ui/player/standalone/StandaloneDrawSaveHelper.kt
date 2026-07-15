@@ -120,8 +120,10 @@ class StandaloneDrawSaveHelper(
         val defaultExt = ext.ifEmpty { if (format == Bitmap.CompressFormat.JPEG) "jpg" else "png" }
         val chosen = filename?.takeIf { it.isNotBlank() }
             ?: ImageEditorFileNamer.buildName(baseName, defaultExt, ImageEditorFileNamer.DRAW)
-        val finalName = if (chosen.contains('.')) chosen
-            else chosen + if (format == Bitmap.CompressFormat.JPEG) ".jpg" else ".png"
+        val finalName = ImageEditorFileNamer.ensureExtension(
+            chosen,
+            if (format == Bitmap.CompressFormat.JPEG) "jpg" else "png",
+        )
         val displayRect = getImageDisplayRect()
         val mime = if (format == Bitmap.CompressFormat.JPEG) "image/jpeg" else "image/png"
         // S0837: a default save (no chosen filename) overwrites the launched screenshot in place;

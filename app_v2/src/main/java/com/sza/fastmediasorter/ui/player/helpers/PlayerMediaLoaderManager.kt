@@ -1032,7 +1032,6 @@ class PlayerMediaLoaderManager(
             // reveal is disabled), so without this the controls never appear on open; auto-hide still
             // fires after VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS and a center-tap re-reveals them.
             binding.playerView.showController()
-            Timber.d("S1005: video controls shown on open")
 
             // Restore PlayerView's video/content layer for real video playback.
             exoContentFrame?.isVisible = true

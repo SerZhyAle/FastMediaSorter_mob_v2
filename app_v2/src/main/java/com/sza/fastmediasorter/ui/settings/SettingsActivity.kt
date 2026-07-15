@@ -52,6 +52,9 @@ import timber.log.Timber
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
+    // S1045: Authorization tab reveals plaintext defaultUser/defaultPassword; secure the whole window.
+    override fun isSensitiveScreen(): Boolean = true
+
     // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
     @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
 

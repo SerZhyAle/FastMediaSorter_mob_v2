@@ -98,4 +98,11 @@
         android:title="@string/cd_playback_speed"
         app:showAsAction="never" />
 
+    <!-- S0995: manual 90° visual frame rotation (image/gif/video host). Text-only per this menu's
+         convention (no icons on any item). -->
+    <item
+        android:id="@+id/menu_rotate_content_standalone"
+        android:title="@string/rotate_content_90_title"
+        app:showAsAction="never" />
+
 </menu>

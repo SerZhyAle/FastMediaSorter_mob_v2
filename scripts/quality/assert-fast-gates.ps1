@@ -50,6 +50,7 @@ $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
     'assert-flavor-flags-not-growing.ps1'       = @()
     'assert-neuroslop.ps1'                       = @()
+    'assert-public-mutable-flow.ps1'            = @()
     'assert-deprecated-pm-flags.ps1'            = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()

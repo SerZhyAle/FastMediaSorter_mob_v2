@@ -186,7 +186,7 @@ class ImageDrawOverlayManager(
         val dotIndex = originalName.lastIndexOf('.')
         val baseName = if (dotIndex > 0) originalName.substring(0, dotIndex) else originalName
         val ext = if (dotIndex > 0) originalName.substring(dotIndex) else ""
-        val extNoDot = ext.trimStart('.')
+        val extNoDot = ext.trimStart('.').ifBlank { "jpg" }
         val defaultFilename = ImageEditorFileNamer.buildName(baseName, extNoDot, ImageEditorFileNamer.DRAW)
 
         // Show filename dialog; on confirm invoke saveCallback
