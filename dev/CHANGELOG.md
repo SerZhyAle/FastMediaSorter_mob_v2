@@ -22326,3 +22326,4 @@ Format: | datetime | file | target | description |
 | 2026-07-16 01:00:56 | `PLAN/S1069_home-widget-picker-and-captions.md` | `spec-arc` | Archive S1069 (Home-widget picker completeness + icon captions) -> temp/done/ [branch: DEBUG-v025] |
 | 2026-07-16 01:00:56 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `S1069` | Remove BlockNeedUserTest debug probe on archive (Rule 2) [branch: DEBUG-v025] |
 | 2026-07-16 01:01:08 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7160.058 - plateau merge from DEBUG-v025 [branch: DEBUG-v025] |
+| 2026-07-16 01:09:52 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7160.058 from ALL_FEATURES diff [branch: DEBUG-v026] |
