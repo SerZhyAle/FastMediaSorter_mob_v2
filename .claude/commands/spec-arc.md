@@ -63,15 +63,18 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status Archived `
     -StatusOnly `
-    -DevLogs @(
-        '{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-arc","desc":"Archive Sxxxx (<name>) -> temp/done/"}'
-        # plus one entry per .kt that lost a Timber.d("Sxxxx: ...") tag in step 3
-      ) `
+    -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-arc","desc":"Archive Sxxxx (<name>) -> temp/done/"}]' `
+    # -DevLogs is ONE JSON-array string - append one {file,target,desc} object per .kt that lost
+    # a Timber.d("Sxxxx: ...") tag in step 3. Never a PowerShell array literal @('{..}','{..}'):
+    # pwsh -File binds only its first element and close-and-log.ps1 rejects the leftovers (S1063).
     -FuncOp <DELETE|""> -FuncDesc "<english summary or omit>" `
+    -FeatId "<area>.<feature> of the record being removed" `
+    -FeatArea "<its area>" -FeatName "<its name>" -FeatFlavors "<its flavors>" `
     -SkipCatalogSync  # archived spec has no fresh .kt code
 ```
 
 - Pass `-FuncOp DELETE` + `-FuncDesc` only when `--removes-functionality` given; otherwise omit both (or pass `-SkipFuncLog`). Cancelled / superseded / never-implemented specs produce no inventory entry.
+- `-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072) - the script no longer invents them. For `DELETE` also pass the existing record's `-FeatId`: without it the id is derived from the slug of `-FeatName`, so a name that does not reproduce the original id would add a *new* `status: removed` record instead of marking the real one. To only flip an existing record's status, `scripts/all_features/patch.ps1 -Id <id> -Status removed` is the direct tool.
 - Pass `-SkipCatalogSync` unless a tag deletion in step 3 changed live `.kt` files (rare). If it did, drop `-SkipCatalogSync` on relevant id, or run `scripts/catalog_sync.ps1 -Module app_v2` once after batch.
 
 Individual-call fallback: `scripts/all_features/add.ps1 -Id "<area>.<feature>" -Area .. -Name .. -Description ".." -Flavors .. -Spec <Sxxxx> -Status removed` (only on flag) + `add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-arc" "..."` + dev log line per `.kt` that lost a tag.

@@ -107,6 +107,12 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 	- `ui/settings/fragments/`
 	- Primary files: `ui/settings/SettingsActivity.kt`, `ui/settings/SettingsViewModel.kt`
 
+- Desktop companion config (`.fmscfg` SFTP-share import/export) - NOT the Wear companion:
+	- `data/companion/` (`CompanionConfigParser.kt` read side, `CompanionConfigSerializer.kt` write side, `CompanionConfigDto.kt` contract mirror, `CompanionResourceTokens.kt`)
+	- `domain/usecase/companion/` (`ImportCompanionConfigUseCase.kt`, `ExportCompanionConfigUseCase.kt`)
+	- `ui/companionimport/` (+ `ui/companionimport/qr/` for the QR share path)
+	- Contract is cross-repo frozen: authoritative text is the companion repo's `docs/CONFIG_FORMAT.md`; this repo owns the consumer half only. Overview: `docs/ARCHITECTURE.md` "Desktop Companion Config (`.fmscfg`) Subsystem".
+
 - Cloud providers/auth/integration:
 	- `data/cloud/`
 	- `data/cloud/datasource/`, `data/cloud/glide/`

@@ -20,10 +20,9 @@ appId: com.sza.fastmediasorter.debug
     timeout: 10000
 # S1043: SettingsActivity persists the last-active tab across sessions (intentional UX), so a prior
 # flow can leave it on Медиа/Плеер/Управление. headerInterface lives only on the Общие tab - select
-# it explicitly here so this flow is independent of whatever tab was left active.
-- tapOn:
-    text: "Общие"
-- waitForAnimationToEnd
+# it explicitly so this flow is independent of whatever tab was left active. Extracted to _shared/
+# so any future flow depending on a General-tab element reuses it instead of re-inlining the tap.
+- runFlow: ../_shared/settings_select_general_tab.yaml
 
 # --- General tab: flip two non-disruptive toggles off then on, by row id.
 #     Re-scroll before each tap in case rows shift. Compact-elements is deliberately avoided:

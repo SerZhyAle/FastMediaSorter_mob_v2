@@ -3024,4 +3024,5 @@
     <string name="streams_pinned_badge">Закреплён</string>
     <string name="resource_shortcut_created">Ярлык добавлен на домашний экран</string>
     <string name="resource_shortcut_unsupported">Ваш лаунчер не поддерживает ярлыки на домашнем экране</string>
+    <string name="streams_panel_empty_hint">Закрепите трансляции, чтобы они были на этой панели.</string>
 </resources>

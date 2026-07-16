@@ -14,6 +14,13 @@
 
     Baseline lives in scripts/quality/flavor-flag-baseline.txt (a single integer).
 
+    Exit codes (S1070):
+      0 - clean (or report mode).
+      1 - substantive failure: the flag count grew past the baseline.
+      2 - the gate itself cannot run (baseline file missing). Distinct from 1 on
+          purpose: a missing baseline is the gate being unconfigured, not a new
+          flavor guard in the code.
+
     Modes:
       (default)        Report current count vs baseline.
       -Gate            Exit 1 if current > baseline (fail-closed on growth).
@@ -41,7 +48,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $mainRoot = Join-Path $repoRoot 'app_v2/src/main/java'
 $baselineFile = Join-Path $PSScriptRoot 'flavor-flag-baseline.txt'
 
-if (-not (Test-Path $baselineFile)) { Write-Error "Baseline file missing: $baselineFile"; exit 2 }
+if (-not (Test-Path $baselineFile)) { Write-Error "Baseline file missing: $baselineFile" -ErrorAction Continue; exit 2 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
 
 $rx = [regex]'BuildConfig\.(?:SUPPORT_|ENABLE_|IS_)[A-Za-z0-9_]+'

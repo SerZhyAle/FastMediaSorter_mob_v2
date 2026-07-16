@@ -35,7 +35,8 @@ Standard capability baseline (gated by the BuildConfig flags shown):
 - Notification + default-player integration (`SUPPORTS_DEFAULT_PLAYER`) and quick widgets.
 - Usage statistics, settings search, backup/restore, send-to surface.
 - Wear companion (`SUPPORT_WEAR_COMPANION`).
-- Animations (`ENABLE_ANIMATIONS`), DTS decode (`ENABLE_DTS_DECODER`), mic recording (`SUPPORT_MIC_RECORDING`).
+- Animations (`ENABLE_ANIMATIONS`), mic recording (`SUPPORT_MIC_RECORDING`).
+- DTS decode - no BuildConfig flag gates it (S1057). A build ships DTS when `libs/fms-ffmpeg-dts.aar` is on its dependency list, and decodes at runtime once the FFmpeg payload is present - bundled, or installed on demand and attached via `DeliverableSet.FFMPEG_DTS`.
 
 A capability present in the snapshot but missing/non-functional in the built `standardRelease` is a candidate regression, classified under Release-risk audit.
 

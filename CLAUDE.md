@@ -79,6 +79,7 @@
 - **Batch commands** in one process: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`.
 - **Variables**: Write `$` literally, do not escape, avoid double-quoted Command wrappers.
 - **Hot Rituals**: Use wrappers (e.g. `scripts/catalog_sync.ps1 -Module <app_v2|wear>` after `.kt` edits).
+- **Reachable exit codes (S1070)**: under `$ErrorActionPreference = 'Stop'` a bare `Write-Error` throws, so any `exit N` after it never runs and the process reports 1 - the message still prints, which is why it survives review. Write `Write-Error $msg -ErrorAction Continue` before `exit N` (N != 1). A script's header must list the codes it actually returns. Mechanical gate: `scripts/quality/assert-exit-contract.ps1` (in `assert-fast-gates.ps1` / `.\a.ps1 fg`).
 
 ## 8. Project Structure & Tech Stack
 - **Modules**: `app_v2/` (main app) and `wear/` (Wear OS) are both active Gradle modules (`settings.gradle.kts`); pass `-Module wear` to `catalog_sync.ps1`/`post-change.ps1` when touching it. Support: `dev/`, `docs/`, `scripts/`, `temp/`. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.

@@ -324,7 +324,6 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible - safe for Google Play.
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -397,7 +396,6 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
         }
@@ -425,7 +423,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -452,7 +449,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -483,7 +479,6 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -544,7 +539,6 @@ android {
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
 
@@ -1290,7 +1284,10 @@ dependencies {
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
     implementation("androidx.media3:media3-session:1.2.1") // MediaSession for audio background playback
     implementation("androidx.media3:media3-effect:1.2.1")  // GlEffect API for SBS stereo crop rendering (Phase 2)
-    
+    // S1066: post-record re-encode that bakes the in-app digital zoom into the camera MP4 (all flavors -
+    // the camera lives in src/main and compiles into every flavor, so the dep cannot be flavor-scoped).
+    implementation("androidx.media3:media3-transformer:1.2.1")
+
     // Image Loading - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")

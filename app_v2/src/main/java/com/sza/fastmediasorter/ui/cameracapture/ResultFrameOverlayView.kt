@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S1066: draws the result frame over the full-frame camera preview - a light contour around the
@@ -58,6 +59,7 @@ class ResultFrameOverlayView @JvmOverloads constructor(
      * parametric so a future ratio (spec §5.3) reuses this view without a new one.
      */
     fun setRatios(contentWidthOverHeight: Float, resultWidthOverHeight: Float) {
+        Timber.d("S1066: result frame ratios content=$contentWidthOverHeight result=$resultWidthOverHeight")
         contentRatio = contentWidthOverHeight
         resultRatio = resultWidthOverHeight
         invalidate()

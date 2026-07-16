@@ -292,7 +292,6 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 | `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] |
 | `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
 | `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [+] |
-| `ENABLE_DTS_DECODER`               | [+] | [-] | [-] | [+] | [+] | [+] |
 | `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] |
 | `SUPPORT_VR_PLAYER`                | -   | -   | -   | -   | [+] | [+] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED`  | -   | -   | -   | -   | [+] | [+] |

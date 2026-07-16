@@ -122,6 +122,12 @@ class CameraCaptureSessionManager(
      */
     private var cropExecutor: ExecutorService? = null
 
+    /**
+     * S1066: bakes a digital-zoom recording's soft crop into the MP4 after finalize so the saved video
+     * matches the zoomed preview (owner Q1). Idle unless the recording used digital zoom.
+     */
+    private val videoZoomProcessor = VideoDigitalZoomProcessor()
+
     /** Latest probed capabilities of the active lens; [CameraRuntimeCapabilities.NONE] before bind. */
     var capabilities: CameraRuntimeCapabilities = CameraRuntimeCapabilities.NONE
         private set
@@ -539,6 +545,8 @@ class CameraCaptureSessionManager(
         // the calling (main) thread; nulling the field lets a later bind()+crop recreate it.
         cropExecutor?.shutdown()
         cropExecutor = null
+        // S1066: cancel any in-flight digital-zoom re-encode so a closed session never leaks it.
+        videoZoomProcessor.release()
     }
 
     fun isRecording(): Boolean = activeRecording != null
@@ -563,11 +571,21 @@ class CameraCaptureSessionManager(
         if (withAudio) pending = pending.withAudioEnabled()
         activeRecording = pending.start(ContextCompat.getMainExecutor(context)) { event ->
             if (event is VideoRecordEvent.Finalize) {
-                if (event.hasError()) {
-                    Timber.e("CameraCaptureSessionManager: recording finalize error ${event.error}")
-                }
                 activeRecording = null
-                onFinalized(event.hasError())
+                // S1066: a digital-zoom recording is wider than the preview (CameraX records the full
+                // ViewPort FOV), so re-encode the finished file with the same centred crop before
+                // signalling the host, keeping the callback contract WYSIWYG for video like it is for
+                // photos. Runs only when soft zoom was used; onFinalized fires once the file is final.
+                val factor = digitalZoomFactor
+                when {
+                    event.hasError() -> {
+                        Timber.e("CameraCaptureSessionManager: recording finalize error ${event.error}")
+                        onFinalized(true)
+                    }
+
+                    factor > 1f -> videoZoomProcessor.crop(context, outputFile, factor) { onFinalized(false) }
+                    else -> onFinalized(false)
+                }
             }
         }
     }
@@ -600,6 +618,7 @@ class CameraCaptureSessionManager(
             Timber.e("CameraCaptureSessionManager: no camera at index $activeCameraIndex")
             return
         }
+        Timber.d("S1066: bind shared ViewPort - videoMode=$videoMode camera=$activeCameraIndex")
         val previewBuilder = Preview.Builder()
         applyPreviewOutputConfig(previewBuilder)
         val preview = previewBuilder.build().also {

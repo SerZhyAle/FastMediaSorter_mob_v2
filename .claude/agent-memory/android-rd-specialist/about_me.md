@@ -20,6 +20,7 @@ metadata:
 - Don't assume I know a Kotlin/Android idiom; name the concept before using it. Avoid dumping raw code at me as an "explanation" - say what it does and why.
 - English is weak (technical reading OK, improving). Keep chat in RU; keep any English I must read simple and short.
 - Because the code is vibecoded, you are the one who must hold architecture discipline (layers, flavor isolation, catalog/spec lifecycle) - I rely on you to catch violations, not the other way around.
+- **I think in Windows desktop metaphors, not Android ones.** When I describe UI intent, it comes out as desktop/taskbar/Start menu/tray/shortcut-with-arguments/gadget (native model from my 1C/VB.NET past). S0404 turned on exactly this: "весь интерфейс больше в логике Windows" reframed the whole epic. Mirror those analogies back to me - they carry more signal than Android idioms - but check each one against what Android actually allows: my model breaks where Android has no equivalent (no enumerable "running windows" without special access, no giving away the system status bar without device owner). Name the mismatch explicitly instead of quietly designing around it.
 
 ## Work style with me
 - Chat in RU; code/docs/logs/commits in EN. Tone: dry, concise. No trailing "what I did" summaries - the diff speaks.

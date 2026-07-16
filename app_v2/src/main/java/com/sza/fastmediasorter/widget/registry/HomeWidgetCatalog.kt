@@ -20,7 +20,6 @@ import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -151,11 +150,9 @@ class HomeWidgetCatalog @Inject constructor(
             .map { it.provider.className }
             .toSet()
         val settings = settingsRepository.getSettings().first()
-        val entries = allEntries.filter { entry ->
+        return allEntries.filter { entry ->
             entry.providerClass.name in installed &&
                 (entry.settingGate?.invoke(settings) ?: true)
         }
-        Timber.d("S1069: widget picker entries=${entries.size}")
-        return entries
     }
 }

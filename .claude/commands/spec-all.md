@@ -232,13 +232,17 @@ Manual / unresolved:
 pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status <Verified|BlockNeedUserTest|...> `
-    -DevLogs @(
-        '{"file":"PLAN/Sxxxx_*.md","target":"spec-all","desc":"<spec-level msg>"}',
-        '{"file":"app_v2/src/.../X.kt","target":"spec-all","desc":"<code msg>"}'
-      ) `
+    -DevLogs '[{"file":"PLAN/Sxxxx_*.md","target":"spec-all","desc":"<spec-level msg>"},{"file":"app_v2/src/.../X.kt","target":"spec-all","desc":"<code msg>"}]' `
     -FuncOp FIX -FuncDesc "<user-visible summary>" `
+    -FeatArea "<inventory area, e.g. Streams>" `
+    -FeatName "<short capability name>" `
+    -FeatFlavors "<exact builds that ship it, e.g. standard,legacy,noLegal>" `
     -CatalogModule app_v2
 ```
+
+`-DevLogs` takes ONE string holding a JSON array, never a PowerShell array literal `@('{..}','{..}')` - `pwsh -File` binds only its first element and the rest become positional args, which `close-and-log.ps1` now rejects at bind time (S1063).
+
+`-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072). The record asserts facts the script cannot know, and it used to guess them (`General` / an 80-char cut of `-FuncDesc` / `standard`), yielding a record that is structurally valid, plausible and false - `validate.ps1` passes it and the error only surfaces in the release showcase built from this inventory. Read `-FeatFlavors` off the actual gate (the `BuildConfig` flag in `app_v2/build.gradle.kts`, or the source set the code lives in), never off a sibling record - sibling records disagree.
 
 Sub-skills (`/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`) call this internally. Use directly from `/spec-all` only when orchestrator itself owns the closing step (rare - usually a sub-skill ran last).
 

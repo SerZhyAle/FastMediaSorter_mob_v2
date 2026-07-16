@@ -21,6 +21,7 @@
 - [gh CLI location](reference_gh_cli_location.md) - C:\Program Files\GitHub CLI, not on PATH
 - [Play FGS precedent](project_play_release_in_review.md) - specialUse+mediaProjection ACCEPTED by review
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP if countries/age/device reach shrinks
+- [Pre-release: check OCR/translate versions](feedback_release_check_ocr_translate_versions.md) - ML Kit/Tesseract libs + models; upstream-driven quality
 - [Device-reach: implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies required screen.* (S0918/S0934)
 - [Android XR Play distribution](project_android_xr_play_distribution.md) - standard already covers XR; vr=dedicated XR track, same package; never swap for standard
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew; gitignored PLAN/ empties Step 12a diff
@@ -56,7 +57,7 @@
 ## detekt / gates / logging
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
-- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale, `gradlew --stop`; stale report -> delete detekt.xml first, not --rerun-tasks
+- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; delete detekt.xml, not --rerun-tasks; "PASS [scoped] - 0 file(s)" = blind, not clean (S1077)
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after a gate, add DON'T rule to CLAUDE.md + skills
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
@@ -122,6 +123,7 @@
 - [Block status before gate](feedback_blockneedusertest_status_before_gate.md) + [tags](feedback_timber_tags_before_test.md) + [phases](feedback_per_phase_debug_tags_break_gate.md) - flip status BEFORE audit
 - [close.ps1 two-step unblock](project_close_ps1_two_step_unblock.md) - no direct Block->Verified; via Implemented
 - [Capability inventory](project_functionality_log.md) - docs/ALL_FEATURES.jsonl via all_features/add.ps1
+- [Feature-record flavors from the gate](feedback_feature_record_flavors_from_gate.md) - never copy a sibling / accept a default; read the record back
 - [noLegal features doc](feedback_features_nolegal.md) - docs/FEATURES* standard/VR; noLegal gitignored
 - [spec_catalog exit-code](project_spec_catalog_exit_code_contract.md) + [insert -File](project_insert_ps1_file_validation.md) - trap{exit 1}+exit 0; next-id.ps1 first
 - [Catalog scan roots](project_catalog_scan_source_sets.md) + [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) - scan.ps1 hard-codes $srcRoots; set.ps1 aborts

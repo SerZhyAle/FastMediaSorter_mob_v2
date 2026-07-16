@@ -1,0 +1,24 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Put SettingsActivity on the "Общие" (General) tab, whatever tab a previous flow or a manual
+# session left it on.
+#
+# S1043: SettingsActivity persists the last-active tab across app sessions. That is intentional UX,
+# not a bug - but it makes any flow that reaches for a tab-specific element order-dependent: run it
+# after a flow that ended on Медиа/Плеер/Управление and the element is simply not in the view tree.
+# The observed signature is "No visible element found: id: headerInterface" from
+# smoke/settings_toggle_sweep.yaml (reproduced 3x during /spec-prerelease sweeps, 2026-07-13/15),
+# a false FAIL that masks the real state of the build and undermines release gating.
+#
+# Call this right after Settings opens (and after dismiss_settings_dialogs.yaml, which clears the
+# blocking cache dialog) in any flow that depends on a General-tab element.
+#
+# Idempotent: tapping the tab that is already selected is a no-op in the TabLayout, so the fragment
+# is safe to call unconditionally and needs no "is it already active" guard.
+#
+# The tab is addressed by its localized label because the TabLayout tabs carry no stable view id.
+# That ties this fragment to a ru-locale device - the same assumption the whole suite already makes
+# (see the Russian dialog texts in dismiss_settings_dialogs.yaml).
+- tapOn:
+    text: "Общие"
+- waitForAnimationToEnd

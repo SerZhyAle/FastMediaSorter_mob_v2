@@ -212,6 +212,19 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Flavor scope**: standard/legacy/noLegal - HLS, DASH VOD, RTSP, progressive HTTP/ICY; lite - progressive-audio only (HLS/DASH/RTSP show unsupported message); photos - feature absent (no entry point).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
 
+## Desktop Companion Config (`.fmscfg`) Subsystem
+
+Imports an SFTP share published by the **Windows desktop companion** (a separate Go/Wails app in its own repository) as ready-made resources, so the user never types host/port/credentials by hand. Not to be confused with the **Wear OS companion** (`wear/`) - unrelated subsystem, same word.
+
+- **Contract ownership**: the schema is a **cross-repo frozen contract**; the authoritative description is the companion repo's `docs/CONFIG_FORMAT.md`, and a canonical test vector is frozen on both ends (`CompanionConfigParserTest`). This repo is authoritative only for the **consumer** half. Do not restate the field list here - it drifts. Producer-side work lives in the external repo (see S0421, `BlockExternal`).
+- **Versioning rule**: producer emits a frozen shape, consumer stays tolerant. `schemaVersion` 2 is current, 1 still parses (absent v2 field == v1 default). A *newer* version than supported is a hard `UNSUPPORTED_VERSION` refusal, not a best-effort parse. Additive optional fields (`accessNote`, per-root `readOnly`, IPv6) do **not** bump `schemaVersion`; `CompanionRootDto` field order is contract-frozen (append after `label`).
+- **Transports**: plain JSON (payload starts with `{`) for the file share, or `FMSCFG1:` + base64(gzip(json)) for the compact QR path. `FMSCFG1:` is the **transport-envelope marker, not the schema version** - it stays fixed across schema bumps.
+- **Data layer**: `CompanionConfigParser` (read side: transport decode -> Gson -> validate) and `CompanionConfigSerializer` (write side: `serialize` plain, `serializeCompressed` for QR) are exact mirrors and round-trip each other. `CompanionConfigDto` mirrors the companion's `CompanionResourceConfig`; `CompanionResourceTokens` maps profile/media-type tokens onto app resource types.
+- **Data flow**: `CompanionConfigImportActivity` -> `ImportCompanionConfigUseCase` -> parser -> resource creation; `ExportCompanionConfigUseCase` -> serializer -> `.fmscfg` file or `CompanionQrShareActivity` (`QrCodeEncoder`).
+- **Entry points**: `CompanionConfigImportActivity` is `exported=true` with intent filters on `application/octet-stream`, `application/vnd.fms.companion-config+json`, and the `*.fmscfg` path pattern - a shared file opens the import directly. `CompanionQrShareActivity` is `exported=false` (in-app share only).
+- **Validation invariants** (consumer-owned): `protocol` must be `sftp`; `accessPaths` is ordered LAN-first then port-forward and is tried in that order; empty password / empty host-key fingerprint are legal Android-side (password typed at import; no-pin TOFU on first connect) even though the producer always sends both.
+- **Flavor scope**: the subsystem has **no gate of its own** - it lives in `src/main`, reads no `BuildConfig` flag and consults no capability facade, so it compiles into every flavor. What bounds it is its payload: an imported root is an **SFTP** resource, and the network source group (SMB/SFTP/FTP) is gated by `SUPPORT_LOCAL_NETWORK` via `RemoteSourceAvailabilityGate` / `MediaCapabilities.supportsLocalNetworkSources` - true in standard/photos/legacy/vr/noLegal, **false in `lite`**. Treat "which flavors is this useful in" as a question about the network group, not about this package.
+
 ## Performance & Resource Optimization
 
 To maintain fast startup times (cold start), low memory consumption, and efficient CPU usage, the following patterns must be strictly enforced:

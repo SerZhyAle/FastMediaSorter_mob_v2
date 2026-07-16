@@ -2996,4 +2996,5 @@
     <string name="streams_pinned_badge">Закріплено</string>
     <string name="resource_shortcut_created">Ярлик додано на домашній екран</string>
     <string name="resource_shortcut_unsupported">Ваш лаунчер не підтримує ярлики на домашньому екрані</string>
+    <string name="streams_panel_empty_hint">Закріпіть трансляції, щоб вони були на цій панелі.</string>
 </resources>

@@ -3070,4 +3070,5 @@ Close the player and try again.</string>
     <string name="streams_pinned_badge">Pinned</string>
     <string name="resource_shortcut_created">Shortcut added to home screen</string>
     <string name="resource_shortcut_unsupported">Your launcher does not support home-screen shortcuts</string>
+    <string name="streams_panel_empty_hint">Pin streams to see them on this panel.</string>
 </resources>

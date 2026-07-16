@@ -12,6 +12,13 @@
     Every version is READ from the build files; no version literal is embedded in
     this script.
 
+    Exit codes (S1070):
+      0 - clean (pins in sync, or a successful -Write).
+      1 - substantive failure: doc-vs-build pin drift under -Check.
+      2 - the tool itself cannot run: a build file or target document is missing,
+          a version could not be read, or the managed-block markers are absent.
+          Distinct from 1 on purpose - "cannot check" is not "drift found".
+
     Modes:
       (default)  Print the generated managed block to stdout.
       -Write     Replace the managed block in each target document in place.
@@ -55,7 +62,7 @@ function Get-AllCaptures([string]$text, [string]$pattern) {
     [regex]::Matches($text, $pattern) | ForEach-Object { $_.Groups[1].Value }
 }
 
-if (-not (Test-Path $appGradle)) { Write-Error "Not found: $appGradle"; exit 2 }
+if (-not (Test-Path $appGradle)) { Write-Error "Not found: $appGradle" -ErrorAction Continue; exit 2 }
 
 $app = Get-Content -LiteralPath $appGradle -Raw
 $rootText = if (Test-Path $rootGradle) { Get-Content -LiteralPath $rootGradle -Raw } else { '' }
@@ -88,7 +95,7 @@ $pins = [ordered]@{
 
 $missing = $pins.GetEnumerator() | Where-Object { [string]::IsNullOrWhiteSpace($_.Value) }
 if ($missing) {
-    Write-Error ("Could not read from build files: " + (($missing | ForEach-Object { $_.Key }) -join ', '))
+    Write-Error ("Could not read from build files: " + (($missing | ForEach-Object { $_.Key }) -join ', ')) -ErrorAction Continue
     exit 2
 }
 
@@ -122,10 +129,10 @@ switch ($PSCmdlet.ParameterSetName) {
     'Write' {
         $rx = [regex]::Escape($startMarker) + '.*?' + [regex]::Escape($endMarker)
         foreach ($t in $targets) {
-            if (-not (Test-Path $t)) { Write-Error "Target not found: $t"; exit 2 }
+            if (-not (Test-Path $t)) { Write-Error "Target not found: $t" -ErrorAction Continue; exit 2 }
             $docText = Get-Content -LiteralPath $t -Raw
             if (-not [regex]::IsMatch($docText, $rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
-                Write-Error "Managed block markers missing in $(Split-Path $t -Leaf). Add the marker pair first, then re-run -Write."
+                Write-Error "Managed block markers missing in $(Split-Path $t -Leaf). Add the marker pair first, then re-run -Write." -ErrorAction Continue
                 exit 2
             }
             $eol = if ($docText.Contains("`r`n")) { "`r`n" } else { "`n" }
