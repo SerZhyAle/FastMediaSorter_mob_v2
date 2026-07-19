@@ -81,6 +81,12 @@ After all planned steps in current phase complete:
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
 - Every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - Any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
+- **Phase-boundary audit (mandatory - CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits").** Immediately after this phase flips `✅ Done`, before the next phase's first step: self-audit this phase's `Files Touched` against the protocol. Layer 1 (architecture/readability) always; Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) when the phase touched that surface. Skip entirely when `Files Touched` is empty or doc-only (e.g. `docs-catalog-cleanup`). Tag findings by severity:
+  - **P0/P1 → fix now.** Small scoped edit, re-run the affected step's `Verification:` predicates, run `post-change.ps1` closure, append `AUDIT-FIX: <finding>` to this phase's Step Log. Fixing here costs this phase's rework; leaving it costs every later phase's rework plus the end-of-pipeline `/spec-check` finding it cold.
+  - **P2 → fix if trivial**, else append `AUDIT-P2: <finding>` to Step Log (recurring pattern → flag as mechanical-gate candidate, CLAUDE.md Rule 19/20).
+  - **P3 → fix inline or skip.**
+  - A fix that requires a design decision not derivable from the spec/codebase is an ambiguity → Hard Stop #1 (`BlockQuestions`), same as any other ambiguous prompt - do not guess.
+  - This is a fast self-review scoped to one phase, not a replacement for `/spec-check`'s deeper end-of-pipeline audit.
 - **Write session snapshot (S0268 Agent Continuity Layer).** After phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1` with `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched @(<file1>, <file2>, ...)` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one). One call per phase boundary; snapshot lands under `temp/sessions/` as resume-layer hand-off for next session.
 
 After all phases done:

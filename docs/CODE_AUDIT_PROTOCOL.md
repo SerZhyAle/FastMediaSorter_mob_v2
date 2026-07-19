@@ -79,6 +79,23 @@ Run the protocol when any of these is true:
 - DI scope or singleton ownership changes
 - build, manifest, R8, or keep-rule changes affect profiling, startup, minification, or process behavior
 - crash, ANR, OOM, jank, or leak is reported
+- a phase of a multi-phase task just finished (tactical spec phase via `/spec-dev`, or any large task split into sequential phases manually) - audit that phase before starting the next one, not only at the end of the whole task
+
+## Phase-boundary audits
+
+Cost of a fix grows with how much later work has already been layered on top of the defect. Catching an issue at the boundary right after the phase that introduced it costs about one phase's worth of rework. Leaving it for a single end-of-task audit costs every subsequent phase's worth - later phases may consume the defective API, mirror the mistake into new files, or make the eventual fix a cross-phase rewrite.
+
+Rule: whenever a task is split into sequential phases, run this protocol against the phase just completed before starting the next phase's first step - scope the review to that phase's changed files.
+
+- Layer 1 (static architecture/readability) always applies.
+- Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) apply when the phase touched the matching surface.
+- P0/P1 findings get fixed immediately, in the same phase boundary, before the next phase starts.
+- P2 findings get fixed if trivial, otherwise logged for follow-up; a recurring P2 is a mechanical-gate candidate (Layer 8).
+- P3 findings get fixed inline or skipped.
+
+This is a fast self-review, not a substitute for the deeper end-of-task audit (e.g. `/spec-check`) - it exists to keep that final audit from finding a phase's worth of unrelated debt in every phase at once.
+
+`/spec-dev` runs this automatically as its "Phase-boundary audit" step; apply the same discipline manually for phased work driven outside that skill.
 
 ## Layer 1 - Static architecture and readability audit
 

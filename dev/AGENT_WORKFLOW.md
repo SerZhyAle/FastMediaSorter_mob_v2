@@ -39,6 +39,7 @@
   - Mark progress directly in the planning files (`[x]`).
   - **FLAVOR RULES**: If the task involves a specific flavor (e.g., `noLegal`, `vr`), strictly follow the isolation rules in `dev/FLAVOR_DEVELOPMENT_RULES.md`. DO NOT use `BuildConfig` checks in `src/main`.
   - **FEATURES UPDATE (MANDATORY)**: After implementing any new user-facing feature, add a description entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this before marking the step complete. Use consistent bullet style matching existing entries.
+  - **PHASE-BOUNDARY AUDIT (MANDATORY)**: before starting the next phase, audit the phase just finished against `docs/CODE_AUDIT_PROTOCOL.md` (Layer 1 always; Layers 2-4 when lifecycle/coroutine/listener/player/Room was touched) and fix P0/P1 findings immediately - see CLAUDE.md §13 "Phase-boundary audits". A defect caught here costs this phase's rework; left for the end of the task it costs every later phase's rework too. `/spec-dev` runs this automatically per tactical phase; for work driven directly from this document, run it by hand at each phase boundary, right before the session-snapshot call below.
 - **Validation ladder (mandatory):** Every implementation step closes with the level of evidence appropriate to its change type - see CLAUDE.md `## Validation Requirements` table. Grep-only is sufficient only for doc-only steps. Code, config, or script changes must close with the corresponding build/test/run gate. A step is NOT done until evidence passes.
 
 ### 9. PROGRESS JOURNAL
