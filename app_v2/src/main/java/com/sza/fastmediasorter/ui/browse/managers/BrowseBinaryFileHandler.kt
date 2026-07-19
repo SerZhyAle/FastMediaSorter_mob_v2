@@ -8,11 +8,13 @@ import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
+import com.sza.fastmediasorter.core.util.MimeTypeResolver
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import com.sza.fastmediasorter.util.BinaryFileTypeDetector
 import timber.log.Timber
 import java.io.File
 
@@ -148,13 +150,17 @@ class BrowseBinaryFileHandler(
     fun getMimeTypeForFile(mediaFile: MediaFile): String {
         val extension = mediaFile.name.substringAfterLast('.', "").lowercase()
         return when (mediaFile.type) {
-            MediaType.BINARY_ARCHIVE -> "application/$extension"
+            // S1058: registry type first (pinned, identical on API 23..35), then the platform map,
+            // which already ends at application/octet-stream. Never `application/$extension` - a
+            // coined type matches only `*/*` filters, so archivers declaring a concrete type lose.
+            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK ->
+                BinaryFileTypeDetector.mimeTypeForExtension(extension)
+                    ?: MimeTypeResolver.resolve(extension)
             MediaType.BINARY_EXECUTABLE -> when (extension) {
                 "apk" -> "application/vnd.android.package-archive"
                 "exe", "dll" -> "application/x-msdownload"
                 else -> "application/octet-stream"
             }
-            MediaType.BINARY_DISK -> "application/$extension"
             MediaType.OFFICE_DOCUMENT -> MediaTypeUtils.officeMimeTypeForFileName(mediaFile.name)
                 ?: "application/octet-stream"
             else -> "application/octet-stream"

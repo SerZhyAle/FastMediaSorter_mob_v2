@@ -141,7 +141,6 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
             override fun handleOnBackPressed() = onBackRequested()
         })
 
-        Timber.d("S0963: immersive browse opened resource=%d", resourceId)
         loadContent(currentPath = null)
     }
 
@@ -161,8 +160,9 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         val visible = cells.drop(pageOffset).take(pageSize).filter { !it.isFolder && it.thumbnail == null }
         for (cell in visible) {
             val model = cell.filePath ?: continue
+            val isVideo = cell.mediaType == VrMediaType.VIDEO
             lifecycleScope.launch(Dispatchers.Main.immediate) {
-                val bitmap = thumbnailDecoder.decode(model, CELL_THUMB_PX, CELL_THUMB_PX)
+                val bitmap = thumbnailDecoder.decode(model, isVideo, CELL_THUMB_PX, CELL_THUMB_PX)
                 if (bitmap != null && state == BrowseState.BROWSE) {
                     cell.thumbnail = bitmap
                     drawAndPushGrid()
@@ -266,6 +266,8 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun returnToBrowse() {
         playbackController.stop()
         state = BrowseState.BROWSE
+        // Re-assert the browse quad: playback used the media quad, and the runtime is process-wide.
+        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M)
         drawAndPushGrid()
     }
 
@@ -314,6 +316,10 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun onSessionReady() {
+        // The XR runtime is a process singleton, so the browser must assert its own HUD quad size or
+        // it inherits whatever the previous mode left (the tiny banner) - the "micro-browser" (S1116).
+        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M)
+        Timber.d("S1116: browse HUD quad ${BROWSE_QUAD_WIDTH_M}x${BROWSE_QUAD_HEIGHT_M}m")
         if (state == BrowseState.BROWSE) drawAndPushGrid()
     }
 
@@ -347,7 +353,12 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         const val REQUEST_HAND_TRACKING = 0x963
         const val RGBA_BYTES_PER_PIXEL = 4
         const val ALPHA_OFFSET = 3
-        const val CELL_THUMB_PX = 256
+        const val CELL_THUMB_PX = 384
+        // S1116: browse HUD quad in metres (2:1, matches the panel). The banner default is
+        // 0.30x0.113 m; DiagnosticXrActivity's interactive panel is 0.48x0.30 m - the browser needs a
+        // larger, readable surface, so it asserts its own on session-ready.
+        const val BROWSE_QUAD_WIDTH_M = 0.80f
+        const val BROWSE_QUAD_HEIGHT_M = 0.40f
         const val INIT_TEXTURE_DIM = 64
         const val NO_RESOURCE = -1L
         const val BACKDROP_RED: Byte = 12

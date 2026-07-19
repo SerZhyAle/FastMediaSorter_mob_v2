@@ -35,6 +35,39 @@ enum class ScreenshotGestureAction {
     // S0797: pre-capture - toggle screen video recording (consent + foreground service). Offered only
     // where the capture engine is compiled in (standard fms.screenCapture=on + noLegal).
     START_SCREEN_RECORDING,
+
+    // S1038: device-control actions (all gesture flavors), pre-capture. Flashlight + brightness run
+    // through DeviceActionHandler; volume + media transport through MediaActionHandler. All surface under
+    // the single DEVICE picker group per the strategic spec's "device control" category.
+    TOGGLE_FLASHLIGHT,
+    BRIGHTNESS_MAX,
+    BRIGHTNESS_NORMAL,
+    VOLUME_UP,
+    VOLUME_DOWN,
+    VOLUME_MUTE,
+    MEDIA_PLAY_PAUSE,
+    MEDIA_NEXT,
+    MEDIA_PREV,
+
+    // S1038: launch/intent actions (all gesture flavors), pre-capture, dispatched by LaunchActionHandler.
+    // Each is a guarded startActivity that degrades to a safe no-op when the target app is absent.
+    // OPEN_URL reads the per-slot payload (S1038 phase 02) for its target address. Group LAUNCH.
+    OPEN_ASSISTANT,
+    OPEN_GEMINI,
+    CREATE_KEEP_NOTE,
+    OPEN_URL,
+    SET_ALARM,
+    SET_TIMER,
+    NEW_CALENDAR_EVENT,
+
+    // S1038: system actions performed through the accessibility service's global actions. The enum lives
+    // in src/main (shared) so the values exist on every flavor, but only the noLegal accessibility path
+    // can perform them - the picker surfaces the SYSTEM group solely where that capability is compiled.
+    OPEN_NOTIFICATION_SHADE,
+    OPEN_QUICK_SETTINGS,
+    LOCK_SCREEN,
+    TOGGLE_SPLIT_SCREEN,
+    PREVIOUS_APP,
     DO_NOT_USE;
 
     companion object {

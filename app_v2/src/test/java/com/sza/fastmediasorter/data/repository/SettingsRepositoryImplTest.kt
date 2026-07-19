@@ -168,4 +168,25 @@ class SettingsRepositoryImplTest {
             realRepo.getSettings().first().secureSensitiveScreens
         )
     }
+
+    @Test
+    fun `launcherReplaceSystemStatusArea defaults false and round-trips true through DataStore`() = runTest {
+        val realStore = PreferenceDataStoreFactory.create(scope = realStoreScope) {
+            tempFolder.newFile("s1087_settings.preferences_pb")
+        }
+        val realRepo = SettingsRepositoryImpl(RuntimeEnvironment.getApplication(), realStore)
+
+        assertFalse(
+            "unset key must keep the Android system status area",
+            realRepo.getSettings().first().launcherReplaceSystemStatusArea
+        )
+
+        val current = realRepo.getSettings().first()
+        realRepo.updateSettings(current.copy(launcherReplaceSystemStatusArea = true))
+
+        assertTrue(
+            "saved true must load back as true",
+            realRepo.getSettings().first().launcherReplaceSystemStatusArea
+        )
+    }
 }

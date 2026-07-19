@@ -1,4 +1,5 @@
 ---
+description: "Use to batch device-test a set of BlockNeedUserTest tickets in one sweep. Triggers: 'spec-sweep', 'test all the pending tickets on device'."
 model: sonnet
 ---
 

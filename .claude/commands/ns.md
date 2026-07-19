@@ -1,4 +1,5 @@
 ---
+description: "Use for a change that needs neither a spec nor a build - the no-spec no-build fast path. Triggers: 'no spec no build', a doc/config/script tweak validated locally without gradle."
 model: sonnet
 ---
 

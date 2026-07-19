@@ -21,6 +21,9 @@ const curatedSources = {
     ".github/copilot-instructions.md",
     "dev/PROJECT_OPERATIONS_INDEX.md",
     "dev/AGENT_WORKFLOW.md",
+    "docs/DOCUMENT_REGISTRY.jsonl",
+    "docs/DOCUMENT_REGISTRY_SCHEMA.md",
+    "docs/DOCUMENT_REGISTRY_GUIDE.md",
     "PLAN/spec-catalog.jsonl",
   ],
   directories: [
@@ -142,6 +145,11 @@ function buildJsonlSnippet(record) {
     "role",
     "roleRu",
     "module",
+    "title",
+    "category",
+    "audience",
+    "product_areas",
+    "update_triggers",
   ];
 
   return keys

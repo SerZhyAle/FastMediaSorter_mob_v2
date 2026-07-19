@@ -10,12 +10,12 @@ import com.sza.fastmediasorter.domain.model.MediaType
  */
 object BinaryFileTypeDetector {
     
-    private val ARCHIVES = setOf(
+    internal val ARCHIVES = setOf(
         "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tar.gz", "tgz",
         "tbz2", "txz", "cab", "arj", "lzh", "ace", "zipx"
     )
-    
-    private val DISK_IMAGES = setOf(
+
+    internal val DISK_IMAGES = setOf(
         "iso", "dmg", "img", "vhd", "vdi", "qcow2", "vmdk", "toast"
     )
     
@@ -32,6 +32,52 @@ object BinaryFileTypeDetector {
         "bin", "dat", "tmp", "cache", "bak", "backup", "old", "swp", "avi"
     )
     
+    /**
+     * S1058: media types for [ARCHIVES] / [DISK_IMAGES] extensions, as defined by a registry -
+     * IANA, freedesktop shared-mime-info, or Debian `mime.types`. Nothing is coined here: an
+     * extension with no registry type is listed in [NO_REGISTRY_MIME] and resolved by the caller
+     * instead, because a fabricated `application/<ext>` matches only wildcard intent filters and so
+     * hides exactly the apps that declare a concrete type.
+     *
+     * Values are pinned here rather than read from `MimeTypeMap` so they stay identical across
+     * API 23..35 - the platform map is a small hardcoded table before API 29 and a `mime.types`
+     * merge after it.
+     */
+    internal val MIME_BY_EXTENSION = mapOf(
+        "zip" to "application/zip",
+        "rar" to "application/vnd.rar",
+        "7z" to "application/x-7z-compressed",
+        "tar" to "application/x-tar",
+        "gz" to "application/gzip",
+        "bz2" to "application/x-bzip2",
+        "xz" to "application/x-xz",
+        "cab" to "application/vnd.ms-cab-compressed",
+        "iso" to "application/x-iso9660-image",
+        "dmg" to "application/x-apple-diskimage",
+    )
+
+    /**
+     * S1058: archive/disk extensions deliberately left out of [MIME_BY_EXTENSION] because no
+     * registry defines a type for them - inventing `application/x-<ext>` would just re-create the
+     * fabricated-MIME bug behind a respectable prefix. The set is explicit, not an omission, so the
+     * completeness test can tell "decided to skip" from "forgot".
+     *
+     * `tar.gz` is unreachable on top of that: every caller passes a `substringAfterLast('.')`
+     * result, which yields `gz` at most. Kept here only to keep the set arithmetic total.
+     */
+    internal val NO_REGISTRY_MIME = setOf(
+        "tar.gz", "tgz", "tbz2", "txz", "arj", "lzh", "ace", "zipx",
+        "img", "vhd", "vdi", "qcow2", "vmdk", "toast"
+    )
+
+    /**
+     * Registry media type for a binary archive / disk-image extension.
+     * @param extension File extension without dot
+     * @return the registry type, or null when none is defined - callers fall back to the platform
+     *   map and ultimately `application/octet-stream`. Never returns a coined type.
+     */
+    fun mimeTypeForExtension(extension: String): String? = MIME_BY_EXTENSION[extension.lowercase()]
+
     /**
      * Detect MediaType for given extension
      * @param extension File extension without dot

@@ -54,6 +54,13 @@ $gates = [ordered]@{
     'assert-deprecated-pm-flags.ps1'            = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
+    # S1070: guards the tooling itself rather than app sources - a bare Write-Error under
+    # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
+    # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
+    'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
+    # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
+    'assert-doc-pin-drift.ps1'                  = @('-Quiet')
 }
 
 $results = [System.Collections.Generic.List[object]]::new()

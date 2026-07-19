@@ -376,6 +376,33 @@ class StereoDetectorTest {
     }
 
     @Test
+    fun `detectFromFilename EQUIRECT_360_OU when 360 stereo and tb both present (S1112)`() {
+        // Regression: the specific `tb`/`ou` marker must win over the generic `stereo` token.
+        // Before S1112, `has360 && hasStereo` was tested first and collapsed TB content to SBS,
+        // so `*_stereo_tb` rendered side-by-side (eyes could not fuse).
+        assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectFromFilename("diagnostic_360_stereo_tb.jpg"))
+        assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectFromFilename("video_360_stereo_tb.mp4"))
+    }
+
+    @Test
+    fun `detectFromFilename EQUIRECT_360_SBS still wins for 360 stereo sbs (S1112 guard)`() {
+        assertEquals(StereoMode.EQUIRECT_360_SBS, detector.detectFromFilename("diagnostic_360_stereo_sbs.jpg"))
+    }
+
+    @Test
+    fun `detectFromFilename UNKNOWN for 180 stereo tb so caller renders TOP_BOTTOM (S1112)`() {
+        // No EQUIRECT_180_OU stereo mode exists; UNKNOWN lets the layout-aware immersive parser
+        // render HEMISPHERE_180 + TOP_BOTTOM instead of the generic-stereo SBS mismatch.
+        assertEquals(StereoMode.UNKNOWN, detector.detectFromFilename("diagnostic_180_stereo_tb.jpg"))
+        assertEquals(StereoMode.UNKNOWN, detector.detectFromFilename("video_180_stereo_tb.mp4"))
+    }
+
+    @Test
+    fun `detectFromFilename EQUIRECT_180_SBS still wins for 180 stereo sbs (S1112 guard)`() {
+        assertEquals(StereoMode.EQUIRECT_180_SBS, detector.detectFromFilename("diagnostic_180_stereo_sbs.jpg"))
+    }
+
+    @Test
     fun `detectFromFilename VR180_FISHEYE_SBS for vr180 or 180x180 markers`() {
         assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectFromFilename("movie_vr180.mp4"))
         assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectFromFilename("beach_180x180.mp4"))

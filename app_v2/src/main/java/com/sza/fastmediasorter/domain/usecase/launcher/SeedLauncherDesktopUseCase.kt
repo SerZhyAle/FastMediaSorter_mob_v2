@@ -1,0 +1,92 @@
+package com.sza.fastmediasorter.domain.usecase.launcher
+
+import android.content.Context
+import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+
+/**
+ * S0404: on first entry, fill an empty launcher desktop with a profile-appropriate starter set (ADR-4 -
+ * the profile seeds the layout once, then the user owns it). Portrait and landscape are laid out
+ * independently for their own column count. [LauncherDesktopRepository.seedIfEmpty] makes this a no-op
+ * once a desktop exists, so a later profile change never overwrites the user's arrangement.
+ *
+ * This is a HOME-activity first-run path, so the whole body is wrapped in `runCatching`: a failed
+ * dependency read (e.g. a Room exception) degrades to an empty desktop the user can fill, never a crash
+ * loop on the device's own home surface (audit 2026-07-17, P1).
+ */
+class SeedLauncherDesktopUseCase @Inject constructor(
+    private val desktop: LauncherDesktopRepository,
+    private val profiles: DeviceProfileRepository,
+    private val resources: ResourceRepository,
+    private val settings: SettingsRepository,
+    private val streamsAvailability: ResolvePanelRouteAvailabilityUseCase,
+    @ApplicationContext private val context: Context,
+) {
+
+    suspend operator fun invoke(portraitColumns: Int, landscapeColumns: Int): Unit = withContext(Dispatchers.IO) {
+        runCatching {
+            val state = desktop.state()
+            if (state.seededPortrait && state.seededLandscape) return@runCatching
+
+            val allResources = resources.getAllResourcesSync()
+            val resourceIds = allResources.mapTo(mutableSetOf()) { it.id }
+            val profile = profiles.getCurrentProfile().first().type
+            // Only seed resource-backed cells for ids that still exist, so a stale last-used id (its
+            // resource since deleted) never becomes a permanently-dead tile.
+            val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
+            val allAudioResourceId = allResources
+                .firstOrNull { it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO }?.id
+            val streamsAvailable = streamsAvailability(InternalRouteCatalog.KEY_STREAMS).availableInBuild
+
+            val items = LauncherStarterSets.itemsFor(profile, lastResourceId, allAudioResourceId, streamsAvailable)
+            val ownPackage = context.packageName
+            val now = System.currentTimeMillis()
+
+            if (!state.seededPortrait) {
+                seedOrientation(LauncherOrientation.PORTRAIT, portraitColumns, items, ownPackage, now)
+            }
+            if (!state.seededLandscape) {
+                seedOrientation(LauncherOrientation.LANDSCAPE, landscapeColumns, items, ownPackage, now)
+            }
+        }.onFailure { Timber.w(it, "Launcher desktop seed failed; leaving desktop empty") }
+        Unit
+    }
+
+    private suspend fun seedOrientation(
+        orientation: LauncherOrientation,
+        columns: Int,
+        items: List<LauncherStarterSets.StarterItem>,
+        ownPackage: String,
+        now: Long,
+    ) {
+        val cells = LauncherStarterSets.place(items, columns).map { placed ->
+            LauncherCell(
+                id = 0,
+                orientation = orientation,
+                rowIndex = placed.rowIndex,
+                colIndex = placed.colIndex,
+                spanW = placed.spanW,
+                spanH = placed.spanH,
+                kind = placed.item.kind,
+                target = placed.item.target.replace(LauncherStarterSets.OWN_APP_TOKEN, ownPackage),
+                labelOverride = null,
+                addedAt = now,
+            )
+        }
+        desktop.seedIfEmpty(orientation, cells)
+    }
+}

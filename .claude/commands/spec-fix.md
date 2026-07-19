@@ -1,3 +1,7 @@
+---
+description: "Use to apply mechanical fixes to a spec after /spec-check. Triggers: 'spec-fix Sxxxx', 'fix the audit findings in this spec'."
+---
+
 # Specification Audit Fix-up
 
 Apply mechanical fixes flagged by latest audit. Modifies codebase, not spec body - `/spec-update` does that.
@@ -80,13 +84,18 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status $cur `
     -StatusOnly `
-    -DevLogs @(
-        '{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-fix","desc":"Annotate Last Audit (<Sxxxx>)"}'
-        # plus one entry per modified source file
-      ) `
+    -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-fix","desc":"Annotate Last Audit (<Sxxxx>)"}]' `
+    # -DevLogs is ONE JSON-array string - append one {file,target,desc} object per modified
+    # source file. Never a PowerShell array literal @('{..}','{..}'): pwsh -File binds only its
+    # first element and close-and-log.ps1 rejects the leftovers (S1063).
     -FuncOp <FIX|""> -FuncDesc "<english summary or omit>" `
+    -FeatArea "<inventory area of the fixed capability>" `
+    -FeatName "<short capability name>" `
+    -FeatFlavors "<exact builds that ship it>" `
     -CatalogModule app_v2
 ```
+
+`-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072) - the script no longer invents them. Prefer `-FeatId <area>.<feature>` of the EXISTING record when fixing a shipped capability, so the fix patches that record instead of creating a near-duplicate under a new derived id.
 
 `-StatusOnly` calls `update.ps1` (touches `updated`) instead of `close.ps1` so no `closed_at` set. Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) for runs touching only dev log entries, INDEX counter drift, catalog regeneration, or stale debug-tag deletions - none affect what user sees. Skip the call entirely on `--dry-run`.
 

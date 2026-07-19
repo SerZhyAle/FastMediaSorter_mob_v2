@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,26 +30,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PermissionsManagementFragment : Fragment() {
 
-    interface WelcomeCompleteListener {
-        fun onWelcomeComplete()
-    }
-
     companion object {
-        private const val ARG_FROM_WELCOME = "from_welcome"
         private const val STATE_GRANT_ALL_IN_PROGRESS = "grant_all_in_progress"
         private const val STATE_SHOWN_SPECIAL_IN_RUN = "shown_special_in_run"
-
-        fun newInstance(fromWelcome: Boolean = false): PermissionsManagementFragment =
-            PermissionsManagementFragment().apply {
-                arguments = Bundle().apply { putBoolean(ARG_FROM_WELCOME, fromWelcome) }
-            }
     }
 
     @Inject lateinit var registry: PermissionRegistryRepository
     @Inject lateinit var checkStatus: CheckPermissionStatusUseCase
     @Inject lateinit var requestContextual: RequestContextualPermissionUseCase
-
-    private val fromWelcome get() = arguments?.getBoolean(ARG_FROM_WELCOME, false) ?: false
 
     // These permissions cannot be granted via requestPermission() - each requires a dedicated
     // system settings screen. Batch-requesting them via requestMultiplePermissions() is silently ignored.
@@ -94,12 +81,8 @@ class PermissionsManagementFragment : Fragment() {
         updateGrantAllVisibility()
         if (grantAllInProgress) {
             // Mid "Grant all" run - continue with the next denied special permission. When none
-            // remain, launchNextSpecialPermission() ends the run (and, in welcome mode, proceeds).
+            // remain, launchNextSpecialPermission() ends the run.
             launchNextSpecialPermission()
-        } else if (fromWelcome) {
-            // Single special-permission tap from the welcome screen - proceed to the app once the
-            // user returns from the system screen, whether they granted or pressed Back.
-            (activity as? WelcomeCompleteListener)?.onWelcomeComplete()
         }
     }
 
@@ -162,17 +145,6 @@ class PermissionsManagementFragment : Fragment() {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        val btnContinue = view.findViewById<Button>(R.id.btn_continue_to_app)
-        if (fromWelcome) {
-            (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            btnContinue.visibility = View.VISIBLE
-            btnContinue.setOnClickListener {
-                (activity as? WelcomeCompleteListener)?.onWelcomeComplete()
-            }
-        } else {
-            btnContinue.visibility = View.GONE
-        }
-
         refreshAdapter()
         updateGrantAllVisibility()
     }
@@ -227,8 +199,7 @@ class PermissionsManagementFragment : Fragment() {
 
     /**
      * Advances a "Grant all" run: opens the system settings screen for the next still-denied
-     * special permission that has not been shown yet in this run. When none remain, the run ends
-     * and - in welcome mode - proceeds to the app.
+     * special permission that has not been shown yet in this run. When none remain, the run ends.
      */
     private fun launchNextSpecialPermission() {
         val entry = registry.getEntries()
@@ -242,7 +213,6 @@ class PermissionsManagementFragment : Fragment() {
             Timber.d("PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)")
             grantAllInProgress = false
             shownSpecialInRun.clear()
-            if (fromWelcome) (activity as? WelcomeCompleteListener)?.onWelcomeComplete()
         }
     }
 

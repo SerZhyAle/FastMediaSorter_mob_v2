@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: the launcher taskbar - Start button, recent launches, pinned icons, tray. Included by
+     both orientations of activity_launcher_home (bottom-anchored in each, per the Windows-desktop
+     model), so it is deliberately a single shared file. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/taskbarRoot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/launcher_taskbar_height"
+    android:background="?attr/colorSurfaceVariant"
+    android:divider="@drawable/launcher_taskbar_divider"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+    android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+    android:showDividers="middle">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStart"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:gravity="start|center_vertical"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusRight="@id/taskbarRecents"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:text="@string/launcher_taskbar_start"
+        app:icon="@drawable/ic_launcher_mode"
+        app:iconGravity="start" />
+
+    <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
+         Start button and the tray. A wrap_content strip placed directly in the bar is measured against the
+         WHOLE bar width (LinearLayout gives a non-weighted child usedWidth=0 once any sibling has a
+         weight), so enough pins would push the tray past the right edge. The block also keeps the tray
+         right-anchored when both strips are toggled off - it still absorbs the slack while empty. -->
+    <LinearLayout
+        android:id="@+id/taskbarStrips"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:divider="@drawable/launcher_taskbar_divider"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:showDividers="middle">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/taskbarRecents"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fadingEdgeLength="@dimen/main_panel_fading_edge"
+            android:nextFocusUp="@id/launcherDesktop"
+            android:nextFocusLeft="@id/btnStart"
+            android:nextFocusRight="@id/taskbarPinned"
+            android:requiresFadingEdge="horizontal"
+            tools:listitem="@layout/item_launcher_taskbar_icon" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/taskbarPinned"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/launcherDesktop"
+            android:nextFocusLeft="@id/taskbarRecents"
+            android:nextFocusRight="@id/trayContainer"
+            tools:listitem="@layout/item_launcher_taskbar_icon" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/trayContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing">
+
+        <!-- TextClock registers its own time/timezone receivers on attach and drops them on detach,
+             so the tray needs no clock lifecycle wiring and honours the 12/24h system setting. -->
+        <TextClock
+            android:id="@+id/trayClock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            tools:text="12:45" />
+
+        <ImageView
+            android:id="@+id/trayNetwork"
+            android:layout_width="@dimen/launcher_tray_icon_size"
+            android:layout_height="@dimen/launcher_tray_icon_size"
+            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+            tools:src="@drawable/ic_wifi" />
+
+        <ImageView
+            android:id="@+id/trayBattery"
+            android:layout_width="@dimen/launcher_tray_icon_size"
+            android:layout_height="@dimen/launcher_tray_icon_size"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_battery" />
+
+        <TextView
+            android:id="@+id/trayBatteryPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="12sp"
+            tools:text="86%" />
+
+    </LinearLayout>
+
+</LinearLayout>

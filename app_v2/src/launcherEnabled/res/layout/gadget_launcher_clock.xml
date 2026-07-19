@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: the clock gadget. TextClock registers its own time/timezone receivers on attach and drops
+     them on detach, and follows the 12/24h system setting by itself - so this gadget has no lifecycle
+     wiring and no receiver to keep symmetric. Same correction the taskbar tray took in Phase 05.
+     No weather here: S0426 extends this gadget through the gadget contract (strategic §6.7). -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <!-- Autosized, not a fixed 32sp: the cell is `gridWidth / columns` tall, and at density factor
+             1.5 on a narrow phone that is ~54dp of content - less than a 32sp time plus a 13sp date
+             need, so a fixed size clips BOTH (gravity=center pushes the overflow off each end). The
+             platform attr, not the AppCompat one: TextClock is not auto-inflated to an AppCompat view,
+             and this source set is minSdk 26 so the native autosize is always there.
+             tools:ignore - autosize needs layout_height to be free, which is exactly what 0dp+weight
+             gives it here; the lint check does not model the weighted parent. -->
+        <TextClock
+            android:id="@+id/gadgetClockTime"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:autoSizeMaxTextSize="32sp"
+            android:autoSizeMinTextSize="14sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:format12Hour="h:mm"
+            android:format24Hour="H:mm"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:ignore="UnusedAttribute"
+            tools:text="12:45" />
+
+        <TextClock
+            android:id="@+id/gadgetClockDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="13sp"
+            tools:text="Fri, 17 Jul" />
+
+    </LinearLayout>
+
+</merge>

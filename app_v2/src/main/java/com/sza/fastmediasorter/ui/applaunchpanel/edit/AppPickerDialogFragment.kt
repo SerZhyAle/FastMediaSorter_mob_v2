@@ -38,10 +38,15 @@ class AppPickerDialogFragment : DialogFragment() {
 
     private var slotIndex: Int = 0
 
+    // S0404: hosts other than the panel editor pass their own key, so several hosts can share one
+    // FragmentManager without receiving each other's results.
+    private var requestKey: String = RESULT_KEY
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, 0)
         slotIndex = requireArguments().getInt(ARG_SLOT, 0)
+        requestKey = requireArguments().getString(ARG_REQUEST_KEY) ?: RESULT_KEY
     }
 
     override fun onCreateView(
@@ -91,7 +96,7 @@ class AppPickerDialogFragment : DialogFragment() {
 
     private fun onAppPicked(packageName: String) {
         setFragmentResult(
-            RESULT_KEY,
+            requestKey,
             bundleOf(RESULT_SLOT to slotIndex, RESULT_PACKAGE to packageName),
         )
         dismiss()
@@ -107,8 +112,17 @@ class AppPickerDialogFragment : DialogFragment() {
         const val RESULT_PACKAGE = "result_package"
 
         private const val ARG_SLOT = "arg_slot"
+        private const val ARG_REQUEST_KEY = "arg_request_key"
 
         fun newInstance(slotIndex: Int): AppPickerDialogFragment =
             AppPickerDialogFragment().apply { arguments = bundleOf(ARG_SLOT to slotIndex) }
+
+        /**
+         * S0404: host factory with no panel-slot semantics - the result arrives on [requestKey], so a
+         * second host on the same FragmentManager never sees the panel editor's picks. The bundle still
+         * carries RESULT_SLOT (0); a non-panel host ignores it.
+         */
+        fun newInstance(requestKey: String): AppPickerDialogFragment =
+            AppPickerDialogFragment().apply { arguments = bundleOf(ARG_REQUEST_KEY to requestKey) }
     }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: one row inside a list gadget (a track, or a stream channel). Shared by both because they
+     are the same shape: a small leading mark plus a single-line title. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gadgetRowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/focus_button_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="28dp"
+    android:orientation="horizontal"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <!-- No tint here on purpose - it is applied per row in code. A blanket ImageView tint colours
+         WHATEVER drawable is set, which would flatten ic_music_note's gold gradient and repaint every
+         favicon bitmap a single colour. Only the ic_cast fallback needs tinting (it fills
+         @android:color/white and would be invisible on the ?attr/colorSurface card). -->
+    <ImageView
+        android:id="@+id/gadgetRowIcon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="6dp"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/ic_cast" />
+
+    <TextView
+        android:id="@+id/gadgetRowTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="12sp"
+        tools:text="Track title" />
+
+</LinearLayout>

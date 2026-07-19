@@ -1,3 +1,7 @@
+---
+description: "Use for a terse, no-filler code review in caveman mode. Triggers: 'caveman review', a blunt quick review of recent changes."
+---
+
 # Caveman Review
 
 > **LOCAL DIRECTIVES:**

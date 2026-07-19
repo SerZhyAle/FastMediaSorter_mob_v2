@@ -1,3 +1,7 @@
+---
+description: "Use when building the app locally or answering build-system questions - flavor matrix, gradle flags, a.ps1 targets, build failures. The local build flow, not release. Triggers: 'build', 'compile', 'why did the build fail', 'which flavor'."
+---
+
 # Build Guide
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**

@@ -185,6 +185,19 @@
                     android:visibility="gone"
                     android:text="@string/welcome_theme_applies_after_setup" />
 
+                <!-- S0404 / S1104: launcher-mode toggle - gone by default; shown only on the first page in
+                     builds that ship the launcher surface (WelcomePage.showLauncherModeToggle). Canonical
+                     SettingsToggleRow (switch-left "Trigger Row") so it matches every other app toggle, incl.
+                     the capability rows on the functionality page. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowWelcomeLauncherMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:visibility="gone"
+                    app:str_icon="@drawable/ic_launcher_mode"
+                    app:str_title="@string/launcher_welcome_toggle_title" />
+
                 <!-- Adaptive feature-block grid (populated programmatically; columnCount set at runtime) -->
                 <GridLayout
                     android:id="@+id/gridFeatures"

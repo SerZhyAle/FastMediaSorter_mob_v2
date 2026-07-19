@@ -135,8 +135,11 @@ function Compare-PinsToDocs {
                     }
                     continue
                 }
-                # All identical: collapse to single value
-                $values = @($unique[0])
+                # All identical: collapse to single value. Select-Object -Unique
+                # returns a scalar string when one value survives; indexing that bare
+                # string with [0] yields its first CHARACTER (e.g. "2" from "2.59"),
+                # so normalize to an array before taking the first element.
+                $values = @(@($unique)[0])
             }
 
             # Single-value classification (or collapsed multi-identical, or firstOnly truncated)

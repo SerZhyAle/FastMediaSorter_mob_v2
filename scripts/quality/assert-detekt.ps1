@@ -27,6 +27,13 @@
       -Module app_v2  Run detekt for :app_v2 only.
       -Module wear    Run detekt for :wear only.
 
+    Exit codes (S1070 contract; S1077 added 2 to the diff-scoped path):
+      0  PASS - no new findings, or none in -ChangedFiles, or non-gate mode.
+      1  FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).
+      2  Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
+         detekt.xml is absent/unparseable so the failure cannot be narrowed. Never a PASS:
+         "could not check" is a different fact from "checked and found nothing".
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-detekt.ps1
     pwsh -NoProfile -File scripts/quality/assert-detekt.ps1 -Gate
@@ -54,6 +61,8 @@ if (-not (Test-Path $gradlew)) {
     Write-Host "assert-detekt: FAIL - gradlew.bat not found at $gradlew" -ForegroundColor Red
     exit 2
 }
+
+. (Join-Path $repoRoot "scripts/quality/lib/detekt-report.ps1")
 
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 . (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
@@ -97,23 +106,18 @@ if ($exit -eq 0) {
 # outside the changed set is another ticket's in-flight WIP, not this change.
 if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
     $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
-    $findingFiles = [System.Collections.Generic.List[string]]::new()
-    foreach ($m in $reportModules) {
-        $reportPath = Join-Path $repoRoot "$m/build/reports/detekt/detekt.xml"
-        if (-not (Test-Path $reportPath)) { continue }
-        try {
-            [xml]$xml = Get-Content -LiteralPath $reportPath -Raw
-            $fileNodes = $xml.checkstyle.file
-            if ($null -ne $fileNodes) {
-                foreach ($fn in $fileNodes) {
-                    if ($fn.error) { $findingFiles.Add((([string]$fn.name) -replace '\\', '/').ToLower()) }
-                }
-            }
-        }
-        catch {
-            Write-Host "assert-detekt: WARN - could not parse $reportPath ($($_.Exception.Message)); not narrowing scope." -ForegroundColor Yellow
-        }
+    $report = Get-DetektFindingFiles -RepoRoot $repoRoot -Modules $reportModules
+    # S1077: fail closed. detekt has already FAILED to reach this point, so an unreadable report means
+    # the narrowing cannot be done - and "could not check" must never be reported as "clean". This used
+    # to `continue` past a missing report into the empty-list branch below, printing PASS on top of the
+    # failure. Distinct exit code from a real finding: 2 = cannot verify, 1 = verified and found.
+    if (-not $report.Ok) {
+        $why = "assert-detekt: cannot narrow a project-wide detekt failure - $($report.Reason). " +
+        'Re-run detekt so the report exists; refusing to report PASS without reading it.'
+        Write-Error $why -ErrorAction Continue
+        exit 2
     }
+    $findingFiles = $report.Files
     $normChanged = $ChangedFiles |
         ForEach-Object { (([string]$_) -replace '\\', '/').Trim().Trim('.', '/').ToLower() } |
         Where-Object { $_ }

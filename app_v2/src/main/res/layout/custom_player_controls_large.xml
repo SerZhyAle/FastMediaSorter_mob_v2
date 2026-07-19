@@ -188,6 +188,23 @@
                 android:contentDescription="@string/picture_in_picture"
                 android:visibility="gone"
                 android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <!-- S1114: VR entry in the transport row (reachable in fullscreen). Shown only when the
+                 host reports VR entry available (XR device + 3D/VR master toggle + video). -->
+            <ImageButton
+                android:id="@+id/btnVrLaunch"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_vr_headset"
+                app:tint="@color/selector_player_overlay_button_tint"
+                android:contentDescription="@string/action_open_in_vr_cinema"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:foreground="@drawable/focus_button_background"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

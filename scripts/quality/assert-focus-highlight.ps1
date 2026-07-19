@@ -81,7 +81,7 @@ $containerSkip = @(
 # so an XML clickable/focusable attr is not a real gap:
 #   SettingsToggleRow      - sets android.R.attr.selectableItemBackground in its constructor.
 #   TranslationOverlayView - custom interactive canvas overlay (own onDraw), not a discrete control.
-$customFocusViews = @('SettingsToggleRow', 'TranslationOverlayView')
+$customFocusViews = @('SettingsToggleRow', 'TranslationOverlayView', 'FocusMaterialCardView')
 
 # Confirmed non-targets, whitelisted by android:id. These are clickable/focusable to block touch
 # passthrough or to drive marquee scroll, NOT discrete D-pad-activatable controls; a focus stroke
@@ -121,6 +121,18 @@ $layoutDirs = @('layout', 'layout-land') | ForEach-Object { Join-Path $resRoot $
 
 $current = 0
 $hits = [System.Collections.Generic.List[string]]::new()
+$materialCardForegroundHits = [System.Collections.Generic.List[string]]::new()
+$materialCardForegroundPattern = [regex]'(?s)<com\.google\.android\.material\.card\.MaterialCardView\b(?<attrs>[^>]*?)>'
+$allResourceXml = Get-ChildItem -LiteralPath (Join-Path $repoRoot 'app_v2/src') -Recurse -File -Filter '*.xml'
+foreach ($resourceXml in $allResourceXml) {
+    $resourceText = Get-Content -LiteralPath $resourceXml.FullName -Raw
+    foreach ($materialCard in $materialCardForegroundPattern.Matches($resourceText)) {
+        if ($materialCard.Groups['attrs'].Value -notmatch 'android:foreground\s*=') { continue }
+        $lineNo = ($resourceText.Substring(0, $materialCard.Index) -split "`n").Count
+        $relativePath = $resourceXml.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
+        $materialCardForegroundHits.Add(("{0}:{1}" -f $relativePath, $lineNo))
+    }
+}
 foreach ($dir in $layoutDirs) {
     $files = Get-ChildItem -LiteralPath $dir -Recurse -File -Filter '*.xml' -ErrorAction SilentlyContinue
     foreach ($file in $files) {
@@ -148,6 +160,12 @@ foreach ($dir in $layoutDirs) {
             }
         }
     }
+}
+
+if ($materialCardForegroundHits.Count -gt 0) {
+    Write-Host 'FAIL: MaterialCardView overwrites android:foreground during construction.'
+    $materialCardForegroundHits | ForEach-Object { Write-Host "  $_" }
+    exit 1
 }
 
 if ($List) {

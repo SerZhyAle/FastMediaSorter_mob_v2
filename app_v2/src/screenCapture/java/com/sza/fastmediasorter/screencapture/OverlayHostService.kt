@@ -57,7 +57,7 @@ class OverlayHostService : Service() {
     ) {
         serviceScope.launch {
             val action = actionDispatcher.get().actionFor(zone, direction)
-            if (actionDispatcher.get().handlePreCaptureAction(this@OverlayHostService, action)) {
+            if (actionDispatcher.get().handlePreCaptureAction(this@OverlayHostService, action, zone, direction)) {
                 // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): skip consent + capture.
                 return@launch
             }

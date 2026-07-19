@@ -64,7 +64,8 @@
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`.
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `docs/TECH_STACK.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md` (mandatory for non-standard flavors).
-5. Multi-step: read `dev/AGENT_WORKFLOW.md`.
+5. Every agent iteration: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` through `scripts/document_registry/query.ps1` by product area and change trigger, then read the returned records. State affected records and reasons for unchanged matches. Run `validate.ps1` and `generate.ps1 -Check` when a registered document, page, or registry record changes.
+6. Multi-step: read `dev/AGENT_WORKFLOW.md`.
 
 ## 6. Proactive Research & Parallelism
 - **Web Search**: Use developer.android.com, kotlinlang.org, GitHub issues, StackOverflow without asking.
@@ -79,6 +80,7 @@
 - **Batch commands** in one process: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`.
 - **Variables**: Write `$` literally, do not escape, avoid double-quoted Command wrappers.
 - **Hot Rituals**: Use wrappers (e.g. `scripts/catalog_sync.ps1 -Module <app_v2|wear>` after `.kt` edits).
+- **Reachable exit codes (S1070)**: under `$ErrorActionPreference = 'Stop'` a bare `Write-Error` throws, so any `exit N` after it never runs and the process reports 1 - the message still prints, which is why it survives review. Write `Write-Error $msg -ErrorAction Continue` before `exit N` (N != 1). A script's header must list the codes it actually returns. Mechanical gate: `scripts/quality/assert-exit-contract.ps1` (in `assert-fast-gates.ps1` / `.\a.ps1 fg`).
 
 ## 8. Project Structure & Tech Stack
 - **Modules**: `app_v2/` (main app) and `wear/` (Wear OS) are both active Gradle modules (`settings.gradle.kts`); pass `-Module wear` to `catalog_sync.ps1`/`post-change.ps1` when touching it. Support: `dev/`, `docs/`, `scripts/`, `temp/`. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
@@ -139,6 +141,7 @@
 
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.
+- No completion claim without fresh evidence: before stating anything is done/fixed/passing, run the command that proves it, read its exit code and output, and cite that. Prior runs, assumptions, and self-reports (including a subagent's "build passed") are not evidence - re-run and read it yourself. Red-flag words that mean you are about to claim without proof: "should", "probably", "seems", "looks fixed", "I think it passes" - stop and run the check first.
 - Mechanical closure: `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<desc>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>]`. Skills SHOULD route mechanical closure through this facade instead of hand-rolling each step.
 - Dirty-tree closure (S0826): add `-ScopeToFile` to diff-scope the detekt gate to `-File` (fails only on findings in this change) and downgrade the project-wide count-ratchet gates (neuroslop / listener-symmetry / flavor-flag / deprecated-pm) to advisory warnings, so the facade closes a clean change without failing on other tickets' in-flight WIP. Omit it for release/CI to get the strict full-project gate.
 - Journaling granularity: one dev-log entry per logical change/ticket, not per touched file (batch multi-file changes via `close-and-log.ps1 -DevLogs`); run `catalog_sync.ps1` once per ticket, not per `.kt` edit.
@@ -152,7 +155,8 @@
 
 ## 13. Code Audit Protocol
 - Full protocol: `docs/CODE_AUDIT_PROTOCOL.md` (layered audit, evidence ladder, per-layer checklists). Read and apply it whenever an **audit trigger** fires - do not re-derive the checks. Use the cheapest evidence rung that matches the risk.
-- **Audit triggers**: new screen/manager/worker/repository/long-lived helper; lifecycle change; coroutine/Flow/callback/listener/observer change; shared-mutable-state/synchronization/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image-loading/caching/network-path change; startup-path change; DI scope or singleton-ownership change; build/manifest/R8/keep-rule change affecting profiling/startup/minification/process; reported crash/ANR/OOM/jank/leak.
+- **Audit triggers**: new screen/manager/worker/repository/long-lived helper; lifecycle change; coroutine/Flow/callback/listener/observer change; shared-mutable-state/synchronization/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image-loading/caching/network-path change; startup-path change; DI scope or singleton-ownership change; build/manifest/R8/keep-rule change affecting profiling/startup/minification/process; reported crash/ANR/OOM/jank/leak; **phase boundary in a multi-phase task** (tactical spec phase, or any large task split into sequential phases) - audit the phase just finished before starting the next.
+- **Phase-boundary audits are mandatory, not deferred to pipeline end**: fixing a defect costs roughly one phase's worth of rework when caught at the next phase boundary, versus every subsequent phase's worth when it surfaces only at the final audit (`/spec-check`) or in a later ticket. `/spec-dev` runs this automatically per phase (see its "Phase-boundary audit" step); apply the same discipline manually for any multi-phase work driven outside `/spec-dev`.
 - **Severity taxonomy** - tag every finding (review comments + `## Last Audit`): P0 crash/ANR/OOM/retained Activity-Fragment-View/deadlock/data-loss (blocks release); P1 data race on shared state, main-thread disk/network I/O, unbounded cache, unreleased heavy resource (fix before merge); P2 hot-path allocation churn, repeated expensive lookups, missing lifecycle-awareness, over-eager startup (fix or ticket); P3 readability/naming/`!!`/style (fix inline or note). P0/P1 require evidence at the matching evidence-ladder rung, not opinion.
 - **Listener symmetry**: every `register*`/`addListener`/`addCallback`/`addObserver` (esp. `Player.Listener`, `ContentObserver`, `BroadcastReceiver`) has a matching removal on the **symmetric** lifecycle edge (`onStart`/`onStop`, `onResume`/`onPause`, `onCreate`/`onDestroy`) - never split across asymmetric ones.
 - **Room main-safety**: no main-thread Room - `allowMainThreadQueries()` stays banned; DAO methods are `suspend` or return `Flow`; atomic multi-step writes wrapped in `@Transaction`/`withTransaction`; `Flow` queries `distinctUntilChanged` so an unrelated-row write does not re-render.
@@ -160,3 +164,4 @@
 - **Player/Glide ownership**: one owner per `ExoPlayer`; `release()` on real teardown with `setVideoSurface(null)` + remove every listener + abandon audio focus first; apply the same release contract to every player host, not just the edited one (extends Rule 18). Glide decode at display size (`override(w,h)`), `clear(target)` on detach.
 - **R8 / minified proof**: a P0/P1 change touching reflection, serialization, DI graphs, manifests, or dependencies is not done until proven on the **minified release/target variant** (keep rules cover reflective/serialized types; no new `R8: missing class`/`unresolved`), not only on debug. Extends Rule 20.
 - Recurring finding -> convert to a mechanical gate (`scripts/quality/assert-*.ps1`), per Rule 19/20 and Layer 8. Do not duplicate the protocol text in rules - link to it.
+- Authoring a new rule / gate / command / skill: follow `dev/RULE_AND_SKILL_AUTHORING.md` (observe the failure first, write minimal, close rationalizations, promote recurring rules to gates; trigger-focused `description` fields).

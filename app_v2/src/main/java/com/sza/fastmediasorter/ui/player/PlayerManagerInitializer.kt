@@ -644,6 +644,12 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
                 }
                 override fun isLiveVideoStream() = activity.viewModel.state.value.isLiveVideoStream
+                // S1114: delegate the transport-row VR entry to the existing VR launch manager.
+                override fun onVrLaunchClicked() {
+                    activity.playerVrLaunchManager?.launchFromControlsRow()
+                }
+                override fun isVrEntryAvailable(): Boolean =
+                    activity.playerVrLaunchManager?.isOverflowEntryVisible() == true
             }
         )
 

@@ -1,7 +1,15 @@
+<#
+.SYNOPSIS
+  Insert a new spec catalog record. Supply the spec path with -File, or with
+  -Slug to auto-build PLAN/Sxxxx_<slug>.md from the freshly allocated id.
+.NOTES
+  Exit codes: 0 ok; 1 error (bad call shape, invalid slug, duplicate id,
+  active name clash, or record validation failure).
+#>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string] $Name,
-    [Parameter(Mandatory)][string] $File,
+    [string] $File,
     [ValidateSet('Draft','Approved','Tactical','In Progress',
         'Implemented','Verified','Partial','Broken',
         'BlockByOtherTask','BlockNeedUserTest','BlockQuestions','BlockExternal',
@@ -10,7 +18,10 @@ param(
     [int]    $Tier   = -1,
     [ValidateRange(0,100)]
     [int]    $Priority = 50,
-    [string] $Id
+    [string] $Id,
+    # Alternative to -File: build PLAN/Sxxxx_<slug>.md after id allocation,
+    # collapsing the old next-id.ps1 + insert.ps1 two-step into one call.
+    [string] $Slug
 )
 
 # Convert terminating errors (Write-Error, throw, provider errors) into
@@ -22,6 +33,17 @@ trap {
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
+# -File and -Slug are mutually exclusive; exactly one supplies the spec path.
+# Validated up front so a bad call shape fails before New-CatalogId burns an id.
+if ($File -and $Slug)          { throw "Provide either -File or -Slug, not both." }
+if (-not $File -and -not $Slug) { throw "Provide -File <path> or -Slug <slug>." }
+if ($Slug) {
+    if ($Slug -notmatch '^[a-z0-9][a-z0-9_-]*$') {
+        throw "Invalid -Slug '$Slug' - lowercase [a-z0-9_-], must start alphanumeric."
+    }
+    if ($Slug -match '^spec_') { throw "Invalid -Slug '$Slug' - must not start with 'spec_'." }
+}
+
 $records = Read-Catalog
 
 if (-not $Id) {
@@ -29,6 +51,9 @@ if (-not $Id) {
 } else {
     if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
 }
+
+# -Slug path is built now that the id is final (e.g. S0123 -> PLAN/S0123_<slug>.md).
+if ($Slug) { $File = 'PLAN/{0}_{1}.md' -f $Id, $Slug }
 
 # Id uniqueness is global (an archived id must never be reissued); name clash is
 # checked against active records only below (archived names may be reused).

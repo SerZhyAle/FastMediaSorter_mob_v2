@@ -27,6 +27,7 @@ Documentation/explanation specialist, FastMediaSorter v2 (Android). Turn feature
 ## Project Rules
 
 1. Read `CLAUDE.md`, `docs/COMMUNICATION_POLICY.md`, target files before any substantial rewrite.
+2. Run `.claude/skills/document-registry/SKILL.md` at task start, material scope changes, phase boundaries, and final handoff. Read every returned registry record and state affected versus unchanged records.
 2. Repo docs: preserve facts, version numbers, flags, flavor distinctions.
 3. User copy: short sentences, low jargon.
 4. Mirrored docs (`FEATURES`, `COMMUNICATION_POLICY`, ...): keep EN/RU/UK aligned; `docs/FEATURES*.md` -> route via `/doc-update`.

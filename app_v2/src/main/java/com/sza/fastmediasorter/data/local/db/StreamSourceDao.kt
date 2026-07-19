@@ -51,6 +51,10 @@ interface StreamSourceDao {
     @Query("SELECT mediaKind FROM stream_sources WHERE id = :id LIMIT 1")
     suspend fun getMediaKindById(id: String): String?
 
+    // S0404: a launcher shortcut stores the channel id, so playing or labelling it needs the row.
+    @Query("SELECT * FROM stream_sources WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): StreamSourceEntity?
+
     @Query("SELECT MIN(sortIndex) FROM stream_sources")
     suspend fun minSortIndex(): Int?
 
@@ -99,7 +103,8 @@ interface StreamSourceDao {
     /** S0570: refresh catalog metadata in place; sortIndex/pinned are preserved (not in the SET). */
     @Query(
         "UPDATE stream_sources SET title = :title, mediaKind = :mediaKind, category = :category, " +
-            "topic = :topic, language = :language, country = :country WHERE url = :url AND sourceOrigin = 'CATALOG'"
+            "topic = :topic, language = :language, country = :country, access = :access " +
+            "WHERE url = :url AND sourceOrigin = 'CATALOG'"
     )
     suspend fun updateCatalogByUrl(
         url: String,
@@ -108,6 +113,9 @@ interface StreamSourceDao {
         category: String?,
         topic: String?,
         language: String?,
-        country: String?
+        country: String?,
+        // S1117: refresh the region-restriction flag on re-import so an already-imported catalog row
+        // gains/loses its geo badge when the shipped catalog's verdict changes.
+        access: String?
     )
 }

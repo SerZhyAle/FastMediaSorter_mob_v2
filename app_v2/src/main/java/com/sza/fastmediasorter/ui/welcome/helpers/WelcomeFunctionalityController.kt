@@ -30,10 +30,16 @@ import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
+
+// S1106: hard UI-side deadline so the onboarding stream-catalog import always resolves (done/failed),
+// never hangs on a post-download step the OkHttp callTimeout does not cover.
+private const val STREAMS_IMPORT_DEADLINE_MS = 90_000L
 
 /**
  * Owns all logic of the welcome functionality page (S0400): which capability toggles are visible
@@ -319,11 +325,16 @@ class WelcomeFunctionalityController @Inject constructor(
         val statusView = binding.tvStreamsStatus
         binding.groupStreamsProgress.visibility = View.VISIBLE
         binding.progressStreams.isIndeterminate = true
-        statusView.text = statusView.context.getString(R.string.welcome_func_downloading, 0)
+        statusView.text = statusView.context.getString(R.string.welcome_streams_catalog_downloading)
 
         streamsCatalogJob?.cancel()
         streamsCatalogJob = owner.lifecycleScope.launch {
-            val result = importStreamCatalogUseCase()
+            val result = try {
+                withTimeout(STREAMS_IMPORT_DEADLINE_MS) { importStreamCatalogUseCase() }
+            } catch (e: TimeoutCancellationException) {
+                Timber.w(e, "Stream catalog import: UI deadline exceeded")
+                ImportStreamCatalogUseCase.CatalogImportResult.Failure("timeout")
+            }
             binding.progressStreams.isIndeterminate = false
             statusView.setText(
                 if (result is ImportStreamCatalogUseCase.CatalogImportResult.Success) {

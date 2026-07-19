@@ -251,11 +251,29 @@ class WelcomePagerAdapter(
                 binding.tvThemeAppliesHint.visibility = View.GONE
             }
 
+            bindLauncherToggle(page)
+
             // Staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
             animateEntrance(binding.gridFeatures, 400L)
+        }
+
+        // S0404 / S1104: launcher-mode toggle - only on the first page, only in builds shipping the surface.
+        // Canonical SettingsToggleRow (switch-left): whole-row tap + focus are owned by the widget.
+        private fun bindLauncherToggle(page: WelcomePage) {
+            if (!page.showLauncherModeToggle) {
+                binding.rowWelcomeLauncherMode.visibility = View.GONE
+                return
+            }
+            binding.rowWelcomeLauncherMode.visibility = View.VISIBLE
+            // Restore the visual from the surviving ViewModel flag WITHOUT firing the callback, so a
+            // recreate (language/theme pick, fold) never silently drops the user's ON choice.
+            binding.rowWelcomeLauncherMode.setCheckedSilently(page.launcherModeChecked)
+            binding.rowWelcomeLauncherMode.setOnCheckedChangeListener { isChecked ->
+                page.onLauncherModeToggled?.invoke(isChecked)
+            }
         }
     }
 }
@@ -341,6 +359,12 @@ data class WelcomePage(
     val showThemePicker: Boolean = false,
     /** Invoked with "AUTO"|"LIGHT"|"DARK" when the user taps a theme button. */
     val onThemeSelected: ((mode: String) -> Unit)? = null,
+    /** S0404: show the "use as home screen" toggle. Only set on the first page, capability-gated. */
+    val showLauncherModeToggle: Boolean = false,
+    /** S0404: current launcher-mode choice, so a rebind after an Activity recreate restores the switch. */
+    val launcherModeChecked: Boolean = false,
+    /** S0404: invoked with the switch state when the user flips the launcher-mode toggle. */
+    val onLauncherModeToggled: ((Boolean) -> Unit)? = null,
     // ── S0399 device-profile page ────────────────────────────────────────────
     /** Marks the dedicated device-profile selection page (full tile grid). */
     val isProfilesPage: Boolean = false,

@@ -10,6 +10,12 @@
 #
 # All collapsed into one pwsh invocation, one JSON blob.
 #
+# Exit codes (S1070):
+#   0 - preview emitted.
+#   2 - cannot run: malformed -Id, spec absent from the catalog, or its file missing
+#       on disk. There is no code 1: this is an extractor, not a gate - it either
+#       produces the payload or cannot.
+#
 # Usage:
 #   pwsh -File scripts/spec_catalog/preview.ps1 -Id Sxxxx
 #   pwsh -File scripts/spec_catalog/preview.ps1 -Id Sxxxx -Format json
@@ -23,9 +29,12 @@
 #     "tactical_folder": false,
 #     "last_audit_present": false,
 #     "timber_tags_kt": 0,
-#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified" (never research-heavy)
+#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified"
+#                                         # / "blocker-unresolvable" (never research-heavy)
 #     "auto_skip_reason": null,           # human-readable reason
 #     "depends_on": [ {"id":"S0241","status":"Verified"}, ... ],
+#                                         # sourced from a **Depends on:** line, a section 10, or the
+#                                         # catalog statusNote's `Blocker: Sxxxx` token, in that order
 #     "research_open_count": 5
 #   }
 
@@ -39,7 +48,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if ($Id -notmatch '^S\d{4}$') {
-    Write-Error "Invalid -Id '$Id' (must match S####)"
+    Write-Error "Invalid -Id '$Id' (must match S####)" -ErrorAction Continue
     exit 2
 }
 
@@ -106,7 +115,7 @@ function Get-UnresolvedResearchItemCount {
 $selectPath = Join-Path $PSScriptRoot 'select.ps1'
 $catJson = & $pwshExe -File $selectPath -Id $Id -Format json 2>$null
 if (-not $catJson -or $catJson -eq '[]') {
-    Write-Error "Spec $Id not found in catalog"
+    Write-Error "Spec $Id not found in catalog" -ErrorAction Continue
     exit 2
 }
 $rec = $catJson | ConvertFrom-Json
@@ -114,7 +123,7 @@ if ($rec -is [array]) { $rec = $rec[0] }
 
 $specPath = Join-Path $root $rec.file
 if (-not (Test-Path $specPath)) {
-    Write-Error "Spec file not found on disk: $($rec.file)"
+    Write-Error "Spec file not found on disk: $($rec.file)" -ErrorAction Continue
     exit 2
 }
 
@@ -185,13 +194,25 @@ finally {
     Pop-Location
 }
 
-# 8. Depends-on resolution (§10 of strategic spec - look for "Depends on:" and Sxxxx tokens nearby)
+# 8. Depends-on resolution. Three sources, because the spec files do not agree on one:
+# a `**Depends on:**` line, a `## 10.` section, or the catalog record's statusNote.
+# S1073 measured all 7 BlockByOtherTask specs: 0 use the Depends-on line, 3 use §10, and 4 record the
+# blocker ONLY in statusNote - so §10 is a minority convention, not the rule, and reading it alone
+# left those 4 with an empty $dependsOn (see the auto-skip verdict below for why that mattered).
 $dependsOn = @()
 $depMatch = [regex]::Match($specText, '(?ms)\*\*Depends on:\*\*\s*(.+?)(?:^\*\*|\r?\n##\s)')
 if (-not $depMatch.Success) {
     # Alternative: §10 Связи / Related Specs section
     $sec10Match = [regex]::Match($specText, '(?ms)^##\s+10\.[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
     if ($sec10Match.Success) { $depMatch = $sec10Match }
+}
+# S1073: last resort - the explicit `Blocker: Sxxxx` token in the catalog statusNote. Only that token,
+# never every Sxxxx in the note: S0426-S0429 each mention two ids ("...Blocker: S0404" plus a passing
+# "for S0429, external OAuth/CASA cost"), so scraping all of them names a sibling as a blocker - the
+# right verdict for the wrong reason.
+if (-not $depMatch.Success -and $rec.statusNote) {
+    $blockerMatch = [regex]::Match([string]$rec.statusNote, 'Blocker:\s*(S\d{4})')
+    if ($blockerMatch.Success) { $depMatch = $blockerMatch }
 }
 if ($depMatch.Success) {
     $depText = $depMatch.Groups[1].Value
@@ -242,11 +263,22 @@ elseif ($ownerGate) {
     $autoSkip = 'owner-gate'
     $autoSkipReason = 'Spec explicitly forbids automatic handoff (§12 owner directive)'
 }
-elseif ($rec.status -eq 'BlockByOtherTask' -and $dependsOn.Count -gt 0) {
-    $unverifiedBlockers = $dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' }
-    if ($unverifiedBlockers.Count -gt 0) {
+elseif ($rec.status -eq 'BlockByOtherTask') {
+    # S1073: fail-closed. This used to also require `-and $dependsOn.Count -gt 0`, so a spec whose
+    # blocker could not be parsed fell through with auto_skip = null and /spec-next offered it as a
+    # live candidate - despite its own status asserting it is blocked. When the tool cannot name the
+    # blocker, the honest answer is "skip", not "go". 'blocker-unresolvable' is kept distinct from
+    # 'blocker-not-verified' so the operator can tell "the blocker is still open" (wait for it) from
+    # "nobody recorded a blocker" (fix the spec).
+    $unverifiedBlockers = @($dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
+    if ($dependsOn.Count -eq 0) {
+        $autoSkip = 'blocker-unresolvable'
+        $autoSkipReason = 'Status is BlockByOtherTask but no blocker is recorded in a ' +
+        '**Depends on:** line, a section 10, or a `Blocker: Sxxxx` token in the statusNote'
+    }
+    elseif ($unverifiedBlockers.Count -gt 0) {
         $autoSkip = 'blocker-not-verified'
-        $autoSkipReason = 'Depends on ' + ($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', '
+        $autoSkipReason = 'Depends on ' + (($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', ')
     }
 }
 # NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward

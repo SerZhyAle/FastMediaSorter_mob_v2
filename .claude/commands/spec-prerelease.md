@@ -1,3 +1,7 @@
+---
+description: "Use to run the end-to-end pre-release emulator sweep that gates /skill-release - clean install, resources, settings, scenario, perf, verdict. Triggers: 'spec-prerelease', 'pre-release sweep', 'is the build release-ready'."
+---
+
 # /spec-prerelease - End-to-End Pre-Release Emulator Sweep
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**
@@ -6,9 +10,9 @@
 > 3. Terse report: one line - verdict + report path.
 > 4. Never auto-run release: PASS proposes `/skill-release`, owner confirms (ADR-1, S0484).
 
-Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: prepare clean standard-debug install with seeded media → configure resources + settings → run deterministic Maestro capability suite, use mobile-mcp only for uncovered exploratory paths → measure perf → aggregate machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`. Step 0 first refreshes downloadable stream-catalog delivery asset (content, no device, non-gating).
+Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: prepare clean standard-debug install with seeded media → configure resources + settings → run deterministic Maestro capability suite, use mobile-mcp only for uncovered exploratory paths → measure perf → aggregate machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`. Steps 0 / 0.5 first refresh the mutable external content a release carries - downloadable stream-catalog delivery asset, then externally-rotting dependency pins (`yt-dlp`) - both content-only, no device, non-gating. Step 0.7 then reindexes the settings search + navigation mirror (regenerate-then-verify) - content-only, no device, but **gating**: the build must always ship a current settings index.
 
-Composes existing tools - `scripts/devtest/prerelease-prepare.ps1`, `scripts/devtest/prerelease-configure.ps1`, `scripts/devtest/prerelease-measure.ps1`, `scripts/devtest/prerelease-verdict.ps1`, `scripts/devtest/prerelease-log-audit.ps1`, `scripts/utils/search-log.ps1`, `maestro/run-tests.ps1`, `scripts/streams/collect-stream-candidates.ps1`, mobile-mcp, `/skill-release`, `/spec-draft`, `/spec-check` - adds **no** app runtime code (S0484 ADR-2).
+Composes existing tools - `scripts/devtest/prerelease-prepare.ps1`, `scripts/devtest/prerelease-configure.ps1`, `scripts/devtest/prerelease-measure.ps1`, `scripts/devtest/prerelease-verdict.ps1`, `scripts/devtest/prerelease-log-audit.ps1`, `scripts/utils/search-log.ps1`, `maestro/run-tests.ps1`, `scripts/streams/collect-stream-candidates.ps1`, `scripts/quality/reindex-settings.ps1`, mobile-mcp, `/skill-release`, `/spec-draft`, `/spec-check` - adds **no** app runtime code (S0484 ADR-2).
 
 ## Usage
 
@@ -32,13 +36,15 @@ Curated stream catalog `delivery/stream-catalog/streams.csv` ships as **mutable*
    pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PerQuery 30
    ```
 
-2. Probe whole catalog as **non-destructive** health report - prints `Would prune N row(s)` and deletes nothing:
+2. Probe whole catalog as **non-destructive deep-signal** health report (S1117) - pulls real media bytes, not just a playlist `200`, so "declared but not playing" streams are caught. Prints the `alive / dead / geo / unknown` breakdown and `Would prune N row(s)`, deletes nothing. Long run (~2000 rows) - launch in background, read the log tail:
 
    ```powershell
-   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
+   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 64
    ```
 
-**Never auto-prune in this sweep.** Pruning is human-gated opt-in: a geo-restricted stream reads `dead`/404 from build machine yet plays on user's device. Review `temp/stream-catalog-liveness.csv`; only if a row is genuinely dead after review (ideally a second-network re-probe) run `scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead` manually, outside this sweep.
+   Surface the breakdown on the report line so ballast can't accumulate unseen release-over-release. `geo` = region-locked (HTTP 403/451 from the build machine) - kept, not counted as prunable.
+
+**Never auto-prune in this sweep.** Pruning is human-gated opt-in. The deep-signal `-PruneDead` run drops `dead` + non-geo `unknown` (timeout / SSL / `401` / `5xx`) and **keeps** region-locked `geo` rows, tagging them `access=geo`. Review `temp/stream-catalog-liveness.csv`; only after review (ideally a second-network re-probe for the `unknown` rows) run `scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish` manually, outside this sweep.
 
 If `streams.csv` changed (append, or later manual prune), re-package and re-upload asset or change never reaches users - app fetches release asset, not repo file. **Always publish through the guarded packer** below - never `Compress-Archive` the CSV and `gh release upload` it by hand:
 
@@ -49,6 +55,57 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 This bundles `streams.csv` **and** `favicon-atlas.png` and enforces the S0925 guard. A raw `Compress-Archive -Path .\streams.csv` ships a CSV-only zip with no atlas - the app then gets `atlasPng=null`, `FaviconAtlasStore.write(null, coords)` deletes the atlas and writes empty coords, and **every** channel loses its favicon app-wide (recurred 2026-07-12). `-SkipLiveness` skips the ~2489-URL probe and does not mutate the CSV, so the published pair stays consistent.
 
 (Hosting / release tag in `delivery/stream-catalog/README.md`.)
+
+### 0.5 - Refresh externally-rotting dependency pins (content, no device, non-gating)
+
+Same slot rationale as step 0: refresh mutable external content before the release carries it. Needs no device, does not gate the emulator verdict; its own failure is a finding on the deps report line, never a sweep abort. On `--dry-run`, list planned checks and run nothing (no network, no writes). Runs **before** step 1 prepare - both build, and `temp/BUILD.LOCK` (Rule 23) admits one gradle invocation at a time.
+
+Two tiers, never mixed.
+
+**Tier A - check and bump inline: `yt-dlp` only.** Its rot is server-side: extractors break because YouTube/Instagram change, not because our code changed, so a stale pin ships a broken link-download that no amount of our own testing would have caught. Pure-Python drop-in, so a bump cannot break Kotlin compile.
+
+1. Read the current pin from the noLegal `pip { install("yt-dlp @ ...") }` block in `app_v2/build.gradle.kts` - never assume, the dated comment history above it records why the channel was chosen.
+2. Check both channels:
+
+   ```powershell
+   (Invoke-RestMethod https://pypi.org/pypi/yt-dlp/json).info.version                                          # stable
+   (Invoke-RestMethod https://api.github.com/repos/yt-dlp/yt-dlp-nightly-builds/releases/latest).tag_name       # nightly
+   ```
+
+3. Prefer stable once it supersedes the pinned nightly date. Stay on nightly only while a needed extractor fix is nightly-only - the pin comment names the fix, so it is checkable, not a vibe.
+4. On bump: edit the pin, append one dated comment line stating the channel and the reason (matches existing S0190/S0950 comment style), and sync the doc pin in `docs/TECH_STACK.md` ("Sideload / XR-only surface").
+5. Verify. The standard-debug sweep never loads Chaquopy, so nothing downstream proves this pin - it needs its own build:
+
+   ```powershell
+   .\a.ps1 nd
+   pwsh -NoProfile -File scripts/check-doc-vs-gradle.ps1
+   ```
+
+6. Build red on the new pin (pip resolve / Chaquopy sdist fetch) → revert to the previous pin, park one `/spec-draft`, continue the sweep. Never hand step 1 a broken noLegal tree.
+7. A bump is `BlockNeedUserTest`-shaped: pip resolving proves nothing about extraction. Report it as needing a real link-download on device; do not claim it verified.
+
+**Tier B - check only, never bump: everything else** (Media3, Room, Glide, AGP, Kotlin, AndroidX, cloud SDKs, and `NewPipeExtractor` despite it rotting the same way as yt-dlp - it is a Java dep whose API surface can break compile). A runtime-lib bump invalidates the sweep that follows it, so it belongs to its own ticket with its own regression pass, never to this window.
+
+- There is no version catalog and no `dependencyUpdates` task here - pins are hand-written in `app_v2/build.gradle.kts`. Do **not** hand-sweep every pin each release; that is unbounded work with no gate behind it.
+- Check a Tier B pin only when this sweep's own evidence points at it (audit cluster, crash, perf record naming the library). Then park `/spec-draft` with that evidence - do not edit the pin.
+- `scripts/check-doc-vs-gradle.ps1` is an internal docs-vs-Gradle consistency check, not an upstream freshness check. Non-zero exit here means our own docs drifted; fix the doc line, not the pin.
+
+### 0.7 - Reindex settings search + navigation (content, no device, GATING)
+
+**Mandatory, unconditional - not "if a setting changed".** The in-app settings search index is rebuilt at runtime by scanning `SettingsSearchLayoutCatalog` and routing hits through `SettingsSearchTabMapping`; nothing is serialized into the APK. So what the build "ships" for search - and, above all, for the *navigation to a setting* - is only as current as the layout catalog, the tab mapping, and the doc mirror (`settings-manifest.json` + `SETTINGS_REFERENCE*.md` + annotations + HOW_TO paths). A stale mirror or an unindexed screen makes the shipped search silently miss settings or fail to navigate to them. Regenerate-then-verify here so the release always carries a fresh index. Needs no device; runs before step 1 prepare (both build, `temp/BUILD.LOCK` admits one gradle invocation at a time). On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/reindex-settings.ps1
+```
+
+Unlike steps 0 / 0.5, this step **gates** the sweep - branch on its exit code:
+
+- **0** - already fresh, verify gate green. Continue.
+- **2** - drift was regenerated: `settings-manifest.json` / `SETTINGS_REFERENCE*.md` were stale and are now refreshed. Commit the updated files (`.\a.ps1 c "..."`) before the release proceeds, then continue. This is a finding on the reindex report line; the sweep may run, but a PASS must not propose `/skill-release` until the fresh mirror is committed.
+- **3** - verify gate failed on something regeneration cannot fix: a settings layout missing from `SettingsSearchLayoutCatalog`, an unannotated manifest key, or a drifted HOW_TO navigation path. **Hard release blocker** - fix at source (append the layout, annotate the key, sync the HOW_TO path), re-run this step. Do not proceed to step 1 on exit 3.
+- **1** - infrastructure failure (gradle/render). Treat as sweep abort (exit 2 in step 4), same as any build-side failure.
+
+Carry the reindex outcome into the step 4 verdict: exit 2 (uncommitted fresh mirror) or exit 3 (unfixed inconsistency) blocks a clean PASS just as a red log audit does.
 
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 
@@ -135,7 +192,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `log AND perf AND maestro`; screenshots evidence-only.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line.
 
 Verdict is coarse gate: produces one error count, hard-stops only on crashes/ANR. Does **not** enumerate which app errors fired, so a green verdict alone never proves run was clean. Always run detailed log audit below before trusting a PASS.
 
@@ -165,4 +222,4 @@ For pending-test tickets (`BlockNeedUserTest`) whose flow this sweep exercised, 
 ### Final report
 
 One line: `spec-prerelease: device <id>, verdict PASS/FAIL, report temp/S0484/prerelease_<TS>.md`
-- on PASS append `/skill-release` proposal; on FAIL append parked ids + tickets routed to `/spec-check`. Append `stream-catalog: +N appended, M would-prune, re-upload <done|n.a.>` segment (or `stream-catalog: skipped (--dry-run)`).
+- on PASS append `/skill-release` proposal; on FAIL append parked ids + tickets routed to `/spec-check`. Append `stream-catalog: +N appended, alive/dead/geo/unknown A/D/G/U, M would-prune, re-upload <done|n.a.>` segment (or `stream-catalog: skipped (--dry-run)`). Append `deps: yt-dlp <pinned> → <latest|current>, bump <done|n.a.|reverted>, noLegal build <PASS|FAIL|n.a.>` segment (or `deps: skipped (--dry-run)`).

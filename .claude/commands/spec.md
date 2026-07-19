@@ -1,3 +1,7 @@
+---
+description: "Use to create or refine a strategic specification PLAN/Sxxxx_*.md. Triggers: 'write a spec', 'create a ticket for', 'spec out this feature'."
+---
+
 # Strategic Specification Writer
 
 Write strategic spec: product-level *what*/*why*, in Russian. No class names, file paths, line budgets, Hilt/Room details (those go in `/spec-tech`).

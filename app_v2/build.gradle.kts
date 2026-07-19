@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260712215
-val defaultAppVersionName = "2.60.7122.153"
+val defaultAppVersionCode = 260718231
+val defaultAppVersionName = "2.60.7182.317"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -324,7 +324,6 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible - safe for Google Play.
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -397,7 +396,6 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
         }
@@ -425,7 +423,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -452,7 +449,6 @@ android {
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -483,7 +479,6 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
@@ -544,7 +539,6 @@ android {
             buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
-            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
 
@@ -598,6 +592,10 @@ android {
                 // capture suite is on).
                 kotlin.directories.add("src/standardEdgeTile/java")
             }
+            // S0404: launcher-mode home surface (HOME-role activity, desktop grid, taskbar). Flavors
+            // without it mount src/launcherDisabled, which binds the no-op capability contract.
+            kotlin.directories.add("src/launcherEnabled/java")
+            res.directories.add("src/launcherEnabled/res")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -623,6 +621,9 @@ android {
             // accessibility capture path + a11y-aware controller in src/noLegal/java.
             kotlin.directories.add("src/screenCapture/java")
             res.directories.add("src/screenCapture/res")
+            // S0404: launcher-mode home surface - noLegal is the all-inclusive sideload superset.
+            kotlin.directories.add("src/launcherEnabled/java")
+            res.directories.add("src/launcherEnabled/res")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -635,6 +636,8 @@ android {
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrStub/java")
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -647,6 +650,9 @@ android {
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrOnly/java")
+            // S0404: vr has its own OpenXR shell and the headset's system launcher - no Android
+            // launcher mode here (strategic ADR-1). Mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -659,6 +665,8 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0423 release scope: S0418 screencapture stays noLegal-only for now (Play review risk
             // from SPECIAL_USE/SYSTEM_ALERT_WINDOW); not mounted into the photos store flavor.
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -669,6 +677,8 @@ android {
             kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
     }
 
@@ -1024,6 +1034,14 @@ androidComponents {
             variant.sources.manifests.addStaticManifestFile("src/wearGms/AndroidManifest.xml")
         }
 
+        // S0404: the launcherEnabled source set is mounted by directory only, so its manifest (the
+        // HOME-filter activity, shipped disabled) is injected explicitly. addStaticManifestFile is
+        // additive, so it coexists with noLegal's manifest.srcFile(src/vr) override.
+        val launcherFlavors = setOf("standard", "noLegal")
+        if (flavorName in launcherFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/launcherEnabled/AndroidManifest.xml")
+        }
+
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
         // service + FOREGROUND_SERVICE_MEDIA_PROJECTION) is injected into both the store flavor and
         // noLegal. The src/screenCapture source set is mounted by directory only, which does not pull
@@ -1139,9 +1157,14 @@ if (isNoLegalBuild) {
                     // follow-up fix to #17075 (commit 8b8e3e3) plus "Instagram: Detect when cookies
                     // are invalidated" (#17126), targeting exactly the reel extraction + stale-
                     // session failure modes (ref S0822).
+                    // 2026-07-19 (pre-release refresh): bumped 2026.07.04.221833 → 2026.07.14.233956.
+                    // Stayed on nightly - PyPI stable is still 2026.7.4 (same day as the prior pin,
+                    // lacks the nightly-only Instagram Rework #17075 fixes). This nightly carries the
+                    // named Instagram fixes plus ~10 days of upstream extractor maintenance. Server-
+                    // side extractor rot means the freshest nightly is the best bet at ship time.
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.04.221833/yt-dlp.tar.gz",
+                            "releases/download/2026.07.14.233956/yt-dlp.tar.gz",
                     )
                 }
             }
@@ -1290,7 +1313,10 @@ dependencies {
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
     implementation("androidx.media3:media3-session:1.2.1") // MediaSession for audio background playback
     implementation("androidx.media3:media3-effect:1.2.1")  // GlEffect API for SBS stereo crop rendering (Phase 2)
-    
+    // S1066: post-record re-encode that bakes the in-app digital zoom into the camera MP4 (all flavors -
+    // the camera lives in src/main and compiles into every flavor, so the dep cannot be flavor-scoped).
+    implementation("androidx.media3:media3-transformer:1.2.1")
+
     // Image Loading - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")

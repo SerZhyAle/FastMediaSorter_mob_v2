@@ -1149,6 +1149,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostC
     // S0763: gate the dialog's "3D" section on the 3D/VR master toggle (hot settings StateFlow).
     override val is3dVrEnabled: Boolean get() = !viewModel.settings.value.disable3dVr
 
+    override val activeSourceIsStream: Boolean
+        get() = _videoPlayerManager?.activeSourceIsStream == true
+
+    override val activeSourceIsLive: Boolean
+        get() = _videoPlayerManager?.isActiveSourceLive() == true
+
+    override val supportsColorAdjustmentForActiveSource: Boolean
+        get() = !activeSourceIsStream
+
     override fun setStereoMode(mode: StereoMode) {
         viewModel.setStereoMode(mode)
     }

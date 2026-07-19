@@ -1,4 +1,5 @@
 ---
+description: "Use when syncing documentation after a change - mirrored feature docs, references, settings docs. Triggers: 'update docs', 'doc sync', 'mirror this doc'."
 model: sonnet
 ---
 
@@ -19,7 +20,7 @@ Review current change, update all affected documentation files.
 
 ## Process
 
-**1 - Determine scope.** Use `$ARGUMENTS` as change description. If empty, infer scope from files just edited this session (or active spec's changed files), read briefly. Do NOT reconstruct scope from git history (`git diff HEAD~1` mixes many unrelated tickets on this repo). If neither available, ask user what changed.
+**1 - Determine scope.** Use `$ARGUMENTS` as change description. If empty, infer scope from files just edited this session (or active spec's changed files), read briefly. Do NOT reconstruct scope from git history (`git diff HEAD~1` mixes many unrelated tickets on this repo). If neither available, ask user what changed. Run `.claude/skills/document-registry/SKILL.md` before the checklist and repeat its closing validation when registered material changes.
 
 **2 - Work checklist below in order.** Decide per item *affected* / *not affected*. Apply every affected update; skip non-affected silently. If required repo doc/helper script broken or insufficient, fix script first instead of working around it.
 
@@ -164,8 +165,16 @@ Update only sections directly relevant to the change.
 
 ### I - Documentation Map
 
-#### I1. `docs/DOCS_MAP.md`
-**When:** any new `.md` documentation file created. Add row: link, one-line description, date.
+#### I1. `docs/DOCUMENT_REGISTRY.jsonl`
+**When:** a new maintained document or public page is created that no existing record's `paths` pattern already covers (check via `pwsh -NoProfile -File scripts/document_registry/query.ps1 -ProductArea <area>` first - a new file matching an existing wildcard, e.g. `docs/FEATURES*.md`, needs no record change).
+**How:** add a record per `docs/DOCUMENT_REGISTRY_SCHEMA.md`, or extend an existing record's `paths`, then run:
+
+```powershell
+pwsh -NoProfile -File scripts/document_registry/validate.ps1
+pwsh -NoProfile -File scripts/document_registry/generate.ps1
+```
+
+`docs/DOCS_MAP.md` and `sitemap.xml` are generated from the registry - never hand-edit either.
 
 ---
 
@@ -199,4 +208,4 @@ Update only sections directly relevant to the change.
 - Do not rewrite sections you are not updating - only touch affected parts.
 - Do not create new doc files outside `docs/` or `dev/` unless explicitly instructed.
 - "User-facing" rule: if user would notice difference in normal use, it is user-facing.
-- Keep `docs/DOCS_MAP.md` in sync - any new file added must appear there.
+- Keep `docs/DOCUMENT_REGISTRY.jsonl` in sync - any new maintained document or public page not already covered by an existing record's path pattern needs a record (see I1). Never hand-edit the generated `docs/DOCS_MAP.md` or `sitemap.xml`.

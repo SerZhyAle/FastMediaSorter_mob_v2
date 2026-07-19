@@ -24,6 +24,7 @@ class RecordStreamPlayOutcomeUseCase @Inject constructor(
         // Count only a successful local play. Resolve the stored kind so the audio/video split is
         // accurate; this is a play-start event, not a hot path, so one lightweight lookup is fine.
         if (ok) {
+            repository.markPlayed(id, System.currentTimeMillis())
             val kind = if (repository.getMediaKind(id) == MEDIA_KIND_AUDIO) ViewKind.AUDIO else ViewKind.VIDEO
             statsSink.record(StatsEvent.StreamPlayed(kind = kind))
         }

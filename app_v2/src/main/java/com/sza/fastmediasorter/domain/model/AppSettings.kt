@@ -373,8 +373,26 @@ data class AppSettings(
 
     // S1045: secure by default - block screenshots/Recents preview on screens exposing credentials.
     // User-disableable so power users on trusted devices can screen-record credential screens.
-    val secureSensitiveScreens: Boolean = true
+    val secureSensitiveScreens: Boolean = true,
+
+    // S0404: launcher-mode desktop tuning. Grid geometry is computed from the screen; this factor is
+    // the user's manual nudge on top of it (higher factor = smaller cells = more columns), needed
+    // because head units and TV boxes report unreliable densities. Desktop content itself lives in
+    // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
+    val launcherDensityFactor: Float = 1.0f,
+    val launcherTaskbarShowRecents: Boolean = true,
+    val launcherTaskbarShowPinned: Boolean = true,
+    val launcherTaskbarShowTray: Boolean = true,
+    val launcherReplaceSystemStatusArea: Boolean = false,
+    // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
+    // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
+    val launcherRotationHintShown: Boolean = false
 ) {
+    companion object {
+        /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
+        val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
+    }
+
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.
      * Resource-level mediaTypes should be intersected with this set.

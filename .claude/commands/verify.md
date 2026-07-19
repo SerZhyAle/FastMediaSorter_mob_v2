@@ -1,4 +1,5 @@
 ---
+description: "Use for a quick on-device sanity check that a change works. Triggers: 'verify', 'does it actually work', a quick smoke test on the connected device."
 model: sonnet
 ---
 

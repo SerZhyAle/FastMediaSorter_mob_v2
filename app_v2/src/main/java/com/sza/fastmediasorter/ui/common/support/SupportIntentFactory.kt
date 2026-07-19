@@ -31,6 +31,7 @@ object SupportIntentFactory {
     private const val PLAY_WEB_URI_PREFIX = "https://play.google.com/store/apps/details?id="
     private const val COMPANION_PUBLISH_GUIDE_URL =
         "https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html"
+    private const val COMPANION_HOME_URL = "https://serzhyale.github.io/FastMediaSorter_Lite/"
 
     /**
      * Resolve a canonical [SupportDestination] into a launchable [Intent].
@@ -58,6 +59,9 @@ object SupportIntentFactory {
 
     /** S0994: single source for the LITE companion publish-folders guide (EN-only page). */
     fun companionPublishGuideUrl(): String = COMPANION_PUBLISH_GUIDE_URL
+
+    /** Landing page of the Windows companion ("Fast Media Sorter for Windows"). */
+    fun companionHomeUrl(): String = COMPANION_HOME_URL
 
     private fun openHelp(context: Context): Intent =
         Intent(Intent.ACTION_VIEW, Uri.parse(helpUrl(context)))

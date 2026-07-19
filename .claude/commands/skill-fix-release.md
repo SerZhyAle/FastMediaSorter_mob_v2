@@ -1,3 +1,7 @@
+---
+description: "Use to run the fix-release pipeline for a specific ticket Sxxxx after a release. Triggers: 'fix release Sxxxx', a post-release hotfix pipeline."
+---
+
 # /skill-fix-release Sxxxx - Fix-Release Pipeline
 
 > **GLOBAL DIRECTIVES:**

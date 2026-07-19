@@ -10,6 +10,11 @@
     backlog size is visible before and after a /spec-sweep pass. Never mutates the
     journal.
 
+    Exit codes (S1070):
+      0 - listed successfully (an empty backlog is still 0 - this is a report, not
+          a gate, so "no tickets" is not a failure).
+      2 - cannot run: PLAN/spec-catalog.jsonl not found.
+
 .PARAMETER MinPriority
     Optional: only list tickets with priority >= this value.
 
@@ -27,7 +32,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
-if (-not (Test-Path $catalog)) { Write-Error "Not found: $catalog"; exit 2 }
+if (-not (Test-Path $catalog)) { Write-Error "Not found: $catalog" -ErrorAction Continue; exit 2 }
 
 $rows = [System.Collections.Generic.List[object]]::new()
 foreach ($line in Get-Content -LiteralPath $catalog) {

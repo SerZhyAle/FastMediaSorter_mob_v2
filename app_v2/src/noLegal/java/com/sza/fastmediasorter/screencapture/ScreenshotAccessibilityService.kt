@@ -178,7 +178,9 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         captureInProgress = true
         serviceScope.launch {
             val action = actionDispatcher.get().actionFor(zone, direction)
-            if (actionDispatcher.get().handlePreCaptureAction(this@ScreenshotAccessibilityService, action)) {
+            if (actionDispatcher.get()
+                    .handlePreCaptureAction(this@ScreenshotAccessibilityService, action, zone, direction)
+            ) {
                 // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
                 captureInProgress = false
                 return@launch
@@ -186,6 +188,33 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             pendingAction = action
             takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
         }
+    }
+
+    /**
+     * S1038: performs a SYSTEM-group gesture action through the accessibility global actions, reached via
+     * the [com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions] noLegal seam.
+     * API-gated actions (lock 28+, split-screen 24+) degrade with a Timber.w rather than crashing.
+     * Returns whether the global action was dispatched.
+     */
+    fun performSystemAction(action: ScreenshotGestureAction): Boolean {
+        val lockSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        val splitSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        val globalAction: Int? = when (action) {
+            ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE -> GLOBAL_ACTION_NOTIFICATIONS
+            ScreenshotGestureAction.OPEN_QUICK_SETTINGS -> GLOBAL_ACTION_QUICK_SETTINGS
+            ScreenshotGestureAction.PREVIOUS_APP -> GLOBAL_ACTION_RECENTS
+            ScreenshotGestureAction.LOCK_SCREEN -> if (lockSupported) GLOBAL_ACTION_LOCK_SCREEN else null
+            ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN ->
+                if (splitSupported) GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN else null
+            else -> null
+        }
+        // Null means the action is unavailable here (below the required API, or not a system action);
+        // degrade with a log instead of dispatching, keeping ReturnCount within the detekt limit.
+        if (globalAction == null) {
+            Timber.w("ScreenshotAccessibilityService: %s unavailable at this API level, ignored", action)
+            return false
+        }
+        return performGlobalAction(globalAction)
     }
 
     private fun processScreenshotResult(screenshot: ScreenshotResult) {

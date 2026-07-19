@@ -473,31 +473,36 @@ class PlayerControlsSetupManager(
     }
     
     /**
-     * Setup document fullscreen exit button.
-     * This button is shown in fullscreen mode for PDF/EPUB/TXT files.
+     * Setup fullscreen exit button.
+     * S1115: this always-visible overlay button is shown in fullscreen mode for PDF/EPUB/TXT and
+     * VIDEO; tapping it restores the command panel (exits fullscreen).
      */
     fun setupDocumentFullscreenExitButton() {
         safeViews.btnDocumentFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("DocumentFullscreenExit", "PlayerActivity")
+            Timber.d("S1115: main-host fullscreen-exit tapped")
             if (!viewModel.state.value.showCommandPanel) {
                 viewModel.toggleCommandPanel()
             }
         }
     }
-    
+
     /**
-     * Update document fullscreen exit button visibility.
-     * Shows only for PDF/EPUB/TXT in fullscreen mode.
+     * Update fullscreen exit button visibility.
+     * S1115: shown in fullscreen mode for PDF/EPUB/TXT and VIDEO (video fullscreen otherwise offers
+     * no visible way back to the command panel).
      */
     fun updateDocumentFullscreenExitButtonVisibility() {
         val currentFile = viewModel.state.value.currentFile
         val isFullscreen = !viewModel.state.value.showCommandPanel
-        val isDocument = currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.PDF ||
-                        currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.EPUB ||
-                        currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.TEXT
-        
-        safeViews.btnDocumentFullscreenExit.visibility = 
-            if (isFullscreen && isDocument) android.view.View.VISIBLE else android.view.View.GONE
+        val isFullscreenExitEligible =
+            currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.PDF ||
+                currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.EPUB ||
+                currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.TEXT ||
+                currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.VIDEO
+
+        safeViews.btnDocumentFullscreenExit.visibility =
+            if (isFullscreen && isFullscreenExitEligible) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     /**

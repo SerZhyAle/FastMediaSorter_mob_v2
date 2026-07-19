@@ -1,3 +1,7 @@
+---
+description: "Use to break an approved strategic spec into a tactical plan of phases and steps. Triggers: 'spec-tech Sxxxx', 'make the tactical plan', 'break this spec into steps'."
+---
+
 # Tactical Specification Writer
 
 Break approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote below).
@@ -316,6 +320,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - [ ] `Grep` for `TODO(phase-<NN>)` returns zero hits.
 - [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
 - [ ] If public API changed: `dev/CATALOG/<module>.jsonl` regenerated via `pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>`.
+- [ ] Phase-boundary audit run - no unresolved P0/P1 findings (CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits"; see `/spec-dev` "Phase-boundary audit" step).
 
 ---
 

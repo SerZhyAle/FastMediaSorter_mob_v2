@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Permissions management screen, landscape (Rule 11 counterpart of layout/fragment_permissions_management.xml).
      Same ids and view types as the portrait variant; the two action buttons sit side by side (split by a
-     centre guideline so the layout stays correct when btn_grant_all is GONE), the list fills the
-     remaining area, and the welcome-mode continue button stays pinned to the bottom.
+     centre guideline so the layout stays correct when btn_grant_all is GONE), and the list fills
+     the remaining area.
      All ids must stay in sync with the portrait variant. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -66,20 +66,9 @@
         android:fadeScrollbars="false"
         android:scrollbarStyle="outsideOverlay"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/btn_continue_to_app"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_continue_to_app"
-        style="@style/Widget.FastMediaSorter.Button.Filled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/perm_continue_to_app"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

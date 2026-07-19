@@ -17,4 +17,6 @@ Scripts currently following this contract: `archive.ps1`, `update.ps1`, `insert.
 
 Wrapper-side: `& ./script.ps1` in PowerShell propagates `$LASTEXITCODE` only if the inner script called `exit`. If a script body finishes naturally without `exit`, `$LASTEXITCODE` retains its previous value - same trap (pun intended) hits any new mutator added without these two patterns.
 
-See also: [[pwsh-bash-dollar-escape-trap]], [[pwsh-efficiency]].
+**Ternary contracts are still broken (S1070, parked 2026-07-16).** The `trap { exit 1 }` fix above only serves a BINARY contract. Scripts documenting 0/1/2 (2 = bad args / config error) still lose the 2: a bare `Write-Error` under Stop preference throws before the following `exit 2`, so callers see 1 and cannot tell "gate found a violation" from "gate is itself broken". Confirmed 2026-07-16: `preview.ps1 -Id NOT_AN_ID` -> exit 1, `drift-check.ps1 -Id NOT_AN_ID` -> exit 1, both documenting 2. Audit found 18 sites across 9 files (`all_features/patch.ps1`, `quality/assert-allfeatures-sync.ps1`, `quality/assert-flavor-flags-not-growing.ps1`, `quality/assert-no-ticket-logs.ps1`, `quality/generate-toolchain-pins.ps1`, `spec_catalog/drift-check.ps1`, `spec_catalog/list-blockneedusertest.ps1`, `spec_catalog/preview.ps1`, `spec_catalog/skip-cache.ps1`). Remedy proven in S1063: `Write-Error $msg -ErrorAction Continue` immediately before `exit N` - prints, does not throw, code escapes. `close-and-log.ps1` is the fixed reference.
+
+See also: [[pwsh-bash-dollar-escape-trap]], [[pwsh-efficiency]], [[devlogs-array-binding]].

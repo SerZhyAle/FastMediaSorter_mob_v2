@@ -1,3 +1,7 @@
+---
+description: "Use to park a side-task idea as a Draft spec skeleton - capture raw text verbatim, no research/approval/build. Triggers: 'draft a spec', an out-of-scope finding to park, idea inbox."
+---
+
 # Strategic Specification Skeleton
 
 Allocate a ticket id and scaffold a `Draft` strategic spec at `PLAN/Sxxxx_<short-name>.md` that **captures user's raw idea text and every attached file verbatim**, then stops. No research, no section filling, no `..`/`ё`/style sanitation, no Approval gate, no `/spec-tech` chaining.

@@ -10,6 +10,10 @@ import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
+import com.sza.fastmediasorter.data.local.db.LauncherCellDao
+import com.sza.fastmediasorter.data.local.db.LauncherJournalDao
+import com.sza.fastmediasorter.data.local.db.LauncherPinDao
+import com.sza.fastmediasorter.data.local.db.LauncherStateDao
 import com.sza.fastmediasorter.data.local.db.MIGRATION_31_32
 import com.sza.fastmediasorter.data.local.db.MIGRATION_32_33
 import com.sza.fastmediasorter.data.local.db.MIGRATION_33_34
@@ -19,6 +23,8 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_36_37
 import com.sza.fastmediasorter.data.local.db.MIGRATION_37_38
 import com.sza.fastmediasorter.data.local.db.MIGRATION_38_39
 import com.sza.fastmediasorter.data.local.db.MIGRATION_39_40
+import com.sza.fastmediasorter.data.local.db.MIGRATION_40_41
+import com.sza.fastmediasorter.data.local.db.MIGRATION_41_42
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
@@ -105,7 +111,9 @@ object DatabaseModule {
                 MIGRATION_36_37,
                 MIGRATION_37_38,
                 MIGRATION_38_39,
-                MIGRATION_39_40
+                MIGRATION_39_40,
+                MIGRATION_40_41,
+                MIGRATION_41_42
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -207,5 +215,29 @@ object DatabaseModule {
     @Singleton
     fun provideAppLaunchPanelTileDao(database: AppDatabase): AppLaunchPanelTileDao {
         return database.appLaunchPanelTileDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherCellDao(database: AppDatabase): LauncherCellDao {
+        return database.launcherCellDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherJournalDao(database: AppDatabase): LauncherJournalDao {
+        return database.launcherJournalDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherPinDao(database: AppDatabase): LauncherPinDao {
+        return database.launcherPinDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherStateDao(database: AppDatabase): LauncherStateDao {
+        return database.launcherStateDao()
     }
 }

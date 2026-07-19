@@ -2,33 +2,14 @@
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.kts.
 
-# Google Cast SDK + MediaRouter
--keep class com.google.android.gms.cast.** { *; }
--keep class com.google.android.gms.cast.framework.** { *; }
--dontwarn com.google.android.gms.cast.**
--dontwarn com.google.android.gms.cast.framework.**
--keep class androidx.mediarouter.** { *; }
--dontwarn androidx.mediarouter.**
-
-# NanoHTTPD
--keep class fi.iki.elonen.** { *; }
--dontwarn fi.iki.elonen.**
-
-# Keep data classes used with Room
--keep class com.sza.fastmediasorter.data.local.db.** { *; }
-
-# Keep model classes
--keep class com.sza.fastmediasorter.domain.model.** { *; }
+# Large third-party SDKs should use their own consumer rules or targeted keep contracts.
+# Blanket app-side package keeps cripple R8 shrinking/obfuscation and inflate release heap/dex.
 
 # Keep Gson-serialized persistence models that lack @SerializedName: without this R8 renames
 # their fields, breaking cross-version JSON restore (Drive backup, trash metadata, game state) - S0737/S0719.
 -keep class com.sza.fastmediasorter.domain.usecase.Backup** { *; }
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
-
-# ExoPlayer
--keep class androidx.media3.** { *; }
--dontwarn androidx.media3.**
 
 # SMBJ and event bus system
 -keep class com.hierynomus.** { *; }
@@ -89,16 +70,14 @@
 -keep class org.apache.commons.net.** { *; }
 -dontwarn org.apache.commons.net.**
 
-# Google Drive API - uses reflection and annotations
--keep class com.google.api.services.drive.** { *; }
--keep class com.google.api.client.** { *; }
--keep class com.google.android.gms.** { *; }
+# Google Drive API - keep only annotation-driven JSON fields instead of whole SDK packages.
+-keepclassmembers class * extends com.google.api.client.util.GenericData {
+    @com.google.api.client.util.Key <fields>;
+}
+-keepclassmembers class * extends com.google.api.client.json.GenericJson {
+    @com.google.api.client.util.Key <fields>;
+}
 -dontwarn com.google.api.**
--dontwarn com.google.android.gms.**
-
-# Keep OAuth and authentication classes
--keep class * extends com.google.api.client.json.GenericJson { *; }
--keep class * extends com.google.api.client.http.HttpTransport { *; }
 
 # Dropbox SDK - targeted keep rules (we only use files/users/auth APIs, NOT team/teamcommon).
 # DO NOT use a blanket -keep class com.dropbox.core.** - it prevents R8 from stripping unused
@@ -127,19 +106,13 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
-# Microsoft MSAL (OneDrive) - uses reflection heavily
--keep class com.microsoft.identity.** { *; }
+# Microsoft MSAL (OneDrive)
 -dontwarn com.microsoft.identity.**
-
-# Keep MSAL broker components
--keep class com.microsoft.identity.client.** { *; }
--keep class com.microsoft.identity.common.** { *; }
 
 # Gson (used by cloud services and Retrofit)
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**
--keep class com.google.gson.** { *; }
 -keep class * implements com.google.gson.TypeAdapter
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
@@ -158,11 +131,9 @@
     public <methods>;
 }
 
-# OkHttp (используется облачными сервисами)
+# OkHttp (used by cloud services)
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
 
 # Retrofit
 -keepattributes RuntimeVisibleAnnotations
@@ -180,9 +151,6 @@
 -keep,allowobfuscation,allowshrinking interface retrofit2.Call
 -keep,allowobfuscation,allowshrinking class retrofit2.Response
 -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
-
-# Keep all data classes used by Retrofit (iTunes API models)
--keep class com.sza.fastmediasorter.data.remote.** { *; }
 
 # Remove verbose/debug logging in release (v, d only).
 # WARNING: Do NOT add w() or e() here - -assumenosideeffects removes the call
@@ -271,14 +239,7 @@
 -keep class com.sza.fastmediasorter.GlideRequests { *; }
 
 # ===== ML Kit (Translation & OCR) =====
-# ML Kit uses reflection for model loading and language detection
--keep class com.google.mlkit.** { *; }
 -dontwarn com.google.mlkit.**
-
-# Keep ML Kit model classes
--keep class com.google.mlkit.nl.translate.** { *; }
--keep class com.google.mlkit.vision.text.** { *; }
--keep class com.google.mlkit.nl.languageid.** { *; }
 
 # ===== Tesseract OCR =====
 # Keep native interface classes and JNI methods

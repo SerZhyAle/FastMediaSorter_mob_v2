@@ -206,6 +206,15 @@ class SettingsRepositoryImpl @Inject constructor(
         // S1045: secure-by-default flag for credential-bearing screens (blocks screenshots/Recents).
         private val KEY_SECURE_SENSITIVE_SCREENS = booleanPreferencesKey("secure_sensitive_screens")
 
+        // S0404: launcher-mode desktop tuning (grid density + taskbar composition).
+        private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
+        private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
+        private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
+        private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
+        private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
+            booleanPreferencesKey("launcher_replace_system_status_area")
+        private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
+
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
         // declarations are gone; orphan DataStore entries left over in existing installs are
@@ -546,6 +555,15 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S1045: absent key → true (secure by default on fresh install).
                     secureSensitiveScreens = preferences[KEY_SECURE_SENSITIVE_SCREENS] ?: true,
 
+                    // S0404: launcher desktop tuning; absent keys → auto density + full taskbar.
+                    launcherDensityFactor = preferences[KEY_LAUNCHER_DENSITY_FACTOR] ?: 1.0f,
+                    launcherTaskbarShowRecents = preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] ?: true,
+                    launcherTaskbarShowPinned = preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] ?: true,
+                    launcherTaskbarShowTray = preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] ?: true,
+                    launcherReplaceSystemStatusArea =
+                        preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
+                    launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
+
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
                         .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
@@ -743,6 +761,13 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
             // S1045: secure sensitive screens (opt-out)
             preferences[KEY_SECURE_SENSITIVE_SCREENS] = settings.secureSensitiveScreens
+            // S0404: launcher desktop tuning
+            preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
+            preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
+            preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
+            preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
+            preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
+            preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name

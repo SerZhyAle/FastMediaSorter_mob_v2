@@ -8,6 +8,7 @@ import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -75,6 +76,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
+import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -153,6 +155,9 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
+    // S1114: standalone VR entry (this host has no VR badge; the transport-row button uses this).
+    @Inject lateinit var vrCinemaLaunchManager: com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
     @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -267,6 +272,13 @@ class PhotoVideoStandaloneActivity :
 
     private var videoControlsManager: StandaloneVideoControlsManager? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
+
+    // S1115: the fullscreen-exit overlay is added via <include> without an include-tag id, so it is not a
+    // generated binding field (same reason PlayerBindingSafeViews resolves it by findViewById). Resolve
+    // it lazily from the root once the layout is inflated.
+    private val btnFullscreenExit: ImageButton by lazy {
+        binding.root.findViewById(R.id.btnDocumentFullscreenExit)
+    }
     // S0393 U1: Picture-in-Picture, ported from legacy StandalonePlayerActivity.
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
 
@@ -598,6 +610,16 @@ class PhotoVideoStandaloneActivity :
         binding.btnBack.setImageResource(R.drawable.ic_clear)
         binding.btnBack.setOnClickListener { finish() }
         binding.topCommandPanel.isVisible = true
+        updateFullscreenExitButtonVisibility()
+    }
+
+    // S1115: the overlay fullscreen-exit button is the only visible way back to the command panel while
+    // a video plays fullscreen (panel hidden). Show it only for video with the panel hidden; images/gifs
+    // and the commands-visible state keep it gone. Call after every command-panel visibility change.
+    private fun updateFullscreenExitButtonVisibility() {
+        val isVideoFullscreen = !binding.topCommandPanel.isVisible &&
+            viewModel.state.value.mediaType == MediaType.VIDEO
+        btnFullscreenExit.isVisible = isVideoFullscreen
     }
 
     private fun setupBackPressHandler() {
@@ -745,6 +767,7 @@ class PhotoVideoStandaloneActivity :
             onShowInfo = { showFileInfo() },
             onToggleCommandPanel = {
                 binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                updateFullscreenExitButtonVisibility()
             },
             onToggleFullscreen = { fullscreenManager?.toggleFullscreen() },
             onToggleFavourite = { viewModel.toggleFavorite() },
@@ -753,6 +776,7 @@ class PhotoVideoStandaloneActivity :
             onToggleSlideshow = { viewModel.toggleSlideshow() },
             onShowContextMenu = {
                 binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                updateFullscreenExitButtonVisibility()
             },
             onToggleRotationSensor = { viewModel.toggleRotationSensor() },
             onShowHelp = {
@@ -1024,6 +1048,13 @@ class PhotoVideoStandaloneActivity :
                 // S0393 U2: ported from legacy StandalonePlayerActivity - the dialog reads this host
                 // via PlayerHostCapabilities + videoPlayerHandle (both already implemented).
                 override fun showPlaybackControlDialog() = this@PhotoVideoStandaloneActivity.showPlaybackControlDialog()
+                // S1114: standalone VR entry from the transport row (host has no VR badge of its own).
+                override fun onVrLaunchClicked() {
+                    viewModel.state.value.mediaFile?.let { vrCinemaLaunchManager.launch(it) }
+                }
+                override fun isVrEntryAvailable(): Boolean =
+                    vrCinemaLaunchManager.isAvailable &&
+                        viewModel.state.value.mediaType == MediaType.VIDEO
             }
         )
         controlsManager.setupVideoControls()
@@ -1032,6 +1063,15 @@ class PhotoVideoStandaloneActivity :
 
         val fsManager = StandaloneFullscreenManager(this)
         fullscreenManager = fsManager
+        // S1115: the overlay exit button restores the command panel (leaves fullscreen) - the same path
+        // as the edge-swipe callback below, but visible and discoverable.
+        btnFullscreenExit.setOnClickListener {
+            UserActionLogger.logButtonClick("FullscreenExit", "PhotoVideoStandaloneActivity")
+            Timber.d("S1115: standalone video fullscreen-exit tapped")
+            fsManager.exitFullscreenWithPanel(binding.topCommandPanel) {
+                updateFullscreenExitButtonVisibility()
+            }
+        }
         // S0920: honor "open video in fullscreen" instead of always hiding the system bars.
         // When on, enter true fullscreen - system bars AND the command panel hidden together, so the
         // panel stays the single source of truth for "in fullscreen"; when off, keep both visible
@@ -1039,11 +1079,14 @@ class PhotoVideoStandaloneActivity :
         lifecycleScope.launch {
             val openFullscreen = settingsRepository.getSettings().first().openVideoInFullscreen
             if (openFullscreen) {
-                fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {}
+                fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {
+                    updateFullscreenExitButtonVisibility()
+                }
             }
         }
         fsManager.setupTransientBarsExitCallback(window.decorView) {
             if (!binding.topCommandPanel.isVisible) binding.topCommandPanel.isVisible = true
+            updateFullscreenExitButtonVisibility()
         }
 
         val trackManager = VideoTrackSelectionManager(

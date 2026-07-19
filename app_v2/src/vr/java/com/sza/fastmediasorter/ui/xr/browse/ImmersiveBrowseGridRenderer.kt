@@ -165,7 +165,9 @@ class ImmersiveBrowseGridRenderer {
     private fun drawPageIndicator(canvas: Canvas, cellCount: Int, pageOffset: Int) {
         val totalPages = if (cellCount == 0) 1 else (cellCount - 1) / pageSize + 1
         val currentPage = pageOffset / pageSize + 1
-        val pageText = "page $currentPage/$totalPages"
+        // Language-neutral page affordance: flanking chevrons signal that more pages exist (S1116);
+        // a single page shows just the counter.
+        val pageText = if (totalPages > 1) "◀  $currentPage / $totalPages  ▶" else "$currentPage / $totalPages"
         val pageX = (PANEL_WIDTH - pagePaint.measureText(pageText)) / 2f
         val pageY = PANEL_HEIGHT - PAGE_BASELINE_OFFSET
         canvas.drawText(pageText, pageX, pageY, pagePaint)
@@ -183,36 +185,38 @@ class ImmersiveBrowseGridRenderer {
     }
 
     companion object {
-        const val PANEL_WIDTH = 1024
-        const val PANEL_HEIGHT = 512
+        // S1116: panel doubled in resolution (was 1024x512) so text stays crisp on the enlarged
+        // browse quad; fonts + geometry scaled up for in-headset legibility. Aspect stays 2:1.
+        const val PANEL_WIDTH = 1536
+        const val PANEL_HEIGHT = 768
         const val COLUMNS = 4
         const val ROWS = 2
 
-        private const val HEADER_HEIGHT = 60f
-        private const val FOOTER_HEIGHT = 44f
-        private const val GRID_MARGIN = 24f
-        private const val CELL_SPACING = 16f
+        private const val HEADER_HEIGHT = 92f
+        private const val FOOTER_HEIGHT = 66f
+        private const val GRID_MARGIN = 36f
+        private const val CELL_SPACING = 24f
 
-        private const val PANEL_CORNER = 32f
-        private const val CELL_CORNER = 16f
-        private const val BADGE_CORNER = 10f
-        private const val HIGHLIGHT_STROKE = 5f
+        private const val PANEL_CORNER = 48f
+        private const val CELL_CORNER = 24f
+        private const val BADGE_CORNER = 15f
+        private const val HIGHLIGHT_STROKE = 7f
 
-        private const val BREADCRUMB_TEXT_SIZE = 30f
-        private const val LABEL_TEXT_SIZE = 24f
-        private const val BADGE_TEXT_SIZE = 20f
-        private const val PAGE_TEXT_SIZE = 24f
-        private const val CHEVRON_TEXT_SIZE = 30f
+        private const val BREADCRUMB_TEXT_SIZE = 48f
+        private const val LABEL_TEXT_SIZE = 40f
+        private const val BADGE_TEXT_SIZE = 34f
+        private const val PAGE_TEXT_SIZE = 40f
+        private const val CHEVRON_TEXT_SIZE = 46f
 
-        private const val HEADER_BASELINE = 42f
-        private const val CHEVRON_MARGIN = 8f
-        private const val LABEL_STRIP_HEIGHT = 34f
-        private const val LABEL_PADDING = 8f
-        private const val LABEL_BASELINE_OFFSET = 10f
-        private const val BADGE_MARGIN = 8f
-        private const val BADGE_PADDING = 10f
-        private const val BADGE_HEIGHT = 30f
-        private const val PAGE_BASELINE_OFFSET = 14f
+        private const val HEADER_BASELINE = 64f
+        private const val CHEVRON_MARGIN = 12f
+        private const val LABEL_STRIP_HEIGHT = 54f
+        private const val LABEL_PADDING = 12f
+        private const val LABEL_BASELINE_OFFSET = 16f
+        private const val BADGE_MARGIN = 12f
+        private const val BADGE_PADDING = 15f
+        private const val BADGE_HEIGHT = 46f
+        private const val PAGE_BASELINE_OFFSET = 22f
 
         private const val FOLDER_GLYPH = "▸"
         private const val ELLIPSIS = "…"

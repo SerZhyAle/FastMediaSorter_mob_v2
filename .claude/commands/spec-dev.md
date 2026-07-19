@@ -1,3 +1,7 @@
+---
+description: "Use to execute a tactical spec step by step, running each step's Verification before flipping it to done. Triggers: 'spec-dev Sxxxx', 'implement this tactical plan', 'continue the spec'."
+---
+
 # Specification Developer Executor
 
 Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping to `[x] done`.
@@ -81,6 +85,12 @@ After all planned steps in current phase complete:
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
 - Every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - Any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
+- **Phase-boundary audit (mandatory - CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits").** Immediately after this phase flips `✅ Done`, before the next phase's first step: self-audit this phase's `Files Touched` against the protocol. Layer 1 (architecture/readability) always; Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) when the phase touched that surface. Skip entirely when `Files Touched` is empty or doc-only (e.g. `docs-catalog-cleanup`). Tag findings by severity:
+  - **P0/P1 → fix now.** Small scoped edit, re-run the affected step's `Verification:` predicates, run `post-change.ps1` closure, append `AUDIT-FIX: <finding>` to this phase's Step Log. Fixing here costs this phase's rework; leaving it costs every later phase's rework plus the end-of-pipeline `/spec-check` finding it cold.
+  - **P2 → fix if trivial**, else append `AUDIT-P2: <finding>` to Step Log (recurring pattern → flag as mechanical-gate candidate, CLAUDE.md Rule 19/20).
+  - **P3 → fix inline or skip.**
+  - A fix that requires a design decision not derivable from the spec/codebase is an ambiguity → Hard Stop #1 (`BlockQuestions`), same as any other ambiguous prompt - do not guess.
+  - This is a fast self-review scoped to one phase, not a replacement for `/spec-check`'s deeper end-of-pipeline audit.
 - **Write session snapshot (S0268 Agent Continuity Layer).** After phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1` with `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched @(<file1>, <file2>, ...)` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one). One call per phase boundary; snapshot lands under `temp/sessions/` as resume-layer hand-off for next session.
 
 After all phases done:
@@ -99,15 +109,15 @@ After all phases done:
       -Id <Sxxxx> `
       -Status <Implemented|BlockNeedUserTest> `
       -StatusNote '<For BlockNeedUserTest: what to verify on device. Omit for Implemented.>' `
-      -DevLogs @(
-          '{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-dev","desc":"All phases done; status -> <new>"}',
-          '{"file":"app_v2/src/.../X.kt","target":"spec-dev","desc":"<phase-NN.M edit summary>"}'
-          # ...one entry per modified source file
-        ) `
+      -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-dev","desc":"All phases done; status -> <new>"},{"file":"app_v2/src/.../X.kt","target":"spec-dev","desc":"<phase-NN.M edit summary>"}]' `
       -FuncOp <ADD|CHANGE|DELETE|""> -FuncDesc "<english summary or omit>" `
-      -FeatArea "<inventory area, e.g. Video Player>" -FeatFlavors "standard,vr" `
+      -FeatArea "<inventory area, e.g. Video Player>" `
+      -FeatName "<short capability name, e.g. Trace log outcome label>" `
+      -FeatFlavors "<exact builds that ship it, e.g. standard,vr>" `
       -CatalogModule app_v2
   ```
+
+  `-DevLogs` takes ONE string holding a JSON array - one `{file,target,desc}` object per modified source file. Never a PowerShell array literal `@('{..}','{..}')`: `pwsh -File` binds only its first element and the rest become positional args, which `close-and-log.ps1` now rejects at bind time (S1063).
 
   `-StatusNote` **mandatory** when `-Status BlockNeedUserTest`; omit or leave empty for `Implemented`.
 
@@ -117,7 +127,8 @@ After all phases done:
   - **`DELETE`** - spec removes a previously-shipped user-visible capability without archiving the spec. Marks existing record `status: removed` (keeps it for history). Use when §2 Goals remove a feature/menu/screen. (Archiving a capability-removing spec instead uses `/spec-arc --removes-functionality`.)
   - Pass `-SkipFuncLog` (or omit `-FuncOp`) when spec purely internal (refactor, performance, build/CI plumbing). Document skip in chat output.
   - Description: concise user-visible summary, reusing spec title or first sentence of §2 Goals. EN-only.
-  - For richer record, run `scripts/all_features/add.ps1` directly with `-Id <area>.<feature> -Area -Name -Description -Flavors [-Spec Sxxxx]` instead of `-FuncOp` shortcut.
+  - `-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072); a missing one is exit 2 with nothing mutated. The facade no longer invents them, so the `-FuncOp` shortcut and a direct `add.ps1` call now produce the SAME record - reach for `scripts/all_features/add.ps1 -Id <area>.<feature> -Area -Name -Description -Flavors [-Spec Sxxxx]` only when recording outside a ticket closure.
+  - Read `-FeatFlavors` off the real gate - the `BuildConfig` flag in `app_v2/build.gradle.kts` or the source set the code lives in - never off a sibling record: sibling records for the same screen disagree (S0777 vs S0782), so copying one is how a wrong list spreads.
 
   Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `scripts/all_features/add.ps1` + `catalog_sync.ps1` only when a separate catalog repair still needed) remains valid when `close-and-log.ps1` unavailable, but each call is a separate pwsh process.
 

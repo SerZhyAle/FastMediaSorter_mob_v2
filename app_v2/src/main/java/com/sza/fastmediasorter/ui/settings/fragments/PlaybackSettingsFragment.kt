@@ -39,11 +39,10 @@ import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class PlaybackSettingsFragment : Fragment() {
@@ -81,13 +80,15 @@ class PlaybackSettingsFragment : Fragment() {
         if (isGranted) {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
+            if (_binding == null) return@registerForActivityResult
             updateNotificationPermissionButtonVisibility()
         } else {
-            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(false)
+            val viewBinding = _binding ?: return@registerForActivityResult
+            viewBinding.rowEnablePersistentAudioPlayback.setCheckedSilently(false)
             Snackbar.make(
-                binding.root,
+                viewBinding.root,
                 R.string.notification_permission_required_for_background,
-                Snackbar.LENGTH_LONG
+                Snackbar.LENGTH_LONG,
             ).show()
         }
     }
@@ -300,7 +301,6 @@ class PlaybackSettingsFragment : Fragment() {
         binding.cardSendCommands.isVisible = targets.isNotEmpty()
         val columns = resources.getInteger(R.integer.settings_send_commands_columns)
         val targetCount = targets.size
-        Timber.d("S0999: send-commands group rebuilt cols=$columns targets=$targetCount")
         if (targets.isEmpty()) return
         val current = viewModel.settings.value
         val rows = targets.map { target ->

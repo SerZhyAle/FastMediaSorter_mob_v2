@@ -1,4 +1,5 @@
 ---
+description: "Use for a very minor fix with no spec/build/doc/git - a design tweak, a typo, one string, a colour or padding, a single-locale rename. Triggers: 'quick fix', 'just fix this typo/colour/string'."
 model: sonnet
 ---
 

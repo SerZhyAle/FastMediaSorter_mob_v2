@@ -1,3 +1,7 @@
+---
+description: "Use to auto-pick and drive the top-priority open spec. Triggers: 'spec-next', 'what should I work on next', 'pick the next ticket'."
+---
+
 # Next-Spec Picker - Auto-Drive Top Priority
 
 Pick highest-priority eligible spec from catalog, hand to `/spec-all`, then loop until no eligible spec remains. Zero-input automation for "just keep working on whatever is most important next."

@@ -21,6 +21,7 @@
 
 ## 4. Routing & Structure
 - Entrypoints: `dev/PROJECT_OPERATIONS_INDEX.md` (workspace routing), `docs/ARCHITECTURE.md` (architecture), `docs/DEV_OPS.md` (PowerShell/build), `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md` (dependencies).
+- Documentation routing: on every iteration at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` with `scripts/document_registry/query.ps1` by product area and update trigger. Read returned records, state affected records and reasons for unchanged matches. When a registered document, page, or registry record changes, run `validate.ps1` and `generate.ps1 -Check`.
 - Topology: `app_v2/` (main), `wear/` (Wear OS), `dev/`, `docs/`, `scripts/`, `temp/`. Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Packages: `ui/` (no business logic), `domain/`, `data/`, `di/`, `core/`, `util/`, `utils/`, `worker/`, `widget/`.
 
@@ -62,7 +63,7 @@
 ## 8. Scripts Reference
 - Logs: `scripts/utils/search-log.ps1` (`-Summary`, `-Spam`, `-Errors`, `-Warnings`, `-Pattern`, `-Tag`).
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
-- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
+- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal|Lite|Photos|Legacy]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
 - Gate batch: `scripts/quality/assert-fast-gates.ps1` runs the fast static gates (no-ticket-logs, flavor-flags, neuroslop, deprecated-pm, listener-symmetry) in one process (`-IncludeDetekt` opt-in).
 - Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; add `-ScopeToFile` for per-change closure on the always-dirty tree (diff-scoped detekt + advisory project-wide ratchets).
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.

@@ -97,7 +97,7 @@ foreach ($l in $lines) {
     $out.Add(($rec | ConvertTo-Json -Compress -Depth 5))
 }
 
-if (-not $found) { Write-Error "Id '$idN' not found in docs/$fileName"; exit 2 }
+if (-not $found) { Write-Error "Id '$idN' not found in docs/$fileName" -ErrorAction Continue; exit 2 }
 
 [System.IO.File]::WriteAllText($dataFile, (($out -join "`n") + "`n"), $utf8NoBom)
 if (-not $Quiet) { Write-Host "[patch] $idN -> flavors=[$($flavors -join ',')] status=$status (docs/$fileName)" -ForegroundColor Green }

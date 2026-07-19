@@ -8,47 +8,50 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import com.sza.fastmediasorter.domain.model.DeviceStorageState
-import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
-import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.domain.model.DeviceStorageState
+import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCredentialHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsImportExportHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLauncherHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLogHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsObserversHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPermissionsHelper
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
-import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
-import com.sza.fastmediasorter.BuildConfig
-import androidx.core.view.isVisible
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
-import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -65,6 +68,11 @@ class GeneralSettingsFragment : Fragment() {
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+
+    // S1088: gate + role plumbing for the System-launcher enable toggle relocated into General -> Interface.
+    @Inject lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject lateinit var launcherRoleManager: LauncherRoleManager
 
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
@@ -128,6 +136,14 @@ class GeneralSettingsFragment : Fragment() {
             permissionsHelper.updatePermissionButtonsState()
         }
 
+    // S0404/S1107: returns from the API 29+ role dialog / home-settings screen; only refreshes the toggle
+    // to the real component-enabled state (enabling the mode already happened before this launched). The
+    // chooser can return after a tab swap nulls _binding, so guard before touching the view.
+    private val launcherRoleLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (_binding != null) launcherHelper.refreshState()
+        }
+
     // S0491: favorites + resource-share export/import SAF launchers (registered before STARTED, handled by backupHelper).
     private val importFavoritesLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -170,7 +186,14 @@ class GeneralSettingsFragment : Fragment() {
         GeneralSettingsCredentialHelper(viewModel, this, importCredentialsLauncher)
     }
     private val cacheHelper by lazy {
-        GeneralSettingsCacheHelper(binding, viewModel, this, audioMetadataCacheRepository, calculateOptimalCacheSizeUseCase, { isUpdatingSpinner = it })
+        GeneralSettingsCacheHelper(
+            binding,
+            viewModel,
+            this,
+            audioMetadataCacheRepository,
+            calculateOptimalCacheSizeUseCase,
+            { isUpdatingSpinner = it },
+        )
     }
     private val backupHelper by lazy {
         GeneralSettingsBackupHelper(
@@ -206,6 +229,11 @@ class GeneralSettingsFragment : Fragment() {
     private val profileHelper by lazy {
         GeneralSettingsProfileHelper(binding, profileViewModel, this)
     }
+    private val launcherHelper by lazy {
+        GeneralSettingsLauncherHelper(
+            binding, this, launcherModeContract, launcherRoleManager, launcherRoleLauncher,
+        )
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsGeneralBinding.inflate(inflater, container, false)
@@ -232,6 +260,7 @@ class GeneralSettingsFragment : Fragment() {
         cacheHelper.checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
         setupCollapsibleSections()
+        launcherHelper.setup()
         setupScreenshotTestButton()
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
@@ -281,6 +310,13 @@ class GeneralSettingsFragment : Fragment() {
         permissionsHelper.updatePermissionButtonsState()
         cacheHelper.updateCacheSize()
         observersHelper.refreshLastSyncStatus()
+        launcherHelper.refreshState()
+        // S1107: request the HOME role from onResume (a resumed context is required for attribution). KNOWN
+        // BROKEN end-to-end from onboarding (device-verified 2026-07-18, see spec Last Audit): completing
+        // onboarding triggers a first-run Settings recreation storm (onCreate/onDestroy x3) that destroys
+        // this Activity ~86ms after launch, before RequestRoleActivity resolves the caller -> null package.
+        // Real fix: stop that storm, or issue the role from a stable Activity that outlives the request.
+        launcherHelper.handleLauncherRoleDeepLink()
     }
 
     override fun onDestroyView() {

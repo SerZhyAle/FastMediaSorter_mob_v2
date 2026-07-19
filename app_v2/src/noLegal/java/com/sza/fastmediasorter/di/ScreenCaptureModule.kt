@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import com.sza.fastmediasorter.screencapture.NoLegalGestureAccessibilityActions
 import com.sza.fastmediasorter.screencapture.ScreenGestureOverlayControllerImpl
 import com.sza.fastmediasorter.widget.QuickRecorderIndicatorController
 import com.sza.fastmediasorter.widget.QuickRecorderIndicatorControllerImpl
@@ -25,4 +27,11 @@ abstract class ScreenCaptureModule {
     abstract fun bindQuickRecorderIndicatorController(
         impl: QuickRecorderIndicatorControllerImpl
     ): QuickRecorderIndicatorController
+
+    // S1038: the noLegal accessibility service is the only path that can perform SYSTEM-group gestures.
+    @Binds
+    @IntoSet
+    abstract fun bindGestureAccessibilityActions(
+        impl: NoLegalGestureAccessibilityActions
+    ): GestureAccessibilityActions
 }

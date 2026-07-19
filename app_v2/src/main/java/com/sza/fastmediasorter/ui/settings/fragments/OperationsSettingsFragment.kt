@@ -30,9 +30,9 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.settings.DefaultAppsDialogFragment
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
-import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
@@ -41,9 +41,9 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @android.annotation.SuppressLint("SetTextI18n")
 @AndroidEntryPoint
@@ -91,8 +91,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
     private val gesturesManager by lazy {
         OperationsGesturesManager(
-            binding, viewModel, this, screenGestureControllers,
-            overlayPermissionLauncher, { isUpdatingFromSettings }
+            binding,
+            viewModel,
+            this,
+            screenGestureControllers,
+            overlayPermissionLauncher,
+            { isUpdatingFromSettings },
         )
     }
 
@@ -105,8 +109,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(micRecordingEnabled = true))
         } else {
-            binding.rowMicRecordingEnabled.setCheckedSilently(false)
-            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
+            val viewBinding = _binding ?: return@registerForActivityResult
+            viewBinding.rowMicRecordingEnabled.setCheckedSilently(false)
+            Snackbar.make(
+                viewBinding.root,
+                R.string.mic_recording_permission_denied,
+                Snackbar.LENGTH_LONG,
+            ).show()
         }
     }
 
@@ -118,8 +127,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         if (isGranted) {
             viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = true))
         } else {
-            binding.rowCameraGeotag.setCheckedSilently(false)
-            Snackbar.make(binding.root, R.string.camera_geotag_permission_denied, Snackbar.LENGTH_LONG).show()
+            val viewBinding = _binding ?: return@registerForActivityResult
+            viewBinding.rowCameraGeotag.setCheckedSilently(false)
+            Snackbar.make(
+                viewBinding.root,
+                R.string.camera_geotag_permission_denied,
+                Snackbar.LENGTH_LONG,
+            ).show()
         }
     }
 

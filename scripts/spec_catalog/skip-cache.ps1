@@ -21,6 +21,12 @@
 #   skip-cache.ps1 -Action list                                # prints active skips as JSON
 #   skip-cache.ps1 -Action check  -Id Sxxxx                   # exit 0 if active skip, 1 otherwise (also prints reason)
 #   skip-cache.ps1 -Action reset                              # clear all entries
+#
+# Exit codes (S1070):
+#   0 - action done (for -Action check: an active skip exists).
+#   1 - substantive answer "no" (-Action check: no active skip for this id).
+#   2 - bad arguments: -Id missing or malformed, -Reason missing for 'add'.
+#       Distinct from 1 on purpose - a typo'd id must not read as "not skipped".
 
 [CmdletBinding()]
 param(
@@ -96,11 +102,11 @@ function Prune-Expired([hashtable]$cache) {
 
 if ($Action -ne 'list' -and $Action -ne 'reset') {
     if (-not $Id) {
-        Write-Error "-Id is required for action '$Action'"
+        Write-Error "-Id is required for action '$Action'" -ErrorAction Continue
         exit 2
     }
     if ($Id -notmatch '^S\d{4}$') {
-        Write-Error "Invalid -Id '$Id' (must match S####)"
+        Write-Error "Invalid -Id '$Id' (must match S####)" -ErrorAction Continue
         exit 2
     }
 }
@@ -111,7 +117,7 @@ $cache = Prune-Expired $cache
 switch ($Action) {
     'add' {
         if (-not $Reason) {
-            Write-Error "-Reason is required for action 'add'"
+            Write-Error "-Reason is required for action 'add'" -ErrorAction Continue
             exit 2
         }
         $now = Get-Date

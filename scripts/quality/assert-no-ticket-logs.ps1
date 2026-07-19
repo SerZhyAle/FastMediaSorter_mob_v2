@@ -13,6 +13,12 @@
       - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix;
       - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale).
 
+    Exit codes (S1070):
+      0 - clean (or audit mode).
+      1 - substantive failure: a forbidden permanent-log ticket id remains.
+      2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no
+          probe's status can be resolved). Distinct from 1 on purpose.
+
     Allowed-probe status is resolved against PLAN/spec-catalog.jsonl.
 
     Default mode reports findings and exits 0 (audit). With -Gate the script
@@ -42,7 +48,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
 
 if (-not (Test-Path $catalog)) {
-    Write-Error "spec-catalog.jsonl not found at $catalog"
+    Write-Error "spec-catalog.jsonl not found at $catalog" -ErrorAction Continue
     exit 2
 }
 

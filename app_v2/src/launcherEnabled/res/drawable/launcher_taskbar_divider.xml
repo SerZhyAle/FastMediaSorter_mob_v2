@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: separates the taskbar's strips. Drawn via showDividers rather than a 1dp <View> child:
+     a match_parent divider view is MEASURED, and under an AT_MOST spec it resolves to the full
+     height cap and drags the whole row with it (S0670). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetTop="10dp"
+    android:insetBottom="10dp">
+    <shape android:shape="rectangle">
+        <size android:width="1dp" />
+        <solid android:color="?attr/colorOutlineVariant" />
+    </shape>
+</inset>

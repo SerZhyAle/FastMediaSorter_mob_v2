@@ -77,6 +77,8 @@ internal class PlayerVrLaunchManager(
                     render()
                     if (overflowChanged) {
                         activity.commandPanelController.updateCommandAvailability(viewModel.state.value)
+                        // S1114: keep the transport-row VR button in sync with XR availability.
+                        activity.exoPlayerControlsManager.updateVrEntryButtonVisibility()
                     }
                     applyPendingReturnIfReady()
                 }
@@ -98,6 +100,12 @@ internal class PlayerVrLaunchManager(
 
     fun launchFromOverflow() {
         launch(VrLaunchPoint.OVERFLOW_MENU)
+    }
+
+    // S1114: VR entry from the transport controls row (reachable in fullscreen video).
+    fun launchFromControlsRow() {
+        Timber.d("S1114: main-host VR launch from controls row")
+        launch(VrLaunchPoint.CONTROLS_ROW)
     }
 
     private fun launch(source: VrLaunchPoint) {

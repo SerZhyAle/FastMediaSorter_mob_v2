@@ -119,6 +119,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot '..\quality\lib\android-string-format.ps1')
+
 # Capture at script scope: $PSBoundParameters inside a function refers to the function, not the script.
 $valueBound = $PSBoundParameters.ContainsKey('Value')
 $expectedOldBound = $PSBoundParameters.ContainsKey('ExpectedOldValue')
@@ -163,6 +165,29 @@ function ConvertFrom-XmlText([AllowEmptyString()][string]$Text) {
 }
 
 function Get-LocaleDir([string]$dir) { Join-Path $resDir $dir }
+
+function Assert-FormatValue([string]$LocaleTag, [AllowEmptyString()][string]$Text) {
+    $analysis = Get-AndroidStringFormatAnalysis -Value $Text
+    if ($analysis.Errors.Count -eq 0) { return }
+    $reasons = @($analysis.Errors | ForEach-Object { $_.Message }) -join ' '
+    throw "Invalid string-format syntax in [$LocaleTag] value: $reasons"
+}
+
+function Assert-FormatParity([string]$KeyName, [hashtable]$ValuesByLocale) {
+    $entries = @{}
+    foreach ($localeTag in $ValuesByLocale.Keys) {
+        $entries[$localeTag] = [pscustomobject]@{
+            Locale = $localeTag
+            File = ''
+            Analysis = (Get-AndroidStringFormatAnalysis -Value $ValuesByLocale[$localeTag])
+        }
+    }
+
+    $findings = @(Compare-AndroidStringFormatContracts -Key $KeyName -EntriesByLocale $entries)
+    if ($findings.Count -eq 0) { return }
+    $message = @($findings | ForEach-Object { $_.Message }) -join ' '
+    throw "Format contract mismatch across locales for '$KeyName': $message"
+}
 
 function Get-StringFiles([string]$dir) {
     if (-not (Test-Path $dir)) { return @() }
@@ -226,6 +251,7 @@ function Invoke-Set {
         throw "Key '$Key' appears $($stringEntries.Count) times in $filePath. Refuse to guess which entry to update."
     }
 
+    Assert-FormatValue -LocaleTag $Locale.ToUpperInvariant() -Text $Value
     $escapedValue = ConvertTo-XmlText $Value
     $updatedContent = $content
     $action = ''
@@ -442,9 +468,11 @@ switch ($Action) {
             throw "add requires -En, -Ru and -Uk (locale parity is mandatory)."
         }
         foreach ($loc in $locales) {
+            Assert-FormatValue -LocaleTag $loc.Tag -Text $loc.Value
             $existing = Find-Key (Get-LocaleDir $loc.Dir) $Key
             if ($existing) { throw "Key '$Key' already exists in [$($loc.Tag)] $($existing.File.Name) - aborting." }
         }
+        Assert-FormatParity -KeyName $Key -ValuesByLocale @{ EN = $En; RU = $Ru; UK = $Uk }
         foreach ($loc in $locales) {
             $target = Join-Path (Get-LocaleDir $loc.Dir) $File
             if (-not (Test-Path $target)) { throw "Target file not found: $target" }

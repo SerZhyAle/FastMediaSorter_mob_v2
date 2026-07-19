@@ -37,5 +37,8 @@ data class StreamSourceEntity(
     // null = never tried (amber/unknown), "OK" = last play reached playing (green), "FAIL" = last
     // attempt errored (red). [lastPlayOutcomeAt] is the epoch-millis timestamp of that outcome.
     val lastPlayOutcome: String? = null,
-    val lastPlayOutcomeAt: Long? = null
+    val lastPlayOutcomeAt: Long? = null,
+    // S1117: catalog access flag. "geo" = region-restricted (kept + badged in the list); null/blank =
+    // open. Populated only for CATALOG rows from the curated catalog's `access` column; MANUAL rows null.
+    val access: String? = null
 )

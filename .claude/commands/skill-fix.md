@@ -1,3 +1,7 @@
+---
+description: "Use for a fast bug or UI fix that skips doc/git/build/dev-log/spec - local validation only. Triggers: 'skill fix', a quick bug fix without the full pipeline."
+---
+
 # Skill Fix
 
 > **GLOBAL DIRECTIVES (FAST PATCH MODE):**

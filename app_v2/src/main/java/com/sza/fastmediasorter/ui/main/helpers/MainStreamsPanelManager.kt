@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 /**
  * S0756: owns the main-window streams panel - a wide "Streams" entry button leading a horizontally
  * scrolling row of pinned channels. The pinned list comes from the existing pin source
@@ -50,6 +51,10 @@ class MainStreamsPanelManager(
     // S0808: availability (owned by MainActivity) + collapsed (owned here) drive the content<->strip swap.
     private var available = false
     private var collapsed = false
+
+    // S1061: third axis - an on-but-unpinned panel shows the hint instead of the empty channel row.
+    // Starts true so the first paint (before the pin flow emits) is the hint, not a blank slot.
+    private var pinnedEmpty = true
 
     private val faviconSlicer = FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
 
@@ -93,6 +98,10 @@ class MainStreamsPanelManager(
 
         lifecycleOwner.collectOnLifecycle(observePinnedStreamSources()) { sources ->
             adapter.submitList(sources)
+            // S1061: same emission feeds the list and the hint, so the two can never disagree.
+            pinnedEmpty = sources.isEmpty()
+            Timber.d("S1061: pinned streams=${sources.size} -> empty hint=${sources.isEmpty()}")
+            applyVisibility()
         }
     }
 
@@ -105,12 +114,18 @@ class MainStreamsPanelManager(
     /**
      * S0808: root shows when available; inside, the content row and the collapsed strip are mutually
      * exclusive (mirror of the programs panel). MainActivity still owns the root's availability.
+     * S1061: within a shown content row, the channel list and the empty hint share one weighted slot and
+     * swap on the pinned count; feeding [resolveContentSlot] the resolved row visibility is what keeps a
+     * collapsed or unavailable panel from painting the hint.
      */
     private fun applyVisibility() {
         val (contentVisible, stripVisible) = resolveVisibility(available, collapsed)
         panel.root.isVisible = available
         panel.streamsPanelContent.isVisible = contentVisible
         collapsedChip.isVisible = stripVisible
+        val (channelsVisible, hintVisible) = resolveContentSlot(contentVisible, pinnedEmpty)
+        panel.rvStreamChannels.isVisible = channelsVisible
+        panel.tvStreamsPanelEmptyHint.isVisible = hintVisible
     }
 
     /** S0808: entry menu "Collapse panel" (true) and strip tap (false); persists + re-applies visibility. */
@@ -221,5 +236,13 @@ class MainStreamsPanelManager(
          */
         internal fun resolveVisibility(available: Boolean, collapsed: Boolean): Pair<Boolean, Boolean> =
             (available && !collapsed) to (available && collapsed)
+
+        /**
+         * S1061: (channelsVisible, hintVisible) for the weighted slot shared by the channel list and the
+         * empty hint. [contentVisible] is [resolveVisibility]'s own verdict, so a hidden or collapsed
+         * panel paints neither; inside a shown row exactly one of the two is on.
+         */
+        internal fun resolveContentSlot(contentVisible: Boolean, pinnedEmpty: Boolean): Pair<Boolean, Boolean> =
+            (contentVisible && !pinnedEmpty) to (contentVisible && pinnedEmpty)
     }
 }

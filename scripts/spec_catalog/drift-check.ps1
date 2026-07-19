@@ -34,7 +34,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if ($Id -notmatch '^S\d{4}$') {
-    Write-Error "Invalid -Id '$Id' (must match S####)"
+    Write-Error "Invalid -Id '$Id' (must match S####)" -ErrorAction Continue
     exit 2
 }
 
@@ -49,7 +49,7 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 $selectPath = Join-Path $PSScriptRoot 'select.ps1'
 $json = & $pwshExe -File $selectPath -Id $Id -Format json 2>$null
 if (-not $json -or $json -eq '[]') {
-    Write-Error "Spec $Id not found in catalog"
+    Write-Error "Spec $Id not found in catalog" -ErrorAction Continue
     exit 2
 }
 $rec = $json | ConvertFrom-Json

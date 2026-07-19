@@ -1,3 +1,7 @@
+---
+description: "Use for on-device verification of a spec - drive the UI, harvest logcat, confirm the flow. Triggers: 'spec-test-device Sxxxx', 'test this on the device', 'verify on hardware'."
+---
+
 # Specification Device Test Run
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**

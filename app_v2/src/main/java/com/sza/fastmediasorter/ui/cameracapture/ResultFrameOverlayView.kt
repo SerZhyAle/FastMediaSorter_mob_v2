@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S1066: draws the result frame over the full-frame camera preview - a light contour around the

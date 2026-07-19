@@ -8,8 +8,6 @@
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btn_open_system_settings" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="?attr/colorPrimary" android:text="@string/perm_btn_open_system_settings" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_grant_all" />
 
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_permissions" android:layout_width="0dp" android:layout_height="0dp" android:scrollbars="vertical" android:fadeScrollbars="false" android:scrollbarStyle="outsideOverlay" app:layout_constraintBottom_toTopOf="@id/btn_continue_to_app" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
-
-    <com.google.android.material.button.MaterialButton android:id="@+id/btn_continue_to_app" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/perm_continue_to_app" android:visibility="gone" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_permissions" android:layout_width="0dp" android:layout_height="0dp" android:scrollbars="vertical" android:fadeScrollbars="false" android:scrollbarStyle="outsideOverlay" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

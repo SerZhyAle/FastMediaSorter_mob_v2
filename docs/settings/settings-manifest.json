@@ -1291,6 +1291,26 @@
       "titleUk": "Не показувати команди на ескізах"
     },
     {
+      "key": "rowLauncherModeEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Make this app the home screen",
+      "titleRu": "Сделать приложение домашним экраном",
+      "titleUk": "Зробити застосунок домашнім екраном"
+    },
+    {
+      "key": "rowLauncherSettings",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "System launcher settings",
+      "titleRu": "Настройки системного лаунчера",
+      "titleUk": "Налаштування системного лаунчера"
+    },
+    {
       "key": "rowOpenStatistics",
       "sectionId": "general",
       "destination": "GENERAL",

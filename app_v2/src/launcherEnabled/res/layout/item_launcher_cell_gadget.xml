@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: a gadget cell - a framed container the gadget's own view is injected into (Phase 06).
+     The card itself is not focusable: the gadget's inner controls are the D-pad stops, so a
+     focusable wrapper would add a dead stop in front of every gadget. Orientation-neutral, so no
+     layout-land counterpart. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardLauncherGadget"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="4dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp">
+
+    <!-- No minHeight: LauncherDesktopLayout measures the cell EXACTLY at cellSize x spanW/spanH, so
+         the gadget fills a height the grid already decided. A gadget must never set its own height. -->
+    <FrameLayout
+        android:id="@+id/gadgetContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</com.google.android.material.card.MaterialCardView>

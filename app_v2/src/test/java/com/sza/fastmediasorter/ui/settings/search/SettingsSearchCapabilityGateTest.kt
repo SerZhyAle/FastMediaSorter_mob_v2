@@ -189,16 +189,26 @@ class SettingsSearchCapabilityGateTest {
         assertTrue(gate.isAvailable(entry(key = "btnSettingsDefaultPlayerImages")))
     }
 
+    @Test
+    fun `launcher rows are gated by the launcher capability`() {
+        // S1088: the enable toggle + the launcher-settings entry row are the only launcher rows still in a
+        // catalogued tab layout (General); the composition/density rows moved into the dialog (uncatalogued).
+        assertTrue(gate(launcherAvailable = true).isAvailable(entry(key = "rowLauncherModeEnabled")))
+        assertFalse(gate(launcherAvailable = false).isAvailable(entry(key = "rowLauncherSettings")))
+    }
+
     private fun gate(
         controllers: Set<ScreenGestureOverlayController> = nonEmptyControllers(),
         launchers: Set<MenuScreenshotLauncher> = emptySet(),
         media: MediaCapabilities = mediaCaps(),
-        capability: CapabilityAvailability = capabilityAvailability()
+        capability: CapabilityAvailability = capabilityAvailability(),
+        launcherAvailable: Boolean = true
     ) = SettingsSearchCapabilityGate(
         screenGestureControllers = controllers,
         menuScreenshotLaunchers = launchers,
         mediaCapabilities = media,
-        capabilityAvailability = capability
+        capabilityAvailability = capability,
+        launcherModeContract = mockk(relaxed = true) { every { isAvailableInBuild } returns launcherAvailable }
     )
 
     private fun nonEmptyControllers(): Set<ScreenGestureOverlayController> = setOf(mockk(relaxed = true))

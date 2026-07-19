@@ -1,4 +1,5 @@
 ---
+description: "Use to audit a spec against the codebase and set status Verified/Partial/Broken, writing to the Last Audit section. Triggers: 'spec-check Sxxxx', 'is this spec actually implemented'."
 model: sonnet
 ---
 
@@ -95,15 +96,20 @@ Use `close-and-log.ps1` for Step 6 (status flip) + this step + Step 7a (function
 pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status <Verified|Partial|Broken> `
-    -DevLogs @(
-        '{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-check","desc":"Audit <Sxxxx> -> <score>; PASS/WARN/FAIL N/N/N"}'
-        # plus one entry per modified phase / INDEX / .kt file that lost a debug tag
-      ) `
+    -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-check","desc":"Audit <Sxxxx> -> <score>; PASS/WARN/FAIL N/N/N"}]' `
+    # -DevLogs is ONE JSON-array string - append one {file,target,desc} object per modified
+    # phase / INDEX / .kt file that lost a debug tag. Never a PowerShell array literal @('{..}','{..}'):
+    # pwsh -File binds only its first element and close-and-log.ps1 rejects the leftovers (S1063).
     -FuncOp <ADD|CHANGE|""> -FuncDesc "<english summary or omit>" `
+    -FeatArea "<inventory area, e.g. Video Player>" `
+    -FeatName "<short capability name>" `
+    -FeatFlavors "<exact builds that ship it, e.g. standard,legacy>" `
     -CatalogModule app_v2
 ```
 
 Pass `-SkipFuncLog` (or omit `-FuncOp`/`-FuncDesc`) when spec purely internal or verdict `Partial`/`Broken`. Pass `-SkipCatalogSync` when no `.kt` file touched by debug-tag removal step.
+
+`-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072): the record asserts which area owns the capability and which builds ship it, and the script used to invent all three (`General` / an 80-char cut of `-FuncDesc` / `standard`) - a record that reads plausibly and is false. Derive `-FeatFlavors` from the actual gate (`BuildConfig` flag in `app_v2/build.gradle.kts`, or the source set), never from a sibling record.
 
 Wrapped sequence still applies same rules:
 

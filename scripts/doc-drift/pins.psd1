@@ -14,6 +14,12 @@
 #     matchers anchor the closing backtick + pipe to disambiguate (e.g. 'hilt-android' vs
 #     'hilt-android-compiler' both start with the same string).
 #   - 'exclude' is currently unused; reserved for §11 history fencing when needed.
+#   - CLAUDE.md and docs/TECH_STACK.md pin mentions are OWNED by
+#     scripts/quality/generate-toolchain-pins.ps1 (a managed generated block, gated by
+#     doc-pins-sync in post-change). Those two docs cannot drift, so their pins are
+#     required = $false here (S1075). This checker's unique coverage is the hand-maintained
+#     dev/TECH_REQUIREMENTS.md library/platform tables. Do NOT re-enable required = $true
+#     for a generated-block doc - it only re-introduces format-mismatch MISSING noise.
 
 @{
     Pins = @(
@@ -52,7 +58,7 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'Kotlin version\s*\|\s*(?<v>[\d\.]+)' }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'Kotlin\s+(?<v>[\d\.]+\+?)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()
@@ -102,7 +108,10 @@
             gradleKey = 'navigation-safe-args'
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
-                'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = '\|\s*`navigation-safe-args`\s*\|\s*(?<v>[\d\.\-A-Za-z]+)' }
+                # Dead: the Safe-Args Gradle plugin is not applied in this repo and the
+                # doc row was removed (S1075). Not required anywhere; kept as a manifest
+                # entry only to mirror the Class-1 plugin list.
+                'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
@@ -131,7 +140,7 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'compileSdk\s*\|\s*(?<v>\d+)' }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'compileSdk\s+(?<v>\d+)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()
@@ -153,9 +162,9 @@
             name      = 'min-sdk.standard'
             gradleKey = 'min-sdk.standard'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = 'minSdk\s+(?<v>26).+?Android 8\+.+?standard/lite/photos' }
+                'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'minSdk\s+(?<v>\d+)[^(]*\(standard\)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'firstOnly'
             exclude   = @()
@@ -165,9 +174,9 @@
             name      = 'min-sdk.legacy'
             gradleKey = 'min-sdk.legacy'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = 'minSdk\s+(?<v>23).+?Android 6\+.+?legacy' }
+                'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'minSdk\s+(?<v>\d+)[^(]*\(legacy\)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'firstOnly'
             exclude   = @()
@@ -179,7 +188,7 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'Java\s+(?<v>\d+)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()
@@ -296,10 +305,10 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = '\|\s*`room-runtime`\s*\|\s*(?<v>[\d\.\-A-Za-z]+)' }
-                # CLAUDE.md writes "Room v6" - schema major rather than library version.
-                # Captured here so the chequer surfaces the misleading mention as FAIL
-                # against gradle's library version (strategic §4: "путаница").
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'Room\s+v(?<v>\d+(?:\.\d+)*)' }
+                # CLAUDE.md's Room pin is now emitted by generate-toolchain-pins.ps1 as the
+                # library version ("Room: <ver>") inside the managed generated block, so the
+                # old "Room v6" schema-major mention no longer exists and cannot drift (S1075).
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()
@@ -311,7 +320,7 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = '\|\s*`media3-exoplayer`\s*\|\s*(?<v>[\d\.\-A-Za-z]+)' }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'Media3\s+(?<v>[\d\.]+)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()
@@ -323,7 +332,7 @@
             docs      = @{
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = '\|\s*`glide`\s*\|\s*(?<v>[\d\.\-A-Za-z]+)' }
-                'CLAUDE.md'                = @{ required = $true;  matcher = 'Glide\s+(?<v>[\d\.]+)' }
+                'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
             exclude   = @()

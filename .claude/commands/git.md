@@ -1,4 +1,5 @@
 ---
+description: "Use for git operations on explicit request - status, staging, commits, branches, pushes. Triggers: 'commit', 'git status', 'push', 'create a branch'."
 model: sonnet
 ---
 

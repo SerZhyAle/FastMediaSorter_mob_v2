@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: shared shell for the two list gadgets (playlist, streams) - a header row plus a scrolling
+     list. The two differ only in what fills the rows, so they share this rather than each growing a
+     near-copy that drifts. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingTop="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:id="@+id/gadgetListHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:minHeight="32dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/gadgetListTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="Road trip" />
+
+            <!-- focus_button_background goes in FOREGROUND, never background: its own KDoc says the
+                 default state is transparent so the button's own ripple keeps rendering, and setting it
+                 as the background replaces ImageButton's ripple with a selector that has no
+                 state_pressed - i.e. taps stop giving any feedback at all. -->
+            <ImageButton
+                android:id="@+id/gadgetListActionPrimary"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="8dp"
+                android:src="@drawable/ic_play"
+                android:visibility="gone"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix"
+                tools:visibility="visible" />
+
+            <!-- The dice is this app's established "random" mark - the player's random-file control uses
+                 the same glyph. A shuffle-arrows icon would be a second word for one idea. -->
+            <ImageButton
+                android:id="@+id/gadgetListActionSecondary"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="8dp"
+                android:src="@drawable/ic_random_nav"
+                android:visibility="gone"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/gadgetListMessage"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Unavailable"
+            tools:visibility="visible" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/gadgetListItems"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_launcher_gadget_row" />
+
+    </LinearLayout>
+
+</merge>

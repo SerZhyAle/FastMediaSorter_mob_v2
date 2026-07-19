@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: one icon in the taskbar's recents / pinned strip. Label is carried by the content
+     description and tooltip, not drawn - the bar has no room for text. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/taskbarIconRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
+    android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+    android:paddingEnd="@dimen/launcher_taskbar_item_spacing">
+
+    <ImageView
+        android:id="@+id/taskbarIcon"
+        android:layout_width="@dimen/launcher_taskbar_icon_size"
+        android:layout_height="@dimen/launcher_taskbar_icon_size"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_launcher_mode" />
+
+    <!-- Unpin affordance, shown only in edit mode (visibility + per-pin contentDescription set in the
+         adapter). Its own click target so a screen-reader user unpins the right icon; ic_clear is the X
+         the step asks for, not ic_delete - the app is unpinned, not uninstalled. -->
+    <ImageView
+        android:id="@+id/taskbarUnpinBadge"
+        android:layout_width="@dimen/launcher_edit_badge_size"
+        android:layout_height="@dimen/launcher_edit_badge_size"
+        android:layout_gravity="top|end"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_clear"
+        android:tint="?attr/colorError"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+</FrameLayout>

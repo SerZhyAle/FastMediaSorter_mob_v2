@@ -1,3 +1,7 @@
+---
+description: "Use to run the plateau release pipeline, one step of /release - assemble AAB, generate FEATURES and What's New from the ALL_FEATURES diff, distribute. Triggers: 'skill-release', 'run the release pipeline'."
+---
+
 # /skill-release - Plateau Release Pipeline
 
 > **GLOBAL DIRECTIVES:**

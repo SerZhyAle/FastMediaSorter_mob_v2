@@ -17,6 +17,7 @@ is required. Paths below are relative to the repo root.
 
 ## Prerequisites
 
+- Run the mandatory `document-registry` loop before the device operation and at handoff. For routine smoke runs, query `-ProductArea testing` and `-Trigger workflow`; review returned records without editing them unless the run exposes a documentation-impacting result.
 - PowerShell 7 (`pwsh`), Android SDK platform-tools (adb auto-discovered), JDK/Gradle via the
   repo's `gradlew` wrapper (invoked by the builder script - never call gradle directly).
 - A booted emulator or attached device. Verify:

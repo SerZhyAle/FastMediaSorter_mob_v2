@@ -286,6 +286,7 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 - [Полный список возможностей](FEATURES.md)
 - [Карта документации](DOCS_MAP.md)
+- [История продукта](PRODUCT_HISTORY_RU.md)
 - [Скачивание сборок (EN)](DOWNLOADS_EN.md)
 - [How-To Guides](HOW_TO.md)
 - [Ограничения программы](LIMITATIONS.md)
@@ -296,6 +297,7 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 **🇷🇺 Русский:**
 
+- [История продукта](PRODUCT_HISTORY_RU.md)
 - [Руководства](HOW_TO_RU.md)
 - [Быстрый Старт](QUICK_START_RU.md)
 - [FAQ](FAQ_RU.md)
@@ -305,6 +307,7 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 **🇺🇸 English:**
 
+- [Product History](PRODUCT_HISTORY.md)
 - [How-To Guides](HOW_TO.md)
 - [Quick Start](QUICK_START.md)
 - [FAQ](FAQ.md)
@@ -316,6 +319,7 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 **🇺🇦 Українська:**
 
+- [Історія продукту](PRODUCT_HISTORY_UK.md)
 - [Посібники](HOW_TO_UK.md)
 - [Швидкий Старт](QUICK_START_UK.md)
 - [FAQ](FAQ_UK.md)

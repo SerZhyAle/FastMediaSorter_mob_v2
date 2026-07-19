@@ -55,6 +55,7 @@ This server is internal-only infrastructure. It is not a user-facing feature and
 
 - Root guidance: `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`
 - Operator workflow: `dev/PROJECT_OPERATIONS_INDEX.md`, `dev/AGENT_WORKFLOW.md`
+- Document registry: `docs/DOCUMENT_REGISTRY.jsonl`, schema, and authoring guide
 - Spec journal: `PLAN/spec-catalog.jsonl`
 - Generated catalogs: `dev/CATALOG/*`, `dev/ACTIVITY_CATALOG/*`
 

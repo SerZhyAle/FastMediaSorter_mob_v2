@@ -91,6 +91,24 @@
             android:orientation="horizontal"
             android:visibility="gone">
 
+            <!-- S1117: region-restriction badge (globe + text). Shown only when the catalog row's
+                 access flag is "geo"; full meaning is in contentDescription for TalkBack. -->
+            <TextView
+                android:id="@+id/tvGeo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_stream_chip"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/tvTopic"
                 android:layout_width="wrap_content"

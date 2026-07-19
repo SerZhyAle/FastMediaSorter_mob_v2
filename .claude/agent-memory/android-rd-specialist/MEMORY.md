@@ -3,6 +3,7 @@
 - [About Me](about_me.md) - Serhii, solo owner; data engineer, no Kotlin; explain via SQL/.NET
 - [Argue then obey](feedback_argue_then_obey.md) + [decision after pushback](feedback_owner_decision_after_pushback.md) - push back, then execute owner's call cleanly
 - [Don't ask when architecture answers](feedback_no_owner_questions_when_architecture_already_answers.md) + [research forks](feedback_research_over_owner_question.md) - contracts decide; forks: research+recommend
+- [Clarify unclear task framing](feedback_clarify_task_when_framing_unclear.md) - unsure what task *means*/scope -> ask or park; impl-detail code answers -> don't
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix [HH:MM:SS]
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - `..` not `...`, hyphen, ё; docs+UI only
 - [Target audience: non-technical](feedback_target_audience_non_technical.md) - for grandma & gym-goer, not nerds; zero jargon, zero mandatory setup
@@ -21,6 +22,7 @@
 - [gh CLI location](reference_gh_cli_location.md) - C:\Program Files\GitHub CLI, not on PATH
 - [Play FGS precedent](project_play_release_in_review.md) - specialUse+mediaProjection ACCEPTED by review
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP if countries/age/device reach shrinks
+- [Pre-release: check OCR/translate versions](feedback_release_check_ocr_translate_versions.md) - ML Kit/Tesseract libs + models; upstream-driven quality
 - [Device-reach: implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies required screen.* (S0918/S0934)
 - [Android XR Play distribution](project_android_xr_play_distribution.md) - standard already covers XR; vr=dedicated XR track, same package; never swap for standard
 - [/skill-release gotchas](project_skill_release_gotchas.md) - version skew; gitignored PLAN/ empties Step 12a diff
@@ -56,11 +58,12 @@
 ## detekt / gates / logging
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
-- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale, `gradlew --stop`; stale report -> delete detekt.xml first, not --rerun-tasks
+- [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; delete detekt.xml, not --rerun-tasks; "PASS [scoped] - 0 file(s)" = blind, not clean (S1077)
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after a gate, add DON'T rule to CLAUDE.md + skills
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
 - [Settings docs sync (Rule 22)](feedback_settings_manifest_regen.md) - regen manifest + annotations + reference
+- [Doc-pin tooling ownership](feedback_doc_pin_tooling_ownership_split.md) - generate-toolchain-pins owns CLAUDE/TECH_STACK pins; check-doc-vs-gradle owns dev/TECH_REQUIREMENTS (S1075); doc-pin-drift gate
 
 ## UI conventions
 - [Focus indicator + S0943 umbrella](project_focus_frame_infra.md) - TV/D-pad focus = in-place per-view decoration; overlay S0819 archived
@@ -106,6 +109,7 @@
 
 ## Spec lifecycle & catalog
 - [Release scope 2026-07](project_release_scope_2026_07.md) - 11 gating tickets S0846..S0891; verify statuses live
+- [Launcher roadmap greenlit 2026-07](project_launcher_roadmap_greenlit.md) - S0404 unfrozen 2026-07-18; build S1088 first; S1098 archived; drive children as Drafts
 - [BNUT sweep plan 2026-07-02](project_bnut_sweep_plan.md) - 65 tickets triaged; plan temp/spec_sweep_batch_plan.md
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) - grep `"Sxxxx:` too; single-line misses wrapped
 - [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff for WIP; git only on explicit ask
@@ -116,12 +120,14 @@
 - [Strategic spec owner gate](feedback_strategic_spec_owner_gate.md) - §3.3 needs Related tickets (check-owner-inputs)
 - [spec-tech plan quality](feedback_spec_tech_plan_quality.md) - keep 3.1-3.4/5.5 + research/; no doc-shuffling
 - [/spec-dev verify code first](feedback_spec_dev_continue_verify_code_first.md) - In-Progress code may be done, tracking 0/N
+- [Phase-boundary audit](feedback_phase_boundary_audit.md) - audit+fix just-finished phase before next; cheap now, costly later
 - [Never call scaffolding done](feedback_no_scaffolding_as_done.md) + [no fake autopilot blocker](feedback_no_safety_blocker_gating_autopilot.md) - headline broken -> not Done; safe cleanup auto-chains
 - [Search dup tickets by symptom](feedback_search_duplicates_by_symptom.md) - search catalog by errorCode/class first
 - [Dead code may be scaffolding](feedback_dead_code_vs_active_tickets.md) - grep PLAN/ + Partial/In-Progress before delete
 - [Block status before gate](feedback_blockneedusertest_status_before_gate.md) + [tags](feedback_timber_tags_before_test.md) + [phases](feedback_per_phase_debug_tags_break_gate.md) - flip status BEFORE audit
 - [close.ps1 two-step unblock](project_close_ps1_two_step_unblock.md) - no direct Block->Verified; via Implemented
 - [Capability inventory](project_functionality_log.md) - docs/ALL_FEATURES.jsonl via all_features/add.ps1
+- [Feature-record flavors from the gate](feedback_feature_record_flavors_from_gate.md) - never copy a sibling / accept a default; read the record back
 - [noLegal features doc](feedback_features_nolegal.md) - docs/FEATURES* standard/VR; noLegal gitignored
 - [spec_catalog exit-code](project_spec_catalog_exit_code_contract.md) + [insert -File](project_insert_ps1_file_validation.md) - trap{exit 1}+exit 0; next-id.ps1 first
 - [Catalog scan roots](project_catalog_scan_source_sets.md) + [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) - scan.ps1 hard-codes $srcRoots; set.ps1 aborts
@@ -129,6 +135,8 @@
 - [Big-file decomposition](project_s0002_decomposition_toolkit.md) - compression tactics; temp/ scripts wiped
 
 ## PowerShell / shell traps
+- [Tool-bypass discipline](feedback_tool_bypass_discipline.md) - measured top waste: no cd-prefix, no hand-rolled adb path, no manual device probe
+- [Script param cheatsheet](reference_script_help_cheatsheet.md) - `scripts/utils/help.ps1 -Name <s>` prints params; don't re-read scripts
 - [PowerShell efficiency](feedback_pwsh_efficiency.md) - never plain pwsh -File; chain scripts in one process
 - [LOC: Measure-Object -Line undercounts](feedback_pwsh_loc_measure_object.md) - use (Get-Content).Count
 - [CLI wrappers first](feedback_cli_project_wrappers_first.md) - prefer repo scripts / temp .ps1 over nested quoting
@@ -143,6 +151,9 @@
 - [bash rg skips CATALOG](feedback_rg_gitignore_catalog.md) - use Grep tool / --no-ignore / Read
 - [BG task exit = the echo](feedback_background_task_exit_code_is_echo.md) + [no probe echo](feedback_no_flush_echo_commands.md) - exit reflects trailing echo, read log
 - [Workflow journal recovery](reference_workflow_journal_recovery.md) + [args trap](reference_workflow_args_trap.md) - recover from journal.jsonl; resume drops args
+
+## Session incidents
+- [DEBUG-v026 tree settled 2026-07-19](project_debug_v026_tree_settled_2026_07_19.md) - 23 commits landed; S0404 launcher now committed, re-check concurrent-wip skip-cache; corex/ left uncommitted
 
 ## Subagents & process
 - [Verify build on device first](feedback_verify_build_on_device_before_diagnosing.md) - "doesn't work" -> confirm NEW build installed (same-version APK keeps old); use dav, key off S-tag/version

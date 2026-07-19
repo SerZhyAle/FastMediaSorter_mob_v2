@@ -1,5 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.fakes.FakeResourceRepository
@@ -125,5 +129,183 @@ class AddResourceUseCaseTest {
 
         val added = repo.addedResources.single()
         assertFalse(added.isDestination)
+    }
+
+    // S1012 add-or-update (companion import) --------------------------------
+
+    @Test
+    fun `addMultiple add-or-update inserts when no existing path matches`() = runTest {
+        repo.setResources(
+            listOf(createMediaResource(id = 1L, path = "sftp://host/a", type = ResourceType.SFTP, displayOrder = 0))
+        )
+
+        val result = useCase.addMultiple(
+            listOf(createMediaResource(id = 0L, name = "b", path = "sftp://host/b", type = ResourceType.SFTP)),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(1, result.addedCount)
+        assertEquals(0, result.updatedCount)
+        assertEquals(listOf("b"), result.addedNames)
+        assertEquals(1, repo.addedResources.size)
+        assertTrue(repo.updatedResources.isEmpty())
+    }
+
+    @Test
+    fun `addMultiple add-or-update updates matching resource instead of inserting`() = runTest {
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 5L, name = "existing", path = "sftp://host/photos",
+                    type = ResourceType.SFTP, displayOrder = 0,
+                    supportedMediaTypes = setOf(MediaType.IMAGE)
+                )
+            )
+        )
+
+        val result = useCase.addMultiple(
+            listOf(
+                createMediaResource(
+                    id = 0L, name = "reimport", path = "sftp://host/photos",
+                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO)
+                )
+            ),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(0, result.addedCount)
+        assertEquals(1, result.updatedCount)
+        // Name is preserved (not config-authoritative), so the reported name is the existing one.
+        assertEquals(listOf("existing"), result.updatedNames)
+        assertTrue(repo.addedResources.isEmpty())
+        val updated = repo.updatedResources.single()
+        assertEquals(5L, updated.id)
+        assertEquals(setOf(MediaType.IMAGE, MediaType.VIDEO), updated.supportedMediaTypes)
+    }
+
+    @Test
+    fun `addMultiple add-or-update handles mixed add and update`() = runTest {
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 5L, name = "keep", path = "sftp://host/photos",
+                    type = ResourceType.SFTP, displayOrder = 0,
+                    supportedMediaTypes = setOf(MediaType.IMAGE)
+                )
+            )
+        )
+
+        val result = useCase.addMultiple(
+            listOf(
+                createMediaResource(
+                    id = 0L, name = "keep-updated", path = "sftp://host/photos",
+                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.VIDEO)
+                ),
+                createMediaResource(id = 0L, name = "fresh", path = "sftp://host/movies", type = ResourceType.SFTP)
+            ),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(1, result.addedCount)
+        assertEquals(1, result.updatedCount)
+        assertEquals(listOf("fresh"), result.addedNames)
+        assertEquals(listOf("keep"), result.updatedNames)
+    }
+
+    @Test
+    fun `addMultiple add-or-update preserves user fields and overwrites config fields`() = runTest {
+        val customColor = 0xFFAB1234.toInt()
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 1L, name = "control", path = "sftp://host/other",
+                    type = ResourceType.SFTP, displayOrder = 0
+                ),
+                createMediaResource(
+                    id = 5L, name = "My SFTP", path = "sftp://host/photos", type = ResourceType.SFTP,
+                    displayOrder = 1, iconId = "ico-01-001", sortMode = SortMode.DATE_DESC,
+                    displayMode = DisplayMode.GRID, fileCount = 42, isDestination = true,
+                    destinationOrder = 2, destinationColor = customColor,
+                    supportedMediaTypes = setOf(MediaType.IMAGE), isReadOnly = true, scanSubdirectories = false
+                )
+            )
+        )
+
+        useCase.addMultiple(
+            listOf(
+                createMediaResource(
+                    id = 0L, name = "Companion Photos", path = "sftp://host/photos", type = ResourceType.SFTP,
+                    credentialsId = "cred-xyz", supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO),
+                    isReadOnly = false, scanSubdirectories = true
+                )
+            ),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertTrue(repo.addedResources.isEmpty())
+        val merged = repo.updatedResources.single()
+        // Preserved user/runtime fields (the S1001/§7 clobber regression guard).
+        assertEquals(5L, merged.id)
+        assertEquals("My SFTP", merged.name)
+        assertEquals("ico-01-001", merged.iconId)
+        assertEquals(SortMode.DATE_DESC, merged.sortMode)
+        assertEquals(DisplayMode.GRID, merged.displayMode)
+        assertEquals(1, merged.displayOrder)
+        assertEquals(42, merged.fileCount)
+        assertTrue(merged.isDestination)
+        assertEquals(2, merged.destinationOrder)
+        assertEquals(customColor, merged.destinationColor)
+        // Overwritten config-authoritative fields.
+        assertEquals("cred-xyz", merged.credentialsId)
+        assertEquals(setOf(MediaType.IMAGE, MediaType.VIDEO), merged.supportedMediaTypes)
+        assertFalse(merged.isReadOnly)
+        assertTrue(merged.scanSubdirectories)
+    }
+
+    @Test
+    fun `addMultiple add-or-update reports zero updated for byte-identical reimport`() = runTest {
+        val shared = createMediaResource(
+            id = 7L, name = "same", path = "sftp://host/photos", type = ResourceType.SFTP,
+            displayOrder = 0, credentialsId = "cred-1", supportedMediaTypes = setOf(MediaType.IMAGE),
+            scanSubdirectories = true, isReadOnly = true
+        )
+        repo.setResources(listOf(shared))
+
+        val result = useCase.addMultiple(
+            listOf(shared.copy(id = 0L, name = "ignored-on-match")),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(0, result.addedCount)
+        assertEquals(0, result.updatedCount)
+        assertTrue(repo.addedResources.isEmpty())
+        assertTrue(repo.updatedResources.isEmpty())
+    }
+
+    @Test
+    fun `addMultiple add-or-update matches ignoring port and trailing slash`() = runTest {
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 9L, name = "existing", path = "sftp://host:2222/photos/",
+                    type = ResourceType.SFTP, displayOrder = 0, supportedMediaTypes = setOf(MediaType.IMAGE)
+                )
+            )
+        )
+
+        val result = useCase.addMultiple(
+            listOf(
+                createMediaResource(
+                    id = 0L, name = "reimport", path = "sftp://host/photos",
+                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.VIDEO)
+                )
+            ),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(0, result.addedCount)
+        assertEquals(1, result.updatedCount)
+        assertTrue(repo.addedResources.isEmpty())
+        assertEquals("sftp://host/photos", repo.updatedResources.single().path)
     }
 }

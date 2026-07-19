@@ -66,6 +66,24 @@
             android:nextFocusUp="@id/btnStreamsPanelEntry"
             tools:listitem="@layout/item_main_stream_channel" />
 
+        <!-- S1061: takes the channel row's slot while the panel is on but nothing is pinned - the row
+             would otherwise be blank space beside the entry button. Caption + accent foreground is this
+             panel's own small-text style (same as the channel chip labels). Two lines keep the longer
+             RU/UK wording inside the 48dp row in portrait, where the entry eats the leading cell. Not
+             focusable: it is a hint, and the entry button already leads to where channels get pinned. -->
+        <TextView
+            android:id="@+id/tvStreamsPanelEmptyHint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingHorizontal="@dimen/main_panel_item_spacing"
+            android:text="@string/streams_panel_empty_hint"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/main_panel_accent_foreground"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </LinearLayout>
