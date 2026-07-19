@@ -69,15 +69,18 @@ sweep abort. On `--dry-run`, list it as planned and run nothing (no network, no 
 second-network re-probe) run `scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead`
 manually, outside this sweep.
 
-If `streams.csv` changed (append, or a later manual prune), re-package and re-upload the asset or the
-change never reaches users - the app fetches the release asset, not the repo file:
+If `streams.csv` changed (append, or a later manual prune), re-publish the asset through the **guarded
+packer** or the change never reaches users - the app fetches the release asset, not the repo file.
+**Never** hand-`Compress-Archive` the CSV and `gh release upload` it: a CSV-only zip drops
+`favicon-atlas.png`, the app gets `atlasPng=null`, and **every** channel loses its favicon app-wide
+(S0785; recurred 2026-07-12). Publish only through `Invoke-PublishCatalog`, which carries the S0925 guard:
 
 ```powershell
-Compress-Archive -Path delivery/stream-catalog/streams.csv -DestinationPath temp/stream-catalog.zip -Force
-gh release upload delivery-so-v1 temp/stream-catalog.zip --clobber
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish -SkipLiveness
 ```
 
-(Hosting / release tag in `delivery/stream-catalog/README.md`.)
+(`-SkipLiveness` skips the ~2489-URL probe and does not mutate the CSV. Hosting / release tag in
+`delivery/stream-catalog/README.md`.)
 
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 

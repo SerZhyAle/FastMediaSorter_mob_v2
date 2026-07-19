@@ -17,21 +17,28 @@ permanent delivery tag, packaged as a zip:
 
 ```
 https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip
-   (zip contains: streams.csv)
+   (zip contains: streams.csv (entry 0, always first) + optional favicon-atlas.png)
 ```
 
 - `streams.csv` is committed to the repo as the source of truth (full git history of revisions).
-- For distribution it is zipped (~129 KB CSV -> ~25 KB zip) and uploaded as the release asset.
+- For distribution it is zipped together with `favicon-atlas.png` and uploaded as the release asset.
 - Unlike the immutable `.so`/`.mp4` delivery assets, the catalog is **not SHA-pinned** - it is meant to
   change; the app always fetches the latest asset and merges idempotently by URL.
 - The optional `delivery-so-v1/delivery-manifest.json` URL-override (delivery pattern) can repoint the
   asset without an app release.
 
-Packaging the asset for upload:
+Publishing the asset (the ONLY safe path):
 
 ```
-Compress-Archive -Path delivery/stream-catalog/streams.csv -DestinationPath temp/stream-catalog.zip -Force
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish -SkipLiveness
 ```
+
+> **Never** hand-package the catalog with `Compress-Archive` + `gh release upload`. A CSV-only zip ships
+> a catalog whose `favicon_index` column points at a missing atlas: the app receives `atlasPng=null`,
+> `FaviconAtlasStore.write(null, coords)` wipes the atlas, and **every** channel loses its favicon
+> app-wide (S0785 2026-07-03; recurred 2026-07-12). The command above (`Invoke-PublishCatalog`) carries
+> the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 3 MiB) and refuses
+> to publish a `favicon_index` CSV with no atlas. `-SkipLiveness` skips the URL probe without touching the CSV.
 
 ## File: `streams.csv`
 
@@ -58,6 +65,8 @@ then `name`.
 | `license_note` | Short reason the stream is free to access. |
 | `notes` | Free-text remarks. |
 | `confidence` | `high` \| `medium` \| `low` - our confidence the URL is correct/stable. |
+| `favicon_index` | Zero-based tile ordinal into `favicon-atlas.png` (32 px, 16-col grid); blank = no favicon. |
+| `access` | `` (open) \| `geo` = region-restricted (returned HTTP 403/451 from the maintainer's network - **may still play** for a user in-region). Heuristic, not a guarantee: a 403 can also be hotlink / IP-block. Produced only by the deep-signal probe (S1117). |
 
 ## Inclusion policy
 
@@ -71,7 +80,13 @@ The only entries dropped are ones that cannot actually play:
 - defunct channels (`closed` in the iptv-org index),
 - header-gated streams that require a `referrer` / `User-Agent` the app cannot supply,
 - confirmed-dead URLs - DNS failure, connection refused, HTTP 404/410, or an HLS playlist that
-  serves no segment data (see the deep-signal probe below).
+  serves no segment data (see the deep-signal probe below),
+- non-geo deep-signal failures on a full-catalog prune - timeout / SSL / `401` auth / `5xx`
+  (S1117; these are dropped, region-locked `403`/`451` are **kept** and tagged `access=geo`).
+
+Region-restricted channels (`access=geo`) are **kept**: they fail from the maintainer's network but
+may play for a user in their own country. They carry the `access=geo` tag so the app can surface a
+"may be region-locked" hint instead of a bare failure.
 
 Sources: [radio-browser.info](https://www.radio-browser.info/) community radio,
 [SomaFM](https://somafm.com/) listener-supported radio, official broadcaster / government live feeds
@@ -125,6 +140,8 @@ KB of **real media body** to confirm the stream actually carries signal:
 
 - HLS: walks master -> media playlist -> first segment and reads bytes off the segment. Playlist `200`
   but segment `404`/empty => `dead` (the "declared but not playing" case).
+- Region-locked (S1117): a playlist / segment / manifest / body returning HTTP `403` or `451` =>
+  `geo`, a distinct verdict from `dead`/`unknown` (region-restricted from here, may play in-region).
 - DASH: fetches the manifest and confirms it parses as `<MPD>`.
 - ICECAST / progressive / direct media: pulls body bytes straight off the stream (ICY non-HTTP replies
   count as alive). RTSP: OPTIONS handshake over a raw socket.
@@ -152,9 +169,14 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 
 ### Pruning dead rows
 
-The unified script can also delete confirmed-dead rows from the CSV. Pruning is **opt-in** and conservative -
-only rows classified `dead` (DNS-fail / connection-refused / HTTP 404|410) are eligible; `unknown`
-(auth / geo / rate / timeout) is never removed.
+The unified script can also delete non-playable rows from the CSV. Pruning is **opt-in** (`-PruneDead`).
+
+- **Header-only prune** stays conservative: only `dead` (DNS-fail / connection-refused / HTTP 404|410)
+  is eligible; `unknown` (auth / geo / rate / timeout) is never removed.
+- **Deep-signal prune** (`-DeepSignal -PruneDead`, un-pinned) widens to `dead` + `unknown`: since the
+  deep-signal probe now separates region-locked channels into their own `geo` verdict, the surviving
+  `unknown` rows are non-geo failures (timeout / SSL / `401` / `5xx`) safe to drop. `geo` rows are
+  **kept** and tagged `access=geo` (S1117). Pin `-PruneStatuses dead` to force the conservative set.
 
 ```
 # 1. Dry-run first - lists what WOULD be removed, writes nothing:
@@ -172,19 +194,17 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
   and column order (quoted fields round-trip losslessly).
 - `-PruneStatuses dead,unknown` widens the set if you deliberately want to drop `unknown` too - not
   recommended for a publish.
-- After pruning, re-zip and re-upload the release asset (see Hosting above).
+- After pruning, re-publish the release asset with the guarded packer (see Hosting above).
 
-## Inventory (snapshot 2026-06-21)
+## Inventory (snapshot 2026-07-19)
 
-- Total: **426** streams - AUDIO 341, VIDEO 79, RTSP 6 (2026-06-21 new-row liveness pass: 17/17 alive;
-  a full-catalog sweep was not rerun in this edit).
-- Rubrics: Radio 285, Radio (SomaFM) 56, Live TV 39, Test stream 32, Open movies 14.
-- Topics (25): News, Ambient, Test pattern, Electronic, Oldies, Pop, Lo-fi, Jazz, Reggae, World,
-  Classical, Rock, General, Movie, Eclectic, Chillout, Lounge, Folk, Vocal, Documentary,
-  Science & Space, Metal, Sports, Celtic, Hip-hop.
-- Languages: english 218, french 44, german 42, italian 18, ukrainian 18, russian 15, spanish 14,
-  dutch 13, polish 4, arabic 4, korean 3, turkish 2, plus others.
-- Live TV languages span en / de / es / fr / ar / it / pt / ko / ru.
+- Total: **2691** streams - VIDEO 2337, AUDIO 348, RTSP 6. The bulk of the VIDEO rows come from the
+  iptv-org public Live TV index; run a full-catalog liveness sweep before each publish.
+- Rubrics: Live TV 2299, Radio 292, Radio (SomaFM) 56, Test stream 30, Open movies 14.
+- Topics: 39 distinct (News, Movie, Ambient, Electronic, Jazz, Classical, Lo-fi, Documentary,
+  Science & Space, Sports, ..).
+- Languages (top): english 221, french 49, german 42, italian 19, ukrainian 18, russian 15,
+  spanish 14, dutch 13, plus others (polish, korean, arabic, turkish, portuguese, slovak, ..).
 - Cleartext `http://` radio entries exist (importing them is only useful if the app permits cleartext
   for stream hosts - S0565 strategic §3.3 owner decision).
 
