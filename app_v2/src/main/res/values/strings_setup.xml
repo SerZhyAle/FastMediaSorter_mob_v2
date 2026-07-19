@@ -168,4 +168,6 @@
     <string name="welcome_streams_catalog_failed">Catalog not downloaded - you can add streams manually</string>
     <string name="welcome_func_gestures">Enable gestures</string>
     <string name="welcome_func_gestures_summary">Swipe from the left edge: menu, screenshot, silent screenshot</string>
+    <string name="welcome_networks_companion_note">Media on a Windows PC? Fast Media Sorter for Windows shares those folders here in a couple of clicks - no server setup needed.</string>
+    <string name="welcome_networks_companion_button">Get the Windows app</string>
 </resources>

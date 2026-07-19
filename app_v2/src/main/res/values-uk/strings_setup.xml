@@ -168,4 +168,6 @@
     <string name="welcome_streams_catalog_failed">Каталог не завантажено - джерела можна додати вручну</string>
     <string name="welcome_func_gestures">Увімкнути жести</string>
     <string name="welcome_func_gestures_summary">Свайпи від лівого краю: меню, знімок, тихий знімок</string>
+    <string name="welcome_networks_companion_note">Медіа на ПК з Windows? Fast Media Sorter for Windows розшарить ці папки сюди за кілька кліків - без налаштування сервера.</string>
+    <string name="welcome_networks_companion_button">Завантажити для Windows</string>
 </resources>
