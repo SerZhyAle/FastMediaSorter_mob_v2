@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0404: launcher mode - the app as the device home screen. Injected into standard / noLegal via
+    addStaticManifestFile (build.gradle.kts). The activity ships DISABLED: the system only offers
+    FastMediaSorter as a home screen after the user turns the mode on, which enables this component
+    and brings up the system "Always / Just once" chooser (strategic ADR-2). Disabling it again
+    hands the device back to the previous launcher.
+
+    No new permissions and no <queries> here - the MAIN/LAUNCHER visibility declaration the app
+    registry needs already lives in the main manifest (S0623).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

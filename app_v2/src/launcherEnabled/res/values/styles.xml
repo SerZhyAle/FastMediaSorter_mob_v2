@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- S0404: one tile of the folder-preview gadget's 2x2 grid. Half the grid each way (weight in
+         both directions), so four tiles fill it exactly regardless of cell size or density factor. -->
+    <style name="Widget.FastMediaSorter.LauncherPreviewThumb">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">2dp</item>
+        <item name="android:scaleType">centerCrop</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <!-- foreground, not background: the focus ring draws OVER the thumbnail, and a background
+             would sit behind an opaque image where nobody could ever see it. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
+    </style>
+
+</resources>

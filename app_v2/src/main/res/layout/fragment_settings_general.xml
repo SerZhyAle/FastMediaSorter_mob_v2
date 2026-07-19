@@ -110,6 +110,29 @@
 
                     </LinearLayout>
 
+                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
+                         GeneralSettingsLauncherHelper hides both on builds without the launcher surface
+                         (launcherModeContract.isAvailableInBuild) and keeps the entry row disabled until
+                         the launcher is enabled. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherModeEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_title="@string/launcher_settings_enable_title"
+                        app:str_subtitle="@string/launcher_settings_enable_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
+                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowLauncherSettings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/launcher_settings_dialog_title" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

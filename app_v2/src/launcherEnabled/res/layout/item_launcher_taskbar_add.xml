@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: the trailing "+" in the pinned strip, shown only in edit mode. Tapping it opens the app
+     picker to pin one more app. Same frame as item_launcher_taskbar_icon so it lines up with the pins;
+     its contentDescription is set in the adapter (the "+" alone tells a screen reader nothing). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/taskbarAddRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
+    android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+    android:paddingEnd="@dimen/launcher_taskbar_item_spacing">
+
+    <ImageView
+        android:id="@+id/taskbarAddIcon"
+        android:layout_width="@dimen/launcher_taskbar_icon_size"
+        android:layout_height="@dimen/launcher_taskbar_icon_size"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_add"
+        android:tint="?attr/colorOnSurfaceVariant" />
+
+</FrameLayout>

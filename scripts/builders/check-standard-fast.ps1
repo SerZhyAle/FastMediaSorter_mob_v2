@@ -3,7 +3,9 @@ param(
     [string]$Mode = "CodeAndResources",
     # S0826: per-flavor fast compile check. Standard is the default; NoLegal needs its own
     # path because it bundles Python via Chaquopy (see flag handling below).
-    [ValidateSet("Standard", "NoLegal")]
+    # S0404: the capability-gated flavors (Lite / Photos / Legacy) compile the no-op source sets,
+    # so a seam change needs a fast check on one of them too.
+    [ValidateSet("Standard", "NoLegal", "Lite", "Photos", "Legacy")]
     [string]$Flavor = "Standard",
     [string]$Tests,
     [switch]$Quiet
@@ -31,10 +33,10 @@ function Get-GradleTaskList {
 
 $gradleArgs = New-Object System.Collections.Generic.List[string]
 Get-GradleTaskList | ForEach-Object { $null = $gradleArgs.Add($_) }
-# Standard has no Python: disable Chaquopy and use the configuration cache for speed.
+# Flavors without Python: disable Chaquopy and use the configuration cache for speed.
 # NoLegal bundles Python via Chaquopy, whose API must stay on the compile classpath and
 # whose tasks are not configuration-cache serialisable - so keep it enabled and skip the cache.
-if ($Flavor -eq "Standard") {
+if ($Flavor -ne "NoLegal") {
     $null = $gradleArgs.Add("-Pchaquopy.enabled=false")
     $null = $gradleArgs.Add("--configuration-cache")
 }

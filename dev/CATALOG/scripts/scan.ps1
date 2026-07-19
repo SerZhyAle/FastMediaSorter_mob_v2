@@ -62,7 +62,12 @@ $srcRoots = @(
     (Join-Path $Root "$Module\src\ocrDisabled\java"),
     (Join-Path $Root "$Module\src\screenCapture\java"),
     (Join-Path $Root "$Module\src\standardScreenCapture\java"),
-    (Join-Path $Root "$Module\src\standardEdgeTile\java")
+    (Join-Path $Root "$Module\src\standardEdgeTile\java"),
+    # S0404: launcher-mode capability source sets. Added 2026-07-17 - without them the whole launcher
+    # feature was invisible to the catalogue while catalog-sync still reported PASS, because this list
+    # is the only definition of "the code" and a missing root looks identical to an empty one.
+    (Join-Path $Root "$Module\src\launcherEnabled\java"),
+    (Join-Path $Root "$Module\src\launcherDisabled\java")
 ) | Where-Object { Test-Path $_ }
 if (-not $srcRoots -or $srcRoots.Count -eq 0) {
     throw "No supported source roots found for module '$Module'"

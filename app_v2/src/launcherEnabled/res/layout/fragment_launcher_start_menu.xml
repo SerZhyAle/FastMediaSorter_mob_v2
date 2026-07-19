@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: the Start menu. Rows are static and few, so they are declared rather than adapter-driven;
+     the "All apps" grid is the only dynamic part and expands in place. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/startMenuRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/margin_medium"
+    android:paddingBottom="@dimen/margin_medium">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowOpenApp"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_open_app"
+            app:icon="@drawable/ic_launcher_mode"
+            app:iconGravity="start" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowResources"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_resources"
+            app:icon="@drawable/ic_resource_local"
+            app:iconGravity="start" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAllApps"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_all_apps"
+            app:icon="@drawable/ic_view_grid"
+            app:iconGravity="start" />
+
+        <!-- Fixed height, own scrolling: wrap_content + nestedScrollingEnabled=false here would be
+             measured UNSPECIFIED by the NestedScrollView and inflate every installed app at once. -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAllApps"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/launcher_start_menu_apps_height"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:visibility="gone"
+            tools:listitem="@layout/item_launcher_taskbar_icon"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAndroidSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_android_settings"
+            app:icon="@drawable/ic_settings"
+            app:iconGravity="start" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAppSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_app_settings"
+            app:icon="@drawable/ic_settings"
+            app:iconGravity="start" />
+
+        <!-- S1088: the launcher's own settings dialog, in place next to Android/App settings. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowLauncherSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_launcher_settings"
+            app:icon="@drawable/ic_launcher_mode"
+            app:iconGravity="start" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowEditDesktop"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_edit_enter"
+            app:icon="@drawable/ic_tune"
+            app:iconGravity="start" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:background="?attr/colorOutlineVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowExitMode"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_exit_mode"
+            app:icon="@drawable/ic_exit_to_app"
+            app:iconGravity="start" />
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

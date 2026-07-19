@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0404: the remove affordance drawn over a cell in edit mode. Added programmatically as a child of the
+  cell root (not baked into the cell layouts) so it also covers a gadget, which owns the touches inside
+  its own view. Its contentDescription is set per cell in code - twelve badges all announcing the same
+  words would leave a screen-reader user unable to tell which cell they are about to remove.
+
+  background carries the ripple, foreground the focus stroke: focus_button_background is transparent at
+  rest and would swallow the press feedback if it were used as the background instead.
+-->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cellRemoveBadge"
+    android:layout_width="@dimen/launcher_edit_badge_size"
+    android:layout_height="@dimen/launcher_edit_badge_size"
+    android:layout_gravity="top|end"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/focus_button_background"
+    android:scaleType="centerInside"
+    android:src="@drawable/ic_delete"
+    app:tint="?attr/colorError" />

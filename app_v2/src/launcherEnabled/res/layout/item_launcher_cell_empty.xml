@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: a free square while the desktop is being edited. Dashed outline rather than a card, so it
+     reads as "space you may fill" and not as an item that is somehow blank. Only ever inflated in edit
+     mode - the desktop shows no placeholders at rest. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/emptySlotRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="4dp"
+    android:background="@drawable/launcher_empty_slot_frame"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/focus_button_background">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_add"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+</FrameLayout>

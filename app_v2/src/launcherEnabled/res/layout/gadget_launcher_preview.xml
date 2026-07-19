@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: folder-preview gadget - a resource name over a 2x2 mini-grid of the newest files.
+
+     The grid is four declared ImageViews in weighted rows, NOT a RecyclerView + GridLayoutManager.
+     The count is fixed at four, so recycling buys nothing - and a GridLayoutManager actively fights
+     this layout: it measures a child on the SCROLL axis against the whole viewport, so an item asking
+     for match_parent height becomes full-grid-height and the "2x2" renders as two tall columns.
+     Weights say exactly what is meant: each tile is half the grid, both ways. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/gadgetPreviewTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:maxLines="1"
+            android:minHeight="28dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Holiday photos" />
+
+        <TextView
+            android:id="@+id/gadgetPreviewMessage"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Unavailable"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/gadgetPreviewGrid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/gadgetPreviewThumb0"
+                    style="@style/Widget.FastMediaSorter.LauncherPreviewThumb"
+                    tools:src="@drawable/ic_folder" />
+
+                <ImageView
+                    android:id="@+id/gadgetPreviewThumb1"
+                    style="@style/Widget.FastMediaSorter.LauncherPreviewThumb"
+                    tools:src="@drawable/ic_folder" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/gadgetPreviewThumb2"
+                    style="@style/Widget.FastMediaSorter.LauncherPreviewThumb"
+                    tools:src="@drawable/ic_folder" />
+
+                <ImageView
+                    android:id="@+id/gadgetPreviewThumb3"
+                    style="@style/Widget.FastMediaSorter.LauncherPreviewThumb"
+                    tools:src="@drawable/ic_folder" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</merge>

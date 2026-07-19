@@ -116,6 +116,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         /** S0780: Intent extra - String section id; the owning tab fragment expands that group after opening. */
         const val EXTRA_EXPAND_SECTION = "extra_expand_section"
+
+        /** S1107: Intent extra - Boolean; on the General tab, auto-request the HOME role for launcher mode. */
+        const val EXTRA_REQUEST_LAUNCHER_ROLE = "extra_request_launcher_role"
         const val TAB_GENERAL = 0
         const val TAB_MEDIA = 1
         const val TAB_PLAYBACK = 2
@@ -156,6 +159,19 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             Intent(context, SettingsActivity::class.java).apply {
                 putExtra(EXTRA_INITIAL_TAB, TAB_OPERATIONS)
                 putExtra(EXTRA_EXPAND_SECTION, SECTION_ADDITIONAL_PROGRAMS)
+            }
+
+        /**
+         * S1088: open Settings on the General tab, where the System-launcher enable toggle + launcher-settings
+         * entry now live (the Operations "System launcher" group was removed).
+         * S1107: [requestRole] additionally auto-requests the HOME role from this non-finishing Settings
+         * screen (onboarding opt-in), reusing the working toggle path instead of a dialog launched from the
+         * finishing Welcome frame (amends ADR-2). GeneralSettingsFragment consumes EXTRA_REQUEST_LAUNCHER_ROLE.
+         */
+        fun openLauncherSectionIntent(context: Context, requestRole: Boolean = false): Intent =
+            Intent(context, SettingsActivity::class.java).apply {
+                putExtra(EXTRA_INITIAL_TAB, TAB_GENERAL)
+                if (requestRole) putExtra(EXTRA_REQUEST_LAUNCHER_ROLE, true)
             }
 
         fun openKeybindingRemap(context: Context) {

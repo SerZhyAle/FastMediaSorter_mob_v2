@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260712215
-val defaultAppVersionName = "2.60.7122.153"
+val defaultAppVersionCode = 260718231
+val defaultAppVersionName = "2.60.7182.317"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -592,6 +592,10 @@ android {
                 // capture suite is on).
                 kotlin.directories.add("src/standardEdgeTile/java")
             }
+            // S0404: launcher-mode home surface (HOME-role activity, desktop grid, taskbar). Flavors
+            // without it mount src/launcherDisabled, which binds the no-op capability contract.
+            kotlin.directories.add("src/launcherEnabled/java")
+            res.directories.add("src/launcherEnabled/res")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -617,6 +621,9 @@ android {
             // accessibility capture path + a11y-aware controller in src/noLegal/java.
             kotlin.directories.add("src/screenCapture/java")
             res.directories.add("src/screenCapture/res")
+            // S0404: launcher-mode home surface - noLegal is the all-inclusive sideload superset.
+            kotlin.directories.add("src/launcherEnabled/java")
+            res.directories.add("src/launcherEnabled/res")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -629,6 +636,8 @@ android {
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrStub/java")
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -641,6 +650,9 @@ android {
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
             kotlin.directories.add("src/vrOnly/java")
+            // S0404: vr has its own OpenXR shell and the headset's system launcher - no Android
+            // launcher mode here (strategic ADR-1). Mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -653,6 +665,8 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0423 release scope: S0418 screencapture stays noLegal-only for now (Play review risk
             // from SPECIAL_USE/SYSTEM_ALERT_WINDOW); not mounted into the photos store flavor.
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -663,6 +677,8 @@ android {
             kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrDisabled/java")
             kotlin.directories.add("src/vrStub/java")
+            // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/launcherDisabled/java")
         }
     }
 
@@ -1016,6 +1032,14 @@ androidComponents {
         val wearFlavors = setOf("standard", "noLegal", "legacy")
         if (flavorName in wearFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/wearGms/AndroidManifest.xml")
+        }
+
+        // S0404: the launcherEnabled source set is mounted by directory only, so its manifest (the
+        // HOME-filter activity, shipped disabled) is injected explicitly. addStaticManifestFile is
+        // additive, so it coexists with noLegal's manifest.srcFile(src/vr) override.
+        val launcherFlavors = setOf("standard", "noLegal")
+        if (flavorName in launcherFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/launcherEnabled/AndroidManifest.xml")
         }
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection

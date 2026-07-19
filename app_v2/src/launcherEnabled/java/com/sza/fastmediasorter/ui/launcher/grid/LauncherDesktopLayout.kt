@@ -1,0 +1,119 @@
+package com.sza.fastmediasorter.ui.launcher.grid
+
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import android.view.ViewGroup
+
+/**
+ * S0404: the desktop canvas - a fixed 2D grid of square cells, addressed by (row, column).
+ *
+ * Deliberately not a RecyclerView (ADR-9). The persisted model is a canvas: cells carry `rowIndex`,
+ * `colIndex`, `spanW` and `spanH`, gaps between them are meaningful, and a gadget claims a rectangle
+ * of cells. No stock LayoutManager expresses that - GridLayoutManager understands horizontal spans
+ * only and packs items in list order, which drops positions and gaps entirely. A desktop is dozens of
+ * cells, not a feed, so recycling buys nothing and costs the 2D model.
+ *
+ * Height is the scroll axis: this layout lives inside a vertical scroll container and measures itself
+ * to `rows * cellSize` (strategic §3.3 - one screen plus downward scroll, no desktop pages).
+ *
+ * Knows nothing about commands, gadgets or edit mode - it measures and places whatever children it is
+ * given, using their [CellLayoutParams].
+ */
+class LauncherDesktopLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : ViewGroup(context, attrs, defStyleAttr) {
+
+    /**
+     * The column count resolved for the current width and density factor. Guarded against no-op
+     * writes: this is fed from a Flow collector, and an unconditional requestLayout() in the setter
+     * would re-enter layout on every emission.
+     */
+    var columns: Int = LauncherGridGeometry.MIN_COLUMNS
+        set(value) {
+            val safe = value.coerceAtLeast(1)
+            if (field == safe) return
+            field = safe
+            requestLayout()
+        }
+
+    /** How many rows the canvas spans - drives the measured height. */
+    var rows: Int = 1
+        set(value) {
+            val safe = value.coerceAtLeast(1)
+            if (field == safe) return
+            field = safe
+            requestLayout()
+        }
+
+    /** A child's place on the canvas. The binder supplies these; nothing else needs to know a cell. */
+    class CellLayoutParams(
+        val row: Int,
+        val col: Int,
+        val spanW: Int,
+        val spanH: Int,
+    ) : ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+
+    override fun generateDefaultLayoutParams(): LayoutParams = CellLayoutParams(0, 0, 1, 1)
+
+    override fun checkLayoutParams(p: LayoutParams?): Boolean = p is CellLayoutParams
+
+    override fun generateLayoutParams(p: LayoutParams?): LayoutParams = CellLayoutParams(0, 0, 1, 1)
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val cellSize = cellSize(width)
+        forEachCell { child, params ->
+            val bounds = boundsOf(params, cellSize)
+            child.measure(
+                MeasureSpec.makeMeasureSpec(bounds.width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(bounds.height, MeasureSpec.EXACTLY),
+            )
+        }
+        setMeasuredDimension(width, paddingTop + rows * cellSize + paddingBottom)
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        val cellSize = cellSize(r - l)
+        forEachCell { child, params ->
+            val bounds = boundsOf(params, cellSize)
+            val left = paddingLeft + bounds.left
+            val top = paddingTop + bounds.top
+            child.layout(left, top, left + bounds.width, top + bounds.height)
+        }
+    }
+
+    /**
+     * Maps a local pixel point to the (row, col) it falls in, clamped to the grid. A drag listener
+     * attached to this view gets post-scroll local coordinates, so the caller passes them straight
+     * through. The container owns this arithmetic on purpose: [cellSize] is private, and a second copy
+     * at the call site is exactly the drift the phase-07 audit caught. Spans are 1x1 - a drop only needs
+     * an anchor; the repository decides what happens when it is occupied.
+     */
+    fun cellAt(x: Float, y: Float): LauncherGridGeometry.CellFootprint {
+        val cellSize = cellSize(width).coerceAtLeast(1)
+        val col = ((x - paddingLeft) / cellSize).toInt()
+        val row = ((y - paddingTop) / cellSize).toInt()
+        return LauncherGridGeometry.footprint(row, col, spanW = 1, spanH = 1, columns = columns)
+    }
+
+    private fun cellSize(totalWidth: Int): Int =
+        LauncherGridGeometry.cellSizePx(totalWidth - paddingLeft - paddingRight, columns)
+
+    private fun boundsOf(params: CellLayoutParams, cellSize: Int): LauncherGridGeometry.CellBounds =
+        LauncherGridGeometry.boundsOf(
+            LauncherGridGeometry.footprint(params.row, params.col, params.spanW, params.spanH, columns),
+            cellSize,
+        )
+
+    private inline fun forEachCell(action: (View, CellLayoutParams) -> Unit) {
+        for (index in 0 until childCount) {
+            val child = getChildAt(index)
+            val params = child.layoutParams as? CellLayoutParams
+            // A GONE child or a foreign LayoutParams (never expected) is simply skipped.
+            if (child.visibility != GONE && params != null) action(child, params)
+        }
+    }
+}

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,7 +38,8 @@ class SettingsSearchCapabilityGate @Inject constructor(
     private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
     private val menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val mediaCapabilities: MediaCapabilities,
-    private val capabilityAvailability: CapabilityAvailability
+    private val capabilityAvailability: CapabilityAvailability,
+    private val launcherModeContract: LauncherModeContract
 ) {
 
     // Gating-container view-id -> "is the capability present". Mirrors the runtime gate:
@@ -98,6 +100,12 @@ class SettingsSearchCapabilityGate @Inject constructor(
         // (launcher bound = standard + noLegal); mirrors GeneralSettingsFragment.setupScreenshotTestButton
         // so search never surfaces it in a release build.
         "btnTakeScreenshotNow" -> BuildConfig.DEBUG && menuScreenshotLaunchers.isNotEmpty()
+        // S1088: the launcher enable toggle + the dialog-entry row moved into the always-available General
+        // tab; both are GONE when the launcher capability is absent, so mirror that to avoid a dead search
+        // hit. The former composition/density rows now live in LauncherSettingsDialogFragment, whose layout
+        // is not in the search catalog (SettingsSearchLayoutCatalog), so they no longer need a branch here.
+        "rowLauncherModeEnabled",
+        "rowLauncherSettings" -> launcherModeContract.isAvailableInBuild
         else -> true
     }
 }

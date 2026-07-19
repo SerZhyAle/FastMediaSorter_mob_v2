@@ -1013,5 +1013,15 @@
     "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
     "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
     "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів у головному вікні, із переходом до розділу трансляцій."
+  },
+  "rowLauncherModeEnabled": {
+    "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
+    "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
+    "uk": "Робить застосунок домашнім екраном пристрою - кнопка «Додому» відкриває ваш робочий стіл."
+  },
+  "rowLauncherSettings": {
+    "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
+    "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
+    "uk": "Відкриває діалог налаштувань системного лаунчера для налаштування робочого столу, панелі задач і щільності сітки."
   }
 }

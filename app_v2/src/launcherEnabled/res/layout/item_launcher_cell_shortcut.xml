@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0404: one shortcut cell on the launcher desktop - icon over a label, with an optional badge
+     marking which view mode a resource shortcut opens in. Mirrors item_app_launch_panel_tile.xml
+     (same focus/ripple/stroke treatment) so both grids feel identical. Orientation-neutral: the
+     cell is square in both layouts, so there is deliberately no layout-land counterpart. -->
+<com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardLauncherCell"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:rippleColor="?attr/colorControlHighlight"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp">
+
+    <!-- No minHeight: LauncherDesktopLayout measures the cell EXACTLY at cellSize, so the grid is
+         authoritative and a floor here would only fight it. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="4dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="10dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/cellIcon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:importantForAccessibility="no"
+                tools:src="@drawable/ic_folder" />
+
+            <!-- No focus background here: the badge is not focusable, clickable or hoverable, so the
+                 selector could never leave its transparent default state - it drew nothing (Rule 20). -->
+            <ImageView
+                android:id="@+id/cellModeBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="bottom|end"
+                android:importantForAccessibility="no"
+                android:visibility="gone"
+                app:tint="?attr/colorOnSurface"
+                tools:src="@drawable/ic_slideshow"
+                tools:visibility="visible" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/cellLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="12sp"
+            tools:text="Photos" />
+
+    </LinearLayout>
+
+</com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>

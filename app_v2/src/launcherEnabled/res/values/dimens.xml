@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0404: launcher taskbar. Taller than the in-app panels' 48dp row because this bar is the
+         permanent bottom chrome of the home screen and hosts 40dp app icons plus a tray. -->
+    <dimen name="launcher_taskbar_height">56dp</dimen>
+    <dimen name="launcher_taskbar_icon_size">40dp</dimen>
+    <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
+    <dimen name="launcher_tray_icon_size">18dp</dimen>
+
+    <!-- S0404: the Start menu's all-apps grid is bounded on purpose. A wrap_content RecyclerView inside
+         a NestedScrollView is measured UNSPECIFIED, which makes the grid lay out every installed app in
+         one main-thread pass and recycle nothing. A fixed height restores recycling; the grid scrolls
+         itself. -->
+    <dimen name="launcher_start_menu_apps_height">240dp</dimen>
+
+    <!-- S0404: folder-preview thumbnail decode size. Glide decodes at display size, not source size -
+         four full-resolution photos on the home screen would be a needless multi-MB decode. -->
+    <dimen name="launcher_gadget_thumb_size">72dp</dimen>
+
+    <!-- S0404: the play/random buttons in a list gadget's header. Below the 48dp touch-target minimum
+         on purpose and knowingly: the whole gadget is one grid cell tall in its header row, and a 48dp
+         control would leave the resource name ~45dp at density factor 1.5. 40dp with an 8dp inset is
+         the largest that keeps the header readable. -->
+    <dimen name="launcher_gadget_action_size">40dp</dimen>
+
+    <!-- S0404: the remove badge on a cell in edit mode. Small on purpose - it overlays the cell's own
+         content, and the cell can be as little as ~63dp across at the highest density factor. -->
+    <dimen name="launcher_edit_badge_size">24dp</dimen>
+</resources>
