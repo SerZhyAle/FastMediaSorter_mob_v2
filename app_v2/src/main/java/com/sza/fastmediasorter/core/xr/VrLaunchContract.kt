@@ -28,6 +28,8 @@ enum class VrLaunchPoint : Serializable {
     OVERFLOW_MENU,
     SETTINGS_TEST,
     BROWSE_TILE,
+    // S1114: VR entry from the video transport controls row (reachable in fullscreen), both hosts.
+    CONTROLS_ROW,
 }
 
 /**

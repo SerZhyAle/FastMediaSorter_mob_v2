@@ -108,7 +108,8 @@ class StreamSourceRepository @Inject constructor(
                         category = entry.category,
                         topic = entry.topic,
                         language = entry.language,
-                        country = entry.country
+                        country = entry.country,
+                        access = entry.access
                     )
                     updated++
                 } else if (dao.insertIgnore(entry) != -1L) {

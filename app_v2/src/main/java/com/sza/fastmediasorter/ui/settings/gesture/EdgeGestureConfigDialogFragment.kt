@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogEdgeGestureConfigBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -53,6 +54,10 @@ class EdgeGestureConfigDialogFragment : DialogFragment() {
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
 
+    // S1038: empty except on noLegal; gates the SYSTEM (accessibility) action group in the shared picker.
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
+
     // Guards render() writes so setCheckedSilently never bounces back into a settings update.
     private var isUpdatingFromSettings = false
 
@@ -60,6 +65,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment() {
         ScreenshotGestureActionPickerManager(
             capabilityAvailability,
             screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
         )
     }
 

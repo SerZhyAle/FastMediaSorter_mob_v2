@@ -1,4 +1,5 @@
 ---
+description: "Use to audit a spec against the codebase and set status Verified/Partial/Broken, writing to the Last Audit section. Triggers: 'spec-check Sxxxx', 'is this spec actually implemented'."
 model: sonnet
 ---
 

@@ -1,3 +1,7 @@
+---
+description: "Use to review and refine an existing spec file. Triggers: 'spec-update Sxxxx', 'refine this spec', 'tidy the spec'."
+---
+
 # Specification Refinement
 
 Review and refine a strategic or tactical spec in-place. Modifies spec files - not the codebase (`/spec-fix` does that).

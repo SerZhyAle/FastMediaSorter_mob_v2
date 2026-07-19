@@ -1,3 +1,7 @@
+---
+description: "Use to apply mechanical fixes to a spec after /spec-check. Triggers: 'spec-fix Sxxxx', 'fix the audit findings in this spec'."
+---
+
 # Specification Audit Fix-up
 
 Apply mechanical fixes flagged by latest audit. Modifies codebase, not spec body - `/spec-update` does that.

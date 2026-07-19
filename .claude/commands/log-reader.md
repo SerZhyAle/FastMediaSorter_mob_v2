@@ -1,4 +1,5 @@
 ---
+description: "Use when analyzing logcat or app logs to diagnose a crash/ANR/error. Triggers: 'analyze this log', 'what does logcat say', a pasted stack trace, 'why did it crash'."
 model: sonnet
 ---
 

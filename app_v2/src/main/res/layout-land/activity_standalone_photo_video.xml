@@ -89,6 +89,9 @@
         <!-- Video gesture feedback badge (brightness / volume / seek) driven by StandaloneVideoTouchDelegate -->
         <TextView android:id="@+id/tvVideoGestureIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:paddingVertical="@dimen/player_button_padding" android:textColor="@color/white" android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize" android:textStyle="bold" android:visibility="gone" />
 
+        <!-- S1115: always-visible fullscreen exit button for video (top|end overlay). PhotoVideoStandaloneActivity toggles visibility with the command panel. -->
+        <include layout="@layout/player_document_fullscreen_exit_button_content" />
+
     </FrameLayout>
 
     <!-- S0610: Copy/Move destination panels (shared with the in-app player). Each panel starts GONE;

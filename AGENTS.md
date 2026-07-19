@@ -55,6 +55,7 @@
 
 ## 7. Validation
 - Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.
+- No completion claim without fresh evidence: run the proving command, read its exit code/output, cite it. Prior runs and self-reports (incl. a subagent's "build passed") are not evidence. Red-flag words - "should", "probably", "seems", "looks fixed" - mean stop and run the check first.
 - Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits (`fkn` for noLegal), `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, `.\a.ps1 fg` to batch the fast static gates in one process, and full debug APK builds only when packaging/install behavior matters.
 
 ## 8. Code Audit Protocol

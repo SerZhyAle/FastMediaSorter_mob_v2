@@ -1,3 +1,7 @@
+---
+description: "Use to run the end-to-end pre-release emulator sweep that gates /skill-release - clean install, resources, settings, scenario, perf, verdict. Triggers: 'spec-prerelease', 'pre-release sweep', 'is the build release-ready'."
+---
+
 # /spec-prerelease - End-to-End Pre-Release Emulator Sweep
 
 > **GLOBAL DIRECTIVES (anti-bureaucracy):**

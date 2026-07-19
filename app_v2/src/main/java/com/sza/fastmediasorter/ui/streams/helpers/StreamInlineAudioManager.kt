@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
@@ -10,11 +13,14 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.metadata.icy.IcyInfo
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
@@ -56,14 +62,24 @@ class StreamInlineAudioManager(
     private val nowPlaying = MutableStateFlow<String?>(null)
     // S0593: guard so a single play records "OK" once, even though isPlaying can toggle (re-buffer).
     private var successReported = false
+    private val recoveryHandler = Handler(Looper.getMainLooper())
+    private var connectionStartedAtMs = 0L
+    private var hasSuccessfulPlayback = false
+    private var retryAttempt = 0
+    private var noSignalVisible = false
+    private val toleranceRunnable = Runnable { handleToleranceTimeout() }
+    private val retryRunnable = Runnable { retryLocalPlayback() }
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             // S0593: first transition to actually-playing = the stream works here -> record OK once.
-            if (isPlaying && !successReported) {
-                successReported = true
-                val playing = currentSource ?: return
-                onSuccess(playing)
+            if (isPlaying) reportSuccessfulPlayback()
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            when (playbackState) {
+                Player.STATE_READY -> reportSuccessfulPlayback()
+                Player.STATE_BUFFERING -> if (hasSuccessfulPlayback) scheduleToleranceTimeout()
             }
         }
 
@@ -76,9 +92,13 @@ class StreamInlineAudioManager(
             }
         }
 
-        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+        override fun onPlayerError(error: PlaybackException) {
             val failed = currentSource
             Timber.w(error, "StreamInlineAudioManager: inline audio error - %s", failed?.url)
+            if (canRetry(error)) {
+                if (!usingService) scheduleLocalRetry()
+                return
+            }
             stop()
             failed?.let(onError)
         }
@@ -116,6 +136,11 @@ class StreamInlineAudioManager(
         stopPlaybackKeepingController()
         currentSource = source
         successReported = false
+        hasSuccessfulPlayback = source.lastPlayedAt != null
+        connectionStartedAtMs = SystemClock.elapsedRealtime()
+        retryAttempt = 0
+        noSignalVisible = false
+        scheduleToleranceTimeout()
         nowPlaying.value = null
         miniControl.isVisible = true
         onPlayingChanged(source.id)
@@ -149,6 +174,7 @@ class StreamInlineAudioManager(
                 .build()
             val local = ExoPlayer.Builder(miniControl.context)
                 .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+                .setLoadControl(RadioStreamBufferConfig.createLoadControl())
                 .setAudioAttributes(
                     audioAttributes,
                     /* handleAudioFocus= */
@@ -193,6 +219,7 @@ class StreamInlineAudioManager(
     }
 
     private fun stopPlaybackKeepingController() {
+        clearRecoveryState()
         player?.removeListener(playerListener)
         val local = localPlayer
         if (local != null) {
@@ -220,6 +247,82 @@ class StreamInlineAudioManager(
         // S0691: dedup the `Name (Name)` form so the mini-control matches the list/grid rendering.
         val title = currentSource?.title?.let(StreamTitleFormatter::display) ?: return
         val track = nowPlaying.value
-        titleView.text = if (track.isNullOrBlank()) title else "$title - $track"
+        val displayTitle = if (track.isNullOrBlank()) title else "$title - $track"
+        titleView.text = if (noSignalVisible) {
+            "$displayTitle - [${miniControl.context.getString(R.string.streams_no_signal)}]"
+        } else {
+            displayTitle
+        }
+    }
+
+    private fun reportSuccessfulPlayback() {
+        if (successReported) return
+        successReported = true
+        hasSuccessfulPlayback = true
+        retryAttempt = 0
+        noSignalVisible = false
+        recoveryHandler.removeCallbacks(toleranceRunnable)
+        renderTitle()
+        currentSource?.let(onSuccess)
+    }
+
+    private fun scheduleToleranceTimeout() {
+        recoveryHandler.removeCallbacks(toleranceRunnable)
+        val delay = if (hasSuccessfulPlayback) {
+            RadioStreamBufferConfig.PASSIVE_STATUS_TIMEOUT_MS
+        } else {
+            RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
+        }
+        recoveryHandler.postDelayed(toleranceRunnable, delay)
+    }
+
+    private fun handleToleranceTimeout() {
+        val source = currentSource ?: return
+        if (hasSuccessfulPlayback) {
+            noSignalVisible = true
+            renderTitle()
+        } else {
+            stop()
+            onError(source)
+        }
+    }
+
+    private fun canRetry(error: PlaybackException): Boolean =
+        error.errorCode in PlaybackException.ERROR_CODE_IO_UNSPECIFIED..
+            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE &&
+            (hasSuccessfulPlayback ||
+                elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
+
+    private fun scheduleLocalRetry() {
+        val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)
+            .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
+        retryAttempt = (retryAttempt + 1).coerceAtMost(MAX_BACKOFF_SHIFT)
+        recoveryHandler.removeCallbacks(retryRunnable)
+        recoveryHandler.postDelayed(retryRunnable, delay)
+    }
+
+    private fun retryLocalPlayback() {
+        val local = localPlayer ?: return
+        if (currentSource == null || !canContinueRetrying()) return
+        local.prepare()
+        local.playWhenReady = true
+    }
+
+    private fun canContinueRetrying(): Boolean = hasSuccessfulPlayback ||
+        elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
+
+    private fun elapsedSinceConnectionStart(): Long =
+        SystemClock.elapsedRealtime() - connectionStartedAtMs
+
+    private fun clearRecoveryState() {
+        recoveryHandler.removeCallbacks(toleranceRunnable)
+        recoveryHandler.removeCallbacks(retryRunnable)
+        connectionStartedAtMs = 0L
+        retryAttempt = 0
+        noSignalVisible = false
+    }
+
+    private companion object {
+        const val MAX_BACKOFF_SHIFT = 2
     }
 }

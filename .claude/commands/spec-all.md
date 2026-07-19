@@ -1,3 +1,7 @@
+---
+description: "Use to run the full spec pipeline end to end - idea to verified implementation (research, spec, tactical, dev, check). Triggers: 'spec-all', 'take this from idea to done'."
+---
+
 # Full Spec Pipeline Orchestrator
 
 Run complete spec pipeline (idea -> verified impl), fully automated. Forward bias over correctness theatre: patch spec and continue. Stop only when human input genuinely required. Picks up a spec at any stage/status. Defer unresolvable human questions to final report; never block mid-pipeline on skippable item.

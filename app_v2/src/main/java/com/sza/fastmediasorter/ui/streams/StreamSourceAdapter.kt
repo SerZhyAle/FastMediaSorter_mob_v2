@@ -120,16 +120,19 @@ class StreamSourceAdapter(
             bindPlayStatus(source.lastPlayOutcome)
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
+            // S1117: region-restriction badge leads the chip row when the catalog flagged this row "geo".
+            bindGeoChip(binding.tvGeo, source.access)
             bindChip(binding.tvTopic, source.topic)
             // Country is shown before language as flag+code (e.g. "🇺🇦 UA"); manual rows leave it null.
             bindChip(binding.tvCountry, countryChipText(binding.tvCountry, source.country))
             bindChip(binding.tvLanguage, source.language)
-            binding.chipRow.visibility =
-                if (binding.tvTopic.isVisible || binding.tvCountry.isVisible || binding.tvLanguage.isVisible) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+            val anyChipVisible = listOf(
+                binding.tvGeo,
+                binding.tvTopic,
+                binding.tvCountry,
+                binding.tvLanguage
+            ).any { it.isVisible }
+            binding.chipRow.visibility = if (anyChipVisible) View.VISIBLE else View.GONE
             bindPinState(source.pinned)
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
@@ -153,54 +156,61 @@ class StreamSourceAdapter(
                 }
             }
             binding.btnPin.setOnClickListener { onPin(source) }
-            binding.btnOverflow.setOnClickListener { anchor ->
-                PopupMenu(anchor.context, anchor).apply {
-                    // S0938: reorder commands lead the menu for a pinned row when more than one channel
-                    // is pinned. Edge commands are disabled at the ends of the pinned block.
-                    val pinnedRows = currentList.filter { it.pinned }
-                    if (source.pinned && pinnedRows.size > 1) {
-                        val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
-                        menu.add(Menu.NONE, ID_MOVE_UP, Menu.NONE, R.string.streams_move_up)
-                            .isEnabled = pinnedIndex > 0
-                        menu.add(Menu.NONE, ID_MOVE_DOWN, Menu.NONE, R.string.streams_move_down)
-                            .isEnabled = pinnedIndex < pinnedRows.lastIndex
-                        menu.add(Menu.NONE, ID_MOVE_TO_TOP, Menu.NONE, R.string.streams_move_to_top)
-                            .isEnabled = pinnedIndex > 0
-                    }
-                    // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
-                    if (favoritesEnabled()) {
-                        val favLabel = if (isFavorite(source)) {
-                            R.string.streams_remove_from_favorites
-                        } else {
-                            R.string.streams_add_to_favorites
-                        }
-                        // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
-                        // shortcut, edit, share, remove) without magic order literals.
-                        menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
-                    }
-                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
-                    // Edit is offered only for user-added channels; CATALOG/IMPORTED rows are owned
-                    // by their sync and must not be hand-edited (S0660 §6.4).
-                    if (source.sourceOrigin == "MANUAL") {
-                        menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
-                    }
-                    menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
-                    menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
-                    setOnMenuItemClickListener { item ->
-                        when (item.itemId) {
-                            ID_MOVE_UP -> { onMoveUp(source); true }
-                            ID_MOVE_DOWN -> { onMoveDown(source); true }
-                            ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
-                            ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
-                            ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
-                            ID_EDIT -> { onEdit(source); true }
-                            ID_SHARE_LINK -> { onShareLink(source); true }
-                            ID_REMOVE -> { onRemove(source); true }
-                            else -> false
-                        }
-                    }
-                    show()
+            binding.btnOverflow.setOnClickListener { anchor -> showOverflowMenu(source, anchor) }
+        }
+
+        /**
+         * S0660: build and show the per-row overflow menu (reorder/favorite/shortcut/edit/share/remove).
+         * Extracted from [bind] so that method's cyclomatic complexity stays within the detekt budget;
+         * the menu content still resolves current state (pins/favorites) lazily at open time.
+         */
+        private fun showOverflowMenu(source: StreamSourceEntity, anchor: View) {
+            PopupMenu(anchor.context, anchor).apply {
+                // S0938: reorder commands lead the menu for a pinned row when more than one channel
+                // is pinned. Edge commands are disabled at the ends of the pinned block.
+                val pinnedRows = currentList.filter { it.pinned }
+                if (source.pinned && pinnedRows.size > 1) {
+                    val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
+                    menu.add(Menu.NONE, ID_MOVE_UP, Menu.NONE, R.string.streams_move_up)
+                        .isEnabled = pinnedIndex > 0
+                    menu.add(Menu.NONE, ID_MOVE_DOWN, Menu.NONE, R.string.streams_move_down)
+                        .isEnabled = pinnedIndex < pinnedRows.lastIndex
+                    menu.add(Menu.NONE, ID_MOVE_TO_TOP, Menu.NONE, R.string.streams_move_to_top)
+                        .isEnabled = pinnedIndex > 0
                 }
+                // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
+                if (favoritesEnabled()) {
+                    val favLabel = if (isFavorite(source)) {
+                        R.string.streams_remove_from_favorites
+                    } else {
+                        R.string.streams_add_to_favorites
+                    }
+                    // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
+                    // shortcut, edit, share, remove) without magic order literals.
+                    menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
+                }
+                menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
+                // Edit is offered only for user-added channels; CATALOG/IMPORTED rows are owned
+                // by their sync and must not be hand-edited (S0660 §6.4).
+                if (source.sourceOrigin == "MANUAL") {
+                    menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
+                }
+                menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
+                menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        ID_MOVE_UP -> { onMoveUp(source); true }
+                        ID_MOVE_DOWN -> { onMoveDown(source); true }
+                        ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
+                        ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
+                        ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
+                        ID_EDIT -> { onEdit(source); true }
+                        ID_SHARE_LINK -> { onShareLink(source); true }
+                        ID_REMOVE -> { onRemove(source); true }
+                        else -> false
+                    }
+                }
+                show()
             }
         }
 
@@ -298,6 +308,22 @@ class StreamSourceAdapter(
             return LanguageFlagFormatter.compactCountryCodeLabel(view, code)
         }
 
+        /**
+         * S1117: region-restriction badge. Shown only when the catalog flagged the row `access = "geo"`
+         * (HTTP 403/451 from the maintainer's network - may still play in the user's own region). Icon +
+         * text, not colour alone; the full hint lives in contentDescription for TalkBack.
+         */
+        private fun bindGeoChip(view: TextView, access: String?) {
+            if (!access.equals(ACCESS_GEO, ignoreCase = true)) {
+                view.visibility = View.GONE
+                return
+            }
+            val context = view.context
+            view.text = context.getString(R.string.stream_access_geo)
+            view.contentDescription = context.getString(R.string.stream_access_geo_desc)
+            view.visibility = View.VISIBLE
+        }
+
         /** Catalog metadata only - manual/imported rows leave topic/language null, so hide the chip. */
         private fun bindChip(view: TextView, value: CharSequence?) {
             if (value.isNullOrBlank()) {
@@ -315,6 +341,9 @@ class StreamSourceAdapter(
     }
 
     private companion object {
+        // S1117: catalog access flag value that turns on the region-restriction badge.
+        const val ACCESS_GEO = "geo"
+
         const val ID_ADD_SHORTCUT = 1
         const val ID_REMOVE = 2
         const val ID_EDIT = 3

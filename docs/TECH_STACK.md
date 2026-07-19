@@ -134,7 +134,7 @@ Engineering effort estimate:
 - Network and auth: SMBJ `0.12.1`, JSch `0.2.26` (app) / `0.2.17` (wear), Commons Net `3.10.0`, OkHttp `4.12.0`, Retrofit `2.9.0`, AppAuth `0.11.1`
 - Cloud SDKs: Play Services Auth `21.0.0`, Dropbox Core SDK `5.4.5`, MSAL `6.0.1`
 - OCR, translation, docs, archives: ML Kit Translate `17.0.3`, Language ID `17.0.6`, Tesseract4Android `4.8.0`, epub4j-core `4.2`, jsoup `1.17.2`, Markwon `4.6.2`, zip4j `2.11.5`
-- Sideload / XR-only surface: Chaquopy Python `3.12`, `yt-dlp` nightly `2026.07.04.221833`, OpenXR loader `1.1.48`, NewPipeExtractor `v0.26.1`
+- Sideload / XR-only surface: Chaquopy Python `3.12`, `yt-dlp` nightly `2026.07.14.233956`, OpenXR loader `1.1.48`, NewPipeExtractor `v0.26.1`
 
 ## Feature Surface Notes
 - `standard` and `legacy` keep the broadest phone/tablet surface: media, cloud, documents, translation, Wear companion, Cast

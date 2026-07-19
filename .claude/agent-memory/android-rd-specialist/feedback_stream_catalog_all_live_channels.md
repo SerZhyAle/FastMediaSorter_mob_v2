@@ -35,6 +35,19 @@ master->media->first segment) so an HLS master that 200s but serves no segment i
 the "declared but not playing" case. Use `-DeepSignal` for accurate prune decisions; `-Throttle` 48+
 for the full 2300-row sweep.
 
+**Update 2026-07-19 (S1117) - policy changed, geo split out:** the "unknown is never removed" rule
+above is now SUPERSEDED for the deep-signal prune path. `Invoke-SignalProbe` gives HTTP 403/451 its own
+verdict `geo` (region-locked from the build machine, may still play in-region), separate from
+`dead`/`unknown`. On an un-pinned `-CatalogOnly -DeepSignal -PruneDead` run, prune now widens to
+`dead`,`unknown` (non-geo failures: timeout/SSL/401/5xx) and KEEPS `geo` rows, stamping them
+`access=geo` in a new trailing CSV column (col 19). Header-only prune stays conservative (`dead` only).
+The owner's rule: tag geo only where region-lock is proven (403/451), delete every other non-live row.
+This scrubbed the catalog 2691 -> ~2182 across two prunes (375 dead, then 134 dead+unknown), 42 geo kept.
+App side (S1117 phase B): `StreamSourceEntity.access` (Room v42 migration 41->42, additive nullable),
+parser reads the `access` cell by name, `StreamSourceAdapter` shows a globe "region-locked" chip in the
+Streams list (UI-clarify: full list only, icon+text, no playback fallback). Prerelease Step 0 now runs
+the deep-signal report (alive/dead/geo/unknown) so ballast can't re-accumulate unseen.
+
 **Update 2026-07-01 (S0805):** the discovery/append path now runs the deep-signal probe by DEFAULT as a
 second stage after the header probe - only header-alive candidates are re-probed for real media bytes,
 and only signal-verified rows are appended, so pseudo-alive channels (playlist 2xx, no segment) can no

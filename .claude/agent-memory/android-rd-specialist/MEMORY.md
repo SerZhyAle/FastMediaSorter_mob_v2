@@ -63,6 +63,7 @@
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
 - [Settings docs sync (Rule 22)](feedback_settings_manifest_regen.md) - regen manifest + annotations + reference
+- [Doc-pin tooling ownership](feedback_doc_pin_tooling_ownership_split.md) - generate-toolchain-pins owns CLAUDE/TECH_STACK pins; check-doc-vs-gradle owns dev/TECH_REQUIREMENTS (S1075); doc-pin-drift gate
 
 ## UI conventions
 - [Focus indicator + S0943 umbrella](project_focus_frame_infra.md) - TV/D-pad focus = in-place per-view decoration; overlay S0819 archived
@@ -150,6 +151,9 @@
 - [bash rg skips CATALOG](feedback_rg_gitignore_catalog.md) - use Grep tool / --no-ignore / Read
 - [BG task exit = the echo](feedback_background_task_exit_code_is_echo.md) + [no probe echo](feedback_no_flush_echo_commands.md) - exit reflects trailing echo, read log
 - [Workflow journal recovery](reference_workflow_journal_recovery.md) + [args trap](reference_workflow_args_trap.md) - recover from journal.jsonl; resume drops args
+
+## Session incidents
+- [DEBUG-v026 tree settled 2026-07-19](project_debug_v026_tree_settled_2026_07_19.md) - 23 commits landed; S0404 launcher now committed, re-check concurrent-wip skip-cache; corex/ left uncommitted
 
 ## Subagents & process
 - [Verify build on device first](feedback_verify_build_on_device_before_diagnosing.md) - "doesn't work" -> confirm NEW build installed (same-version APK keeps old); use dav, key off S-tag/version

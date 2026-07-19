@@ -1,4 +1,5 @@
 ---
+description: "Use when archiving one or more specs - move files to temp/done/ and set status Archived. Triggers: 'archive spec Sxxxx', 'retire these tickets'."
 model: sonnet
 ---
 

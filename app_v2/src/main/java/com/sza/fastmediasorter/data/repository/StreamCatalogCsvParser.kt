@@ -52,7 +52,10 @@ class StreamCatalogCsvParser @Inject constructor() {
                 confidence = cell(fields, "confidence"),
                 // S0668: additive favicon column. Blank/non-numeric/negative -> null (no favicon); an
                 // older catalog lacking the column resolves to "" via cell() and so decodes to null too.
-                faviconIndex = cell(fields, "favicon_index").toIntOrNull()?.takeIf { it >= 0 }
+                faviconIndex = cell(fields, "favicon_index").toIntOrNull()?.takeIf { it >= 0 },
+                // S1117: additive access flag. "geo" = region-restricted (403/451 from the maintainer's
+                // network, may still play in-region); blank / older catalog without the column -> "".
+                access = cell(fields, "access")
             )
         }
         return result
@@ -154,5 +157,7 @@ data class ParsedCatalogEntry(
     val confidence: String,
     // S0668: zero-based tile ordinal into the favicon sprite-atlas (32 px / 16-col grid). null = no
     // favicon for this row (blank cell, non-numeric, negative, or an older catalog without the column).
-    val faviconIndex: Int?
+    val faviconIndex: Int?,
+    // S1117: access flag. "geo" = region-restricted; "" (open) for every other row and older catalogs.
+    val access: String = ""
 )

@@ -1,3 +1,7 @@
+---
+description: "Use to break an approved strategic spec into a tactical plan of phases and steps. Triggers: 'spec-tech Sxxxx', 'make the tactical plan', 'break this spec into steps'."
+---
+
 # Tactical Specification Writer
 
 Break approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote below).

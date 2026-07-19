@@ -5,6 +5,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.screencapture.gesture.DeviceActionHandler
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import com.sza.fastmediasorter.core.screencapture.gesture.LaunchActionHandler
+import com.sza.fastmediasorter.core.screencapture.gesture.MediaActionHandler
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -31,7 +35,12 @@ import javax.inject.Inject
  */
 class ScreenshotGestureActionDispatcher @Inject constructor(
     private val settingsRepository: Lazy<SettingsRepository>,
-    private val capabilityAvailability: CapabilityAvailability
+    private val capabilityAvailability: CapabilityAvailability,
+    private val deviceActionHandler: DeviceActionHandler,
+    private val mediaActionHandler: MediaActionHandler,
+    private val launchActionHandler: LaunchActionHandler,
+    // S1038: empty on every flavor except noLegal, which contributes the accessibility-backed performer.
+    private val accessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>,
 ) {
 
     /**
@@ -67,8 +76,14 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
      * [ScreenshotGestureAction.DO_NOT_USE] is a silent no-op; [ScreenshotGestureAction.OPEN_APP] brings
      * the app to the foreground (existing task reordered to front, preserving its state, or cold start).
      * Returns false for capture-backed actions, which proceed through the normal capture path.
+     * S1038: [zone] + [direction] identify the slot so OPEN_URL can resolve its per-slot payload address.
      */
-    fun handlePreCaptureAction(context: Context, action: ScreenshotGestureAction): Boolean = when (action) {
+    suspend fun handlePreCaptureAction(
+        context: Context,
+        action: ScreenshotGestureAction,
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+    ): Boolean = when (action) {
         ScreenshotGestureAction.DO_NOT_USE -> true
         ScreenshotGestureAction.OPEN_APP -> {
             launchApp(context)
@@ -118,8 +133,49 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchScreenRecording(context)
             true
         }
+        // S1038: device-control + media actions run before (and instead of) any capture. Each handler
+        // owns its action set and returns true, so the gesture skips consent/capture entirely.
+        ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
+        ScreenshotGestureAction.BRIGHTNESS_MAX,
+        ScreenshotGestureAction.BRIGHTNESS_NORMAL -> deviceActionHandler.handle(context, action)
+        ScreenshotGestureAction.VOLUME_UP,
+        ScreenshotGestureAction.VOLUME_DOWN,
+        ScreenshotGestureAction.VOLUME_MUTE,
+        ScreenshotGestureAction.MEDIA_PLAY_PAUSE,
+        ScreenshotGestureAction.MEDIA_NEXT,
+        ScreenshotGestureAction.MEDIA_PREV -> mediaActionHandler.handle(context, action)
+        // S1038: launch/intent actions. OPEN_URL alone needs the per-slot payload; the rest ignore it.
+        ScreenshotGestureAction.OPEN_URL ->
+            launchActionHandler.handle(context, action, payloadFor(zone, direction))
+        ScreenshotGestureAction.OPEN_ASSISTANT,
+        ScreenshotGestureAction.OPEN_GEMINI,
+        ScreenshotGestureAction.CREATE_KEEP_NOTE,
+        ScreenshotGestureAction.SET_ALARM,
+        ScreenshotGestureAction.SET_TIMER,
+        ScreenshotGestureAction.NEW_CALENDAR_EVENT -> launchActionHandler.handle(context, action, payload = "")
+        // S1038: SYSTEM actions run through the noLegal accessibility seam. Always handled (skip capture);
+        // the performer degrades internally when the service is off, and the set is empty on other flavors.
+        ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
+        ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+        ScreenshotGestureAction.LOCK_SCREEN,
+        ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
+        ScreenshotGestureAction.PREVIOUS_APP -> {
+            val performer = accessibilityActions.firstOrNull()
+            if (performer != null) {
+                performer.perform(action)
+            } else {
+                Timber.w("ScreenshotGestureActionDispatcher: %s unavailable on this build", action)
+            }
+            true
+        }
         else -> false
     }
+
+    // S1038: resolves the per-slot payload (the target URL for OPEN_URL) from the persisted settings.
+    private suspend fun payloadFor(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+    ): String = settingsRepository.get().getSettings().first().screenshotGesturePayload(zone, direction)
 
     private fun launchApp(context: Context) {
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
@@ -208,6 +264,33 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             ScreenshotGestureAction.START_VIDEO_RECORDING,
             ScreenshotGestureAction.START_AUDIO_RECORDING,
             ScreenshotGestureAction.START_SCREEN_RECORDING,
+            // S1038: device-control + media actions are pre-capture (handled in handlePreCaptureAction),
+            // so they never reach runPostSave; listed here only to keep the when total.
+            ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
+            ScreenshotGestureAction.BRIGHTNESS_MAX,
+            ScreenshotGestureAction.BRIGHTNESS_NORMAL,
+            ScreenshotGestureAction.VOLUME_UP,
+            ScreenshotGestureAction.VOLUME_DOWN,
+            ScreenshotGestureAction.VOLUME_MUTE,
+            ScreenshotGestureAction.MEDIA_PLAY_PAUSE,
+            ScreenshotGestureAction.MEDIA_NEXT,
+            ScreenshotGestureAction.MEDIA_PREV,
+            // S1038: launch/intent actions are pre-capture (handled in handlePreCaptureAction); listed
+            // here only to keep the when total.
+            ScreenshotGestureAction.OPEN_ASSISTANT,
+            ScreenshotGestureAction.OPEN_GEMINI,
+            ScreenshotGestureAction.CREATE_KEEP_NOTE,
+            ScreenshotGestureAction.OPEN_URL,
+            ScreenshotGestureAction.SET_ALARM,
+            ScreenshotGestureAction.SET_TIMER,
+            ScreenshotGestureAction.NEW_CALENDAR_EVENT,
+            // S1038: SYSTEM actions are pre-capture (handled in handlePreCaptureAction); listed here only
+            // to keep the when total.
+            ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
+            ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+            ScreenshotGestureAction.LOCK_SCREEN,
+            ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
+            ScreenshotGestureAction.PREVIOUS_APP,
             // S1042: OCR_TRANSLATE is handled pre-save by the capture service (stages the raw frame to a
             // temp file and calls launchOcrCropFlow, so only the cropped result reaches the gallery); it
             // never arrives here. Grouped with the no-ops to keep the when total.

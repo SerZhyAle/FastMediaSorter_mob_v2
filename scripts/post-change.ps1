@@ -159,6 +159,9 @@ $runsStringFormatGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     ($normFile -match 'src/[^/]+/res/values[^/]*/strings.*\.xml$'))
 $runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
+# S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
+# hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
+$runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
 $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
@@ -318,6 +321,15 @@ if ($runsDocPinsSync) {
 }
 else {
     Skip-Step "doc-pins-sync" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDocPinDrift) {
+    Invoke-Step "doc-pin-drift" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-doc-pin-drift.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "doc-pin-drift" "not applicable for ChangeType $resolvedChangeType"
 }
 
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)

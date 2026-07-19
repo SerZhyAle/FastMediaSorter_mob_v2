@@ -23,9 +23,21 @@
 
 ## Three-Layer Structure
 - **UI (`ui/`)**: Observe `StateFlow`. Zero business logic.
-- **Domain (`domain/`)**: UseCases. Repository interfaces only.
-- **Data (`data/`)**: Repositories, DB, Network.
-**Dependency Rule**: `UI` → `Domain` → `Data`.
+- **Domain (`domain/`)**: UseCases, domain models, and repository *interfaces* (their concrete implementations live in `data/repository`).
+- **Data (`data/`)**: Repository implementations, DB (Room), network/cloud clients, DTOs.
+
+### Dependency Rule (accepted convention, read before "fixing")
+
+The **runtime call direction** is strictly one-way: `UI` → `ViewModel` → `UseCase` → `Repository` → `DataSource`. A lower layer never calls back up, and UI holds no business logic. This part is enforced.
+
+Compile-time dependencies are **not** textbook Clean Architecture. The `domain` layer is deliberately allowed to import concrete `data.*` classes: Room entities and DAOs (`data.local.db.*`), scanners and constants (`data.local.LocalMediaScanner`, `VIRTUAL_PATH_*`), protocol clients (`data.network`/`data.remote`/`data.cloud`), shared enums and DTOs (`data.model.*`, e.g. `DeviceProfileType`), and even concrete repositories (`data.repository.*`). Roughly a third of `domain/*.kt` files import at least one `data.*` type, spread across a dozen-plus `data.*` subpackages. Some repository interfaces in `domain/repository/` also expose `data.model` types in their signatures.
+
+This is a long-standing, consistent project convention - not an accident, and not a violation to refactor on sight:
+- The domain layer still owns the repository **interfaces** (`domain/repository/` is interfaces-only, no concrete classes); implementations stay in `data`, so the seam that matters for DI and testing is preserved.
+- Shared value types (device-profile enums, media-kind constants, virtual-path markers) are defined once in `data.model`/`data.local` and reused directly, rather than mirrored into parallel domain-owned copies.
+- Wrapping every shared enum/constant in a domain-owned abstraction would touch dozens of files for no behavioural gain, so it is intentionally not done.
+
+Implication for new code: importing a concrete `data.*` type from a use case is acceptable and matches precedent. Add a domain-owned abstraction only when it earns a real seam (testing, DI, or flavor isolation via `src/<flavor>/`) - never solely to satisfy layer purity.
 
 ## Key Patterns
 - **ViewModels**: `@HiltViewModel`. `StateFlow` (state), `SharedFlow` (events).

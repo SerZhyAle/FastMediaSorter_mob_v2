@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Technical Requirements & Stack Reference
 
-**Last Updated**: June 5, 2026
+**Last Updated**: July 19, 2026
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
 
 ---
@@ -12,7 +12,7 @@
 | Platform             | Android Native                 | Kotlin + Java                                   |
 | Kotlin version       | 2.2.10                         | Pinned in `build.gradle.kts`                    |
 | Java target          | 17                             | `jvmTarget = "17"`                              |
-| Android Gradle Plugin| 9.2.0                          | AGP, pinned in root `build.gradle.kts`          |
+| Android Gradle Plugin| 9.2.1                          | AGP, pinned in root `build.gradle.kts`          |
 | Gradle               | 9.4.1                          | Wrapper in `gradle/wrapper/` (AGP 9.x)          |
 | compileSdk           | 35                             | Android 15 (VanillaIceCream)                    |
 | targetSdk            | 35                             | Required for Play Store compliance              |
@@ -20,7 +20,7 @@
 | minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) - covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |
 | NDK version          | 27.2.12479018                  | For native libraries (Tesseract OCR, VR)        |
-| KSP version          | 2.3.2                          | Aligned with Kotlin 2.2.10                      |
+| KSP version          | 2.3.8                          | Aligned with Kotlin 2.2.10                      |
 
 ---
 
@@ -57,8 +57,8 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `core-ktx`                      | 1.12.0     | Kotlin extensions for Android      |
-| `appcompat`                     | 1.6.1      | Backward-compatible UI framework   |
+| `core-ktx`                      | 1.13.0     | Kotlin extensions for Android      |
+| `appcompat`                     | 1.7.1      | Backward-compatible UI framework   |
 | `constraintlayout`             | 2.1.4      | Complex layout engine              |
 | `recyclerview`                  | 1.3.2      | Scrolling list/grid rendering      |
 | `swiperefreshlayout`           | 1.1.0      | Pull-to-refresh gesture            |
@@ -105,24 +105,23 @@
 | `lifecycle-process`            | 2.7.0      | ProcessLifecycleOwner              |
 | `navigation-fragment-ktx`      | 2.7.6      | Fragment navigation                |
 | `navigation-ui-ktx`            | 2.7.6      | Navigation UI integration          |
-| `navigation-safe-args`         | 2.7.6      | Type-safe navigation args          |
 
 ### 4.5 Dependency Injection
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `hilt-android`                  | 2.50       | DI framework                       |
-| `hilt-android-compiler`        | 2.50       | Annotation processor (kapt/ksp)    |
-| `hilt-work`                     | 1.1.0      | Hilt + WorkManager integration     |
-| `hilt-compiler`                 | 1.1.0      | Hilt AndroidX compiler             |
+| `hilt-android`                  | 2.59       | DI framework                       |
+| `hilt-android-compiler`        | 2.59       | Annotation processor (kapt/ksp)    |
+| `hilt-work`                     | 1.2.0      | Hilt + WorkManager integration     |
+| `hilt-compiler`                 | 1.2.0      | Hilt AndroidX compiler             |
 
 ### 4.6 Data Persistence
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `room-runtime`                  | 2.6.1      | SQLite ORM                         |
-| `room-ktx`                     | 2.6.1      | Room coroutines support            |
-| `room-compiler`                | 2.6.1      | Room annotation processor          |
+| `room-runtime`                  | 2.7.0      | SQLite ORM                         |
+| `room-ktx`                     | 2.7.0      | Room coroutines support            |
+| `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
 | Room DB version                  | 19         | Current schema version (see AppDatabase.kt) |
@@ -154,7 +153,7 @@
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
 | `smbj`                          | 0.12.1     | SMB 2/3 client                     |
-| `jsch` (mwiede fork)            | 0.2.16     | SFTP/SSH client                    |
+| `jsch`                          | 0.2.26     | SFTP/SSH client (mwiede fork)      |
 | `commons-net`                   | 3.10.0     | FTP client (Apache)                |
 | `okhttp`                        | 4.12.0     | HTTP client                        |
 | `retrofit`                      | 2.9.0      | REST API client                    |
@@ -209,7 +208,7 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `material`                       | 1.12.0     | Material Design 3 components       |
+| `material`                       | 1.14.0     | Material Design 3 components       |
 
 ### 4.16 Build Compatibility
 
@@ -229,8 +228,8 @@
 | `espresso-core`                 | 3.5.1      | android  | UI testing                   |
 | `test-ext-junit`               | 1.1.5      | android  | AndroidJUnit runner          |
 | `navigation-testing`           | 2.7.6      | android  | Navigation test utilities    |
-| `hilt-android-testing`         | 2.50       | android  | Hilt test injection          |
-| `room-testing`                  | 2.6.1      | android  | Room migration tests         |
+| `hilt-android-testing`         | 2.57.2     | android  | Hilt test injection          |
+| `room-testing`                  | 2.7.0      | android  | Room migration tests         |
 
 ---
 
@@ -272,7 +271,7 @@
 
 | Constraint                              | Details                                                    |
 |:----------------------------------------|:-----------------------------------------------------------|
-| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.0 toolchain |
+| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.1 toolchain |
 | Kotlin ↔ Compose compiler match         | Kotlin 1.9.24 requires Compose Compiler 1.5.14 exactly     |
 | 16 KB page alignment                    | Mandatory for Google Play since Nov 1, 2025 (Android 15+)  |
 | `Log.d()` prohibited                    | Use `Timber` exclusively                                   |
@@ -445,10 +444,10 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Decision                           | Reason                                                      |
 |:-----------------------------------|:------------------------------------------------------------|
-| Kotlin 2.2.10                      | Aligned with KSP 2.3.2 + Compose plugin 2.2.10              |
-| AGP 9.2.0                          | Requires Gradle 9.x; introduces `AndroidApiLevel`           |
+| Kotlin 2.2.10                      | Aligned with KSP 2.3.8 + Compose plugin 2.2.10              |
+| AGP 9.2.1                          | Requires Gradle 9.x; introduces `AndroidApiLevel`           |
 | Gradle 9.4.1                       | Required by AGP 9.x; JDK 17/21                              |
-| Hilt 2.57.2                        | Current stable; via kapt (KSP migration pending)            |
+| Hilt 2.59                          | Current stable; via kapt (KSP migration pending)            |
 | Media3 1.2.1 (not 1.3+)           | 1.3+ requires API adjustments not yet validated             |
 | Glide 4.16.0                       | Latest stable; 5.x requires migration                      |
 | SMBJ 0.12.1                        | Last version before breaking BC changes in 0.13            |

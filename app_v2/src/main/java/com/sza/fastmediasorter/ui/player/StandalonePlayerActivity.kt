@@ -59,6 +59,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerLifecycleManage
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
@@ -181,6 +182,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
     @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+
+    // S1114: VR-immersive launch from the transport controls row, mirroring the specialized standalone
+    // host so the extended StandaloneVideoControlsCallback contract is satisfied for this host too.
+    @Inject lateinit var vrCinemaLaunchManager: StandaloneVrCinemaLaunchManager
 
     private lateinit var viewManager: StandaloneViewManager
     private var pipManager: PictureInPictureManager? = null
@@ -854,6 +859,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             playerView = pv,
             callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
                 override fun showPlaybackControlDialog() = this@StandalonePlayerActivity.showPlaybackControlDialog()
+                // S1114: this host has no VR badge, so the transport-row button is its only VR entry point.
+                override fun onVrLaunchClicked() {
+                    Timber.d("S1114: StandalonePlayerActivity VR launch from controls row")
+                    viewModel.state.value.mediaFile?.let { vrCinemaLaunchManager.launch(it) }
+                }
+                override fun isVrEntryAvailable(): Boolean =
+                    vrCinemaLaunchManager.isAvailable &&
+                        viewModel.state.value.mediaType == MediaType.VIDEO
             }
         )
         videoControlsManager = controlsManager

@@ -1,4 +1,5 @@
 ---
+description: "Use when archiving one or more specs - move their files to temp/done/ and set status Archived. Alias of /spec-arc. Triggers: 'archive spec Sxxxx', 'retire these tickets'."
 model: sonnet
 ---
 

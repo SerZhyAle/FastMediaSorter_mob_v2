@@ -27,6 +27,16 @@ Describe-Test -Name 'multi-mention divergence produces INCONSISTENT record' -Bod
     Assert-Match -Pattern '2\.50 vs 2\.57\.2' -Text $records[0].DocValue -Message 'hilt inconsistent payload mismatch'
 }
 
+Describe-Test -Name 'repeated identical mentions collapse to PASS not first-char' -Body {
+    # Regression (S1075): two identical mentions must compare as the full version,
+    # not the first character of the collapsed scalar string ("2" from "2.59").
+    $records = Compare-PinsToDocs -GradlePins $gradle -DocMentions @(
+        [pscustomobject]@{ Pin = 'hilt-android'; DocPath = 'dev/TECH_REQUIREMENTS.md'; Required = $true; Mentions = @('2.59','2.59'); Policy = 'allMustMatch' }
+    )
+    Assert-Equal -Expected 'PASS' -Actual $records[0].Status -Message 'identical mentions must PASS'
+    Assert-Equal -Expected '2.59' -Actual $records[0].DocValue -Message 'collapsed doc value must be the full version, not first char'
+}
+
 Describe-Test -Name 'exact match produces PASS record' -Body {
     $records = Compare-PinsToDocs -GradlePins $gradle -DocMentions @(
         [pscustomobject]@{ Pin = 'media3'; DocPath = 'dev/TECH_REQUIREMENTS.md'; Required = $true; Mentions = @('1.2.1'); Policy = 'allMustMatch' }

@@ -11,7 +11,7 @@ The app fetches its stream catalog from GitHub release **`delivery-so-v1`**, ass
 - `-WithFavicons` builds `delivery/stream-catalog/favicon-atlas.png` from each row's `homepage` column and stamps a `favicon_index` column into `streams.csv` (added S0668).
 - Discovery (default axes) appends only newly-discovered ALIVE channels - usually few.
 
-**Safer two-step (validate before clobbering production):** run `-WithFavicons` WITHOUT `-Publish` first, validate `streams.csv` (18 cols, favicon_index range, no gaps) + atlas (512 wide, < 3MB), then publish the validated files with `-CatalogOnly -SkipLiveness -Publish` (no re-probe/re-discovery/re-atlas).
+**Safer two-step (validate before clobbering production):** run `-WithFavicons` WITHOUT `-Publish` first, validate `streams.csv` (19 cols since S1117 added trailing `access`, favicon_index range, no gaps) + atlas (512 wide, < 3MB), then publish the validated files with `-CatalogOnly -SkipLiveness -Publish` (no re-probe/re-discovery/re-atlas).
 
 **Why:** publish does `gh release upload delivery-so-v1 stream-catalog.zip --clobber`, mutating the live asset all users fetch. A bad CSV would reach everyone. The packer is image-heavy (System.Drawing) and was first written in S0668.
 

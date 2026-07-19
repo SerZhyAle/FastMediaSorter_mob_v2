@@ -1,3 +1,7 @@
+---
+description: "Use to execute a tactical spec step by step, running each step's Verification before flipping it to done. Triggers: 'spec-dev Sxxxx', 'implement this tactical plan', 'continue the spec'."
+---
+
 # Specification Developer Executor
 
 Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping to `[x] done`.

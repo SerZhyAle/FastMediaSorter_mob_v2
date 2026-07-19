@@ -76,10 +76,13 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 category = entry.category.ifBlank { null },
                 topic = entry.topic.ifBlank { null },
                 language = entry.language.ifBlank { null },
-                country = entry.country.ifBlank { null }
+                country = entry.country.ifBlank { null },
+                // S1117: carry the region-restriction flag ("geo") so the list can badge it; blank -> null.
+                access = entry.access.ifBlank { null }
             )
         }
 
+        Timber.d("S1117: stream catalog geo-tagged rows in batch=%d", sources.count { it.access == "geo" })
         val merge = try {
             repository.mergeCatalog(sources)
         } catch (e: Exception) {

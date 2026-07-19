@@ -17,6 +17,8 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
@@ -77,6 +79,9 @@ class AudioPlaybackService : MediaSessionService() {
     @Inject
     lateinit var networkMediaSourceFactory: NetworkAwareMediaSourceFactory
 
+    @Inject
+    lateinit var streamSourceRepository: StreamSourceRepository
+
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
     private val autoStopHandler = Handler(Looper.getMainLooper())
@@ -94,6 +99,10 @@ class AudioPlaybackService : MediaSessionService() {
     // reaches STATE_READY. Bounds the skip loop under REPEAT_MODE_ALL (see S0413 research/03).
     private var consecutiveSkipCount = 0
     private var lastSkipToastElapsedMs = 0L
+    private var streamConnectionStartedAtMs = 0L
+    private var streamHasSuccessfulPlayback = false
+    private var streamRetryAttempt = 0
+    private val streamRetryRunnable = Runnable { retryCurrentStream() }
 
     // "Player time" accounting: the service lifetime is the audio-open window, so wall-clock accrues
     // from the first ready track until the service is destroyed, including paused/buffering. A periodic
@@ -113,6 +122,8 @@ class AudioPlaybackService : MediaSessionService() {
         private const val LISTEN_BANK_INTERVAL_MS = 30_000L
         /** Suppress repeat skip toasts within this window so a run of bad files does not spam (S0413). */
         private const val SKIP_TOAST_DEBOUNCE_MS = 3_000L
+        private const val MAX_STREAM_BACKOFF_SHIFT = 2
+        private const val STREAM_OUTCOME_OK = "OK"
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
         private const val POSITION_SAVE_INTERVAL_MS = 15_000L
         const val ACTION_WIDGET_COMMAND = "com.sza.fastmediasorter.action.AUDIO_WIDGET_COMMAND"
@@ -194,6 +205,7 @@ class AudioPlaybackService : MediaSessionService() {
 
         val exoPlayer = ExoPlayer.Builder(this, createPlaybackRenderersFactory(this))
             .setMediaSourceFactory(networkMediaSourceFactory)
+            .setLoadControl(RadioStreamBufferConfig.createLoadControl())
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(wakeMode)
@@ -226,6 +238,7 @@ class AudioPlaybackService : MediaSessionService() {
                         // S0172: begin periodic save once player is ready
                         startPositionSaving()
                         publishWidgetSnapshot()
+                        recordCurrentStreamSuccess()
                     }
                     Player.STATE_BUFFERING -> {
                         // New track loading - cancel auto-stop; save loop starts on STATE_READY
@@ -252,12 +265,17 @@ class AudioPlaybackService : MediaSessionService() {
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                resetStreamRecovery(mediaItem)
                 publishWidgetSnapshot()
             }
 
             override fun onPlayerError(error: PlaybackException) {
                 autoStopHandler.removeCallbacks(autoStopRunnable)
                 val p = player
+                if (p != null && canRetryStream(error)) {
+                    scheduleStreamRetry()
+                    return
+                }
                 if (p != null && error.isSkippable() && p.hasNextMediaItem()
                     && consecutiveSkipCount < p.mediaItemCount
                 ) {
@@ -395,6 +413,7 @@ class AudioPlaybackService : MediaSessionService() {
         isRunning = false
         stopListenClock()
         autoStopHandler.removeCallbacks(autoStopRunnable)
+        autoStopHandler.removeCallbacks(streamRetryRunnable)
 
         // Capture position before player is released, then stop the save loop
         val p = player
@@ -487,6 +506,56 @@ class AudioPlaybackService : MediaSessionService() {
     // track can be skipped. IO/runtime errors (e.g. evicted cache -> FILE_NOT_FOUND) may affect the whole
     // session and keep the stop behavior. See S0413 research/01.
     private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
+
+    private fun canRetryStream(error: PlaybackException): Boolean =
+        error.errorCode in PlaybackException.ERROR_CODE_IO_UNSPECIFIED..
+            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE &&
+            (streamHasSuccessfulPlayback ||
+                SystemClock.elapsedRealtime() - streamConnectionStartedAtMs <
+                RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
+
+    private fun scheduleStreamRetry() {
+        val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl streamRetryAttempt)
+            .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
+        streamRetryAttempt = (streamRetryAttempt + 1).coerceAtMost(MAX_STREAM_BACKOFF_SHIFT)
+        autoStopHandler.removeCallbacks(streamRetryRunnable)
+        autoStopHandler.postDelayed(streamRetryRunnable, delay)
+    }
+
+    private fun retryCurrentStream() {
+        val currentPlayer = player ?: return
+        if (!streamHasSuccessfulPlayback &&
+            SystemClock.elapsedRealtime() - streamConnectionStartedAtMs >=
+            RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
+        ) {
+            stopSelf()
+            return
+        }
+        currentPlayer.prepare()
+        currentPlayer.playWhenReady = true
+    }
+
+    private fun resetStreamRecovery(mediaItem: MediaItem?) {
+        autoStopHandler.removeCallbacks(streamRetryRunnable)
+        streamConnectionStartedAtMs = SystemClock.elapsedRealtime()
+        streamHasSuccessfulPlayback = false
+        streamRetryAttempt = 0
+        val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
+        serviceScope.launch {
+            streamHasSuccessfulPlayback = streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
+        }
+    }
+
+    private fun recordCurrentStreamSuccess() {
+        val streamUrl = player?.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
+        streamHasSuccessfulPlayback = true
+        streamRetryAttempt = 0
+        serviceScope.launch {
+            val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
+            streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
+            streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
+        }
+    }
 
     private fun currentItemDisplayName(p: Player): String {
         val item = p.currentMediaItem

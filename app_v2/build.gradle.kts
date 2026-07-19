@@ -1157,9 +1157,14 @@ if (isNoLegalBuild) {
                     // follow-up fix to #17075 (commit 8b8e3e3) plus "Instagram: Detect when cookies
                     // are invalidated" (#17126), targeting exactly the reel extraction + stale-
                     // session failure modes (ref S0822).
+                    // 2026-07-19 (pre-release refresh): bumped 2026.07.04.221833 → 2026.07.14.233956.
+                    // Stayed on nightly - PyPI stable is still 2026.7.4 (same day as the prior pin,
+                    // lacks the nightly-only Instagram Rework #17075 fixes). This nightly carries the
+                    // named Instagram fixes plus ~10 days of upstream extractor maintenance. Server-
+                    // side extractor rot means the freshest nightly is the best bet at ship time.
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.04.221833/yt-dlp.tar.gz",
+                            "releases/download/2026.07.14.233956/yt-dlp.tar.gz",
                     )
                 }
             }

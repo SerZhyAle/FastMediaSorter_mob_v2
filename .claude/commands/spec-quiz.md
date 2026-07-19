@@ -1,3 +1,7 @@
+---
+description: "Use to unstick one spec via multiple-choice Q&A - ask the owner only the decisions blocking the next transition, write answers in, advance one lifecycle level. Triggers: 'spec-quiz Sxxxx', 'this spec is stuck', 'decide the open questions'."
+---
+
 # Spec Quiz - Unstick a Spec via Multiple-Choice Q&A
 
 Ask owner a focused set of multiple-choice questions about ONE stuck spec, write answers into the spec file, then advance it exactly one lifecycle level. Quiz elicits only decisions genuinely the owner's to make and currently blocking the next transition - nothing the architecture, codebase, or prior research already answers.

@@ -2800,6 +2800,8 @@ Close the player and try again.</string>
     <string name="stream_status_ok">Verified online</string>
     <string name="stream_status_failed">Last playback failed</string>
     <string name="stream_status_unknown">Not played yet</string>
+    <string name="stream_access_geo">🌐 Region-locked</string>
+    <string name="stream_access_geo_desc">May be region-restricted - might not play in your region</string>
     <string name="programs">Programs</string>
     <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
     <string name="cast_stream_unsupported_protocol">This stream can\'t be cast to Chromecast</string>
@@ -3063,6 +3065,57 @@ Close the player and try again.</string>
     <string name="gesture_action_explain_start_audio_recording">Toggles the quick voice recorder on or off.</string>
     <string name="gesture_action_explain_start_screen_recording">Toggles screen video recording on or off.</string>
     <string name="gesture_action_explain_do_not_use">Leaves this gesture unassigned.</string>
+    <!-- S1038: device-control action labels (flashlight, brightness, volume, media transport) -->
+    <string name="screenshot_gesture_action_flashlight">Toggle flashlight</string>
+    <string name="screenshot_gesture_action_brightness_max">Maximum brightness</string>
+    <string name="screenshot_gesture_action_brightness_normal">Normal brightness</string>
+    <string name="screenshot_gesture_action_volume_up">Volume up</string>
+    <string name="screenshot_gesture_action_volume_down">Volume down</string>
+    <string name="screenshot_gesture_action_volume_mute">Mute</string>
+    <string name="screenshot_gesture_action_media_play_pause">Play / pause</string>
+    <string name="screenshot_gesture_action_media_next">Next track</string>
+    <string name="screenshot_gesture_action_media_prev">Previous track</string>
+    <string name="gesture_action_explain_toggle_flashlight">Turns the camera flash on or off.</string>
+    <string name="gesture_action_explain_brightness_max">Sets the screen brightness to maximum.</string>
+    <string name="gesture_action_explain_brightness_normal">Restores the usual screen brightness.</string>
+    <string name="gesture_action_explain_volume_up">Raises the media volume by one step.</string>
+    <string name="gesture_action_explain_volume_down">Lowers the media volume by one step.</string>
+    <string name="gesture_action_explain_volume_mute">Toggles mute for the media volume.</string>
+    <string name="gesture_action_explain_media_play_pause">Plays or pauses the current media.</string>
+    <string name="gesture_action_explain_media_next">Skips to the next track.</string>
+    <string name="gesture_action_explain_media_prev">Skips to the previous track.</string>
+    <!-- S1038: launch/intent action labels (assistant, Gemini, Keep, URL, alarm, timer, calendar) -->
+    <string name="screenshot_gesture_action_open_assistant">Open assistant</string>
+    <string name="screenshot_gesture_action_open_gemini">Open Gemini</string>
+    <string name="screenshot_gesture_action_create_keep_note">New Google Keep note</string>
+    <string name="screenshot_gesture_action_open_url">Open a web address</string>
+    <string name="screenshot_gesture_action_set_alarm">Set an alarm</string>
+    <string name="screenshot_gesture_action_set_timer">Start a timer</string>
+    <string name="screenshot_gesture_action_new_calendar_event">New calendar event</string>
+    <string name="gesture_action_explain_open_assistant">Opens the system voice assistant.</string>
+    <string name="gesture_action_explain_open_gemini">Opens the Gemini app.</string>
+    <string name="gesture_action_explain_create_keep_note">Starts a new note in Google Keep.</string>
+    <string name="gesture_action_explain_open_url">Opens the web address saved for this gesture.</string>
+    <string name="gesture_action_explain_set_alarm">Opens the clock to set a new alarm.</string>
+    <string name="gesture_action_explain_set_timer">Opens the clock to start a timer.</string>
+    <string name="gesture_action_explain_new_calendar_event">Opens the calendar to add a new event.</string>
+    <!-- S1038: per-slot URL entry dialog for the OPEN_URL gesture action -->
+    <string name="gesture_url_input_title">Web address</string>
+    <string name="gesture_url_input_hint">https://example.com</string>
+    <!-- S1038: system action labels (noLegal accessibility only): shade, quick settings, lock, split, recents -->
+    <string name="screenshot_gesture_action_notification_shade">Notification shade</string>
+    <string name="screenshot_gesture_action_quick_settings">Quick settings</string>
+    <string name="screenshot_gesture_action_lock_screen">Lock screen</string>
+    <string name="screenshot_gesture_action_split_screen">Split screen</string>
+    <string name="screenshot_gesture_action_recent_apps">Recent apps</string>
+    <string name="gesture_action_explain_open_notification_shade">Opens the notification shade.</string>
+    <string name="gesture_action_explain_open_quick_settings">Opens the quick settings panel.</string>
+    <string name="gesture_action_explain_lock_screen">Locks the screen.</string>
+    <string name="gesture_action_explain_toggle_split_screen">Toggles split-screen mode.</string>
+    <string name="gesture_action_explain_previous_app">Opens the recent apps overview.</string>
+    <!-- S1038: WRITE_SETTINGS grant prompt shown when a brightness gesture action is chosen -->
+    <string name="gesture_write_settings_title">Allow brightness control</string>
+    <string name="gesture_write_settings_message">To change screen brightness with a gesture, allow this app to modify system settings.</string>
     <string name="transfer_destination_unreachable">Destination server is unreachable - transfer aborted</string>
     <string name="rotate_content_90_title">Rotate 90°</string>
     <string name="rotate_content_90_desc">Rotate the frame 90 degrees clockwise</string>
@@ -3149,4 +3202,5 @@ Close the player and try again.</string>
     <string name="companion_import_added_one">Added: %1$s</string>
     <string name="companion_import_updated_one">Updated: %1$s</string>
     <string name="companion_import_no_changes">Resources already up to date</string>
+    <string name="streams_no_signal">No signal</string>
 </resources>

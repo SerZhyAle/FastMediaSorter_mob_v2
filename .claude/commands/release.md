@@ -1,3 +1,7 @@
+---
+description: "Use to run the full release campaign - assess, finish in-flight work, /spec-prerelease, ready docs incl. What's New, /skill-release, distribute, verify. Triggers: 'release', 'ship a build', 'cut a release'."
+---
+
 # /release - Release Campaign Runbook
 
 > **GLOBAL DIRECTIVES:**

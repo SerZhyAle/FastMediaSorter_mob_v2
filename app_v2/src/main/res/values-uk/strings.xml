@@ -2722,6 +2722,8 @@
     <string name="stream_status_ok">Перевірено онлайн</string>
     <string name="stream_status_failed">Останній запуск не вдався</string>
     <string name="stream_status_unknown">Ще не перевірялось</string>
+    <string name="stream_access_geo">🌐 Регіон</string>
+    <string name="stream_access_geo_desc">Можливо, обмежений регіоном - може не відтворюватися у вашому регіоні</string>
     <string name="programs">Програми</string>
     <string name="error_scan_timeout">Тека завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
     <string name="cast_stream_unsupported_protocol">Цю трансляцію не можна транслювати на Chromecast</string>
@@ -2991,6 +2993,57 @@
     <string name="gesture_action_explain_start_audio_recording">Вмикає або вимикає швидкий запис голосу.</string>
     <string name="gesture_action_explain_start_screen_recording">Вмикає або вимикає запис відео з екрана.</string>
     <string name="gesture_action_explain_do_not_use">Залишає жест без дії.</string>
+    <!-- S1038: device-control action labels (flashlight, brightness, volume, media transport) -->
+    <string name="screenshot_gesture_action_flashlight">Ліхтарик увімк/вимк</string>
+    <string name="screenshot_gesture_action_brightness_max">Максимальна яскравість</string>
+    <string name="screenshot_gesture_action_brightness_normal">Звичайна яскравість</string>
+    <string name="screenshot_gesture_action_volume_up">Гучніше</string>
+    <string name="screenshot_gesture_action_volume_down">Тихіше</string>
+    <string name="screenshot_gesture_action_volume_mute">Без звуку</string>
+    <string name="screenshot_gesture_action_media_play_pause">Відтворення/пауза</string>
+    <string name="screenshot_gesture_action_media_next">Наступний трек</string>
+    <string name="screenshot_gesture_action_media_prev">Попередній трек</string>
+    <string name="gesture_action_explain_toggle_flashlight">Вмикає або вимикає спалах камери.</string>
+    <string name="gesture_action_explain_brightness_max">Встановлює максимальну яскравість екрана.</string>
+    <string name="gesture_action_explain_brightness_normal">Повертає звичайну яскравість екрана.</string>
+    <string name="gesture_action_explain_volume_up">Підвищує гучність медіа на один крок.</string>
+    <string name="gesture_action_explain_volume_down">Знижує гучність медіа на один крок.</string>
+    <string name="gesture_action_explain_volume_mute">Перемикає беззвучний режим для медіа.</string>
+    <string name="gesture_action_explain_media_play_pause">Відтворює або призупиняє поточне медіа.</string>
+    <string name="gesture_action_explain_media_next">Переходить до наступного треку.</string>
+    <string name="gesture_action_explain_media_prev">Переходить до попереднього треку.</string>
+    <!-- S1038: launch/intent action labels (assistant, Gemini, Keep, URL, alarm, timer, calendar) -->
+    <string name="screenshot_gesture_action_open_assistant">Відкрити асистента</string>
+    <string name="screenshot_gesture_action_open_gemini">Відкрити Gemini</string>
+    <string name="screenshot_gesture_action_create_keep_note">Нотатка в Google Keep</string>
+    <string name="screenshot_gesture_action_open_url">Відкрити веб-адресу</string>
+    <string name="screenshot_gesture_action_set_alarm">Установити будильник</string>
+    <string name="screenshot_gesture_action_set_timer">Запустити таймер</string>
+    <string name="screenshot_gesture_action_new_calendar_event">Нова подія календаря</string>
+    <string name="gesture_action_explain_open_assistant">Відкриває системного голосового асистента.</string>
+    <string name="gesture_action_explain_open_gemini">Відкриває застосунок Gemini.</string>
+    <string name="gesture_action_explain_create_keep_note">Створює нову нотатку в Google Keep.</string>
+    <string name="gesture_action_explain_open_url">Відкриває веб-адресу, збережену для цього жесту.</string>
+    <string name="gesture_action_explain_set_alarm">Відкриває годинник для встановлення будильника.</string>
+    <string name="gesture_action_explain_set_timer">Відкриває годинник для запуску таймера.</string>
+    <string name="gesture_action_explain_new_calendar_event">Відкриває календар для додавання події.</string>
+    <!-- S1038: per-slot URL entry dialog for the OPEN_URL gesture action -->
+    <string name="gesture_url_input_title">Веб-адреса</string>
+    <string name="gesture_url_input_hint">https://example.com</string>
+    <!-- S1038: system action labels (noLegal accessibility only): shade, quick settings, lock, split, recents -->
+    <string name="screenshot_gesture_action_notification_shade">Панель сповіщень</string>
+    <string name="screenshot_gesture_action_quick_settings">Швидкі налаштування</string>
+    <string name="screenshot_gesture_action_lock_screen">Заблокувати екран</string>
+    <string name="screenshot_gesture_action_split_screen">Розділити екран</string>
+    <string name="screenshot_gesture_action_recent_apps">Останні застосунки</string>
+    <string name="gesture_action_explain_open_notification_shade">Відкриває панель сповіщень.</string>
+    <string name="gesture_action_explain_open_quick_settings">Відкриває панель швидких налаштувань.</string>
+    <string name="gesture_action_explain_lock_screen">Блокує екран.</string>
+    <string name="gesture_action_explain_toggle_split_screen">Перемикає режим розділеного екрана.</string>
+    <string name="gesture_action_explain_previous_app">Відкриває список останніх застосунків.</string>
+    <!-- S1038: WRITE_SETTINGS grant prompt shown when a brightness gesture action is chosen -->
+    <string name="gesture_write_settings_title">Дозволити керування яскравістю</string>
+    <string name="gesture_write_settings_message">Щоб змінювати яскравість екрана жестом, дозвольте застосунку змінювати системні налаштування.</string>
     <string name="transfer_destination_unreachable">Сервер призначення недоступний - передавання перервано</string>
     <string name="rotate_content_90_title">Повернути на 90°</string>
     <string name="rotate_content_90_desc">Повернути кадр на 90 градусів за годинниковою стрілкою</string>
@@ -3077,4 +3130,5 @@
     <string name="companion_import_added_one">Додано: %1$s</string>
     <string name="companion_import_updated_one">Оновлено: %1$s</string>
     <string name="companion_import_no_changes">Ресурси вже актуальні</string>
+    <string name="streams_no_signal">Немає сигналу</string>
 </resources>

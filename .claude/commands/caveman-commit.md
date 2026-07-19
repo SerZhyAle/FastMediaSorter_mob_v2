@@ -1,4 +1,5 @@
 ---
+description: "Use when committing in caveman mode - terse EN commit message, minimal ceremony. Triggers: 'caveman commit', a quick commit with filler dropped."
 model: sonnet
 ---
 

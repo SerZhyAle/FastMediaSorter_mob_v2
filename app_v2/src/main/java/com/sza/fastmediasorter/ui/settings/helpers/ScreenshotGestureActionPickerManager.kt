@@ -17,6 +17,8 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 class ScreenshotGestureActionPickerManager(
     private val capabilityAvailability: CapabilityAvailability,
     private val screenRecordingAvailable: Boolean = false,
+    // S1038: SYSTEM-group actions run through the noLegal accessibility seam; hidden where it is absent.
+    private val systemActionsAvailable: Boolean = false,
 ) {
 
     fun labelFor(context: Context, action: ScreenshotGestureAction): String =
@@ -24,11 +26,16 @@ class ScreenshotGestureActionPickerManager(
 
     fun availableActions(): List<ScreenshotGestureAction> =
         ScreenshotGestureAction.entries.filter { action ->
-            when (action) {
+            ScreenshotGestureActionCatalog.isAvailableOnApi(action) && when (action) {
                 ScreenshotGestureAction.OCR_TRANSLATE,
                 ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE ->
                     capabilityAvailability.isTranslationAvailable()
                 ScreenshotGestureAction.START_SCREEN_RECORDING -> screenRecordingAvailable
+                ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
+                ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+                ScreenshotGestureAction.LOCK_SCREEN,
+                ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
+                ScreenshotGestureAction.PREVIOUS_APP -> systemActionsAvailable
                 else -> true
             }
         }

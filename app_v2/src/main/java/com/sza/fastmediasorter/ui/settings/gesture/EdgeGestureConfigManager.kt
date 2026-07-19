@@ -2,12 +2,18 @@ package com.sza.fastmediasorter.ui.settings.gesture
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import android.provider.Settings
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
@@ -22,6 +28,7 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
+import timber.log.Timber
 
 /**
  * S1035: hosts the edge-gesture detail UI inside [EdgeGestureConfigDialogFragment] - the four per-zone
@@ -197,7 +204,62 @@ class EdgeGestureConfigManager(
             viewModel.settings.value.screenshotGestureAction(zone, direction)
         ) { picked ->
             viewModel.updateSettings(applyAction(viewModel.settings.value, zone, direction, picked))
+            // S1038: OPEN_URL needs a target address; prompt for it right after the action is chosen and
+            // store it in the per-slot payload. Cancelling leaves the payload empty (dispatch degrades).
+            if (picked == ScreenshotGestureAction.OPEN_URL) promptUrl(zone, direction)
+            // S1038: the brightness actions need WRITE_SETTINGS; request it now so the gesture actually
+            // works. Without the grant the action is set but stays inactive (dispatch degrades with a log).
+            if (picked == ScreenshotGestureAction.BRIGHTNESS_MAX ||
+                picked == ScreenshotGestureAction.BRIGHTNESS_NORMAL
+            ) {
+                ensureWriteSettingsPermission()
+            }
         }
+    }
+
+    // S1038: routes the user to the WRITE_SETTINGS grant screen when a brightness action is chosen and
+    // the permission is missing. Declining leaves brightness inactive rather than failing silently.
+    private fun ensureWriteSettingsPermission() {
+        val ctx = fragment.requireContext()
+        if (Settings.System.canWrite(ctx)) return
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.gesture_write_settings_title)
+            .setMessage(R.string.gesture_write_settings_message)
+            .setPositiveButton(R.string.screenshot_gesture_open_settings) { _, _ ->
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + ctx.packageName),
+                )
+                runCatching { fragment.startActivity(intent) }
+                    .onFailure { Timber.w(it, "EdgeGestureConfigManager: cannot open WRITE_SETTINGS screen") }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    // S1038: per-slot URL entry for the OPEN_URL action, pre-filled with the current payload for editing.
+    private fun promptUrl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
+        val ctx = fragment.requireContext()
+        val input = EditText(ctx).apply {
+            setText(viewModel.settings.value.screenshotGesturePayload(zone, direction))
+            setSelection(text.length)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            setHint(R.string.gesture_url_input_hint)
+        }
+        val pad = (URL_DIALOG_PADDING_DP * ctx.resources.displayMetrics.density).toInt()
+        val container = FrameLayout(ctx).apply {
+            setPadding(pad, pad / 2, pad, 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.gesture_url_input_title)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val url = input.text?.toString()?.trim().orEmpty()
+                viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, url))
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun renderZone(settings: AppSettings, zone: ScreenshotGestureZone) {
@@ -329,5 +391,38 @@ class EdgeGestureConfigManager(
             ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightBottomRight = action)
             ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightBottomDown = action)
         }
+    }
+
+    // S1038: writes the per-slot payload (the OPEN_URL address). Mirrors applyAction's slot mapping.
+    private fun applyPayload(
+        s: AppSettings,
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+        payload: String,
+    ): AppSettings = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> when (direction) {
+            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadLeftTopUp = payload)
+            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadLeftTopRight = payload)
+            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadLeftTopDown = payload)
+        }
+        ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadLeftBottomUp = payload)
+            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadLeftBottomRight = payload)
+            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadLeftBottomDown = payload)
+        }
+        ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
+            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadRightTopUp = payload)
+            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadRightTopRight = payload)
+            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadRightTopDown = payload)
+        }
+        ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadRightBottomUp = payload)
+            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadRightBottomRight = payload)
+            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadRightBottomDown = payload)
+        }
+    }
+
+    private companion object {
+        private const val URL_DIALOG_PADDING_DP = 24
     }
 }

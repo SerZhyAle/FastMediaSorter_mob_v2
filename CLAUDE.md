@@ -141,6 +141,7 @@
 
 ## 12. Validation & Post-Change
 - Record `expected: X | actual: Y` for all checks.
+- No completion claim without fresh evidence: before stating anything is done/fixed/passing, run the command that proves it, read its exit code and output, and cite that. Prior runs, assumptions, and self-reports (including a subagent's "build passed") are not evidence - re-run and read it yourself. Red-flag words that mean you are about to claim without proof: "should", "probably", "seems", "looks fixed", "I think it passes" - stop and run the check first.
 - Mechanical closure: `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<desc>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>]`. Skills SHOULD route mechanical closure through this facade instead of hand-rolling each step.
 - Dirty-tree closure (S0826): add `-ScopeToFile` to diff-scope the detekt gate to `-File` (fails only on findings in this change) and downgrade the project-wide count-ratchet gates (neuroslop / listener-symmetry / flavor-flag / deprecated-pm) to advisory warnings, so the facade closes a clean change without failing on other tickets' in-flight WIP. Omit it for release/CI to get the strict full-project gate.
 - Journaling granularity: one dev-log entry per logical change/ticket, not per touched file (batch multi-file changes via `close-and-log.ps1 -DevLogs`); run `catalog_sync.ps1` once per ticket, not per `.kt` edit.
@@ -163,3 +164,4 @@
 - **Player/Glide ownership**: one owner per `ExoPlayer`; `release()` on real teardown with `setVideoSurface(null)` + remove every listener + abandon audio focus first; apply the same release contract to every player host, not just the edited one (extends Rule 18). Glide decode at display size (`override(w,h)`), `clear(target)` on detach.
 - **R8 / minified proof**: a P0/P1 change touching reflection, serialization, DI graphs, manifests, or dependencies is not done until proven on the **minified release/target variant** (keep rules cover reflective/serialized types; no new `R8: missing class`/`unresolved`), not only on debug. Extends Rule 20.
 - Recurring finding -> convert to a mechanical gate (`scripts/quality/assert-*.ps1`), per Rule 19/20 and Layer 8. Do not duplicate the protocol text in rules - link to it.
+- Authoring a new rule / gate / command / skill: follow `dev/RULE_AND_SKILL_AUTHORING.md` (observe the failure first, write minimal, close rationalizations, promote recurring rules to gates; trigger-focused `description` fields).

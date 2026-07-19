@@ -45,6 +45,10 @@ class ExoPlayerControlsManager(
         fun onSeekBackward(seconds: Int)
         // S0641: true while a live video stream plays - drives the trimmed on-player control set.
         fun isLiveVideoStream(): Boolean
+        // S1114: launch VR-immersive for the current video from the transport controls row.
+        fun onVrLaunchClicked()
+        // S1114: true when VR entry is available now (XR device + 3D/VR master toggle + video).
+        fun isVrEntryAvailable(): Boolean
     }
     
     /**
@@ -81,6 +85,12 @@ class ExoPlayerControlsManager(
             UserActionLogger.logButtonClick("PlaybackControl", "ExoPlayerControlsManager")
             callback.showPlaybackControlDialog()
         }
+
+        // S1114: VR entry from the transport row - reachable in fullscreen (unlike the top badge).
+        binding.playerView.findViewById<ImageButton>(R.id.btnVrLaunch)?.setOnClickListener {
+            UserActionLogger.logButtonClick("VrLaunch", "ExoPlayerControlsManager")
+            callback.onVrLaunchClicked()
+        }
         
         // Setup rewind/forward buttons for audiobook mode
         val btnRewind = binding.playerView.findViewById<ImageButton>(R.id.btnRewind10)
@@ -106,10 +116,25 @@ class ExoPlayerControlsManager(
         // every controller-show so the trimmed live-stream set stays trimmed.
         binding.playerView.setControllerVisibilityListener(
             PlayerView.ControllerVisibilityListener { visibility ->
-                if (visibility == View.VISIBLE) applyStreamControlProfile()
+                if (visibility == View.VISIBLE) {
+                    applyStreamControlProfile()
+                    updateVrEntryButtonVisibility()
+                }
             }
         )
         applyStreamControlProfile()
+        updateVrEntryButtonVisibility()
+    }
+
+    /**
+     * S1114: show the VR-entry button in the transport row only when VR entry is available now
+     * (XR device + 3D/VR master toggle + video). Re-applied on every controller-show and whenever
+     * the host signals an XR-availability change.
+     */
+    fun updateVrEntryButtonVisibility() {
+        val available = callback.isVrEntryAvailable()
+        binding.playerView.findViewById<View>(R.id.btnVrLaunch)?.visibility =
+            if (available) View.VISIBLE else View.GONE
     }
 
     /**

@@ -1,3 +1,7 @@
+---
+description: "Use to resolve layout/UX ambiguity before design or implementation - placement, visibility, fallback per orientation. Triggers: 'ui-clarify', any user-facing change with unresolved UI decisions."
+---
+
 # UI Clarification Gate
 
 Block implementation until all important UI/UX decisions explicit.

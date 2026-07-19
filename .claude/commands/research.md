@@ -1,3 +1,7 @@
+---
+description: "Use when researching the codebase or Android/library behaviour before deciding - AS-IS analysis, API constraints, where a feature lives. Triggers: 'research', 'investigate', 'how does X work here', 'find the approach'."
+---
+
 # Research Guide
 
 > **GLOBAL DIRECTIVES (ANTI-BUREAUCRACY):**
