@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="qwkzLSJrJ7adxFYz-95YY-Uhs0yX6QakWxZWFWtN-ks" />
     <meta name="description"
-        content="Сортування фото, відео та музики з локального сховища, SMB/NAS, SFTP та хмари. Безкоштовний Android-застосунок з плеєром, слайд-шоу, читалкою EPUB, OCR-перекладом та підтримкою Wear OS.">
+        content="Переглядайте й упорядковуйте файли з локальних папок, SMB/NAS, SFTP/FTP та хмари на Android. Почніть з безпечного перегляду першої папки.">
     <meta name="keywords"
         content="файловий менеджер Android, сортування медіафайлів Android, органайзер фотографій, сортувальник відео Android, SMB клієнт Android, браузер NAS Android, SFTP клієнт Android, FTP клієнт Android, менеджер хмарного сховища Android, Google Drive менеджер Android, Dropbox Android, застосунок слайд-шоу, цифрова фоторамка планшет, аудіоплеєр Android, читалка EPUB Android, OCR переклад Android, медіаплеєр автомагнітола Android, застосунок головний пристрій Android, органайзер файлів Android, пакетні операції файлами Android">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0f0a">
-    <title>Fast Media Sorter &amp; Organizer - Органайзер для Android: SMB, Хмара, Плеєр</title>
+    <title>Fast Media Sorter - перегляд і сортування файлів на Android</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -21,9 +21,9 @@
     <!-- SEO: Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
-    <meta property="og:title" content="Fast Media Sorter &amp; Organizer - Органайзер для Android: SMB, Хмара, Плеєр">
+    <meta property="og:title" content="Fast Media Sorter - перегляд і сортування файлів на Android">
     <meta property="og:description"
-        content="Сортування фото, відео та музики з локального, SMB/NAS, SFTP та хмарного сховища. Безкоштовний Android-застосунок з плеєром, слайд-шоу та OCR-перекладом.">
+        content="Переглядайте й упорядковуйте файли з локальних папок, SMB/NAS, SFTP/FTP та хмари на Android.">
     <meta property="og:image"
         content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
     <meta property="og:image:width" content="1080">
@@ -35,9 +35,9 @@
 
     <!-- SEO: Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Fast Media Sorter &amp; Organizer - Органайзер для Android: SMB, Хмара, Плеєр">
+    <meta name="twitter:title" content="Fast Media Sorter - перегляд і сортування файлів на Android">
     <meta name="twitter:description"
-        content="Сортування фото, відео та музики з локального, SMB/NAS, SFTP та хмарного сховища. Безкоштовний Android-застосунок з плеєром, слайд-шоу та OCR-перекладом.">
+        content="Переглядайте й упорядковуйте файли з локальних папок, SMB/NAS, SFTP/FTP та хмари на Android.">
     <meta name="twitter:image"
         content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
 
@@ -89,14 +89,14 @@
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
-        <a class="brand" href="index-uk.html"><img src="icon.png" alt="">Fast Media Sorter<span class="dot">.</span></a>
+        <a class="brand" href="index-uk.html">Fast Media Sorter<span class="dot">.</span></a>
         <div class="seg" role="group" aria-label="Мова">
             <a href="index-ru.html" data-lang="ru">RU</a>
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" class="on" data-lang="ua">UA</a>
         </div>
         <button class="theme-btn" id="themeBtn" aria-label="Перемкнути на світлу тему" title="Змінити тему">◐</button>
-        <a class="btn btn-primary btn-sm" href="#get">Завантажити</a>
+        <a class="btn btn-primary btn-sm" href="#get">Встановити</a>
     </header>
 
     <!-- GitHub Corner -->
@@ -115,44 +115,52 @@
         </svg>
     </a>
 
-    <header id="get">
+    <header class="hero" id="top">
         <canvas id="headerCanvas"></canvas>
         <div class="hero-inner">
-            <h1><img src="icon.png" alt="Fast Media Sorter"> Fast Media Sorter</h1>
-            <div class="subtitle">Розумна організація та відтворення медіафайлів для Android та VR</div>
-            <ul class="hero-facts">
-                <li>Безкоштовно</li>
-                <li>Відкритий код</li>
-                <li>Android 8+</li>
-                <li>SMB/NAS</li>
-                <li>SFTP/FTP</li>
-                <li>Хмара</li>
-                <li>VR</li>
-            </ul>
-            <p class="whatfor">Сортує та відтворює фото, відео, музику й документи з локального сховища, SMB/NAS,
-                SFTP/FTP та хмари - для тих, хто впорядковує медіа на телефонах, планшетах, ТВ-боксах, автомагнітолах
-                та VR-шоломах.</p>
-            <ol class="quickstart">
-                <li>Встановіть APK для вашого пристрою (або з Google Play).</li>
-                <li>Дозвольте встановлення з цього джерела, якщо Android попросить.</li>
-                <li>Додайте теку, мережевий ресурс або хмару - потім відкрийте та сортуйте.</li>
-            </ol>
-            <div class="channels">
-                <a class="btn btn-ghost" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
-                    target="_blank" rel="noopener">Google Play</a>
-                <a class="btn btn-ghost" href="#download">APK із GitHub Releases</a>
-            </div>
+            <p class="kicker">Android - файли та медіа</p>
+            <h1>Переглядайте й упорядковуйте файли на телефоні, у мережі та хмарі.</h1>
+            <p class="subtitle">Для фото, завантажень, музики, відео, книг і документів.</p>
+            <p class="whatfor">Fast Media Sorter &amp; Organizer - Android-застосунок для тих, кому потрібно відкрити
+                папку, зрозуміти її вміст і розкласти вибрані файли по місцях. Локальне сховище, SMB/NAS, SFTP/FTP та
+                хмарні диски доступні одним маршрутом.</p>
         </div>
     </header>
+
+    <section class="container first-route" aria-label="Початок роботи">
+        <section class="get-panel" id="get">
+            <h2>Відкрийте першу папку</h2>
+            <p class="whatfor">Безпечний перший результат - просто переглянути локальну папку. До команди
+                копіювання або переміщення файли не змінюються.</p>
+            <div class="channels">
+                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
+                    target="_blank" rel="noopener">Google Play</a>
+                <a class="btn btn-ghost" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                    target="_blank" rel="noopener">GitHub Releases</a>
+                <a class="btn btn-ghost" href="https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter"
+                    target="_blank" rel="noopener">IzzyOnDroid</a>
+            </div>
+            <ol class="quickstart">
+                <li>Встановіть потрібну редакцію та відкрийте застосунок.</li>
+                <li>Дозвольте доступ до файлів, якщо Android його запросить.</li>
+                <li>Натисніть «Додати ресурс», виберіть локальну папку й спершу перегляньте її вміст.</li>
+            </ol>
+            <aside class="note"><span class="tag">Важливо</span><p>Для сортування потрібен доступ до файлів. Перед
+                переміщенням перегляньте вибірку; якщо важлива зворотність, спершу використовуйте копіювання.</p></aside>
+        </section>
+    </section>
 
     <div class="container">
 
 
+        <details class="content-details" id="all-features">
+            <summary>Повний каталог можливостей</summary>
         <!-- Що замінює -->
-        <h2 class="section-title" id="replaces">Замінює десяток застосунків</h2>
-        <p class="section-lead">Fast Media Sorter - це універсальний медіабраузер, переглядач, плеєр та органайзер: один
-            застосунок покриває те, для чого зазвичай потрібен десяток окремих програм. Відомі застосунки нижче наведені
-            лише як впізнавані орієнтири для кожної можливості, а не як порівняння.</p>
+        <h2 class="section-title" id="replaces">Замінює понад десяток застосунків</h2>
+        <p class="section-lead">Fast Media Sorter об'єднує медіабраузер, переглядач, плеєр, файловий менеджер і
+            органайзер. Замість окремих застосунків для відео, музики, галереї, читання, мережевих папок, хмари та
+            щоденної роботи з файлами ви користуєтесь однією колекцією і звичним набором дій. Застосунки нижче -
+            лише впізнавані орієнтири можливостей, а не порівняльний рейтинг.</p>
         <div class="cards-grid replaces-grid">
             <article class="card">
                 <div class="card-title-row">
@@ -241,6 +249,8 @@
         <p class="replaces-note">Чесні застереження: калькулятор та архіватор - базові (обрахунок з тексту / видобування
             ZIP), а не повноцінна заміна. Резервна копія охоплює налаштування самого застосунку, а не всього пристрою.
             VR-плеєр доступний лише у VR-випуску.</p>
+
+        </details>
 
         <!-- Сценарії використання -->
         <h2 class="section-title">Сценарії використання</h2>
@@ -887,6 +897,22 @@
                         <li>Підходить для повного читання після швидкого старту.</li>
                     </ul>
                     <a href="docs/README_UK.html" class="card-footer" target="_blank">Читати посібник</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Історія продукту</h3>
+                    </div>
+                    <p class="card-summary">Хронологія Windows-лінії, Android-поколінь і ключових віх поточного v2.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Поєднує докази з репозиторію та історичний контекст від власника.</li>
+                        <li>Корисно, коли потрібна загальна картина еволюції продукту.</li>
+                    </ul>
+                    <a href="docs/PRODUCT_HISTORY_UK.html" class="card-footer" target="_blank">Читати історію</a>
                 </details>
             </article>
             <article class="card">
