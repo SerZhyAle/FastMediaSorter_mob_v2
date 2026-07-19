@@ -10,12 +10,13 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.ui.player.helpers.PrefetchLoadControlFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -30,6 +31,7 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
 ) {
 
     private var exoPlayer: ExoPlayer? = null
+
     @Volatile private var reusableBuffer: ByteBuffer? = null
 
     /** Decodes an image within the heap budget and pushes it to the main quad. Returns success. */
@@ -56,7 +58,12 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
             Timber.w("ImmersiveBrowsePlaybackController: native video surface not ready")
             return false
         }
-        exoPlayer = ExoPlayer.Builder(context).build().apply {
+        // S1113: apply the S0772 heap-bounded LoadControl (default LoadControl over-buffers 7K on
+        // the 512 MB-heap headset and stalls). Matches the flat player + DiagnosticXrActivity.
+        val vrPlayer = ExoPlayer.Builder(context)
+            .setLoadControl(PrefetchLoadControlFactory.build(plan = null, tag = "vr-browse"))
+            .build()
+        exoPlayer = vrPlayer.apply {
             setVideoSurface(surface)
             repeatMode = Player.REPEAT_MODE_ALL
             addListener(object : Player.Listener {

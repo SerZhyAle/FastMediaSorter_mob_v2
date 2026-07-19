@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
+import com.sza.fastmediasorter.ui.player.helpers.PrefetchLoadControlFactory
 import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
@@ -623,6 +624,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             "S0771: immersive stereo resolved layout=${config.layout} " +
                 "source=${if (detected != null) "stereo-detector" else "legacy"} file=$filename"
         )
+        // S1112: verify TB (_stereo_tb) content resolves to TOP_BOTTOM, not SIDE_BY_SIDE.
+        Timber.d("S1112: $filename -> proj=${config.projection} layout=${config.layout}")
         return config
     }
 
@@ -1032,11 +1035,22 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             return false
         }
         val snapshot = launchInput.snapshot
-        exoPlayer = ExoPlayer.Builder(this).build().apply {
+        // S1113: immersive playback was on the DEFAULT LoadControl (no S0772 heap cap), so a 7K
+        // HEVC stream over-buffers on the 512 MB-heap headset and stalls (blank quad). Apply the
+        // same heap-bounded LoadControl the flat player uses.
+        val vrPlayer = ExoPlayer.Builder(this)
+            .setLoadControl(PrefetchLoadControlFactory.build(plan = null, tag = "vr-diagnostic"))
+            .build()
+        exoPlayer = vrPlayer.apply {
             setVideoSurface(videoSurface)
             repeatMode = Player.REPEAT_MODE_ALL
             
             addListener(object : Player.Listener {
+                // S1113: confirm the 7K immersive decoder produces an output size (and thus frames).
+                override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                    Timber.d("S1113: video size ${videoSize.width}x${videoSize.height} file=${file.name}")
+                }
+
                 override fun onPlayerError(error: PlaybackException) {
                     val cause = error.cause
                     val stage = when {
@@ -1317,8 +1331,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         if (thread.isAlive) {
             // Wedged native runFrameLoop: no safe synchronous kill (no Thread.stop). Abandoning it
             // retains this Activity plus the live native EGL/OpenXR session until it unwedges.
-            Timber.e("DiagnosticXrActivity: render thread did not exit within ${timeoutMs}ms; " +
-                "abandoning it still-alive - leaks Activity + native XR session")
+            Timber.e(
+                "DiagnosticXrActivity: render thread did not exit within ${timeoutMs}ms; " +
+                    "abandoning it still-alive - leaks Activity + native XR session"
+            )
         }
         renderThread = null
         sessionReady = false

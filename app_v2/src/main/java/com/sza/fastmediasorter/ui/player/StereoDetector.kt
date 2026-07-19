@@ -128,15 +128,18 @@ class StereoDetector @javax.inject.Inject constructor() {
      *
      * Filename conventions recognised (case-insensitive, token-boundary aware):
      *
-     * **Spherical / panoramic** (checked first - wins over flat markers when present):
+     * **Spherical / panoramic** (checked first - wins over flat markers when present).
+     * Specific layout markers (`sbs`, `ou`/`tb`) are tested BEFORE the generic `stereo` token
+     * (S1112) so `*_stereo_tb` does not collapse to SBS:
      *  - `cylinder`, `cylinder180`  → [StereoMode.CYLINDER_180]
      *  - `vr180`, `180x180`         → [StereoMode.VR180_FISHEYE_SBS]
-     *  - `180` + `stereo`            → [StereoMode.EQUIRECT_180_SBS]
      *  - `180` + `sbs`              → [StereoMode.EQUIRECT_180_SBS]
-     *  - `180` (alone, or with `ou`) → [StereoMode.EQUIRECT_180_MONO]
-     *  - `360` + `stereo`            → [StereoMode.EQUIRECT_360_SBS]
+     *  - `180` + `ou`/`tb`          → [StereoMode.UNKNOWN] (no 180-OU mode; caller renders TOP_BOTTOM)
+     *  - `180` + `stereo`            → [StereoMode.EQUIRECT_180_SBS]
+     *  - `180` (alone)              → [StereoMode.EQUIRECT_180_MONO]
      *  - `360` + `sbs`              → [StereoMode.EQUIRECT_360_SBS]
      *  - `360` + `ou`/`tb`          → [StereoMode.EQUIRECT_360_OU]
+     *  - `360` + `stereo`            → [StereoMode.EQUIRECT_360_SBS]
      *  - `360`, `equirect`          → [StereoMode.EQUIRECT_360_MONO]
      *  - `cubemap`                  → [StereoMode.UNKNOWN] (unsupported projection)
      *
@@ -189,14 +192,26 @@ class StereoDetector @javax.inject.Inject constructor() {
             // ─── Spherical / panoramic (priority over flat) ───
             hasCylinder -> logMatch("CYLINDER_180", StereoMode.CYLINDER_180)
             hasVr180    -> logMatch("VR180_FISHEYE_SBS", StereoMode.VR180_FISHEYE_SBS)
-            has180 && hasStereo -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
+            // S1112: specific layout markers (sbs, ou/tb) MUST be tested BEFORE the generic
+            // `stereo` token. Otherwise `*_stereo_tb` matches stereo -> SBS and top-bottom content
+            // renders side-by-side (eyes cannot fuse). Mirrors the S0290 ordering fix that lived
+            // only in the immersive legacy parser; regressed when S0771 routed the immersive
+            // renderer through this detector.
             has180 && hasSbs -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
-            // 180° + OU or plain 180° → mono (EQUIRECT_180_OU intentionally not modelled;
-            // 180° OU content is rare and renders acceptably as mono half-sphere).
+            // 180 OU: no EQUIRECT_180_OU stereo mode exists. Return UNKNOWN so the layout-aware
+            // immersive parser renders HEMISPHERE_180 + TOP_BOTTOM (pre-S0771 behaviour) instead
+            // of the generic-stereo SBS mismatch below.
+            has180 && hasOu -> {
+                Timber.d("$TAG: 180+OU has no dedicated stereo mode -> UNKNOWN (caller is layout-aware)")
+                StereoMode.UNKNOWN
+            }
+            has180 && hasStereo -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
+            // Plain 180 -> mono half-sphere.
             has180 -> logMatch("EQUIRECT_180_MONO", StereoMode.EQUIRECT_180_MONO)
             has360 && hasSbs -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
-            has360 && hasStereo -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
+            // S1112: OU/TB before generic `stereo` (see note above).
             has360 && hasOu  -> logMatch("EQUIRECT_360_OU",  StereoMode.EQUIRECT_360_OU)
+            has360 && hasStereo -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
             has360 -> logMatch("EQUIRECT_360_MONO", StereoMode.EQUIRECT_360_MONO)
             hasCubemap -> {
                 Timber.d("$TAG: cubemap marker detected - unsupported projection, UNKNOWN")
