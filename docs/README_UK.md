@@ -284,6 +284,7 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 - [Повний перелік можливостей](FEATURES.md)
 - [Карта документації](DOCS_MAP.md)
+- [Історія продукту](PRODUCT_HISTORY_UK.md)
 - [Завантаження збірок (EN)](DOWNLOADS_EN.md)
 - [How-To Guides](HOW_TO.md)
 - [Обмеження програми](LIMITATIONS.md)
@@ -294,6 +295,7 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 **🇺🇦 Українська:**
 
+- [Історія продукту](PRODUCT_HISTORY_UK.md)
 - [Посібники](HOW_TO_UK.md)
 - [Швидкий Старт](QUICK_START_UK.md)
 - [FAQ](FAQ_UK.md)
@@ -303,6 +305,7 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 **🇺🇸 English:**
 
+- [Product History](PRODUCT_HISTORY.md)
 - [How-To Guides](HOW_TO.md)
 - [Quick Start](QUICK_START.md)
 - [FAQ](FAQ.md)
@@ -314,6 +317,7 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 **🇷🇺 Русский:**
 
+- [История продукта](PRODUCT_HISTORY_RU.md)
 - [Руководства](HOW_TO_RU.md)
 - [Быстрый Старт](QUICK_START_RU.md)
 - [FAQ](FAQ_RU.md)

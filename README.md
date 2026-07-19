@@ -286,6 +286,7 @@ The following files should be treated as the authoritative sources for user-faci
 
 - [Complete Feature List](docs/FEATURES.md)
 - [Documentation Map](docs/DOCS_MAP.md)
+- [Product History](docs/PRODUCT_HISTORY.md)
 - [Downloads (EN)](docs/DOWNLOADS_EN.md)
 - [How-To Guides](docs/HOW_TO.md)
 - [Program Limitations](docs/LIMITATIONS.md)
@@ -296,6 +297,7 @@ Detailed guides are available in multiple languages:
 
 **🇺🇸 English:**
 
+- [Product History](docs/PRODUCT_HISTORY.md)
 - [How-To Guides](docs/HOW_TO.md)
 - [Quick Start](docs/QUICK_START.md)
 - [FAQ](docs/FAQ.md)
@@ -307,6 +309,7 @@ Detailed guides are available in multiple languages:
 
 **🇷🇺 Русский:**
 
+- [История продукта](docs/PRODUCT_HISTORY_RU.md)
 - [Руководства](docs/HOW_TO_RU.md)
 - [Быстрый Старт](docs/QUICK_START_RU.md)
 - [FAQ](docs/FAQ_RU.md)
@@ -316,6 +319,7 @@ Detailed guides are available in multiple languages:
 
 **🇺🇦 Українська:**
 
+- [Історія продукту](docs/PRODUCT_HISTORY_UK.md)
 - [Посібники](docs/HOW_TO_UK.md)
 - [Швидкий Старт](docs/QUICK_START_UK.md)
 - [FAQ](docs/FAQ_UK.md)

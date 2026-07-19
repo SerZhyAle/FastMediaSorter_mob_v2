@@ -391,16 +391,19 @@
 
 ---
 
-## 10. Project Statistics (as of March 3, 2026)
+## 10. Project Statistics
+
+Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSESSMENT.md`.
 
 ### Codebase Size
 
 | Metric                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Kotlin source files     | 541                   | `app_v2/` (main) + `wear/` (companion)          |
-| XML layout/config files | 315                   | UI layouts, manifests, resources                |
-| Total lines of code     | 131,445               | Kotlin only (src/ directory)                    |
-| Total source files      | 856                   | Kotlin + XML combined                           |
+| Snapshot date           | July 17, 2026         | See dedicated complexity assessment for method  |
+| Kotlin source files     | 2,360                 | All checked-in Kotlin under `app_v2/src` + `wear/src` |
+| XML layout/config files | 934                   | Layouts, manifests, menus, drawables, XML config |
+| Total lines of code     | 342,695               | Kotlin only, current repository snapshot        |
+| Total source files      | 3,294                 | Kotlin + XML combined                           |
 
 ### Code Objects
 
@@ -413,10 +416,10 @@
 
 ### Module Breakdown
 
-| Module                  | KT Files | LOC (approx) | Purpose                     |
+| Module / Scope          | KT Files | LOC (approx) | Purpose                     |
 |:------------------------|:---------|:-------------|:----------------------------|
-| `app_v2` (main)        | 515      | 125,000     | Android app (MVVM + Clean)  |
-| `wear` (companion)      | 26       | 6,445       | Wear OS app (Compose)       |
+| `app_v2` + `wear` (all source sets) | 2,360 | 342,695 | Full checked-in app code surface |
+| Production subset (no tests) | 1,956 | 272,129 | Runtime product code only |
 
 ### Architectural Breakdown (app_v2)
 
@@ -432,9 +435,9 @@
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 19                    | Latest schema with Scheduled Operations        |
-| Number of entities     | 15+                   | MediaResource, MediaFile, Cloud credentials, etc. |
-| Migrations             | 17                    | Schema evolution from v1.0 to v2.x             |
+| Room DB version        | 41                    | Current schema in `AppDatabase`                |
+| Number of entities     | 21                    | Current `@Database(entities = ..)` set         |
+| Migrations             | 40 logical steps      | Long-running schema evolution through v41      |
 
 ---
 
