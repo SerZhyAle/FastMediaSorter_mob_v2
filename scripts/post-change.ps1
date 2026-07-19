@@ -152,8 +152,11 @@ else {
     'Kotlin'
 }
 
+$normFile = ($File -replace '\\', '/')
 $runsCatalogSync = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
+$runsStringFormatGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+    ($normFile -match 'src/[^/]+/res/values[^/]*/strings.*\.xml$'))
 $runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
 $runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
@@ -186,7 +189,6 @@ $runsAllFeaturesGate = (($File -replace '\\', '/') -match 'docs/ALL_FEATURES.*\.
 # availability module) or a settings doc artifact (manifest / annotations /
 # reference). Re-runs the composite gate so a settings change that skipped
 # regenerating the manifest, annotations, or reference is blocked. Narrow trigger.
-$normFile = ($File -replace '\\', '/')
 $runsSettingsDocGate = (
     $normFile -match 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$' -or
     $normFile -match 'app_v2/.*/ui/settings/search/' -or
@@ -228,8 +230,21 @@ $runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
 $runsOrientationFeatureGate = ($normFile -match 'AndroidManifest\.xml$')
+# Script-cheatsheet drift gate. Fires when a repo PowerShell script (under the
+# cheatsheet's discovery roots scripts/ and dev/CATALOG/scripts/) or the generated
+# doc itself is touched - a changed param() block staleens docs/SCRIPT_CHEATSHEET.md
+# unless regenerated. Pure AST parse + byte-diff (no gradle), so it stays cheap.
+$runsScriptCheatsheetGate = (
+    $normFile -match '(^|/)scripts/.*\.ps1$' -or
+    $normFile -match 'docs/SCRIPT_CHEATSHEET\.md$'
+)
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
+
+$resourceSourceSet = $null
+if ($normFile -match '^[^/]+/src/([^/]+)/res/') {
+    $resourceSourceSet = $Matches[1]
+}
 
 if ($SkipScan) {
     Write-Host "  [compat] -SkipScan is deprecated; resolved ChangeType=$resolvedChangeType" -ForegroundColor DarkGray
@@ -265,6 +280,26 @@ if ($runsStringsAudit) {
 }
 else {
     Skip-Step "strings-audit" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsStringFormatGate) {
+    Invoke-Step "string-format-gate" {
+        $a = @(
+            '-NoProfile',
+            '-File',
+            (Join-Path $root "scripts/quality/assert-string-format.ps1"),
+            '-Gate',
+            '-Module',
+            $Module
+        )
+        if (-not [string]::IsNullOrWhiteSpace($resourceSourceSet)) {
+            $a += @('-SourceSet', $resourceSourceSet)
+        }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "string-format-gate" "not applicable - touched file is not a strings resource file"
 }
 
 if ($runsTicketLogAudit) {
@@ -464,6 +499,18 @@ if ($runsIconInventoryGate) {
 }
 else {
     Skip-Step "icon-inventory-sync-gate" "not applicable - touched file is not icon docs or a settings icon/title source"
+}
+
+if ($runsScriptCheatsheetGate) {
+    # Advisory under -ScopeToFile: the check regenerates from every script, so
+    # unrelated script-param WIP on a dirty tree could read as cheatsheet drift
+    # not attributable to this change. Strict on a full run.
+    & $ratchetRunner "script-cheatsheet-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "script-cheatsheet-sync-gate" "not applicable - touched file is not a repo script or the script cheatsheet"
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
