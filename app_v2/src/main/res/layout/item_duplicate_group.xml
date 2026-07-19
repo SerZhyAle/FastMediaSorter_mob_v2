@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,7 +9,6 @@
     android:layout_marginTop="8dp"
     android:layout_marginBottom="4dp"
     android:focusable="true"
-    android:foreground="@drawable/focus_button_background"
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp">
 
@@ -36,4 +35,4 @@
             tools:listitem="@layout/item_duplicate_file" />
 
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+</com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>

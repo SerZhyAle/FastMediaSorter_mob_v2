@@ -15,7 +15,7 @@
 
     <GridLayout android:id="@+id/layoutResourceTypes" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:columnCount="1" android:useDefaultMargins="true" android:padding="@dimen/padding_large" app:layout_constraintTop_toBottomOf="@id/tvTitle" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardLocalFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardLocalFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -31,9 +31,9 @@
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardNetworkFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardNetworkFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -49,9 +49,9 @@
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardSftpFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -67,9 +67,9 @@
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardCloudStorage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardCloudStorage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -85,7 +85,7 @@
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
         <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
         <TextView android:id="@+id/tvImportSectionTitle" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_marginTop="@dimen/resource_section_margin_top" android:text="@string/resource_import_section_title" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
@@ -612,7 +612,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/select_cloud_provider" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_margin_16dp" />
 
             <!-- Google Drive Card -->
-            <com.google.android.material.card.MaterialCardView android:id="@+id/cardGoogleDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+            <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardGoogleDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -624,10 +624,10 @@
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+            </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
             <!-- OneDrive Card -->
-            <com.google.android.material.card.MaterialCardView android:id="@+id/cardOneDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+            <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardOneDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -639,10 +639,10 @@
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+            </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
             <!-- Dropbox Card -->
-            <com.google.android.material.card.MaterialCardView android:id="@+id/cardDropbox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+            <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardDropbox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
 
@@ -654,7 +654,7 @@
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+            </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
             <!-- Info Text -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage_info" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
