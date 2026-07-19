@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0675: renders the stream catalog as grid tiles. Each cell shows the cached current frame via
@@ -111,6 +113,46 @@ class StreamGridAdapter(
                 onPin(source)
                 true
             }
+            bindSecondaryClickOverflow()
+            bindOverflowMenu(source)
+
+            val frame = frameProvider(source.url)
+            if (frame != null) {
+                binding.ivFrame.setImageBitmap(frame)
+                binding.root.contentDescription = context.getString(R.string.streams_grid_cell_cd, source.title)
+            } else {
+                binding.ivFrame.setImageBitmap(null)
+                binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
+                bindFavicon(source.url)
+                if (isCaptureableVideo(source)) {
+                    // S0700: capture is offscreen (no cell surface); the bound-url guard now lives in
+                    // repaintUrl, so a recycled tile never receives another url's frame.
+                    requestCapture(source.url)
+                }
+            }
+        }
+
+        // S1111: mouse right-click opens the tile action menu (mirrors StreamSourceAdapter list parity,
+        // Rule 16). Extracted from bind() to keep that method within detekt length/complexity limits.
+        // A per-tile handler is required: the activity-level mouse fallback only targets the focused view.
+        private fun bindSecondaryClickOverflow() {
+            binding.root.setOnGenericMotionListener { _, event ->
+                if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
+                    event.buttonState == MotionEvent.BUTTON_SECONDARY
+                ) {
+                    Timber.d("S1111: grid tile right-click -> overflow")
+                    binding.btnGridOverflow.performClick()
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+
+        // S1062/S0938/S0783: builds the tile overflow menu (pin/unpin, reorder, favorite, shortcut,
+        // edit, share, remove). Extracted from bind() so that method stays within detekt complexity
+        // limits after S1111 added the right-click affordance. Mirrors StreamSourceAdapter's menu.
+        private fun bindOverflowMenu(source: StreamSourceEntity) {
             binding.btnGridOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
                     // S1062: pin/unpin is the topmost menu item; the label reflects the current state and
@@ -162,21 +204,6 @@ class StreamGridAdapter(
                         }
                     }
                     show()
-                }
-            }
-
-            val frame = frameProvider(source.url)
-            if (frame != null) {
-                binding.ivFrame.setImageBitmap(frame)
-                binding.root.contentDescription = context.getString(R.string.streams_grid_cell_cd, source.title)
-            } else {
-                binding.ivFrame.setImageBitmap(null)
-                binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
-                bindFavicon(source.url)
-                if (isCaptureableVideo(source)) {
-                    // S0700: capture is offscreen (no cell surface); the bound-url guard now lives in
-                    // repaintUrl, so a recycled tile never receives another url's frame.
-                    requestCapture(source.url)
                 }
             }
         }

@@ -51,6 +51,10 @@ interface StreamSourceDao {
     @Query("SELECT mediaKind FROM stream_sources WHERE id = :id LIMIT 1")
     suspend fun getMediaKindById(id: String): String?
 
+    // S0404: a launcher shortcut stores the channel id, so playing or labelling it needs the row.
+    @Query("SELECT * FROM stream_sources WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): StreamSourceEntity?
+
     @Query("SELECT MIN(sortIndex) FROM stream_sources")
     suspend fun minSortIndex(): Int?
 

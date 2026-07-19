@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -141,6 +142,7 @@ class DeliverableInventoryImpl @Inject constructor(
             )
         }
         if (capabilityAvailability.isStreamsAvailable()) {
+            Timber.d("S1110: stream catalog size label=%s", formatBytes(STREAM_CATALOG_SIZE))
             add(
                 ExtensionItem.Catalog(
                     id = STREAM_CATALOG_ID,
@@ -271,8 +273,16 @@ class DeliverableInventoryImpl @Inject constructor(
         return formatBytes(if (fromDescriptor > 0L) fromDescriptor else FALLBACK_SIZE[set] ?: 0L)
     }
 
-    private fun formatBytes(bytes: Long): String =
-        String.format(Locale.US, "%.0f MB", bytes / 1024.0 / 1024.0)
+    // S1110: "%.0f MB" collapses any sub-MB value to "0 MB" (the growing, non-pinned stream catalog
+    // hit this). Render < 1 MB in KB so no deliverable ever shows "0 MB"; whole MB for pinned modules.
+    private fun formatBytes(bytes: Long): String {
+        val megabytes = bytes / BYTES_PER_MB
+        return if (megabytes < 1) {
+            String.format(Locale.US, "%.0f KB", bytes / BYTES_PER_KB)
+        } else {
+            String.format(Locale.US, "%.0f MB", megabytes)
+        }
+    }
 
     private fun moduleKey(set: DeliverableSet): String = "set_${set.name.lowercase(Locale.ROOT)}"
 
@@ -282,7 +292,11 @@ class DeliverableInventoryImpl @Inject constructor(
         // Estimated arm64-v8a download sizes (bytes) shown until a flavor contributes a real
         // descriptor; values mirror temp/S0386_B3_so_staging.md (strategic §5.4).
         private const val STREAM_CATALOG_ID = "stream_catalog"
-        private const val STREAM_CATALOG_SIZE = 200_000L
+        // S1110: approximate size of the growing, non-pinned stream-catalog.zip (measured 2.44 MB on
+        // 2026-07-19: 2.31 MiB favicon atlas + 0.92 MB CSV). Not the stale S0386 staging estimate.
+        private const val STREAM_CATALOG_SIZE = 2_500_000L
+        private const val BYTES_PER_KB = 1024.0
+        private const val BYTES_PER_MB = 1024.0 * 1024.0
         private const val LANG_SIZE_RUS = 15_000_000L
         private const val LANG_SIZE_UKR = 11_600_000L
         private val FALLBACK_SIZE = mapOf(

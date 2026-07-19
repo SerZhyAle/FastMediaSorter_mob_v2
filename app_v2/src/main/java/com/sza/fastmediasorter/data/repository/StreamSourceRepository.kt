@@ -68,6 +68,9 @@ class StreamSourceRepository @Inject constructor(
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
 
+    /** S0404: resolve a channel a launcher shortcut pinned by id (null once the user removes it). */
+    suspend fun getById(id: String): StreamSourceEntity? = dao.getById(id)
+
     suspend fun markPlayed(id: String, atMillis: Long) = dao.markPlayed(id, atMillis)
 
     /** S0593: persist the last local play outcome ("OK"/"FAIL") for the streams-list status bullet. */

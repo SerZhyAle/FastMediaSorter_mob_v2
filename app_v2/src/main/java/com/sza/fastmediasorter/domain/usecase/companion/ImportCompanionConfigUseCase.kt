@@ -24,11 +24,20 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-/** Outcome summary for the UI toast. */
+/**
+ * Outcome summary for the UI toast.
+ *
+ * [resourceNames] lists every resource named in the config (used by the external attachment dialog,
+ * unchanged by S1012). [addedNames]/[updatedNames] carry the in-app add-or-update split so the
+ * coordinator can render counts and name the single-affected case; both are empty on the insert-only
+ * path (external attachment) where every resource is counted as added via [resourceNames].
+ */
 data class CompanionImportResult(
     val resourceNames: List<String>,
     val host: String,
-    val port: Int
+    val port: Int,
+    val addedNames: List<String> = emptyList(),
+    val updatedNames: List<String> = emptyList()
 )
 
 /**
@@ -71,7 +80,8 @@ class ImportCompanionConfigUseCase @Inject constructor(
                     )
                 )
             }
-            import(parser.parse(bytes))
+            // S1012: in-app file import add-or-updates matching resources (no duplicates on re-import).
+            import(parser.parse(bytes), matchExistingByPath = true)
         } catch (e: CompanionConfigException) {
             Timber.w(e, "Companion config rejected: ${e.reason}")
             Result.failure(e)
@@ -94,11 +104,21 @@ class ImportCompanionConfigUseCase @Inject constructor(
             Timber.w(e, "Companion QR rejected: ${e.reason}")
             return@withContext Result.failure(e)
         }
-        import(dto)
+        // S1012: in-app QR import add-or-updates matching resources (no duplicates on re-import).
+        import(dto, matchExistingByPath = true)
     }
 
-    /** Imports an already-parsed config (QR payload path reuses this directly). */
-    suspend fun import(config: CompanionConfigDto): Result<CompanionImportResult> = withContext(ioDispatcher) {
+    /**
+     * Imports an already-parsed config (QR payload path reuses this directly).
+     *
+     * S1012: [matchExistingByPath] enables the companion add-or-update path (in-app QR/file entries).
+     * The external attachment activity calls this with the default (false), keeping its insert-only
+     * behaviour and result dialog unchanged.
+     */
+    suspend fun import(
+        config: CompanionConfigDto,
+        matchExistingByPath: Boolean = false
+    ): Result<CompanionImportResult> = withContext(ioDispatcher) {
         // Contract order is LAN first - the first entry is the preferred path.
         val allAccessPaths = config.accessPaths.orEmpty()
         val accessPath = allAccessPaths.first()
@@ -167,14 +187,19 @@ class ImportCompanionConfigUseCase @Inject constructor(
             )
         }
 
-        addResourceUseCase.addMultiple(resources).fold(
-            onSuccess = {
-                Timber.i("Companion import: added ${resources.size} resource(s) for $host:$port")
+        addResourceUseCase.addMultiple(resources, matchExistingByPath = matchExistingByPath).fold(
+            onSuccess = { addResult ->
+                Timber.i(
+                    "Companion import for $host:$port: added ${addResult.addedCount}, " +
+                        "updated ${addResult.updatedCount}"
+                )
                 Result.success(
                     CompanionImportResult(
                         resourceNames = resources.map { it.name },
                         host = host,
-                        port = port
+                        port = port,
+                        addedNames = addResult.addedNames,
+                        updatedNames = addResult.updatedNames
                     )
                 )
             },

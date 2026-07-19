@@ -25,6 +25,12 @@
   This catches "declared but not playing" streams that the header probe marks alive. Runs many more
   concurrent runspaces (default -Throttle 48); each fetch is CancellationToken-bounded.
 
+  Region-locked verdict (S1117): a playlist/segment/manifest/body that returns HTTP 403 or 451 is
+  classified 'geo' (region-restricted from this network - may still play for a user in-region), a
+  separate verdict from 'dead'/'unknown'. On an un-pinned deep-signal -PruneDead run the prune widens
+  to 'dead','unknown' (non-geo failures) and 'geo' rows are kept and stamped access='geo' in the
+  catalog. Header-only prune stays conservative ('dead' only).
+
   Discovery append gate (S0805): in the default discovery mode the same deep-signal verification runs
   as a SECOND stage after the header probe - only header-alive candidates are re-probed for real media
   bytes, and only signal-verified rows are appended to streams.csv. This stops "pseudo-alive" channels
@@ -106,6 +112,8 @@ param(
     [string]$ExistingCsv = 'delivery/stream-catalog/streams.csv',
     [string]$OutDir = 'temp',
     [string]$CatalogLivenessReport = 'temp/stream-catalog-liveness.csv',
+    # Statuses removed by -PruneDead. Default 'dead'; an un-pinned deep-signal run widens it to
+    # 'dead','unknown' (S1117) since region-locked channels are separated into their own 'geo' verdict.
     [string[]]$PruneStatuses = @('dead'),
 
     # radio-browser genre tags (exact match) - skewed toward catalog's weak genres.
@@ -128,17 +136,25 @@ param(
 $ErrorActionPreference = 'Stop'
 $ua = 'FastMediaSorter-catalog/1.0 (+stream-candidate-collector)'
 
+# S1117: remember whether the caller pinned -PruneStatuses. When they did NOT and this is a
+# deep-signal run, prune widens from 'dead' to 'dead','unknown': deep-signal now separates
+# region-locked channels into their own 'geo' verdict, so the remaining 'unknown' rows are non-geo
+# failures (timeout / SSL / 401 / 5xx) safe to drop. Header-only runs stay conservative ('dead').
+$script:PruneStatusesExplicit = $PSBoundParameters.ContainsKey('PruneStatuses')
+
 # Deep-signal probing pulls media bytes, so it benefits from many more concurrent runspaces than the
 # header-only liveness probe. Bump the default only when the caller did not pin -Throttle explicitly.
 if ($DeepSignal -and -not $PSBoundParameters.ContainsKey('Throttle')) { $Throttle = 48 }
 
-# favicon_index is appended at the END of the schema (column 18). Existing columns are NEVER
-# reordered: the app's StreamCatalogCsvParser resolves cells by header NAME, so a trailing column
-# is forward/backward-compatible (old apps ignore it, new apps reading an old catalog get blank).
+# Trailing columns are appended at the END of the schema and existing columns are NEVER reordered:
+# the app's StreamCatalogCsvParser resolves cells by header NAME, so a trailing column is
+# forward/backward-compatible (old apps ignore it, new apps reading an old catalog get blank).
+# col 18 favicon_index (S0668); col 19 access (S1117): '' = open, 'geo' = region-locked (403/451
+# from this network - may still play for a user in-region). deep-signal probe is the only producer.
 $Schema = @(
     'category', 'topic', 'name', 'url', 'media_kind', 'protocol', 'format', 'bitrate',
     'is_live', 'https', 'language', 'country', 'homepage', 'source_kind',
-    'license_note', 'notes', 'confidence', 'favicon_index'
+    'license_note', 'notes', 'confidence', 'favicon_index', 'access'
 )
 
 function Get-Host2([string]$url) {
@@ -495,7 +511,8 @@ function Invoke-SignalProbe {
                 if ($isHls) {
                     $pl = & $fetch $url 262144 $true
                     $httpCode = [string]$pl.Code
-                    if ($pl.Code -in 404, 410) { $status = 'dead'; $note = "playlist http $($pl.Code)" }
+                    if ($pl.Code -in 403, 451) { $status = 'geo'; $note = "playlist http $($pl.Code) region-locked" }
+                    elseif ($pl.Code -in 404, 410) { $status = 'dead'; $note = "playlist http $($pl.Code)" }
                     elseif ($pl.Code -lt 200 -or $pl.Code -ge 400) { $status = 'unknown'; $note = "playlist http $($pl.Code)" }
                     elseif ([string]::IsNullOrWhiteSpace($pl.Text)) { $status = 'dead'; $note = 'empty playlist' }
                     else {
@@ -524,6 +541,7 @@ function Invoke-SignalProbe {
                             $sg = & $fetch $segUrl $maxBytes $false
                             $gotBytes = $sg.Bytes
                             if ($sg.Bytes -ge $minBytes) { $status = 'alive'; $note = "hls segment $($sg.Bytes)B" }
+                            elseif ($sg.Code -in 403, 451) { $status = 'geo'; $note = "segment http $($sg.Code) region-locked" }
                             elseif ($sg.Code -in 404, 410) { $status = 'dead'; $note = "segment http $($sg.Code)" }
                             elseif ($sg.Bytes -gt 0) { $status = 'alive'; $note = "hls segment small $($sg.Bytes)B" }
                             else { $status = 'dead'; $note = "segment no data (http $($sg.Code))" }
@@ -534,7 +552,8 @@ function Invoke-SignalProbe {
                     $mf = & $fetch $url 262144 $true
                     $httpCode = [string]$mf.Code
                     $gotBytes = $mf.Bytes
-                    if ($mf.Code -in 404, 410) { $status = 'dead'; $note = "manifest http $($mf.Code)" }
+                    if ($mf.Code -in 403, 451) { $status = 'geo'; $note = "manifest http $($mf.Code) region-locked" }
+                    elseif ($mf.Code -in 404, 410) { $status = 'dead'; $note = "manifest http $($mf.Code)" }
                     elseif ($mf.Code -ge 200 -and $mf.Code -lt 300 -and $mf.Text -match '<MPD') { $status = 'alive'; $note = 'dash manifest ok' }
                     elseif ($mf.Code -ge 200 -and $mf.Code -lt 300) { $status = 'unknown'; $note = '200 but not an mpd' }
                     else { $status = 'unknown'; $note = "manifest http $($mf.Code)" }
@@ -545,6 +564,7 @@ function Invoke-SignalProbe {
                     $httpCode = [string]$bd.Code
                     $gotBytes = $bd.Bytes
                     if ($bd.Bytes -ge $minBytes) { $status = 'alive'; $note = "body $($bd.Bytes)B" }
+                    elseif ($bd.Code -in 403, 451) { $status = 'geo'; $note = "http $($bd.Code) region-locked" }
                     elseif ($bd.Code -in 404, 410) { $status = 'dead'; $note = "http $($bd.Code)" }
                     elseif ($bd.Bytes -gt 0) { $status = 'alive'; $note = "body small $($bd.Bytes)B" }
                     elseif ($bd.Code -ge 200 -and $bd.Code -lt 400) { $status = 'unknown'; $note = "http $($bd.Code) no body" }
@@ -643,6 +663,7 @@ function New-Candidate {
         notes         = $notes
         confidence    = $confidence
         favicon_index = ''
+        access        = ''
         axis          = $axis
         score         = $score
         liveness_status = ''
@@ -1015,18 +1036,37 @@ function Invoke-CatalogMaintenance {
     Write-Host ''
     Write-Host ("Report written: {0}" -f $CatalogLivenessReport) -ForegroundColor Green
 
-    $pruneUrls = @($probed | Where-Object { $PruneStatuses -contains $_.liveness_status } | ForEach-Object { [string]$_.url })
+    # S1117: stamp the access flag from the deep-signal verdict onto the original catalog rows so a
+    # prune write persists it. 'geo' (region-locked 403/451) -> access='geo'; every other verdict
+    # clears access. Only on a full deep-signal probe (no -Limit) so a partial run never mislabels.
+    # -Parallel returns deserialized copies, so map verdicts back to $allRows by url.
+    if ($DeepSignal -and -not ($Limit -gt 0)) {
+        $statusByUrl = @{}
+        foreach ($p in $probed) { $statusByUrl[[string]$p.url] = [string]$p.liveness_status }
+        foreach ($r in $allRows) {
+            $acc = if ($statusByUrl[[string]$r.url] -eq 'geo') { 'geo' } else { '' }
+            if ($r.PSObject.Properties['access']) { $r.access = $acc }
+            else { Add-Member -InputObject $r -NotePropertyName 'access' -NotePropertyValue $acc -Force }
+        }
+    }
+
+    # S1117: widen prune to 'dead','unknown' on an un-pinned deep-signal run - geo is now its own
+    # verdict, so surviving 'unknown' rows are non-geo failures safe to drop. Header-only or a
+    # caller-pinned -PruneStatuses stays exactly as given.
+    $pruneStatuses = if ($DeepSignal -and -not $script:PruneStatusesExplicit) { @('dead', 'unknown') } else { $PruneStatuses }
+
+    $pruneUrls = @($probed | Where-Object { $pruneStatuses -contains $_.liveness_status } | ForEach-Object { [string]$_.url })
     $pruneSet = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($u in $pruneUrls) { [void]$pruneSet.Add($u) }
     $pruneCount = $pruneSet.Count
 
     if ($pruneCount -eq 0) {
-        Write-Host "`nNothing to prune (no rows classified: $($PruneStatuses -join ', '))." -ForegroundColor Green
+        Write-Host "`nNothing to prune (no rows classified: $($pruneStatuses -join ', '))." -ForegroundColor Green
         return
     }
 
     if (-not $PruneDead) {
-        Write-Host "`nWould prune $pruneCount row(s) [status in: $($PruneStatuses -join ', ')] - re-run with -PruneDead to apply:" -ForegroundColor Yellow
+        Write-Host "`nWould prune $pruneCount row(s) [status in: $($pruneStatuses -join ', ')] - re-run with -PruneDead to apply:" -ForegroundColor Yellow
         $reportRows | Where-Object { $pruneSet.Contains([string]$_.url) } | Sort-Object category, topic, name |
             ForEach-Object { " - [{0}] {1}  ({2})  {3}" -f $_.category, $_.name, $_.note, $_.url }
         return

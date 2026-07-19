@@ -28,6 +28,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private val faviconAtlasStore: FaviconAtlasStore
 ) {
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
+        Timber.i("Stream catalog import: starting")
         val payload = try {
             downloadCatalog()
         } catch (e: Exception) {
@@ -86,6 +87,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
             return@withContext CatalogImportResult.Failure(e.message ?: "merge error")
         }
 
+        Timber.i("Stream catalog import done: +%d ~%d -%d", merge.added, merge.updated, merge.removed)
         CatalogImportResult.Success(
             added = merge.added,
             updated = merge.updated,

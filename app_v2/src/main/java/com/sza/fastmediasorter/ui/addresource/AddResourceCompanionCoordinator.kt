@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
+import com.sza.fastmediasorter.domain.usecase.companion.CompanionImportResult
 import com.sza.fastmediasorter.domain.usecase.companion.ImportCompanionConfigUseCase
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -38,20 +39,38 @@ internal class AddResourceCompanionCoordinator(
         }
     }
 
-    private fun emitOutcome(result: Result<com.sza.fastmediasorter.domain.usecase.companion.CompanionImportResult>) {
+    private fun emitOutcome(result: Result<CompanionImportResult>) {
         result.onSuccess { r ->
-            bridge.emit(
-                AddResourceEvent.ShowMessage(
-                    context.getString(
-                        R.string.companion_import_success,
-                        r.resourceNames.joinToString(),
-                        "${r.host}:${r.port}"
-                    )
-                )
-            )
+            bridge.emit(AddResourceEvent.ShowMessage(buildSummary(r)))
             bridge.emit(AddResourceEvent.ResourcesAdded)
         }.onFailure { e ->
             bridge.emit(AddResourceEvent.ShowError(errorMessage(e)))
+        }
+    }
+
+    /**
+     * S1012: builds the in-app import toast. Reports how many resources were added and updated; when
+     * exactly one resource was affected in total it names that resource (added vs updated). A byte-
+     * identical re-import affects nothing and reports "no changes".
+     */
+    private fun buildSummary(r: CompanionImportResult): String {
+        Timber.d("S1012: companion import summary added=${r.addedNames.size} updated=${r.updatedNames.size}")
+        val added = r.addedNames.size
+        val updated = r.updatedNames.size
+        val res = context.resources
+        return when {
+            added + updated == 0 -> context.getString(R.string.companion_import_no_changes)
+            added + updated == 1 && added == 1 ->
+                context.getString(R.string.companion_import_added_one, r.addedNames.first())
+            added + updated == 1 ->
+                context.getString(R.string.companion_import_updated_one, r.updatedNames.first())
+            added > 0 && updated > 0 -> context.getString(
+                R.string.companion_import_summary,
+                res.getQuantityString(R.plurals.added_n_resources, added, added),
+                res.getQuantityString(R.plurals.updated_n_resources, updated, updated)
+            )
+            added > 0 -> res.getQuantityString(R.plurals.added_n_resources, added, added)
+            else -> res.getQuantityString(R.plurals.updated_n_resources, updated, updated)
         }
     }
 
