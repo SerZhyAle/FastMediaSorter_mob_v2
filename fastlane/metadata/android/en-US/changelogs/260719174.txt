@@ -1,0 +1,8 @@
+• Launcher mode - use FastMediaSorter as your device home screen.
+• HEIC, HEIF & AVIF - open modern phone photo formats.
+• Archives & disk images - handle them from Open-with and Share.
+• Bigger edge-gesture catalog - more actions in a grouped picker.
+• Fullscreen exit button - leave fullscreen video with one tap.
+• Region-locked stream badge - spot geo-blocked streams at a glance.
+• Empty streams panel hint - guidance when no streams are set up.
+..
