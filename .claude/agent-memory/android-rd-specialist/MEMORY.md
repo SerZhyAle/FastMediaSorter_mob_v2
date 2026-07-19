@@ -3,6 +3,7 @@
 - [About Me](about_me.md) - Serhii, solo owner; data engineer, no Kotlin; explain via SQL/.NET
 - [Argue then obey](feedback_argue_then_obey.md) + [decision after pushback](feedback_owner_decision_after_pushback.md) - push back, then execute owner's call cleanly
 - [Don't ask when architecture answers](feedback_no_owner_questions_when_architecture_already_answers.md) + [research forks](feedback_research_over_owner_question.md) - contracts decide; forks: research+recommend
+- [Clarify unclear task framing](feedback_clarify_task_when_framing_unclear.md) - unsure what task *means*/scope -> ask or park; impl-detail code answers -> don't
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix [HH:MM:SS]
 - [Writing style: hyphen / ё / ..](feedback_writing_style.md) - `..` not `...`, hyphen, ё; docs+UI only
 - [Target audience: non-technical](feedback_target_audience_non_technical.md) - for grandma & gym-goer, not nerds; zero jargon, zero mandatory setup
@@ -107,6 +108,7 @@
 
 ## Spec lifecycle & catalog
 - [Release scope 2026-07](project_release_scope_2026_07.md) - 11 gating tickets S0846..S0891; verify statuses live
+- [Launcher roadmap greenlit 2026-07](project_launcher_roadmap_greenlit.md) - S0404 unfrozen 2026-07-18; build S1088 first; S1098 archived; drive children as Drafts
 - [BNUT sweep plan 2026-07-02](project_bnut_sweep_plan.md) - 65 tickets triaged; plan temp/spec_sweep_batch_plan.md
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) - grep `"Sxxxx:` too; single-line misses wrapped
 - [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff for WIP; git only on explicit ask
@@ -117,6 +119,7 @@
 - [Strategic spec owner gate](feedback_strategic_spec_owner_gate.md) - §3.3 needs Related tickets (check-owner-inputs)
 - [spec-tech plan quality](feedback_spec_tech_plan_quality.md) - keep 3.1-3.4/5.5 + research/; no doc-shuffling
 - [/spec-dev verify code first](feedback_spec_dev_continue_verify_code_first.md) - In-Progress code may be done, tracking 0/N
+- [Phase-boundary audit](feedback_phase_boundary_audit.md) - audit+fix just-finished phase before next; cheap now, costly later
 - [Never call scaffolding done](feedback_no_scaffolding_as_done.md) + [no fake autopilot blocker](feedback_no_safety_blocker_gating_autopilot.md) - headline broken -> not Done; safe cleanup auto-chains
 - [Search dup tickets by symptom](feedback_search_duplicates_by_symptom.md) - search catalog by errorCode/class first
 - [Dead code may be scaffolding](feedback_dead_code_vs_active_tickets.md) - grep PLAN/ + Partial/In-Progress before delete
@@ -131,6 +134,8 @@
 - [Big-file decomposition](project_s0002_decomposition_toolkit.md) - compression tactics; temp/ scripts wiped
 
 ## PowerShell / shell traps
+- [Tool-bypass discipline](feedback_tool_bypass_discipline.md) - measured top waste: no cd-prefix, no hand-rolled adb path, no manual device probe
+- [Script param cheatsheet](reference_script_help_cheatsheet.md) - `scripts/utils/help.ps1 -Name <s>` prints params; don't re-read scripts
 - [PowerShell efficiency](feedback_pwsh_efficiency.md) - never plain pwsh -File; chain scripts in one process
 - [LOC: Measure-Object -Line undercounts](feedback_pwsh_loc_measure_object.md) - use (Get-Content).Count
 - [CLI wrappers first](feedback_cli_project_wrappers_first.md) - prefer repo scripts / temp .ps1 over nested quoting
