@@ -59,7 +59,6 @@ class ResultFrameOverlayView @JvmOverloads constructor(
      * parametric so a future ratio (spec §5.3) reuses this view without a new one.
      */
     fun setRatios(contentWidthOverHeight: Float, resultWidthOverHeight: Float) {
-        Timber.d("S1066: result frame ratios content=$contentWidthOverHeight result=$resultWidthOverHeight")
         contentRatio = contentWidthOverHeight
         resultRatio = resultWidthOverHeight
         invalidate()

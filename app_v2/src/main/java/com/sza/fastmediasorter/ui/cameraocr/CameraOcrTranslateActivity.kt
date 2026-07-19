@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -44,6 +45,10 @@ import javax.inject.Inject
 class CameraOcrTranslateActivity :
     BaseActivity<ActivityCameraOcrTranslateBinding>(),
     CameraOcrFlowManager.Callback {
+
+    private val cropOverlayBaseBottomSafeInsetPx by lazy {
+        (resources.displayMetrics.density * CROP_OVERLAY_BASE_BOTTOM_SAFE_INSET_DP).toInt()
+    }
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -169,6 +174,18 @@ class CameraOcrTranslateActivity :
         binding.layoutEmptyState.applySystemBarInsetPadding()
         binding.layoutLoading.applySystemBarInsetPadding()
         binding.layoutCropState.applySystemBarInsetPadding()
+        binding.cropActionBar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            updateCropPreviewBottomPadding()
+        }
+        binding.cropPreviewContainer.post { updateCropPreviewBottomPadding() }
+    }
+
+    private fun updateCropPreviewBottomPadding() {
+        val extraBottomGap = (binding.cropActionBar.height - cropOverlayBaseBottomSafeInsetPx)
+            .coerceAtLeast(0)
+        if (binding.cropPreviewContainer.paddingBottom != extraBottomGap) {
+            binding.cropPreviewContainer.updatePadding(bottom = extraBottomGap)
+        }
     }
 
     // ---- CameraOcrFlowManager.Callback ----
@@ -426,6 +443,8 @@ class CameraOcrTranslateActivity :
     }
 
     companion object {
+        private const val CROP_OVERLAY_BASE_BOTTOM_SAFE_INSET_DP = 48f
+
         /** S1042: absolute path of an app-owned source image (e.g. staged screenshot) to OCR instead of capturing. */
         const val EXTRA_SOURCE_IMAGE_PATH = "source_image_path"
 

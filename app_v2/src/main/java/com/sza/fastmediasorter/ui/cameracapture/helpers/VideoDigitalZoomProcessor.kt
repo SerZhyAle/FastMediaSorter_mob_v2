@@ -51,7 +51,6 @@ class VideoDigitalZoomProcessor {
             onDone(false)
             return
         }
-        Timber.d("S1066: video digital-zoom re-encode - zoom=$zoomFactor file=${file.name}")
         val appContext = context.applicationContext
         val output = File(file.parentFile, file.nameWithoutExtension + TEMP_SUFFIX)
         // Keep the centred 1/f fraction of the full [-1, 1] NDC range on both axes; the symmetric crop

@@ -6,7 +6,6 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
-import android.util.Rational
 import android.util.Size
 import android.view.Surface
 import android.view.View
@@ -20,12 +19,6 @@ import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
-import androidx.camera.core.UseCase
-import androidx.camera.core.UseCaseGroup
-import androidx.camera.core.ViewPort
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.extensions.ExtensionMode
 import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -607,26 +600,21 @@ class CameraCaptureSessionManager(
             .onFailure { Timber.w(it, "CameraCaptureSessionManager: resume failed") }
     }
 
-    /** Selects exactly the given camera by identity, so a specific physical lens can be bound. */
-    private fun selectorFor(info: CameraInfo): CameraSelector =
-        CameraSelector.Builder()
-            .addCameraFilter { infos -> infos.filter { it == info } }
-            .build()
-
     private fun bindToLifecycle(provider: ProcessCameraProvider, previewView: PreviewView) {
         val activeInfo = availableCameras.getOrNull(activeCameraIndex) ?: run {
             Timber.e("CameraCaptureSessionManager: no camera at index $activeCameraIndex")
             return
         }
-        Timber.d("S1066: bind shared ViewPort - videoMode=$videoMode camera=$activeCameraIndex")
-        val previewBuilder = Preview.Builder()
-        applyPreviewOutputConfig(previewBuilder)
-        val preview = previewBuilder.build().also {
-            it.surfaceProvider = previewView.surfaceProvider
-            it.targetRotation = targetRotation
-            previewUseCase = it
-        }
-        val baseSelector = selectorFor(activeInfo)
+        val useCases = CameraUseCaseFactory(
+            videoMode = videoMode,
+            selectedAspectRatio = selectedAspectRatio,
+            selectedResolution = selectedResolution,
+            targetRotation = targetRotation,
+        ).create(previewView)
+        previewUseCase = useCases.preview
+        imageCapture = useCases.imageCapture
+        videoCapture = useCases.videoCapture
+        val baseSelector = CameraUseCaseFactory.selectorFor(activeInfo)
         // S0753: NIGHT is photo-only and per-device; fall back to exposure compensation when unavailable.
         nightExtensionAvailable = !videoMode &&
             extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.NIGHT) == true
@@ -641,40 +629,8 @@ class CameraCaptureSessionManager(
                 baseSelector
             }
         }
-        val captureUseCase: UseCase = if (videoMode) {
-            val recorder = Recorder.Builder().build()
-            VideoCapture.withOutput(recorder).also {
-                it.targetRotation = targetRotation
-                videoCapture = it
-                imageCapture = null
-            }
-        } else {
-            val imageBuilder = ImageCapture.Builder()
-            applyImageOutputConfig(imageBuilder)
-            imageBuilder.build().also {
-                it.targetRotation = targetRotation
-                imageCapture = it
-                videoCapture = null
-            }
-        }
-
-        // S1066: bind preview + capture in one UseCaseGroup sharing a single ViewPort so both look at
-        // the same sensor FOV (WYSIWYG). Photo mode keeps the ViewPort at the full native frame (4:3)
-        // and the on-screen result frame + a post-capture crop apply the selected ratio; video mode
-        // sets the ViewPort to the selected ratio so the preview equals the recorded region (owner
-        // decision 2026-07-15). Built explicitly (not via previewView.getViewPort(), which would take
-        // the view's tall aspect) with FILL_CENTER = the largest centred crop of the target ratio; the
-        // PreviewView FIT_CENTER only letterboxes that region for display, so pixels stay faithful.
-        val viewPort = ViewPort.Builder(effectiveAspectRational(), targetRotation)
-            .setScaleType(ViewPort.FILL_CENTER)
-            .build()
-        val useCaseGroup = UseCaseGroup.Builder()
-            .setViewPort(viewPort)
-            .addUseCase(preview)
-            .addUseCase(captureUseCase)
-            .build()
         provider.unbindAll()
-        val boundCamera = provider.bindToLifecycle(lifecycleOwner, selector, useCaseGroup)
+        val boundCamera = provider.bindToLifecycle(lifecycleOwner, selector, useCases.group)
 
         camera = boundCamera
         resetDigitalZoom()
@@ -702,47 +658,6 @@ class CameraCaptureSessionManager(
             setExposureCompensation(exposureCompensationIndex)
         }
         applyCamera2Options()
-    }
-
-    private fun applyPreviewOutputConfig(builder: Preview.Builder) {
-        builder.setResolutionSelector(buildResolutionSelector())
-    }
-
-    private fun applyImageOutputConfig(builder: ImageCapture.Builder) {
-        builder.setResolutionSelector(buildResolutionSelector())
-    }
-
-    private fun buildResolutionSelector(): ResolutionSelector {
-        val builder = ResolutionSelector.Builder()
-        val aspect = effectiveAspectRatioInt()
-        builder.setAspectRatioStrategy(AspectRatioStrategy(aspect, AspectRatioStrategy.FALLBACK_RULE_AUTO))
-        // S1066: honour a chosen resolution only when it matches the effective readout aspect, so a
-        // full-frame 4:3 photo is never forced onto a 16:9 sensor size the ViewPort would then re-crop.
-        selectedResolution?.takeIf { resolutionMatchesAspect(it, aspect) }?.let {
-            builder.setResolutionStrategy(
-                ResolutionStrategy(it, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
-            )
-        }
-        return builder.build()
-    }
-
-    /**
-     * S1066: aspect the sensor actually reads out. Video follows the selected ratio (preview equals the
-     * recorded region); photo stays at the full native frame (4:3) - the selected ratio is applied as
-     * an on-screen result frame plus a post-capture crop, so the preview shows the whole sensor frame.
-     */
-    private fun effectiveAspectRatioInt(): Int =
-        if (videoMode) (selectedAspectRatio ?: AspectRatio.RATIO_4_3) else AspectRatio.RATIO_4_3
-
-    /** S1066: [effectiveAspectRatioInt] as a [Rational] for the shared [ViewPort] (sensor-natural, landscape). */
-    private fun effectiveAspectRational(): Rational =
-        if (effectiveAspectRatioInt() == AspectRatio.RATIO_16_9) RATIONAL_16_9 else RATIONAL_4_3
-
-    private fun resolutionMatchesAspect(size: Size, aspect: Int): Boolean {
-        if (size.height == 0) return false
-        val ratio = size.width.toFloat() / size.height.toFloat()
-        val target = if (aspect == AspectRatio.RATIO_16_9) SIXTEEN_NINE else FOUR_THREE
-        return kotlin.math.abs(ratio - target) < ASPECT_MATCH_EPSILON
     }
 
     /**
@@ -785,12 +700,6 @@ class CameraCaptureSessionManager(
         private const val FOCUS_AUTO_CANCEL_SECONDS = 3L
         private const val JPEG_QUALITY = 95
 
-        // S1066: sensor-natural (landscape) aspect ratios for the shared ViewPort and the JPEG crop.
-        private val RATIONAL_4_3 = Rational(4, 3)
-        private val RATIONAL_16_9 = Rational(16, 9)
-        private const val FOUR_THREE = 4f / 3f
-        private const val SIXTEEN_NINE = 16f / 9f
-        private const val ASPECT_MATCH_EPSILON = 0.02f
         private const val SIXTEEN_NINE_LONG = 16
         private const val SIXTEEN_NINE_SHORT = 9
 
