@@ -1,18 +1,17 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
-import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Bundle
-import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.sza.fastmediasorter.utils.collectOnLifecycle
-import android.widget.LinearLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -28,18 +27,19 @@ import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
-import com.sza.fastmediasorter.utils.PermissionChecker
-import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
+import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
+import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
-import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
-import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
+import com.sza.fastmediasorter.utils.PermissionChecker
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -74,7 +74,12 @@ class ResourceEditorFragment : Fragment() {
             }
         } else {
             pendingSaveAfterPermissionGrant = false
-            Snackbar.make(binding.root, R.string.permissions_denied_warning, Snackbar.LENGTH_LONG).show()
+            val viewBinding = _binding ?: return@registerForActivityResult
+            Snackbar.make(
+                viewBinding.root,
+                R.string.permissions_denied_warning,
+                Snackbar.LENGTH_LONG,
+            ).show()
         }
     }
 
