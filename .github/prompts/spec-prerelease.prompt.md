@@ -56,18 +56,24 @@ sweep abort. On `--dry-run`, list it as planned and run nothing (no network, no 
    pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PerQuery 30
    ```
 
-2. Probe the whole catalog as a **non-destructive** health report - it prints `Would prune N row(s)`
-   and deletes nothing:
+2. Probe the whole catalog as a **non-destructive deep-signal** health report (S1117) - it pulls real
+   media bytes, not just a playlist `200`, so "declared but not playing" streams are caught. Prints the
+   `alive / dead / geo / unknown` breakdown and `Would prune N row(s)`, deletes nothing. Long run
+   (~2000 rows) - launch in background, read the log tail:
 
    ```powershell
-   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
+   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 64
    ```
 
-**Never auto-prune in this sweep.** Pruning is a human-gated opt-in: a geo-restricted stream reads
-`dead`/404 from the build machine yet plays on a user's device. Review
-`temp/stream-catalog-liveness.csv`; only if a row is genuinely dead after review (ideally a
-second-network re-probe) run `scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -PruneDead`
-manually, outside this sweep.
+   Surface the breakdown on the report line so ballast can't accumulate unseen release-over-release.
+   `geo` = region-locked (HTTP 403/451 from the build machine) - kept, not counted as prunable.
+
+**Never auto-prune in this sweep.** Pruning is a human-gated opt-in. The deep-signal `-PruneDead` run
+drops `dead` + non-geo `unknown` (timeout / SSL / `401` / `5xx`) and **keeps** region-locked `geo`
+rows, tagging them `access=geo`. Review `temp/stream-catalog-liveness.csv`; only after review (ideally
+a second-network re-probe for the `unknown` rows) run
+`scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish` manually,
+outside this sweep.
 
 If `streams.csv` changed (append, or a later manual prune), re-publish the asset through the **guarded
 packer** or the change never reaches users - the app fetches the release asset, not the repo file.
@@ -263,5 +269,5 @@ the sweep did not exercise stay untouched.
 
 One line: `spec-prerelease: device <id>, verdict PASS/FAIL, report temp/s0484_prerelease_<TS>.md`
 - on PASS append the `/skill-release` proposal; on FAIL append the parked ids + tickets routed to
-`/spec-check`. Append a `stream-catalog: +N appended, M would-prune, re-upload <done|n.a.>` segment
+`/spec-check`. Append a `stream-catalog: +N appended, alive/dead/geo/unknown A/D/G/U, M would-prune, re-upload <done|n.a.>` segment
 (or `stream-catalog: skipped (--dry-run)`).

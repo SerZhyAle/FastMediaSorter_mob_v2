@@ -196,11 +196,15 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
   recommended for a publish.
 - After pruning, re-publish the release asset with the guarded packer (see Hosting above).
 
-## Inventory (snapshot 2026-07-19)
+## Inventory (snapshot 2026-07-19, post-S1117 deep-signal prune)
 
-- Total: **2691** streams - VIDEO 2337, AUDIO 348, RTSP 6. The bulk of the VIDEO rows come from the
-  iptv-org public Live TV index; run a full-catalog liveness sweep before each publish.
-- Rubrics: Live TV 2299, Radio 292, Radio (SomaFM) 56, Test stream 30, Open movies 14.
+- Total: **2182** streams - VIDEO 1846, AUDIO 335, RTSP 1. The bulk of the VIDEO rows come from the
+  iptv-org public Live TV index; run a full-catalog deep-signal sweep before each publish.
+- Region-locked (`access=geo`): **42** kept + tagged (national broadcasters 403/451 from the build
+  machine - CBS, Cubavision, DR1, Puls 2, ..).
+- A full-catalog deep-signal prune removed the accumulated ballast: 375 hard-dead first, then 134
+  more (`dead` + non-geo `unknown`), from a 2691-row peak.
+- Rubrics: Live TV 1809, Radio 279, Radio (SomaFM) 56, Test stream 25, Open movies 13.
 - Topics: 39 distinct (News, Movie, Ambient, Electronic, Jazz, Classical, Lo-fi, Documentary,
   Science & Space, Sports, ..).
 - Languages (top): english 221, french 49, german 42, italian 19, ukrainian 18, russian 15,
