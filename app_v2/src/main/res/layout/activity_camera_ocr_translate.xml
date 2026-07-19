@@ -302,6 +302,7 @@
         <!-- S1042: no crop hint - the crop frame + OK button are self-explanatory, and the removed
              two-line hint was pushing the preview so its bottom edge hid under the bottom command bar. -->
         <FrameLayout
+            android:id="@+id/cropPreviewContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
@@ -323,6 +324,7 @@
 
         <!-- Bottom Action Bar: Retry / OK -->
         <LinearLayout
+            android:id="@+id/cropActionBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
