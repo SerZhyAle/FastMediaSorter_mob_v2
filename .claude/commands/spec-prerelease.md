@@ -6,9 +6,9 @@
 > 3. Terse report: one line - verdict + report path.
 > 4. Never auto-run release: PASS proposes `/skill-release`, owner confirms (ADR-1, S0484).
 
-Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: prepare clean standard-debug install with seeded media → configure resources + settings → run deterministic Maestro capability suite, use mobile-mcp only for uncovered exploratory paths → measure perf → aggregate machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`. Steps 0 / 0.5 first refresh the mutable external content a release carries - downloadable stream-catalog delivery asset, then externally-rotting dependency pins (`yt-dlp`) - both content-only, no device, non-gating.
+Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: prepare clean standard-debug install with seeded media → configure resources + settings → run deterministic Maestro capability suite, use mobile-mcp only for uncovered exploratory paths → measure perf → aggregate machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`. Steps 0 / 0.5 first refresh the mutable external content a release carries - downloadable stream-catalog delivery asset, then externally-rotting dependency pins (`yt-dlp`) - both content-only, no device, non-gating. Step 0.7 then reindexes the settings search + navigation mirror (regenerate-then-verify) - content-only, no device, but **gating**: the build must always ship a current settings index.
 
-Composes existing tools - `scripts/devtest/prerelease-prepare.ps1`, `scripts/devtest/prerelease-configure.ps1`, `scripts/devtest/prerelease-measure.ps1`, `scripts/devtest/prerelease-verdict.ps1`, `scripts/devtest/prerelease-log-audit.ps1`, `scripts/utils/search-log.ps1`, `maestro/run-tests.ps1`, `scripts/streams/collect-stream-candidates.ps1`, mobile-mcp, `/skill-release`, `/spec-draft`, `/spec-check` - adds **no** app runtime code (S0484 ADR-2).
+Composes existing tools - `scripts/devtest/prerelease-prepare.ps1`, `scripts/devtest/prerelease-configure.ps1`, `scripts/devtest/prerelease-measure.ps1`, `scripts/devtest/prerelease-verdict.ps1`, `scripts/devtest/prerelease-log-audit.ps1`, `scripts/utils/search-log.ps1`, `maestro/run-tests.ps1`, `scripts/streams/collect-stream-candidates.ps1`, `scripts/quality/reindex-settings.ps1`, mobile-mcp, `/skill-release`, `/spec-draft`, `/spec-check` - adds **no** app runtime code (S0484 ADR-2).
 
 ## Usage
 
@@ -83,6 +83,23 @@ Two tiers, never mixed.
 - There is no version catalog and no `dependencyUpdates` task here - pins are hand-written in `app_v2/build.gradle.kts`. Do **not** hand-sweep every pin each release; that is unbounded work with no gate behind it.
 - Check a Tier B pin only when this sweep's own evidence points at it (audit cluster, crash, perf record naming the library). Then park `/spec-draft` with that evidence - do not edit the pin.
 - `scripts/check-doc-vs-gradle.ps1` is an internal docs-vs-Gradle consistency check, not an upstream freshness check. Non-zero exit here means our own docs drifted; fix the doc line, not the pin.
+
+### 0.7 - Reindex settings search + navigation (content, no device, GATING)
+
+**Mandatory, unconditional - not "if a setting changed".** The in-app settings search index is rebuilt at runtime by scanning `SettingsSearchLayoutCatalog` and routing hits through `SettingsSearchTabMapping`; nothing is serialized into the APK. So what the build "ships" for search - and, above all, for the *navigation to a setting* - is only as current as the layout catalog, the tab mapping, and the doc mirror (`settings-manifest.json` + `SETTINGS_REFERENCE*.md` + annotations + HOW_TO paths). A stale mirror or an unindexed screen makes the shipped search silently miss settings or fail to navigate to them. Regenerate-then-verify here so the release always carries a fresh index. Needs no device; runs before step 1 prepare (both build, `temp/BUILD.LOCK` admits one gradle invocation at a time). On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/reindex-settings.ps1
+```
+
+Unlike steps 0 / 0.5, this step **gates** the sweep - branch on its exit code:
+
+- **0** - already fresh, verify gate green. Continue.
+- **2** - drift was regenerated: `settings-manifest.json` / `SETTINGS_REFERENCE*.md` were stale and are now refreshed. Commit the updated files (`.\a.ps1 c "..."`) before the release proceeds, then continue. This is a finding on the reindex report line; the sweep may run, but a PASS must not propose `/skill-release` until the fresh mirror is committed.
+- **3** - verify gate failed on something regeneration cannot fix: a settings layout missing from `SettingsSearchLayoutCatalog`, an unannotated manifest key, or a drifted HOW_TO navigation path. **Hard release blocker** - fix at source (append the layout, annotate the key, sync the HOW_TO path), re-run this step. Do not proceed to step 1 on exit 3.
+- **1** - infrastructure failure (gradle/render). Treat as sweep abort (exit 2 in step 4), same as any build-side failure.
+
+Carry the reindex outcome into the step 4 verdict: exit 2 (uncommitted fresh mirror) or exit 3 (unfixed inconsistency) blocks a clean PASS just as a red log audit does.
 
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 
@@ -169,7 +186,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `log AND perf AND maestro`; screenshots evidence-only.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line.
 
 Verdict is coarse gate: produces one error count, hard-stops only on crashes/ANR. Does **not** enumerate which app errors fired, so a green verdict alone never proves run was clean. Always run detailed log audit below before trusting a PASS.
 
