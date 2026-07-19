@@ -331,6 +331,8 @@ class VideoPlayerManager(
     // Connection throttling - resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 
+    @Volatile internal var activeSourceIsStream: Boolean = false
+
     // S0893: the one extra Player.Listener a playback session adds beyond playerListener - either
     // PauseAwareLoadControl (local/cloud/ftp/sftp/smb) or the per-stream listener (StreamPlaybackHelper).
     // Tracked here because every add site builds it as a local val; without a field, releasePlayer()/
@@ -716,6 +718,9 @@ class VideoPlayerManager(
                     ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> playStreamVideo(path, playWhenReady)
                 }
 
+                activeSourceIsStream = resourceType == ResourceType.HTTP_STREAM ||
+                    resourceType == ResourceType.RTSP_STREAM
+
                 // S0565: a live/dynamic stream has no meaningful saved position (C.TIME_UNSET), so
                 // both restore and the auto-save loop are suppressed for stream resource types or any
                 // dynamic timeline - otherwise an unset position would be persisted and restored.
@@ -815,7 +820,12 @@ class VideoPlayerManager(
     }
 
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
-    fun releasePlayer() = lifecycleHelper.releasePlayer()
+    fun releasePlayer() {
+        activeSourceIsStream = false
+        lifecycleHelper.releasePlayer()
+    }
+
+    fun isActiveSourceLive(): Boolean = exoPlayer?.isCurrentMediaItemLive == true
 
     /**
      * S0865: belt-and-braces guard against the duplicate-player race - a concurrent playVideo()

@@ -77,6 +77,15 @@ interface PlayerHostCapabilities {
      */
     val is3dVrEnabled: Boolean get() = true
 
+    /** Defaults to a seekable local file for hosts that do not play streams. */
+    val activeSourceIsStream: Boolean get() = false
+
+    /** Defaults to a seekable local file for hosts that do not play streams. */
+    val activeSourceIsLive: Boolean get() = false
+
+    /** Defaults to a seekable local file whose colour controls are supported. */
+    val supportsColorAdjustmentForActiveSource: Boolean get() = true
+
     /** Set the user-selected stereo mode for the current file. */
     fun setStereoMode(mode: StereoMode)
 
