@@ -30,6 +30,7 @@ On `$ARGUMENTS`:
 
 **Step 1 - Determine topic, module, optional flavor, optional ticket.**
 - Use explicit user target when given.
+- Run `.claude/skills/document-registry/SKILL.md` before building the dossier. At every later phase boundary and before the report, repeat the query for the current product area and trigger, then state affected and unchanged registry records.
 - First token matching `^S\d{4}$` → ticket-bound run: resolve slug via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json`; remaining text is topic. Topic clearly scoped to one active ticket counts as ticket-bound too.
 - Infer `Module` = `app_v2` | `wear` | `all` from request + current file.
 - Preserve explicit flavor constraints (`standard`, `lite`, `photos`, `legacy`, `vr`, ..) for dossier metadata.

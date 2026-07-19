@@ -75,6 +75,7 @@ Dependency version policy:
 - Feature inventory (source of truth, every shipped capability, EN-only): `docs/ALL_FEATURES.jsonl` - write via `scripts/all_features/add.ps1`, validate via `scripts/all_features/validate.ps1` (S0489). Replaced the retired `dev/FUNCTIONALITY.log`; chronology lives in git history + release diffs (`scripts/all_features/diff.ps1`). `docs/FEATURES*` is the curated public showcase, populated only by `/skill-release`.
 - Standard production release readiness gate: `docs/RELEASE_READINESS_STANDARD.md` (single verdict via `scripts/release/standard-release-gate.ps1`; operator slice `store_assets/PLAY_CONSOLE_CHECKLIST.md`; waivers `store_assets/release_waivers/`).
 - Documentation map: `docs/DOCS_MAP.md`
+- Documentation registry: `docs/DOCUMENT_REGISTRY.jsonl` is the source of truth for maintained documents, site pages, owners, update triggers, and publication state. Query it with `scripts/document_registry/query.ps1`; validate with `scripts/document_registry/validate.ps1`; regenerate/check derived views with `scripts/document_registry/generate.ps1 [-Check]`.
 - **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` - query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
 
 ## 8) Quick Start Research Checklist

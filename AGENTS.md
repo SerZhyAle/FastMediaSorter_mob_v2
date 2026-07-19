@@ -27,6 +27,7 @@
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md`.
+5. Every agent iteration: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` through `scripts/document_registry/query.ps1` by product area and change trigger, then read the returned records. State affected records and reasons for unchanged matches. Run `validate.ps1` and `generate.ps1 -Check` when a registered document, page, or registry record changes.
 
 ## 5. Skill Routing (Load `.github/prompts/*.prompt.md`)
 - `/quick`: tiny fix (design, typo, 1 string), skip spec/build.
@@ -57,7 +58,8 @@
 - Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits (`fkn` for noLegal), `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, `.\a.ps1 fg` to batch the fast static gates in one process, and full debug APK builds only when packaging/install behavior matters.
 
 ## 8. Code Audit Protocol
-- Full protocol: `docs/CODE_AUDIT_PROTOCOL.md`. Apply it on any **audit trigger**: new screen/manager/worker/repository/long-lived helper; lifecycle/coroutine/Flow/listener/observer change; shared-state/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image/cache/network change; startup change; DI scope/singleton change; build/manifest/R8/keep-rule change affecting profiling/startup/minification; reported crash/ANR/OOM/jank/leak.
+- Full protocol: `docs/CODE_AUDIT_PROTOCOL.md`. Apply it on any **audit trigger**: new screen/manager/worker/repository/long-lived helper; lifecycle/coroutine/Flow/listener/observer change; shared-state/dispatcher change; Room entity/DAO/query/migration/transaction change; player/image/cache/network change; startup change; DI scope/singleton change; build/manifest/R8/keep-rule change affecting profiling/startup/minification; reported crash/ANR/OOM/jank/leak; **phase boundary in a multi-phase task** - audit the phase just finished before starting the next.
+- Phase-boundary audits are mandatory, not deferred to pipeline end: a defect costs one phase's rework when caught at the next boundary, versus every later phase's rework when it surfaces only at the final audit. `/spec-dev` runs it automatically per phase; apply the same discipline for multi-phase work driven outside `/spec-dev`.
 - Tag every finding by severity P0-P3 (P0 crash/leak/data-loss blocks release; P1 race / main-thread I/O / unbounded cache / unreleased resource; P2 hot-path churn / over-eager startup; P3 readability/style). P0/P1 need evidence, not opinion.
 - Listener symmetry: every `register*`/`addListener`/`addObserver` has a matching removal on the symmetric lifecycle edge.
 - No main-thread Room (`allowMainThreadQueries()` banned); DAO `suspend`/`Flow`; atomic multi-step writes in `@Transaction`/`withTransaction`.

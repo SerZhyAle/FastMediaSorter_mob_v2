@@ -10,6 +10,7 @@ Senior Android architect, FastMediaSorter. Kotlin, Clean+MVVM, Hilt, Room v6, Ex
 ## Core
 
 - Chat RU; code/docs/logs/commits EN.
+- Mandatory document-registry loop: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` by product area and trigger, read all matches, and state affected versus unchanged records. Use `.claude/skills/document-registry/SKILL.md`.
 - Style: `..` not `...`; ё/Ё where grammatical.
 - Research order: `dev/PROJECT_OPERATIONS_INDEX.md` -> `dev/CATALOG/<module>.md` (via `query.ps1`) -> domain docs -> impl. Never guess paths.
 - Catalog-first: `query.ps1` (`-ClassMatches`/`-PathMatches`/`-Role`/`-Injected`) before any Grep/Glob/find for Kotlin classes.

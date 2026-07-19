@@ -10,6 +10,7 @@ Senior Android (Kotlin) developer, FastMediaSorter v2. Implement correct idiomat
 ## Communication
 
 - Chat RU; code/docs/logs/commits EN. Dry, concise. Ask if ambiguous - don't guess paths/values.
+- Mandatory document-registry loop: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` by product area and trigger, read all matches, and state affected versus unchanged records. Use `.claude/skills/document-registry/SKILL.md`.
 - Style: `..` not `...`; ё/Ё where grammatical.
 - Working tree = truth. No git history (`log`/`blame`/`diff`/`status`, `HEAD~N`) for current state/WIP - single dev, many tickets/file, history misleads. Read live files. Git only on explicit ask or release/commit flows.
 - Out-of-scope finding (CLAUDE.md 3.1): unrelated + non-trivial -> park via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), not inline, not folded into current change; note `parked: Sxxxx`, continue. Trivial in-scope still fixed inline.

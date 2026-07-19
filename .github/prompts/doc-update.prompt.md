@@ -24,6 +24,15 @@ Review the current change and update all affected documentation files.
 
 Use `$ARGUMENTS` as the feature/change description, or run `git diff --name-only HEAD~1 HEAD` and read changed files briefly.
 
+Identify affected stable product areas and update triggers. Query the registry before selecting documents:
+
+```powershell
+pwsh -NoProfile -File scripts/document_registry/query.ps1 -ProductArea "<area>"
+pwsh -NoProfile -File scripts/document_registry/query.ps1 -Trigger "<trigger>"
+```
+
+Every returned record is a required review item. Update only records actually affected, but record an explicit reason for any returned record left unchanged.
+
 **2 - Work through the checklist below in order.**
 
 Decide per item: *affected* or *not affected*. Apply every affected update. Skip non-affected items silently.
@@ -187,7 +196,14 @@ Update only sections directly relevant to the change.
 
 #### I1. `docs/DOCS_MAP.md`
 
-**When:** Any new `.md` documentation file created. Add row: link, one-line description, date.
+**When:** Any registered document or page changes, or any maintained file is added.
+**How:** Update `docs/DOCUMENT_REGISTRY.jsonl` first. Never edit this generated map manually. Run:
+
+```powershell
+pwsh -NoProfile -File scripts/document_registry/validate.ps1
+pwsh -NoProfile -File scripts/document_registry/generate.ps1
+pwsh -NoProfile -File scripts/document_registry/generate.ps1 -Check
+```
 
 ---
 
@@ -219,4 +235,4 @@ Update only sections directly relevant to the change.
 - Do not rewrite sections you are not updating - only touch affected parts.
 - Do not create new doc files outside `docs/` or `dev/` unless explicitly instructed.
 - "User-facing" rule: if a user would notice the difference in normal use, it is user-facing.
-- Keep `docs/DOCS_MAP.md` in sync - any new file added must appear there.
+- Keep `docs/DOCUMENT_REGISTRY.jsonl` in sync - every maintained document or page must be registered or explicitly excluded in `docs/DOCUMENT_REGISTRY_GUIDE.md`.
