@@ -322,6 +322,16 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
+    // S0404: the first-page launcher toggle choice, honoured once when onboarding completes. Held in
+    // the (config-change-surviving) ViewModel rather than the StateFlow - no UI observes it; only
+    // completeWelcomeFlow reads it at the end of the wizard.
+    var launcherModeRequested: Boolean = false
+        private set
+
+    fun setLauncherModeRequested(requested: Boolean) {
+        launcherModeRequested = requested
+    }
+
     /**
      * First install only: seed the default left-edge gesture bindings once so enabling gestures from
      * onboarding is immediately useful. Gated by welcome-completed (upgrade users skip onboarding and

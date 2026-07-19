@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.welcome.helpers
 
+import android.content.ActivityNotFoundException
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -8,7 +9,9 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.databinding.PageWelcomeNetworksBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -42,6 +45,24 @@ class WelcomeRemoteSourcesController @Inject constructor(
         bindSmbRow(binding.rowSourceSmb, settings)
         bindFtpRow(binding.rowSourceFtp, settings)
         bindCloudRow(binding.rowSourceCloud, settings)
+        bindCompanionPromo(binding)
+    }
+
+    // The Windows companion publishes PC folders over SMB/SFTP, so the promo is only meaningful where
+    // the local-network group is available - hidden on cloud-only flavors alongside the SMB/(S)FTP rows.
+    private fun bindCompanionPromo(binding: PageWelcomeNetworksBinding) {
+        val visible = gate.isNetworkGroupSupported()
+        binding.tvCompanionNote.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.btnCompanionSite.visibility = if (visible) View.VISIBLE else View.GONE
+        if (!visible) return
+        binding.btnCompanionSite.setOnClickListener { view ->
+            try {
+                view.context.startActivity(SupportIntentFactory.openUrl(SupportIntentFactory.companionHomeUrl()))
+            } catch (e: ActivityNotFoundException) {
+                // No browser installed - nothing to open; the promo is optional so just log and move on.
+                Timber.i(e, "WelcomeRemoteSourcesController: no browser for companion site")
+            }
+        }
     }
 
     private fun bindSmbRow(row: SettingsToggleRow, settings: AppSettings) {

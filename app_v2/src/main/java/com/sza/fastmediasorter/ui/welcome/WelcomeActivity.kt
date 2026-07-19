@@ -10,7 +10,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import com.sza.fastmediasorter.core.input.TvNavAction
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -23,14 +22,17 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.input.TvNavAction
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
-import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
@@ -38,12 +40,12 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import timber.log.Timber
 
 @AndroidEntryPoint
-class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
+class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private val viewModel: WelcomeViewModel by viewModels()
 
@@ -66,12 +68,21 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     @Inject
     lateinit var enableAllManager: WelcomeEnableAllManager
 
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherRoleManager: LauncherRoleManager
+
     // Overlay-permission result for the Welcome gesture toggle. Registered at construction (before
     // STARTED, as the API requires); the callback routes back into the functionality controller.
     private val gestureOverlayPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             functionalityController.onGesturePermissionResult()
         }
+
+    // S0404: guards maybeRequestLauncherMode to fire once across the several completeWelcomeFlow call sites.
+    private var launcherModeHandled = false
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private lateinit var pagesList: MutableList<WelcomePage>
@@ -95,16 +106,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
-        // On the permission screen (fromWelcome mode) Back completes the flow instead of closing
-        // the app - WelcomeActivity is the root task at this point so a naked finish() would exit.
-        // On the slide pages, Back minimises instead of finishing for the same reason.
+        // WelcomeActivity is the root task at this point, so Back minimises instead of exiting.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (binding.fragmentContainerWelcome.isVisible) {
-                    completeWelcomeFlow()
-                } else {
-                    moveTaskToBack(true)
-                }
+                moveTaskToBack(true)
             }
         })
 
@@ -216,10 +221,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     private fun setupViewPager() {
+        Timber.d("S1105: binding branded app icon on the first welcome page")
         pagesList = mutableListOf(
             // Page 1: Welcome (Enhanced with feature cards)
             WelcomePage(
-                iconRes = R.drawable.welcome_hero_media,
+                iconRes = R.drawable.ic_app_logo,
                 titleRes = R.string.welcome_title_1,
                 descriptionRes = R.string.welcome_description_1,
                 detailDescriptionRes = R.string.welcome_description_1_details,
@@ -237,6 +243,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 onLanguageSelected = ::onWelcomeLanguageSelected,
                 showThemePicker = true,
                 onThemeSelected = ::onWelcomeThemeSelected,
+                showLauncherModeToggle = launcherModeContract.isAvailableInBuild,
+                launcherModeChecked = viewModel.launcherModeRequested,
+                onLauncherModeToggled = { viewModel.setLauncherModeRequested(it) },
             ),
         )
 
@@ -494,18 +503,26 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         recreate()
     }
 
-    override fun onWelcomeComplete() {
-        completeWelcomeFlow()
-    }
-
     private fun completeWelcomeFlow() {
         if (hasRequiredMediaPermissions()) {
             viewModel.setMediaPermissionsGranted(true)
         }
-        goToMainActivity()
+        // S0404/S1107: the user opted in to launcher mode on the first Welcome page. Enable the HOME
+        // component as a durable candidate now, but do NOT launch the role dialog from this finishing
+        // frame - it would be buried under the MainActivity+SettingsActivity stack (ADR-2). Instead route
+        // the request to the non-finishing first-run Settings screen, which auto-triggers the working
+        // enableMode() path there (the "chooser on next Home press" never fires when a default launcher
+        // already exists, which is every real device).
+        val requestLauncherRole =
+            !launcherModeHandled && launcherModeContract.isAvailableInBuild && viewModel.launcherModeRequested
+        if (requestLauncherRole) {
+            launcherModeHandled = true
+            launcherRoleManager.markAsHomeCandidate()
+        }
+        goToMainActivity(requestLauncherRole)
     }
 
-    private fun goToMainActivity() {
+    private fun goToMainActivity(requestLauncherRole: Boolean = false) {
         viewModel.setWelcomeCompleted()
 
         // Check if this is the first run after welcome completion
@@ -517,9 +534,17 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
             // Navigate to Settings with MainActivity as the back-stack root so that
             // pressing Back from Settings returns to MainActivity instead of closing the app.
+            // S1107: on the launcher opt-in path, deep-link Settings to the launcher section and have it
+            // auto-request the HOME role from that non-finishing context (reliable, unlike a dialog from
+            // this finishing onboarding frame).
+            val settingsIntent = if (requestLauncherRole) {
+                SettingsActivity.openLauncherSectionIntent(this, requestRole = true)
+            } else {
+                Intent(this, SettingsActivity::class.java)
+            }
             TaskStackBuilder.create(this)
                 .addNextIntent(Intent(this, MainActivity::class.java))
-                .addNextIntent(Intent(this, SettingsActivity::class.java))
+                .addNextIntent(settingsIntent)
                 .startActivities()
             finish()
         } else {
@@ -570,8 +595,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * ViewPager2. This is deliberate: TvKeyRouter drops events whose source carries gamepad bits, and
      * some TV remotes / emulators report D-pad that way, which would otherwise let the ViewPager2
      * RecyclerView perform its own focus-escape page scroll. Handling the keys at dispatch time makes
-     * slider navigation source-independent. On the permissions fragment (fragment container visible)
-     * everything falls through to native framework traversal. S0289.
+     * slider navigation source-independent. S0289.
      *
      * - LEFT / RIGHT: focus a neighbour within the current scope (page content or bottom bar); flip
      *   the page only at the scope's true horizontal edge.
@@ -580,7 +604,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * - TAB / SHIFT+TAB: cycle focus through page + bar. ESC: Back.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN && !binding.fragmentContainerWelcome.isVisible) {
+        if (event.action == KeyEvent.ACTION_DOWN) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> { handleSliderHorizontal(View.FOCUS_LEFT, forward = false); return true }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> { handleSliderHorizontal(View.FOCUS_RIGHT, forward = true); return true }
@@ -598,8 +622,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
 
     /**
      * BACK is the only slider key still routed through TvKeyRouter; D-pad / ENTER / TAB / ESC are
-     * owned by [dispatchKeyEvent] above. On the permissions fragment everything falls through to
-     * native framework traversal.
+     * owned by [dispatchKeyEvent] above.
      */
     override fun onTvNavigation(action: TvNavAction): Boolean = when (action) {
         TvNavAction.Back -> { onBackPressedDispatcher.onBackPressed(); true }
@@ -680,7 +703,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * scope's horizontal edge. Always consumes so ViewPager2 never performs its own page scroll.
      */
     private fun handleSliderHorizontal(direction: Int, forward: Boolean): Boolean {
-        if (binding.fragmentContainerWelcome.isVisible) return false
         val focused = currentFocus
         // Focus on the pager container (typical after the very first D-pad key): pull it into the page
         // instead of flipping, so the in-page pickers become reachable without a TAB key.
@@ -701,7 +723,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
      * ViewPager2 RecyclerView perform its focus-escape page scroll. Always consumes.
      */
     private fun handleSliderVertical(direction: Int): Boolean {
-        if (binding.fragmentContainerWelcome.isVisible) return false
         val focused = currentFocus
         val bar = binding.layoutBottomNav
         val page = currentPageView() as? ViewGroup
