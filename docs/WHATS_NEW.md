@@ -6,7 +6,31 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7160.058** (July 2026)
+**Current release: 2.60.7191.740** (July 2026)
+
+> Changes since version 2.60.7160.058
+
+---
+
+## What's New
+
+- **Launcher mode** - use FastMediaSorter as your device home screen.
+- **HEIC, HEIF & AVIF** - open modern phone photo formats.
+- **Archives & disk images** - handle them from Open-with and Share.
+- **Bigger edge-gesture catalog** - more actions in a grouped picker.
+- **Fullscreen exit button** - leave fullscreen video with one tap.
+- **Region-locked stream badge** - spot geo-blocked streams at a glance.
+- **Empty streams panel hint** - guidance when no streams are set up.
+- **Windows companion promo** - shown when adding network sources.
+- **Smarter companion import** - add-or-update resources with a summary.
+
+## What's Fixed
+
+- Camera preview now matches the saved photo.
+
+---
+
+## Previous Release: 2.60.7160.058 (July 2026)
 
 > Changes since version 2.60.7132.046
 
