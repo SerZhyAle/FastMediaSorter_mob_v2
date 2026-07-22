@@ -1,0 +1,9 @@
+• Home-screen launcher - resizable gadgets, a working clock, a scrollable app grid.
+• Launcher desktop - seeded shortcuts and richer cell actions out of the box.
+• Adaptive streaming - video quality steps down automatically under repeated stalls.
+• Stream thumbnails - the frame you watched becomes the channel preview.
+
+
+• Playback controls hide options that do nothing on live streams.
+• Quick-launch tile icons are readable on the light theme.
+..
