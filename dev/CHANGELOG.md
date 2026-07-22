@@ -22885,3 +22885,4 @@ Format: | datetime | file | target | description |
 | 2026-07-22 14:59:42 | `app_v2/src/main/java/com/sza/fastmediasorter/core/playback/RadioStreamBufferConfig.kt` | `S1148` | Retire temporary load-control probe prefix [branch: DEBUG-v027] |
 | 2026-07-22 14:59:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackRenderersFactory.kt` | `S1148` | Retain verified decoder order and remove temporary probe [branch: DEBUG-v027] |
 | 2026-07-22 14:59:43 | `PLAN/S1148_bugfix-radio-live-read-pause-server-drop-stutter.md` | `spec-check` | Audit S1148 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v027] |
+| 2026-07-22 16:58:26 | `PLAN/S1083_bugfix-stream-playback-controls.md` | `spec-check` | Audit S1083 -> Verified (on-device PASS, emulator-5554); removed S1083 probe from PlaybackControlDialogFragment.kt [branch: DEBUG-v027] |
