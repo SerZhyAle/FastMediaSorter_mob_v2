@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.cancelStreamStallWatchdog
 import com.sza.fastmediasorter.ui.player.helpers.releaseMediaPlayer
+import com.sza.fastmediasorter.ui.player.helpers.releaseStreamDiagnostics
 import com.sza.fastmediasorter.ui.player.helpers.saveCurrentPosition
 import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
 import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
@@ -48,6 +49,9 @@ internal class VideoPlayerLifecycleHelper(
             // listener, whichever this session's protocol helper attached) is removed from one place.
             listOfNotNull(manager.playerListener, manager.activeExtraPlayerListener).forEach(player::removeListener)
             manager.activeExtraPlayerListener = null
+            // S1127: detach the stream diagnostics listener + log the session summary (the helper co-locates
+            // removeAnalyticsListener with its add for the per-file listener-symmetry gate).
+            manager.releaseStreamDiagnostics(player)
             // S0893: Media3 1.2.1 - release() can hang the main thread when a setVideoEffects() GL
             // pipeline is still active (androidx/media #1139, #2098; same class of bug worked around
             // in StandaloneViewManager.releaseVideoPlayer(), S0859). Drain effects and detach the
@@ -156,6 +160,8 @@ internal class VideoPlayerLifecycleHelper(
             val player = playerToRelease
             if (player != null) {
                 listOfNotNull(manager.playerListener, manager.activeExtraPlayerListener).forEach(player::removeListener)
+                // S1127: symmetric stream-diagnostics teardown on the onDestroy path too.
+                manager.releaseStreamDiagnostics(player)
             }
             manager.activeExtraPlayerListener = null
         } catch (e: Exception) {

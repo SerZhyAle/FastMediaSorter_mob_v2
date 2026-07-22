@@ -66,7 +66,6 @@ class BrowseVrCinemaLaunchManager @Inject constructor(
      */
     fun launch(file: MediaFile) {
         val owner = context as? LifecycleOwner ?: return
-        Timber.d("S0962: VR cinema cold-launch requested type=%s local=%s", file.type, file.isLocalPath())
 
         owner.lifecycleScope.launch {
             val request = StartVrPlaybackRequest(

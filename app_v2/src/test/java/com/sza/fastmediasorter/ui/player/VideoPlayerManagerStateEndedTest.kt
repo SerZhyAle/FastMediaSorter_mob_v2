@@ -49,26 +49,32 @@ class VideoPlayerManagerStateEndedTest {
             every { it.getSettings() } returns flowOf(AppSettings())
         }
         manager = VideoPlayerManager(
-            context = RuntimeEnvironment.getApplication(),
-            lifecycle = mockk(relaxed = true),
-            playerCallback = mockk(relaxed = true),
-            credentialsRepository = mockk(relaxed = true),
-            smbClient = mockk(relaxed = true),
-            sftpClient = mockk(relaxed = true),
-            endpointResolver = mockk(relaxed = true), // S1006
-            ftpClient = mockk(relaxed = true),
-            googleDriveClient = mockk(relaxed = true),
-            oneDriveClient = mockk(relaxed = true),
-            dropboxClient = mockk(relaxed = true),
-            playbackPositionRepository = mockRepo,
-            settingsRepository = mockSettings,
-            panelStereoSingleEyeNotifier = mockk(relaxed = true),
-            memoryProbe = mockk(relaxed = true),
-            memoryProfileCoordinator = mockk(relaxed = true),
-            decoderFailureTracker = mockk(relaxed = true),
-            remoteSourceGate = mockk(relaxed = true),
-            statsSink = mockk(relaxed = true),
-            streamProtocolSupport = mockk(relaxed = true),
+            hostDependencies = VideoPlayerHostDependencies(
+                context = RuntimeEnvironment.getApplication(),
+                lifecycle = mockk(relaxed = true),
+                playerCallback = mockk(relaxed = true),
+                panelStereoSingleEyeNotifier = mockk(relaxed = true),
+                memoryProbe = mockk(relaxed = true),
+                memoryProfileCoordinator = mockk(relaxed = true),
+                decoderFailureTracker = mockk(relaxed = true),
+                remoteSourceGate = mockk(relaxed = true),
+                statsSink = mockk(relaxed = true),
+                streamProtocolSupport = mockk(relaxed = true),
+            ),
+            networkDependencies = VideoPlayerNetworkDependencies(
+                credentialsRepository = mockk(relaxed = true),
+                smbClient = mockk(relaxed = true),
+                sftpClient = mockk(relaxed = true),
+                endpointResolver = mockk(relaxed = true),
+                ftpClient = mockk(relaxed = true),
+                googleDriveClient = mockk(relaxed = true),
+                oneDriveClient = mockk(relaxed = true),
+                dropboxClient = mockk(relaxed = true),
+            ),
+            storeDependencies = VideoPlayerStoreDependencies(
+                playbackPositionRepository = mockRepo,
+                settingsRepository = mockSettings,
+            ),
         )
     }
 

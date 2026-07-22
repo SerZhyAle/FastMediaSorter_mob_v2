@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
@@ -385,6 +386,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsDefaultMediaFilter = streams.streamsDefaultMediaFilter,
                     streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
                     showStreamsPanelInMainWindow = streams.showStreamsPanelInMainWindow,
+                    streamsSmartBuffering = streams.streamsSmartBuffering,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -615,6 +617,11 @@ class SettingsRepositoryImpl @Inject constructor(
             LocaleHelper.resolveSupportedLanguageCode(settings.language)
         }
         val storedColorTheme = ColorThemePrefs.normalizeValue(settings.colorTheme)
+
+        // S1148: mirror for synchronous reads at player-build time (see RadioStreamBufferConfig).
+        if (current == null || current.streamsSmartBuffering != settings.streamsSmartBuffering) {
+            RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
+        }
 
         dataStore.edit { preferences ->
             // Preserve the follow-system sentinel so later settings writes do not silently pin the

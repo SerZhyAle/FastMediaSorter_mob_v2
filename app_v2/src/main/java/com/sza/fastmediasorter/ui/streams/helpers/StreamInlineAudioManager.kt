@@ -17,6 +17,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
@@ -69,6 +70,23 @@ class StreamInlineAudioManager(
     private var noSignalVisible = false
     private val toleranceRunnable = Runnable { handleToleranceTimeout() }
     private val retryRunnable = Runnable { retryLocalPlayback() }
+
+    // Audio-sink starvation never surfaces as a state change or error, so radio stutters in the
+    // OFF-mode (in-app) player were invisible to logging. Underruns are the ground truth for them.
+    private val underrunListener = object : AnalyticsListener {
+        override fun onAudioUnderrun(
+            eventTime: AnalyticsListener.EventTime,
+            bufferSize: Int,
+            bufferSizeMs: Long,
+            elapsedSinceLastFeedMs: Long
+        ) {
+            Timber.w(
+                "StreamInlineAudioManager: audio underrun bufferSizeMs=%d elapsedSinceLastFeedMs=%d",
+                bufferSizeMs,
+                elapsedSinceLastFeedMs
+            )
+        }
+    }
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -173,8 +191,12 @@ class StreamInlineAudioManager(
                 .setUsage(C.USAGE_MEDIA)
                 .build()
             val local = ExoPlayer.Builder(miniControl.context)
-                .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
-                .setLoadControl(RadioStreamBufferConfig.createLoadControl())
+                .setMediaSourceFactory(
+                    DefaultMediaSourceFactory(httpFactory).setLoadErrorHandlingPolicy(
+                        RadioStreamBufferConfig.createLoadErrorHandlingPolicy(miniControl.context)
+                    )
+                )
+                .setLoadControl(RadioStreamBufferConfig.createLoadControl(miniControl.context))
                 .setAudioAttributes(
                     audioAttributes,
                     /* handleAudioFocus= */
@@ -185,6 +207,7 @@ class StreamInlineAudioManager(
             Timber.d("S0896: StreamInlineAudioManager OFF-mode player built with handleAudioFocus")
             local.setMediaItem(MediaItem.fromUri(source.url))
             local.addListener(playerListener)
+            local.addAnalyticsListener(underrunListener)
             local.prepare()
             local.playWhenReady = true
             localPlayer = local
@@ -224,6 +247,7 @@ class StreamInlineAudioManager(
         val local = localPlayer
         if (local != null) {
             // In-app player owns its own resources - release it, don't merely stop it.
+            local.removeAnalyticsListener(underrunListener)
             local.release()
             localPlayer = null
         } else {
@@ -278,6 +302,7 @@ class StreamInlineAudioManager(
 
     private fun handleToleranceTimeout() {
         val source = currentSource ?: return
+        Timber.d("S1118: tolerance timeout hasSuccess=%b", hasSuccessfulPlayback)
         if (hasSuccessfulPlayback) {
             noSignalVisible = true
             renderTitle()
@@ -294,6 +319,7 @@ class StreamInlineAudioManager(
                 elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
 
     private fun scheduleLocalRetry() {
+        Timber.d("S1118: local retry attempt=%d", retryAttempt)
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)
             .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
         retryAttempt = (retryAttempt + 1).coerceAtMost(MAX_BACKOFF_SHIFT)

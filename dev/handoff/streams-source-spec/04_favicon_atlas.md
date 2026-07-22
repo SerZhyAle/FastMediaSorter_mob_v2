@@ -252,7 +252,8 @@ are never captured). Three collaborating classes, all keyed by URL:
 ### 9.2 `StreamFramePersistentStore` (on-disk cold-start layer)
 - Directory `filesDir/stream_frames/`; filename = `SHA-256(url)` hex + `.jpg` (the hash IS the key, no
   mapping file).
-- `save` = JPEG quality 75, temp-then-rename, then `enforceCap`; `MAX_FILES = 64` (oldest-by-mtime deleted).
+- `save` = JPEG quality 75, temp-then-rename, then `enforceCap`; evicts oldest-by-mtime until the total
+  `.jpg` footprint fits `MAX_DISK_BYTES = 150 MB` (size budget, not a file count - S1130).
 - Broad catch-to-null on all I/O; failure just falls back to the favicon next bind.
 
 ### 9.3 `StreamFrameSnapshotManager` (offscreen capture engine)

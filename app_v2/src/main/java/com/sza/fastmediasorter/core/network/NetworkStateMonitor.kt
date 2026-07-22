@@ -168,7 +168,6 @@ class NetworkStateMonitor @Inject constructor(
                 delay(SETTLE_WINDOW_MS)
                 val settledId = getActiveNetworkId() ?: latestNetworkId
                 val previous = lastNotifiedNetworkId
-                Timber.d("S1040: settle previous=$previous settled=$settledId invalidate=${settledId != previous}")
                 if (settledId == previous) {
                     Timber.d("NetworkStateMonitor: Flap settled back on $settledId - no invalidation")
                     return@launch

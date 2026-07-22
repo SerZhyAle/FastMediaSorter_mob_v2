@@ -416,4 +416,71 @@ void xr_hud_shutdown() {
     }
 }
 
+// S0986 subtitle quad -------------------------------------------------------------------------
+
+SubtitleQuadState g_subtitleState;
+
+void xr_subtitle_init() {
+    // 0.5 m wide, aspect 4:1 (1024x256 texture) -> 0.125 m tall; two readable lines at watch
+    // distance. Lower third: 0.5 m below the gaze ray (~18 deg down) so it clears the HUD panel.
+    g_subtitleState.quad.width = 0.5f;
+    g_subtitleState.quad.height = 0.125f;
+    g_subtitleState.quad.center = {0.0f, -0.5f, -1.5f};
+    g_subtitleState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
+    g_subtitleState.visible = false;
+    LOGD("xr_subtitle_init: subtitle quad %.2fx%.2f m lower-third", g_subtitleState.quad.width, g_subtitleState.quad.height);
+}
+
+void xr_subtitle_update(const XrPosef& headPose) {
+    // Head-locked lower-third anchor: forward 1.5 m + down 0.5 m, always facing the user. No drag
+    // and no gaze lazy-follow, so its position is fully independent of the HUD quad (S0986).
+    XrVector3f offset = rotate_vector(headPose.orientation, {0.0f, -0.5f, -1.5f});
+    g_subtitleState.quad.center = {
+        headPose.position.x + offset.x,
+        headPose.position.y + offset.y,
+        headPose.position.z + offset.z
+    };
+    g_subtitleState.quad.rot = headPose.orientation;
+}
+
+void xr_subtitle_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuint shaderProgram, GLuint quadVao, GLuint subTex, GLint locViewProj, GLint locTex, GLint locEye, GLint locStereo, GLint locZoom) {
+    static int s_subRenderCallCount = 0;
+    if (!g_subtitleState.visible || subTex == 0) {
+        if ((s_subRenderCallCount++ % 180) == 0) {
+            LOGD("xr_subtitle_render skip: visible=%d subTex=%u", g_subtitleState.visible ? 1 : 0, subTex);
+        }
+        return;
+    }
+
+    float modelMat[16];
+    matrix_from_pose(g_subtitleState.quad.center, g_subtitleState.quad.rot, {g_subtitleState.quad.width, g_subtitleState.quad.height, 1.0f}, modelMat);
+    float mvMat[16];
+    multiply_matrices(viewMat, modelMat, mvMat);
+    float mvpMat[16];
+    multiply_matrices(proj, mvMat, mvpMat);
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(shaderProgram);
+    glUniformMatrix4fv(locViewProj, 1, GL_FALSE, mvpMat);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, subTex);
+    glUniform1i(locTex, 0);
+    glUniform1i(locEye, (GLint)eyeIdx);
+    glUniform1i(locStereo, 0); // subtitle is a mono texture
+    // S0986: pin zoom to 1.0 so the text overlay never inherits the 360/180 video zoom (u_zoomUv).
+    if (locZoom >= 0) glUniform1f(locZoom, 1.0f);
+    GLint locParallax = glGetUniformLocation(shaderProgram, "u_parallaxShift");
+    if (locParallax >= 0) glUniform1f(locParallax, 0.0f);
+
+    glBindVertexArray(quadVao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+}
+
 } // namespace fms::xr

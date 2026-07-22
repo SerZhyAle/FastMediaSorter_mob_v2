@@ -4,43 +4,51 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.net.Uri
+import android.os.Handler
 import android.os.IBinder
-import com.sza.fastmediasorter.ui.main.MainActivity
+import android.os.Looper
+import android.os.SystemClock
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.ExoPlayer
-import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
-import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.LoadEventInfo
+import androidx.media3.exoplayer.source.MediaLoadData
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
-import android.widget.Toast
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
-import dagger.hilt.android.AndroidEntryPoint
-import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
+import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
-import com.sza.fastmediasorter.widget.AudioNowPlayingSnapshotStore
-import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
 import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
+import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
+import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
+import com.sza.fastmediasorter.widget.AudioNowPlayingSnapshotStore
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -103,6 +111,133 @@ class AudioPlaybackService : MediaSessionService() {
     private var streamHasSuccessfulPlayback = false
     private var streamRetryAttempt = 0
     private val streamRetryRunnable = Runnable { retryCurrentStream() }
+
+    // Live-radio stutters leave no trace at state level (playbackState stays READY, no error), so
+    // every layer that can interrupt audible output is logged here: sink underruns, decoder churn,
+    // mid-stream format changes, silent position jumps, focus-driven suppression/ducking, and every
+    // upstream (re)open. Event-driven and cheap - kept permanently, unlike the S1148 telemetry loop.
+    private val audioDiagListener = object : AnalyticsListener {
+        override fun onAudioUnderrun(
+            eventTime: AnalyticsListener.EventTime,
+            bufferSize: Int,
+            bufferSizeMs: Long,
+            elapsedSinceLastFeedMs: Long
+        ) {
+            Timber.w(
+                "AudioPlaybackService: audio underrun bufferSizeMs=%d elapsedSinceLastFeedMs=%d",
+                bufferSizeMs,
+                elapsedSinceLastFeedMs
+            )
+        }
+
+        override fun onAudioDecoderInitialized(
+            eventTime: AnalyticsListener.EventTime,
+            decoderName: String,
+            initializedTimestampMs: Long,
+            initializationDurationMs: Long
+        ) {
+            Timber.i("Audio diag: decoder initialized name=%s initMs=%d", decoderName, initializationDurationMs)
+        }
+
+        override fun onAudioInputFormatChanged(
+            eventTime: AnalyticsListener.EventTime,
+            format: Format,
+            decoderReuseEvaluation: DecoderReuseEvaluation?
+        ) {
+            Timber.i(
+                "Audio diag: input format mime=%s sampleRate=%d ch=%d bitrate=%d",
+                format.sampleMimeType,
+                format.sampleRate,
+                format.channelCount,
+                format.bitrate
+            )
+        }
+
+        override fun onAudioSinkError(eventTime: AnalyticsListener.EventTime, audioSinkError: Exception) {
+            Timber.w(audioSinkError, "Audio diag: sink error")
+        }
+
+        override fun onAudioCodecError(eventTime: AnalyticsListener.EventTime, audioCodecError: Exception) {
+            Timber.w(audioCodecError, "Audio diag: codec error")
+        }
+
+        override fun onPositionDiscontinuity(
+            eventTime: AnalyticsListener.EventTime,
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            Timber.i(
+                "Audio diag: position discontinuity reason=%d old=%d new=%d",
+                reason,
+                oldPosition.positionMs,
+                newPosition.positionMs
+            )
+        }
+
+        override fun onPlayWhenReadyChanged(
+            eventTime: AnalyticsListener.EventTime,
+            playWhenReady: Boolean,
+            reason: Int
+        ) {
+            // reason 3 = AUDIO_FOCUS_LOSS: something else took audio focus and paused this player.
+            Timber.i("Audio diag: playWhenReady=%b reason=%d", playWhenReady, reason)
+        }
+
+        override fun onPlaybackSuppressionReasonChanged(
+            eventTime: AnalyticsListener.EventTime,
+            playbackSuppressionReason: Int
+        ) {
+            // reason 1 = TRANSIENT_AUDIO_FOCUS_LOSS: playback silently paused with state still READY.
+            Timber.i("Audio diag: suppression reason=%d", playbackSuppressionReason)
+        }
+
+        override fun onIsPlayingChanged(eventTime: AnalyticsListener.EventTime, isPlaying: Boolean) {
+            Timber.i("Audio diag: isPlaying=%b", isPlaying)
+        }
+
+        override fun onVolumeChanged(eventTime: AnalyticsListener.EventTime, volume: Float) {
+            // A duck (transient focus loss CAN_DUCK) shows up only here - volume drop, no pause.
+            Timber.i("Audio diag: volume=%.2f", volume)
+        }
+
+        override fun onLoadStarted(
+            eventTime: AnalyticsListener.EventTime,
+            loadEventInfo: LoadEventInfo,
+            mediaLoadData: MediaLoadData
+        ) {
+            // For a progressive ICY stream there is exactly ONE media load per connection - a second
+            // line for the same station means the socket was silently reopened (upstream drop).
+            if (mediaLoadData.dataType == C.DATA_TYPE_MEDIA) {
+                Timber.i("Audio diag: media load started uri=%s", loadEventInfo.uri)
+            }
+        }
+
+        override fun onLoadError(
+            eventTime: AnalyticsListener.EventTime,
+            loadEventInfo: LoadEventInfo,
+            mediaLoadData: MediaLoadData,
+            error: java.io.IOException,
+            wasCanceled: Boolean
+        ) {
+            Timber.w(error, "Audio diag: load error canceled=%b uri=%s", wasCanceled, loadEventInfo.uri)
+        }
+    }
+
+    // Route flapping is invisible to ExoPlayer - only this callback sees it.
+    private val audioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+            Timber.i("Audio diag: output devices added %s", describeDevices(addedDevices))
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+            Timber.i("Audio diag: output devices removed %s", describeDevices(removedDevices))
+        }
+    }
+
+    private fun describeDevices(devices: Array<AudioDeviceInfo>): String =
+        devices.filter { it.isSink }
+            .joinToString(prefix = "[", postfix = "]") { "type=${it.type} name=${it.productName}" }
 
     // "Player time" accounting: the service lifetime is the audio-open window, so wall-clock accrues
     // from the first ready track until the service is destroyed, including paused/buffering. A periodic
@@ -203,9 +338,14 @@ class AudioPlaybackService : MediaSessionService() {
             == PackageManager.PERMISSION_GRANTED
         ) C.WAKE_MODE_LOCAL else C.WAKE_MODE_NONE
 
+        // Smart-mode loader policy: silent connectivity retries instead of fatal restarts.
+        // The policy checks the setting at error time, so it is safe to attach unconditionally.
+        networkMediaSourceFactory.setLoadErrorHandlingPolicy(
+            RadioStreamBufferConfig.createLoadErrorHandlingPolicy(this)
+        )
         val exoPlayer = ExoPlayer.Builder(this, createPlaybackRenderersFactory(this))
             .setMediaSourceFactory(networkMediaSourceFactory)
-            .setLoadControl(RadioStreamBufferConfig.createLoadControl())
+            .setLoadControl(RadioStreamBufferConfig.createLoadControl(this))
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(wakeMode)
@@ -304,13 +444,29 @@ class AudioPlaybackService : MediaSessionService() {
             }
         })
 
+        exoPlayer.addAnalyticsListener(audioDiagListener)
+        (getSystemService(AUDIO_SERVICE) as? AudioManager)
+            ?.registerAudioDeviceCallback(audioDeviceCallback, autoStopHandler)
+
         player = exoPlayer
 
         // Wrap player to handle next/previous for single-file playback.
         // When ExoPlayer has only 1 item, seekToNext/Previous are no-ops.
         // ForwardingPlayer seeks to end so STATE_ENDED fires and Activity-side callback advances.
         val wrappedPlayer = object : ForwardingPlayer(exoPlayer) {
+            // S1146: a live/unbounded radio stream (ICY .aacp, HLS/DASH live) has no next/previous
+            // track and is not seekable. The single-file seek-to-end trick below only rebuffers the
+            // live edge (an audible stutter) - STATE_ENDED never fires for live - so skip is a no-op
+            // for it, and skip commands are not advertised. isCurrentMediaItemLive can be false for a
+            // plain ICY progressive stream, so a non-seekable current item is treated as live too.
+            fun isLiveStreamItem(): Boolean =
+                exoPlayer.isCurrentMediaItemLive || !exoPlayer.isCurrentMediaItemSeekable
+
             override fun seekToNext() {
+                if (isLiveStreamItem()) {
+                    Timber.d("S1146: seekToNext no-op for live stream")
+                    return
+                }
                 if (exoPlayer.mediaItemCount <= 1) {
                     Timber.d("AudioPlaybackService: seekToNext on single file → seeking to end")
                     // Use actual duration when known; fall back to a safe large value so ExoPlayer
@@ -323,6 +479,10 @@ class AudioPlaybackService : MediaSessionService() {
             }
 
             override fun seekToPrevious() {
+                if (isLiveStreamItem()) {
+                    Timber.d("S1146: seekToPrevious no-op for live stream")
+                    return
+                }
                 if (exoPlayer.mediaItemCount <= 1) {
                     if (exoPlayer.currentPosition <= 3000L) {
                         // Near the start: go to previous file - signal Activity via pendingDirection
@@ -340,16 +500,20 @@ class AudioPlaybackService : MediaSessionService() {
                 }
             }
 
-            // Always report SEEK_TO_NEXT / SEEK_TO_PREVIOUS as available so that
-            // DefaultMediaNotificationProvider renders both skip buttons in the notification,
-            // even for single-file playback where ExoPlayer would otherwise return false.
+            // Report SEEK_TO_NEXT / SEEK_TO_PREVIOUS as available for single-file so the notification
+            // renders both skip buttons - but NOT for a live radio stream (S1146), where skipping only
+            // rebuffers the live edge; there it falls through to ExoPlayer's own (false) availability.
             override fun isCommandAvailable(command: @Player.Command Int): Boolean {
-                if (command == COMMAND_SEEK_TO_NEXT || command == COMMAND_SEEK_TO_PREVIOUS) return true
+                if (command == COMMAND_SEEK_TO_NEXT || command == COMMAND_SEEK_TO_PREVIOUS) {
+                    return if (isLiveStreamItem()) super.isCommandAvailable(command) else true
+                }
                 return super.isCommandAvailable(command)
             }
 
             override fun getAvailableCommands(): Player.Commands {
-                return super.getAvailableCommands().buildUpon()
+                val base = super.getAvailableCommands()
+                if (isLiveStreamItem()) return base
+                return base.buildUpon()
                     .add(COMMAND_SEEK_TO_NEXT)
                     .add(COMMAND_SEEK_TO_PREVIOUS)
                     .build()
@@ -440,6 +604,9 @@ class AudioPlaybackService : MediaSessionService() {
         serviceScope.cancel()
         AudioNowPlayingSnapshotStore.clear(this)
 
+        (getSystemService(AUDIO_SERVICE) as? AudioManager)
+            ?.unregisterAudioDeviceCallback(audioDeviceCallback)
+        p?.removeAnalyticsListener(audioDiagListener)
         mediaSession?.run {
             player.release()
             release()
@@ -507,14 +674,17 @@ class AudioPlaybackService : MediaSessionService() {
     // session and keep the stop behavior. See S0413 research/01.
     private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
 
-    private fun canRetryStream(error: PlaybackException): Boolean =
-        error.errorCode in PlaybackException.ERROR_CODE_IO_UNSPECIFIED..
-            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE &&
-            (streamHasSuccessfulPlayback ||
-                SystemClock.elapsedRealtime() - streamConnectionStartedAtMs <
-                RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
+    private fun canRetryStream(error: PlaybackException): Boolean {
+        val ioErrorRange =
+            PlaybackException.ERROR_CODE_IO_UNSPECIFIED..PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
+        val withinRetryWindow = streamHasSuccessfulPlayback ||
+            SystemClock.elapsedRealtime() - streamConnectionStartedAtMs <
+            RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
+        return error.errorCode in ioErrorRange && withinRetryWindow
+    }
 
     private fun scheduleStreamRetry() {
+        Timber.d("S1118: service stream retry attempt=%d", streamRetryAttempt)
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl streamRetryAttempt)
             .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
         streamRetryAttempt = (streamRetryAttempt + 1).coerceAtMost(MAX_STREAM_BACKOFF_SHIFT)

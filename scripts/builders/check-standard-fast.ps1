@@ -5,7 +5,9 @@ param(
     # path because it bundles Python via Chaquopy (see flag handling below).
     # S0404: the capability-gated flavors (Lite / Photos / Legacy) compile the no-op source sets,
     # so a seam change needs a fast check on one of them too.
-    [ValidateSet("Standard", "NoLegal", "Lite", "Photos", "Legacy")]
+    # S0989: Vr compiles the src/vr source set (OpenXR immersive host) - needed when a change
+    # lives only under src/vr, which the Standard/NoLegal checks never compile.
+    [ValidateSet("Standard", "NoLegal", "Lite", "Photos", "Legacy", "Vr")]
     [string]$Flavor = "Standard",
     [string]$Tests,
     [switch]$Quiet

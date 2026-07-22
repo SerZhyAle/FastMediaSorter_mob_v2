@@ -14,19 +14,26 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
+import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.models.TranslationFontFamily
+import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.player.StreamProtocolSupport
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -34,6 +41,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
+import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
@@ -41,35 +49,29 @@ import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.formatTime
-import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
-import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
-import com.sza.fastmediasorter.core.memory.MemoryProbe
-import com.sza.fastmediasorter.core.memory.MemoryScenario
-import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
-import com.sza.fastmediasorter.ui.player.helpers.playStreamVideo
-import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
 import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
+import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
+import com.sza.fastmediasorter.ui.player.helpers.playStreamVideo
+import com.sza.fastmediasorter.ui.player.helpers.resetStreamFrameCapture
 import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
 import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
-import com.sza.fastmediasorter.domain.models.TranslationFontFamily
-import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.LazyThreadSafetyMode
 import timber.log.Timber
+import kotlin.LazyThreadSafetyMode
 /**
  * Orchestrator for video/audio playback using ExoPlayer (with MediaPlayer fallback).
  *
@@ -86,35 +88,35 @@ import timber.log.Timber
  * - Lifecycle callbacks
  */
 class VideoPlayerManager(
-    internal val context: Context,
-    private val lifecycle: Lifecycle,
-    internal val playerCallback: PlayerCallback,
-    internal val credentialsRepository: NetworkCredentialsRepository,
-    internal val smbClient: SmbClient,
-    internal val sftpClient: SftpClient,
-    // S1006: picks the reachable SFTP endpoint (companion LAN vs WAN) before streaming.
-    internal val endpointResolver: SftpEndpointResolver,
-    internal val ftpClient: FtpClient,
-    internal val googleDriveClient: GoogleDriveRestClient,
-    internal val oneDriveClient: OneDriveRestClient,
-    internal val dropboxClient: DropboxClient,
-    internal val playbackPositionRepository: PlaybackPositionRepository,
-    internal val settingsRepository: SettingsRepository,
-    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier,
-    // S0207 Phase 01: PRE_PLAY / AFTER_STATE_READY checkpoints emitted from playVideo / playerListener.
-    internal val memoryProbe: MemoryProbe,
-    // S0207 Phase 03: runtime scenario source of truth for browse/player memory defaults.
-    internal val memoryProfileCoordinator: MemoryProfileCoordinator,
-    // S0213 Pillar A: cooldown tracker consulted by PlayerMediaLoaderManager before replays.
-    internal val decoderFailureTracker: RecentDecoderFailureTracker,
-    // S0391: source-availability gate; playback dispatch turns back when the source is user-disabled.
-    internal val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
-    // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
-    internal val statsSink: StatsSink,
-    // S0565: flavor-gated stream-protocol support; the stream helper reads supportsRtsp /
-    // createRtspMediaSource so lite/photos never reference the RTSP module.
-    internal val streamProtocolSupport: StreamProtocolSupport,
+    hostDependencies: VideoPlayerHostDependencies,
+    networkDependencies: VideoPlayerNetworkDependencies,
+    storeDependencies: VideoPlayerStoreDependencies,
 ) : DefaultLifecycleObserver {
+
+    internal val context: Context = hostDependencies.context
+    private val lifecycle: Lifecycle = hostDependencies.lifecycle
+    internal val playerCallback: PlayerCallback = hostDependencies.playerCallback
+    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier =
+        hostDependencies.panelStereoSingleEyeNotifier
+    internal val memoryProbe: MemoryProbe = hostDependencies.memoryProbe
+    internal val memoryProfileCoordinator: MemoryProfileCoordinator = hostDependencies.memoryProfileCoordinator
+    internal val decoderFailureTracker: RecentDecoderFailureTracker = hostDependencies.decoderFailureTracker
+    internal val remoteSourceGate = hostDependencies.remoteSourceGate
+    internal val statsSink: StatsSink = hostDependencies.statsSink
+    internal val streamProtocolSupport: StreamProtocolSupport = hostDependencies.streamProtocolSupport
+
+    internal val credentialsRepository: NetworkCredentialsRepository = networkDependencies.credentialsRepository
+    internal val smbClient: SmbClient = networkDependencies.smbClient
+    internal val sftpClient: SftpClient = networkDependencies.sftpClient
+    internal val endpointResolver: SftpEndpointResolver = networkDependencies.endpointResolver
+    internal val ftpClient: FtpClient = networkDependencies.ftpClient
+    internal val googleDriveClient: GoogleDriveRestClient = networkDependencies.googleDriveClient
+    internal val oneDriveClient: OneDriveRestClient = networkDependencies.oneDriveClient
+    internal val dropboxClient: DropboxClient = networkDependencies.dropboxClient
+
+    internal val playbackPositionRepository: PlaybackPositionRepository =
+        storeDependencies.playbackPositionRepository
+    internal val settingsRepository: SettingsRepository = storeDependencies.settingsRepository
 
     // ═══════════════════════════════════════════════════════════════════════
     // Callback interface
@@ -321,9 +323,11 @@ class VideoPlayerManager(
     internal var streamStallLastPosition = 0L
     internal var streamStallPolls = 0
     internal var streamBufferingSince = 0L
+
     // Watchdog recovery budget - separate from the error-driven behindLiveRecoveries/transientRetries
     // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's exhaustion.
     internal var streamWatchdogRecoveries = 0
+
     // True while a watchdog-triggered re-prepare is in flight, so the listener labels the resulting
     // BUFFERING as RECONNECTING (owner-ratified: same label as error-driven recovery).
     internal var streamWatchdogReconnecting = false
@@ -338,6 +342,25 @@ class VideoPlayerManager(
     // Tracked here because every add site builds it as a local val; without a field, releasePlayer()/
     // onDestroy() have no reference to remove it symmetrically.
     internal var activeExtraPlayerListener: Player.Listener? = null
+
+    // S1127: the stream player's AnalyticsListener (dropped frames / decoder / TTFF / stall metrics) and
+    // its aggregator, tracked so both teardown paths remove the listener symmetrically and log the summary.
+    internal var activeStreamAnalyticsListener: androidx.media3.exoplayer.analytics.AnalyticsListener? = null
+    internal var activeStreamDiagnostics: com.sza.fastmediasorter.ui.player.helpers.StreamPlaybackDiagnostics? = null
+
+    // S1128: the http(s) stream player's explicit track selector and the quality step-down policy, held so
+    // the stream listener can cap the video ceiling on repeated stalls and teardown can null both. RTSP
+    // keeps the implicit default selector (no rendition ladder), so both stay null for RTSP sessions.
+    internal var activeStreamTrackSelector:
+        androidx.media3.exoplayer.trackselection.DefaultTrackSelector? = null
+    internal var activeStreamStepDownController:
+        com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController? = null
+
+    // S1129: one delayed TextureView capture attempt belongs to one active stream session.
+    internal var streamFrameCaptureJob: Job? = null
+    internal var streamFrameCaptureAttempted = false
+    internal var streamFrameIngestor: StreamFrameIngestor? = null
+    internal var onStreamFrameIngested: ((String) -> Unit)? = null
 
     // S0893: minimal state to recreate playback after an API24+ onStop release. Set at the top of
     // playVideo() so onStart() can call playVideo(..) again with the same routing.
@@ -453,11 +476,14 @@ class VideoPlayerManager(
     // with -1,-1) when called before the decoder emits the first frame size. These two flags
     // defer the pipeline installation until onVideoSizeChanged delivers valid dimensions.
     @Volatile internal var videoSizeKnown: Boolean = false
+
     @Volatile internal var pendingEffectsApply: Boolean = false
 
     // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
     @Volatile internal var lastVideoWidth: Int = 0
+
     @Volatile internal var lastVideoHeight: Int = 0
+
     // S0995: cumulative visual frame rotation (0/90/180/270) composed into the effect chain. Lives on
     // the manager (not the per-file ExoPlayer) so the angle carries to the next video in the session.
     @Volatile internal var contentRotationDegrees: Int = 0
@@ -821,11 +847,10 @@ class VideoPlayerManager(
 
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
     fun releasePlayer() {
+        resetStreamFrameCapture()
         activeSourceIsStream = false
         lifecycleHelper.releasePlayer()
     }
-
-    fun isActiveSourceLive(): Boolean = exoPlayer?.isCurrentMediaItemLive == true
 
     /**
      * S0865: belt-and-braces guard against the duplicate-player race - a concurrent playVideo()
@@ -888,3 +913,5 @@ class VideoPlayerManager(
         return if (ext in MediaTypeUtils.AUDIO_EXTENSIONS) "audio" else "video"
     }
 }
+
+internal fun VideoPlayerManager.isActiveSourceLive(): Boolean = exoPlayer?.isCurrentMediaItemLive == true

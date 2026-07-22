@@ -115,9 +115,32 @@ class KeybindingRowLabelFormatter @Inject constructor(
         return "$axisName$dir (>${trigger.threshold})"
     }
 
-    private fun formatVrEvent(type: Int): String {
-        val resName = "keybinding_input_vr_$type"
-        val id = context.resources.getIdentifier(resName, "string", context.packageName)
-        return if (id != 0) context.getString(id) else "VR[$type]"
+    // S1134: explicit map from the raw XrInputEventType code (as seeded in default_bindings.json) to a
+    // human label. Codes that name a genuine VR input gesture reuse the existing command-label strings;
+    // every other code has no real VR-input identity (no XrInputEventType taxonomy exists in the codebase),
+    // so it falls back to a localized generic "VR %d" - never the raw "VR[$type]". Replaces a reflective
+    // getIdentifier lookup that hid the missing-resource bug from lint and was an R8 shrinker risk; this
+    // mirrors the explicit formatGamepadButton/formatMouseButton siblings above.
+    private fun formatVrEvent(type: Int): String = when (type) {
+        VR_EVENT_RECENTER -> context.getString(R.string.keybinding_label_vr_recenter)
+        VR_EVENT_CONTROLLER_RAY -> context.getString(R.string.keybinding_label_vr_controller_ray)
+        VR_EVENT_SWIPE_LEFT -> context.getString(R.string.keybinding_label_vr_swipe_left)
+        VR_EVENT_SWIPE_RIGHT -> context.getString(R.string.keybinding_label_vr_swipe_right)
+        VR_EVENT_SWIPE_UP -> context.getString(R.string.keybinding_label_vr_swipe_up)
+        VR_EVENT_SWIPE_DOWN -> context.getString(R.string.keybinding_label_vr_swipe_down)
+        VR_EVENT_DOUBLE_PINCH -> context.getString(R.string.keybinding_label_vr_double_pinch)
+        else -> context.getString(R.string.keybinding_fmt_vr_unknown, type)
+    }
+
+    private companion object {
+        // Raw XrInputEventType codes seeded in assets/input/default_bindings.json for the VR gesture
+        // commands. Only genuine input gestures are named; action-only codes stay on the generic label.
+        const val VR_EVENT_RECENTER = 10
+        const val VR_EVENT_CONTROLLER_RAY = 17
+        const val VR_EVENT_SWIPE_LEFT = 19
+        const val VR_EVENT_SWIPE_RIGHT = 20
+        const val VR_EVENT_SWIPE_UP = 21
+        const val VR_EVENT_SWIPE_DOWN = 22
+        const val VR_EVENT_DOUBLE_PINCH = 23
     }
 }

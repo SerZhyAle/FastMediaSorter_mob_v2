@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1089: one installed-app cell in the Start-menu "All apps" grid - icon over a label, a single
+     focus target. Mirrors item_launcher_cell_shortcut.xml (same card/focus/stroke treatment) but has
+     no mode badge. Orientation-neutral, so no layout-land counterpart. Kept separate from
+     item_launcher_taskbar_icon.xml so the taskbar strips (icon-only) do not gain a label. -->
+<com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardAppCell"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:rippleColor="?attr/colorControlHighlight"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="4dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="10dp">
+
+        <ImageView
+            android:id="@+id/appIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_launcher_mode" />
+
+        <TextView
+            android:id="@+id/appLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="12sp"
+            tools:text="Chrome" />
+
+    </LinearLayout>
+
+</com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>

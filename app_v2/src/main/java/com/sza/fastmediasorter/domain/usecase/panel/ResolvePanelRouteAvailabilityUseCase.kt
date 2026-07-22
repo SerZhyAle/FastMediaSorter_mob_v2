@@ -54,6 +54,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     // here, or the `else` below reports it unavailable - there is no second toggle to forget.
     private fun resolve(routeKey: String, settings: AppSettings): Availability =
         when (routeKey) {
+            // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
+            InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
+                Availability(availableInBuild = true, enabledAtRuntime = true)
             InternalRouteCatalog.KEY_CALCULATOR -> Availability(availableInBuild = true, enabledAtRuntime = true)
             InternalRouteCatalog.KEY_GAME ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.embeddedGameEnabled)

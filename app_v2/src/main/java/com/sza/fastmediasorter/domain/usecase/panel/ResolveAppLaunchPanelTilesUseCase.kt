@@ -55,7 +55,9 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                     targetId = null,
                     label = tile.labelOverride ?: pm.getApplicationLabel(appInfo).toString(),
                     icon = pm.getApplicationIcon(appInfo),
-                    isEmpty = false
+                    isEmpty = false,
+                    // App launcher icon is full-color; never tint it.
+                    tintable = false,
                 )
             }
             AppLaunchPanelTileType.EXTERNAL_APP -> {
@@ -70,7 +72,9 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                     targetId = packageName,
                     label = tile.labelOverride ?: pm.getApplicationLabel(appInfo).toString(),
                     icon = pm.getApplicationIcon(appInfo),
-                    isEmpty = false
+                    isEmpty = false,
+                    // External app launcher icon is full-color; never tint it.
+                    tintable = false,
                 )
             }
             AppLaunchPanelTileType.INTERNAL_ROUTE -> resolveInternalRoute(tile)
@@ -85,29 +89,39 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
                 // Degrade a feature that is not compiled into this build.
                 if (!resolveRouteAvailability(target.routeKey).availableInBuild) return null
-                tileUi(tile, context.getString(route.labelRes), route.iconRes)
+                // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
+                tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
             }
             is AppLaunchPanelRouteTarget.OsShortcut -> {
                 val osTarget = OsShortcutCatalog.byKey(target.targetKey) ?: return null
                 if (!OsShortcutCatalog.isResolvable(context, target.targetKey)) return null
-                tileUi(tile, context.getString(osTarget.labelRes), osTarget.iconRes)
+                // OS-shortcut glyphs are monochrome (ic_settings, ic_wifi, ..) - tint to stay legible.
+                tileUi(tile, context.getString(osTarget.labelRes), osTarget.iconRes, tintable = true)
             }
             is AppLaunchPanelRouteTarget.Resource -> {
                 val resource = resourceRepository.getResourceById(target.resourceId) ?: return null
-                tileUi(tile, resource.name, ResourceTypeIconMap.iconFor(resource.type))
+                // Resource badges are full-color per source (green/blue/..); only the cast glyph is mono.
+                val iconRes = ResourceTypeIconMap.iconFor(resource.type)
+                tileUi(tile, resource.name, iconRes, tintable = ResourceTypeIconMap.isMonochrome(resource.type))
             }
             null -> null
         }
     }
 
-    private fun tileUi(tile: AppLaunchPanelTile, label: String, iconRes: Int): AppLaunchPanelTileUi =
+    private fun tileUi(
+        tile: AppLaunchPanelTile,
+        label: String,
+        iconRes: Int,
+        tintable: Boolean,
+    ): AppLaunchPanelTileUi =
         AppLaunchPanelTileUi(
             slotIndex = tile.slotIndex,
             type = AppLaunchPanelTileType.INTERNAL_ROUTE,
             targetId = tile.targetId,
             label = tile.labelOverride ?: label,
             icon = ContextCompat.getDrawable(context, iconRes),
-            isEmpty = false
+            isEmpty = false,
+            tintable = tintable,
         )
 
     private fun emptySlot(slot: Int): AppLaunchPanelTileUi =

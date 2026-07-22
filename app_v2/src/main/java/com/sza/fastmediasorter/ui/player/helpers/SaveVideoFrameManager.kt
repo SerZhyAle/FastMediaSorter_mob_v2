@@ -3,21 +3,18 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
-import android.view.TextureView
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -153,38 +150,20 @@ class SaveVideoFrameManager(
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    /**
-     * Finds the TextureView inside the given PlayerView hierarchy and calls getBitmap().
-     * Must be called on the main thread.
-     * Returns null if no TextureView is found or the Surface is not yet available.
-     */
+    /** Captures the current TextureView-backed frame on the main thread. */
     private fun captureFrame(): Bitmap? {
         val playerView = activity.activityBinding.playerView
-        val textureView = findTextureView(playerView) ?: run {
-            Timber.w("SaveVideoFrameManager: TextureView not found in PlayerView hierarchy")
-            return null
-        }
-        return try {
-            textureView.getBitmap()
-        } catch (t: Throwable) {
-            Timber.e(t, "SaveVideoFrameManager: getBitmap() failed")
+        val bitmap = PlayerTextureFrameCapture.capture(playerView) { failure ->
+            Timber.e(failure, "SaveVideoFrameManager: getBitmap() failed")
+            val t = failure
             if (t is OutOfMemoryError) {
                 showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
             }
-            null
         }
-    }
-
-    /** Recursively searches the view hierarchy for a TextureView. */
-    private fun findTextureView(view: View): TextureView? {
-        if (view is TextureView) return view
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                val found = findTextureView(view.getChildAt(i))
-                if (found != null) return found
-            }
+        if (bitmap == null) {
+            Timber.w("SaveVideoFrameManager: TextureView frame unavailable")
         }
-        return null
+        return bitmap
     }
 
     /** Saves the bitmap to a temp file in cacheDir/snapshots/ in the requested format. */

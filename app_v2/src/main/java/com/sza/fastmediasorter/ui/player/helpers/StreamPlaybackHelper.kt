@@ -7,10 +7,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.extractor.metadata.icy.IcyHeaders
 import androidx.media3.extractor.metadata.icy.IcyInfo
@@ -74,18 +76,39 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         .setLoadControl(loadControl)
         .setBandwidthMeter(bandwidthMeter)
         .setAudioAttributes(audioAttributes, true)
+        // S1125: same renderers profile as every other playback path (decoder fallback ON + extension
+        // PREFER). The stream path historically built the default factory (fallback off), so a hardware
+        // decoder init failure surfaced "channel unavailable" instead of retrying another decoder.
+        .setRenderersFactory(createPlaybackRenderersFactory(context))
+    // S1128: explicit track selector on the http(s) branch so repeated stalls can cap the video ceiling
+    // one rendition down (the built-in ABR reacts to bandwidth only, not to a CPU-decode bottleneck).
+    // RTSP has no HLS/DASH rendition ladder, so it keeps the implicit default selector.
+    val trackSelector = if (!isRtsp) DefaultTrackSelector(context) else null
     if (!isRtsp) {
         // http(s): let the core auto-detect progressive / HLS / DASH (segmented resolves only where the modules exist).
         builder.setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory))
+        trackSelector?.let { builder.setTrackSelector(it) }
     }
 
     val player = builder.build()
     exoPlayer = player
+    Timber.d("S1125: stream renderers-factory attached fallback+extension rtsp=%b", isRtsp)
+    // S1128: quality step-down policy for this http(s) session, fed by onTracksChanged (rendition
+    // inventory) and the post-first-frame stall signal below; applies its cap through trackSelector.
+    activeStreamTrackSelector = trackSelector
+    activeStreamStepDownController = if (!isRtsp) StreamQualityStepDownController() else null
     // S0893: BandwidthAdaptiveLoadControl (this file's loadControl) is not itself a Player.Listener -
     // only the per-stream listener needs tracking here so release()/onDestroy() can remove it.
-    val streamListener = streamPlaybackListener(path)
+    val streamListener = streamPlaybackListener(path, player)
     player.addListener(streamListener)
     activeExtraPlayerListener = streamListener
+    // S1127: attach the diagnostics AnalyticsListener alongside the stream listener; tracked on the manager
+    // so both teardown paths (releasePlayer/onDestroy) remove it symmetrically and log the session summary.
+    val diagnostics = StreamPlaybackDiagnostics { android.os.SystemClock.elapsedRealtime() }
+    val analyticsListener = StreamDiagnosticsAnalyticsListener(path, diagnostics)
+    player.addAnalyticsListener(analyticsListener)
+    activeStreamAnalyticsListener = analyticsListener
+    activeStreamDiagnostics = diagnostics
     currentPlayerView?.player = player
 
     if (isRtsp) {
@@ -107,9 +130,94 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
             .build()
         player.setMediaItem(mediaItem)
     }
+    // S1127: open the time-to-first-frame window exactly at prepare, so TTFF excludes setup work above.
+    diagnostics.onPrepared()
     player.prepare()
     player.playWhenReady = playWhenReady
     Timber.i("VideoPlayerManager.playStreamVideo: prepared %s (rtsp=%s)", path, isRtsp)
+}
+
+/** Cancels and rearms the one-shot frame capture owned by the current stream session. */
+internal fun VideoPlayerManager.resetStreamFrameCapture() {
+    streamFrameCaptureJob?.cancel()
+    streamFrameCaptureJob = null
+    streamFrameCaptureAttempted = false
+}
+
+/**
+ * S1127: detach the stream diagnostics AnalyticsListener and log the one-line session summary.
+ * Symmetric with the add in [playStreamVideo]; the removeAnalyticsListener token is co-located here with
+ * its add so the per-file listener-symmetry gate stays balanced. Called from both
+ * `VideoPlayerLifecycleHelper` teardown paths (releasePlayer / onDestroy).
+ */
+@UnstableApi
+internal fun VideoPlayerManager.releaseStreamDiagnostics(player: ExoPlayer) {
+    activeStreamAnalyticsListener?.let { player.removeAnalyticsListener(it) }
+    activeStreamDiagnostics?.let { Timber.i("Stream session: %s", it.summary()) }
+    activeStreamAnalyticsListener = null
+    activeStreamDiagnostics = null
+    // S1128: the track selector and step-down policy are plain per-session fields (not listeners), so
+    // teardown just drops the references alongside the diagnostics they share a lifecycle with.
+    activeStreamTrackSelector = null
+    activeStreamStepDownController = null
+}
+
+/**
+ * S1128: reads the video rendition ladder from Media3 [Tracks] into the session's step-down policy. Runs
+ * once per session: applying a quality cap re-fires `onTracksChanged` with the SAME (full) ladder but a
+ * changed selection, and re-inventorying would reset the ceiling index and undo the step-down bookkeeping,
+ * so a second call while the ladder is already populated is a no-op. A rendition needs a real size; its
+ * bitrate may be unknown (`Format.NO_VALUE`) and is passed through for the controller to handle. An empty
+ * result (a mid-transition audio-only track set) is ignored so it never clobbers a good ladder.
+ */
+@UnstableApi
+private fun VideoPlayerManager.inventoryStreamRenditions(tracks: Tracks, path: String) {
+    // Skip when there is no controller (RTSP) or the ladder is already populated (the once-per-session
+    // guard - see the KDoc): applying a cap re-fires onTracksChanged and re-inventory would reset the ceiling.
+    val controller = activeStreamStepDownController?.takeIf { it.renditionCount == 0 } ?: return
+    val renditions = mutableListOf<StreamQualityStepDownController.Rendition>()
+    for (group in tracks.groups) {
+        if (group.type != C.TRACK_TYPE_VIDEO) continue
+        val mediaGroup = group.mediaTrackGroup
+        for (i in 0 until mediaGroup.length) {
+            val format = mediaGroup.getFormat(i)
+            if (format.width <= 0 || format.height <= 0) continue
+            renditions += StreamQualityStepDownController.Rendition(format.width, format.height, format.bitrate)
+        }
+    }
+    if (renditions.isEmpty()) return
+    controller.setRenditions(renditions)
+    Timber.i(
+        "Stream quality: renditions=%d single=%b path=%s",
+        controller.renditionCount,
+        controller.isSingleQuality,
+        path,
+    )
+}
+
+/**
+ * S1128: on a resolved stall, ask the step-down policy for a lower ceiling and, if it returns one, cap the
+ * track selector so ABR cannot climb back into the stalling rendition. No-op when the policy declines
+ * (single-quality, already at the floor, or the stall threshold is not yet reached).
+ */
+@UnstableApi
+private fun VideoPlayerManager.applyStreamQualityStepDown(path: String) {
+    val cap = activeStreamStepDownController?.registerStall() ?: return
+    activeStreamTrackSelector?.let { selector ->
+        selector.setParameters(
+            selector.buildUponParameters()
+                .setMaxVideoSize(cap.maxWidthPx, cap.maxHeightPx)
+                .setMaxVideoBitrate(cap.maxBitrateBps)
+                .build(),
+        )
+    }
+    Timber.i(
+        "Stream quality: stepped down to <=%dx%d @%dbps path=%s",
+        cap.maxWidthPx,
+        cap.maxHeightPx,
+        cap.maxBitrateBps,
+        path,
+    )
 }
 
 /**
@@ -120,7 +228,10 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
  * applies to a live stream and the file-poster path is wrong for a network URL.
  */
 @UnstableApi
-private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.Listener =
+private fun VideoPlayerManager.streamPlaybackListener(
+    path: String,
+    sessionPlayer: ExoPlayer,
+): Player.Listener =
     object : Player.Listener {
         private val isRtsp = path.startsWith("rtsp://")
         private var behindLiveRecoveries = 0
@@ -129,6 +240,12 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
         // so the next BUFFERING is labelled "reconnecting" instead of a plain buffer fill. Set by the
         // recovery branches in onPlayerError, cleared on a confirmed READY and on hard-fail.
         private var reconnecting = false
+
+        // S1128: gate the quality step-down to genuine stalls only. hadFirstFrame flips once playback has
+        // started; stallOpen is armed only by a BUFFERING entered after the first frame (a rebuffer, not
+        // the initial fill), mirroring the S1127 stall semantics, and cleared when READY resolves it.
+        private var hadFirstFrame = false
+        private var stallOpen = false
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) return
@@ -139,6 +256,9 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
             Timber.d("Stream state=%s reconnecting=%b path=%s", streamStateLabel(playbackState), reconnecting, path)
             when (playbackState) {
                 Player.STATE_BUFFERING -> {
+                    // S1128: a BUFFERING entered after the first frame is a real stall - arm the
+                    // step-down evaluation for the READY that resolves it. Initial fill is excluded.
+                    if (hadFirstFrame) stallOpen = true
                     // S0936: arm the buffering-without-ready timeout - a live stall can present as
                     // BUFFERING that never returns to READY, with no PlaybackException to recover from.
                     armStreamBufferingTimeout()
@@ -165,6 +285,12 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
                     playerCallback.onBuffering(false)
                     playerCallback.onStreamWaitPhase(null)
                     playerCallback.onPlaybackReady()
+                    // S1128: a stall just resolved - let the policy decide whether repeated stalls warrant
+                    // capping the video ceiling one rendition down. No-op on single-quality / RTSP / floor.
+                    if (stallOpen) {
+                        stallOpen = false
+                        applyStreamQualityStepDown(path)
+                    }
                 }
                 Player.STATE_ENDED -> {
                     cancelStreamStallWatchdog()
@@ -179,6 +305,36 @@ private fun VideoPlayerManager.streamPlaybackListener(path: String): Player.List
             // state never returns to READY, distinguishing a genuine freeze from a normal pause/buffer.
             Timber.d("Stream isPlaying=%b path=%s", isPlaying, path)
             playerCallback.onPlaybackStateChanged(isPlaying)
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            // S1128: inventory the http(s) video rendition ladder into the step-down policy. A single
+            // selectable video format means a single-quality media playlist - nothing to step down to.
+            inventoryStreamRenditions(tracks, path)
+        }
+
+        override fun onRenderedFirstFrame() {
+            hadFirstFrame = true
+            if (streamFrameCaptureAttempted) return
+            streamFrameCaptureAttempted = true
+            streamFrameCaptureJob = managerScope.launch {
+                delay(STREAM_FRAME_CAPTURE_DELAY_MS)
+                if (exoPlayer !== sessionPlayer || currentFilePath != path) return@launch
+                val playerView = currentPlayerView ?: return@launch
+                val bitmap = PlayerTextureFrameCapture.capture(
+                    playerView = playerView,
+                    width = STREAM_FRAME_CAPTURE_WIDTH,
+                    height = STREAM_FRAME_CAPTURE_HEIGHT,
+                    onFailure = { failure ->
+                        Timber.w(failure, "Stream frame capture skipped: %s", path)
+                    },
+                ) ?: return@launch
+                val adopted = streamFrameIngestor?.ingest(path, bitmap) == true
+                if (adopted && exoPlayer === sessionPlayer && currentFilePath == path) {
+                    Timber.d("S1129: fullscreen stream frame adopted url=%s", path)
+                    onStreamFrameIngested?.invoke(path)
+                }
+            }
         }
 
         override fun onMetadata(metadata: Metadata) {
@@ -313,3 +469,6 @@ private fun VideoPlayerManager.updateNowPlayingTitle(title: String) {
 private const val STREAM_MAX_BEHIND_LIVE_RECOVERIES = 3
 private const val STREAM_MAX_TRANSIENT_RETRIES = 4
 private const val STREAM_TRANSIENT_BASE_DELAY_MS = 2_000L
+private const val STREAM_FRAME_CAPTURE_DELAY_MS = 750L
+private const val STREAM_FRAME_CAPTURE_WIDTH = 640
+private const val STREAM_FRAME_CAPTURE_HEIGHT = 360

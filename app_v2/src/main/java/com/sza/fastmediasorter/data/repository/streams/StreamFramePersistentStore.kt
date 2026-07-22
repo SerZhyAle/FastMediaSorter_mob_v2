@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository.streams
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.annotation.VisibleForTesting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,8 +19,8 @@ import javax.inject.Singleton
  * URL. It is the cold-start backing layer below the in-memory [StreamFrameCache]: the snapshot engine
  * writes each freshly captured grid frame here, and on the next session the grid pre-warms its cache
  * from these files so a known channel shows its last frame immediately instead of waiting ~12 s for a
- * new live capture. Frames are stored as small JPEGs (alpha-free video frames) under a fixed file cap,
- * so the disk footprint stays bounded. All I/O is off the main thread; every path is best-effort - a
+ * new live capture. Frames are stored as small JPEGs (alpha-free video frames) under a total-size disk
+ * budget, so the disk footprint stays bounded. All I/O is off the main thread; every path is best-effort - a
  * failed read/write just falls back to the favicon/placeholder, never crashes the grid.
  */
 @Singleton
@@ -66,13 +67,24 @@ class StreamFramePersistentStore @Inject constructor(
         Unit
     }
 
-    /** Keep only the [MAX_FILES] most-recently-written thumbnails; evict the oldest by modification time. */
-    private fun enforceCap(dir: File) {
+    private fun enforceCap(dir: File) = evictToBudget(dir, MAX_DISK_BYTES)
+
+    /**
+     * Evict oldest-first (by modification time) until the directory's total JPEG footprint is within
+     * [maxBytes]. File count is intentionally unbounded: a captured catalog holds thousands of channels,
+     * and the previous fixed 64-file cap silently dropped thumbnails for large catalogs regardless of the
+     * real disk usage (S1130). `internal` for a size-controlled unit test; production uses [MAX_DISK_BYTES].
+     */
+    @VisibleForTesting
+    internal fun evictToBudget(dir: File, maxBytes: Long) {
         val files = dir.listFiles { f -> f.isFile && f.name.endsWith(EXT) } ?: return
-        if (files.size <= MAX_FILES) return
-        files.sortedBy { it.lastModified() }
-            .take(files.size - MAX_FILES)
-            .forEach { it.delete() }
+        var total = files.sumOf { it.length() }
+        if (total <= maxBytes) return
+        for (file in files.sortedBy { it.lastModified() }) {
+            if (total <= maxBytes) break
+            val length = file.length()
+            if (file.delete()) total -= length
+        }
     }
 
     private fun fileName(url: String): String = hash(url) + EXT
@@ -91,7 +103,9 @@ class StreamFramePersistentStore @Inject constructor(
         const val HASH_ALGORITHM = "SHA-256"
         const val QUALITY = 75
 
-        // Matches StreamFrameCache.MAX_ENTRIES so the disk layer never holds more channels than memory.
-        const val MAX_FILES = 64
+        // Evict by total disk footprint, not file count: a large captured catalog would otherwise silently
+        // lose its oldest thumbnails at a fixed 64-file cap regardless of real usage (S1130). 150 MB mirrors
+        // the StreamsPlayer disk budget in stream-playback-recommendations.md (§6.3).
+        const val MAX_DISK_BYTES = 150L * 1024 * 1024
     }
 }

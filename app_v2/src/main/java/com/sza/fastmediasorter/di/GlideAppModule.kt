@@ -8,7 +8,11 @@ import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.EncodeStrategy
+import com.bumptech.glide.load.Options
+import com.bumptech.glide.load.ResourceEncoder
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.cache.InternalCacheDiskCacheFactory
 import com.bumptech.glide.load.engine.cache.LruResourceCache
 import com.bumptech.glide.module.AppGlideModule
@@ -212,6 +216,15 @@ class GlideAppModule : AppGlideModule() {
                 Drawable::class.java,
                 AnimatedImageByteBufferDecoder(),
             )
+            // S1026: the decoders above emit a plain AnimatedImageDrawable (getResourceClass()=Drawable)
+            // that Glide has no ResourceEncoder for, so a RESOURCE/ALL disk-cache strategy throws
+            // NoResultEncoderAvailableException and the whole load fails before delivery. A present-but-
+            // no-op encoder satisfies the lookup so the frame is delivered (it caches nothing). Appended,
+            // so the more specific Bitmap/Gif encoders still win for static images and GIFs.
+            registry.append(
+                Drawable::class.java,
+                AnimatedImageDrawableNoOpEncoder(),
+            )
         }
 
         Timber.d("GlideAppModule: Registered NetworkFileModelLoaderFactory, NetworkVideoFrameDecoder, GoogleDriveThumbnailModelLoader, PdfPageDecoder, EpubCoverDecoder, NetworkPdfThumbnailLoader, and NetworkEpubCoverLoader")
@@ -241,6 +254,19 @@ class GlideAppModule : AppGlideModule() {
             }
         }
     }
+}
+
+/**
+ * No-op [ResourceEncoder] for the generic [Drawable] resource emitted by the animated WebP/APNG
+ * decoders (S1026). AnimatedImageDrawable has no real Glide encoder; with no match Glide throws
+ * NoResultEncoderAvailableException under a RESOURCE/ALL disk-cache strategy and the load fails
+ * outright. A present-but-no-op encoder lets the load complete; the animated frame is not cached.
+ */
+private class AnimatedImageDrawableNoOpEncoder : ResourceEncoder<Drawable> {
+
+    override fun getEncodeStrategy(options: Options): EncodeStrategy = EncodeStrategy.NONE
+
+    override fun encode(data: Resource<Drawable>, file: File, options: Options): Boolean = false
 }
 
 @EntryPoint

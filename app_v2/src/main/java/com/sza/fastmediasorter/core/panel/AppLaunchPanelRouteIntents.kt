@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -24,6 +25,10 @@ import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
  * Every intent gets [Intent.FLAG_ACTIVITY_NEW_TASK], matching the existing panel launch path.
  */
 object AppLaunchPanelRouteIntents {
+
+    // S1103: a launcher cell that opens the quick-access panel overlay itself.
+    fun appLaunchPanel(context: Context): Intent =
+        Intent(context, AppLaunchPanelActivity::class.java).withPanelFlags()
 
     fun calculator(context: Context): Intent =
         Intent(context, CalculatorActivity::class.java).withPanelFlags()

@@ -82,7 +82,6 @@ class ResourceVrCinemaLaunchManager @Inject constructor(
      */
     fun promptResourceAndLaunch() {
         val owner = context as? LifecycleOwner ?: return
-        Timber.d("S0962: VR cinema program tapped - prompting resource")
         ResourcePickerDialog(
             context = context,
             lifecycleOwner = owner,

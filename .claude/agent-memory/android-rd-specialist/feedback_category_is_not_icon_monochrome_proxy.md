@@ -1,0 +1,11 @@
+---
+name: feedback_category_is_not_icon_monochrome_proxy
+description: A tile/route category is NOT a proxy for whether its icon is a tintable monochrome glyph - key tint on the icon source, and device-verify visual assumptions
+metadata:
+  type: feedback
+---
+When a UI change tints icons by CATEGORY (e.g. "tint all INTERNAL_ROUTE tiles" in the app-launch panel), do not assume every icon in that category is a monochrome white glyph. Key the tint on the actual ICON SOURCE, not the tile type. And when you dismiss a flagged risk ("could a colored icon be in this category?"), do not clear it by checking ONE sample icon - check every source, or device-verify.
+
+**Why:** discovered 2026-07-20 (S1124). First fix tinted `AppLaunchPanelTileAdapter` icons to `?attr/colorOnSurface` keyed on `tile.type == INTERNAL_ROUTE`. I dismissed the "colored route icon" risk after confirming ONE icon (`ic_cast.xml`) was monochrome white. But `INTERNAL_ROUTE` spans three sources with different colour policies: Feature routes (`InternalRouteCatalog`) and OS-shortcut routes (`OsShortcutCatalog`) are monochrome `ic_*` glyphs, BUT Resource routes (`ResourceTypeIconMap`) are full-colour per source badges - `ic_resource_local` is green (#4CAF50, the default "All Music" tile), smb blue, sftp orange, ftp purple, cloud cyan; only the stream cast glyph is monochrome. The type-keyed tint flattened the green "All Music" icon to dark. Code-review missed it (I checked one glyph); the on-device sweep caught it by pixel-sampling the tile (green R76,175,80 -> dark R26,27,32).
+
+**How to apply:** for a category-based visual/tint change, add an explicit per-icon flag at the SOURCE of truth (S1124: `AppLaunchPanelTileUi.tintable`, set in `ResolveAppLaunchPanelTilesUseCase` per branch - Feature/OsShortcut=true, Resource=`ResourceTypeIconMap.isMonochrome(type)`, app icons=false), not a `type == X` check in the adapter. More generally: a visual fix's "which items does this apply to" assumption is exactly the kind that a `BlockNeedUserTest` device test exists to catch - never mark a category-scoped visual change Verified off a single-sample code check. This is why S1124 correctly went to BlockNeedUserTest and was caught on device before Verified.

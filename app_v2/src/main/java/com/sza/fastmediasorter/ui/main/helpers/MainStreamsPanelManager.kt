@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 /**
  * S0756: owns the main-window streams panel - a wide "Streams" entry button leading a horizontally
  * scrolling row of pinned channels. The pinned list comes from the existing pin source
@@ -100,7 +99,6 @@ class MainStreamsPanelManager(
             adapter.submitList(sources)
             // S1061: same emission feeds the list and the hint, so the two can never disagree.
             pinnedEmpty = sources.isEmpty()
-            Timber.d("S1061: pinned streams=${sources.size} -> empty hint=${sources.isEmpty()}")
             applyVisibility()
         }
     }

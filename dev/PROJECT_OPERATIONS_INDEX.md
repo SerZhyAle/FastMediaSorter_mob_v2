@@ -134,6 +134,13 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 - DI wiring:
 	- `di/` (Hilt modules and bindings)
 
+- Immersive VR / OpenXR (flavor source set `app_v2/src/vr/`, shipped in `vr` + `noLegal` only):
+	- `core/xr/` - detection, gating, entry (`XrEnvironmentDetectorImpl`, `VrMediaSectionContractImpl`, `XrEntryGatewayImpl`, `StartVrPlaybackUseCaseImpl`)
+	- `core/xr/runtime/` - native OpenXR bridge (`NativeDiagnosticXrRuntime` -> `libfms_diagnostic_xr.so`, built by `app_v2/src/vr/cpp/CMakeLists.txt`)
+	- `ui/xr/` - immersive Activities (`DiagnosticXrActivity`, `ImmersiveBrowseActivity`) + `DiagnosticXrRenderThread` (owns the OpenXR frame loop)
+	- `ui/xr/helpers/` - HUD panel (`HudCanvasRenderer`, `SubtitleCueRenderer`) painted to the HUD quad on state change
+	- Overview: `docs/ARCHITECTURE.md` "Immersive VR / OpenXR Subsystem". VR classes are catalogued - `dev/CATALOG/scripts/query.ps1 -Module app_v2 -ClassMatches "*Xr*"`.
+
 Wear app (`wear/src/main/java/com/sza/fastmediasorter/wear/`):
 
 - Entry points:

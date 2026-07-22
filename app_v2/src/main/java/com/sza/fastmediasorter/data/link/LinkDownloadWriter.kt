@@ -65,6 +65,7 @@ class LinkDownloadWriter @Inject constructor(
         resourceId: Long?,
         onBytesCopied: (Long) -> Unit,
     ): WriteResult = withContext(Dispatchers.IO) {
+        Timber.d("S1139: writeFromStream - link download body transfer start name=%s", suggestedFileName)
         val tempDir = File(context.cacheDir, "link_downloads").also { it.mkdirs() }
         val fileName = sanitiseFileName(suggestedFileName)
         val tempFile = uniqueFile(tempDir, fileName)

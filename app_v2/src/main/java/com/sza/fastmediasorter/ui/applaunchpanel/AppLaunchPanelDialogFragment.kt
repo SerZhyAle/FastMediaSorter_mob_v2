@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * Large quick-launch grid shown over the foreground app. Tapping a filled tile launches its target
@@ -58,7 +57,6 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
         binding.rvPanelTiles.adapter = tileAdapter
         binding.btnEditPanel.setOnClickListener { openEditPanel() }
         binding.btnClosePanel.setOnClickListener {
-            Timber.d("S0979: quick-launch panel close tapped")
             dismiss()
         }
 

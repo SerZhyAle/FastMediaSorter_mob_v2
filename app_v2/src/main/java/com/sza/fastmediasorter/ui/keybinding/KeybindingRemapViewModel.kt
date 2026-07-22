@@ -3,10 +3,8 @@ package com.sza.fastmediasorter.ui.keybinding
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.data.input.InputBindingRepository
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
-import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
-import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputBinding
@@ -16,8 +14,11 @@ import com.sza.fastmediasorter.domain.input.usecase.ResetAllUseCase
 import com.sza.fastmediasorter.domain.input.usecase.ResetBindingUseCase
 import com.sza.fastmediasorter.domain.input.usecase.ResetGroupUseCase
 import com.sza.fastmediasorter.domain.input.usecase.SetBindingUseCase
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
+import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +62,11 @@ class KeybindingRemapViewModel @Inject constructor(
     private val resetGroup: ResetGroupUseCase,
     private val resetAll: ResetAllUseCase,
     private val detectConflicts: DetectConflictsUseCase,
-    private val formatter: KeybindingRowLabelFormatter
+    private val formatter: KeybindingRowLabelFormatter,
+    // S1134: same flavor-isolated gate MediaSettingsFragment uses - false on phone flavors
+    // (standard/lite/photos/legacy), true on vr/noLegal - so the VR_ONLY group is hidden where no VR
+    // runtime exists. Injecting the interface keeps this file free of BuildConfig flavor guards (Rule 14).
+    private val vrMediaSection: VrMediaSectionContract,
 ) : ViewModel() {
 
     // S0535: command groups are a stable set, so expansion persists between sessions (research 02 D3).
@@ -183,7 +188,11 @@ class KeybindingRemapViewModel @Inject constructor(
                 hasOverride = list.any { it.source == BindingSource.OVERRIDE },
                 conflictWith = conflictingCommands
             )
-        }.sortedWith(compareBy({ it.group.ordinal }, { it.commandId }))
+        }
+            // S1134: drop the VR_ONLY section on builds without a VR runtime; its bindings are never
+            // dispatched there, so the rows are pure confusion (owner decision, spec-quiz 2026-07-20).
+            .filter { vrMediaSection.isAvailable || it.group != CommandGroup.VR_ONLY }
+            .sortedWith(compareBy({ it.group.ordinal }, { it.commandId }))
     }
 
     private fun commandGroupOf(commandId: String): CommandGroup = when {

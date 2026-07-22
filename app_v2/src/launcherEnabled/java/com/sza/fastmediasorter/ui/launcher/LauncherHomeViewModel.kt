@@ -17,7 +17,9 @@ import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUse
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryRecentLauncherCommandsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherCommandLabelUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherDesktopUseCase
+import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
@@ -44,6 +46,15 @@ import javax.inject.Inject
 /** One-shot messages the home surface shows; the Activity resolves the string. */
 sealed interface LauncherHomeEvent {
     data class Message(@StringRes val messageResId: Int) : LauncherHomeEvent
+
+    /** Device has at least one channel: open the normal stream picker. */
+    data object OpenStreamPicker : LauncherHomeEvent
+
+    /** No channels yet: route the user to Settings > Media > Streams instead of an empty picker. */
+    data object OpenStreamsSettings : LauncherHomeEvent
+
+    /** A scheduled-op cell was tapped: confirm before running (it may modify or delete files). */
+    data class ConfirmScheduledOp(val operationId: Long) : LauncherHomeEvent
 }
 
 @HiltViewModel
@@ -57,6 +68,8 @@ class LauncherHomeViewModel @Inject constructor(
     queryRecentCommands: QueryRecentLauncherCommandsUseCase,
     private val settingsRepository: SettingsRepository,
     private val seedLauncherDesktop: SeedLauncherDesktopUseCase,
+    private val observeStreams: ObserveStreamSourcesUseCase,
+    private val executeScheduledOperation: ExecuteScheduledOperationUseCase,
 ) : ViewModel() {
 
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
@@ -201,6 +214,13 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /** Rejected when the new footprint overlaps another cell; the gesture keeps the last valid size. */
+    fun resizeCell(id: Long, spanW: Int, spanH: Int) {
+        viewModelScope.launch {
+            desktopRepository.resizeCell(id, spanW, spanH)
+        }
+    }
+
     fun removeCell(id: Long) {
         viewModelScope.launch {
             desktopRepository.removeCell(id)
@@ -245,7 +265,30 @@ class LauncherHomeViewModel @Inject constructor(
         if (_editMode.value || cellUi.cell.kind == LauncherCellKind.GADGET) return
         when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
             null -> emitCannotOpen()
+            // A scheduled op may modify or delete files, so confirm before running (S1103).
+            is LauncherCellCommand.ScheduledOp ->
+                viewModelScope.launch {
+                    _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
+                }
             else -> run(command)
+        }
+    }
+
+    /** Runs a scheduled op after the user confirmed it: background, with a start then result toast. */
+    fun executeScheduledOp(operationId: Long) {
+        viewModelScope.launch {
+            Timber.d("S1103: executeScheduledOp $operationId")
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_scheduled_op_started))
+            val result = executeScheduledOperation(operationId)
+            _events.send(
+                LauncherHomeEvent.Message(
+                    if (result.isSuccess) {
+                        R.string.launcher_scheduled_op_done
+                    } else {
+                        R.string.launcher_scheduled_op_failed
+                    },
+                ),
+            )
         }
     }
 
@@ -266,6 +309,18 @@ class LauncherHomeViewModel @Inject constructor(
     private fun emitCannotOpen() {
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cannot_open))
+        }
+    }
+
+    // Choosing "Channel" for a new cell: snapshot the catalog once. Empty means streams were never
+    // enabled, so route to their setting rather than show a picker with nothing to pick.
+    fun requestStreamCell() {
+        viewModelScope.launch {
+            val hasChannels = observeStreams().first().isNotEmpty()
+            Timber.d("S1092: requestStreamCell hasChannels=$hasChannels")
+            _events.send(
+                if (hasChannels) LauncherHomeEvent.OpenStreamPicker else LauncherHomeEvent.OpenStreamsSettings,
+            )
         }
     }
 

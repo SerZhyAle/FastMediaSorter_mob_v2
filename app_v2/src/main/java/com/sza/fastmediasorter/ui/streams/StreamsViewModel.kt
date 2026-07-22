@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +44,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -81,6 +81,9 @@ class StreamsViewModel @Inject constructor(
     private val networkContextAnalyzer: NetworkContextAnalyzer,
     // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
     private val streamFramePersistentStore: StreamFramePersistentStore,
+    // S1145: derive whether a channel's stored kind still matches auto-classification, so the edit
+    // dialog's type picker opens on "Auto" vs an explicit override without the Activity classifying.
+    private val mediaKindClassifier: StreamMediaKindClassifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -191,11 +194,33 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
-    /** S0660: persist an in-place edit of a manual channel; only the invalid-url case surfaces a message. */
-    fun onEdit(source: StreamSourceEntity, url: String, title: String?) = viewModelScope.launch {
-        if (updateStreamSource(source, url, title) == UpdateStreamSourceUseCase.UpdateResult.InvalidUrl) {
-            _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
+    /**
+     * S0660/S1145: persist an in-place edit of a manual channel. [mediaKindOverride] carries an explicit
+     * type (null = auto-derive). Invalid-url and duplicate-url surface a one-shot message; success and
+     * not-editable stay silent (the list re-renders itself via Room on success).
+     */
+    fun onEdit(source: StreamSourceEntity, url: String, title: String?, mediaKindOverride: String? = null) =
+        viewModelScope.launch {
+            when (updateStreamSource(source, url, title, mediaKindOverride)) {
+                UpdateStreamSourceUseCase.UpdateResult.InvalidUrl ->
+                    _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
+                UpdateStreamSourceUseCase.UpdateResult.Duplicate ->
+                    _events.send(StreamsEvent.Message(R.string.streams_error_duplicate_url))
+                UpdateStreamSourceUseCase.UpdateResult.Success,
+                UpdateStreamSourceUseCase.UpdateResult.NotEditable -> Unit
+            }
         }
+
+    /**
+     * S1145: which type-picker option the edit dialog should pre-select for [source]. "AUTO" when the
+     * stored kind still equals what auto-classification derives (so an untouched rtsp channel re-derives
+     * to RTSP on save); otherwise the explicit "AUDIO", or "VIDEO" (covering VIDEO and RTSP, which both
+     * route to the video player). The classification decision stays here, not in the Activity.
+     */
+    fun resolveEditKindOption(source: StreamSourceEntity): String = when {
+        source.mediaKind == mediaKindClassifier.classify(source.url) -> "AUTO"
+        source.mediaKind == "AUDIO" -> "AUDIO"
+        else -> "VIDEO"
     }
 
     fun onImport(listUrl: String) = viewModelScope.launch {

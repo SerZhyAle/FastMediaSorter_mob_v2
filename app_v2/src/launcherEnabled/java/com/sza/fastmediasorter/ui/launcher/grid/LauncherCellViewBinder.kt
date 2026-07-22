@@ -28,6 +28,7 @@ class LauncherCellViewBinder(
     private val onEmptySlotClick: (row: Int, col: Int) -> Unit = { _, _ -> },
     private val onRemoveClick: (LauncherCellUi) -> Unit = {},
     private val onCellDragStart: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
+    private val onAttachResizeHandle: (handle: android.view.View, cellUi: LauncherCellUi) -> Unit = { _, _ -> },
 ) {
 
     /** Set by the host to inject a gadget's view into its cell; null renders an empty frame. */
@@ -170,6 +171,15 @@ class LauncherCellViewBinder(
         badge.contentDescription = removeDescriptionFor(view)
         badge.setOnClickListener { onRemoveClick(item) }
         view.addView(badge)
+
+        // S1093: only gadgets resize; a shortcut stays 1x1 and gets no handle. The handle is the last
+        // child so its drag is taken before the scrim's move gesture underneath it.
+        if (item.cell.kind == LauncherCellKind.GADGET) {
+            val handle = inflater.inflate(R.layout.item_launcher_cell_resize_handle, view, false)
+            handle.contentDescription = view.context.getString(R.string.launcher_edit_resize_handle)
+            view.addView(handle)
+            onAttachResizeHandle(handle, item)
+        }
     }
 
     /**

@@ -11,7 +11,7 @@
          a NestedScrollView is measured UNSPECIFIED, which makes the grid lay out every installed app in
          one main-thread pass and recycle nothing. A fixed height restores recycling; the grid scrolls
          itself. -->
-    <dimen name="launcher_start_menu_apps_height">240dp</dimen>
+    <dimen name="launcher_start_menu_apps_height">300dp</dimen>
 
     <!-- S0404: folder-preview thumbnail decode size. Glide decodes at display size, not source size -
          four full-resolution photos on the home screen would be a needless multi-MB decode. -->

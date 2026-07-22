@@ -1,32 +1,34 @@
 package com.sza.fastmediasorter.core.di
 
-import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
+import com.google.gson.Gson
+import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
-import com.sza.fastmediasorter.domain.game.GameStateRepository
-import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
+import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
+import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
+import com.sza.fastmediasorter.data.repository.RealDeviceProfileRepository
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
+import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
 import com.sza.fastmediasorter.data.repository.SettingsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StatisticsRepositoryImpl
-import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
+import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
+import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
+import com.sza.fastmediasorter.domain.game.GameStateRepository
+import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
-import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
-import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
-import com.sza.fastmediasorter.data.repository.RealDeviceProfileRepository
-import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
-import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
-import com.google.gson.Gson
+import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -118,6 +120,13 @@ abstract class RepositoryModule {
     abstract fun bindStreamingCacheRepository(
         impl: StreamingCacheRepositoryImpl
     ): StreamingCacheRepository
+
+    @Binds
+    @Singleton
+    // Keeps fullscreen and headless capture on one accepted-frame ingest contract.
+    abstract fun bindStreamFrameIngestor(
+        impl: RealStreamFrameIngestor
+    ): StreamFrameIngestor
 
     @Binds
     @Singleton

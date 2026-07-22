@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1095: opaque rounded surface behind the app picker so its title and search field read clearly
+     over the darkened launcher desktop. Theme-attr solid (valid from API 21; minSdk is 26). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorSurface" />
+    <corners android:radius="16dp" />
+</shape>

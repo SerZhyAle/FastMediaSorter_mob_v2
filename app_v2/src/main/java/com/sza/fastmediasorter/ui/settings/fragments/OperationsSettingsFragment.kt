@@ -412,7 +412,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
         if (a11yController != null) {
             binding.btnOpenAccessibilitySettings.setOnClickListener {
-                Timber.d("S1051: accessibility shortcut tapped from OS-interaction settings")
                 try {
                     overlayPermissionLauncher.launch(a11yController.permissionSettingsIntent(requireContext()))
                 } catch (e: android.content.ActivityNotFoundException) {

@@ -99,6 +99,9 @@ class LauncherDesktopLayout @JvmOverloads constructor(
         return LauncherGridGeometry.footprint(row, col, spanW = 1, spanH = 1, columns = columns)
     }
 
+    /** The current cell edge in px - the one authoritative size the resize gesture reads (S1093). */
+    fun currentCellSize(): Int = cellSize(width)
+
     private fun cellSize(totalWidth: Int): Int =
         LauncherGridGeometry.cellSizePx(totalWidth - paddingLeft - paddingRight, columns)
 

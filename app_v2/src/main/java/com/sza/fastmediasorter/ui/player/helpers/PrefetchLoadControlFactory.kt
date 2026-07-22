@@ -112,7 +112,6 @@ internal object PrefetchLoadControlFactory {
                 videoBufferCapBytes / BYTES_PER_MB,
                 maxHeapMb()
             )
-            Timber.d("S0772: video LoadControl heap-bounded cap=%dMB tag=%s", videoBufferCapBytes / BYTES_PER_MB, tag)
         } else {
             builder.setPrioritizeTimeOverSizeThresholds(true)
         }

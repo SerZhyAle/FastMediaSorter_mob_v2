@@ -50,6 +50,7 @@ $repoRoot     = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $snapshotTool = Join-Path $repoRoot 'scripts/release/standard-surface-snapshot.ps1'
 $smokeTool    = Join-Path $repoRoot 'scripts/release/standard-release-smoke.ps1'
 $matrixFile   = Join-Path $repoRoot 'docs/release/standard-coverage-matrix.json'
+$align16kTool = Join-Path $repoRoot 'scripts/quality/assert-16kb-alignment.ps1'
 
 foreach ($p in @($snapshotTool, $smokeTool, $matrixFile)) {
     if (-not (Test-Path $p)) { Write-Host "gate input missing: $p" -ForegroundColor Red; exit 2 }
@@ -74,6 +75,16 @@ if (-not $SkipSmoke) {
     }
 }
 
+# 2b. 16 KB native-lib alignment (Play rejects sub-16 KB 64-bit .so on targetSdk >= 35; S1149)
+# Hard-stop: a misaligned .so is a certain Play rejection, not a waiver-eligible gap.
+$align16kStatus = 'skipped'
+$align16kHardFail = $false
+if (Test-Path $align16kTool) {
+    & pwsh -NoProfile -File $align16kTool *> $null
+    if ($LASTEXITCODE -eq 1) { $align16kStatus = 'misaligned'; $align16kHardFail = $true }
+    else { $align16kStatus = 'ok' }
+}
+
 # 3. coverage manifest
 $matrix = Get-Content -Raw $matrixFile | ConvertFrom-Json
 $notCovered = @($matrix.groups | Where-Object { $_.coverage -eq 'not' })
@@ -85,7 +96,7 @@ $waiverFile = if ($VersionName) { Join-Path $repoRoot "store_assets/release_waiv
 $hasWaiver  = [bool]($waiverFile -and (Test-Path $waiverFile))
 
 # ---- fold into verdict --------------------------------------------------
-$hardStop = $surfaceHardFail -or $smokeHardFail
+$hardStop = $surfaceHardFail -or $smokeHardFail -or $align16kHardFail
 $waiverEligible = $smokeGap -or ($notCovered.Count -gt 0) -or ($partial.Count -gt 0) -or ($gaps.Count -gt 0)
 
 if ($hardStop)                              { $verdict = 'FAIL';   $code = 1 }
@@ -96,6 +107,7 @@ else                                        { $verdict = 'PASS';   $code = 0 }
 $breakdown = [ordered]@{
     surface  = [ordered]@{ exit = $surfaceExit; hardFail = $surfaceHardFail }
     smoke    = [ordered]@{ status = $smokeStatus; hardFail = $smokeHardFail; coverageGap = $smokeGap }
+    align16k = [ordered]@{ status = $align16kStatus; hardFail = $align16kHardFail }
     coverage = [ordered]@{ notCovered = $notCovered.Count; partial = $partial.Count; gaps = $gaps.Count }
     waiver   = [ordered]@{ file = $(if ($waiverFile) { "store_assets/release_waivers/$VersionName.md" } else { '' }); present = $hasWaiver }
 }
@@ -104,8 +116,8 @@ if ($Json) {
     ([ordered]@{ verdict = $verdict; breakdown = $breakdown } | ConvertTo-Json -Depth 6 -Compress)
 } else {
     Write-Host "VERDICT $verdict" -ForegroundColor $(if ($verdict -eq 'PASS') { 'Green' } elseif ($verdict -eq 'WAIVED') { 'Yellow' } else { 'Red' })
-    Write-Host ("  surface={0} smoke={1} partial={2} not={3} gaps={4} waiver={5}" -f `
-        $surfaceExit, $smokeStatus, $partial.Count, $notCovered.Count, $gaps.Count, $hasWaiver)
+    Write-Host ("  surface={0} smoke={1} align16k={2} partial={3} not={4} gaps={5} waiver={6}" -f `
+        $surfaceExit, $smokeStatus, $align16kStatus, $partial.Count, $notCovered.Count, $gaps.Count, $hasWaiver)
     if (-not $hasWaiver -and $waiverEligible -and -not $hardStop) {
         Write-Host "  waiver-eligible gaps present - create store_assets/release_waivers/<versionName>.md to record acceptance" -ForegroundColor Yellow
     }

@@ -27,4 +27,12 @@ object ResourceTypeIconMap {
 
     @DrawableRes
     fun iconFor(type: ResourceType): Int = entries.getValue(type)
+
+    /**
+     * S1124: whether [iconFor] returns a monochrome glyph that needs a theme tint to stay legible on a
+     * light tile, vs a colored source badge that must keep its own color. Only the shared cast glyph
+     * (streams) is monochrome white; every `ic_resource_*` badge is a distinct full color.
+     */
+    fun isMonochrome(type: ResourceType): Boolean =
+        type == ResourceType.HTTP_STREAM || type == ResourceType.RTSP_STREAM
 }

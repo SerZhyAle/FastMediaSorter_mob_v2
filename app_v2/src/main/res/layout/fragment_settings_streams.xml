@@ -59,6 +59,16 @@
             app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/settings_streams_catalog_refresh" />
 
+        <!-- S1148: opt-in resilient radio buffering (bigger start cushion + silent reconnects). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowSmartBuffering"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            app:str_title="@string/settings_streams_smart_buffering"
+            app:str_subtitle="@string/settings_streams_smart_buffering_summary" />
+
         <!-- S0835: maintenance + open-streams buttons share one row (clear left, Streams right). -->
         <LinearLayout
             android:layout_width="match_parent"

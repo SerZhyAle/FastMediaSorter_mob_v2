@@ -1092,8 +1092,17 @@ function Invoke-CatalogMaintenance {
 function Invoke-PublishCatalog {
     param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag, [string]$AtlasFile = $AtlasPath)
     if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
-    $gh = Get-Command gh -ErrorAction SilentlyContinue
-    if (-not $gh) { throw 'gh CLI not found on PATH - cannot upload the release asset (install GitHub CLI or upload temp/stream-catalog.zip manually).' }
+    # gh is often installed but absent from PATH on the dev machine (e.g. C:\Program Files\GitHub CLI).
+    # Resolve via PATH first, then the standard install roots - mirrors the adb auto-discovery pattern -
+    # so a release-asset upload does not hard-fail on a PATH-only lookup.
+    $ghExe = (Get-Command gh -ErrorAction SilentlyContinue).Source
+    if (-not $ghExe) {
+        foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
+            $cand = Join-Path $root 'GitHub CLI\gh.exe'
+            if (Test-Path $cand) { $ghExe = $cand; break }
+        }
+    }
+    if (-not $ghExe) { throw 'gh CLI not found on PATH or standard install locations - cannot upload the release asset (install GitHub CLI or upload temp/stream-catalog.zip manually).' }
     if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
     $zip = 'temp/stream-catalog.zip'
     $rowCount = (Import-Csv $CsvPath).Count
@@ -1149,7 +1158,7 @@ function Invoke-PublishCatalog {
     $zipKb = (Get-Item $zip).Length / 1KB
     $bundleNote = if ($bundledAtlas) { 'csv + atlas' } else { 'csv-only' }
     Write-Host ("  zip {0:N1} KB ({1}); uploading to release {2} (--clobber) .." -f $zipKb, $bundleNote, $Tag) -ForegroundColor Cyan
-    & gh release upload $Tag $zip --clobber
+    & $ghExe release upload $Tag $zip --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
     Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }

@@ -213,6 +213,7 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun onCellSelected(cell: ImmersiveBrowseCell) {
+        Timber.d("S1132: browser cell selected index=${cell.index} folder=${cell.isFolder}")
         hapticBridge.triggerClickFeedback()
         if (cell.isFolder) {
             cell.folderPath?.let { path ->

@@ -8,7 +8,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.R as MaterialR
 import com.google.android.material.card.MaterialCardView
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /** Draws the required D-pad focus ring after MaterialCardView draws its clickable foreground. */
 class FocusMaterialCardView @JvmOverloads constructor(
@@ -43,6 +42,5 @@ class FocusMaterialCardView @JvmOverloads constructor(
             cornerRadius,
             focusRingPaint,
         )
-        Timber.d("S1081: drew MaterialCard focus ring")
     }
 }

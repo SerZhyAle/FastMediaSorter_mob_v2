@@ -127,7 +127,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         is3dVrEnabled = host().is3dVrEnabled
         sourceIsStream = host().activeSourceIsStream
         sourceIsLive = host().activeSourceIsLive
-        Timber.d("S0763: 3D section gate supportsVrMediaControls=$supportsVrMediaControls is3dVrEnabled=$is3dVrEnabled")
+        Timber.d("S1083: section gate stream=$sourceIsStream live=$sourceIsLive")
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
         if (currentMediaType == MediaType.VIDEO) {

@@ -14,9 +14,12 @@ import com.sza.fastmediasorter.BuildConfig
 /**
  * Builds the streaming HTTP [DataSource.Factory] for internet stream playback.
  *
- * Cross-protocol redirects and the `Icy-MetaData:1` request header are mandatory for radio relays:
- * many Icecast/Shoutcast stations 30x-redirect across http<->https, and a station only emits ICY
- * now-playing metadata when the client opts in via `Icy-MetaData:1`.
+ * Cross-protocol redirects are mandatory for radio relays because many Icecast/Shoutcast stations
+ * 30x-redirect across http<->https.
+ *
+ * Suppress in-band ICY metadata. Media3 1.2.1 unconditionally requests it for a progressive stream,
+ * so the override must be applied at [DataSpec] priority inside the wrapper. The server then sends
+ * uninterrupted audio bytes instead of alternating audio and metadata blocks.
  */
 @UnstableApi
 internal object StreamDataSourceFactoryProvider {
@@ -28,8 +31,7 @@ internal object StreamDataSourceFactoryProvider {
             .setConnectTimeoutMs(CONNECT_TIMEOUT_MS)
             .setReadTimeoutMs(READ_TIMEOUT_MS)
             .setKeepPostFor302Redirects(false)
-            .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
-        val authAwareFactory = DataSource.Factory { UserInfoBasicAuthDataSource(httpFactory.createDataSource()) }
+        val authAwareFactory = DataSource.Factory { RadioHttpDataSource(httpFactory.createDataSource()) }
         return DefaultDataSource.Factory(context, authAwareFactory)
     }
 
@@ -45,7 +47,7 @@ internal object StreamDataSourceFactoryProvider {
  * "unreachable" right after being added. This wrapper lifts a present userinfo into an explicit
  * `Authorization: Basic` header and strips it from the URI actually requested.
  */
-private class UserInfoBasicAuthDataSource(
+private class RadioHttpDataSource(
     private val delegate: HttpDataSource,
 ) : DataSource by delegate {
 
@@ -53,13 +55,18 @@ private class UserInfoBasicAuthDataSource(
         val uri = dataSpec.uri
         val userInfo = uri.userInfo
         val host = uri.host
-        val effectiveSpec = if (!userInfo.isNullOrEmpty() && host != null) {
+        val authSpec = if (!userInfo.isNullOrEmpty() && host != null) {
             delegate.setRequestProperty(HEADER_AUTHORIZATION, basicAuthHeaderValue(userInfo))
             val authority = if (uri.port != -1) "$host:${uri.port}" else host
             dataSpec.withUri(uri.buildUpon().encodedAuthority(authority).build())
         } else {
             dataSpec
         }
+        // Do not remove this override or change it to "1" without a real-device radio A/B test.
+        // Media3 1.2.1's in-band ICY path caused confirmed audible jumps across MP3/AAC stations
+        // while the same broadcasts, network buffer, AOSP decoders, and Opus streams stayed clean.
+        // ProgressiveMediaPeriod injects "1", so DataSpec priority here is intentional.
+        val effectiveSpec = authSpec.withAdditionalHeaders(mapOf(HEADER_ICY_METADATA to ICY_DISABLED))
         return delegate.open(effectiveSpec)
     }
 
@@ -74,5 +81,7 @@ private class UserInfoBasicAuthDataSource(
 
     private companion object {
         const val HEADER_AUTHORIZATION = "Authorization"
+        const val HEADER_ICY_METADATA = "Icy-MetaData"
+        const val ICY_DISABLED = "0"
     }
 }

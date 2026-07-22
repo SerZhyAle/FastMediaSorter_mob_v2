@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.sza.fastmediasorter.benchmark"
-    compileSdk = 35
+    // Aligned with app_v2 (S1149): Android 16 / API 36. targetSdk inherited via targetProjectPath.
+    compileSdk = 36
     targetProjectPath = ":app_v2"
 
     experimentalProperties["android.experimental.self-instrumenting"] = true

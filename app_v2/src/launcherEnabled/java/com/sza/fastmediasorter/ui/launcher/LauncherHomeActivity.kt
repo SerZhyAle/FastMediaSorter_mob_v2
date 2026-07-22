@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
@@ -29,12 +30,15 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,11 +68,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // editModeManager is lateinit, but this lambda only fires on a long-press in edit mode - long
         // after setupViews() has created it.
         onCellDragStart = { view, cellUi -> editModeManager.startCellDrag(view, cellUi) },
+        // resizeManager is lateinit for the same reason: a resize handle only exists on a gadget cell in
+        // edit mode, rendered after setupViews() has built the manager.
+        onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
 
     private lateinit var editModeManager: LauncherEditModeManager
+
+    private lateinit var resizeManager: LauncherResizeManager
 
     /** Tracks the last orientation so the one-shot rotation hint fires only on an actual flip. */
     private var lastOrientation: LauncherOrientation = LauncherOrientation.PORTRAIT
@@ -117,6 +126,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             viewModel = viewModel,
         )
         editModeManager.attach()
+        resizeManager = LauncherResizeManager(
+            container = binding.launcherDesktop,
+            viewport = binding.launcherGridScroll,
+            gadgetRegistry = gadgetRegistry,
+            viewModel = viewModel,
+        )
         lastOrientation = currentOrientation()
         registerAddFlowListeners()
     }
@@ -145,9 +160,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     ResourcePickerDialogFragment.TAG,
                 )
                 LauncherCellContentPickerDialogFragment.CATEGORY_STREAM ->
-                    openPicker(LauncherStreamPickerDialogFragment.newInstance(), LauncherStreamPickerDialogFragment.TAG)
+                    viewModel.requestStreamCell()
                 LauncherCellContentPickerDialogFragment.CATEGORY_OS ->
                     openPicker(OsShortcutPickerDialogFragment.newInstance(REQ_OS), OsShortcutPickerDialogFragment.TAG)
+                LauncherCellContentPickerDialogFragment.CATEGORY_SCHEDULED_OP -> openPicker(
+                    LauncherScheduledOpPickerDialogFragment.newInstance(),
+                    LauncherScheduledOpPickerDialogFragment.TAG,
+                )
                 LauncherCellContentPickerDialogFragment.CATEGORY_GADGET ->
                     onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
             }
@@ -173,6 +192,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             val streamId = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_ID)
                 ?: return@setFragmentResultListener
             addShortcut(LauncherCellCommand.Stream(streamId))
+        }
+        supportFragmentManager.setFragmentResultListener(
+            LauncherScheduledOpPickerDialogFragment.RESULT_KEY,
+            this,
+        ) { _, bundle ->
+            val operationId = bundle.getLong(LauncherScheduledOpPickerDialogFragment.RESULT_OPERATION_ID, -1L)
+            if (operationId <= 0L) return@setFragmentResultListener
+            addShortcut(LauncherCellCommand.ScheduledOp(operationId))
         }
         supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_SHORTCUT, this) { _, bundle ->
             val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
@@ -224,6 +251,24 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             when (event) {
                 is LauncherHomeEvent.Message ->
                     Toast.makeText(this, event.messageResId, Toast.LENGTH_SHORT).show()
+                LauncherHomeEvent.OpenStreamPicker ->
+                    openPicker(LauncherStreamPickerDialogFragment.newInstance(), LauncherStreamPickerDialogFragment.TAG)
+                LauncherHomeEvent.OpenStreamsSettings -> {
+                    startActivity(SettingsActivity.openStreamsSectionIntent(this))
+                    Toast.makeText(this, R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG).show()
+                }
+                is LauncherHomeEvent.ConfirmScheduledOp -> {
+                    // Buttons are theme-styled (S0538 confirm/cancel pair via materialAlertDialogTheme),
+                    // not per-call, matching the launcher exit-confirm dialog.
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.launcher_scheduled_op_confirm_title)
+                        .setMessage(R.string.launcher_scheduled_op_confirm_message)
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            viewModel.executeScheduledOp(event.operationId)
+                        }
+                        .setNegativeButton(R.string.cancel, null)
+                        .show()
+                }
             }
         }
     }

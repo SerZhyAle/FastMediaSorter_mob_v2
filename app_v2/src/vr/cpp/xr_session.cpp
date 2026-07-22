@@ -251,6 +251,20 @@ void main() {
             bool hudContentUploaded{false};
             std::mutex hudMutex;
 
+            // S0986: subtitle-cue quad pipeline - mirrors the HUD pending-buffer/mutex/upload-gate
+            // pattern with its OWN mutex (different cadence: per cue event, not per HUD state change).
+            // subtitleContentUploaded gates the grey placeholder like hudContentUploaded; subtitleVisible
+            // is toggled by cue presence (empty cue hides). Reads/writes on the render thread only.
+            GLuint subtitleTexture{0};
+            std::vector<uint8_t> pendingSubtitleData;
+            int pendingSubtitleWidth{0};
+            int pendingSubtitleHeight{0};
+            bool pendingSubtitleReady{false};
+            bool pendingSubtitleHide{false};
+            bool subtitleContentUploaded{false};
+            bool subtitleVisible{false};
+            std::mutex subtitleMutex;
+
             GLint locViewProj{-1};
             GLint locTex{-1};
             GLint locEye{-1};
@@ -1155,6 +1169,17 @@ void main() {
             // content-uploaded gate must disarm here, at the placeholder's birthplace.
             g.hudContentUploaded = false;
 
+            // S0986: subtitle quad texture - same grey 1x1 placeholder + gate as the HUD.
+            glGenTextures(1, &g.subtitleTexture);
+            glBindTexture(GL_TEXTURE_2D, g.subtitleTexture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            g.subtitleContentUploaded = false;
+            g.subtitleVisible = false;
+
             if (!createVideoSurfaceObjects())
                 return NativeResult::SessionCreationFailed;
 
@@ -1388,6 +1413,12 @@ void main() {
                           g.hudContentUploaded ? g.hudTexture : 0,
                           g.locViewProj, g.locTex, g.locEye, g.locStereoLayout);
 
+            // S0986: subtitle quad - lower-third cue text, independent of the HUD. subTex=0 until a
+            // real cue lands (content gate) and while the current cue is empty (visibility gate).
+            xr_subtitle_render(proj, viewMat, eyeIdx, g.program, g.quadVao,
+                               (g.subtitleContentUploaded && g.subtitleVisible) ? g.subtitleTexture : 0,
+                               g.locViewProj, g.locTex, g.locEye, g.locStereoLayout, g.locZoomUv);
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             XrSwapchainImageReleaseInfo ri{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
@@ -1592,6 +1623,7 @@ void main() {
             return r;
         xr_input_init(g.instance, g.session);
         xr_hud_init();
+        xr_subtitle_init();
         g.running.store(true);
         g.exitRequested.store(false);
         // Reset FPS accumulator so a previous session's value does not bleed into the new one.
@@ -1690,6 +1722,25 @@ void main() {
              width, height, size, (int)rgba[0], (int)rgba[1], (int)rgba[2], (int)rgba[3]);
     }
 
+    void xr_session_queue_subtitle(const uint8_t *rgba, int width, int height)
+    {
+        std::lock_guard<std::mutex> lock(g.subtitleMutex);
+        if (!rgba || width <= 0 || height <= 0)
+        {
+            // S0986: empty cue - hide on the next frame; keep the last texture untouched.
+            g.pendingSubtitleReady = false;
+            g.pendingSubtitleHide = true;
+            return;
+        }
+        size_t size = (size_t)width * height * 4;
+        g.pendingSubtitleData.assign(rgba, rgba + size);
+        g.pendingSubtitleWidth = width;
+        g.pendingSubtitleHeight = height;
+        g.pendingSubtitleReady = true;
+        g.pendingSubtitleHide = false;
+        LOGD("xr_session_queue_subtitle STORED %dx%d (%zu bytes)", width, height, size);
+    }
+
     NativeResult xr_session_run_frame_loop()
     {
         if (!g.running.load() || g.session == XR_NULL_HANDLE)
@@ -1760,6 +1811,24 @@ void main() {
                     g.hudContentUploaded = true;
                 }
             }
+            {
+                // S0986: subtitle upload / hide - mirrors the HUD block under its own mutex.
+                std::lock_guard<std::mutex> lock(g.subtitleMutex);
+                if (g.pendingSubtitleHide)
+                {
+                    g.subtitleVisible = false;
+                    g.pendingSubtitleHide = false;
+                }
+                if (g.pendingSubtitleReady)
+                {
+                    glBindTexture(GL_TEXTURE_2D, g.subtitleTexture);
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g.pendingSubtitleWidth, g.pendingSubtitleHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, g.pendingSubtitleData.data());
+                    g.pendingSubtitleReady = false;
+                    g.subtitleContentUploaded = true;
+                    g.subtitleVisible = true;
+                }
+            }
 
             std::vector<XrCompositionLayerProjectionView> layerViews;
             XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
@@ -1781,6 +1850,7 @@ void main() {
                     if (viewCount > 0)
                     {
                         xr_hud_update(views[0].pose, 0.013f);
+                        xr_subtitle_update(views[0].pose);
                         xr_hud_process_rays(g.localSpace, fs.predictedDisplayTime);
 
                         // Step 03.1: Stream interaction data from C++ render loop up to JVM
@@ -1875,6 +1945,11 @@ void main() {
         {
             glDeleteTextures(1, &g.hudTexture);
             g.hudTexture = 0;
+        }
+        if (g.subtitleTexture)
+        {
+            glDeleteTextures(1, &g.subtitleTexture);
+            g.subtitleTexture = 0;
         }
 
         if (g.vbo)
@@ -1995,6 +2070,17 @@ void main() {
             // S0961: next session starts with a fresh grey placeholder texture, so the
             // content-uploaded gate must re-arm as well.
             g.hudContentUploaded = false;
+        }
+        {
+            // S0986: re-arm the subtitle gate/visibility and drop stale pending cue data.
+            std::lock_guard<std::mutex> sl(g.subtitleMutex);
+            g.pendingSubtitleReady = false;
+            g.pendingSubtitleHide = false;
+            g.pendingSubtitleData.clear();
+            g.pendingSubtitleWidth = 0;
+            g.pendingSubtitleHeight = 0;
+            g.subtitleContentUploaded = false;
+            g.subtitleVisible = false;
         }
 
         // S0291 owner round 3 (2026-05-22 21:19): do NOT DeleteGlobalRef on g.activity at

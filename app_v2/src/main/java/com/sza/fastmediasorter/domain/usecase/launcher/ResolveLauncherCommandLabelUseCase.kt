@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val streamSourceRepository: StreamSourceRepository,
+    private val scheduledOperationRepository: ScheduledOperationRepository,
 ) {
 
     suspend operator fun invoke(command: LauncherCellCommand): LauncherCommandVisual? =
@@ -77,8 +79,27 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
                 is LauncherCellCommand.Stream -> streamVisual(command.streamId)
                 is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey)
+                is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId)
             }
         }
+
+    private suspend fun scheduledOpVisual(operationId: Long): LauncherCommandVisual? {
+        val operation = scheduledOperationRepository.getById(operationId) ?: return null
+        val source = resourceRepository.getResourceById(operation.sourceResourceId)?.name
+            ?: operation.sourceResourceId.toString()
+        val target = operation.targetResourceId
+            ?.let { resourceRepository.getResourceById(it)?.name ?: it.toString() }
+            ?: "-"
+        return LauncherCommandVisual(
+            label = context.getString(
+                R.string.launcher_cell_scheduled_op_label,
+                operation.operationType.name,
+                source,
+                target,
+            ),
+            iconRes = R.drawable.ic_schedule,
+        )
+    }
 
     private fun appVisual(packageName: String): LauncherCommandVisual {
         val packageManager = context.packageManager
@@ -125,8 +146,15 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
 
     private fun osVisual(targetKey: String): LauncherCommandVisual? {
         val target = OsShortcutCatalog.byKey(targetKey) ?: return null
+        // This resolver is launcher-only, so relabel the OS Settings cell "Android settings" to avoid
+        // confusion with the app's own settings; the shared OsShortcutCatalog label stays for the panel.
+        val labelRes = if (targetKey == OsShortcutCatalog.KEY_SETTINGS) {
+            R.string.launcher_menu_android_settings
+        } else {
+            target.labelRes
+        }
         return LauncherCommandVisual(
-            label = context.getString(target.labelRes),
+            label = context.getString(labelRes),
             iconRes = target.iconRes,
         )
     }

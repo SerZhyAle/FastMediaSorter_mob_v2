@@ -84,6 +84,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         category(CATEGORY_RESOURCE, R.string.launcher_edit_kind_resource, R.drawable.ic_folder),
         category(CATEGORY_STREAM, R.string.launcher_edit_kind_stream, R.drawable.ic_cast),
         category(CATEGORY_OS, R.string.launcher_edit_kind_os, R.drawable.ic_settings),
+        category(CATEGORY_SCHEDULED_OP, R.string.launcher_edit_kind_scheduled_op, R.drawable.ic_schedule),
         category(CATEGORY_GADGET, R.string.launcher_edit_kind_gadget, R.drawable.ic_view_grid),
     )
 
@@ -158,6 +159,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         const val CATEGORY_RESOURCE = "resource"
         const val CATEGORY_STREAM = "stream"
         const val CATEGORY_OS = "os"
+        const val CATEGORY_SCHEDULED_OP = "scheduled_op"
         const val CATEGORY_GADGET = "gadget"
 
         private const val GADGET_PREFIX = "gadget:"

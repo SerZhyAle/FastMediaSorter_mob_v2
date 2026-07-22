@@ -103,6 +103,10 @@ void xr_session_set_parallax_shift(float value);
 // Queue a new HUD frame (text overlay).
 void xr_session_queue_hud(const uint8_t* rgba, int width, int height);
 
+// S0986: queue a subtitle-cue overlay (RGBA) for the lower-third quad. A null rgba or width/height
+// <= 0 requests hide (empty cue between reels); the last texture is kept but the quad goes hidden.
+void xr_session_queue_subtitle(const uint8_t* rgba, int width, int height);
+
 // S0964: set the world-space HUD quad size in meters (panel vs banner aspect).
 void xr_session_set_hud_quad_size(float widthMeters, float heightMeters);
 

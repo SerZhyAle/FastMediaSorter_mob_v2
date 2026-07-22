@@ -19,6 +19,7 @@ enum class LauncherResourceMode {
  * - `res:<id>:<MODE>`    - open a specific resource in a specific view mode.
  * - `stream:<streamId>`  - play a channel from the stream catalog.
  * - `os:<targetKey>`     - a curated OS system target (keys from `OsShortcutCatalog`).
+ * - `op:<id>`            - trigger a saved scheduled operation (S1103).
  */
 sealed interface LauncherCellCommand {
 
@@ -47,12 +48,17 @@ sealed interface LauncherCellCommand {
         override fun encode(): String = "$PREFIX_OS$targetKey"
     }
 
+    data class ScheduledOp(val operationId: Long) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_SCHEDULED_OP$operationId"
+    }
+
     companion object {
         const val PREFIX_APP = "app:"
         const val PREFIX_FEATURE = "fn:"
         const val PREFIX_RESOURCE = "res:"
         const val PREFIX_STREAM = "stream:"
         const val PREFIX_OS = "os:"
+        const val PREFIX_SCHEDULED_OP = "op:"
 
         private const val SEPARATOR = ":"
 
@@ -73,6 +79,9 @@ sealed interface LauncherCellCommand {
 
                 value.startsWith(PREFIX_OS) ->
                     value.removePrefix(PREFIX_OS).takeIf { it.isNotEmpty() }?.let { OsShortcut(it) }
+
+                value.startsWith(PREFIX_SCHEDULED_OP) ->
+                    value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
 
                 else -> null
             }

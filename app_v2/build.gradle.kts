@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260718231
-val defaultAppVersionName = "2.60.7182.317"
+val defaultAppVersionCode = 260722031
+val defaultAppVersionName = "2.60.7220.314"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -208,8 +208,9 @@ android {
     }
 
     namespace = "com.sza.fastmediasorter"
-    // CRITICAL: Do not change - required for latest Android features and Play Store requirements
-    compileSdk = 35
+    // CRITICAL: Play Store target-API mandate (deadline 2026-08-31, S1149) - Android 16 / API 36.
+    // Compiles against installed base SDK android-36.1; do not downgrade.
+    compileSdk = 36
     // NDK r27c required: first NDK release that ships a 16 KB page-size aligned libc++_shared.so
     // (Google Play requirement since Nov 1 2025 for apps targeting Android 15+).
     ndkVersion = "27.2.12479018"
@@ -219,8 +220,8 @@ android {
         // Minimum supported Android 8.0 (API 26). Legacy flavor covers API 23-25.
         minSdk = 26
         // Keep targetSdk aligned with compileSdk
-        // CRITICAL: Do not change - required for Play Store compliance and latest Android behavior
-        targetSdk = 35
+        // CRITICAL: Play Store compliance (Android 16 / API 36, S1149); minSdk stays 26/23 - device reach unchanged
+        targetSdk = 36
         // Local fast checks keep these defaults stable so configuration-cache reuse survives
         // across repeated debug builds. Artifact-oriented helper scripts can override them
         // via -Pfms.versionCode / -Pfms.versionName when a timestamped package is needed.
@@ -1162,9 +1163,14 @@ if (isNoLegalBuild) {
                     // lacks the nightly-only Instagram Rework #17075 fixes). This nightly carries the
                     // named Instagram fixes plus ~10 days of upstream extractor maintenance. Server-
                     // side extractor rot means the freshest nightly is the best bet at ship time.
+                    // 2026-07-22 (pre-release refresh): bumped 2026.07.14.233956 → 2026.07.21.234255.
+                    // Still on nightly - PyPI stable unchanged at 2026.7.4, which predates the pinned
+                    // nightly date and so does not supersede it. Freshest nightly adds ~7 days of
+                    // upstream extractor maintenance at ship time. Needs an on-device link-download to
+                    // verify extraction - pip resolve alone proves nothing (BlockNeedUserTest-shaped).
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.14.233956/yt-dlp.tar.gz",
+                            "releases/download/2026.07.21.234255/yt-dlp.tar.gz",
                     )
                 }
             }
@@ -1498,7 +1504,7 @@ dependencies {
     androidTestImplementation("com.squareup.leakcanary:leakcanary-android-instrumentation:2.12")
     // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
     androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.59")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

@@ -50,7 +50,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelpe
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -311,11 +310,10 @@ class GeneralSettingsFragment : Fragment() {
         cacheHelper.updateCacheSize()
         observersHelper.refreshLastSyncStatus()
         launcherHelper.refreshState()
-        // S1107: request the HOME role from onResume (a resumed context is required for attribution). KNOWN
-        // BROKEN end-to-end from onboarding (device-verified 2026-07-18, see spec Last Audit): completing
-        // onboarding triggers a first-run Settings recreation storm (onCreate/onDestroy x3) that destroys
-        // this Activity ~86ms after launch, before RequestRoleActivity resolves the caller -> null package.
-        // Real fix: stop that storm, or issue the role from a stable Activity that outlives the request.
+        // S1107: arm the onboarding HOME-role deep-link. The helper defers the actual request past the
+        // first-run Settings recreation storm so it fires from a storm-surviving instance (issuing it from
+        // a doomed instance made RequestRoleActivity resolve a null caller). Safe to call every onResume:
+        // the helper self-guards against double-scheduling and consumes the extra once the request fires.
         launcherHelper.handleLauncherRoleDeepLink()
     }
 
@@ -343,7 +341,6 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnTakeScreenshotNow.isVisible = BuildConfig.DEBUG && launcher != null
         if (BuildConfig.DEBUG && launcher != null) {
             binding.btnTakeScreenshotNow.setOnClickListener {
-                Timber.d("S1052: screenshot-test tapped from General-tab debug section")
                 launcher.launch(requireActivity())
             }
         }

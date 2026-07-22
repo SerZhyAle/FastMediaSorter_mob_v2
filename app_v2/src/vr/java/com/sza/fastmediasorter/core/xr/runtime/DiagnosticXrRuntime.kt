@@ -69,6 +69,12 @@ interface DiagnosticXrRuntime {
     fun queueHud(rgba: ByteArray, width: Int, height: Int)
 
     /**
+     * S0986: thread-safe - queue a subtitle-cue overlay (RGBA) for the lower-third quad, or hide it.
+     * An empty byte array with width/height 0 hides the quad (empty cue between reels).
+     */
+    fun queueSubtitle(rgba: ByteArray, width: Int, height: Int)
+
+    /**
      * Thread-safe: set the world-space HUD quad size in meters (S0964). The banner default is
      * 0.3x0.113 m; the interactive panel needs a taller quad matching its texture aspect. The
      * value persists across sessions in native state - callers set it per launch mode.

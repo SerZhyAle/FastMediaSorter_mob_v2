@@ -31,6 +31,13 @@ on this WIP landing - not on any remaining research or implementation work.
   the source change landed.
 - Nothing was pushed to `origin/DEBUG-v026` - local commits only, by design (kept as a smaller
   separate step).
+- **Update 2026-07-20:** working branch is now `DEBUG-v027` (further commits landed since the v026
+  settle; dev-log/post-change stamp `[branch: DEBUG-v027]`). A `/spec-next` loop this day cleanly
+  touched `AppLaunchPanel*` (S1124 tile-icon tint) and the stream-player path (`StreamPlaybackHelper`
+  / `VideoPlayerLifecycleHelper`, S1127) with no concurrent-wip collision - those launcher/player
+  surfaces read as settled now. The many 2026-07-18 concurrent-wip skip-cache entries (launcher
+  family S1087-S1103, player-controls S1083/S1114/S1115) are likely stale; the owner can
+  `/spec-next --reset-skips` to force re-evaluation rather than wait for the 7-day TTL.
 - Working method worth repeating for a similarly large future settle: `git status --porcelain
   -uall` + `git diff --stat` alone was NOT enough to group files correctly - the decisive move
   was reading `dev/CHANGELOG.md`'s own diff in full (it is a dated, ticket-tagged log of nearly

@@ -5,6 +5,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
@@ -47,6 +49,32 @@ class NowPlayingManager(
     } catch (e: Exception) {
         Timber.w(e, "NowPlayingManager: Failed to initialize miniBar binding during exception")
         null
+    }
+
+    // The player currently observed by [playerListener]. Set in [attachListener], cleared in
+    // [detachListener] - keeps the mini bar live while it is shown, mirroring NowPlayingViewModel.
+    private var observedPlayer: Player? = null
+
+    private val playerListener = object : Player.Listener {
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            observedPlayer?.let { populateBarContent(it) }
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            observedPlayer?.let { populateBarContent(it) }
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            updateMiniPlayPauseIcon(isPlaying)
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            // Playback finished or session went idle - the track is no longer "now playing".
+            if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
+                miniBar?.root?.isVisible = false
+                detachListener()
+            }
+        }
     }
 
     init {
@@ -133,17 +161,20 @@ class NowPlayingManager(
         // they control playback via the player UI itself, not the background bar.
         if (currentMediaType == MediaType.VIDEO || currentMediaType == MediaType.AUDIO) {
             miniBar.root.isVisible = false
+            detachListener()
             return
         }
 
         // Panel disabled by the "Show now-playing panel" setting.
         if (!showPanel) {
             miniBar.root.isVisible = false
+            detachListener()
             return
         }
 
         if (!AudioPlaybackService.isRunning) {
             miniBar.root.isVisible = false
+            detachListener()
             Timber.d("NowPlayingManager: updateBarVisibility - service not running, hiding bar")
             return
         }
@@ -157,6 +188,7 @@ class NowPlayingManager(
                 if (player == null) {
                     // Service died during connect attempt
                     miniBar.root.isVisible = false
+                    detachListener()
                     Timber.d("NowPlayingManager: updateBarVisibility - connectForStatus returned null, hiding")
                     return@post
                 }
@@ -165,28 +197,63 @@ class NowPlayingManager(
                 if (!activelyPlaying) {
                     // STATE_ENDED / IDLE - service is shutting down, hide bar
                     miniBar.root.isVisible = false
+                    detachListener()
                     Timber.d("NowPlayingManager: updateBarVisibility - playbackState=$state (not active), hiding")
                     return@post
                 }
-                // Service alive and playing - show and populate bar
+                // Service alive and playing - show, populate, and observe for live track changes
                 miniBar.root.isVisible = true
                 Timber.d("NowPlayingManager: updateBarVisibility - showing bar (playbackState=$state)")
-                val meta = player.mediaMetadata
-                miniBar.miniTitle.text = meta.title?.toString()
-                    ?: activityBinding.root.context.getString(R.string.now_playing_label)
-                val artworkUri = meta.artworkUri
-                if (artworkUri != null) {
-                    Glide.with(activityBinding.root.context)
-                        .load(artworkUri)
-                        .placeholder(R.drawable.ic_music_note)
-                        .error(R.drawable.ic_music_note)
-                        .into(miniBar.miniArtwork)
-                } else {
-                    miniBar.miniArtwork.setImageResource(R.drawable.ic_music_note)
-                }
-                updateMiniPlayPauseIcon(player.isPlaying)
+                attachListener(player)
+                populateBarContent(player)
             }
         }
+    }
+
+    /** Populate title, artwork, and play/pause icon from the current player metadata. */
+    private fun populateBarContent(player: Player) {
+        val bar = miniBar ?: return
+        val meta = player.mediaMetadata
+        bar.miniTitle.text = meta.title?.toString()
+            ?: activityBinding.root.context.getString(R.string.now_playing_label)
+        val artworkUri = meta.artworkUri
+        if (artworkUri != null) {
+            Glide.with(activityBinding.root.context)
+                .load(artworkUri)
+                .placeholder(R.drawable.ic_music_note)
+                .error(R.drawable.ic_music_note)
+                .into(bar.miniArtwork)
+        } else {
+            bar.miniArtwork.setImageResource(R.drawable.ic_music_note)
+        }
+        updateMiniPlayPauseIcon(player.isPlaying)
+    }
+
+    /**
+     * Observe [player] so the mini bar reflects live track/state changes (auto-advance, skip,
+     * new playlist) instead of a one-shot snapshot. Idempotent per player instance.
+     */
+    private fun attachListener(player: Player) {
+        if (observedPlayer === player) return
+        detachListener()
+        Timber.d("S1140: mini now-playing bar attaching live player listener")
+        observedPlayer = player
+        player.addListener(playerListener)
+    }
+
+    /** Stop observing the player - symmetric teardown for [attachListener]. */
+    private fun detachListener() {
+        observedPlayer?.removeListener(playerListener)
+        observedPlayer = null
+    }
+
+    /**
+     * Called from PlayerActivity.onPause (via the lifecycle bridge) - symmetric to [onStart].
+     * Detaches the live player listener so the bar does not update off-screen and no reference
+     * to the activity's views leaks through the controller across the pause/resume edge.
+     */
+    fun onStop() {
+        detachListener()
     }
 
     private fun updateMiniPlayPauseIcon(isPlaying: Boolean) {
