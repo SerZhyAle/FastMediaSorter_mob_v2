@@ -9,10 +9,12 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
-import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
+import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -51,8 +53,7 @@ class StreamFrameSnapshotManager(
     private val context: Context,
     private val cache: StreamFrameCache,
     private val scope: CoroutineScope,
-    // S0712: persist each captured grid frame so a known channel shows its last frame on next launch.
-    private val persistentStore: StreamFramePersistentStore,
+    private val frameIngestor: StreamFrameIngestor,
     // S0933: window-attached off-screen ViewGroup hosting the transient capture TextureView (an Activity
     // view; null when no streams UI is attached, so capture is skipped and the favicon stays).
     private val hostProvider: () -> ViewGroup? = { null },
@@ -164,9 +165,11 @@ class StreamFrameSnapshotManager(
             val dataSourceFactory = StreamDataSourceFactoryProvider.create(context)
             val built = ExoPlayer.Builder(context)
                 .setLoadControl(loadControl)
+                .setRenderersFactory(softwareDecodeRenderersFactory(context))
                 .setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory))
                 .build()
             player = built
+            Timber.d("S1125: grabber software-preferred decoder selector url=%s", url)
             built.volume = 0f
             built.setVideoTextureView(tv)
             built.addListener(object : Player.Listener {
@@ -194,16 +197,7 @@ class StreamFrameSnapshotManager(
                 Timber.i("Stream snapshot timed out or produced no frame: %s", url)
                 return@withContext null
             }
-            val bitmap = tv.getBitmap(CAPTURE_WIDTH_PX, CAPTURE_HEIGHT_PX)
-            if (bitmap == null) {
-                Timber.i("Stream snapshot TextureView returned no bitmap: %s", url)
-                return@withContext null
-            }
-            cache.put(url, bitmap)
-            // S0712: write the low-res thumbnail to disk off the main thread; best-effort, never blocks
-            // the capture result. Reuses this manager's scope so it is cancelled with the grid.
-            scope.launch { persistentStore.save(url, bitmap) }
-            bitmap
+            captureAndIngest(url, tv)
         } catch (t: Throwable) {
             if (t is CancellationException) throw t
             Timber.w(t, "Stream snapshot failed: %s", url)
@@ -215,6 +209,15 @@ class StreamFrameSnapshotManager(
             player?.release()
             textureView?.let { host.removeView(it) }
         }
+    }
+
+    private suspend fun captureAndIngest(url: String, textureView: TextureView): Bitmap? {
+        val bitmap = textureView.getBitmap(CAPTURE_WIDTH_PX, CAPTURE_HEIGHT_PX)
+        if (bitmap == null) {
+            Timber.i("Stream snapshot TextureView returned no bitmap: %s", url)
+            return null
+        }
+        return if (frameIngestor.ingest(url, bitmap)) bitmap else null
     }
 
     private companion object {
@@ -241,3 +244,20 @@ class StreamFrameSnapshotManager(
         const val OFFSCREEN_TRANSLATION_PX = -10_000f
     }
 }
+
+/**
+ * S1125: renderers factory that decodes video in software for the headless grabber, so a one-frame grab
+ * never occupies the hardware decode-surface pool the real player needs (strategic goal 2) and stays off
+ * the fragile hardware decoders that native-crashed historically (S0700/S0900). The selector sorts
+ * software-only MediaCodec decoders first rather than filtering, so a codec with no software decoder still
+ * captures (hardware tail); decoder fallback retries the next candidate if the preferred one fails to init.
+ */
+@UnstableApi
+private fun softwareDecodeRenderersFactory(context: Context): DefaultRenderersFactory =
+    DefaultRenderersFactory(context)
+        .setEnableDecoderFallback(true)
+        .setMediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
+            MediaCodecSelector.DEFAULT
+                .getDecoderInfos(mimeType, requiresSecureDecoder, requiresTunnelingDecoder)
+                .sortedByDescending { it.softwareOnly }
+        }

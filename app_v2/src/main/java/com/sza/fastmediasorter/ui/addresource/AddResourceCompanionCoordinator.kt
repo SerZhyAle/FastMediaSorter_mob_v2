@@ -54,7 +54,6 @@ internal class AddResourceCompanionCoordinator(
      * identical re-import affects nothing and reports "no changes".
      */
     private fun buildSummary(r: CompanionImportResult): String {
-        Timber.d("S1012: companion import summary added=${r.addedNames.size} updated=${r.updatedNames.size}")
         val added = r.addedNames.size
         val updated = r.updatedNames.size
         val res = context.resources

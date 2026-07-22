@@ -1,0 +1,11 @@
+---
+name: project_listener_symmetry_gate_per_file
+description: The listener-symmetry gate is PER-FILE - a cross-file add/remove (attach-at-build, detach-at-teardown) fails it; co-locate the remove token via a helper
+metadata:
+  type: project
+---
+`scripts/quality/assert-listener-symmetry.ps1` (in `post-change.ps1` / `.\a.ps1 fg`) counts `add*Listener` vs `remove*Listener` (regex `\badd[A-Za-z0-9_]*Listener\b` / `\bremove...`) **per file** and fails when a changed file's `(adds - removes)` grows over `scripts/quality/listener-symmetry-baseline.txt`. The baseline is a single int and `-UpdateBaseline` ratchets DOWN only - you cannot bump it up to accept a new legitimate add.
+
+**Why:** discovered 2026-07-20 (S1127). Attaching a Media3 `AnalyticsListener` in `StreamPlaybackHelper.playStreamVideo` (where the ExoPlayer is built) with its `removeAnalyticsListener` in `VideoPlayerLifecycleHelper` (the teardown path, a different file) is architecturally correct and symmetric, but the gate saw `+1 add` in `StreamPlaybackHelper.kt` with no same-file remove and FAILED - even though the removal is real, just in another file. The pre-existing `player.addListener(streamListener)` in the same file hits the same limitation and is simply baselined. The gate cannot verify cross-file symmetry.
+
+**How to apply:** when you add an `addXListener` whose removal lives in a different file (the common attach-at-build / detach-at-teardown player pattern), do NOT try to edit the baseline up. Instead **co-locate the remove token in the same file as the add**: put the detach in an `internal fun VideoPlayerManager.releaseXDiagnostics(player)` extension in the same file as the attach, and have the teardown site (`VideoPlayerLifecycleHelper.releasePlayer()` AND `onDestroy()` - both paths) call that helper. The helper's `removeAnalyticsListener` token then balances the `addAnalyticsListener` token in the same file (per-file delta 0 -> PASS), the teardown file gains no new `add*Listener` token (the helper call name doesn't match the regex), and it is cleaner anyway (attach+detach co-located, mirroring `cancelStreamStallWatchdog`). Verified: after the refactor the gate reported `new imbalance 0`. Still remove on BOTH teardown edges for real symmetry (releasePlayer + onDestroy), not just to satisfy the gate.

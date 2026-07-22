@@ -35,6 +35,9 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             is LauncherCellCommand.Resource -> launchResource(command)
             is LauncherCellCommand.Stream -> launchStream(command.streamId)
             is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey)
+            // S1103: a scheduled op may modify or delete files, so it is confirmed then run from the
+            // launcher UI path (ViewModel), never launched generically here.
+            is LauncherCellCommand.ScheduledOp -> false
         }
         if (started) journal.record(command)
         return started

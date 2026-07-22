@@ -31,6 +31,11 @@ interface LauncherGadget {
     val defaultSpanW: Int
     val defaultSpanH: Int
 
+    /** The resize floor (S1093). Defaults to the seed size, so a gadget wanting a bigger seed than its
+     *  floor - like the clock - overrides these; every other gadget keeps min = default. */
+    val minSpanW: Int get() = defaultSpanW
+    val minSpanH: Int get() = defaultSpanH
+
     @get:StringRes
     val labelRes: Int
 

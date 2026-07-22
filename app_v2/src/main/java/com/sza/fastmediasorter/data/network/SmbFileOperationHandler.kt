@@ -5,6 +5,8 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
@@ -13,15 +15,12 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.utils.SmbPathUtils
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,7 +28,9 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,6 +42,9 @@ import javax.inject.Singleton
  * Uses strategy pattern for protocol-specific operations.
  */
 @Singleton
+// LongParameterList: DI aggregator - each parameter is an independently-injected collaborator;
+// folding them into a params object would hide the wiring without reducing real coupling.
+@Suppress("LongParameterList")
 class SmbFileOperationHandler @Inject constructor(
     @ApplicationContext context: Context,
     private val smbClient: SmbClient,
@@ -63,8 +67,14 @@ class SmbFileOperationHandler @Inject constructor(
 
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
         com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy(
-            context, sftpClient, credentialsRepository, endpointResolver,
-            stagingDir, stagingRegistry, destinationClassifier, destinationWriter
+            context,
+            sftpClient,
+            credentialsRepository,
+            endpointResolver,
+            stagingDir,
+            stagingRegistry,
+            destinationClassifier,
+            destinationWriter
         ),
         destinationClassifier = destinationClassifier,
         enableAtomic = true
@@ -511,8 +521,10 @@ class SmbFileOperationHandler @Inject constructor(
         val isSaf = localFile.path.startsWith("content:/")
         
         if (!isSaf && !localFile.exists()) {
+            // S1138: an external producer (e.g. a downloader app) can delete the source between batch
+            // enumeration and upload. That is an expected race, not an app fault - log at warn, not error.
             val msg = "Local file does not exist: ${localFile.absolutePath}"
-            Timber.e("uploadToSmb: $msg")
+            Timber.w("uploadToSmb: $msg")
             return SmbResult.Error(msg)
         }
         
@@ -554,11 +566,15 @@ class SmbFileOperationHandler @Inject constructor(
                 return SmbResult.Error("Failed to open input stream for ${localFile.path}")
             }
 
-            inputStream.use { stream ->
+            // S1138: capture the upload outcome, then close the local source in a finally that swallows a
+            // close() I/O error. Previously inputStream.use { } closed the FUSE-backed source after a
+            // successful uploadFile, and an EIO on that close propagated and turned the success into a
+            // spurious FAILURE - inflating the scheduled-sync error rate. A close must not override upload.
+            try {
                 when (val result = smbClient.uploadFile(
                     connectionInfo.connectionInfo,
                     connectionInfo.remotePath,
-                    stream,
+                    inputStream,
                     fileSize,
                     progressCallback
                 )) {
@@ -571,6 +587,8 @@ class SmbFileOperationHandler @Inject constructor(
                         result
                     }
                 }
+            } finally {
+                closeLocalSourceQuietly(inputStream)
             }
         } catch (e: Exception) {
             val msg = "Failed to read local file: ${e.message}"
@@ -724,5 +742,19 @@ class SmbFileOperationHandler @Inject constructor(
 
         Timber.w("SmbFileOperationHandler: No SMB credentials found for '$server/$shareName'")
         return null
+    }
+}
+
+/**
+ * Close a local source stream after an SMB upload without letting a close() I/O error override an
+ * already-successful upload. S1138: an EIO on close() of a FUSE-backed /storage source (concurrently
+ * deleted/truncated by an external producer) previously turned a completed upload into a spurious
+ * FAILURE. A close failure is expected in that race - log it at warn and swallow it, never raise.
+ */
+internal fun closeLocalSourceQuietly(stream: Closeable) {
+    try {
+        stream.close()
+    } catch (e: IOException) {
+        Timber.w(e, "uploadToSmb: local source close failed after upload (ignored)")
     }
 }

@@ -64,6 +64,9 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
         // activity.lifecycle, so onPause() dispatches automatically - the explicit call here would
         // double-invoke it.
         activity.lifecycleManager.saveCurrentPlaybackPosition()
+        // S1140: symmetric to onResumeWithViews -> nowPlayingManager.onStart(); detach the mini
+        // bar's live player listener so it does not update off-screen.
+        activity.nowPlayingManager?.onStop()
         // S0021: stop FPS meter when activity loses foreground; overlay hides via updatePlayerFpsOverlay().
         activity.playerFpsMeter.stop()
         activity.activityBinding.tvPlayerFpsOverlay.isVisible = false

@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -42,7 +43,6 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
@@ -221,7 +221,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun setupViewPager() {
-        Timber.d("S1105: binding branded app icon on the first welcome page")
         pagesList = mutableListOf(
             // Page 1: Welcome (Enhanced with feature cards)
             WelcomePage(
@@ -496,11 +495,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun onWelcomeThemeSelected(mode: String) {
         // Mirror the Settings split: DataStore remains canonical in the ViewModel while the
         // synchronous SharedPreferences mirror updates here so the next Activity launch picks the
-        // same mode before inflation. Welcome now follows that mode immediately via recreate().
+        // same mode before inflation. Accent-only changes need a manual recreate because
+        // setDefaultNightMode is a no-op when the night-mode bucket stays the same.
+        val previousNightMode = AppCompatDelegate.getDefaultNightMode()
+        val newNightMode = ColorThemePrefs.toNightMode(mode)
         viewModel.saveColorTheme(mode)
         ColorThemePrefs.setMode(this, mode)
         ColorThemePrefs.applyMode(mode)
-        recreate()
+        if (newNightMode == previousNightMode) {
+            recreate()
+        }
     }
 
     private fun completeWelcomeFlow() {

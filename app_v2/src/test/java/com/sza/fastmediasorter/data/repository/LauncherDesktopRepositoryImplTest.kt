@@ -166,4 +166,32 @@ class LauncherDesktopRepositoryImplTest {
         assertEquals("the landscape cell must not have been treated as a blocker", 1, storedCell(landscape)?.rowIndex)
         assertEquals(1, storedCell(portrait)?.rowIndex)
     }
+
+    @Test
+    fun `resizing a gadget into free space grows and persists`() = runTest {
+        val id = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2))!!
+        assertTrue(repository.resizeCell(id, spanW = 3, spanH = 3))
+        val stored = storedCell(id)
+        assertEquals(3, stored?.spanW)
+        assertEquals(3, stored?.spanH)
+    }
+
+    @Test
+    fun `resizing over another cell is refused and keeps the size`() = runTest {
+        val gadget = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2, target = "app:a"))!!
+        // A neighbour one column past the gadget's right edge: growing to 3 wide would cover it.
+        repository.addCell(cell(row = 0, col = 2, target = "app:b"))!!
+        assertFalse(repository.resizeCell(gadget, spanW = 3, spanH = 2))
+        val stored = storedCell(gadget)
+        assertEquals(2, stored?.spanW)
+        assertEquals(2, stored?.spanH)
+    }
+
+    @Test
+    fun `shrinking a gadget always succeeds`() = runTest {
+        val id = repository.addCell(cell(row = 0, col = 0, spanW = 3, spanH = 3))!!
+        assertTrue(repository.resizeCell(id, spanW = 2, spanH = 2))
+        assertEquals(2, storedCell(id)?.spanW)
+        assertEquals(2, storedCell(id)?.spanH)
+    }
 }

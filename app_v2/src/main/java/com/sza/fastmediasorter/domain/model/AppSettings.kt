@@ -103,6 +103,10 @@ data class AppSettings(
     // S0756: show pinned stream channels as a horizontal panel on the main window (entry button + pinned
     // channels in pin order). Default OFF; effective only when [enableStreams] is on and the flavor ships Streams.
     val showStreamsPanelInMainWindow: Boolean = false,
+    // S1148: opt-in resilient radio playback - bigger start-up cushion (5 s / 10 s after a stall) and
+    // silent loader-level reconnects on network errors instead of a full player restart. Default OFF =
+    // factory ExoPlayer behavior; mirrored to SharedPreferences for synchronous reads at player build.
+    val streamsSmartBuffering: Boolean = false,
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand

@@ -154,6 +154,7 @@ _Available in: Standard, Legacy_
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
 | Default order | Sets the order channels appear in when you open the Streams screen. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
+| Ultra-smart stream buffering | Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback. |
 
 ## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 

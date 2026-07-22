@@ -23,14 +23,13 @@ import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIconAdapter
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -60,9 +59,9 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     // the window and leave the positive lambda holding a detached fragment (S0892 precedent).
     private var exitDialog: Dialog? = null
 
-    private val appsAdapter = LauncherTaskbarIconAdapter(
-        onIconClick = { icon ->
-            viewModel.run(LauncherCellCommand.App(icon.id))
+    private val appsAdapter = LauncherAppGridAdapter(
+        onAppClick = { app ->
+            viewModel.run(LauncherCellCommand.App(app.id))
             dismiss()
         },
     )
@@ -130,14 +129,14 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         if (!show || appsAdapter.itemCount > 0 || allAppsJob?.isActive == true) return
         allAppsJob = viewLifecycleOwner.lifecycleScope.launch {
             val apps = queryLaunchableApps().map {
-                LauncherTaskbarIcon(
+                LauncherAppGridAdapter.AppItem(
                     id = it.packageName,
                     label = it.label,
-                    iconRes = null,
-                    iconDrawable = it.icon,
+                    icon = it.icon,
                 )
             }
-            appsAdapter.submitIcons(apps)
+            appsAdapter.submitApps(apps)
+            Timber.d("S1089: all-apps grid shown with ${apps.size} labeled cells")
         }
     }
 

@@ -33,14 +33,14 @@ android {
 
     namespace = "com.sza.fastmediasorter.wear"
     // CRITICAL: Do not change - required for latest Wear OS features
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter.wear"
         // CRITICAL: Do not change - minimum Wear OS 2.0+ (API 28) support
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
-        targetSdk = 35
+        targetSdk = 36
         // Version is kept in sync with app_v2 by build-with-version.ps1
         // versionCode format: yyMMddHH (8 digits, same base as main app minus minute digit)
         // versionName format: Y.YM.MDDH.Hmm (identical to main app)

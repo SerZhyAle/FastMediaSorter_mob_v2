@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPicker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -77,7 +76,6 @@ class EdgeGestureConfigDialogFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        Timber.d("S1035: edge-gesture dialog opened")
         val dialog = super.onCreateDialog(savedInstanceState)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         return dialog

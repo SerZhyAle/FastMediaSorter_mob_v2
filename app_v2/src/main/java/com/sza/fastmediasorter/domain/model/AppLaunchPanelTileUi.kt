@@ -16,5 +16,13 @@ data class AppLaunchPanelTileUi(
     val targetId: String?,
     val label: String,
     val icon: Drawable?,
-    val isEmpty: Boolean
+    val isEmpty: Boolean,
+    /**
+     * S1124: true when [icon] is a monochrome glyph that must be tinted to a theme on-surface color to
+     * stay legible on the light tile (feature / OS-shortcut routes, the shared stream cast glyph). False
+     * for full-color assets that must keep their own colors: app launcher icons (own/external) and the
+     * colored `ic_resource_*` source badges. Decided at resolve time where the icon source is known -
+     * tile type alone is not enough (a Resource route can be either a colored badge or the cast glyph).
+     */
+    val tintable: Boolean = false,
 )

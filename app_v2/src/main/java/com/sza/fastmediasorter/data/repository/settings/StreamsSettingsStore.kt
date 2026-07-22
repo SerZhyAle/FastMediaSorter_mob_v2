@@ -24,6 +24,9 @@ object StreamsSettingsStore {
     // S0756: main-window streams panel toggle, persisted alongside the Streams master switch.
     private val KEY_SHOW_STREAMS_PANEL = booleanPreferencesKey("show_streams_panel_main_window")
 
+    // S1148: opt-in resilient radio buffering profile (start-up cushion + silent loader reconnects).
+    private val KEY_SMART_BUFFERING = booleanPreferencesKey("streams_smart_buffering")
+
     /** Streams fields read from DataStore, ready for [AppSettings]. */
     data class Values(
         val enableStreams: Boolean,
@@ -31,6 +34,7 @@ object StreamsSettingsStore {
         val streamsDefaultMediaFilter: StreamMediaTypeFilter,
         val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy,
         val showStreamsPanelInMainWindow: Boolean,
+        val streamsSmartBuffering: Boolean,
     )
 
     fun read(preferences: Preferences): Values = Values(
@@ -39,6 +43,7 @@ object StreamsSettingsStore {
         streamsDefaultMediaFilter = StreamMediaTypeFilter.fromName(preferences[KEY_DEFAULT_MEDIA_FILTER]),
         streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.fromName(preferences[KEY_CATALOG_REFRESH_POLICY]),
         showStreamsPanelInMainWindow = preferences[KEY_SHOW_STREAMS_PANEL] ?: false,
+        streamsSmartBuffering = preferences[KEY_SMART_BUFFERING] ?: false,
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
@@ -47,5 +52,6 @@ object StreamsSettingsStore {
         preferences[KEY_DEFAULT_MEDIA_FILTER] = settings.streamsDefaultMediaFilter.name
         preferences[KEY_CATALOG_REFRESH_POLICY] = settings.streamsCatalogRefreshPolicy.name
         preferences[KEY_SHOW_STREAMS_PANEL] = settings.showStreamsPanelInMainWindow
+        preferences[KEY_SMART_BUFFERING] = settings.streamsSmartBuffering
     }
 }

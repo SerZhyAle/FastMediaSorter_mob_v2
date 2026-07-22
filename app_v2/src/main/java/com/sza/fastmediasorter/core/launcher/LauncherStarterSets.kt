@@ -34,6 +34,10 @@ object LauncherStarterSets {
 
     private const val SPAN_WIDE = 2
 
+    // S1094: the clock seeds big (its resize floor stays 2x1, declared on the gadget itself).
+    private const val CLOCK_SEED_W = 4
+    private const val CLOCK_SEED_H = 2
+
     // Wide stride so packed (row, col) keys never collide across rows for any realistic column count.
     private const val KEY_STRIDE = 100_000L
 
@@ -52,6 +56,17 @@ object LauncherStarterSets {
         val spanH: Int,
     )
 
+    /** Resolved ids the seed hands in; each null id is skipped so the desktop never gets a dead cell. */
+    data class StarterResources(
+        val recentId: Long? = null,
+        val allAudioId: Long? = null,
+        val allImagesId: Long? = null,
+        val allVideoId: Long? = null,
+        val allDocsId: Long? = null,
+        val cameraId: Long? = null,
+        val lastResourceId: Long? = null,
+    )
+
     /**
      * The starter set for [profile]. Items whose id-dependency is null (no last resource, no all-audio
      * resource) or whose feature is unavailable (streams) are skipped, so the desktop never seeds a
@@ -60,14 +75,42 @@ object LauncherStarterSets {
      */
     fun itemsFor(
         profile: DeviceProfileType,
-        lastResourceId: Long?,
-        allAudioResourceId: Long?,
-        streamsAvailable: Boolean,
+        resources: StarterResources,
+        routeAvailableInBuild: Map<String, Boolean>,
     ): List<StarterItem> {
+        val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
         val items = mutableListOf(clock())
-        items += profileItems(profile, lastResourceId, allAudioResourceId, streamsAvailable)
+        items += commonResources(resources)
+        items += profileItems(profile, resources.lastResourceId, resources.allAudioId, streamsAvailable)
+        items += commonFeatures(routeAvailableInBuild)
         items += commonTail()
         return items
+    }
+
+    // The unified resource set every profile opens with (owner decision S1091): one BROWSE shortcut per
+    // existing virtual resource that resolved to an id. "All files" is the Recent resource (allFiles=true).
+    private fun commonResources(resources: StarterResources): List<StarterItem> = buildList {
+        resources.recentId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.allAudioId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.allImagesId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.allVideoId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.allDocsId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.cameraId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+    }
+
+    // Padding feature shortcuts that fill the desktop toward the 12-15 target. Gated on build presence
+    // only: a compiled-but-runtime-disabled feature keeps its cell, which routes to its own setting.
+    private fun commonFeatures(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
+        val paddingKeys = listOf(
+            InternalRouteCatalog.KEY_STREAMS,
+            InternalRouteCatalog.KEY_QUICK_CAMERA,
+            InternalRouteCatalog.KEY_QUICK_VOICE,
+            InternalRouteCatalog.KEY_CALCULATOR,
+            InternalRouteCatalog.KEY_OCR,
+        )
+        paddingKeys.forEach { key ->
+            if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
+        }
     }
 
     // Expression `when` (not a statement): a future DeviceProfileType added without a branch is a
@@ -121,7 +164,8 @@ object LauncherStarterSets {
         }
     }
 
-    private fun clock() = StarterItem(LauncherCellKind.GADGET, GADGET_CLOCK, spanW = SPAN_WIDE, spanH = 1)
+    private fun clock() =
+        StarterItem(LauncherCellKind.GADGET, GADGET_CLOCK, spanW = CLOCK_SEED_W, spanH = CLOCK_SEED_H)
 
     private fun streams() =
         StarterItem(LauncherCellKind.GADGET, GADGET_STREAMS, spanW = SPAN_WIDE, spanH = SPAN_WIDE)

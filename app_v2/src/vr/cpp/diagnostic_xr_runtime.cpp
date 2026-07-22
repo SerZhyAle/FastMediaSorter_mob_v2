@@ -178,6 +178,20 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQue
 }
 
 JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeQueueSubtitle(
+        JNIEnv* env, jobject /*thiz*/, jbyteArray rgba, jint width, jint height) {
+    // S0986: null/empty (width|height <= 0) is a hide request - forward without touching the array.
+    if (!rgba || width <= 0 || height <= 0) {
+        fms::xr::xr_session_queue_subtitle(nullptr, 0, 0);
+        return;
+    }
+    jbyte* bytes = env->GetByteArrayElements(rgba, nullptr);
+    if (!bytes) return;
+    fms::xr::xr_session_queue_subtitle(reinterpret_cast<const uint8_t*>(bytes), width, height);
+    env->ReleaseByteArrayElements(rgba, bytes, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudQuadSize(
         JNIEnv* /*env*/, jobject /*thiz*/, jfloat widthMeters, jfloat heightMeters) {
     fms::xr::xr_session_set_hud_quad_size(widthMeters, heightMeters);

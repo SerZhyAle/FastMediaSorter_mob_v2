@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -137,6 +138,9 @@ class AppStartupInitializer @Inject constructor(
                     .putInt("cache_size_mb", settings.cacheSizeMb)
                     .apply()
                 Timber.d("Synced cache size to SharedPreferences: ${settings.cacheSizeMb}MB")
+                // S1148: same mirror pattern for the smart stream-buffering flag - players are
+                // built synchronously and cannot await the DataStore Flow.
+                RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sync cache size to SharedPreferences")
             }

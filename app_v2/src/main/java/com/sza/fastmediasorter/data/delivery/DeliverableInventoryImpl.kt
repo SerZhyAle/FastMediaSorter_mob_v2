@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -142,7 +141,6 @@ class DeliverableInventoryImpl @Inject constructor(
             )
         }
         if (capabilityAvailability.isStreamsAvailable()) {
-            Timber.d("S1110: stream catalog size label=%s", formatBytes(STREAM_CATALOG_SIZE))
             add(
                 ExtensionItem.Catalog(
                     id = STREAM_CATALOG_ID,

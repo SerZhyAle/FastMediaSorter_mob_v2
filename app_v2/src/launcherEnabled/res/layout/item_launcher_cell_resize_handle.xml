@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1093: bottom-right resize handle shown on a GADGET cell in edit mode. 48dp touch target; dragging
+     it resizes the gadget (width + height together) between its seed size and full screen. -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/resizeHandle"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:layout_gravity="bottom|end"
+    android:background="?attr/colorControlHighlight"
+    android:focusable="true"
+    android:padding="12dp"
+    android:scaleType="fitCenter"
+    android:src="@drawable/ic_tune"
+    app:tint="?attr/colorPrimary"
+    xmlns:app="http://schemas.android.com/apk/res-auto" />

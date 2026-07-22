@@ -7,8 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
@@ -19,6 +22,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -60,6 +64,18 @@ class AppPickerDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.tvOptionPickerTitle.text = getString(R.string.app_picker_title)
+        binding.tvOptionPickerTitle.isVisible = true
+        // Opaque surface so the title/search read over the darkened desktop; taller list than the shared
+        // compact default. Only this picker; the shared layout stays untouched for the other pickers.
+        binding.root.setBackgroundResource(R.drawable.bg_app_picker_surface)
+        val metrics = resources.displayMetrics
+        binding.recyclerOptions.updateLayoutParams {
+            height = (metrics.heightPixels * APP_PICKER_HEIGHT_FRACTION).toInt()
+        }
+        val widthDp = metrics.widthPixels / metrics.density
+        val columns = (widthDp / APP_PICKER_MIN_CELL_DP).toInt().coerceAtLeast(APP_PICKER_MIN_COLUMNS)
+        Timber.d("S1095: app picker opened with $columns columns")
         // One-shot package query wrapped as a flow so it is collected lifecycle-safely (the list does
         // not change while the picker is open).
         collectOnLifecycle(flow { emit(queryLaunchableApps()) }) { apps ->
@@ -70,7 +86,9 @@ class AppPickerDialogFragment : DialogFragment() {
                     leading = LeadingVisual.IconDrawable(app.icon),
                 )
             }
-            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+            SearchableOptionPickerController.attach(
+                binding, options, selectedId = null, resetRow = null, columns = columns,
+            ) { picked ->
                 picked?.let { onAppPicked(it.id) }
             }
         }
@@ -113,6 +131,10 @@ class AppPickerDialogFragment : DialogFragment() {
 
         private const val ARG_SLOT = "arg_slot"
         private const val ARG_REQUEST_KEY = "arg_request_key"
+
+        private const val APP_PICKER_HEIGHT_FRACTION = 0.6f
+        private const val APP_PICKER_MIN_CELL_DP = 160f
+        private const val APP_PICKER_MIN_COLUMNS = 2
 
         fun newInstance(slotIndex: Int): AppPickerDialogFragment =
             AppPickerDialogFragment().apply { arguments = bundleOf(ARG_SLOT to slotIndex) }

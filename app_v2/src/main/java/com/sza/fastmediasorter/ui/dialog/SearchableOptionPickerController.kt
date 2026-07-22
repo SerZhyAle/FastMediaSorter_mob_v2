@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -40,6 +41,7 @@ object SearchableOptionPickerController {
         options: List<Option>,
         selectedId: String?,
         resetRow: Option?,
+        columns: Int = 1,
         onPicked: (Option?) -> Unit,
     ) {
         val rows = if (resetRow != null) listOf(resetRow) + options else options
@@ -47,7 +49,11 @@ object SearchableOptionPickerController {
             onPicked(if (resetRow != null && option.id == resetRow.id) null else option)
         }
         binding.recyclerOptions.apply {
-            layoutManager = LinearLayoutManager(context)
+            // Single column (the default) keeps every existing picker identical; a caller that asks
+            // for more gets a grid (GridLayoutManager extends LinearLayoutManager, so scrollToSelected
+            // still applies).
+            layoutManager =
+                if (columns > 1) GridLayoutManager(context, columns) else LinearLayoutManager(context)
             this.adapter = adapter
             isFocusable = true
         }
@@ -56,6 +62,13 @@ object SearchableOptionPickerController {
         binding.editOptionSearch.doOnTextChanged { text, _, _, _ ->
             val visibleCount = adapter.filter(text?.toString().orEmpty())
             binding.tvOptionsEmpty.isVisible = visibleCount == 0
+        }
+
+        // Re-apply an already-present query (e.g. restored across rotation) so the list matches the
+        // field instead of showing everything until the next keystroke.
+        val initialQuery = binding.editOptionSearch.text?.toString().orEmpty()
+        if (initialQuery.isNotEmpty()) {
+            binding.tvOptionsEmpty.isVisible = adapter.filter(initialQuery) == 0
         }
 
         // Passive field (no auto-IME); reveal it only when the list overflows the viewport, and

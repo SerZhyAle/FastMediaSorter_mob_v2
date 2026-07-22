@@ -3159,4 +3159,24 @@
     <string name="companion_import_updated_one">Обновлён: %1$s</string>
     <string name="companion_import_no_changes">Ресурсы уже актуальны</string>
     <string name="streams_no_signal">Нет сигнала</string>
+    <string name="launcher_edit_streams_enable_first">Сначала включите трансляции в настройках</string>
+    <string name="launcher_edit_resize_handle">Изменить размер</string>
+    <string name="launcher_gadget_clock_actions">Часы. Тап - будильники, долгий тап - календарь</string>
+    <string name="app_launch_panel_route_launch_panel">Панель быстрого доступа</string>
+    <string name="launcher_edit_kind_scheduled_op">Операция по расписанию</string>
+    <string name="launcher_cell_scheduled_op_label">%1$s: %2$s → %3$s</string>
+    <string name="launcher_scheduled_op_pick_title">Выберите операцию</string>
+    <string name="launcher_scheduled_op_none">Пока нет операций по расписанию</string>
+    <string name="launcher_scheduled_op_confirm_title">Запустить операцию?</string>
+    <string name="launcher_scheduled_op_confirm_message">Она может копировать, перемещать или удалять файлы согласно настройке.</string>
+    <string name="launcher_scheduled_op_started">Операция запущена..</string>
+    <string name="launcher_scheduled_op_done">Операция завершена</string>
+    <string name="launcher_scheduled_op_failed">Операция не выполнена</string>
+    <string name="streams_edit_type_label">Тип</string>
+    <string name="streams_edit_type_auto">Авто</string>
+    <string name="streams_edit_type_audio">Аудио</string>
+    <string name="streams_edit_type_video">Видео</string>
+    <string name="streams_error_duplicate_url">Трансляция с таким адресом уже есть</string>
+    <string name="settings_streams_smart_buffering">Сверхинтеллектуальная буферизация трансляций</string>
+    <string name="settings_streams_smart_buffering_summary">Больше запаса при старте и тихое переподключение при слабой связи</string>
 </resources>

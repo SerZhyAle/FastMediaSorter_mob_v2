@@ -3203,4 +3203,24 @@ Close the player and try again.</string>
     <string name="companion_import_updated_one">Updated: %1$s</string>
     <string name="companion_import_no_changes">Resources already up to date</string>
     <string name="streams_no_signal">No signal</string>
+    <string name="launcher_edit_streams_enable_first">Enable streams in Settings first</string>
+    <string name="launcher_edit_resize_handle">Resize</string>
+    <string name="launcher_gadget_clock_actions">Clock. Tap for alarms, long press for calendar</string>
+    <string name="app_launch_panel_route_launch_panel">Quick-access panel</string>
+    <string name="launcher_edit_kind_scheduled_op">Scheduled operation</string>
+    <string name="launcher_cell_scheduled_op_label">%1$s: %2$s → %3$s</string>
+    <string name="launcher_scheduled_op_pick_title">Pick a scheduled operation</string>
+    <string name="launcher_scheduled_op_none">No scheduled operations yet</string>
+    <string name="launcher_scheduled_op_confirm_title">Run this operation?</string>
+    <string name="launcher_scheduled_op_confirm_message">It may copy, move or delete files as configured.</string>
+    <string name="launcher_scheduled_op_started">Operation started..</string>
+    <string name="launcher_scheduled_op_done">Operation finished</string>
+    <string name="launcher_scheduled_op_failed">Operation failed</string>
+    <string name="streams_edit_type_label">Type</string>
+    <string name="streams_edit_type_auto">Auto</string>
+    <string name="streams_edit_type_audio">Audio</string>
+    <string name="streams_edit_type_video">Video</string>
+    <string name="streams_error_duplicate_url">A stream with this address already exists</string>
+    <string name="settings_streams_smart_buffering">Ultra-smart stream buffering</string>
+    <string name="settings_streams_smart_buffering_summary">Bigger start-up cushion and quiet reconnects when the connection is shaky</string>
 </resources>

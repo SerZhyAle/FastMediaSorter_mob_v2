@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.core.launcher
 
+import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import org.junit.Assert.assertEquals
@@ -20,21 +22,25 @@ class LauncherStarterSetsParityTest {
     @Test
     fun `starter gadget target keys match the registry consts`() {
         // Clock: every profile opens with the clock gadget, whose bare target is the key itself.
-        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, null, null, streamsAvailable = false).first()
+        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap()).first()
         assertEquals(LauncherGadgetRegistry.KEY_CLOCK, clock.target)
 
         val folderPreview = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PHOTO_FRAME, lastResourceId = 1L, null, false)
+            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(lastResourceId = 1L), emptyMap())
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_FOLDER_PREVIEW) }
         assertEquals("${LauncherGadgetRegistry.KEY_FOLDER_PREVIEW}:1", folderPreview.target)
 
         val playlist = LauncherStarterSets
-            .itemsFor(DeviceProfileType.AUDIO_PLAYER, null, allAudioResourceId = 2L, false)
+            .itemsFor(DeviceProfileType.AUDIO_PLAYER, StarterResources(allAudioId = 2L), emptyMap())
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_PLAYLIST) }
         assertEquals("${LauncherGadgetRegistry.KEY_PLAYLIST}:2", playlist.target)
 
         val streams = LauncherStarterSets
-            .itemsFor(DeviceProfileType.AUDIO_PLAYER, null, 2L, streamsAvailable = true)
+            .itemsFor(
+                DeviceProfileType.AUDIO_PLAYER,
+                StarterResources(allAudioId = 2L),
+                mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+            )
             .first { it.target == LauncherGadgetRegistry.KEY_STREAMS }
         assertEquals(LauncherGadgetRegistry.KEY_STREAMS, streams.target)
     }

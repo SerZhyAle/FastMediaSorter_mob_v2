@@ -11,43 +11,46 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
     fun createVideoPlayerManager(): VideoPlayerManager {
         return VideoPlayerManager(
-            context = activity,
-            lifecycle = activity.lifecycle,
-            playerCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerPlaybackCallbackImpl(
-                activity = activity,
-                viewModel = activity.viewModel,
-                binding = activity.activityBinding,
-                playerSettingsManagerProvider = { activity.playerSettingsManager },
-                imageLoadingManagerProvider = { activity.imageLoadingManager },
-                slideshowController = activity.slideshowController,
-                sleepTimerManagerProvider = { activity.sleepTimerManager },
-                audioEmptyStateControllerProvider = { activity.audioEmptyStateController },
-                mediaCapabilities = activity.mediaCapabilities
+            hostDependencies = VideoPlayerHostDependencies(
+                context = activity,
+                lifecycle = activity.lifecycle,
+                playerCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerPlaybackCallbackImpl(
+                    activity = activity,
+                    viewModel = activity.viewModel,
+                    binding = activity.activityBinding,
+                    playerSettingsManagerProvider = { activity.playerSettingsManager },
+                    imageLoadingManagerProvider = { activity.imageLoadingManager },
+                    slideshowController = activity.slideshowController,
+                    sleepTimerManagerProvider = { activity.sleepTimerManager },
+                    audioEmptyStateControllerProvider = { activity.audioEmptyStateController },
+                    mediaCapabilities = activity.mediaCapabilities,
+                ),
+                panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
+                memoryProbe = activity.memoryProbe,
+                memoryProfileCoordinator = activity.memoryProfileCoordinator,
+                decoderFailureTracker = activity.recentDecoderFailureTracker,
+                remoteSourceGate = activity.remoteSourceGate,
+                statsSink = activity.statsSink,
+                streamProtocolSupport = activity.streamProtocolSupport,
             ),
-            credentialsRepository = activity.credentialsRepository,
-            smbClient = activity.smbClient,
-            sftpClient = activity.sftpClient,
-            endpointResolver = activity.endpointResolver,
-            ftpClient = activity.ftpClient,
-            googleDriveClient = activity.googleDriveClient,
-            oneDriveClient = activity.oneDriveClient,
-            dropboxClient = activity.dropboxClient,
-            playbackPositionRepository = activity.playbackPositionRepository,
-            settingsRepository = activity.settingsRepository,
-            panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
-            // S0207 Phase 01: forwarded for PRE_PLAY / AFTER_STATE_READY MEM_PROBE checkpoints.
-            memoryProbe = activity.memoryProbe,
-            memoryProfileCoordinator = activity.memoryProfileCoordinator,
-            // S0213 Pillar A: cooldown tracker for decoder-failure replay throttling.
-            decoderFailureTracker = activity.recentDecoderFailureTracker,
-            // S0391: source-availability gate for playback-dispatch gating.
-            remoteSourceGate = activity.remoteSourceGate,
-            // S0473: usage-statistics sink for the video-watched completion event.
-            statsSink = activity.statsSink,
-            // S0565: flavor-gated stream-protocol support (RTSP isolated to streaming flavors).
-            streamProtocolSupport = activity.streamProtocolSupport,
+            networkDependencies = VideoPlayerNetworkDependencies(
+                credentialsRepository = activity.credentialsRepository,
+                smbClient = activity.smbClient,
+                sftpClient = activity.sftpClient,
+                endpointResolver = activity.endpointResolver,
+                ftpClient = activity.ftpClient,
+                googleDriveClient = activity.googleDriveClient,
+                oneDriveClient = activity.oneDriveClient,
+                dropboxClient = activity.dropboxClient,
+            ),
+            storeDependencies = VideoPlayerStoreDependencies(
+                playbackPositionRepository = activity.playbackPositionRepository,
+                settingsRepository = activity.settingsRepository,
+            ),
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
+            it.streamFrameIngestor = activity.streamFrameIngestor
+            it.onStreamFrameIngested = activity::onStreamFrameIngested
         }
     }
 

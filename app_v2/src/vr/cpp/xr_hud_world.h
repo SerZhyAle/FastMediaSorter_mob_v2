@@ -58,4 +58,23 @@ void xr_hud_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuin
 // Teardown any local HUD graphics resources
 void xr_hud_shutdown();
 
+// S0986: dedicated subtitle-cue quad. Anchored to the lower third of view, head-locked and
+// independent of the HUD quad's size/visibility/drag (owner decision 2026-07-14). No ray/gaze
+// interaction - it only displays the current cue texture uploaded via xr_session's subtitle path.
+struct SubtitleQuadState {
+    QuadHUD quad;
+    bool visible{false};
+};
+
+extern SubtitleQuadState g_subtitleState;
+
+// Initialize subtitle quad geometry (size + lower-third offset). Re-runs per session start.
+void xr_subtitle_init();
+
+// Head-lock the subtitle quad to the lower third of view; snaps to head pose (no lazy-follow).
+void xr_subtitle_update(const XrPosef& headPose);
+
+// Draw the textured subtitle quad. subTex==0 or !visible early-returns (keeps the quad hidden).
+void xr_subtitle_render(const float* proj, const float* viewMat, size_t eyeIdx, GLuint shaderProgram, GLuint quadVao, GLuint subTex, GLint locViewProj, GLint locTex, GLint locEye, GLint locStereo, GLint locZoom);
+
 } // namespace fms::xr

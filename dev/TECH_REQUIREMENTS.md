@@ -14,8 +14,8 @@
 | Java target          | 17                             | `jvmTarget = "17"`                              |
 | Android Gradle Plugin| 9.2.1                          | AGP, pinned in root `build.gradle.kts`          |
 | Gradle               | 9.4.1                          | Wrapper in `gradle/wrapper/` (AGP 9.x)          |
-| compileSdk           | 35                             | Android 15 (VanillaIceCream)                    |
-| targetSdk            | 35                             | Required for Play Store compliance              |
+| compileSdk           | 36                             | Android 16 (Baklava)                            |
+| targetSdk            | 36                             | Required for Play Store compliance (S1149)      |
 | minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
 | minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) - covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |
@@ -124,7 +124,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 19         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 42         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -228,7 +228,7 @@
 | `espresso-core`                 | 3.5.1      | android  | UI testing                   |
 | `test-ext-junit`               | 1.1.5      | android  | AndroidJUnit runner          |
 | `navigation-testing`           | 2.7.6      | android  | Navigation test utilities    |
-| `hilt-android-testing`         | 2.57.2     | android  | Hilt test injection          |
+| `hilt-android-testing`         | 2.59       | android  | Hilt test injection          |
 | `room-testing`                  | 2.7.0      | android  | Room migration tests         |
 
 ---
@@ -434,9 +434,9 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 41                    | Current schema in `AppDatabase`                |
+| Room DB version        | 42                    | Current schema in `AppDatabase`                |
 | Number of entities     | 21                    | Current `@Database(entities = ..)` set         |
-| Migrations             | 40 logical steps      | Long-running schema evolution through v41      |
+| Migrations             | 41 migrations         | Registered in DatabaseModule; through v42      |
 
 ---
 

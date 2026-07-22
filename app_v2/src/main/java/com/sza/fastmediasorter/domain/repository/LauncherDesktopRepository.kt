@@ -42,6 +42,14 @@ interface LauncherDesktopRepository {
     suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean
 
     /**
+     * Changes a cell's footprint at its current anchor, but only onto free space: the new
+     * `spanW x spanH` must not overlap another cell (the cell's own current squares are excluded, so
+     * growth into them is allowed). Returns whether it resized. Same no-overlap invariant as [moveCell];
+     * the caller (the resize gesture) reverts to the last valid size when this returns false.
+     */
+    suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean
+
+    /**
      * Places [cells] only when this orientation has never been seeded and holds no cells.
      * Returns whether it seeded, so a profile change can never overwrite a desktop the user owns.
      */

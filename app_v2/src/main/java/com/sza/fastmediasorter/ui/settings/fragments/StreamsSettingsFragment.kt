@@ -45,6 +45,10 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowEnableStreams) { isChecked ->
             viewModel.updateSettings(viewModel.settings.value.copy(enableStreams = isChecked))
         }
+        // S1148: opt-in resilient radio buffering profile (start-up cushion + silent reconnects).
+        bindSwitch(binding.rowSmartBuffering) { isChecked ->
+            viewModel.updateSettings(viewModel.settings.value.copy(streamsSmartBuffering = isChecked))
+        }
 
         // S0659: dropdown entries follow each enum's declaration order so the chosen index maps back to
         // the enum via `entries[index]`. Sort/filter reuse the existing list-screen labels; only the
@@ -93,6 +97,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
 
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             setSwitchChecked(binding.rowEnableStreams, settings.enableStreams)
+            setSwitchChecked(binding.rowSmartBuffering, settings.streamsSmartBuffering)
             withSettingsUpdate {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)
                 setDropdownSelection(binding.rowDefaultMediaFilter, settings.streamsDefaultMediaFilter.ordinal)

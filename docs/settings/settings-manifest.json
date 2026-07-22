@@ -1971,6 +1971,16 @@
       "titleUk": "Увімкнути трансляції"
     },
     {
+      "key": "rowSmartBuffering",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Ultra-smart stream buffering",
+      "titleRu": "Сверхинтеллектуальная буферизация трансляций",
+      "titleUk": "Надрозумна буферизація трансляцій"
+    },
+    {
       "key": "btnClearSnapshotResource",
       "sectionId": "video",
       "destination": "MEDIA",

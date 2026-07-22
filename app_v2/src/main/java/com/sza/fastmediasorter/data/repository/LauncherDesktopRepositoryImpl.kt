@@ -58,6 +58,29 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         cellDao.deleteById(id)
     }
 
+    override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean =
+        withContext(Dispatchers.IO) {
+            val safeW = spanW.coerceAtLeast(MIN_SPAN)
+            val safeH = spanH.coerceAtLeast(MIN_SPAN)
+            db.withTransaction {
+                val source = cellDao.getById(id) ?: return@withTransaction false
+                if (source.spanW == safeW && source.spanH == safeH) return@withTransaction false
+                // Self is excluded, so growing over the cell's own current squares is fine; only another
+                // cell's squares block the resize, keeping the "cells never overlap" invariant.
+                val blocker = cellDao.findOverlapping(
+                    orientation = source.orientation,
+                    rowIndex = source.rowIndex,
+                    colIndex = source.colIndex,
+                    spanW = safeW,
+                    spanH = safeH,
+                    excludeId = id,
+                )
+                if (blocker != null) return@withTransaction false
+                cellDao.update(source.copy(spanW = safeW, spanH = safeH))
+                true
+            }
+        }
+
     override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
         withContext(Dispatchers.IO) {
             val targetRow = rowIndex.coerceAtLeast(0)

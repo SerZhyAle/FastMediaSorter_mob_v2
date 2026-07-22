@@ -60,7 +60,7 @@
             android:layout_marginTop="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_small"
             android:visibility="gone"
-            tools:listitem="@layout/item_launcher_taskbar_icon"
+            tools:listitem="@layout/item_launcher_app_grid_cell"
             tools:visibility="visible" />
 
         <com.google.android.material.button.MaterialButton

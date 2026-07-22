@@ -14,6 +14,7 @@
     <string name="keybinding_f1_hint">Нажмите F1 для списка горячих клавиш</string>
     <string name="keybinding_fmt_gamepad_unknown">Кнопка %d</string>
     <string name="keybinding_fmt_mouse_unknown">Мышь %d</string>
+    <string name="keybinding_fmt_vr_unknown">VR %d</string>
     <string name="keybinding_group_audio_subtitles">Аудио и субтитры</string>
     <string name="keybinding_group_browser_actions">Действия браузера</string>
     <string name="keybinding_group_navigation">Навигация</string>

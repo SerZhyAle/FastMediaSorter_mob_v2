@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -83,6 +84,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var streamFramePersistentStore: StreamFramePersistentStore
 
+    @Inject
+    lateinit var streamFrameIngestor: StreamFrameIngestor
+
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -91,6 +95,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // after import is visible to the bind callbacks without further synchronisation.
     @Volatile
     private var faviconCoords: Map<String, Int> = emptyMap()
+
+    private val streamPlayerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        val url = result.data
+            ?.getStringExtra(PlayerActivity.EXTRA_STREAM_THUMBNAIL_URL)
+            ?: return@registerForActivityResult
+        gridAdapter.repaintUrl(url)
+    }
 
     private val adapter = StreamSourceAdapter(
         onPlay = ::onPlay,
@@ -119,7 +133,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             applicationContext,
             streamFrameCache,
             lifecycleScope,
-            streamFramePersistentStore,
+            streamFrameIngestor,
             hostProvider = { binding.streamCaptureHost },
         )
     }
@@ -167,6 +181,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S0699: the saved list position to restore (from RestoreScroll); applied once the row exists.
     private var pendingScrollTarget: Int? = null
     private var scrollRestored = false
+
+    private val streamScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancelHealthProbe()
+        }
+    }
 
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
 
@@ -269,11 +289,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
         // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
         // e.g. the S0699 position restore, settle without DRAGGING so they do not cancel it).
-        binding.rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancelHealthProbe()
-            }
-        })
+        binding.rvStreams.addOnScrollListener(streamScrollListener)
 
         // S0673: empty-state actions reuse the toolbar handlers so the recovery path is one tap.
         binding.btnEmptyAddUrl.setOnClickListener { showSourceDialog(isImport = false) }
@@ -507,7 +523,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // path against the synthetic single-item resource id; the player classifies the scheme to a
         // stream ResourceType and routes it to the stream playback helper (S0565 Phase 04).
         Timber.i("StreamsActivity: launching fullscreen stream - %s", source.url)
-        startActivity(
+        streamPlayerLauncher.launch(
             PlayerActivity.createIntent(
                 context = this,
                 resourceId = SyntheticResourceIds.STREAM,
@@ -792,6 +808,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     override fun onDestroy() {
+        binding.rvStreams.removeOnScrollListener(streamScrollListener)
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
         if (::inlineAudio.isInitialized) {
             // S0577: on a background-continue exit, detach without stopping the service stream.

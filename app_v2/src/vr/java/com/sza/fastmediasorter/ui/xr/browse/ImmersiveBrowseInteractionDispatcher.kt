@@ -37,7 +37,10 @@ class ImmersiveBrowseInteractionDispatcher(
         }
 
         val px = uvX * ImmersiveBrowseGridRenderer.PANEL_WIDTH
-        val py = uvY * ImmersiveBrowseGridRenderer.PANEL_HEIGHT
+        // S1132: ray UV.y is 0 at the quad BOTTOM and 1 at the TOP (GL convention, xr_raycast.cpp),
+        // but cell.bounds live in Canvas space with y=0 at the TOP. Flip Y so the hovered cell matches
+        // where the ray visually points; without this the highlight is vertically mirrored.
+        val py = (1f - uvY) * ImmersiveBrowseGridRenderer.PANEL_HEIGHT
 
         val clickTriggered = isClick && !isTriggerPressed
         isTriggerPressed = isClick

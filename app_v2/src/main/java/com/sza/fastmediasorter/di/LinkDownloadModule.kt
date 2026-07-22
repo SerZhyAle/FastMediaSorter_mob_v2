@@ -31,7 +31,12 @@ object LinkDownloadModule {
     @Singleton
     @Named("linkDownload")
     fun provideLinkDownloadClient(cookieJar: LinkDownloadCookieJar): OkHttpClient = OkHttpClient.Builder()
-        .callTimeout(30, TimeUnit.SECONDS)
+        // S1139: no total-call ceiling. callTimeout bounds the WHOLE call incl. body transfer, so a
+        // fixed value cancels a legitimately long media download mid-stream (OkHttp aborts with an
+        // HTTP/2 CANCEL -> InterruptedIOException: timeout). Idle connect/read timeouts below still
+        // fail a genuinely stalled connection; arbitrary-size downloads are bounded by those, not a
+        // wall-clock cap.
+        .callTimeout(0, TimeUnit.SECONDS)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)

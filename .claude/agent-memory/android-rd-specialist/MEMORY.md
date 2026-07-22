@@ -60,6 +60,7 @@
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
 - [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; delete detekt.xml, not --rerun-tasks; "PASS [scoped] - 0 file(s)" = blind, not clean (S1077)
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after a gate, add DON'T rule to CLAUDE.md + skills
+- [listener-symmetry gate is per-file](project_listener_symmetry_gate_per_file.md) - cross-file add/remove fails it; co-locate remove token via same-file helper
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes
 - [Timber.e for real errors](feedback_log_levels.md) - expected capability fallbacks log at Timber.i
 - [Settings docs sync (Rule 22)](feedback_settings_manifest_regen.md) - regen manifest + annotations + reference
@@ -73,6 +74,7 @@
 - [BaseActivity posts setupViews()](feedback_baseactivity_setupviews_posted_ordering.md) - recreation-restore in attach()/onResumeWithViews (S0910)
 - [SettingsInputRow greedy width](feedback_settingsinputrow_greedy_width.md) - internally match_parent; fix width in weighted rows
 - [Canonical settings pickers](feedback_canonical_settings_value_pickers.md) - reuse ListSelectionDialog<T>+SettingsSelectionRow
+- [Category != icon monochrome](feedback_category_is_not_icon_monochrome_proxy.md) - tint by icon source not tile type; device-verify (S1124 All Music regression)
 - [No wrapper focus compound rows](feedback_compound_row_no_wrapper_focus.md) - wrapper NOT focusable; inner field is D-pad stop
 - [Settings section deep-link](project_settings_section_deeplink.md) - EXTRA_INITIAL_TAB+EXTRA_EXPAND_SECTION; self-expands
 - [Settings-search gate axes](project_settings_search_gate_axes.md) - 3 ANDed: section / CapabilityGate / DeviceFeatureGate
@@ -113,6 +115,7 @@
 - [BNUT sweep plan 2026-07-02](project_bnut_sweep_plan.md) - 65 tickets triaged; plan temp/spec_sweep_batch_plan.md
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) - grep `"Sxxxx:` too; single-line misses wrapped
 - [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff for WIP; git only on explicit ask
+- [Drift-check misses untagged impl](feedback_driftcheck_misses_untagged_impl.md) - In Progress + no tactical + CLEAN drift may already be coded (untagged commit); grep before greenfield -> review mode
 - [Verify spec id before pipeline](feedback_verify_spec_id_before_pipeline.md) - select.ps1 first; match IDE-open Sxxxx
 - [IDE Draft finalizes mid-task](feedback_ide_open_spec_may_finalize_midtask.md) - /spec-all rewrites Draft->Tactical; re-read
 - [Draft style is approval-gate](feedback_draft_style_gate.md) - sanitation only at Draft->Approved; drafts stay rough
@@ -151,6 +154,9 @@
 - [bash rg skips CATALOG](feedback_rg_gitignore_catalog.md) - use Grep tool / --no-ignore / Read
 - [BG task exit = the echo](feedback_background_task_exit_code_is_echo.md) + [no probe echo](feedback_no_flush_echo_commands.md) - exit reflects trailing echo, read log
 - [Workflow journal recovery](reference_workflow_journal_recovery.md) + [args trap](reference_workflow_args_trap.md) - recover from journal.jsonl; resume drops args
+
+- [Radio stutter toolkit S1148](project_live_radio_loadcontrol_min_eq_max.md) - smart-buffering toggle, Audio diag telemetry; read telemetry before touching LoadControl
+- [Samsung Dolby eac3-joc glitch](project_samsung_dolby_eac3_joc_glitch.md) - c2.dolby rips ~2/s, clean telemetry; software-preferred selector in PlaybackRenderersFactory
 
 ## Session incidents
 - [DEBUG-v026 tree settled 2026-07-19](project_debug_v026_tree_settled_2026_07_19.md) - 23 commits landed; S0404 launcher now committed, re-check concurrent-wip skip-cache; corex/ left uncommitted
