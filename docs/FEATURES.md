@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-16*
+*Last updated: 2026-07-22*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -51,6 +51,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Dedicated Internet Streams screen** `[Standard / Legacy / noLegal / VR / Lite (progressive-audio only)]`: Store internet radio, video streams, and RTSP sources in a proper library instead of juggling links in a browser or notes app.
 - **Inline radio playback with live ICY metadata** `[Standard / Legacy / noLegal / VR / Lite]`: Play audio streams directly in the list while keeping the station catalog visible.
 - **Pinned streams on the main window** `[Standard / Legacy / noLegal]`: Put favorite live channels directly above the resource list for one-tap access from the home screen of the app.
+- **Smarter stream playback** `[Standard / Legacy / VR]`: Streams step down to a lighter quality automatically when the connection keeps stalling, and the frame you were watching becomes the channel's thumbnail.
 
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.

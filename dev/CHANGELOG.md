@@ -22887,3 +22887,4 @@ Format: | datetime | file | target | description |
 | 2026-07-22 14:59:43 | `PLAN/S1148_bugfix-radio-live-read-pause-server-drop-stutter.md` | `spec-check` | Audit S1148 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v027] |
 | 2026-07-22 16:58:26 | `PLAN/S1083_bugfix-stream-playback-controls.md` | `spec-check` | Audit S1083 -> Verified (on-device PASS, emulator-5554); removed S1083 probe from PlaybackControlDialogFragment.kt [branch: DEBUG-v027] |
 | 2026-07-22 17:07:07 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7221.704 - plateau merge from DEBUG-v027 [branch: DEBUG-v027] |
+| 2026-07-22 17:11:00 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7221.704 from ALL_FEATURES diff [branch: DEBUG-v028] |
