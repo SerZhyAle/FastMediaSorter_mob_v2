@@ -6,7 +6,29 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7191.740** (July 2026)
+**Current release: 2.60.7221.704** (July 2026)
+
+> Changes since version 2.60.7191.740
+
+---
+
+## What's New
+
+- **Home-screen launcher** - resizable gadgets, a working clock, a scrollable app grid.
+- **Launcher desktop** - seeded shortcuts and richer cell actions out of the box.
+- **Adaptive streaming** - video quality steps down automatically under repeated stalls.
+- **Stream thumbnails** - the frame you watched becomes the channel preview.
+
+## What's Fixed
+
+- Playback controls hide options that do nothing on live streams.
+- Quick-launch tile icons are readable on the light theme.
+- VR input labels are readable in the keybindings screen.
+- The empty channel picker now opens Streams settings.
+
+---
+
+## Previous Release: 2.60.7191.740 (July 2026)
 
 > Changes since version 2.60.7160.058
 
