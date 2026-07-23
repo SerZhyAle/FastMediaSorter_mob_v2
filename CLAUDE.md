@@ -1,5 +1,7 @@
 # CLAUDE.md - Rules for Claude Code
 
+> **Universal conventions (canon):** the portfolio-wide rules live in the SZA Unified Rules at `P:\WEB\sites.google.comsiteszaodua\Unified_Rules` (consumption model: **REFERENCE** - not mirrored here). This repo is the **reference the core was extracted from**, so the rules below are not a re-authoring of the canon - they are this repo's Android operational layer (exact `a.ps1` targets, gate names, the flavor matrix, the Sxxxx spec/probe lifecycle) plus the deltas and channel matrix recorded in `Unified_Rules/contrib/fastmediasorter_mob_v2.md`. When a rule here restates a universal principle, the canon is the source of truth; fix universal rules in a canon session, not here.
+
 > Parallel rule set for non-Claude agents: `AGENTS.md` (import order `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt; stricter wins). When changing shared rules, sync `AGENTS.md` too.
 
 ## 1. Communication & Style

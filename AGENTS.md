@@ -1,6 +1,7 @@
 # FastMediaSorter v2 Agent Protocol
 
 ## 1. Source of Truth
+- Universal conventions (canon): SZA Unified Rules at `P:\WEB\sites.google.comsiteszaodua\Unified_Rules` (REFERENCE model, not mirrored). This repo is the reference the core was extracted from; per-repo overlay facts + channel matrix live in `Unified_Rules/contrib/fastmediasorter_mob_v2.md`. Canon wins for universal principles; fix them in a canon session.
 - Rules: `CLAUDE.md`, `.github/copilot-instructions.md`, `dev/PROJECT_OPERATIONS_INDEX.md`, `dev/AGENT_WORKFLOW.md`.
 - Stricter rules override. Import order: `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt/agent file.
 
