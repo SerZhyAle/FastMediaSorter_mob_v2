@@ -151,6 +151,17 @@ class DeliverableInventoryImpl @Inject constructor(
                     statusFlow = catalogStatusFlow(STREAM_CATALOG_ID)
                 )
             )
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.CHANNEL_PREVIEW_ATLAS),
+                    set = DeliverableSet.CHANNEL_PREVIEW_ATLAS,
+                    displayNameRes = R.string.ext_channel_preview_atlas_title,
+                    descriptionRes = R.string.ext_channel_preview_atlas_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.CHANNEL_PREVIEW_ATLAS),
+                    section = ExtensionSection.STREAMS,
+                    statusFlow = moduleStatusFlow(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
+                )
+            )
         }
     }
 
@@ -301,7 +312,8 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.OCR_ENGINES to 7_514_856L,
             DeliverableSet.TRANSLATION to 17_380_608L,
             DeliverableSet.AUDIO_VISUALIZATIONS to 6_100_000L,
-            DeliverableSet.FFMPEG_DTS to 7_675_704L
+            DeliverableSet.FFMPEG_DTS to 7_675_704L,
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 30_000_000L
         )
     }
 }

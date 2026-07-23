@@ -3183,4 +3183,8 @@
     <string name="streams_section_main">Каналы</string>
     <string name="streams_section_expand">Развернуть раздел</string>
     <string name="streams_section_collapse">Свернуть раздел</string>
+    <string name="ext_channel_preview_atlas_title">Атлас превью каналов</string>
+    <string name="ext_channel_preview_atlas_desc">Показывает превью видеоканалов в режиме сетки до первого просмотра.</string>
+    <string name="streams_atlas_prompt_message">Скачать превью каналов, чтобы видеоканалы показывали картинку до запуска?</string>
+    <string name="streams_atlas_prompt_action">Скачать</string>
 </resources>

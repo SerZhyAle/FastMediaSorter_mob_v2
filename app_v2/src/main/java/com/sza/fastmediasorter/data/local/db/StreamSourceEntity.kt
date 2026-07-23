@@ -40,5 +40,10 @@ data class StreamSourceEntity(
     val lastPlayOutcomeAt: Long? = null,
     // S1117: catalog access flag. "geo" = region-restricted (kept + badged in the list); null/blank =
     // open. Populated only for CATALOG rows from the curated catalog's `access` column; MANUAL rows null.
-    val access: String? = null
+    val access: String? = null,
+    // S1144: per-channel track memory (language-code, not raw index - ADR-2, index is unstable across
+    // live-manifest reloads). subtitlesEnabled null = follow global default, true/false = per-channel override.
+    val preferredAudioLang: String? = null,
+    val preferredSubtitleLang: String? = null,
+    val subtitlesEnabled: Boolean? = null
 )

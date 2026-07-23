@@ -3227,4 +3227,8 @@ Close the player and try again.</string>
     <string name="streams_section_main">Channels</string>
     <string name="streams_section_expand">Expand section</string>
     <string name="streams_section_collapse">Collapse section</string>
+    <string name="ext_channel_preview_atlas_title">Channel preview atlas</string>
+    <string name="ext_channel_preview_atlas_desc">Shows a preview for video channels in grid mode before your first watch.</string>
+    <string name="streams_atlas_prompt_message">Download channel previews so video channels show a picture before you play them?</string>
+    <string name="streams_atlas_prompt_action">Download</string>
 </resources>

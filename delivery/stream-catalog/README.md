@@ -40,6 +40,37 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 > the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 30 MiB) and refuses
 > to publish a `favicon_index` CSV with no atlas. `-SkipLiveness` skips the URL probe without touching the CSV.
 
+## Channel preview atlas (separate release asset)
+
+The **channel-preview atlas** is an optional companion to the catalog: a single sprite sheet of
+per-channel preview frames that the app shows for a VIDEO channel in grid mode before the user's first
+watch. It is published as its **own** versioned release asset - NOT bundled inside `stream-catalog.zip` -
+because it is large (20-50 MB) and has an independent lifecycle from the CSV.
+
+```
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-atlas.webp
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-coords.json
+```
+
+Slicing contract (a third-party consumer of this catalog can crop the same tiles):
+
+- One sheet, `8192 x 8192` px, holding a fixed grid of `240 x 135` tiles, `34` columns per row.
+- A tile's ordinal maps to its cell by `col = index % 34`, `row = index / 34`; its pixel rect is
+  `left = col * 240`, `top = row * 135`, `right = left + 240`, `bottom = top + 135`. Equivalently
+  `index = row * 34 + col`.
+- Only VIDEO channels have a tile; audio/radio rows are skipped by the packer.
+
+Sidecar `channel-preview-coords.json` - a flat JSON object mapping each channel `url` to its zero-based
+tile `index` (keyed by `url`, the stable per-channel key, mirroring the favicon sidecar):
+
+```
+{ "https://chan/a.m3u8": 0, "https://chan/b.m3u8": 33, "https://chan/c.m3u8": 68 }
+```
+
+Non-integer values are skipped defensively; an absent sidecar means "no atlas installed" (every tile
+falls back to the favicon). The tile geometry above is the shared invariant between the offline packer
+and the on-device slicer - changing it on one side without the other drifts every rect.
+
 ## File: `streams.csv`
 
 UTF-8, no BOM, RFC-4180 (fields with `,` `"` or newline are quoted; inner `"` doubled).

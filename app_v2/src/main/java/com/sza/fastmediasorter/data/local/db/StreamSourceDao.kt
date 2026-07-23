@@ -47,6 +47,21 @@ interface StreamSourceDao {
     @Query("SELECT * FROM stream_sources WHERE url = :url LIMIT 1")
     suspend fun getByUrl(url: String): StreamSourceEntity?
 
+    /**
+     * S1144: persist the per-channel track preference by stable URL key. Language-codes (ADR-2), not raw
+     * indices; [subtitlesEnabled] null = follow global default. The read path reuses [getByUrl].
+     */
+    @Query(
+        "UPDATE stream_sources SET preferredAudioLang = :audioLang, " +
+            "preferredSubtitleLang = :subtitleLang, subtitlesEnabled = :subtitlesEnabled WHERE url = :url"
+    )
+    suspend fun updateTrackPreferences(
+        url: String,
+        audioLang: String?,
+        subtitleLang: String?,
+        subtitlesEnabled: Boolean?
+    )
+
     /** S0654: resolve just the stored media kind (RTSP/VIDEO/AUDIO) for the stream-played metric. */
     @Query("SELECT mediaKind FROM stream_sources WHERE id = :id LIMIT 1")
     suspend fun getMediaKindById(id: String): String?

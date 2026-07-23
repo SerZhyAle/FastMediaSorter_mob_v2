@@ -278,6 +278,7 @@ class StreamsViewModel @Inject constructor(
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
+        val previousKind = _filter.value.mediaKind
         _filter.update {
             it.copy(
                 category = category,
@@ -287,7 +288,30 @@ class StreamsViewModel @Inject constructor(
                 pinnedOnly = pinnedOnly,
             )
         }
+        applyVideoFilterDisplayMode(previousKind, mediaKind)
         persistSession()
+    }
+
+    // S1154: video previews are only meaningful in GRID, so entering the VIDEO filter auto-switches to
+    // GRID and remembers the prior mode; leaving VIDEO restores it. The auto mode is never persisted as
+    // the user's default (only onToggleDisplayMode writes it), so a manual LIST choice is never lost.
+    private var modeBeforeVideoFilter: DisplayMode? = null
+
+    private fun applyVideoFilterDisplayMode(previousKind: MediaKindFilter, newKind: MediaKindFilter) {
+        val enteringVideo = newKind == MediaKindFilter.VIDEO && previousKind != MediaKindFilter.VIDEO
+        val leavingVideo = previousKind == MediaKindFilter.VIDEO && newKind != MediaKindFilter.VIDEO
+        when {
+            enteringVideo -> {
+                modeBeforeVideoFilter = _state.value.displayMode
+                if (_state.value.displayMode != DisplayMode.GRID) {
+                    _state.update { it.copy(displayMode = DisplayMode.GRID) }
+                }
+            }
+            leavingVideo -> {
+                modeBeforeVideoFilter?.let { restore -> _state.update { it.copy(displayMode = restore) } }
+                modeBeforeVideoFilter = null
+            }
+        }
     }
 
     fun onSort(mode: SortMode) {
@@ -299,6 +323,11 @@ class StreamsViewModel @Inject constructor(
     fun onToggleDisplayMode() {
         val newMode = if (_state.value.displayMode == DisplayMode.GRID) DisplayMode.LIST else DisplayMode.GRID
         _state.update { it.copy(displayMode = newMode) }
+        // S1154: a deliberate switch while the VIDEO filter is active becomes the new restore baseline,
+        // so leaving the filter does not clobber the in-filter choice with the pre-video mode.
+        if (_filter.value.mediaKind == MediaKindFilter.VIDEO && modeBeforeVideoFilter != null) {
+            modeBeforeVideoFilter = newMode
+        }
         viewModelScope.launch { sessionStore.writeDisplayMode(newMode.name) }
     }
 

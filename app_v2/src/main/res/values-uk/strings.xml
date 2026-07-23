@@ -3155,4 +3155,8 @@
     <string name="streams_section_main">Канали</string>
     <string name="streams_section_expand">Розгорнути розділ</string>
     <string name="streams_section_collapse">Згорнути розділ</string>
+    <string name="ext_channel_preview_atlas_title">Атлас прев\'ю каналів</string>
+    <string name="ext_channel_preview_atlas_desc">Показує прев\'ю відеоканалів у режимі сітки до першого перегляду.</string>
+    <string name="streams_atlas_prompt_message">Завантажити прев\'ю каналів, щоб відеоканали показували зображення до запуску?</string>
+    <string name="streams_atlas_prompt_action">Завантажити</string>
 </resources>

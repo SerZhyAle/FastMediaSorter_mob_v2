@@ -20,6 +20,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -28,6 +29,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
+import androidx.media3.extractor.metadata.icy.IcyInfo
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
@@ -36,6 +38,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -92,6 +95,8 @@ class AudioPlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
+    // S1142: last raw ICY StreamTitle pushed into the notification, to skip no-op updates (anti-flicker).
+    private var lastIcyTitle: String? = null
     private val autoStopHandler = Handler(Looper.getMainLooper())
     private val autoStopRunnable = Runnable {
         val p = player
@@ -404,7 +409,21 @@ class AudioPlaybackService : MediaSessionService() {
                 publishWidgetSnapshot()
             }
 
+            // S1142: live ICY now-playing. The service ExoPlayer is where the raw stream metadata
+            // arrives (a MediaController does not receive it); push the parsed track into the current
+            // MediaItem so the system notification / lock screen reflect it (research 02).
+            override fun onMetadata(metadata: Metadata) {
+                for (i in 0 until metadata.length()) {
+                    val entry = metadata.get(i)
+                    if (entry is IcyInfo) {
+                        entry.title?.takeIf { it.isNotBlank() }?.let { applyLiveIcyMetadata(it) }
+                    }
+                }
+            }
+
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                // S1142: a new station may legitimately repeat a previous track string - forget the last.
+                lastIcyTitle = null
                 resetStreamRecovery(mediaItem)
                 publishWidgetSnapshot()
             }
@@ -713,6 +732,40 @@ class AudioPlaybackService : MediaSessionService() {
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
         serviceScope.launch {
             streamHasSuccessfulPlayback = streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
+        }
+    }
+
+    /**
+     * S1142: push the live ICY track into the current MediaItem's metadata so the system notification
+     * and lock screen show it. Mirrors the video path (StreamPlaybackHelper.updateNowPlayingTitle):
+     * media3 treats a same-URI replaceMediaItem as a metadata-only update, so buffering/recovery are
+     * untouched. The static station name is carried into the `station` field so it is not lost. Skips
+     * a repeated title (anti-flicker) and swallows a malformed-timeline IllegalStateException.
+     */
+    private fun applyLiveIcyMetadata(rawIcyTitle: String) {
+        if (rawIcyTitle == lastIcyTitle) return
+        val parsed = NowPlayingMetadata.parse(rawIcyTitle) ?: return
+        val p = player ?: return
+        val current = p.currentMediaItem ?: return
+        val index = p.currentMediaItemIndex
+        // Preserve the station across successive updates: after the first replace the item title holds
+        // the song, so read the already-stored station field first and fall back to the initial title.
+        val station = current.mediaMetadata.station ?: current.mediaMetadata.title
+        val updated = current.buildUpon()
+            .setMediaMetadata(
+                current.mediaMetadata.buildUpon()
+                    .setTitle(parsed.title)
+                    .setArtist(parsed.artist)
+                    .setStation(station)
+                    .build()
+            )
+            .build()
+        try {
+            p.replaceMediaItem(index, updated)
+            lastIcyTitle = rawIcyTitle
+            Timber.d("S1142: pushed live ICY track to notification artist=%s title=%s", parsed.artist, parsed.title)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "AudioPlaybackService: live ICY metadata update skipped")
         }
     }
 

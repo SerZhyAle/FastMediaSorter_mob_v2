@@ -105,6 +105,28 @@ object DeliverableDescriptorCatalog {
         )
     )
 
+    // Channel-preview atlas integrity pins (S1154). Placeholder zero/empty until the real binary is
+    // produced and published, then filled from its bytes.
+    // FINALIZED in Phase 06 from the published binary
+    private const val ATLAS_SHEET_SHA256 = ""
+    private const val ATLAS_SHEET_MIN_SIZE = 0L
+    private const val ATLAS_COORDS_SHA256 = ""
+    private const val ATLAS_COORDS_MIN_SIZE = 0L
+
+    /**
+     * Channel-preview atlas (S1154) - on-demand stream channel-preview sprite sheet + `url->index`
+     * sidecar. Pure data payload (no `System.load`), so [RealDeliverableSetDownloader.isNativeCodeSet]
+     * leaves it un-gated and it downloads on Play installs too. Contributed only on demand (never
+     * bundled), on the streams flavors.
+     */
+    fun channelPreviewAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
+        set = DeliverableSet.CHANNEL_PREVIEW_ATLAS,
+        files = listOf(
+            resource("channel-preview-atlas.webp", ATLAS_SHEET_SHA256, ATLAS_SHEET_MIN_SIZE),
+            resource("channel-preview-coords.json", ATLAS_COORDS_SHA256, ATLAS_COORDS_MIN_SIZE)
+        )
+    )
+
     /** Set B for store flavors (standard/legacy): Tesseract only. */
     fun ocrEnginesStore(abi: String = primaryAbi()): DeliverableSourceDescriptor =
         nativeDescriptor(DeliverableSet.OCR_ENGINES, abi, TESSERACT[abi].orEmpty())

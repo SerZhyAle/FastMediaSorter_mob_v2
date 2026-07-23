@@ -23,11 +23,13 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
+import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.StreamResumeState
@@ -41,6 +43,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
+import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -77,6 +80,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var faviconAtlasStore: FaviconAtlasStore
 
+    // S1154: on-demand channel-preview atlas store (sheet + url->index sidecar under the delivery dir).
+    @Inject
+    lateinit var channelPreviewAtlasStore: ChannelPreviewAtlasStore
+
+    // S1154: routes the post-import atlas-download offer through the real WorkManager delivery path.
+    @Inject
+    lateinit var deliverableInventory: DeliverableInventory
+
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
     @Inject
@@ -102,6 +113,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // after import is visible to the bind callbacks without further synchronisation.
     @Volatile
     private var faviconCoords: Map<String, Int> = emptyMap()
+
+    // S1154: per-tile region-decode slicer for the channel-preview atlas (never decodes the full sheet).
+    private val atlasSlicer by lazy { ChannelPreviewAtlasSlicer { channelPreviewAtlasStore.atlasFile() } }
+
+    // S1154: url->tile-index map for the atlas preview; volatile for the same reason as faviconCoords.
+    @Volatile
+    private var atlasPreviewCoords: Map<String, Int> = emptyMap()
+
+    // S1154: post-import "download the preview atlas?" offer. Lazy so it is built after Hilt injection.
+    private val streamAtlasPromptManager by lazy {
+        StreamAtlasPromptManager(deliverableInventory, lifecycleScope)
+    }
 
     private val streamPlayerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -185,6 +208,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
             faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
             faviconScope = lifecycleScope,
         )
     }
@@ -221,6 +245,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             requestCapture = pinnedSnapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
             faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
             faviconScope = lifecycleScope,
         )
     }
@@ -288,11 +313,19 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             playStopButton = binding.btnMiniPlayStop,
             audioController = AudioServiceController(this),
             // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both list
-            // adapters - only the section holding it repaints, the other no-ops. Grid adapters carry no
-            // playing indicator, so no grid fan-out is needed.
-            onPlayingChanged = { id -> adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id) },
+            // adapters - only the section holding it repaints, the other no-ops. S1142: the grid adapters
+            // now also carry the active tile's now-playing track, so a new play/stop resets it there too.
+            onPlayingChanged = { id ->
+                adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
+                gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
+            },
             onError = ::showStreamUnavailable,
             onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
+            // S1142: mirror the live now-playing track onto the active channel's grid tile.
+            onNowPlayingChanged = { track ->
+                gridAdapter.setNowPlaying(inlineAudio.playingId, track)
+                pinnedGridAdapter.setNowPlaying(inlineAudio.playingId, track)
+            },
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
         inlineAudio.applyWindowInsets()
@@ -414,6 +447,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun loadFaviconCoords() {
         lifecycleScope.launch {
             faviconCoords = faviconAtlasStore.coords()
+            // S1154: load the atlas-preview coords on the same pass so a VIDEO tile can show its preview.
+            atlasPreviewCoords = channelPreviewAtlasStore.coords()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
     }
@@ -426,6 +461,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         lifecycleScope.launch {
             faviconSlicer.invalidate()
             faviconCoords = faviconAtlasStore.coords()
+            // S1154: a re-import may have replaced the atlas payload too; drop the decoder and reload.
+            atlasSlicer.invalidate()
+            atlasPreviewCoords = channelPreviewAtlasStore.coords()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
     }
@@ -510,6 +548,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
+                    // S1154: offer the channel-preview atlas download when it is not already installed.
+                    streamAtlasPromptManager.maybeOffer(binding.rvStreams)
                 }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
                 is StreamsViewModel.StreamsEvent.RestoreScroll -> {

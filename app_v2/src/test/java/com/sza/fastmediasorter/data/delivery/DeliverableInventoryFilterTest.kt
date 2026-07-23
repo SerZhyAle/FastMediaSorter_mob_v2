@@ -44,11 +44,12 @@ class DeliverableInventoryFilterTest {
         ocr: Boolean,
         translation: Boolean,
         descriptors: Map<DeliverableSet, DeliverableSourceDescriptor> = emptyMap(),
-        bundledSets: Set<DeliverableSet> = emptySet()
+        bundledSets: Set<DeliverableSet> = emptySet(),
+        streams: Boolean = false
     ): DeliverableInventoryImpl {
         every { capabilityAvailability.isOcrAvailable(any()) } returns ocr
         every { capabilityAvailability.isTranslationAvailable() } returns translation
-        every { capabilityAvailability.isStreamsAvailable() } returns false
+        every { capabilityAvailability.isStreamsAvailable() } returns streams
         every { bundled.contains(any()) } answers { firstArg<DeliverableSet>() in bundledSets }
         return DeliverableInventoryImpl(
             runner = runner,
@@ -148,6 +149,21 @@ class DeliverableInventoryFilterTest {
 
         // Only the set with a descriptor shows; audio-viz (no descriptor) stays hidden.
         assertEquals(setOf(DeliverableSet.FFMPEG_DTS), items.moduleSets())
+    }
+
+    @Test
+    fun `channel preview atlas row shows only when streams are available`() {
+        val withStreams = inventory(ocr = false, translation = false, streams = true).getExtensions()
+        assertTrue(
+            "atlas module must appear when streams are available",
+            withStreams.moduleSets().contains(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
+        )
+
+        val withoutStreams = inventory(ocr = false, translation = false, streams = false).getExtensions()
+        assertFalse(
+            "atlas module must be dropped when streams are unavailable",
+            withoutStreams.moduleSets().contains(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
+        )
     }
 
     @Test
