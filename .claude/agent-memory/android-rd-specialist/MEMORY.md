@@ -19,7 +19,8 @@
 - [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md) - real device wipes config; FAIL=harness
 - [Emulator capture](reference_emulator_capture_family_testing.md) + [MediaProjection](reference_emulator_mediaprojection_capture.md) - cmd statusbar+aapt2; overlay not drivable
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md) - touch wedge; force scan; sheet taps skip
-- [Trigger widget-only on AVD](reference_trigger_widget_only_features_on_emulator.md) - am start blocked; self-uid widget tap · [Color theme switch](feedback_color_theme_device_switch.md) - via Settings UI+restart, not pref-swap
+- [Trigger widget-only on AVD](reference_trigger_widget_only_features_on_emulator.md) - am start blocked; self-uid widget tap
+- [Emulator mouse-wheel injection](reference_emulator_mouse_wheel_injection.md) - API35 `input mouse scroll --axis VSCROLL` = real ACTION_SCROLL (spec notes claiming "can't" are stale) · [Color theme switch](feedback_color_theme_device_switch.md) - via Settings UI+restart, not pref-swap
 
 ## Build, flavors, gates
 - [Fast checks](feedback_fast_checks_during_dev.md) + [no redundant flavor compile](feedback_no_redundant_flavor_compile.md) - src/main-only -> fc; fkn only on flavor touch · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
