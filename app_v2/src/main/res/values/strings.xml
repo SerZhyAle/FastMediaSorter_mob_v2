@@ -3223,4 +3223,8 @@ Close the player and try again.</string>
     <string name="streams_error_duplicate_url">A stream with this address already exists</string>
     <string name="settings_streams_smart_buffering">Ultra-smart stream buffering</string>
     <string name="settings_streams_smart_buffering_summary">Bigger start-up cushion and quiet reconnects when the connection is shaky</string>
+    <string name="streams_section_pinned">Pinned</string>
+    <string name="streams_section_main">Channels</string>
+    <string name="streams_section_expand">Expand section</string>
+    <string name="streams_section_collapse">Collapse section</string>
 </resources>

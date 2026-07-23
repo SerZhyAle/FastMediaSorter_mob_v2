@@ -37,7 +37,7 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 > a catalog whose `favicon_index` column points at a missing atlas: the app receives `atlasPng=null`,
 > `FaviconAtlasStore.write(null, coords)` wipes the atlas, and **every** channel loses its favicon
 > app-wide (S0785 2026-07-03; recurred 2026-07-12). The command above (`Invoke-PublishCatalog`) carries
-> the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 3 MiB) and refuses
+> the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 30 MiB) and refuses
 > to publish a `favicon_index` CSV with no atlas. `-SkipLiveness` skips the URL probe without touching the CSV.
 
 ## File: `streams.csv`
@@ -196,10 +196,9 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
   recommended for a publish.
 - After pruning, re-publish the release asset with the guarded packer (see Hosting above).
 
-## Inventory (snapshot 2026-07-19, post-S1117 deep-signal prune)
+## Inventory (snapshot 2026-07-23, post-webcam replenishment)
 
-- Total: **2182** streams - VIDEO 1846, AUDIO 335, RTSP 1. The bulk of the VIDEO rows come from the
-  iptv-org public Live TV index; run a full-catalog deep-signal sweep before each publish.
+- Total: **2361** streams. The catalog includes live TV, public webcams under topic `Webcam`, radio, and test streams.
 - Region-locked (`access=geo`): **42** kept + tagged (national broadcasters 403/451 from the build
   machine - CBS, Cubavision, DR1, Puls 2, ..).
 - A full-catalog deep-signal prune removed the accumulated ballast: 375 hard-dead first, then 134

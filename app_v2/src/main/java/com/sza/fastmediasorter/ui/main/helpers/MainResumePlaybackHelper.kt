@@ -15,11 +15,13 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
@@ -40,7 +42,8 @@ class MainResumePlaybackHelper(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val getResumeStateUseCase: GetResumeStateUseCase,
-    private val clearResumeStateUseCase: ClearResumeStateUseCase
+    private val clearResumeStateUseCase: ClearResumeStateUseCase,
+    private val streamResumeStateRepository: StreamResumeStateRepository
 ) {
 
     /**
@@ -84,7 +87,35 @@ class MainResumePlaybackHelper(
                 binding.navigationProgressLayout.isVisible = true
                 binding.tvNavigationMessage.text = activity.getString(R.string.resume_checking)
 
-                val state = getResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
+                // S1152: stream-resume branch. Resume the last active stream when it is the most recent
+                // session (last-activity-wins vs the media resume slot). Expired records are dropped.
+                val streamState = streamResumeStateRepository.get()
+                val mediaState = getResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
+                if (streamState != null) {
+                    val streamElapsed = System.currentTimeMillis() - streamState.savedAt
+                    if (streamElapsed > StreamResumeStateRepository.RESUME_TTL_MS) {
+                        streamResumeStateRepository.clear()
+                    } else if (mediaState == null || streamState.savedAt >= mediaState.savedAt) {
+                        Timber.d(
+                            "S1152: resume stream branch - kind=%s playing=%b",
+                            streamState.mediaKind,
+                            streamState.wasPlaying
+                        )
+                        dismissResumeLoading()
+                        val streamIntent = if (streamState.mediaKind == "AUDIO" && streamState.wasPlaying) {
+                            // S0756 in-app play intent (no launcher task flags) so Back returns to Main.
+                            StreamsActivity.createPlayIntent(activity, streamState.url)
+                        } else {
+                            Intent(activity, StreamsActivity::class.java)
+                        }
+                        activity.startActivity(streamIntent)
+                        @Suppress("DEPRECATION")
+                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        return@launch
+                    }
+                }
+
+                val state = mediaState
                 if (state == null) {
                     Timber.d("MainResumePlaybackHelper: No resume state found")
                     dismissResumeLoading()

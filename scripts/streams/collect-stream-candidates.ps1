@@ -41,7 +41,7 @@
     livetv : iptv-org public index (VIDEO / Live TV); header-gated (referrer/UA) streams dropped.
     genres : radio-browser community DB by exact tag (AUDIO), top by clickcount.
     geo    : radio-browser by country + iptv-org by country (under-represented regions).
-    webcam : curated seed list of public 24/7 HLS feeds (DW, France 24, WildEarth etc.), liveness-filtered.
+    webcam : curated public 24/7 HLS webcams (weather, wildlife, beaches, zoo animals), liveness-filtered.
 
   Inclusion policy: keep every reachable live channel that actually carries signal - including
   grey-area restreams and -/- channels. Only defunct ('closed') and header-gated streams
@@ -93,13 +93,15 @@ param(
     # The Google s2 favicon endpoint is a third-party fallback; ON by default but the owner can
     # disable it to keep the fetch entirely first-party (homepage favicon.ico + parsed <link>).
     [switch]$FaviconS2Fallback = $true,
+    # For a full catalog rebuild, use Google s2 as the only favicon source. This avoids holding up
+    # the atlas on unreachable homepages while retaining a stable 32 px icon for reachable domains.
+    [switch]$FaviconS2Only,
     [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
     [int]$FaviconTimeoutSec = 8,
     [int]$FaviconThrottle = 16,
-    # Atlas size ceiling enforced before publish. 3 MB keeps the whole stream-catalog.zip comfortably
-    # inside the app's 30 s import callTimeout budget (S0583) so already-shipped apps still download
-    # the larger zip in time. Over the cap -> publish CSV-only (atlas skipped), never an oversized zip.
-    [int]$MaxAtlasBytes = 3145728,
+    # Atlas size ceiling enforced before publish. This must match the app-side import cap. Over the cap
+    # -> publish CSV-only (atlas skipped), never an atlas the app would discard.
+    [int]$MaxAtlasBytes = 31457280,
 
     # Deep-signal catalog probe: pull a few KB of real media body (HLS -> first segment) instead of
     # trusting a 2xx on the playlist/manifest. Catches "declared but not playing" streams.
@@ -677,10 +679,10 @@ function Get-RadioBrowserStations {
     param([string]$axis, [string]$kind, [string]$key, [string]$topicHint)
     $enc = [uri]::EscapeDataString($key)
     $path = if ($kind -eq 'tag') {
-        "/json/stations/bytagexact/$enc?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
+        "/json/stations/bytagexact/${enc}?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
     }
     else {
-        "/json/stations/bycountrycodeexact/$enc?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
+        "/json/stations/bycountrycodeexact/${enc}?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
     }
     $stations = @()
     try { $stations = Invoke-RadioBrowser $path } catch { Write-Warning $_; return @() }
@@ -764,28 +766,32 @@ function Get-IptvCandidates {
 
 function Get-WebcamSeeds {
     param([string]$axis)
-    # Curated public 24/7 HLS feeds. Every URL below is deep-signal verified (real segment bytes pulled
-    # via -CatalogOnly -DeepSignal) before baking in - CDN/akamai paths rotate, so re-verify with
-    # `-Axis webcam -PreviewOnly` when refreshing. S0843: the prior NASA ntv1/ntv2 + DW dwstream105 seeds
-    # went stale (playlist 200 but segment 404 - "declared but not playing") and were replaced with these
-    # signal-confirmed feeds; NASA retired its public akamai HLS in the NASA+ migration (dead/403).
+    # Public 24/7 camera feeds. The topic is intentionally Webcam so the catalog filter keeps this
+    # viewing experience separate from ordinary outdoor, news, and documentary TV channels.
     $seeds = @(
-        @{ name = 'DW English'; url = 'https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8'; topic = 'Documentary'; country = 'DE'; language = 'english'; homepage = 'https://www.dw.com/'; source = 'PUBLIC'; note = 'Deutsche Welle public broadcaster free 24/7 feed' }
-        @{ name = 'CGTN Documentary'; url = 'https://amg00405-rakutentv-cgtndocumentary-rakuten-0ql8j.amagi.tv/master.m3u8'; topic = 'Documentary'; country = 'CN'; language = 'english'; homepage = 'https://www.cgtn.com/'; source = 'PUBLIC'; note = 'CGTN documentary free 24/7 feed' }
-        @{ name = 'Al Arabiya Programs'; url = 'https://live.alarabiya.net/alarabiapublish/aaprograms.smil/playlist.m3u8'; topic = 'Documentary'; country = 'AE'; language = 'arabic'; homepage = 'https://www.alarabiya.net/'; source = 'PUBLIC'; note = 'Al Arabiya programs free 24/7 feed' }
-        @{ name = 'Asharq Documentary'; url = 'https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8'; topic = 'Documentary'; country = 'SA'; language = 'arabic'; homepage = 'https://www.asharq.com/'; source = 'PUBLIC'; note = 'Asharq documentary free 24/7 feed' }
-        @{ name = 'France 24 English'; url = 'https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8'; topic = 'News'; country = 'FR'; language = 'english'; homepage = 'https://www.france24.com/'; source = 'PUBLIC'; note = 'France 24 English public broadcaster free 24/7 feed' }
-        @{ name = 'Al Jazeera English'; url = 'https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8'; topic = 'News'; country = 'QA'; language = 'english'; homepage = 'https://www.aljazeera.com/'; source = 'PUBLIC'; note = 'Al Jazeera English free 24/7 feed' }
-        @{ name = 'CGTN'; url = 'https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8'; topic = 'News'; country = 'CN'; language = 'english'; homepage = 'https://www.cgtn.com/'; source = 'PUBLIC'; note = 'CGTN English news free 24/7 feed' }
-        @{ name = 'InWonder'; url = 'https://amg00861-terninternation-inwonder-samsungau-1k63k.amagi.tv/playlist/amg00861-terninternation-inwonder-samsungau/playlist.m3u8'; topic = 'Science & Space'; country = 'NL'; language = 'english'; homepage = 'https://www.wonder.tv/'; source = 'COMMUNITY'; note = 'Wonder science/nature FAST channel free 24/7 feed' }
-        @{ name = 'WildEarth'; url = 'https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8'; topic = 'Outdoor'; country = 'ZA'; language = 'english'; homepage = 'https://wildearth.tv/'; source = 'COMMUNITY'; note = 'WildEarth live wildlife safari webcam 24/7 feed' }
-        @{ name = 'Red Bull TV'; url = 'https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8'; topic = 'Outdoor'; country = 'AT'; language = 'english'; homepage = 'https://www.redbull.com/int-en/tv'; source = 'COMMUNITY'; note = 'Red Bull TV outdoor/adventure free 24/7 feed' }
-        @{ name = 'AKC TV Puppies 24/7'; url = 'https://install.akctvcontrol.com/speed/broadcast/140/desktop-playlist.m3u8'; topic = 'Outdoor'; country = 'US'; language = 'english'; homepage = 'https://www.akc.tv/'; source = 'COMMUNITY'; note = 'AKC TV live puppy webcam 24/7 feed' }
-        @{ name = '30A Darcizzle Offshore'; url = 'https://30a-tv.com/darcizzle.m3u8'; topic = 'Outdoor'; country = 'US'; language = 'english'; homepage = 'https://30a.tv/'; source = 'COMMUNITY'; note = '30A live offshore/beach webcam 24/7 feed' }
+        @{ name = '3Cat Weather Cameras'; url = 'https://directes-tv-int.3catdirectes.cat/live-content/beauties-hls/master.m3u8'; country = 'ES'; language = 'catalan'; homepage = 'https://www.3cat.cat/3cat/directes/beauties/'; source = 'COMMUNITY'; note = '3Cat public live weather camera feed' }
+        @{ name = 'Uhu Owl Cam'; url = 'https://uhu.streaming.pixtura.de/live/Uhu2.stream/playlist.m3u8'; country = 'DE'; language = 'german'; homepage = 'https://uhu.webcam.pixtura.de/'; source = 'COMMUNITY'; note = 'Uhu-Webcam public live owl camera' }
+        @{ name = 'WildEarth Safari'; url = 'https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8'; country = 'ZA'; language = 'english'; homepage = 'https://wildearth.tv/'; source = 'COMMUNITY'; note = 'WildEarth public live wildlife safari camera' }
+        @{ name = 'AKC Puppies'; url = 'https://install.akctvcontrol.com/speed/broadcast/140/desktop-playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.akc.tv/'; source = 'COMMUNITY'; note = 'AKC public live puppy camera' }
+        @{ name = '30A Darcizzle Offshore'; url = 'https://30a-tv.com/darcizzle.m3u8'; country = 'US'; language = 'english'; homepage = 'https://30a.tv/'; source = 'COMMUNITY'; note = '30A public offshore and beach camera' }
+        @{ name = 'San Diego Zoo Panda Cam'; url = 'https://zssd-panda2024.hls.camzonecdn.com/CamzoneStreams/zssd-panda2024/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live panda camera' }
+        @{ name = 'San Diego Zoo Platypus Cam'; url = 'https://zssd-platypus.hls.camzonecdn.com/CamzoneStreams/zssd-platypus/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live platypus camera' }
+        @{ name = 'San Diego Zoo Baboon Cam'; url = 'https://zssd-baboon.hls.camzonecdn.com/CamzoneStreams/zssd-baboon/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live baboon camera' }
+        @{ name = 'San Diego Zoo Hippo Cam'; url = 'https://zssd-hippo.hls.camzonecdn.com/CamzoneStreams/zssd-hippo/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live hippo camera' }
+        @{ name = 'San Diego Zoo Penguin Cam'; url = 'https://zssd-penguin.hls.camzonecdn.com/CamzoneStreams/zssd-penguin/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live penguin camera' }
+        @{ name = 'San Diego Zoo Koala Cam'; url = 'https://zssd-koala.hls.camzonecdn.com/CamzoneStreams/zssd-koala/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live koala camera' }
+        @{ name = 'San Diego Zoo Tiger Cam'; url = 'https://zssd-tiger.hls.camzonecdn.com/CamzoneStreams/zssd-tiger/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live tiger camera' }
+        @{ name = 'San Diego Zoo Polar Bear Cam'; url = 'https://polarplunge.hls.camzonecdn.com/CamzoneStreams/polarplunge/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live polar bear camera' }
+        @{ name = 'San Diego Zoo Ape Cam'; url = 'https://ape.hls.camzonecdn.com/CamzoneStreams/ape/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live ape camera' }
+        @{ name = 'San Diego Zoo Elephant Cam'; url = 'https://elephants.hls.camzonecdn.com/CamzoneStreams/elephants/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live elephant camera' }
+        @{ name = 'San Diego Zoo Giraffe Cam'; url = 'https://zssd-kijami.hls.camzonecdn.com/CamzoneStreams/zssd-kijami/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live giraffe camera' }
+        @{ name = 'San Diego Zoo Condor Cam'; url = 'https://zssd-condorhd.hls.camzonecdn.com/CamzoneStreams/zssd-condorhd/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live condor camera' }
+        @{ name = 'NASA TV Public HD'; url = 'https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.nasa.gov/multimedia/nasatv/'; source = 'GOV'; note = 'NASA Public TV live space view' }
+        @{ name = 'AccuWeather Network'; url = 'https://gpuserver3.tier1streams.com/AccuWeather/index.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.accuweather.com/'; source = 'COMMUNITY'; note = 'AccuWeather live weather network' }
     )
     $out = @()
     foreach ($w in $seeds) {
-        $out += New-Candidate -axis $axis -category 'Live TV' -topic $w.topic -name $w.name -url $w.url `
+        $out += New-Candidate -axis $axis -category 'Live TV' -topic 'Webcam' -name $w.name -url $w.url `
             -mediaKind 'VIDEO' -protocol 'HLS' -format 'm3u8' -bitrate '' -isLive $true `
             -language $w.language -country $w.country -homepage $w.homepage `
             -sourceKind $w.source -licenseNote $w.note -notes 'seed 24/7 public feed' -confidence 'medium' -score 0
@@ -826,6 +832,10 @@ function Get-FaviconBytes {
         }
         catch { }
         return $null
+    }
+
+    if ($FaviconS2Only) {
+        return (& $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=32" -f $host2))
     }
 
     # (1) Conventional /favicon.ico at the site root.
@@ -897,6 +907,7 @@ function Build-FaviconAtlas {
             $ua = $using:ua
             $FaviconTimeoutSec = $using:FaviconTimeoutSec
             $FaviconS2Fallback = $using:FaviconS2Fallback
+            $FaviconS2Only = $using:FaviconS2Only
             ${function:Get-FaviconBytes} = $using:faviconFn
             $bytes = $null
             try { $bytes = Get-FaviconBytes -homepage $hp } catch { $bytes = $null }
@@ -1087,8 +1098,8 @@ function Invoke-CatalogMaintenance {
 # streaming the whole atlas. Compress-Archive does NOT order entries by -Path, so the CSV is written
 # with -Force (creating the zip with the CSV as the sole/first entry) and the atlas is appended in a
 # separate -Update pass. The atlas is bundled only when it exists AND is within $MaxAtlasBytes - over
-# the cap it is skipped (CSV-only publish) so the larger zip never breaks an old app's 30 s import
-# callTimeout (S0583), rather than shipping an oversized zip.
+# the cap it is skipped (CSV-only publish) because the app deliberately drops an over-cap atlas while
+# still importing its CSV.
 function Invoke-PublishCatalog {
     param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag, [string]$AtlasFile = $AtlasPath)
     if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
@@ -1123,7 +1134,7 @@ function Invoke-PublishCatalog {
             Write-Host ("  + {0} ({1:N1} KB) [appended]" -f (Split-Path -Leaf $AtlasFile), ($atlasBytes / 1KB)) -ForegroundColor DarkGray
         }
         else {
-            Write-Warning ("Favicon atlas {0} is {1:N1} KB > cap {2:N1} KB (30s import callTimeout budget, S0583); publishing CSV-only." -f `
+            Write-Warning ("Favicon atlas {0} is {1:N1} KB > app import cap {2:N1} KB; publishing CSV-only." -f `
                     (Split-Path -Leaf $AtlasFile), ($atlasBytes / 1KB), ($MaxAtlasBytes / 1KB))
         }
     }

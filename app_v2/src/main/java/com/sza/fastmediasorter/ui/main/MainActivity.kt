@@ -20,7 +20,6 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.db.DatabaseResetNotice
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
@@ -56,7 +55,6 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
-import com.sza.fastmediasorter.ui.main.helpers.CrashReportPromptManager
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
@@ -81,6 +79,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
+import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -202,6 +201,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var clearResumeStateUseCase: ClearResumeStateUseCase
 
+    // S1152: last-active-stream store, read by the resume helper to resume a stream on cold start.
+    @Inject
+    lateinit var streamResumeStateRepository: com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
+
     @Inject
     lateinit var resourceRepository: ResourceRepository
 
@@ -287,10 +290,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
         }
 
-        // S0731: if the local database had to be reset on an open/migration failure, inform the user
-        // (reason + backup location) now that an Activity exists, instead of the prior silent wipe.
-        DatabaseResetNotice.showIfPending(this)
-
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
         binding.root.post {
             memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
@@ -341,10 +340,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
 
-        // S0490: on a fresh launch after a previous-session crash, offer to email the report.
-        if (savedInstanceState == null) {
-            CrashReportPromptManager(this).maybeShowPrompt()
-        }
+        // S1153: defer the disk-reading startup notices (S0731 DB-reset, S0490 crash prompt) off the
+        // main thread and past first frame. Scheduled here, after all early-return redirects, so a
+        // finishing MainActivity never schedules a dialog it would immediately dismiss.
+        StartupNoticeManager(this).presentDeferredNotices(showCrashPrompt = savedInstanceState == null)
 
         // S0510: one-shot first-run hint for non-touch users - "press F1 for shortcuts".
         binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
@@ -376,7 +375,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settingsRepository = settingsRepository,
             resourceRepository = resourceRepository,
             getResumeStateUseCase = getResumeStateUseCase,
-            clearResumeStateUseCase = clearResumeStateUseCase
+            clearResumeStateUseCase = clearResumeStateUseCase,
+            streamResumeStateRepository = streamResumeStateRepository
         )
         permissionsHelper = MainStoragePermissionsHelper(
             activity = this,

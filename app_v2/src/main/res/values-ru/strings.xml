@@ -3179,4 +3179,8 @@
     <string name="streams_error_duplicate_url">Трансляция с таким адресом уже есть</string>
     <string name="settings_streams_smart_buffering">Сверхинтеллектуальная буферизация трансляций</string>
     <string name="settings_streams_smart_buffering_summary">Больше запаса при старте и тихое переподключение при слабой связи</string>
+    <string name="streams_section_pinned">Закреплённые</string>
+    <string name="streams_section_main">Каналы</string>
+    <string name="streams_section_expand">Развернуть раздел</string>
+    <string name="streams_section_collapse">Свернуть раздел</string>
 </resources>

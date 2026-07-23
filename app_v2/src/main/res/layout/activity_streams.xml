@@ -115,6 +115,111 @@
                 android:contentDescription="@string/streams_sort" />
         </LinearLayout>
 
+        <!-- S1141: pinned-channels section - shown by StreamsSectionsManager only when >=1 pinned. -->
+        <LinearLayout
+            android:id="@+id/streamsPinnedSection"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/streamsPinnedHeader"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/streams_section_header_height"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/streams_section_header_padding"
+                android:paddingEnd="@dimen/streams_section_header_padding"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnFilter"
+                android:nextFocusDown="@id/rvStreamsPinned">
+
+                <TextView
+                    android:id="@+id/tvPinnedHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceSubtitle1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="@string/streams_section_pinned" />
+
+                <ImageView
+                    android:id="@+id/ivPinnedChevron"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="?attr/colorControlNormal"
+                    android:contentDescription="@string/streams_section_collapse" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                    android:id="@+id/swipeStreamsPinned"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvStreamsPinned"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:paddingBottom="8dp"
+                        android:scrollbars="vertical" />
+
+                </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- S1141: main (unpinned) section - keeps the existing list/grid, empty-state and scroll buttons. -->
+        <LinearLayout
+            android:id="@+id/streamsMainSection"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/streamsMainHeader"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/streams_section_header_height"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/streams_section_header_padding"
+                android:paddingEnd="@dimen/streams_section_header_padding"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/streamsPinnedHeader"
+                android:nextFocusDown="@id/rvStreams">
+
+                <TextView
+                    android:id="@+id/tvMainHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceSubtitle1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="@string/streams_section_main" />
+
+                <ImageView
+                    android:id="@+id/ivMainChevron"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="?attr/colorControlNormal"
+                    android:contentDescription="@string/streams_section_collapse" />
+            </LinearLayout>
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -264,6 +369,7 @@
                     app:tint="@color/selector_player_button_tint" />
             </LinearLayout>
         </FrameLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/streamMiniControl"
@@ -306,6 +412,17 @@
          viewport; holds no persistent child and never intercepts touches or focus. -->
     <FrameLayout
         android:id="@+id/streamCaptureHost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:translationX="-10000dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="noHideDescendants" />
+
+    <!-- S1141: dedicated off-screen capture host for the pinned section's grid snapshot engine -
+         two engines must not share one TextureView host. -->
+    <FrameLayout
+        android:id="@+id/streamCaptureHostPinned"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:translationX="-10000dp"

@@ -5,6 +5,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -35,7 +37,10 @@ class AuthSessionRepositoryImplTest {
         every { store.listAllAccounts() } returns emptyList()
     }
 
-    private fun repo() = AuthSessionRepositoryImpl(store)
+    // Unconfined scope runs the init launch eagerly on the calling thread, so migrateIfNeeded +
+    // refreshFlows complete synchronously during construction - matching the pre-S1153 timing the
+    // flow assertions below rely on. Production injects the IO-backed @ApplicationScope.
+    private fun repo() = AuthSessionRepositoryImpl(store, CoroutineScope(Dispatchers.Unconfined))
 
     private fun cookie() = HttpCookie("sid", "abc")
 

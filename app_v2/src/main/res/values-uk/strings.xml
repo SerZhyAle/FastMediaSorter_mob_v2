@@ -3151,4 +3151,8 @@
     <string name="streams_error_duplicate_url">Трансляція з такою адресою вже є</string>
     <string name="settings_streams_smart_buffering">Надрозумна буферизація трансляцій</string>
     <string name="settings_streams_smart_buffering_summary">Більший запас на старті й тихе перепідключення за слабкого звʼязку</string>
+    <string name="streams_section_pinned">Закріплені</string>
+    <string name="streams_section_main">Канали</string>
+    <string name="streams_section_expand">Розгорнути розділ</string>
+    <string name="streams_section_collapse">Згорнути розділ</string>
 </resources>

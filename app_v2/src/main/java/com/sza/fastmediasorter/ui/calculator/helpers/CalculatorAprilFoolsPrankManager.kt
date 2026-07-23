@@ -15,7 +15,12 @@ class CalculatorAprilFoolsPrankManager(
     private val context: Context,
 ) {
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // S1153: lazy so getSharedPreferences does not touch disk in the constructor - this manager is
+    // built on the main thread in MainActivity.onResumeWithViews at startup. maybeShowDailyAprilFoolsPrank
+    // returns before reading prefs on all 364 non-April-1 days, so lazy also avoids the read entirely then.
+    private val prefs by lazy {
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     fun maybeShowDailyAprilFoolsPrank() {
         val today = LocalDate.now()

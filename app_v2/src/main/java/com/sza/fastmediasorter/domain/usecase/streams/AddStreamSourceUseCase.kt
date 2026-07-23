@@ -16,6 +16,11 @@ class AddStreamSourceUseCase @Inject constructor(
         val trimmedUrl = url.trim()
         if (!classifier.isSupportedScheme(trimmedUrl)) return AddResult.InvalidUrl
 
+        // S1147: a row already owning this url collides with the unique index_stream_sources_url, and
+        // dao.upsert only resolves conflicts on the primary key - the raw insert would crash with an
+        // unhandled SQLiteConstraintException. Reject as Duplicate up front (mirrors the S1145 edit path).
+        if (repository.getByUrl(trimmedUrl) != null) return AddResult.Duplicate
+
         val resolvedTitle = title?.trim()?.takeIf { it.isNotEmpty() } ?: deriveTitle(trimmedUrl)
         val entity = StreamSourceEntity(
             id = UUID.randomUUID().toString(),
@@ -42,7 +47,7 @@ class AddStreamSourceUseCase @Inject constructor(
         data object Success : AddResult
         data object InvalidUrl : AddResult
 
-        /** Kept for the importer's count semantics; a single upserting add cannot detect it here. */
+        /** S1147: url already belongs to an existing row (unique index_stream_sources_url collision). */
         data object Duplicate : AddResult
     }
 }

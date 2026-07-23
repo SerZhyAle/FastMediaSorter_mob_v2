@@ -381,6 +381,10 @@
     <dimen name="indicator_width">4dp</dimen>
     <dimen name="indicator_height">4dp</dimen>
 
+    <!-- S1141: streams pinned/main section collapsible header -->
+    <dimen name="streams_section_header_height">48dp</dimen>
+    <dimen name="streams_section_header_padding">12dp</dimen>
+
     <!-- Empty/Error states -->
     <dimen name="empty_state_padding">32dp</dimen>
     <dimen name="empty_state_icon_size">64dp</dimen>

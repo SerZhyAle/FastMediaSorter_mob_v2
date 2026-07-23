@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
-import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -81,9 +80,6 @@ class StreamsViewModel @Inject constructor(
     private val networkContextAnalyzer: NetworkContextAnalyzer,
     // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
     private val streamFramePersistentStore: StreamFramePersistentStore,
-    // S1145: derive whether a channel's stored kind still matches auto-classification, so the edit
-    // dialog's type picker opens on "Auto" vs an explicit override without the Activity classifying.
-    private val mediaKindClassifier: StreamMediaKindClassifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -186,11 +182,18 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S1147: add a manual channel. Invalid-url and duplicate-url surface a one-shot message; success
+     * stays silent (Room re-renders the list). The duplicate guard replaces the former unhandled
+     * SQLiteConstraintException crash when the url already exists.
+     */
     fun onAdd(url: String, title: String?) = viewModelScope.launch {
         when (addStreamSource(url, title)) {
             AddStreamSourceUseCase.AddResult.InvalidUrl ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
-            else -> Unit
+            AddStreamSourceUseCase.AddResult.Duplicate ->
+                _events.send(StreamsEvent.Message(R.string.streams_error_duplicate_url))
+            AddStreamSourceUseCase.AddResult.Success -> Unit
         }
     }
 
@@ -212,15 +215,17 @@ class StreamsViewModel @Inject constructor(
         }
 
     /**
-     * S1145: which type-picker option the edit dialog should pre-select for [source]. "AUTO" when the
-     * stored kind still equals what auto-classification derives (so an untouched rtsp channel re-derives
-     * to RTSP on save); otherwise the explicit "AUDIO", or "VIDEO" (covering VIDEO and RTSP, which both
-     * route to the video player). The classification decision stays here, not in the Activity.
+     * S1145: which type-picker option the edit dialog should pre-select for [source]. The picker mirrors
+     * the stored kind directly - AUDIO -> "AUDIO", VIDEO -> "VIDEO" - so an explicit choice stays visible
+     * on reopen even when it coincides with what auto-classification would derive (the earlier
+     * classify-comparison collapsed such a choice back to "AUTO", failing the persist acceptance). RTSP
+     * has no explicit picker option and maps to "AUTO", so an untouched rtsp channel still re-derives to
+     * RTSP on save (override = null); "AUTO" also stays available to re-derive AUDIO/VIDEO on demand.
      */
-    fun resolveEditKindOption(source: StreamSourceEntity): String = when {
-        source.mediaKind == mediaKindClassifier.classify(source.url) -> "AUTO"
-        source.mediaKind == "AUDIO" -> "AUDIO"
-        else -> "VIDEO"
+    fun resolveEditKindOption(source: StreamSourceEntity): String = when (source.mediaKind) {
+        "AUDIO" -> "AUDIO"
+        "VIDEO" -> "VIDEO"
+        else -> "AUTO"
     }
 
     fun onImport(listUrl: String) = viewModelScope.launch {

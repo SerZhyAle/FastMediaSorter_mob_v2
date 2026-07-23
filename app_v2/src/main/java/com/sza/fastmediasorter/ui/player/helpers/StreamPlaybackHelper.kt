@@ -331,7 +331,6 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 ) ?: return@launch
                 val adopted = streamFrameIngestor?.ingest(path, bitmap) == true
                 if (adopted && exoPlayer === sessionPlayer && currentFilePath == path) {
-                    Timber.d("S1129: fullscreen stream frame adopted url=%s", path)
                     onStreamFrameIngested?.invoke(path)
                 }
             }

@@ -108,6 +108,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindStreamResumeStateRepository(
+        impl: com.sza.fastmediasorter.data.repository.StreamResumeStateRepositoryImpl
+    ): com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
+
+    @Binds
+    @Singleton
     abstract fun bindScheduledOperationRepository(
         impl: ScheduledOperationRepositoryImpl
     ): ScheduledOperationRepository

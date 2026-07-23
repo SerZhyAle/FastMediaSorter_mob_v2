@@ -195,7 +195,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
 
         // S0668: atlas cap, separate from the CSV cap. A 16-col grid of 32 px tiles for a partial-coverage
         // catalog compresses well under this; over-cap drops the atlas but keeps the CSV.
-        const val MAX_ATLAS_BYTES = 4 * 1024 * 1024
+        const val MAX_ATLAS_BYTES = 30 * 1024 * 1024
 
         // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). Mirrors the
         // download-client callTimeout in di/LinkDownloadModule.kt; generous for a small catalog zip.

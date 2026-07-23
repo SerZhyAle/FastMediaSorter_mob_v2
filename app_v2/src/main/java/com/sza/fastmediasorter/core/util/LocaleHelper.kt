@@ -267,8 +267,13 @@ object LocaleHelper {
     /**
      * Returns true (and clears the flag) if a restart was triggered from SettingsActivity,
      * meaning MainActivity should immediately forward the user to SettingsActivity.
+     *
+     * S1153: this read gates an immediate navigate/finish branch in MainActivity.onCreate, so it
+     * cannot be deferred off the main thread without breaking that control flow. It is an accepted
+     * narrow StrictMode exception - the read+write is wrapped in [StrictModeHelper.allowDiskIO] so
+     * both sides stay silent while remaining synchronous.
      */
-    fun consumeReturnToSettings(context: Context): Boolean = StrictModeHelper.allowDiskWrites {
+    fun consumeReturnToSettings(context: Context): Boolean = StrictModeHelper.allowDiskIO {
         val prefs = context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
         val value = prefs.getBoolean(PREF_RETURN_TO_SETTINGS, false)
         if (value) prefs.edit().remove(PREF_RETURN_TO_SETTINGS).apply()

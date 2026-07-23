@@ -92,10 +92,26 @@ class CompanionMdnsDiscovery @Inject constructor(
         try {
             manager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
         } catch (e: IllegalArgumentException) {
-            Timber.w(e, "mDNS discovery start failed")
-            discoveryListener = null
-            releaseLock()
+            Timber.w(e, "mDNS discovery start rejected")
+            abortStart()
+        } catch (e: SecurityException) {
+            // API 37+ without ACCESS_LOCAL_NETWORK: degrade to config-address fallback (S1006), never crash.
+            Timber.w(e, "mDNS discovery blocked by local-network permission")
+            abortStart()
         }
+    }
+
+    /**
+     * Cleanup shared by the synchronous launch failure and the async
+     * [NsdManager.DiscoveryListener.onStartDiscoveryFailed] callback: releases the multicast lock
+     * acquired in [startDiscovery] and clears [discoveryListener] so a later start can retry. Without
+     * it an async start failure (mDNS blocked, or ACCESS_LOCAL_NETWORK denied on API 37+) would leak
+     * the lock and wedge discovery until the next onStop.
+     */
+    @Synchronized
+    private fun abortStart() {
+        discoveryListener = null
+        releaseLock()
     }
 
     @Synchronized
@@ -115,7 +131,7 @@ class CompanionMdnsDiscovery @Inject constructor(
     private fun buildDiscoveryListener(manager: NsdManager) = object : NsdManager.DiscoveryListener {
         override fun onDiscoveryStarted(serviceType: String?) = Unit
         override fun onDiscoveryStopped(serviceType: String?) = Unit
-        override fun onStartDiscoveryFailed(serviceType: String?, errorCode: Int) = Unit
+        override fun onStartDiscoveryFailed(serviceType: String?, errorCode: Int) = abortStart()
         override fun onStopDiscoveryFailed(serviceType: String?, errorCode: Int) = Unit
         override fun onServiceLost(serviceInfo: NsdServiceInfo?) = Unit
 

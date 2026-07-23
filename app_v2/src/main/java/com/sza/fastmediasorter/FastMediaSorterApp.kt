@@ -256,9 +256,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
 
-        // Warn if the previous session ended with a crash (user should export logs)
-        if (LoggingHelper.hasPreviousCrash()) {
-            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH - use 'Export debug logs' to collect reports ===")
+        // S1153: hasPreviousCrash() lists the log dir off disk. It only gates the warning log below
+        // (nothing synchronous depends on it), so read it on IO instead of blocking Application.onCreate
+        // on the main thread.
+        applicationScope.launch(Dispatchers.IO) {
+            if (LoggingHelper.hasPreviousCrash()) {
+                Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH - use 'Export debug logs' to collect reports ===")
+            }
         }
 
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
