@@ -1,0 +1,7 @@
+• Desktop wallpaper - the branded animation, a flat surface, or your own picture.
+• Weather gadget - current conditions for a place you name, no location permission.
+• Desktop edit lock - long-press to edit the desktop, lock it when finished.
+• App quick actions - long-press an app to run its published shortcuts.
+• Now-playing for streams - artist, title and the programme on air.
+• Stream topic filter - isolate a catalog rubric such as Webcam in the list.
+..
