@@ -51,11 +51,13 @@ class SyncMediaStoreUseCase @Inject constructor(
                 return@withContext Result.success(0)
             }
 
-            if (resource.path.startsWith("virtual://")) {
-                Timber.w("SyncMediaStore: Skipping virtual resource '${resource.name}' (path=${resource.path})")
+            // Synthetic aggregates (SyntheticResourceIds.FAVORITES/STREAM) and virtual:// resources
+            // are typed LOCAL but carry a label instead of a filesystem path - nothing to scan.
+            if (resource.id < 0 || !resource.path.startsWith("/")) {
+                Timber.i("SyncMediaStore: Skipping synthetic resource '${resource.name}' (path=${resource.path})")
                 return@withContext Result.success(0)
             }
-            
+
             val rootFolder = File(resource.path)
             if (!rootFolder.exists() || !rootFolder.isDirectory) {
                 Timber.e("SyncMediaStore: Path does not exist or is not a directory: ${resource.path}")
