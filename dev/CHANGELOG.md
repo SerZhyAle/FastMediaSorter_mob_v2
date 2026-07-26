@@ -23325,3 +23325,4 @@ Format: | datetime | file | target | description |
 | 2026-07-26 02:00:40 | `PLAN/S1197_bugfix-storage-permission-dialog-leak.md` | `spec-all` | Pipeline Verified: S1197 storage rationale dialog window leak [branch: DEBUG-v028] |
 | 2026-07-26 02:46:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamAtlasPromptManager.kt` | `S1154 atlas offer` | S1154: the post-import atlas offer now waits for a decision instead of timing out behind the catalog toast, re-offers after every later catalog update, and the freshly installed atlas is picked up without reopening the streams screen [branch: DEBUG-v028] |
 | 2026-07-26 02:56:08 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7260.252 - plateau merge from DEBUG-v028 [branch: DEBUG-v028] |
+| 2026-07-26 03:02:59 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.7260.252 from ALL_FEATURES diff [branch: DEBUG-v029] |
