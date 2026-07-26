@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -16,8 +17,8 @@ import java.io.File
 /**
  * JVM coverage for [SyncMediaStoreUseCase] guard/early-return branches. The actual MediaStore
  * notification (MediaStoreNotifier -> Environment) is Android-bound; tests cover the non-local,
- * virtual, invalid-directory, and empty/hidden-only directory paths that resolve before any
- * notification work and therefore stay deterministic on the JVM.
+ * virtual, synthetic, invalid-directory, and empty/hidden-only directory paths that resolve before
+ * any notification work and therefore stay deterministic on the JVM.
  */
 class SyncMediaStoreUseCaseTest {
 
@@ -44,6 +45,29 @@ class SyncMediaStoreUseCaseTest {
     @Test
     fun `virtual resource is skipped with zero count`() = runTest {
         val resource = createMediaResource(type = ResourceType.LOCAL, path = "virtual://camera")
+
+        val result = useCase.invoke(resource)
+
+        assertEquals(0, result.getOrThrow())
+    }
+
+    @Test
+    fun `synthetic favorites resource is skipped with zero count`() = runTest {
+        val resource = createMediaResource(
+            id = SyntheticResourceIds.FAVORITES,
+            name = "Favorites",
+            path = "Favorites",
+            type = ResourceType.LOCAL
+        )
+
+        val result = useCase.invoke(resource)
+
+        assertEquals(0, result.getOrThrow())
+    }
+
+    @Test
+    fun `non-absolute path is skipped with zero count`() = runTest {
+        val resource = createMediaResource(type = ResourceType.LOCAL, path = "Favorites")
 
         val result = useCase.invoke(resource)
 
