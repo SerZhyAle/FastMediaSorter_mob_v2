@@ -200,7 +200,6 @@ class MainResumePlaybackHelper(
         if (!resumable) streamResumeStateRepository.clear()
         val resume = resumable && (mediaState == null || streamState.savedAt >= mediaState.savedAt)
         if (resume) {
-            Timber.d("S1152: resume stream - kind=%s playing=%b", streamState.mediaKind, streamState.wasPlaying)
             dismissResumeLoading()
             // S0756 in-app play intent (no launcher task flags) so Back returns to Main.
             activity.startActivity(StreamsActivity.createPlayIntent(activity, streamState.url))

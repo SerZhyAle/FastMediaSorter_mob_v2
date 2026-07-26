@@ -3257,4 +3257,9 @@ Close the player and try again.</string>
     <string name="camera_lens_macro">Macro</string>
     <string name="camera_control_zoom_step">Zoom %1$s</string>
     <string name="camera_control_zoom_step_native">Zoom %1$s, optical limit</string>
+    <string name="ext_stream_logo_atlas_title">Station logos</string>
+    <string name="ext_stream_logo_atlas_desc">Shows each station\'s own logo in grid mode instead of a small icon. Works for radio too.</string>
+    <string name="streams_logo_prompt_message">Download station logos so channels without a preview show their own logo?</string>
+    <string name="ext_status_update_available">Update ready</string>
+    <string name="streams_atlas_update_prompt_message">Newer pictures are available for these channels. Download them?</string>
 </resources>

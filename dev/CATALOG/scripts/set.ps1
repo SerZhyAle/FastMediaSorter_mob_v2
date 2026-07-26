@@ -1,4 +1,4 @@
-﻿# Updates manual fields on a catalogue record (role, status, noFlavors, function description).
+# Updates manual fields on a catalogue record (role, status, noFlavors, function description).
 # Auto-fields (loc, injected, flags, etc.) are NOT editable here - they come from scan.ps1.
 #
 # Usage:
@@ -9,6 +9,10 @@
 #
 # -Path supports fuzzy match: if a substring matches exactly one record, that record is used.
 # By default re-renders Markdown view; pass -NoRender to skip.
+#
+# Exit codes:
+#   0 - success.
+#   1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 
 param(
     [Parameter(Mandatory=$true)][string]$Module,
@@ -106,3 +110,5 @@ Write-Host "Updated [$($targets[0].path)] ($($targets.Count) record(s)): $($chan
 if (-not $NoRender) {
     & (Join-Path $PSScriptRoot 'render.ps1') -Module $Module
 }
+
+exit 0

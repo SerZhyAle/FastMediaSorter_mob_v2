@@ -141,8 +141,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // chooser can return after a tab swap nulls _binding, so guard before touching the view.
     private val launcherRoleLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // S1107: the dialog has given its verdict, so the onboarding request is settled either way -
-            // clear it even when the view is gone, or a declined request would re-prompt on the next visit.
+            // S1107: settles the onboarding request early when the result does reach us. It often does not -
+            // the role dialog rebuilds the task and destroys this Fragment first - so the manager settles it
+            // from durable state on the next visit as well; this is the fast path, not the guarantee.
             launcherRoleManager.clearRoleRequestPending()
             if (_binding != null) launcherHelper.refreshState()
         }
@@ -318,7 +319,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         // S1107: arm the onboarding HOME-role deep-link. The helper defers the actual request past the
         // first-run Settings recreation storm so it fires from a storm-surviving instance (issuing it from
         // a doomed instance made RequestRoleActivity resolve a null caller). Safe to call every onResume:
-        // the helper self-guards against double-scheduling and consumes the extra once the request fires.
+        // the helper self-guards against double-scheduling, and a request already issued settles here.
         launcherHelper.handleLauncherRoleDeepLink()
     }
 

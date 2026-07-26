@@ -1,7 +1,10 @@
-﻿# Renders a JSONL catalogue into a human-readable Markdown view.
+# Renders a JSONL catalogue into a human-readable Markdown view.
 #
 # Usage:
 #   pwsh -File dev/CATALOG/scripts/render.ps1 -Module app_v2
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -129,3 +132,5 @@ if (-not (Test-Path $outDir)) { New-Item -Path $outDir -ItemType Directory -Forc
 $out | Set-Content -Path $OutFile -Encoding UTF8
 
 Write-Host "Rendered $total records -> $OutFile"
+
+exit 0

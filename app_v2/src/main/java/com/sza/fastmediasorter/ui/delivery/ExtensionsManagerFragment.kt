@@ -222,6 +222,15 @@ class ExtensionsAdapter(
                     binding.btnUninstall.visibility = View.VISIBLE
                     binding.layoutProgress.visibility = View.GONE
                 }
+                // S1200: the old payload still works, so this offers rather than warns - download is
+                // actionable and uninstall stays available, unlike the not-installed row.
+                ExtensionStatus.UpdateAvailable -> {
+                    binding.tvStatusTag.setText(R.string.ext_status_update_available)
+                    applyStatusColor(ContextCompat.getColor(context, R.color.ext_status_available))
+                    binding.btnDownload.visibility = View.VISIBLE
+                    binding.btnUninstall.visibility = View.VISIBLE
+                    binding.layoutProgress.visibility = View.GONE
+                }
                 ExtensionStatus.NotInstalled -> {
                     binding.tvStatusTag.setText(R.string.ext_status_available)
                     applyStatusColor(ContextCompat.getColor(context, R.color.ext_status_available))

@@ -221,6 +221,8 @@ class GlideAppModule : AppGlideModule() {
             // NoResultEncoderAvailableException and the whole load fails before delivery. A present-but-
             // no-op encoder satisfies the lookup so the frame is delivered (it caches nothing). Appended,
             // so the more specific Bitmap/Gif encoders still win for static images and GIFs.
+            // Removing this encoder is NOT a valid simplification - with none registered Glide takes the
+            // encoder==null branch and throws NoResultEncoderAvailableException instead.
             registry.append(
                 Drawable::class.java,
                 AnimatedImageDrawableNoOpEncoder(),
@@ -262,9 +264,16 @@ class GlideAppModule : AppGlideModule() {
  * NoResultEncoderAvailableException under a RESOURCE/ALL disk-cache strategy and the load fails
  * outright. A present-but-no-op encoder lets the load complete; the animated frame is not cached.
  */
-private class AnimatedImageDrawableNoOpEncoder : ResourceEncoder<Drawable> {
+internal class AnimatedImageDrawableNoOpEncoder : ResourceEncoder<Drawable> {
 
-    override fun getEncodeStrategy(options: Options): EncodeStrategy = EncodeStrategy.NONE
+    // MUST NOT be EncodeStrategy.NONE: Glide assigns NONE itself to mean "no encoder registered"
+    // (DecodeJob:592) and its encode switch handles only SOURCE/TRANSFORMED, so NONE from a
+    // present encoder falls through to `throw IllegalArgumentException("Unknown strategy: NONE")`
+    // (DecodeJob:620). RESOURCE/ALL cacheability ignores the strategy, so that throw was
+    // deterministic on every fresh animated decode and surfaced as "Failed to load resource".
+    // SOURCE is the strategy Glide's own GifDrawableEncoder reports; encode() below still writes
+    // nothing, so the disk-cache edit is simply aborted and the frame is delivered.
+    override fun getEncodeStrategy(options: Options): EncodeStrategy = EncodeStrategy.SOURCE
 
     override fun encode(data: Resource<Drawable>, file: File, options: Options): Boolean = false
 }

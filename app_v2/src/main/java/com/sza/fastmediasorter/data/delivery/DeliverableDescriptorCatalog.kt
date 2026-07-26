@@ -128,6 +128,29 @@ object DeliverableDescriptorCatalog {
         )
     )
 
+    // Stream logo atlas integrity pins (S1201), taken from the 2026-07-26 build published to the
+    // mirror: 1838 tiles covering 2156 channels on an 8024x4352 sheet, produced by the offline packer
+    // (`collect-stream-candidates.ps1 -WithStreamLogos`). Regenerating the atlas means a new element
+    // revision (-v2) plus new pins here, never a silent re-upload under the same name.
+    private const val LOGO_SHEET_SHA256 = "9d0763379afabadf802051e4fa40ab81889d570a9774d6f3b26e7dc05749d404"
+    private const val LOGO_SHEET_MIN_SIZE = 6_645_666L
+    private const val LOGO_COORDS_SHA256 = "9e41cc7e72e283f815089da408b11af665cc08f10bc8bb18ff4b3935a7a1e4c4"
+    private const val LOGO_COORDS_MIN_SIZE = 142_799L
+
+    /**
+     * Stream logo atlas (S1201) - on-demand station-logo sprite sheet + `url->index` sidecar. Same
+     * shape as [channelPreviewAtlas]: pure data payload, contributed only on demand, on the streams
+     * flavors. It exists alongside rather than inside the preview atlas because a station with no video
+     * track can never have a captured frame, and the two payloads are worth refusing independently.
+     */
+    fun streamLogoAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
+        set = DeliverableSet.STREAM_LOGO_ATLAS,
+        files = listOf(
+            resource("stream-logo-atlas.webp", LOGO_SHEET_SHA256, LOGO_SHEET_MIN_SIZE),
+            resource("stream-logo-coords.json", LOGO_COORDS_SHA256, LOGO_COORDS_MIN_SIZE)
+        )
+    )
+
     /** Set B for store flavors (standard/legacy): Tesseract only. */
     fun ocrEnginesStore(abi: String = primaryAbi()): DeliverableSourceDescriptor =
         nativeDescriptor(DeliverableSet.OCR_ENGINES, abi, TESSERACT[abi].orEmpty())

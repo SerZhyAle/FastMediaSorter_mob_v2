@@ -773,4 +773,11 @@
          (landscape); full-width there would cover the toolbar title. -->
     <dimen name="streams_header_search_width">280dp</dimen>
 
+    <!-- Inset for the media-kind glyph shown on a grid tile that has no frame, atlas preview or
+         favicon, so the icon reads as a placeholder instead of filling the whole tile. -->
+    <dimen name="stream_grid_placeholder_padding">28dp</dimen>
+    <!-- S1201: a station logo fills its whole tile, so it needs a small inset to sit off the cell
+         edges - far less than the 32 px favicon, which is inset to avoid being blown up. -->
+    <dimen name="stream_grid_logo_padding">8dp</dimen>
+
 </resources>

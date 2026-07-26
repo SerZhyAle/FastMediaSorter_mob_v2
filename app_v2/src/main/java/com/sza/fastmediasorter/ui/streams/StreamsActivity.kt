@@ -28,9 +28,11 @@ import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
+import com.sza.fastmediasorter.data.repository.streams.StreamLogoAtlasStore
 import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.StreamResumeState
@@ -85,6 +87,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var channelPreviewAtlasStore: ChannelPreviewAtlasStore
 
+    // S1201: on-demand station-logo atlas store (sheet + url->index sidecar under the delivery dir).
+    @Inject
+    lateinit var streamLogoAtlasStore: StreamLogoAtlasStore
+
     // S1154: routes the post-import atlas-download offer through the real WorkManager delivery path.
     @Inject
     lateinit var deliverableInventory: DeliverableInventory
@@ -128,9 +134,35 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Volatile
     private var atlasPreviewCoords: Map<String, Int> = emptyMap()
 
+    // S1201: per-tile region-decode slicer for the logo atlas - same shape as the preview slicer, its
+    // own geometry (square tiles, 59 columns).
+    private val logoSlicer by lazy { StreamLogoAtlasSlicer { streamLogoAtlasStore.atlasFile() } }
+
+    // S1201: url->tile-index map for the logo tier; volatile for the same reason as faviconCoords.
+    @Volatile
+    private var logoAtlasCoords: Map<String, Int> = emptyMap()
+
     // S1154: post-import "download the preview atlas?" offer. Lazy so it is built after Hilt injection.
     private val streamAtlasPromptManager by lazy {
-        StreamAtlasPromptManager(deliverableInventory, lifecycleScope, ::reloadAtlasPreviews)
+        StreamAtlasPromptManager(
+            deliverableInventory,
+            lifecycleScope,
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS,
+            R.string.streams_atlas_prompt_message,
+            ::reloadAtlasPreviews,
+        )
+    }
+
+    // S1201: the same offer for the station-logo atlas. Two separate payloads, so two separate offers -
+    // a user who only wants video previews should not be made to download logos to get them.
+    private val streamLogoPromptManager by lazy {
+        StreamAtlasPromptManager(
+            deliverableInventory,
+            lifecycleScope,
+            DeliverableSet.STREAM_LOGO_ATLAS,
+            R.string.streams_logo_prompt_message,
+            ::reloadLogoTiles,
+        )
     }
 
     private val streamPlayerLauncher = registerForActivityResult(
@@ -216,6 +248,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             faviconResolver = { url -> faviconCoords[url] },
             faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
             atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
+            logoTileLoader = { url -> logoAtlasCoords[url]?.let { logoSlicer.tileFor(it) } },
             faviconScope = lifecycleScope,
         )
     }
@@ -253,6 +286,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             faviconResolver = { url -> faviconCoords[url] },
             faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
             atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
+            logoTileLoader = { url -> logoAtlasCoords[url]?.let { logoSlicer.tileFor(it) } },
             faviconScope = lifecycleScope,
         )
     }
@@ -458,8 +492,28 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             faviconCoords = faviconAtlasStore.coords()
             // S1154: load the atlas-preview coords on the same pass so a VIDEO tile can show its preview.
             atlasPreviewCoords = channelPreviewAtlasStore.coords()
+            // S1201: and the logo coords, which are the only artwork a radio channel can get.
+            logoAtlasCoords = streamLogoAtlasStore.coords()
+            logStreamArtworkState()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
+    }
+
+    /**
+     * One line that answers "why is there no artwork?" from a device log alone: whether each atlas file
+     * is on disk and how many channels each index actually covers. Without it, an empty map and a
+     * missing file look the same from outside.
+     */
+    private fun logStreamArtworkState() {
+        Timber.i(
+            "Streams artwork: favicon=%b/%d, preview=%b/%d, logo=%b/%d (atlas on disk / channels covered)",
+            faviconAtlasStore.atlasFile() != null,
+            faviconCoords.size,
+            channelPreviewAtlasStore.atlasFile() != null,
+            atlasPreviewCoords.size,
+            streamLogoAtlasStore.atlasFile() != null,
+            logoAtlasCoords.size
+        )
     }
 
     /**
@@ -474,6 +528,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         adapter.notifyItemRangeChanged(0, adapter.itemCount)
     }
 
+    /** S1201: same reload for the logo atlas - it is downloaded and installed independently. */
+    private suspend fun reloadLogoTiles() {
+        logoSlicer.invalidate()
+        logoAtlasCoords = streamLogoAtlasStore.coords()
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+    }
+
     /**
      * S0668: a completed catalog import rewrote the atlas + coords sidecar - drop the cached atlas and
      * reload the coords so the new favicons appear without restarting the screen.
@@ -485,6 +546,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // S1154: a re-import may have replaced the atlas payload too; drop the decoder and reload.
             atlasSlicer.invalidate()
             atlasPreviewCoords = channelPreviewAtlasStore.coords()
+            logoSlicer.invalidate()
+            logoAtlasCoords = streamLogoAtlasStore.coords()
+            logStreamArtworkState()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
     }
@@ -569,8 +633,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
-                    // S1154: offer the channel-preview atlas download when it is not already installed.
-                    streamAtlasPromptManager.maybeOffer(binding.rvStreams)
+                    // S1154/S1201: offer the preview atlas, and only if there is nothing to ask there
+                    // (already installed or downloading) fall through to the logo atlas - one Snackbar
+                    // at a time, and a user who already has previews is the one offered logos next.
+                    streamAtlasPromptManager.maybeOffer(binding.rvStreams) {
+                        streamLogoPromptManager.maybeOffer(binding.rvStreams)
+                    }
                 }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
                 is StreamsViewModel.StreamsEvent.RestoreScroll -> {
@@ -752,7 +820,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun clearStreamResumeOnExit() {
         if (!::inlineAudio.isInitialized) return
         if (keepBackgroundService || inlineAudio.isServiceAudioActive) return
-        Timber.d("S1152: exit with nothing playing - dropping stream resume record")
         applicationScope.launch { streamResumeStateRepository.clear() }
     }
 
@@ -1028,6 +1095,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // the background - pick it up on return instead of waiting for the next catalog import.
         if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.atlasFile() != null) {
             lifecycleScope.launch { reloadAtlasPreviews() }
+        }
+        // S1201: same for the logo atlas - the two payloads install independently.
+        if (logoAtlasCoords.isEmpty() && streamLogoAtlasStore.atlasFile() != null) {
+            lifecycleScope.launch { reloadLogoTiles() }
         }
     }
 

@@ -19,7 +19,24 @@ package com.sza.fastmediasorter.domain.delivery
 data class DeliverableSourceDescriptor(
     val set: DeliverableSet,
     val files: List<PayloadFile>
-)
+) {
+    /**
+     * S1200: the payload's identity, used to notice that an installed copy is not the one this build
+     * expects. Derived from the compiled pins on purpose - they are the only value the mirror is
+     * forbidden to change (B2 above), so anything else would be an identity the server could forge.
+     *
+     * Sorted by file name so a reordered [files] list cannot read as a different payload. A file with
+     * no hash (the unverified pure-resource case) contributes its size instead, otherwise two such
+     * files would collide on an empty string.
+     */
+    val stamp: String
+        get() = files
+            .sortedBy { it.fileName }
+            .joinToString(";") { file ->
+                val identity = file.sha256.ifBlank { "size:${file.minSize}" }
+                "${file.fileName}=$identity"
+            }
+}
 
 /**
  * One downloadable file inside a set's payload (e.g. a single `.so` or `.mp4`).

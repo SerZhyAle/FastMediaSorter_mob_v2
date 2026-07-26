@@ -45,6 +45,9 @@ class ExecuteScheduledOperationUseCaseTest {
         targetDir = tempFolder.newFolder("dest")
         useCase = ExecuteScheduledOperationUseCase(
             scheduledRepo, resourceRepo, getMediaFiles, fileOperationUseCase, appendLog,
+            // checkLocalFolderWritable: only consulted for content:// targets, which these tests
+            // do not use (they point at a real temp folder), so a relaxed mock is enough.
+            mockk(relaxed = true),
             mockk(relaxed = true),
         )
     }

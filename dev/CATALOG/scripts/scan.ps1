@@ -4,6 +4,10 @@
 # Usage:
 #   pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
 #   pwsh -File dev/CATALOG/scripts/scan.ps1 -Module wear
+#
+# Exit codes:
+#   0 - success.
+#   1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -332,3 +336,5 @@ if (-not (Test-Path $outDir)) { New-Item -Path $outDir -ItemType Directory -Forc
 $lines | Set-Content -Path $OutFile -Encoding UTF8
 
 Write-Host "Scanned module '$Module': $($ktFiles.Count) files, $($records.Count) records -> $OutFile"
+
+exit 0

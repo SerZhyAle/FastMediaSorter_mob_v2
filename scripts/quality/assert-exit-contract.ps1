@@ -70,28 +70,66 @@ function Reject([string]$msg) {
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
-$scanRoot = if ($Path) { $Path } else { Join-Path $repoRoot 'scripts' }
-if (-not (Test-Path $scanRoot)) { Reject "Scan root not found: $scanRoot" }
+
+# S1192: scripts/ is not the only place we keep executable scripts. The catalog tooling lives under
+# dev/, is called in loops that test $LASTEXITCODE, and was outside this gate entirely - which is how
+# seven scripts that never set an exit code at all went unnoticed until a wrapper reported five
+# successful writes as five failures. Vendored trees (.venv, .github hooks) and agent-local scripts
+# (.claude) stay out: not our code, not our contract.
+$defaultRoots = @(
+    (Join-Path $repoRoot 'scripts'),
+    (Join-Path $repoRoot 'dev/CATALOG/scripts'),
+    (Join-Path $repoRoot 'dev/ACTIVITY_CATALOG/scripts')
+)
+$scanRoots = if ($Path) { @($Path) } else { $defaultRoots | Where-Object { Test-Path $_ } }
+if ($scanRoots.Count -eq 0) { Reject "No scan root found under: $repoRoot" }
+foreach ($r in $scanRoots) { if (-not (Test-Path $r)) { Reject "Scan root not found: $r" } }
+
+# Rule B applies only where a caller reads the exit code in a loop. Repo-wide it would flag ~150
+# scripts whose callers rely on exceptions instead, which is a different (and legitimate) contract.
+$silenceRuleRoots = @(
+    (Join-Path $repoRoot 'dev/CATALOG/scripts'),
+    (Join-Path $repoRoot 'dev/ACTIVITY_CATALOG/scripts')
+)
 
 # How far after a Write-Error an `exit N` still counts as "the code it meant to send".
 # 3 covers the observed shapes (same line; next line; a closing brace between).
 $lookahead = 3
 
-$files = if (Test-Path $scanRoot -PathType Leaf) {
-    @(Get-Item -LiteralPath $scanRoot)
-} else {
-    # Skip scripts/<subject>.tests/ - a regression suite for this very gate has to carry the defect
-    # verbatim as a fixture, and the scan is line-based, so it cannot tell a here-string fixture from
-    # live code. Found by this gate's own harness on its first run. An explicit -Path still scans a
-    # test file when one is aimed at deliberately.
-    Get-ChildItem -LiteralPath $scanRoot -Recurse -File -Filter *.ps1 -ErrorAction SilentlyContinue |
-        Where-Object { $_.DirectoryName -notmatch '\.tests($|[\\/])' }
-}
+$files = @(foreach ($root in $scanRoots) {
+    if (Test-Path $root -PathType Leaf) {
+        Get-Item -LiteralPath $root
+    } else {
+        # Skip scripts/<subject>.tests/ - a regression suite for this very gate has to carry the defect
+        # verbatim as a fixture, and the scan is line-based, so it cannot tell a here-string fixture from
+        # live code. Found by this gate's own harness on its first run. An explicit -Path still scans a
+        # test file when one is aimed at deliberately.
+        Get-ChildItem -LiteralPath $root -Recurse -File -Filter *.ps1 -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -notmatch '\.tests($|[\\/])' }
+    }
+})
 
 $findings = @()
+$silent = @()
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $lines) { continue }
+
+    # Rule B (S1192): under the roots whose callers read $LASTEXITCODE, a script must state its
+    # outcome. Falling off the end leaves the caller's $LASTEXITCODE untouched - on a first iteration
+    # that is empty, and `if ($LASTEXITCODE -ne 0)` calls a success a failure. It fails the other way
+    # too: a real error goes unnoticed when the previous command happened to exit 0.
+    $inSilenceRoot = $silenceRuleRoots | Where-Object { $f.FullName.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }
+    if ($inSilenceRoot) {
+        $declaresExit = $false
+        foreach ($l in $lines) {
+            if ($l -match '^\s*#') { continue }
+            if ($l -match '(^|\s|\}|;)exit\s') { $declaresExit = $true; break }
+        }
+        if (-not $declaresExit) {
+            $silent += $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
+        }
+    }
 
     # Condition 1: the file runs under Stop. Without it Write-Error does not terminate.
     $underStop = $false
@@ -132,15 +170,22 @@ if (-not $Quiet) {
         Write-Host ''
         Write-Host '  Fix: add -ErrorAction Continue to the Write-Error so the exit line is reached.' -ForegroundColor Yellow
     }
+    foreach ($s in $silent) {
+        Write-Host ("  {0}  sets no exit code - the caller keeps whatever `$LASTEXITCODE it had" -f $s) -ForegroundColor Red
+    }
+    if ($silent.Count -gt 0) {
+        Write-Host ''
+        Write-Host '  Fix: end every terminating path with an explicit exit, and list the codes in the header.' -ForegroundColor Yellow
+    }
 }
 
-Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s)" -f $findings.Count)
+Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s)" -f $findings.Count, $silent.Count)
 
-if ($Gate -and $findings.Count -gt 0) {
-    Write-Host 'assert-exit-contract: FAIL - a documented exit code cannot be delivered.' -ForegroundColor Red
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0) {
-    Write-Host 'assert-exit-contract: PASS - every exit code after a Write-Error is reachable.' -ForegroundColor Green
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0) {
+    Write-Host 'assert-exit-contract: PASS - every exit code is reachable and every scanned script sets one.' -ForegroundColor Green
 }
 exit 0

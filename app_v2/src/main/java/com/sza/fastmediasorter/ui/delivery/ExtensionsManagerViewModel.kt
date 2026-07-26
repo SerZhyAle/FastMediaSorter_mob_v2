@@ -40,7 +40,12 @@ class ExtensionsManagerViewModel @Inject constructor(
         viewModelScope.launch {
             extensions.forEach { item ->
                 val status = item.statusFlow.first()
-                if (status is ExtensionStatus.NotInstalled || status is ExtensionStatus.Failed) {
+                // S1200: a stale row is worth (re)downloading in a bulk install - it is the case where
+                // the user has an old copy and asked for everything to be brought up to date.
+                if (status is ExtensionStatus.NotInstalled ||
+                    status is ExtensionStatus.Failed ||
+                    status is ExtensionStatus.UpdateAvailable
+                ) {
                     launch { inventory.download(item).collect { } }
                 }
             }
@@ -52,7 +57,9 @@ class ExtensionsManagerViewModel @Inject constructor(
     fun uninstallAll() {
         viewModelScope.launch {
             extensions.forEach { item ->
-                if (item.statusFlow.first() is ExtensionStatus.Installed) {
+                // S1200: a stale payload is still on disk, so "uninstall everything" must free it too.
+                val status = item.statusFlow.first()
+                if (status is ExtensionStatus.Installed || status is ExtensionStatus.UpdateAvailable) {
                     inventory.uninstall(item)
                 }
             }

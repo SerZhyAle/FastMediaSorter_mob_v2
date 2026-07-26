@@ -35,7 +35,8 @@ object LegacyBundledDeliverableSetsModule {
     fun descriptorContributor(): DeliverableSetContributor = object : DeliverableSetContributor {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
             DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
-            DeliverableSet.CHANNEL_PREVIEW_ATLAS to DeliverableDescriptorCatalog.channelPreviewAtlas()
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to DeliverableDescriptorCatalog.channelPreviewAtlas(),
+            DeliverableSet.STREAM_LOGO_ATLAS to DeliverableDescriptorCatalog.streamLogoAtlas()
         )
     }
 }

@@ -63,6 +63,8 @@
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish   # just (re)upload current streams.csv
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewLimit 40   # S1154 atlas smoke run
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas   # full atlas build + upload
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos                            # S1201 logo atlas from the artwork cache
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas    # logo atlas build + upload
 #>
 [CmdletBinding()]
 param(
@@ -104,6 +106,12 @@ param(
     [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
     [int]$FaviconTimeoutSec = 8,
     [int]$FaviconThrottle = 16,
+    # Raw artwork cache. The fetch keeps the BEST (largest) image a station's site offers - usually an
+    # apple-touch-icon or og:image of 180-1200 px - instead of only the 16/32 px tab icon, so the same
+    # pass can feed both the 32 px favicon atlas and a future grid-sized logo atlas (S1201) without
+    # re-crawling ~2900 sites. Cached by homepage, so an interrupted run resumes.
+    [string]$LogoCacheDir = 'temp/stream-logo-src',
+    [switch]$RefreshLogoCache,
 
     # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
     # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
@@ -119,6 +127,17 @@ param(
     [int]$PreviewCaptureTimeoutSec = 20,
     [int]$PreviewThrottle = 12,
     [int]$PreviewLimit = 0,
+
+    # S1201 stream logo atlas. Packs the artwork already cached by the favicon pass (-LogoCacheDir)
+    # into the same 240x135 / 34-column sheet geometry the preview atlas uses, so a station with no
+    # capturable frame - every radio channel - still gets a grid-sized picture. No network access: the
+    # cache is the only source, which is why this run takes minutes rather than the favicon pass's hours.
+    [switch]$WithStreamLogos,
+    [switch]$PublishStreamLogoAtlas,
+    [string]$LogoAtlasPath = 'delivery/stream-catalog/stream-logo-atlas.webp',
+    [string]$LogoCoordsPath = 'delivery/stream-catalog/stream-logo-coords.json',
+    [int]$LogoLimit = 0,
+
     # Explicit ffmpeg binary; empty means auto-discovery (PATH, then the usual install roots).
     [string]$FfmpegPath = '',
     # Atlas size ceiling enforced before publish. This must match the app-side import cap. Over the cap
@@ -892,10 +911,23 @@ function Get-WebcamSeeds {
 $script:FaviconTile = 32   # PHASE_01 contract: tile = 32x32 px
 $script:FaviconCols = 16   # PHASE_01 contract: 16 columns per atlas row
 
-# Fetch raw favicon image bytes for one homepage, or $null when none can be found.
-# Fallback chain: (1) <scheme>://<host>/favicon.ico; (2) <link rel="icon"|"shortcut icon"> href from
-# the homepage HTML; (3) if -FaviconS2Fallback, the Google s2 favicons endpoint at sz=32 (matches the
-# tile size). Per-host failures are swallowed - a missing favicon is normal. Empty homepage -> $null.
+# Cache path for one homepage's best artwork. Keyed by the homepage, so a re-run reuses what was
+# already crawled instead of hitting the site again (a full pass over the catalog is ~2900 sites).
+function Get-LogoCacheFile {
+    param([string]$homepage, [string]$dir)
+    $sha = [System.Security.Cryptography.SHA1]::Create()
+    try { $hash = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($homepage)) } finally { $sha.Dispose() }
+    return (Join-Path $dir (([System.BitConverter]::ToString($hash) -replace '-', '').ToLowerInvariant() + '.img'))
+}
+
+# Fetch the BEST artwork a station's site offers, as raw image bytes, or $null when nothing usable is
+# found. "Best" = largest decoded pixel area, because the same bytes feed two consumers: the 32 px
+# favicon atlas (downscaled) and the grid-sized logo atlas (S1201). Downscaling a 180 px apple-touch
+# icon gives a far cleaner 32 px tile than a 16 px .ico, so preferring the big source helps both.
+#
+# Candidate order (first the ones that are usually large): apple-touch-icon and og:image declared in
+# the homepage HTML, then any <link rel="icon">, then the conventional /favicon.ico, then - if
+# -FaviconS2Fallback - the Google s2 endpoint at sz=128. Per-host failures are normal and swallowed.
 function Get-FaviconBytes {
     param([string]$homepage)
     if ([string]::IsNullOrWhiteSpace($homepage)) { return $null }
@@ -910,7 +942,11 @@ function Get-FaviconBytes {
     $tryGet = {
         param([string]$u)
         try {
-            $resp = Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec $FaviconTimeoutSec `
+            # -TimeoutSec alone does NOT bound a response that trickles bytes forever: a single such
+            # host hung a whole batch for 50 minutes. OperationTimeoutSeconds caps the read, and
+            # ConnectionTimeoutSeconds caps the connect, so every fetch has a hard ceiling (PS 7.4+).
+            $resp = Invoke-WebRequest -Uri $u -UseBasicParsing `
+                -ConnectionTimeoutSeconds $FaviconTimeoutSec -OperationTimeoutSeconds ($FaviconTimeoutSec * 2) `
                 -Headers @{ 'User-Agent' = $ua } -MaximumRedirection 6 -ErrorAction Stop
             $bytes = $resp.Content
             if ($bytes -is [string]) { $bytes = [System.Text.Encoding]::UTF8.GetBytes($bytes) }
@@ -920,43 +956,93 @@ function Get-FaviconBytes {
         return $null
     }
 
-    if ($FaviconS2Only) {
-        return (& $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=32" -f $host2))
+    # Decoded pixel area of an image blob, or 0 when it is not an image at all (an HTML error page
+    # served with 200 is a common trap, and it must never win the "largest" comparison).
+    $areaOf = {
+        param([byte[]]$bytes)
+        if (-not $bytes -or $bytes.Length -lt 64) { return 0 }
+        $ms = $null
+        $img = $null
+        try {
+            $ms = [System.IO.MemoryStream]::new($bytes)
+            $img = [System.Drawing.Image]::FromStream($ms)
+            return [int]$img.Width * [int]$img.Height
+        }
+        catch { return 0 }
+        finally {
+            if ($img) { $img.Dispose() }
+            if ($ms) { $ms.Dispose() }
+        }
     }
 
-    # (1) Conventional /favicon.ico at the site root.
-    $ico = & $tryGet ("{0}://{1}/favicon.ico" -f $scheme, $host2)
-    if ($ico) { return $ico }
+    if ($FaviconS2Only) {
+        return (& $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=128" -f $host2))
+    }
 
-    # (2) Parse the homepage HTML for a declared icon link.
+    # Parse the homepage once and collect every declared artwork URL, biggest-first by intent:
+    # apple-touch-icon (typically 180 px), og:image (typically 1200x630), then plain icon links.
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    $absolutize = {
+        param([string]$href)
+        if ([string]::IsNullOrWhiteSpace($href)) { return $null }
+        $h = $href.Trim()
+        if ($h -match '^[a-zA-Z][a-zA-Z0-9+.-]*://') { return $h }
+        try { return [Uri]::new($uri, $h).AbsoluteUri } catch { return $null }
+    }
     try {
-        $page = Invoke-WebRequest -Uri $homepage -UseBasicParsing -TimeoutSec $FaviconTimeoutSec `
+        $page = Invoke-WebRequest -Uri $homepage -UseBasicParsing `
+            -ConnectionTimeoutSeconds $FaviconTimeoutSec -OperationTimeoutSeconds ($FaviconTimeoutSec * 2) `
             -Headers @{ 'User-Agent' = $ua } -MaximumRedirection 6 -ErrorAction Stop
         $html = [string]$page.Content
         if (-not [string]::IsNullOrWhiteSpace($html)) {
-            # <link rel="icon" ..> or <link rel="shortcut icon" ..> in any attribute order.
-            $linkMatches = [regex]::Matches($html, '<link\b[^>]*>', 'IgnoreCase')
-            foreach ($m in $linkMatches) {
+            $appleLinks = [System.Collections.Generic.List[string]]::new()
+            $iconLinks = [System.Collections.Generic.List[string]]::new()
+            foreach ($m in [regex]::Matches($html, '<link\b[^>]*>', 'IgnoreCase')) {
                 $tag = $m.Value
-                if ($tag -notmatch 'rel\s*=\s*["'']?\s*(shortcut\s+icon|icon|apple-touch-icon)\b') { continue }
+                if ($tag -notmatch 'rel\s*=\s*["'']?\s*(shortcut\s+icon|icon|apple-touch-icon[a-z-]*)\b') { continue }
                 $hrefMatch = [regex]::Match($tag, 'href\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase')
                 if (-not $hrefMatch.Success) { continue }
-                $href = $hrefMatch.Groups[1].Value.Trim()
-                if ([string]::IsNullOrWhiteSpace($href)) { continue }
-                $iconUrl = $href
-                if ($href -notmatch '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
-                    try { $iconUrl = [Uri]::new($uri, $href).AbsoluteUri } catch { $iconUrl = $href }
-                }
-                $linkBytes = & $tryGet $iconUrl
-                if ($linkBytes) { return $linkBytes }
+                $abs = & $absolutize $hrefMatch.Groups[1].Value
+                if (-not $abs) { continue }
+                if ($tag -match 'apple-touch-icon') { $appleLinks.Add($abs) } else { $iconLinks.Add($abs) }
             }
+            foreach ($u in $appleLinks) { $candidates.Add($u) }
+            $og = [regex]::Match($html, '<meta\b[^>]*property\s*=\s*["'']og:image["''][^>]*>', 'IgnoreCase')
+            if ($og.Success) {
+                $ogContent = [regex]::Match($og.Value, 'content\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase')
+                if ($ogContent.Success) {
+                    $abs = & $absolutize $ogContent.Groups[1].Value
+                    if ($abs) { $candidates.Add($abs) }
+                }
+            }
+            foreach ($u in $iconLinks) { $candidates.Add($u) }
         }
     }
     catch { }
+    $candidates.Add(("{0}://{1}/favicon.ico" -f $scheme, $host2))
 
-    # (3) Third-party Google s2 fallback (gated). sz=32 to match the atlas tile size.
+    # Fetch at most a handful of candidates and keep the largest that actually decodes. The cap bounds
+    # the crawl: some pages declare a dozen icon links, and each miss costs a full timeout.
+    $best = $null
+    $bestArea = 0
+    $tried = 0
+    foreach ($candidate in $candidates) {
+        if ($tried -ge 4) { break }
+        $tried++
+        $bytes = & $tryGet $candidate
+        if (-not $bytes) { continue }
+        $area = & $areaOf $bytes
+        if ($area -gt $bestArea) {
+            $best = $bytes
+            $bestArea = $area
+        }
+        # 180x180 (apple-touch-icon) is already plenty for a grid tile - stop crawling this host.
+        if ($bestArea -ge 32400) { break }
+    }
+    if ($best) { return $best }
+
     if ($FaviconS2Fallback) {
-        $s2 = & $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=32" -f $host2)
+        $s2 = & $tryGet ("https://www.google.com/s2/favicons?domain={0}&sz=128" -f $host2)
         if ($s2) { return $s2 }
     }
 
@@ -985,23 +1071,94 @@ function Build-FaviconAtlas {
             $homepages.Count, $FaviconThrottle, $FaviconTimeoutSec) -ForegroundColor Yellow
 
     # Parallel fetch -> host -> bytes map. GDI+ packing stays single-threaded below.
+    # Two things this loop must get right, both learned the hard way on a 2917-site pass:
+    #  - crawled artwork is CACHED on disk, so a re-run (or a second atlas built from the same bytes)
+    #    costs seconds instead of another hour;
+    #  - progress is reported per batch, because -Parallel emits nothing until the whole set returns
+    #    and a silent hour is indistinguishable from a hang.
     $faviconFn = ${function:Get-FaviconBytes}.ToString()
+    $cacheFn = ${function:Get-LogoCacheFile}.ToString()
+    if (-not (Test-Path $LogoCacheDir)) { New-Item -ItemType Directory -Path $LogoCacheDir -Force | Out-Null }
+    $cacheDir = (Resolve-Path $LogoCacheDir).Path
     $fetched = @{}
+    $fromCache = 0
     if ($homepages.Count -gt 0) {
-        $results = $homepages | ForEach-Object -ThrottleLimit $FaviconThrottle -Parallel {
-            $hp = $_
-            $ua = $using:ua
-            $FaviconTimeoutSec = $using:FaviconTimeoutSec
-            $FaviconS2Fallback = $using:FaviconS2Fallback
-            $FaviconS2Only = $using:FaviconS2Only
-            ${function:Get-FaviconBytes} = $using:faviconFn
-            $bytes = $null
-            try { $bytes = Get-FaviconBytes -homepage $hp } catch { $bytes = $null }
-            [pscustomobject]@{ Homepage = $hp; Bytes = $bytes }
+        $started = Get-Date
+        # A batch is a barrier: the slowest host in it holds up the rest, so keep batches small enough
+        # that one pathological site costs a short stall, not a silent half-hour.
+        $batchSize = 48
+        $done = 0
+        for ($offset = 0; $offset -lt $homepages.Count; $offset += $batchSize) {
+            $batch = @($homepages[$offset..([Math]::Min($offset + $batchSize, $homepages.Count) - 1)])
+            # Hard wall-clock ceiling per batch. Even with per-request timeouts a site can wedge a
+            # runspace (a stalled TLS handshake, a GDI+ decode that never returns) and hold the whole
+            # batch: two separate 50-minute stalls came from exactly that. Stragglers are abandoned
+            # here; their hosts simply stay uncached and are retried on a later run.
+            # -TimeoutSeconds surfaces as a TERMINATING "pipeline has been stopped" error, and this
+            # script runs under $ErrorActionPreference = 'Stop', so an abandoned batch would kill the
+            # whole crawl. Catch it: the batch's results are lost, its hosts stay uncached, the run
+            # continues with the next batch.
+            $results = @()
+            try {
+                $results = $batch | ForEach-Object -ThrottleLimit $FaviconThrottle -TimeoutSeconds 120 -Parallel {
+                $hp = $_
+                $ua = $using:ua
+                $FaviconTimeoutSec = $using:FaviconTimeoutSec
+                $FaviconS2Fallback = $using:FaviconS2Fallback
+                $FaviconS2Only = $using:FaviconS2Only
+                $cacheDir = $using:cacheDir
+                $refresh = $using:RefreshLogoCache
+                ${function:Get-FaviconBytes} = $using:faviconFn
+                ${function:Get-LogoCacheFile} = $using:cacheFn
+                # The fetcher compares decoded image sizes, so GDI+ must be loaded in THIS runspace
+                # too - -Parallel does not inherit the caller's Add-Type.
+                Add-Type -AssemblyName System.Drawing
+                $cacheFile = Get-LogoCacheFile -homepage $hp -dir $cacheDir
+                # A host that yielded nothing is remembered too. Without this marker every re-run
+                # re-crawls the same dead sites, and they are exactly the ones that hang.
+                $missFile = $cacheFile + '.miss'
+                $bytes = $null
+                $cached = $false
+                if (-not $refresh -and (Test-Path $cacheFile)) {
+                    try {
+                        $bytes = [System.IO.File]::ReadAllBytes($cacheFile)
+                        $cached = $true
+                    }
+                    catch { $bytes = $null }
+                }
+                if (-not $bytes -and ($refresh -or -not (Test-Path $missFile))) {
+                    try { $bytes = Get-FaviconBytes -homepage $hp } catch { $bytes = $null }
+                    if ($bytes) {
+                        try { [System.IO.File]::WriteAllBytes($cacheFile, $bytes) } catch { }
+                    }
+                    else {
+                        try { [System.IO.File]::WriteAllText($missFile, '') } catch { }
+                    }
+                }
+                    [pscustomobject]@{ Homepage = $hp; Bytes = $bytes; Cached = $cached }
+                }
+            }
+            catch {
+                Write-Host ("  batch abandoned after 120s (hosts {0}-{1}) - continuing" -f `
+                        ($offset + 1), ($offset + $batch.Count)) -ForegroundColor DarkYellow
+            }
+            foreach ($r in $results) {
+                if ($r.Bytes) {
+                    $fetched[$r.Homepage] = [byte[]]$r.Bytes
+                    if ($r.Cached) { $fromCache++ }
+                }
+            }
+            $done += $batch.Count
+            $elapsed = (Get-Date) - $started
+            $rate = if ($elapsed.TotalSeconds -gt 0) { $done / $elapsed.TotalSeconds } else { 0 }
+            $etaSec = if ($rate -gt 0) { ($homepages.Count - $done) / $rate } else { 0 }
+            Write-Host ("  favicons {0}/{1} ({2} with image), elapsed {3}, eta {4}" -f `
+                    $done, $homepages.Count, $fetched.Count, (Format-DurationShort $elapsed), `
+                (Format-DurationShort ([TimeSpan]::FromSeconds([Math]::Round($etaSec))))) -ForegroundColor DarkGray
         }
-        foreach ($r in $results) { if ($r.Bytes) { $fetched[$r.Homepage] = [byte[]]$r.Bytes } }
     }
-    Write-Host ("Favicons: {0}/{1} homepage(s) returned image bytes." -f $fetched.Count, $homepages.Count) -ForegroundColor DarkGray
+    Write-Host ("Favicons: {0}/{1} homepage(s) returned image bytes ({2} served from cache)." -f `
+            $fetched.Count, $homepages.Count, $fromCache) -ForegroundColor DarkGray
 
     # Decode in row order; rows that decode successfully get the next sequential ordinal.
     $packable = [System.Collections.Generic.List[object]]::new()
@@ -1348,6 +1505,247 @@ function Invoke-BuildChannelPreviewAtlasRun {
     Build-ChannelPreviewAtlas -Rows $videoRows | Out-Null
 }
 
+# --- S1201 stream logo atlas (offline packer) ---------------------------------------------------
+
+# Square, unlike the channel-preview sheet's 16:9 frames. A logo is fitted whole inside its tile and
+# is almost always square, so on a 240x135 tile it still reached only 135 px tall while 44% of the
+# width stayed transparent padding - measured at 8160x8100 and 19.4 MB. A square tile gives the logo
+# the identical height for half the pixels.
+#
+# 136 rather than 135 because the encode below is lossy, and lossy WebP is always 4:2:0: with an odd
+# tile size every second tile boundary would fall mid-chroma-block and bleed colour into its neighbour's
+# edge - a visible seam on the full-bleed logos. Even dimensions keep every tile chroma-independent.
+#
+# The app-side half of this contract is StreamLogoAtlasSlicer's companion object - move one side alone
+# and every rect drifts.
+$script:LogoTileW = 136
+$script:LogoTileH = 136
+$script:LogoCols = 59
+$script:LogoMaxRows = 60
+
+# Smallest source that earns a grid tile, measured on the larger side. Below this the cached artwork
+# is just a tab icon: upscaling it is the very thing this ticket exists to stop, and drawn at native
+# size it would float lost in a 240x135 tile. Such stations fall through to the favicon tier, which
+# insets a 32 px icon deliberately. The threshold also keeps the sheet inside its 2040 slots - the
+# cache holds ~2525 originals, of which ~1838 clear 96 px.
+$script:LogoMinSourcePx = 96
+
+# Decoded size of an image file, or $null when it is not a readable image.
+function Get-ImageSize {
+    param([string]$path)
+    $ms = $null
+    $img = $null
+    try {
+        $ms = [System.IO.MemoryStream]::new([System.IO.File]::ReadAllBytes($path))
+        $img = [System.Drawing.Image]::FromStream($ms)
+        return [pscustomobject]@{ Width = [int]$img.Width; Height = [int]$img.Height }
+    }
+    catch { return $null }
+    finally {
+        if ($img) { $img.Dispose() }
+        if ($ms) { $ms.Dispose() }
+    }
+}
+
+# The distinct tiles worth packing, plus every url that maps onto each. A homepage the crawler tried
+# and found empty leaves a '<hash>.img.miss' marker and no '.img', so an existence test skips it;
+# survivors are measured against [LogoMinSourcePx].
+#
+# Tiles are keyed by cache FILE, not by url: several stations routinely share one site (a network's
+# genre streams all point at the same homepage), and giving each its own copy of the identical logo
+# burned ~300 of the 2040 slots and pushed the sheet over capacity. One tile, many urls pointing at it.
+function Select-LogoRows {
+    param([Parameter(Mandatory = $true)][object[]]$Rows)
+    Add-Type -AssemblyName System.Drawing
+    $tiles = [System.Collections.Generic.List[object]]::new()
+    $byFile = @{}
+    $seenUrl = [System.Collections.Generic.HashSet[string]]::new()
+    $tooSmall = 0
+    $unreadable = 0
+    $shared = 0
+    foreach ($row in $Rows) {
+        $homepage = [string]$row.homepage
+        $url = [string]$row.url
+        if ([string]::IsNullOrWhiteSpace($homepage) -or [string]::IsNullOrWhiteSpace($url)) { continue }
+        if (-not $seenUrl.Add($url)) { continue }
+        $cache = Get-LogoCacheFile -homepage $homepage -dir $LogoCacheDir
+        if (-not (Test-Path $cache)) { continue }
+        if ($byFile.ContainsKey($cache)) {
+            $byFile[$cache].Urls.Add($url)
+            $shared++
+            continue
+        }
+        $size = Get-ImageSize -path $cache
+        if (-not $size) { $unreadable++; continue }
+        if ([Math]::Max($size.Width, $size.Height) -lt $script:LogoMinSourcePx) { $tooSmall++; continue }
+        $tile = [pscustomobject]@{ File = $cache; Urls = [System.Collections.Generic.List[string]]::new() }
+        $tile.Urls.Add($url)
+        $byFile[$cache] = $tile
+        $tiles.Add($tile)
+    }
+    Write-Host ("Stream logos: {0} distinct tile(s) for {1} extra shared url(s); {2} below {3} px, {4} unreadable" -f `
+            $tiles.Count, $shared, $tooSmall, $script:LogoMinSourcePx, $unreadable) -ForegroundColor DarkGray
+    return $tiles
+}
+
+# Destination rect for one logo inside its tile: scaled to fit whole and centred. Fitting rather than
+# filling is what keeps a station's mark intact instead of slicing its edges off.
+#
+# Small sources ARE scaled up to the tile. Capping at 1:1 was tried and looked wrong: a 100 px logo
+# baked 36 px of padding into its tile and then rendered visibly smaller than its neighbours, so the
+# grid read as ragged. It also saved nothing - the consumer upscales the tile to cell size either way,
+# so the cap only moved where the interpolation happened. The [LogoMinSourcePx] floor already bounds
+# how far anything is stretched.
+function Get-LogoDestRect {
+    param([int]$imgW, [int]$imgH, [int]$tileX, [int]$tileY, [int]$tileW, [int]$tileH)
+    if ($imgW -le 0 -or $imgH -le 0) { return $null }
+    $scale = [Math]::Min($tileW / [double]$imgW, $tileH / [double]$imgH)
+    $w = [int][Math]::Max(1, [Math]::Round($imgW * $scale))
+    $h = [int][Math]::Max(1, [Math]::Round($imgH * $scale))
+    $x = $tileX + [int][Math]::Floor(($tileW - $w) / 2.0)
+    $y = $tileY + [int][Math]::Floor(($tileH - $h) / 2.0)
+    return [System.Drawing.Rectangle]::new($x, $y, $w, $h)
+}
+
+function Build-StreamLogoAtlas {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [string]$SheetPath = $LogoAtlasPath,
+        [string]$CoordsFile = $LogoCoordsPath
+    )
+
+    Add-Type -AssemblyName System.Drawing
+
+    $usable = Select-LogoRows -Rows $Rows
+    if ($usable.Count -eq 0) { throw "No cached artwork under $LogoCacheDir - run the favicon pass first." }
+
+    $cols = $script:LogoCols
+    $tileW = $script:LogoTileW
+    $tileH = $script:LogoTileH
+    $maxSlots = $cols * $script:LogoMaxRows
+    $packable = $usable
+    if ($packable.Count -gt $maxSlots) {
+        Write-Warning ("Stream logos: {0} logos exceed the {1}-slot sheet capacity; dropping the last {2}." -f `
+                $packable.Count, $maxSlots, ($packable.Count - $maxSlots))
+        $packable = @($packable[0..($maxSlots - 1)])
+    }
+
+    $rowsNeeded = [int][Math]::Ceiling($packable.Count / [double]$cols)
+    $sheetW = $cols * $tileW
+    $sheetH = $rowsNeeded * $tileH
+    $pngPath = [System.IO.Path]::ChangeExtension($SheetPath, '.png')
+    $parent = Split-Path -Parent $SheetPath
+    if ($parent -and -not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+
+    Write-Host ("Stream logos: packing {0} tile(s) into {1}x{2} .." -f $packable.Count, $sheetW, $sheetH) -ForegroundColor Yellow
+    $map = [ordered]@{}
+    $skipped = 0
+    # 32bpp ARGB cleared to Transparent, NOT the preview packer's opaque black: the padding around a
+    # non-16:9 logo must take the app's own cell colour, so one sheet serves both light and dark themes.
+    $sheet = [System.Drawing.Bitmap]::new($sheetW, $sheetH, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $g = [System.Drawing.Graphics]::FromImage($sheet)
+    try {
+        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $g.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
+        $g.Clear([System.Drawing.Color]::Transparent)
+        for ($i = 0; $i -lt $packable.Count; $i++) {
+            $col = $i % $cols
+            $rr = [int][Math]::Floor($i / $cols)
+            $logo = $null
+            try {
+                $logo = [System.Drawing.Image]::FromFile($packable[$i].File)
+                $dest = Get-LogoDestRect -imgW $logo.Width -imgH $logo.Height `
+                    -tileX ($col * $tileW) -tileY ($rr * $tileH) -tileW $tileW -tileH $tileH
+                if ($dest) {
+                    $g.DrawImage($logo, $dest)
+                    foreach ($u in $packable[$i].Urls) { $map[$u] = $i }
+                }
+            }
+            catch {
+                # A truncated or non-image cache entry must not abort the sheet: leave the slot empty
+                # and drop the url, so that station falls back to its favicon in the grid.
+                $skipped++
+            }
+            finally { if ($logo) { $logo.Dispose() } }
+        }
+    }
+    finally {
+        $g.Dispose()
+        $sheet.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        $sheet.Dispose()
+    }
+
+    $ffmpeg = Get-FfmpegExe
+    # Quality 90, above the preview sheet's 80: logos are flat colour and type, which lossy blurs
+    # sooner than photographic frames. Lossless was measured too - visually indistinguishable at tile
+    # scale for 15.9 MB against 6.5 MB, so the bytes buy nothing a user can see. The 4:2:0 seam lossy
+    # would otherwise cause between tiles is handled by the even tile size, not by the quality knob.
+    Write-Host 'Stream logos: encoding WebP sheet (alpha preserved) ..' -ForegroundColor Yellow
+    & $ffmpeg -hide_banner -loglevel error -y -i $pngPath -c:v libwebp -preset picture -quality 90 -compression_level 6 $SheetPath
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $SheetPath)) { throw "ffmpeg WebP encode failed (exit $LASTEXITCODE)" }
+
+    Backup-IfExists -Path $CoordsFile | Out-Null
+    ($map | ConvertTo-Json -Compress -Depth 2) | Set-Content -Path $CoordsFile -Encoding utf8NoBOM
+
+    $sheetBytes = (Get-Item $SheetPath).Length
+    $coordsBytes = (Get-Item $CoordsFile).Length
+    Write-Host ''
+    Write-Host ("Stream logo atlas: {0} tile(s) covering {1} channel(s), sheet {2}x{3}, {4} slot(s) spare, {5} unreadable" -f `
+            $packable.Count, $map.Count, $sheetW, $sheetH, ($maxSlots - $packable.Count), $skipped) -ForegroundColor Green
+    foreach ($f in @($SheetPath, $CoordsFile)) {
+        $h = (Get-FileHash -Algorithm SHA256 -Path $f).Hash.ToLowerInvariant()
+        Write-Host ("  {0}" -f (Resolve-Path $f).Path) -ForegroundColor Green
+        Write-Host ("    sha256 = {0}" -f $h) -ForegroundColor DarkGray
+        Write-Host ("    bytes  = {0:N0}" -f (Get-Item $f).Length) -ForegroundColor DarkGray
+    }
+    Write-Host ("  (sheet {0:N1} MB, sidecar {1:N1} KB) - paste both pins into DeliverableDescriptorCatalog.streamLogoAtlas()" -f `
+        ($sheetBytes / 1MB), ($coordsBytes / 1KB)) -ForegroundColor DarkGray
+    return $map.Count
+}
+
+# Upload the logo atlas as its own release assets, mirroring the channel-preview atlas: the payload
+# has an independent lifecycle and the app fetches the two files by their versioned asset names.
+function Invoke-PublishStreamLogoAtlas {
+    param([string]$SheetPath = $LogoAtlasPath, [string]$CoordsFile = $LogoCoordsPath, [string]$Tag = $PublishTag)
+    foreach ($f in @($SheetPath, $CoordsFile)) {
+        if (-not (Test-Path $f)) { throw "Stream logo atlas artifact missing for publish: $f (run with -WithStreamLogos first)" }
+    }
+    $ghExe = Get-GhExe
+    $stageDir = 'temp/stream-logo-publish'
+    if (Test-Path $stageDir) { Remove-Item $stageDir -Recurse -Force }
+    New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
+    # The remote asset name carries the element revision (-v1), matching DeliverableDescriptorCatalog's
+    # withRev(); the on-device file name stays unversioned.
+    $sheetAsset = Join-Path $stageDir 'stream-logo-atlas-v1.webp'
+    $coordsAsset = Join-Path $stageDir 'stream-logo-coords-v1.json'
+    Copy-Item $SheetPath $sheetAsset -Force
+    Copy-Item $CoordsFile $coordsAsset -Force
+
+    Write-Host ("Publishing stream logo atlas to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
+    & $ghExe release upload $Tag $sheetAsset $coordsAsset --clobber
+    if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
+    Write-Host ("Published stream-logo-atlas-v1.webp ({0:N1} MB) + stream-logo-coords-v1.json ({1:N1} KB) -> {2}." -f `
+        ((Get-Item $sheetAsset).Length / 1MB), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
+}
+
+# Entry point for -WithStreamLogos: every catalog row with a homepage, in catalog order. Deliberately
+# not AUDIO-only - a video channel whose frame capture failed benefits from the same fallback.
+function Invoke-BuildStreamLogoAtlasRun {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    # AUDIO first: if the sheet ever overflows, the dropped rows should be video channels, which have
+    # the preview atlas to fall back on. Radio has nothing else, so it gets the slots first.
+    $rows = @(Import-Csv -Path $ExistingCsv |
+            Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.homepage) } |
+            Sort-Object -Stable @{ Expression = { if ([string]$_.media_kind -eq 'AUDIO') { 0 } else { 1 } } })
+    if ($rows.Count -eq 0) { throw "No rows with a homepage in $ExistingCsv - nothing to pack." }
+    if ($LogoLimit -gt 0 -and $rows.Count -gt $LogoLimit) {
+        Write-Host ("Stream logos: limited to the first {0} of {1} rows (-LogoLimit)" -f $LogoLimit, $rows.Count) -ForegroundColor DarkYellow
+        $rows = @($rows[0..($LogoLimit - 1)])
+    }
+    Build-StreamLogoAtlas -Rows $rows | Out-Null
+}
+
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $allRows = @(Import-Csv -Path $ExistingCsv)
@@ -1525,6 +1923,18 @@ if ($WithChannelPreviews) {
 }
 if ($PublishPreviewAtlas) {
     Invoke-PublishChannelPreviewAtlas
+    return
+}
+
+# S1201: the logo atlas is likewise its own mode. It reads only the artwork cache, so unlike the
+# preview capture it costs minutes and no network - but it still must not run as a side effect.
+if ($WithStreamLogos) {
+    Invoke-BuildStreamLogoAtlasRun
+    if ($PublishStreamLogoAtlas) { Invoke-PublishStreamLogoAtlas }
+    return
+}
+if ($PublishStreamLogoAtlas) {
+    Invoke-PublishStreamLogoAtlas
     return
 }
 

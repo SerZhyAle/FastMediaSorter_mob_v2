@@ -11,7 +11,7 @@
 - [.fmscfg contract v2 forward-compat](project_fmscfg_contract_v2_forward_compat.md) - S0988 producer-frozen + consumer-tolerant; accept schemaVersion 2
 
 ## Devices & release
-- [Test devices](reference_test_device_galaxy_s21.md) - S21+ blanket-authorized, S20 FE is the owner's working phone; check serial · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md) - adb.ps1, not on PATH
+- [Test devices](reference_test_device_galaxy_s21.md) - S21+ blanket-authorized, S20 FE is the owner's working phone; check serial · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md) - traps: `launch` sends no ACTION_MAIN, `clear` = pm clear (wipes data)
 - [Never grant system roles on owner phone](feedback_never_grant_system_roles_on_owner_phone.md) - decline role dialogs; re-read bounds before tapping an animating dialog
 - [setup_test_media.ps1](reference_setup_test_media.md) - seeds from c:\Common\test_media · [gh CLI location](reference_gh_cli_location.md) - C:\Program Files\GitHub CLI, not on PATH
 - [R8 mapping is per-build](project_r8_mapping_is_per_build.md) - Play-reported `ev.y` resolves to plausible nonsense against another build's mapping
@@ -37,7 +37,7 @@
 - [manifest.srcFile overrides flavor](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - use addStaticManifestFile · [MSAL signing-hash per keystore](project_msal_signing_hash_per_keystore.md) - each config = distinct hash
 - [material-icons-extended stays](project_material_icons_extended_not_removable.md) - Pause/SkipNext extended-only · [Incremental phantom ref](project_incremental_build_phantom_unresolved.md) - dq phantom -> clean build (cd)
 - [Build gotchas](project_build_gotchas.md) + [output trunc](feedback_build_output_pipe_truncation.md) + [a.ps1](feedback_aps1_launcher_pwsh_cwd.md) - daemon retry; grep BUILD SUCCESSFUL
-- [Unmask kapt NPE](project_kapt_npe_unmask.md) + [subagent build fails](feedback_verify_subagent_build_failures.md) - correctErrorTypes=false; agent stale -> dq first
+- [Unmask kapt NPE](project_kapt_npe_unmask.md) + [subagent claims](feedback_verify_subagent_build_failures.md) - correctErrorTypes=false; agent stale -> dq first; its root cause = lead, not evidence
 - [Remove dead config too](feedback_remove_dead_applications_too.md) - kill dead plugin/classpath · [Ctor change -> compile tests](feedback_constructor_change_compile_tests.md) + [pre-existing fails](feedback_build_pre_existing_test_failures.md) - ~26 broken
 - [Check binding field types](feedback_check_generated_binding_types.md) - .bind(root) downcasts; Button vs MaterialButton crashes
 
@@ -45,6 +45,7 @@
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
 - [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; "PASS [scoped] 0 file(s)"=blind (S1077)
+- [Stale test-results XML](feedback_stale_test_results_xml.md) - survives failed/killed runs; check BUILD verdict + mtime, never "not in FAILED list"
 - [post-change detekt stale report](feedback_post_change_detekt_stale_report.md) - gate FAILs on cached detekt.txt; force :app_v2:detekt --rerun-tasks, then re-run
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after gate, add DON'T rule · [listener-symmetry gate per-file](project_listener_symmetry_gate_per_file.md) - co-locate remove token same-file
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes · [Timber.e for real errors](feedback_log_levels.md) - fallbacks at Timber.i
@@ -81,7 +82,7 @@
 - [Radio stutter toolkit S1148](project_live_radio_loadcontrol_min_eq_max.md) - smart-buffering toggle; read telemetry before LoadControl · [Samsung Dolby eac3-joc glitch](project_samsung_dolby_eac3_joc_glitch.md) - software-preferred selector
 
 ## Spec lifecycle & catalog
-- [Launcher roadmap greenlit](project_launcher_roadmap_greenlit.md) - S0404 unfrozen 2026-07-18; build S1088 first; drive children as Drafts
+- [Launcher family state](project_launcher_roadmap_greenlit.md) - S0404/S1088 archived, children live; quizzes 07-18 + 07-27 locked decisions; owner asks, not /spec-next
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) - grep `"Sxxxx:` too · [Working tree is truth](feedback_dirty_tree_is_normal_wip.md) - never log/blame/diff/forensic WIP; git only on explicit ask/release flow
 - [Drift-check misses untagged impl](feedback_driftcheck_misses_untagged_impl.md) - In Progress+CLEAN drift may be coded; grep before greenfield · [Verify spec id before pipeline](feedback_verify_spec_id_before_pipeline.md) - select.ps1 first
 - [IDE Draft finalizes mid-task](feedback_ide_open_spec_may_finalize_midtask.md) - re-read · [Draft style is approval-gate](feedback_draft_style_gate.md) - sanitation only Draft->Approved · [Status auto-syncs](feedback_spec_header_autosync.md)
@@ -107,6 +108,7 @@
 
 ## Subagents & process
 - [/spec-test-device subagent commits tree](feedback_spec_test_device_subagent_commits_tree.md) - device-run subagent runs a.ps1 c (whole-tree commit+push) despite "don't touch git"
+- [Verify every variant of a screen](feedback_verify_all_variants_of_the_screen.md) - both media kinds/modes/filters, incl. the no-data case
 - [Verify build on device first](feedback_verify_build_on_device_before_diagnosing.md) - confirm NEW build installed; use dav · [Subagent skips final phase](feedback_subagent_impl_skips_final_phase.md) + [no git/build](feedback_parallel_agents_no_git_build.md)
 - [Concurrent /spec-all red tree](project_spec_all_concurrent_tree_red.md) - whole-tree fail may be sibling WIP · [Frozen app? check TracerPid](feedback_frozen_app_check_tracerpid.md) - GC ProfileSaver stall = LLDB ptrace
 - [Welcome process consolidation](feedback_welcome_process_consolidation.md) - owner wants ceremony cut · [Workflow vs 5h limit](feedback_workflow_session_limit_budget.md) - LOW parallelism, cap ~6-8; owner GO above

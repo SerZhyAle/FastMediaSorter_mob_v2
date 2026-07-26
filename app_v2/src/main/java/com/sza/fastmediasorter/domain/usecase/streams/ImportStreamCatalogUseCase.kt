@@ -58,6 +58,15 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 .filter { it.faviconIndex != null }
                 .associate { it.url to it.faviconIndex!! }
             faviconAtlasStore.write(payload.atlasPng, coords)
+            // Favicons vanishing after an import used to be undiagnosable from a device log: the whole
+            // path was silent, so a favicon-less archive and a failed write looked identical. Log the
+            // two numbers that separate them.
+            Timber.i(
+                "Stream catalog favicons: atlas=%d bytes, indexed rows=%d/%d",
+                payload.atlasPng?.size ?: 0,
+                coords.size,
+                entries.size
+            )
         } catch (e: Exception) {
             Timber.w(e, "Stream catalog import: favicon sidecar write failed (rows still merge)")
         }

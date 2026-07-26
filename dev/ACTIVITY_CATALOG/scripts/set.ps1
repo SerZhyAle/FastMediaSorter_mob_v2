@@ -9,6 +9,10 @@
 #
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/set.ps1 -Module app_v2 -Class "MainActivity" `
 #       -Role "Primary entry point" -NoRender
+#
+# Exit codes:
+#   0 - success.
+#   1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -105,3 +109,5 @@ if (-not $NoRender) {
     $renderScript = Join-Path $PSScriptRoot "render.ps1"
     & "C:\Program Files\PowerShell\7\pwsh.exe" -File $renderScript -Module $Module -Root $Root
 }
+
+exit 0

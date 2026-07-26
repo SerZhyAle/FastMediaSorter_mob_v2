@@ -698,7 +698,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         updateFullscreenButtonState(false)
         // Exit fullscreen when transient system bars appear (user edge-swipe in immersive mode).
         // Guard ensures this only acts when the user has entered panel-hiding fullscreen.
-        fullscreenManager?.setupTransientBarsExitCallback(window.decorView) {
+        fullscreenManager?.setupTransientBarsExitCallback {
             if (!binding.topCommandPanel.isVisible) {
                 fullscreenManager?.exitFullscreenWithPanel(binding.topCommandPanel) { isActive ->
                     updateFullscreenButtonState(isActive)

@@ -5,6 +5,10 @@
 #
 # Usage:
 #   pwsh -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Foo.kt"
+#
+# Exit codes:
+#   0 - success.
+#   1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 
 param(
     [Parameter(Mandatory=$true)][string]$Module,
@@ -36,3 +40,5 @@ Write-Host "Removed $removed record(s); $($kept.Count) remain." -ForegroundColor
 if (-not $NoRender) {
     & (Join-Path $PSScriptRoot 'render.ps1') -Module $Module
 }
+
+exit 0

@@ -11,8 +11,23 @@ interface DeliverableCapabilityRepository {
     /** Reactive availability state for the extensions screen and toggles. */
     fun stateOf(set: DeliverableSet): Flow<DeliverableCapability>
 
-    /** Persist that [set] is installed (survives app update and cache clear). */
-    suspend fun markInstalled(set: DeliverableSet)
+    /**
+     * Persist that [set] is installed (survives app update and cache clear). [stamp] identifies which
+     * payload was installed - see [DeliverableSourceDescriptor.stamp] - so a later build can tell that
+     * the copy on disk is not the one it expects (S1200).
+     */
+    suspend fun markInstalled(set: DeliverableSet, stamp: String)
+
+    /**
+     * True when [set] has a payload on disk that was installed against a different [expectedStamp]
+     * than this build carries.
+     *
+     * A bundled set is never stale - it has no payload to compare. A set that is not installed is not
+     * stale either; absent is a different question. A payload installed before stamps existed has none
+     * recorded and therefore reads as stale: one redundant offer is a better failure than permanently
+     * hiding a real update from exactly the people who have the old copy (S1200 §5).
+     */
+    suspend fun isStale(set: DeliverableSet, expectedStamp: String): Boolean
 
     /** Persist that [set] is not installed. */
     suspend fun markNotInstalled(set: DeliverableSet)

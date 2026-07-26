@@ -79,6 +79,58 @@ Non-integer values are skipped defensively; an absent sidecar means "no atlas in
 falls back to the favicon). The tile geometry above is the shared invariant between the offline packer
 and the on-device slicer - changing it on one side without the other drifts every rect.
 
+## Station logo atlas (separate release asset)
+
+The **stream logo atlas** covers what the preview atlas structurally cannot: a station with no video
+track has no frame to capture, so every radio channel would otherwise be stuck with a 32 px favicon. It
+is a sprite sheet of station logos, published as its own versioned release asset for the same reasons
+as the preview atlas, and downloaded/refused independently of it.
+
+```
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-atlas-v1.webp
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-coords-v1.json
+```
+
+Slicing contract:
+
+- One sheet (the 2026-07-26 build is `8024 x 4352`, 6.1 MB, 1838 tiles covering 2156 channels), holding
+  a fixed grid of `136 x 136` tiles, `59` columns per row.
+- A tile's ordinal maps to its cell by `col = index % 59`, `row = index / 59`; its pixel rect is
+  `left = col * 136`, `top = row * 136`, `right = left + 136`, `bottom = top + 136`.
+- Tiles are **square**, unlike the preview sheet's 16:9 frames: a logo is fitted whole rather than
+  cropped, and is almost always square, so a 16:9 tile spent nearly half its width on empty padding.
+  The consumer letterboxes the square tile into its own cell.
+- The side is **even** on purpose. The sheet is lossy WebP, which is always 4:2:0, so an odd tile size
+  would put every second boundary mid-chroma-block and bleed one tile's edge colour into the next.
+- Padding around a logo is **transparent**, so one sheet serves both light and dark themes. Decode
+  tiles as ARGB - flattening them paints the padding black.
+- Not restricted to radio: a video channel whose frame capture failed uses the same tier.
+
+Source artwork comes from the favicon crawl's cache, `temp/stream-logo-src/`, keyed by SHA-1 of the
+station homepage. A `<hash>.img` is the largest artwork that site offered (apple-touch-icon, og:image,
+icon links, `/favicon.ico`); a `<hash>.img.miss` marker records a site that offered nothing, so a rerun
+does not re-crawl it. Two filters apply before packing:
+
+- Sources below **96 px** on the larger side are skipped - that is a tab icon, and upscaling it is the
+  problem this atlas exists to avoid. Those stations fall through to the favicon tier.
+- Tiles are de-duplicated **by cache file**, not by url: several stations of one network share a
+  homepage, and giving each its own copy of the identical logo wasted ~300 slots. All urls of such a
+  group point at the same index.
+
+Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas`
+(needs `ffmpeg` and `gh`; reads only the cache, so it costs minutes and no network). The app-side half
+of the geometry contract is `StreamLogoAtlasSlicer` - change one side without the other and every rect
+drifts. A rebuilt sheet that is not tile-compatible gets a new `-v2` element revision plus fresh SHA-256
+pins in `DeliverableDescriptorCatalog.streamLogoAtlas()`, never a silent re-upload under the same name.
+
+### Why a rebuild needs fresh pins (S1200)
+
+Both atlases above say a rebuilt sheet takes a new element revision plus new SHA-256 pins. That is not
+bookkeeping - the pins are what the app compares an installed copy against to notice it is out of date.
+A re-upload under the same asset name reaches nobody: the download would work, but no installed copy
+would ever look stale, so nobody is offered it. Publishing a rebuilt atlas therefore means shipping the
+new pins in an app build, and the mirror is deliberately not allowed to change hashes at runtime.
+
 ## File: `streams.csv`
 
 UTF-8, no BOM, RFC-4180 (fields with `,` `"` or newline are quoted; inner `"` doubled).

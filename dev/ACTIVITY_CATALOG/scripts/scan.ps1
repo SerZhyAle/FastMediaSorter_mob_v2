@@ -4,6 +4,9 @@
 # Usage:
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/scan.ps1 -Module app_v2
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/scan.ps1 -Module wear
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -256,3 +259,5 @@ $lines = foreach ($key in $scanned.Keys) {
 
 $total = $scanned.Count
 Write-Host "Scanned $total Activities -> $OutFile"
+
+exit 0

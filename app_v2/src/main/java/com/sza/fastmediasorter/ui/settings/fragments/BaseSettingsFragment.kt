@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsGroupsGridLayout
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsGroupColumnsManager
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
-import timber.log.Timber
 
 abstract class BaseSettingsFragment : Fragment() {
 
@@ -29,7 +28,6 @@ abstract class BaseSettingsFragment : Fragment() {
         // original tree, so it runs before the group cards are moved into the grid.
         (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         groupsGrid = (view as? ViewGroup)?.let(SettingsGroupColumnsManager::install)
-        Timber.d("S1161: ${javaClass.simpleName} groups grid installed=${groupsGrid != null}")
     }
 
     /**

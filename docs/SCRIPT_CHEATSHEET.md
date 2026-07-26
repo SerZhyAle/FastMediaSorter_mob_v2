@@ -14,6 +14,7 @@ dev/CATALOG/scripts/apply-role-drafts.ps1
     -File             [String] = 'temp/scratch/role-drafts.tsv'
     -DryRun           [SwitchParameter]
     -NoRender         [SwitchParameter]
+  Exit: 0 - success.
 ```
 
 ### generate-role-drafts.ps1
@@ -26,6 +27,7 @@ dev/CATALOG/scripts/generate-role-drafts.ps1
     -Limit              [Int32] = 0
     -IncludeAll         [SwitchParameter]
     -EntryRegex         [String] = '(ViewModel|Manager|UseCase|Activity|Fragment|Coordinator|Controller|Dispatcher|Handler|Repository|RepositoryImpl|Worker|Service|Facade|Launcher|Gate|Store|Interactor|Presenter|Initializer)$'
+  Exit: 0 - success.
 ```
 
 ### query.ps1
@@ -52,6 +54,7 @@ dev/CATALOG/scripts/query.ps1
     -TouchedSince          [String]
     -TouchedBefore         [String]
     -Json                  [SwitchParameter]
+  Exit: 0 - success.
 ```
 
 ### remove.ps1
@@ -62,6 +65,7 @@ dev/CATALOG/scripts/remove.ps1
     -Module    (req)  [String]
     -Path      (req)  [String]
     -NoRender         [SwitchParameter]
+  Exit: 0 - success.; 1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 ```
 
 ### render.ps1
@@ -73,6 +77,7 @@ dev/CATALOG/scripts/render.ps1
     -Root            [String]
     -InFile          [String]
     -OutFile         [String]
+  Exit: 0 - success.
 ```
 
 ### scan.ps1
@@ -84,6 +89,7 @@ dev/CATALOG/scripts/scan.ps1
     -Root                 [String]
     -OutFile              [String]
     -ChangedFiles         [String[]]
+  Exit: 0 - success.; 1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 ```
 
 ### set.ps1
@@ -99,6 +105,7 @@ dev/CATALOG/scripts/set.ps1
     -Function            [String]
     -Description         [String]
     -NoRender            [SwitchParameter]
+  Exit: 0 - success.; 1 - failure: a throw under $ErrorActionPreference = 'Stop' ends the process.
 ```
 
 ## scripts
@@ -2084,6 +2091,8 @@ scripts/streams/collect-stream-candidates.ps1
     -AtlasPath                        [String] = 'delivery/stream-catalog/favicon-atlas.png'
     -FaviconTimeoutSec                [Int32] = 8
     -FaviconThrottle                  [Int32] = 16
+    -LogoCacheDir                     [String] = 'temp/stream-logo-src'
+    -RefreshLogoCache                 [SwitchParameter]
     -WithChannelPreviews              [SwitchParameter]
     -PublishPreviewAtlas              [SwitchParameter]
     -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'
@@ -2093,6 +2102,11 @@ scripts/streams/collect-stream-candidates.ps1
     -PreviewCaptureTimeoutSec         [Int32] = 20
     -PreviewThrottle                  [Int32] = 12
     -PreviewLimit                     [Int32] = 0
+    -WithStreamLogos                  [SwitchParameter]
+    -PublishStreamLogoAtlas           [SwitchParameter]
+    -LogoAtlasPath                    [String] = 'delivery/stream-catalog/stream-logo-atlas.webp'
+    -LogoCoordsPath                   [String] = 'delivery/stream-catalog/stream-logo-coords.json'
+    -LogoLimit                        [Int32] = 0
     -FfmpegPath                       [String] = ''
     -MaxAtlasBytes                    [Int32] = 31457280
     -DeepSignal                       [SwitchParameter]

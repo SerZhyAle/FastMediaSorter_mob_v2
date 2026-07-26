@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,7 +60,6 @@ class ScheduledOperationsViewModel @Inject constructor(
         viewModelScope.launch {
             // S1009: snapshot the pre-edit FK ids so a re-pointed hidden resource can be cleaned up.
             val previous = operations.value.firstOrNull { it.id == draft.operation.id }
-            Timber.d("S1009: saveOperation op=%d", draft.operation.id)
             var op = draft.operation
             draft.sourceFolderPath?.let { path ->
                 val id = resolveLocalFolderResourceUseCase(
@@ -135,7 +133,6 @@ class ScheduledOperationsViewModel @Inject constructor(
             workManagerScheduler.cancelOperation(operationId)
             deleteScheduledOperationUseCase(operationId)
             removed?.let {
-                Timber.d("S1009: op %d deleted, cleaning hidden FKs", operationId)
                 cleanupHiddenResourceUseCase(it.sourceResourceId)
                 if (it.targetResourceId != it.sourceResourceId) {
                     cleanupHiddenResourceUseCase(it.targetResourceId)

@@ -70,6 +70,9 @@ class StreamGridAdapter(
     // S1154: atlas-preview tier - resolves a channel-preview tile for a VIDEO url with no captured
     // frame, sitting between the captured frame (wins) and the favicon fallback. Null falls through.
     private val atlasPreviewLoader: suspend (url: String) -> Bitmap? = { null },
+    // S1201: logo tier - resolves a station-logo tile for any media kind, sitting between the atlas
+    // preview (VIDEO only) and the 32 px favicon. This is the only picture a radio channel can get.
+    private val logoTileLoader: suspend (url: String) -> Bitmap? = { null },
     private val faviconScope: CoroutineScope? = null,
 ) : ListAdapter<StreamSourceEntity, StreamGridAdapter.VH>(DIFF) {
 
@@ -166,10 +169,14 @@ class StreamGridAdapter(
 
             val frame = frameProvider(source.url)
             if (frame != null) {
-                binding.ivFrame.setImageBitmap(frame)
+                showArtwork(frame)
                 binding.root.contentDescription = context.getString(R.string.streams_grid_cell_cd, source.title)
             } else {
-                binding.ivFrame.setImageBitmap(null)
+                // A channel with no captured frame, no atlas tile and no favicon (about a third of the
+                // catalog has no favicon at all) used to render as an empty grey rectangle. Start from
+                // the media-kind icon so every tile is always identifiable; the async favicon/atlas
+                // paths below overwrite it when they resolve.
+                showKindPlaceholder(source.mediaKind)
                 binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
                 if (isCaptureableVideo(source)) {
                     // S1154: try the atlas preview first (VIDEO only); it falls through to the favicon
@@ -179,7 +186,9 @@ class StreamGridAdapter(
                     // repaintUrl, so a recycled tile never receives another url's frame.
                     requestCapture(source.url)
                 } else {
-                    bindFavicon(source.url)
+                    // S1201: radio has no frame to capture and no preview tile, so the logo tier is its
+                    // first real chance at a picture; it falls through to the favicon on a miss.
+                    bindLogo(source.url, source.title)
                 }
             }
             // S1142: TalkBack should announce the live track on the active tile (§3.2 accessibility).
@@ -275,8 +284,63 @@ class StreamGridAdapter(
             faviconJob = scope.launch {
                 val tile = faviconTileLoader(index)
                 if (boundUrl != url) return@launch
-                if (tile != null) binding.ivFrame.setImageBitmap(tile)
+                // A favicon is a 32 px icon, not artwork: centre it at its own scale instead of
+                // letting centerCrop blow it up to the full tile.
+                if (tile != null) showIcon(tile)
             }
+        }
+
+        /** Full-bleed artwork: a captured frame or an atlas preview tile. */
+        private fun showArtwork(bitmap: Bitmap) {
+            binding.ivFrame.setPadding(0, 0, 0, 0)
+            binding.ivFrame.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+            ImageViewCompat.setImageTintList(binding.ivFrame, null)
+            binding.ivFrame.setImageBitmap(bitmap)
+        }
+
+        /**
+         * A favicon: a 32 px source, so it is inset and centred rather than cropped to the full tile -
+         * upscaling it edge to edge turned every icon into a blurry smear.
+         */
+        private fun showIcon(bitmap: Bitmap) {
+            val view = binding.ivFrame
+            val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_placeholder_padding)
+            view.setPadding(pad, pad, pad, pad)
+            view.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            ImageViewCompat.setImageTintList(view, null)
+            view.setImageBitmap(bitmap)
+        }
+
+        /**
+         * A station logo: a square tile whose own margins are transparent, so it is fitted into the
+         * 16:9 cell rather than cropped, and takes the cell's colour around itself. The small inset
+         * keeps it off the cell edges - unlike a captured frame, a logo is not meant to bleed.
+         */
+        private fun showLogo(bitmap: Bitmap) {
+            val view = binding.ivFrame
+            val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_logo_padding)
+            view.setPadding(pad, pad, pad, pad)
+            view.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            ImageViewCompat.setImageTintList(view, null)
+            view.setImageBitmap(bitmap)
+        }
+
+        /** Last-resort tile content: the media-kind glyph, tinted for the current theme. */
+        private fun showKindPlaceholder(mediaKind: String) {
+            val view = binding.ivFrame
+            val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_placeholder_padding)
+            view.setPadding(pad, pad, pad, pad)
+            view.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            view.setImageResource(if (mediaKind == "AUDIO") R.drawable.ic_audio else R.drawable.ic_video)
+            ImageViewCompat.setImageTintList(
+                view,
+                ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(
+                        view,
+                        com.google.android.material.R.attr.colorOnSurfaceVariant
+                    )
+                )
+            )
         }
 
         /**
@@ -291,8 +355,29 @@ class StreamGridAdapter(
                 if (boundUrl != url) return@launch
                 if (tile != null) {
                     Timber.d("S1154: grid atlas-preview tile applied")
-                    binding.ivFrame.setImageBitmap(tile)
+                    showArtwork(tile)
                     // The tile is a real preview, so the cell is no longer "no frame".
+                    binding.root.contentDescription =
+                        binding.root.context.getString(R.string.streams_grid_cell_cd, title)
+                } else {
+                    bindLogo(url, title)
+                }
+            }
+        }
+
+        /**
+         * S1201: logo tier - the station's own artwork, for any media kind. Reuses the same scope/job
+         * and boundUrl guard as the tiers around it. A null result (no atlas, or this url has no logo)
+         * falls through to the 32 px favicon.
+         */
+        private fun bindLogo(url: String, title: String) {
+            val scope = faviconScope ?: return bindFavicon(url)
+            faviconJob = scope.launch {
+                val tile = logoTileLoader(url)
+                if (boundUrl != url) return@launch
+                if (tile != null) {
+                    showLogo(tile)
+                    // A logo identifies the channel, so the cell is no longer "no frame".
                     binding.root.contentDescription =
                         binding.root.context.getString(R.string.streams_grid_cell_cd, title)
                 } else {

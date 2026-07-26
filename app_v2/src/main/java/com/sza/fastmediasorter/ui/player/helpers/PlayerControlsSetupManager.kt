@@ -480,7 +480,6 @@ class PlayerControlsSetupManager(
     fun setupDocumentFullscreenExitButton() {
         safeViews.btnDocumentFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("DocumentFullscreenExit", "PlayerActivity")
-            Timber.d("S1115: main-host fullscreen-exit tapped")
             if (!viewModel.state.value.showCommandPanel) {
                 viewModel.toggleCommandPanel()
             }

@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
-import timber.log.Timber
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of
@@ -53,7 +52,6 @@ class StreamsFilterDialogManager(
         renderValues()
         // A catalog without topics would open an empty picker, so the row is hidden rather than dead.
         binding.rowTopic.isVisible = state.facets.topics.isNotEmpty()
-        Timber.d("S1168: filter dialog opened, topics=${state.facets.topics.size}, selected=$topic")
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
         binding.checkPinnedOnly.isChecked = pinnedOnly
 

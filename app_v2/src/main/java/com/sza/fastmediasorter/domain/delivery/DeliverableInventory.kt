@@ -55,6 +55,12 @@ sealed class ExtensionItem {
 sealed class ExtensionStatus {
     object Installed : ExtensionStatus()
     object NotInstalled : ExtensionStatus()
+
+    /**
+     * S1200: the payload is present and usable, but it was installed against different pins than this
+     * build carries - a newer (or simply other) version is what the app now expects.
+     */
+    object UpdateAvailable : ExtensionStatus()
     data class Downloading(val percent: Int) : ExtensionStatus()
     data class Failed(val error: String) : ExtensionStatus()
 }

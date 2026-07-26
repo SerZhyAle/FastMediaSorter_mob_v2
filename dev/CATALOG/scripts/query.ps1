@@ -25,6 +25,9 @@
 #
 #   # Machine-readable output for piping
 #   pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer ui -Json
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [Parameter(Mandatory=$true)][string]$Module,
@@ -112,12 +115,12 @@ if ($Missing -eq 'description') {
 
 if ($Json) {
     $result | ForEach-Object { $_ | ConvertTo-Json -Depth 10 -Compress }
-    return
+    exit 0
 }
 
 if (-not $result -or $result.Count -eq 0) {
     Write-Host "No records matched." -ForegroundColor Yellow
-    return
+    exit 0
 }
 
 $result |
@@ -133,3 +136,5 @@ $result |
     Format-Table -AutoSize -Wrap
 
 Write-Host "`n$($result.Count) records matched" -ForegroundColor Cyan
+
+exit 0

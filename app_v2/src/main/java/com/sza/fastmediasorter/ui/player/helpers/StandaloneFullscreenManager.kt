@@ -5,6 +5,7 @@ import android.os.Build
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -16,6 +17,10 @@ import timber.log.Timber
  *   Uses modern WindowInsetsControllerCompat to avoid deprecated edge-to-edge APIs.
  */
 class StandaloneFullscreenManager(private val activity: Activity) {
+
+    // Tracks whether this manager put the window into immersive mode, so the transient-bars callback
+    // can tell "the user swiped the bars back" from any other inset dispatch.
+    private var fullscreenActive = false
 
     fun toggleFullscreen() {
         val decorView = activity.window.decorView
@@ -40,6 +45,7 @@ class StandaloneFullscreenManager(private val activity: Activity) {
                 insetsController.hide(WindowInsetsCompat.Type.systemBars())
                 insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
+            fullscreenActive = true
             Timber.d("StandaloneFullscreenManager: entered fullscreen")
         } catch (e: Exception) {
             Timber.w(e, "StandaloneFullscreenManager: enterFullscreen failed")
@@ -54,6 +60,7 @@ class StandaloneFullscreenManager(private val activity: Activity) {
                 val insetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
                 insetsController.show(WindowInsetsCompat.Type.systemBars())
             }
+            fullscreenActive = false
             Timber.d("StandaloneFullscreenManager: exited fullscreen")
         } catch (e: Exception) {
             Timber.w(e, "StandaloneFullscreenManager: exitFullscreen failed")
@@ -84,21 +91,24 @@ class StandaloneFullscreenManager(private val activity: Activity) {
     }
 
     /**
-     * Wires a persistent listener so that when transient system bars appear (edge-swipe in
-     * immersive mode) and the command panel is hidden, fullscreen is exited and the panel
-     * is restored. Uses the deprecated systemUiVisibility listener because
-     * WindowInsetsControllerCompat provides no equivalent callback on API < 30, and
-     * the deprecated API still fires correctly on API 30+ via Android's backward-compat layer.
+     * Wires a listener so that when transient system bars appear (edge-swipe in immersive mode)
+     * while the command panel is hidden, fullscreen is exited and the panel is restored.
      *
-     * Call once from Activity.setupViews(). Guard inside onBarsAppeared prevents
-     * re-entry when bars are shown programmatically (i.e. panel already visible).
+     * S1115: this asks the real window insets, not the legacy systemUiVisibility flags. The API 30+
+     * hide path goes through WindowInsetsController, which never sets `SYSTEM_UI_FLAG_FULLSCREEN`,
+     * so a flag-based check reads as "bars visible" unconditionally and fired the instant fullscreen
+     * was entered - the standalone video host could therefore never stay in panel-hidden fullscreen.
+     *
+     * The listener sits on the content view rather than the decor view, so it never displaces the
+     * decor's own inset handling, and it returns the insets unconsumed so child listeners still run.
      */
-    @Suppress("DEPRECATION")
-    fun setupTransientBarsExitCallback(decorView: View, onBarsAppeared: () -> Unit) {
-        decorView.setOnSystemUiVisibilityChangeListener { visibility ->
-            if (visibility and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
+    fun setupTransientBarsExitCallback(onBarsAppeared: () -> Unit) {
+        val content = activity.findViewById<View>(android.R.id.content) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(content) { _, insets ->
+            if (fullscreenActive && insets.isVisible(WindowInsetsCompat.Type.systemBars())) {
                 onBarsAppeared()
             }
+            insets
         }
     }
 }

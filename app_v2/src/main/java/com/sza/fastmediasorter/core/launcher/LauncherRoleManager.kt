@@ -106,24 +106,32 @@ class LauncherRoleManager @Inject constructor(
     }
 
     /**
-     * True while the onboarding request still needs to be issued. Already holding the role settles it, and
-     * so does exhausting [MAX_ROLE_REQUEST_ATTEMPTS] - on devices where the dialog cannot present at all
-     * (some emulators never launch it) retrying on every onResume would loop forever.
+     * True while the onboarding request still needs to be issued. Both verdicts are read off state here
+     * rather than reported by the dialog: holding the role means the user accepted, and a request that was
+     * already issued while the role is still not ours means they declined.
+     *
+     * Deriving the verdict from state is not a stylistic preference. The dialog's result callback rides a
+     * Fragment, and the role dialog rebuilds the task underneath it, so the result never arrives - a
+     * declined request stayed pending and re-prompted on the next visit to Settings (device re-test #5,
+     * 2026-07-26). Preferences outlive every object in that chain, so reading them on the next screen
+     * cannot miss a verdict the way a callback can.
+     *
+     * One issued request is the whole budget. The earlier retry allowance existed to survive an attempt
+     * that died before the dialog appeared, but the caller's settle delay already guarantees a surviving
+     * instance issues it, and from here a retry is indistinguishable from re-asking a user who said no.
      */
     fun isRoleRequestPending(): Boolean {
         val prefs = prefs()
         if (!prefs.getBoolean(KEY_ROLE_REQUEST_PENDING, false)) return false
-        val roleHeld = isHomeRoleHeld()
-        // Already ours - drop the flag so later visits to Settings skip this check entirely.
-        if (roleHeld) clearRoleRequestPending()
-        return !roleHeld && prefs.getInt(KEY_ROLE_REQUEST_ATTEMPTS, 0) < MAX_ROLE_REQUEST_ATTEMPTS
+        val settled = isHomeRoleHeld() || prefs.getInt(KEY_ROLE_REQUEST_ATTEMPTS, 0) > 0
+        if (settled) clearRoleRequestPending()
+        return !settled
     }
 
     /**
-     * Counts one issued request. Deliberately NOT the same as clearing: an attempt that dies before the
-     * system dialog appears leaves the flag set, so the next stable screen retries instead of silently
-     * dropping the user's opt-in. [clearRoleRequestPending] is what ends the cycle, and it runs once the
-     * dialog has actually returned a result.
+     * Counts the issued request. This is what ends the cycle: the user has been taken to the system
+     * decision point once, and whatever they answered there is read back from [isHomeRoleHeld] on the next
+     * screen rather than delivered to a callback that may not survive the trip.
      */
     fun recordRoleRequestAttempt() {
         val prefs = prefs()
@@ -131,7 +139,7 @@ class LauncherRoleManager @Inject constructor(
         prefs.edit().putInt(KEY_ROLE_REQUEST_ATTEMPTS, attempts + 1).apply()
     }
 
-    /** Ends the onboarding request cycle: the dialog returned a verdict, or the role is already ours. */
+    /** Drops the onboarding request state once a verdict has been established. */
     fun clearRoleRequestPending() {
         prefs().edit()
             .remove(KEY_ROLE_REQUEST_PENDING)
@@ -185,9 +193,5 @@ class LauncherRoleManager @Inject constructor(
         const val PREFS_LAUNCHER_ROLE = "launcher_role_prefs"
         const val KEY_ROLE_REQUEST_PENDING = "onboarding_role_request_pending"
         const val KEY_ROLE_REQUEST_ATTEMPTS = "onboarding_role_request_attempts"
-
-        // Three stable screens' worth of retries. Enough to outlast the first-run recreation burst on a
-        // slow device, few enough that a device which never presents the dialog stops being pestered.
-        const val MAX_ROLE_REQUEST_ATTEMPTS = 3
     }
 }

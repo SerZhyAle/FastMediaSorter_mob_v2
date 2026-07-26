@@ -3,6 +3,9 @@
 # Usage:
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/render.ps1 -Module app_v2
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/render.ps1 -Module wear
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -85,3 +88,5 @@ $footerLine = "*Manual fields: set via set.ps1. Source of truth: ${Module}.jsonl
 $sb.ToString() | Set-Content -Path $OutFile -Encoding UTF8
 
 Write-Host "Rendered $total records -> $OutFile"
+
+exit 0

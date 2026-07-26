@@ -7,6 +7,9 @@
 #   pwsh -NoProfile -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2
 #   pwsh -NoProfile -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2 -Limit 30   # sample
 #   pwsh -NoProfile -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2 -IncludeAll # not only entry points
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [string]$Module = 'app_v2',
@@ -121,3 +124,5 @@ Write-Host "Drafts written: $($rows.Count) -> $OutFile" -ForegroundColor Cyan
 Write-Host "  from KDoc:  $kdocCount" -ForegroundColor Green
 Write-Host "  synthesised:$synthCount  (need most review)" -ForegroundColor Yellow
 Write-Host "  file not found for: $noFileCount" -ForegroundColor DarkGray
+
+exit 0

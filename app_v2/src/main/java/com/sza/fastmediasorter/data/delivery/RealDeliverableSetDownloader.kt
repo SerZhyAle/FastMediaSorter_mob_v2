@@ -145,7 +145,7 @@ class RealDeliverableSetDownloader @Inject constructor(
                 }
                 promoted = true
 
-                repository.markInstalled(set)
+                repository.markInstalled(set, descriptor.stamp)
                 emit(DownloadProgress.Installed)
             } finally {
                 if (!promoted) stagingDir.deleteRecursively()

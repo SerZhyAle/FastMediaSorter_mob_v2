@@ -326,7 +326,6 @@ class ScreenGestureOverlayManager(
      */
     private fun applyGestureExclusion(view: View, frame: BandFrame) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
-        Timber.d("S1171: exclude band from system gestures ${frame.width}x${frame.height}")
         view.systemGestureExclusionRects = listOf(Rect(0, 0, frame.width, frame.height))
     }
 

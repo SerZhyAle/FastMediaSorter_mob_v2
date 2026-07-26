@@ -32,8 +32,16 @@ class DeliverableDownloadRunnerImpl @Inject constructor(
 
     private val workManager = WorkManager.getInstance(context)
 
-    override fun enqueue(set: DeliverableSet) {
-        if (repository.isInstalledBlocking(set)) return
+    // S1200: sets whose download was forced over an installed payload. Needed because "no work info
+    // yet AND a payload on disk" otherwise reads as Installed - true for a set nobody asked to
+    // re-download, but a lie in the gap between enqueue and WorkManager registering the request. That
+    // lie is expensive: the caller stamps the payload as current on Installed, so a forced update that
+    // had not started yet would be recorded as done and never offered again.
+    private val forced = java.util.Collections.synchronizedSet(mutableSetOf<DeliverableSet>())
+
+    override fun enqueue(set: DeliverableSet, force: Boolean) {
+        if (!force && repository.isInstalledBlocking(set)) return
+        if (force) forced.add(set)
 
         val data = workDataOf(DeliverableDownloadWorker.KEY_DELIVERABLE_SET to set.name)
         val constraints = Constraints.Builder()
@@ -55,14 +63,19 @@ class DeliverableDownloadRunnerImpl @Inject constructor(
     override fun progressOf(set: DeliverableSet): Flow<DownloadProgress> {
         return workManager.getWorkInfosForUniqueWorkFlow(uniqueWorkName(set))
             .map { workInfos ->
-                val workInfo = workInfos.firstOrNull()
+                // S1200: the newest run wins. A stale payload is re-downloaded while its previous,
+                // long-finished work entry is still on record, and reading that stale entry would
+                // report the old outcome for the new attempt.
+                val workInfo = workInfos.firstOrNull { !it.state.isFinished } ?: workInfos.firstOrNull()
                 if (workInfo == null) {
-                    if (repository.isInstalledBlocking(set)) {
-                        DownloadProgress.Installed
-                    } else {
-                        DownloadProgress.Failed("Not enqueued")
+                    when {
+                        // A forced re-download is on its way; the payload still on disk is the OLD one.
+                        forced.contains(set) -> DownloadProgress.Queued
+                        repository.isInstalledBlocking(set) -> DownloadProgress.Installed
+                        else -> DownloadProgress.Failed("Not enqueued")
                     }
                 } else {
+                    if (workInfo.state.isFinished) forced.remove(set)
                     mapWorkInfoToProgress(workInfo, set)
                 }
             }

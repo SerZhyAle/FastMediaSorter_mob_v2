@@ -3223,4 +3223,9 @@
     <string name="no_maps_app_available">Нет приложения для карт</string>
     <string name="translation_downloading_wait">Ожидание результата перевода..</string>
     <string name="translation_result_title">Перевод</string>
+    <string name="ext_stream_logo_atlas_title">Логотипы станций</string>
+    <string name="ext_stream_logo_atlas_desc">Показывает в режиме сетки настоящий логотип станции вместо мелкой иконки. Работает и для радио.</string>
+    <string name="streams_logo_prompt_message">Скачать логотипы станций, чтобы каналы без превью показывали свой логотип?</string>
+    <string name="ext_status_update_available">Есть обновление</string>
+    <string name="streams_atlas_update_prompt_message">Для этих каналов появились более свежие картинки. Скачать?</string>
 </resources>

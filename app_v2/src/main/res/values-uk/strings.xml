@@ -3208,4 +3208,9 @@
     <string name="scan_files_progress">%1$d / %2$d файлів</string>
     <string name="translation_failed">Помилка перекладу</string>
     <string name="tts_not_available">Синтез мовлення недоступний</string>
+    <string name="ext_stream_logo_atlas_title">Логотипи станцій</string>
+    <string name="ext_stream_logo_atlas_desc">Показує в режимі сітки справжній логотип станції замість дрібної іконки. Працює і для радіо.</string>
+    <string name="streams_logo_prompt_message">Завантажити логотипи станцій, щоб канали без прев\'ю показували свій логотип?</string>
+    <string name="ext_status_update_available">Є оновлення</string>
+    <string name="streams_atlas_update_prompt_message">Для цих каналів з\'явилися свіжіші зображення. Завантажити?</string>
 </resources>

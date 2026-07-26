@@ -162,6 +162,17 @@ class DeliverableInventoryImpl @Inject constructor(
                     statusFlow = moduleStatusFlow(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
                 )
             )
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.STREAM_LOGO_ATLAS),
+                    set = DeliverableSet.STREAM_LOGO_ATLAS,
+                    displayNameRes = R.string.ext_stream_logo_atlas_title,
+                    descriptionRes = R.string.ext_stream_logo_atlas_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.STREAM_LOGO_ATLAS),
+                    section = ExtensionSection.STREAMS,
+                    statusFlow = moduleStatusFlow(DeliverableSet.STREAM_LOGO_ATLAS)
+                )
+            )
         }
     }
 
@@ -182,7 +193,9 @@ class DeliverableInventoryImpl @Inject constructor(
         return flow {
             val progressFlow = when (item) {
                 is ExtensionItem.Module -> {
-                    runner.enqueue(item.set)
+                    // S1200: force past the runner's installed-payload guard when the copy on disk is
+                    // not the one this build pins - otherwise "update" silently does nothing.
+                    runner.enqueue(item.set, force = isStale(item.set))
                     runner.progressOf(item.set)
                 }
                 is ExtensionItem.LanguageData -> downloadTesseractModel(item.languageCode)
@@ -195,7 +208,10 @@ class DeliverableInventoryImpl @Inject constructor(
                 // the translation Play dynamic-feature path (the file-set downloader already marks it;
                 // re-marking is idempotent).
                 if (progress == DownloadProgress.Installed && item is ExtensionItem.Module) {
-                    repository.markInstalled(item.set)
+                    // S1200: the stamp comes from the descriptor this flavor contributes. A set with no
+                    // descriptor here is the Play dynamic-feature path, which has no pinned payload to
+                    // identify - an empty stamp records "installed, nothing to compare".
+                    repository.markInstalled(item.set, descriptors[item.set]?.stamp.orEmpty())
                 }
                 emit(progress)
             }
@@ -228,10 +244,19 @@ class DeliverableInventoryImpl @Inject constructor(
         return combine(repository.stateOf(set), active) { cap, download ->
             when {
                 download is ExtensionStatus.Downloading || download is ExtensionStatus.Failed -> download
-                cap == DeliverableCapability.INSTALLED -> ExtensionStatus.Installed
-                else -> ExtensionStatus.NotInstalled
+                cap != DeliverableCapability.INSTALLED -> ExtensionStatus.NotInstalled
+                // S1200: installed, but is it the payload this build pins? A set this flavor ships no
+                // descriptor for cannot be compared, so it stays plainly Installed.
+                isStale(set) -> ExtensionStatus.UpdateAvailable
+                else -> ExtensionStatus.Installed
             }
         }.distinctUntilChanged()
+    }
+
+    /** S1200: true when this flavor pins a payload for [set] and the installed copy is a different one. */
+    private suspend fun isStale(set: DeliverableSet): Boolean {
+        val expected = descriptors[set]?.stamp ?: return false
+        return repository.isStale(set, expected)
     }
 
     private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> =
@@ -313,7 +338,9 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.TRANSLATION to 17_380_608L,
             DeliverableSet.AUDIO_VISUALIZATIONS to 6_100_000L,
             DeliverableSet.FFMPEG_DTS to 7_675_704L,
-            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 30_000_000L
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 30_000_000L,
+            // S1201: the 2026-07-26 sheet, 1838 tiles at 8024x4352, plus its sidecar.
+            DeliverableSet.STREAM_LOGO_ATLAS to 6_590_091L
         )
     }
 }

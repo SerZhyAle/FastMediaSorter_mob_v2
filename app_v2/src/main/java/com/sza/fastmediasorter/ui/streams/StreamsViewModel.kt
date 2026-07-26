@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * State holder for the "Трансляции" list screen. Observes the catalog and forwards user intents to
@@ -281,7 +280,6 @@ class StreamsViewModel @Inject constructor(
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
-        Timber.d("S1168: onFilter topic=$topic category=$category")
         val previousKind = _filter.value.mediaKind
         _filter.update {
             it.copy(

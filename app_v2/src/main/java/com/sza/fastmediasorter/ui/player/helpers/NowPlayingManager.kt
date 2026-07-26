@@ -236,7 +236,6 @@ class NowPlayingManager(
     private fun attachListener(player: Player) {
         if (observedPlayer === player) return
         detachListener()
-        Timber.d("S1140: mini now-playing bar attaching live player listener")
         observedPlayer = player
         player.addListener(playerListener)
     }

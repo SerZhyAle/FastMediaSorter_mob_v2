@@ -78,9 +78,7 @@ internal class AnimatedImageStreamDecoder : ResourceDecoder<InputStream, Drawabl
  * frame. Declining here hands the file back to the built-in downsampler, which decodes that frame.
  */
 private fun isAnimationDisabled(options: Options): Boolean {
-    val disabled = options.get(GifOptions.DISABLE_ANIMATION) == true
-    if (disabled) Timber.d("S1026: declined animated decode, request asked for a still")
-    return disabled
+    return options.get(GifOptions.DISABLE_ANIMATION) == true
 }
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -96,7 +94,7 @@ private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int,
             )
             if (sample > 1) decoder.setTargetSampleSize(sample)
         }
-        Timber.d("S1026: decoded animated drawable software-allocated, animatable=${drawable is Animatable}")
+        Timber.d("S1026: decoded animated drawable, req=%dx%d", width, height)
         AnimatedImageDrawableResource(drawable)
     } catch (e: IOException) {
         // Corrupt/partial animated file - let Glide surface the load failure, don't crash decode.

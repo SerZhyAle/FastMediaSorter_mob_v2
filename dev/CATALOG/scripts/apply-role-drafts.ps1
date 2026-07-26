@@ -9,6 +9,9 @@
 # Usage:
 #   pwsh -NoProfile -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2
 #   pwsh -NoProfile -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2 -DryRun
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [string]$Module = 'app_v2',
@@ -59,7 +62,7 @@ for ($i = 1; $i -lt $tsvLines.Count; $i++) {   # skip header
 
 if ($DryRun) {
     Write-Host "DRY RUN - would apply $applied role(s); blank $skippedBlank; already filled $skippedFilled; not found $notFound" -ForegroundColor Cyan
-    return
+    exit 0
 }
 
 $records | ForEach-Object { $_ | ConvertTo-Json -Depth 10 -Compress } | Set-Content -Path $InFile -Encoding UTF8
@@ -69,3 +72,5 @@ if (-not $NoRender) {
     & (Join-Path $PSScriptRoot 'render.ps1') -Module $Module
     Write-Host "Re-rendered $Module.md" -ForegroundColor Green
 }
+
+exit 0

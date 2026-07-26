@@ -29,8 +29,12 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun markInstalled(set: DeliverableSet) {
+    override suspend fun markInstalled(set: DeliverableSet, stamp: String) {
+        // S1200: flag and stamp are written together, from the one place that knows an install just
+        // succeeded. Splitting them would let the two disagree, and a stamp that outlives its payload
+        // reads as a permanent "update available".
         markerStore.setInstalled(set, true)
+        markerStore.setStamp(set, stamp)
     }
 
     override suspend fun markNotInstalled(set: DeliverableSet) {
@@ -40,6 +44,13 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
     override suspend fun uninstall(set: DeliverableSet) {
         markerStore.deletePayload(set)
         markerStore.setInstalled(set, false)
+        markerStore.clearStamp(set)
+    }
+
+    override suspend fun isStale(set: DeliverableSet, expectedStamp: String): Boolean {
+        if (bundled.contains(set)) return false
+        if (!markerStore.isPayloadPresent(set)) return false
+        return markerStore.installedStamp(set) != expectedStamp
     }
 
     override fun isInstalledBlocking(set: DeliverableSet): Boolean {

@@ -1067,7 +1067,6 @@ class PhotoVideoStandaloneActivity :
         // as the edge-swipe callback below, but visible and discoverable.
         btnFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("FullscreenExit", "PhotoVideoStandaloneActivity")
-            Timber.d("S1115: standalone video fullscreen-exit tapped")
             fsManager.exitFullscreenWithPanel(binding.topCommandPanel) {
                 updateFullscreenExitButtonVisibility()
             }
@@ -1084,7 +1083,7 @@ class PhotoVideoStandaloneActivity :
                 }
             }
         }
-        fsManager.setupTransientBarsExitCallback(window.decorView) {
+        fsManager.setupTransientBarsExitCallback {
             if (!binding.topCommandPanel.isVisible) binding.topCommandPanel.isVisible = true
             updateFullscreenExitButtonVisibility()
         }

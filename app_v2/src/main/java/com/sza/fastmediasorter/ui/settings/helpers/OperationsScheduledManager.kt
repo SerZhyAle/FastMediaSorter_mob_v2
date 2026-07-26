@@ -257,7 +257,6 @@ class OperationsScheduledManager(
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val path = uri.toString()
             val writable = scheduledViewModel.isFolderWritable(path)
-            Timber.d("S1009: local folder picked, side=%s, writable=%s", side, writable)
             if (side == SchedOpPickSide.TARGET && !writable) {
                 Toast.makeText(context, R.string.error_folder_not_writable, Toast.LENGTH_LONG).show()
                 return@launch

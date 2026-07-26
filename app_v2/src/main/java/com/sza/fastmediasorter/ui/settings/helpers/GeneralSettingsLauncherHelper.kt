@@ -77,9 +77,9 @@ class GeneralSettingsLauncherHelper(
      * system RequestRoleActivity resolve a null caller (device-verified 2026-07-18), which the settle delay
      * below avoids: a destroyed instance cancels its viewLifecycleScope, so only a survivor fires. And the
      * signal itself must not be carried by the Activity intent - four device runs lost it in four different
-     * places - so it lives in [LauncherRoleManager] as a durable flag, cleared by the dialog's verdict
-     * rather than by the act of launching it. An attempt that dies before the dialog appears therefore
-     * retries on the next stable screen instead of vanishing, bounded by the manager's attempt cap.
+     * places - so it lives in [LauncherRoleManager] as a durable flag. That flag is also settled from
+     * durable state on the next visit here, not from the dialog's result callback, which the role dialog's
+     * task rebuild routinely destroys before it can arrive.
      */
     fun handleLauncherRoleDeepLink() {
         if (!launcherModeContract.isAvailableInBuild) return

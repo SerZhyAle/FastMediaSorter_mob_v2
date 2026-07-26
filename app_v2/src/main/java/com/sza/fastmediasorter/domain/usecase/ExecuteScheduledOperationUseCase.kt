@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -43,6 +44,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val fileOperationUseCase: FileOperationUseCase,
     private val appendToScheduledLogUseCase: AppendToScheduledLogUseCase,
+    private val checkLocalFolderWritableUseCase: CheckLocalFolderWritableUseCase,
     private val statsSink: StatsSink,
 ) {
     private val logDateFormat = object : ThreadLocal<SimpleDateFormat>() {
@@ -242,6 +244,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             } catch (e: Exception) {
                 "Target '${target.name}' is unreachable: ${e.message ?: "connection failed"}"
             }
+        } else if (PathUtils.isContentUri(target.path)) {
+            // S1009: a SAF tree Uri is not a filesystem path, so File(path).exists() is always false
+            // for one. That made every ad-hoc local-folder TARGET fail pre-flight and the operation
+            // finish "done" having copied nothing. Probe the tree the way the picker does - for a
+            // receiver, writability is the property that actually matters.
+            val writable = checkLocalFolderWritableUseCase(target.path)
+            Timber.d("S1009: SAF target pre-flight, writable=%s", writable)
+            if (writable) null else "Target directory '${target.path}' is not writable"
         } else {
             val dir = File(target.path)
             if (dir.exists() && dir.isDirectory) null

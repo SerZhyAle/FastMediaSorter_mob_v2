@@ -179,6 +179,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
         DeliverableSet.AUDIO_VISUALIZATIONS -> R.string.ext_audio_viz_title
         DeliverableSet.FFMPEG_DTS -> R.string.ext_ffmpeg_dts_title
         DeliverableSet.CHANNEL_PREVIEW_ATLAS -> R.string.ext_channel_preview_atlas_title
+        DeliverableSet.STREAM_LOGO_ATLAS -> R.string.ext_stream_logo_atlas_title
     }
 
     private fun notificationId(set: DeliverableSet): Int = 7300 + set.ordinal

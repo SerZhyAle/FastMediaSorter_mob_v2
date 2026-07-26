@@ -6,6 +6,9 @@
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "плеер"
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -MissingRole
 #   pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "portrait" -Json
+#
+# Exit codes:
+#   0 - success.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -89,12 +92,12 @@ if ($MissingRole) {
 
 if ($Json) {
     $records | ConvertTo-Json -Depth 5
-    return
+    exit 0
 }
 
 if ($records.Count -eq 0) {
     Write-Host "(no matches)"
-    return
+    exit 0
 }
 
 # Table: Module | Class | Launcher | Exported | Tags | Role
@@ -122,3 +125,5 @@ foreach ($r in $records) {
 
 Write-Host ""
 Write-Host "$($records.Count) result(s)."
+
+exit 0
