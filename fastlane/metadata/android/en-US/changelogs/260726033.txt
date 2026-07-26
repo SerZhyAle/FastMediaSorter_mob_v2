@@ -1,0 +1,1 @@
+• Refreshing Favorites no longer records a false storage sync error in the diagnostic log.

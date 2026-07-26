@@ -6,7 +6,17 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7260.252** (July 2026)
+**Current release: 2.60.7260.335** (July 2026) - Fix Release
+
+> Fix: false storage-sync error when refreshing Favorites
+
+## What's Fixed
+
+- Refreshing Favorites no longer records a false storage sync error in the diagnostic log.
+
+---
+
+## Previous Release: 2.60.7260.252 (July 2026)
 
 > Changes since version 2.60.7221.704
 
