@@ -130,7 +130,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     // S1154: post-import "download the preview atlas?" offer. Lazy so it is built after Hilt injection.
     private val streamAtlasPromptManager by lazy {
-        StreamAtlasPromptManager(deliverableInventory, lifecycleScope)
+        StreamAtlasPromptManager(deliverableInventory, lifecycleScope, ::reloadAtlasPreviews)
     }
 
     private val streamPlayerLauncher = registerForActivityResult(
@@ -460,6 +460,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             atlasPreviewCoords = channelPreviewAtlasStore.coords()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
+    }
+
+    /**
+     * S1154: the channel-preview atlas just landed on disk (download finished, or it was installed from
+     * the Extensions Manager while this screen was in the background). The url->index map is read once
+     * at setup, so without this reload the freshly installed atlas would only start showing previews
+     * after the screen is reopened.
+     */
+    private suspend fun reloadAtlasPreviews() {
+        atlasSlicer.invalidate()
+        atlasPreviewCoords = channelPreviewAtlasStore.coords()
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
     }
 
     /**
@@ -1007,6 +1019,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (::controlsPlacement.isInitialized) {
             val landscape = newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
             controlsPlacement.applyForOrientation(landscape)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
+        // the background - pick it up on return instead of waiting for the next catalog import.
+        if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.atlasFile() != null) {
+            lifecycleScope.launch { reloadAtlasPreviews() }
         }
     }
 

@@ -5,6 +5,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,8 @@ import kotlinx.coroutines.launch
 class StreamAtlasPromptManager(
     private val inventory: DeliverableInventory,
     private val scope: CoroutineScope,
+    // Invoked once the payload is on disk, so the caller can pick it up without reopening the screen.
+    private val onAtlasInstalled: suspend () -> Unit = {},
 ) {
     // Latched while an offer is on screen (or was accepted) so a rapid re-import cannot stack Snackbars.
     private var offered = false
@@ -56,7 +59,13 @@ class StreamAtlasPromptManager(
     private fun startDownload(item: ExtensionItem.Module) {
         // Collecting drives the cold download Flow; progress itself is surfaced by the WorkManager tray
         // notification and the Extensions Manager row, so nothing extra is rendered here.
-        scope.launch { inventory.download(item).collect { } }
+        scope.launch {
+            inventory.download(item).collect { progress ->
+                // The grid caches the url->index map from screen setup, so an atlas that lands AFTER
+                // that read stayed unused until the screen was reopened (emulator run 2026-07-26).
+                if (progress == DownloadProgress.Installed) onAtlasInstalled()
+            }
+        }
     }
 
     private fun atlasItem(): ExtensionItem.Module? =
