@@ -119,8 +119,10 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
                 )
             )
             // Internet radio/HLS played through the background service must use the same HTTP factory
-            // as the in-app player: cross-protocol redirects + Icy-MetaData. Without it an Icecast/
-            // Shoutcast 30x across http<->https surfaces as a fatal "Response code: 301" source error.
+            // as the in-app player, for cross-protocol redirects: without it an Icecast/Shoutcast 30x
+            // across http<->https surfaces as a fatal "Response code: 301" source error. Note the
+            // shared factory also forces `Icy-MetaData: 0` - in-band track metadata is deliberately
+            // OFF on every consumer, not enabled here (see StreamDataSourceFactoryProvider, S1142).
             "http", "https" -> StreamDataSourceFactoryProvider.create(context)
             else -> null
         }

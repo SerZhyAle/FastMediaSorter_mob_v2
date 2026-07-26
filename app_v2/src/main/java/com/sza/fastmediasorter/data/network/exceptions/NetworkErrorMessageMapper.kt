@@ -74,10 +74,6 @@ object NetworkErrorMessageMapper {
         }
 
         val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP
-        if (!accessNote.isNullOrBlank() || companionResource) {
-            Timber.d("S1014: connection guidance shown for $resourceType, accessNote=${!accessNote.isNullOrBlank()}")
-        }
-
         val contextual: String? = when {
             // S1014: the companion knows its own network situation - prefer its guidance verbatim.
             !accessNote.isNullOrBlank() -> accessNote

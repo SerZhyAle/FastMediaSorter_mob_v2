@@ -390,11 +390,36 @@ data class AppSettings(
     val launcherReplaceSystemStatusArea: Boolean = false,
     // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
     // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
-    val launcherRotationHintShown: Boolean = false
+    val launcherRotationHintShown: Boolean = false,
+    // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
+    // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
+    val launcherDesktopLocked: Boolean = false,
+    // S1101: desktop wallpaper mode, one of [LAUNCHER_WALLPAPER_MODES]. Stored as a token (like
+    // [colorTheme]) so an unknown value from a newer build degrades to the branded default.
+    val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
+    // S1101: absolute path of the user image copied into app-private storage; empty unless
+    // [launcherWallpaperMode] is [LAUNCHER_WALLPAPER_IMAGE].
+    val launcherWallpaperImagePath: String = ""
 ) {
     companion object {
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
+
+        /** S1101: branded procedural waves-and-particles animation - the default desktop wallpaper. */
+        const val LAUNCHER_WALLPAPER_BRANDED = "BRANDED"
+
+        /** S1101: flat theme surface, the pre-S1101 look. */
+        const val LAUNCHER_WALLPAPER_NONE = "NONE"
+
+        /** S1101: user-picked still image or GIF, copied into app-private storage. */
+        const val LAUNCHER_WALLPAPER_IMAGE = "IMAGE"
+
+        /** S1101: wallpaper tokens in the order the settings row offers them. */
+        val LAUNCHER_WALLPAPER_MODES = listOf(
+            LAUNCHER_WALLPAPER_BRANDED,
+            LAUNCHER_WALLPAPER_NONE,
+            LAUNCHER_WALLPAPER_IMAGE,
+        )
     }
 
     /**

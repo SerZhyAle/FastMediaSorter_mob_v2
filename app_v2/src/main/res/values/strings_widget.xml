@@ -33,7 +33,7 @@
     <string name="widget_resource_not_configured">Tap to configure</string>
     <string name="widget_select_resource">Select Resource</string>
     <string name="widget_unlock_screen_prompt">Unlock the screen to add the widget</string>
-    <string name="settings_add_home_widget_title">Add widget to home screen..</string>
+    <string name="settings_add_home_widget_title">Add widget to the Android home screen..</string>
     <string name="widget_picker_dialog_title">Choose a widget</string>
     <!-- S0353 Scheduled Tasks widget -->
     <string name="widget_scheduled_tasks_label">Scheduled Tasks</string>

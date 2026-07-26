@@ -309,6 +309,9 @@
     <dimen name="settings_help_icon_size">24dp</dimen>
     <dimen name="settings_help_icon_margin">4dp</dimen>
     <dimen name="settings_nested_margin_start">24dp</dimen>
+    <!-- S1161: below this a settings group card stops fitting its own rows, so the multi-column
+         group layout falls back to one column regardless of the requested count. -->
+    <dimen name="settings_group_min_column_width">300dp</dimen>
     <dimen name="settings_spinner_min_width">120dp</dimen>
     <dimen name="settings_text_input_width">160dp</dimen>
     <!-- Fixed compact width for short-value dropdown selectors (Language, Color theme) so they do not stretch to fill the row. Sized to fit the longest localized value. -->
@@ -758,6 +761,9 @@
     <dimen name="stream_wait_label_text_size">14sp</dimen>
     <dimen name="stream_wait_label_margin_top">56dp</dimen>
     <dimen name="stream_wait_label_gap">8dp</dimen>
+    <!-- S1158: programme caption sits one line below the channel-name overlay, which starts at
+         layout_spacing_small; this is that offset plus the height of a single badge line. -->
+    <dimen name="stream_program_label_margin_top">36dp</dimen>
 
     <!-- In-place D-pad/TV focus outline (S0943): bold, rounded per owner. -->
     <dimen name="focus_decoration_stroke_width">3dp</dimen>

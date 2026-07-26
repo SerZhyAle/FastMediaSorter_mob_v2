@@ -86,7 +86,6 @@ class RecognitionBackend(
                 // file was detected - fall back to Tesseract for this operation. The loader already
                 // enqueued async uninstall of the partial set; re-download prompt fires on the next
                 // enable-time check via DeliveryEnableInterceptor.
-                Timber.d("S0461: recognizeText Tesseract fallback - Paddle payload partially missing")
                 Timber.i("OCR engines payload partially missing; falling back to Tesseract")
                 paddlePayloadMissing = true
             } else {
@@ -132,7 +131,6 @@ class RecognitionBackend(
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
-                Timber.d("S0461: recognizeAndTranslateBlocks Tesseract fallback - Paddle payload partially missing")
                 Timber.i("OCR engines payload partially missing; falling back to Tesseract for block recognition")
                 paddlePayloadMissing = true
             } else {
@@ -205,7 +203,6 @@ class RecognitionBackend(
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
-                Timber.d("S0461: recognizeTextBlocksForSelection Tesseract fallback - Paddle payload partially missing")
                 Timber.i("OCR engines payload partially missing; running Tesseract for word selection")
                 paddlePayloadMissing = true
             } else {

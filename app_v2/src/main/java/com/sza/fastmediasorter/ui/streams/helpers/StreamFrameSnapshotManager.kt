@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.SystemClock
 import android.view.TextureView
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
@@ -76,6 +77,12 @@ class StreamFrameSnapshotManager(
     private val pending = HashSet<String>()
     private val inFlight = mutableListOf<Job>()
 
+    // S1169: per-url exponential failure cooldown. A tile whose last capture failed is skipped until
+    // its next-eligible time, so a dead visible stream does not re-probe on every incidental rebind.
+    private val backoffLock = Any()
+    private val nextEligibleAt = HashMap<String, Long>()
+    private val consecutiveFailures = HashMap<String, Int>()
+
     /**
      * Enqueue a snapshot for [url]. Already-pending urls are always skipped; a still-fresh cached url is
      * skipped too unless [force] is set (an explicit pull-to-refresh re-captures even a fresh tile). The
@@ -89,11 +96,40 @@ class StreamFrameSnapshotManager(
         // MAX_CONCURRENT_CAPTURES (tried 2, then 1, identical crash). See [capture]'s layout-settle-delay
         // comment for the current experiment and S0700's 2026-07-03 19:05 audit for the failed attempts.
         if (!CAPTURE_ENABLED || (!force && cache.isFresh(url))) return
+        // S1169: an explicit force (pull-to-refresh) clears the cooldown; otherwise honour it.
+        if (force) {
+            synchronized(backoffLock) {
+                nextEligibleAt.remove(url)
+                consecutiveFailures.remove(url)
+            }
+        } else {
+            synchronized(backoffLock) {
+                val until = nextEligibleAt[url]
+                if (until != null && SystemClock.elapsedRealtime() < until) {
+                    return
+                }
+            }
+        }
         synchronized(pending) {
             if (!pending.add(url)) return
         }
         queue.add(url)
         scope.launch { drainOne() }
+    }
+
+    // S1169: update the per-url cooldown from a capture outcome - a failure extends the backoff, a
+    // success clears it so the tile refreshes normally again.
+    private fun recordCaptureOutcome(url: String, ok: Boolean) {
+        synchronized(backoffLock) {
+            if (ok) {
+                nextEligibleAt.remove(url)
+                consecutiveFailures.remove(url)
+            } else {
+                val count = (consecutiveFailures[url] ?: 0) + 1
+                consecutiveFailures[url] = count
+                nextEligibleAt[url] = SystemClock.elapsedRealtime() + backoffDelayMs(count)
+            }
+        }
     }
 
     /** Clear the queue and cancel in-flight captures (leaving GRID / on stop). */
@@ -116,6 +152,7 @@ class StreamFrameSnapshotManager(
             }
             val job = scope.launch {
                 val bitmap = capture(url)
+                recordCaptureOutcome(url, bitmap != null)
                 withContext(Dispatchers.Main) {
                     if (bitmap != null) onCaptured(url)
                     onOutcome(url, bitmap != null)
@@ -169,7 +206,6 @@ class StreamFrameSnapshotManager(
                 .setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory))
                 .build()
             player = built
-            Timber.d("S1125: grabber software-preferred decoder selector url=%s", url)
             built.volume = 0f
             built.setVideoTextureView(tv)
             built.addListener(object : Player.Listener {
@@ -244,6 +280,18 @@ class StreamFrameSnapshotManager(
         const val OFFSCREEN_TRANSLATION_PX = -10_000f
     }
 }
+
+// S1169: exponential backoff for a url's repeated capture failures. failures 1/2/3 -> 60s/120s/240s,
+// clamped at BACKOFF_CAP_MS (5 min). BACKOFF_MAX_SHIFT caps the shift so the Long never overflows.
+internal fun backoffDelayMs(consecutiveFailures: Int): Long {
+    if (consecutiveFailures <= 0) return 0L
+    val shift = (consecutiveFailures - 1).coerceAtMost(BACKOFF_MAX_SHIFT)
+    return (BACKOFF_BASE_MS shl shift).coerceAtMost(BACKOFF_CAP_MS)
+}
+
+private const val BACKOFF_BASE_MS = 60_000L
+private const val BACKOFF_CAP_MS = 300_000L
+private const val BACKOFF_MAX_SHIFT = 20
 
 /**
  * S1125: renderers factory that decodes video in software for the headless grabber, so a one-frame grab

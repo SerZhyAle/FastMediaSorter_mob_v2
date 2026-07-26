@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.graphics.drawable.Drawable
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -12,6 +14,7 @@ import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Settings manager for the "Add widget to home screen" action.
@@ -59,6 +62,11 @@ class HomeWidgetSettingsHelper(
                 formatter = object : ListSelectionAdapter.ItemFormatter<HomeWidgetEntry> {
                     override fun getDisplayName(item: HomeWidgetEntry): String =
                         context.getString(item.labelRes)
+
+                    // S1165: show the same glyph the widget carries on the home screen, so the row
+                    // is recognised by its picture rather than read.
+                    override fun getIcon(item: HomeWidgetEntry): Drawable? =
+                        ContextCompat.getDrawable(context, item.iconRes)
                 },
                 hasSelection = false,
                 isSelected = { false },

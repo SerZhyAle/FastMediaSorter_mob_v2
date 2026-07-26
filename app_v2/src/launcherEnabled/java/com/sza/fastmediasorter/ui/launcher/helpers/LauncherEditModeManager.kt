@@ -33,11 +33,19 @@ class LauncherEditModeManager(
 
     fun attach() {
         desktop.setOnDragListener(dragListener)
+        // S1090: long-press on empty desktop enters edit mode. The listener sits on the container, so a
+        // press that lands on a cell or an interactive gadget is consumed by that child first and never
+        // reaches here. While the desktop is locked the gesture is a silent no-op by owner's decision.
+        desktop.setOnLongClickListener {
+            Timber.d("S1090: desktop long-press, locked=%s", viewModel.desktopLocked.value)
+            if (viewModel.desktopLocked.value || viewModel.editMode.value) return@setOnLongClickListener false
+            viewModel.setEditMode(true)
+            true
+        }
         doneButton.setOnClickListener { viewModel.setEditMode(false) }
         // The Done affordance exists only while editing; the desktop stays clean otherwise.
         lifecycleOwner.collectOnLifecycle(viewModel.editMode) { editing ->
             doneButton.isVisible = editing
-            if (editing) Timber.d("S1096: edit mode on - cell taps suppressed by scrim")
         }
     }
 

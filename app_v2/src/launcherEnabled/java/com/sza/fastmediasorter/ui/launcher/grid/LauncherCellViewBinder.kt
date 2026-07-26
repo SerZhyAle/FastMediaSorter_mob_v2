@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.grid
 
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
@@ -28,6 +29,9 @@ class LauncherCellViewBinder(
     private val onEmptySlotClick: (row: Int, col: Int) -> Unit = { _, _ -> },
     private val onRemoveClick: (LauncherCellUi) -> Unit = {},
     private val onCellDragStart: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
+    // S0427: a resting shortcut cell's long press. Returns whether it was consumed, so a cell with
+    // nothing to expand keeps behaving like an ordinary un-long-pressable cell.
+    private val onCellLongPress: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
     private val onAttachResizeHandle: (handle: android.view.View, cellUi: LauncherCellUi) -> Unit = { _, _ -> },
 ) {
 
@@ -221,6 +225,7 @@ class LauncherCellViewBinder(
         bindModeBadge(binding, item.modeBadge)
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
+        binding.root.setOnLongClickListener { onCellLongPress(binding.root, item) }
         return binding.root
     }
 

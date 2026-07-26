@@ -153,6 +153,13 @@ class VideoPlayerManager(
          * full player UI renders it; other [PlayerCallback] impls keep the plain spinner.
          */
         fun onStreamWaitPhase(phase: StreamWaitPhase?) {}
+
+        /**
+         * S1158: name of the programme currently on air, taken from the stream's ICY metadata. `null`
+         * clears the caption. Default no-op - only the full player UI renders it, like
+         * [onStreamWaitPhase].
+         */
+        fun onStreamProgramName(name: String?) {}
     }
 
     /**
@@ -700,6 +707,9 @@ class VideoPlayerManager(
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
+        // S1158: every new file and every new channel passes through here, so this is the one point
+        // where the previously announced programme name is guaranteed to be stale.
+        playerCallback.onStreamProgramName(null)
         // S0893: remembered so onStart() can recreate playback after an API24+ onStop release.
         lastResourceType = resourceType
         lastCredentialsId = credentialsId

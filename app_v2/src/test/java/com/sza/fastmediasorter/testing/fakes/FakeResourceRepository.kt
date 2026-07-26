@@ -118,6 +118,15 @@ class FakeResourceRepository : ResourceRepository {
         publish()
     }
 
+    override suspend fun deleteResourceIfHidden(resourceId: Long) {
+        val resource = resources.firstOrNull { it.id == resourceId }
+        if (resource != null && resource.isHidden) {
+            deletedResourceIds.add(resourceId)
+            resources.removeAll { it.id == resourceId }
+            publish()
+        }
+    }
+
     override suspend fun deleteAllResources() {
         deleteAllCalled = true
         resources.clear()

@@ -348,6 +348,7 @@
                     android:id="@+id/headerAuthorization"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_google_account"
                     app:csh_title="@string/settings_category_authorization" />
 
                 <LinearLayout android:id="@+id/containerAuthorization" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
@@ -437,6 +438,7 @@
                     android:id="@+id/headerAppData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_cloud_upload"
                     app:csh_title="@string/settings_category_app_data" />
 
                 <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">

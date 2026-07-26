@@ -33,7 +33,11 @@ param(
     [string]$Description,
 
     [Parameter(Mandatory = $false)]
-    [string]$Branch = ""
+    [string]$Branch = "",
+
+    # Bypass the recent-duplicate guard (e.g. a genuine second identical-desc change).
+    [Parameter(Mandatory = $false)]
+    [switch]$AllowDuplicate
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,6 +86,25 @@ $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $safeFile = $FilePath -replace '\|', '\|'
 $safeTarget = $Target -replace '\|', '\|'
 $safeDesc = $Description -replace '\|', '\|'
+
+# Dedup guard: a retried post-change / facade re-run must not append an identical
+# entry. Compare the semantic signature (file | target | desc), ignoring the
+# timestamp and branch tag, against the most recent entries. Observed failure:
+# three identical S1181 rows within 6 min from repeated post-change runs.
+$signature = "``$safeFile`` | ``$safeTarget`` | $safeDesc "
+if (-not $AllowDuplicate) {
+    $dataRows = @(Get-Content -Path $logFile -Encoding UTF8 | Where-Object { $_ -match '^\|\s\d{4}-\d{2}-\d{2}' })
+    if ($dataRows.Count -gt 0) {
+        $windowStart = [Math]::Max(0, $dataRows.Count - 8)
+        $recent = $dataRows[$windowStart..($dataRows.Count - 1)]
+        foreach ($row in $recent) {
+            if ($row.Contains($signature)) {
+                Write-Host "[DEV_LOG] SKIP duplicate (identical to a recent entry): $safeFile | $safeTarget | $safeDesc" -ForegroundColor Yellow
+                exit 0
+            }
+        }
+    }
+}
 
 # Append entry
 $branchTag = "[branch: $Branch]"

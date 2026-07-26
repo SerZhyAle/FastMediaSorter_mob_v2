@@ -2,10 +2,11 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.util.Rational
 import android.util.Size
-import android.view.Surface
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExtendableBuilder
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCase
@@ -17,6 +18,7 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 
 /** Builds the CameraX use-case group while keeping output geometry in one place. */
 internal class CameraUseCaseFactory(
@@ -24,11 +26,25 @@ internal class CameraUseCaseFactory(
     private val selectedAspectRatio: Int?,
     private val selectedResolution: Size?,
     private val targetRotation: Int,
+    /**
+     * S1189: names one physical lens inside the selected logical camera. Applied to preview and
+     * image capture together or not at all - a preview on the ultra-wide and a capture on the main
+     * lens would break WYSIWYG. Null in video mode, because the video pipeline is built through
+     * `VideoCapture.withOutput` and offers no builder to carry the id.
+     */
+    private val physicalCameraId: String? = null,
+    /**
+     * S1189: the chosen photo size only exists in the sensor's high-resolution set, so image capture
+     * must be allowed to trade capture rate for resolution. Never applied to the preview - a preview
+     * stream at sensor resolution is neither needed nor cheap.
+     */
+    private val preferHighResolution: Boolean = false,
 ) {
 
     fun create(previewView: PreviewView): CameraUseCases {
         val preview = Preview.Builder()
-            .setResolutionSelector(buildResolutionSelector())
+            .setResolutionSelector(buildResolutionSelector(allowHighResolution = false))
+            .applyPhysicalCameraId()
             .build()
             .also {
                 it.surfaceProvider = previewView.surfaceProvider
@@ -38,7 +54,8 @@ internal class CameraUseCaseFactory(
             null
         } else {
             ImageCapture.Builder()
-                .setResolutionSelector(buildResolutionSelector())
+                .setResolutionSelector(buildResolutionSelector(preferHighResolution))
+                .applyPhysicalCameraId()
                 .build()
                 .also { it.targetRotation = targetRotation }
         }
@@ -60,12 +77,26 @@ internal class CameraUseCaseFactory(
         return CameraUseCases(preview, imageCapture, videoCapture, group)
     }
 
-    private fun buildResolutionSelector(): ResolutionSelector {
+    /**
+     * S1189: no-op unless a physical lens was chosen and the pipeline can carry it, so a device
+     * without sub-lens support builds exactly the use cases it built before.
+     */
+    private fun <T, B : ExtendableBuilder<T>> B.applyPhysicalCameraId(): B {
+        val id = physicalCameraId
+        if (id == null || videoMode) return this
+        Camera2Interop.Extender(this).setPhysicalCameraId(id)
+        return this
+    }
+
+    private fun buildResolutionSelector(allowHighResolution: Boolean): ResolutionSelector {
         val aspect = effectiveAspectRatioInt()
         val builder = ResolutionSelector.Builder()
             .setAspectRatioStrategy(
                 AspectRatioStrategy(aspect, AspectRatioStrategy.FALLBACK_RULE_AUTO),
             )
+        if (allowHighResolution) {
+            builder.setAllowedResolutionMode(ResolutionSelector.PREFER_HIGHER_RESOLUTION_OVER_CAPTURE_RATE)
+        }
         selectedResolution?.takeIf { resolutionMatchesAspect(it, aspect) }?.let {
             builder.setResolutionStrategy(
                 ResolutionStrategy(it, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
@@ -92,6 +123,12 @@ internal class CameraUseCaseFactory(
             CameraSelector.Builder()
                 .addCameraFilter { infos -> infos.filter { it == info } }
                 .build()
+
+        /**
+         * S1189: a lens entry always binds its LOGICAL camera - a physical sub-lens is not
+         * selectable on its own, it is named on the use-case builders instead.
+         */
+        fun selectorFor(entry: CameraLensEntry): CameraSelector = selectorFor(entry.cameraInfo)
 
         private val RATIONAL_4_3 = Rational(4, 3)
         private val RATIONAL_16_9 = Rational(16, 9)

@@ -31,8 +31,10 @@
       0  PASS - no new findings, or none in -ChangedFiles, or non-gate mode.
       1  FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).
       2  Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
-         detekt.xml is absent/unparseable so the failure cannot be narrowed. Never a PASS:
-         "could not check" is a different fact from "checked and found nothing".
+         detekt.xml is absent/unparseable/older than the changed files, so the failure cannot
+         be narrowed. Never a PASS: "could not check" is a different fact from "checked and
+         found nothing". S1189 added the staleness case, which used to be narrowed silently
+         against a previous run's report.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-detekt.ps1
@@ -63,19 +65,30 @@ if (-not (Test-Path $gradlew)) {
 }
 
 . (Join-Path $repoRoot "scripts/quality/lib/detekt-report.ps1")
+. (Join-Path $repoRoot "scripts/quality/lib/changed-files.ps1")
 
+$reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 . (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
 Enter-BuildLockOrExit -Reason $lockReason
 
 Push-Location $repoRoot
 try {
-    $tasks = if ($PSBoundParameters.ContainsKey('Module')) {
-        @(":${Module}:detekt")
-    }
-    else {
-        @(':app_v2:detekt', ':wear:detekt')
-    }
+    # S1191: the @(...) MUST wrap the whole if-expression. A single-element array returned from an
+    # if-expression collapses to a scalar String, and `& $gradlew @tasks` then splats that string one
+    # CHARACTER per argument - gradle receives ':' as its first task path and fails with
+    # "Cannot locate tasks that match ':'" before writing any report. Only the -Module path was
+    # affected (the two-task branch stays a real array), which is why detekt silently stopped running
+    # for post-change.ps1 while a bare run looked fine.
+    $tasks = @(
+        if ($PSBoundParameters.ContainsKey('Module')) {
+            ":${Module}:detekt"
+        }
+        else {
+            ':app_v2:detekt'
+            ':wear:detekt'
+        }
+    )
 
     $scopeLabel = if ($PSBoundParameters.ContainsKey('Module')) {
         $Module
@@ -86,6 +99,14 @@ try {
 
     $output = & $gradlew @tasks 2>&1
     $exit = $LASTEXITCODE
+    # S1189: remember when each report was written, so a failure that never reached the report
+    # writer can be told apart from a real finding. Without this the caller narrows a fresh
+    # failure against a stale report and blames whichever file happened to be in yesterday's run.
+    $reportStamps = @{}
+    foreach ($m in $reportModules) {
+        $rp = Join-Path $repoRoot "$m/build/reports/detekt/detekt.xml"
+        $reportStamps[$m] = if (Test-Path $rp) { (Get-Item $rp).LastWriteTimeUtc } else { $null }
+    }
 }
 finally {
     Pop-Location
@@ -105,7 +126,29 @@ if ($exit -eq 0) {
 # old findings everywhere, so any file in the report is a genuinely-new finding; a file
 # outside the changed set is another ticket's in-flight WIP, not this change.
 if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
-    $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
+    # S1189: a report older than the newest changed file describes a different tree. Narrowing
+    # against it attributes an unrelated file's old findings to this change (and, worse, would
+    # report PASS for a change whose findings the stale report cannot contain). Same fail-closed
+    # rule as S1077: "could not check" is not "checked and found nothing".
+    $newestChange = ($ChangedFiles |
+        ForEach-Object { $_ -split ',' } |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -and (Test-Path $_) } |
+        ForEach-Object { (Get-Item $_).LastWriteTimeUtc } |
+        Measure-Object -Maximum).Maximum
+    $staleModules = @($reportModules | Where-Object {
+            $stamp = $reportStamps[$_]
+            $null -eq $stamp -or ($newestChange -and $stamp -lt $newestChange)
+        })
+    if ($staleModules.Count -gt 0) {
+        Write-Host "assert-detekt: detekt FAILED without refreshing the report for: $($staleModules -join ', ')" -ForegroundColor Red
+        Write-Host 'Raw gradle output (the failure happened before detekt wrote its findings):' -ForegroundColor Yellow
+        $output | Select-Object -Last 40 | ForEach-Object { Write-Host "  $_" }
+        $why = 'assert-detekt: cannot narrow - the detekt report predates the changed files, so it ' +
+        'describes a different tree. Fix the gradle failure above, then re-run.'
+        Write-Error $why -ErrorAction Continue
+        exit 2
+    }
     $report = Get-DetektFindingFiles -RepoRoot $repoRoot -Modules $reportModules
     # S1077: fail closed. detekt has already FAILED to reach this point, so an unreadable report means
     # the narrowing cannot be done - and "could not check" must never be reported as "clean". This used
@@ -118,15 +161,9 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         exit 2
     }
     $findingFiles = $report.Files
-    $normChanged = $ChangedFiles |
-        ForEach-Object { (([string]$_) -replace '\\', '/').Trim().Trim('.', '/').ToLower() } |
-        Where-Object { $_ }
-    $mine = $findingFiles | Where-Object {
-        $ff = $_
-        $matched = $false
-        foreach ($cf in $normChanged) { if ($ff -like "*$cf*") { $matched = $true; break } }
-        $matched
-    }
+    # S1184: Select-ChangedFileFindings splits a comma-joined -ChangedFiles (pwsh -File binds a CSV
+    # as one element) so a multi-file scope matches file-by-file, not as one bogus path.
+    $mine = Select-ChangedFileFindings -FindingFiles $findingFiles -ChangedFiles $ChangedFiles
     if (@($mine).Count -eq 0) {
         Write-Host "assert-detekt: PASS [scoped] - $(@($findingFiles).Count) file(s) with new findings project-wide, none among changed files." -ForegroundColor Green
         exit 0

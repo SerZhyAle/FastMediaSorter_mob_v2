@@ -10,10 +10,8 @@ import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1088: owns the System-launcher entry in General -> Interface: the enable toggle (reflects the HOME
@@ -21,9 +19,9 @@ import timber.log.Timber
  * [LauncherSettingsDialogFragment] for the launcher's own settings. The whole pair is hidden when the
  * build has no launcher surface ([LauncherModeContract.isAvailableInBuild]).
  *
- * S1107: this General screen also receives the onboarding "use as home" deep-link and issues the HOME-role
- * request itself (the finishing Welcome frame cannot). The request is deferred past the first-run
- * recreation storm so it fires from a storm-surviving instance - see [handleLauncherRoleDeepLink].
+ * S1107: this General screen also issues the HOME-role request left pending by onboarding (the finishing
+ * Welcome frame cannot present it). The request is deferred past the first-run recreation storm so it
+ * fires from a surviving instance - see [handleLauncherRoleDeepLink].
  */
 class GeneralSettingsLauncherHelper(
     private val binding: FragmentSettingsGeneralBinding,
@@ -72,31 +70,27 @@ class GeneralSettingsLauncherHelper(
     }
 
     /**
-     * S1107: onboarding opt-in ("use as home screen") routes here from the finishing Welcome frame via the
-     * first-run Settings deep-link. Completing onboarding rebuilds MainActivity+SettingsActivity while
-     * first-run theme/locale re-application recreates this Activity several times (onCreate/onDestroy
-     * storm). Firing enableMode() from a doomed instance makes the system RequestRoleActivity resolve a
-     * null caller - that instance is torn down ~86ms after launch, before the caller package is read - so
-     * the HOME-role dialog never presents (device-verified 2026-07-18).
+     * S1107: onboarding opt-in ("use as home screen") routes here - the finishing Welcome frame cannot
+     * present the role dialog itself (ADR-2), so this non-finishing screen issues it.
      *
-     * Fix: defer the request past the storm on the view lifecycle. A destroyed instance cancels its
-     * viewLifecycleScope, so every doomed instance's pending request is dropped and only the settled
-     * survivor fires - its Activity outlives the caller resolution. The intent extra is consumed only when
-     * the request actually fires, so recreated instances keep re-arming until one wins (and it never
-     * re-fires afterwards). Consumed-once on the surviving instance also covers later rotations.
+     * Two hazards, handled separately. Firing from an instance that is about to be destroyed makes the
+     * system RequestRoleActivity resolve a null caller (device-verified 2026-07-18), which the settle delay
+     * below avoids: a destroyed instance cancels its viewLifecycleScope, so only a survivor fires. And the
+     * signal itself must not be carried by the Activity intent - four device runs lost it in four different
+     * places - so it lives in [LauncherRoleManager] as a durable flag, cleared by the dialog's verdict
+     * rather than by the act of launching it. An attempt that dies before the dialog appears therefore
+     * retries on the next stable screen instead of vanishing, bounded by the manager's attempt cap.
      */
     fun handleLauncherRoleDeepLink() {
         if (!launcherModeContract.isAvailableInBuild) return
         if (roleRequestScheduled) return
-        val host = fragment.activity ?: return
-        if (!host.intent.getBooleanExtra(SettingsActivity.EXTRA_REQUEST_LAUNCHER_ROLE, false)) return
+        if (!launcherRoleManager.isRoleRequestPending()) return
         roleRequestScheduled = true
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             delay(STORM_SETTLE_DELAY_MS)
             val settledHost = fragment.activity ?: return@launch
             if (settledHost.isFinishing || settledHost.isDestroyed) return@launch
-            Timber.d("S1107: deferred HOME-role request firing from settled Settings instance")
-            settledHost.intent.removeExtra(SettingsActivity.EXTRA_REQUEST_LAUNCHER_ROLE)
+            launcherRoleManager.recordRoleRequestAttempt()
             launcherRoleManager.enableMode(settledHost, launcherRoleLauncher)
             revealEnableToggle()
         }

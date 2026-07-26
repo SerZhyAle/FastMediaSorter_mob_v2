@@ -215,6 +215,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
             booleanPreferencesKey("launcher_replace_system_status_area")
         private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
+        private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
+        private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
+        private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
 
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
@@ -565,6 +568,12 @@ class SettingsRepositoryImpl @Inject constructor(
                     launcherReplaceSystemStatusArea =
                         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
                     launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
+                    launcherDesktopLocked = preferences[KEY_LAUNCHER_DESKTOP_LOCKED] ?: false,
+                    // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
+                    launcherWallpaperMode = preferences[KEY_LAUNCHER_WALLPAPER_MODE]
+                        ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
+                        ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
+                    launcherWallpaperImagePath = preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] ?: "",
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -775,6 +784,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
             preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
             preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
+            preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
+            preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
+            preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name

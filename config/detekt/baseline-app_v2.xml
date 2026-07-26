@@ -3317,6 +3317,7 @@
     <ID>LargeClass:SmbMediaScanner.kt$SmbMediaScanner : MediaScanner</ID>
     <ID>LargeClass:SmbOperationStrategy.kt$SmbOperationStrategy : FileOperationStrategy</ID>
     <ID>LargeClass:StandalonePlayerActivity.kt$StandalonePlayerActivity : BaseActivityPlayerHostCapabilities</ID>
+    <ID>LargeClass:StreamsActivity.kt$StreamsActivity : BaseActivity</ID>
     <ID>LargeClass:TextViewerManager.kt$TextViewerManager</ID>
     <ID>LongMethod:AdapterThumbnailLoader.kt$AdapterThumbnailLoader$private fun loadImage( imageView: ImageView, file: MediaFile, context: Context, isNetworkPath: Boolean, isCloudPath: Boolean, generatedPlaceholder: BitmapDrawable, isScrolling: Boolean )</ID>
     <ID>LongMethod:AdapterThumbnailLoader.kt$AdapterThumbnailLoader$private fun loadVideo( imageView: ImageView, file: MediaFile, context: Context, isNetworkPath: Boolean, isCloudPath: Boolean, generatedPlaceholder: BitmapDrawable, isListMode: Boolean, isScrolling: Boolean )</ID>
@@ -3458,6 +3459,7 @@
     <ID>LongMethod:SftpMediaScanner.kt$SftpMediaScanner$override suspend fun scanFolder( path: String, supportedTypes: Set&lt;MediaType&gt;, sizeFilter: SizeFilter?, credentialsId: String?, scanSubdirectories: Boolean, showHiddenFiles: Boolean, onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback? ): List&lt;MediaFile&gt;</ID>
     <ID>LongMethod:SftpMediaScanner.kt$SftpMediaScanner$override suspend fun scanFolderPaged( path: String, supportedTypes: Set&lt;MediaType&gt;, sizeFilter: SizeFilter?, offset: Int, limit: Int, credentialsId: String?, scanSubdirectories: Boolean, showHiddenFiles: Boolean ): MediaFilePage</ID>
     <ID>LongMethod:SmbConnectionManager.kt$SmbConnectionManager$suspend fun &lt;T&gt; withConnection( connectionInfo: SmbConnectionInfo, allowRetry: Boolean = true, block: suspend (DiskShare) -&gt; SmbResult&lt;T&gt; ): SmbResult&lt;T&gt;</ID>
+    <ID>LongMethod:StreamsActivity.kt$StreamsActivity$override fun setupViews()</ID>
     <ID>LongMethod:SmbDataSource.kt$SmbDataSource$private fun openInternal(dataSpec: DataSpec): Long</ID>
     <ID>LongMethod:SmbDataSource.kt$SmbDataSource$private fun readInternal(buffer: ByteArray, offset: Int, length: Int): Int</ID>
     <ID>LongMethod:SmbMediaScanner.kt$SmbMediaScanner$override suspend fun listDirectoryContents( path: String, supportedTypes: Set&lt;MediaType&gt;, sizeFilter: SizeFilter?, credentialsId: String?, showHiddenFiles: Boolean ): List&lt;MediaFile&gt;</ID>
@@ -10023,10 +10025,6 @@
     <ID>ReturnCount:CameraCaptureFlowManager.kt$CameraCaptureFlowManager$private fun resolveLegacyOutputFile(): File?</ID>
     <ID>ReturnCount:CameraCaptureGestureManager.kt$CameraCaptureGestureManager.&lt;no name provided&gt;$override fun onFling( e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float, ): Boolean</ID>
     <ID>ReturnCount:CameraCaptureSaver.kt$CameraCaptureSaver$private suspend fun maybeCopyToClipboard(tempFile: File, name: String): Boolean</ID>
-    <ID>ReturnCount:CameraCaptureSessionManager.kt$CameraCaptureSessionManager$@SuppressLint("MissingPermission") fun applyMode(videoMode: Boolean)</ID>
-    <ID>ReturnCount:CameraCaptureSessionManager.kt$CameraCaptureSessionManager$@SuppressLint("MissingPermission") fun applyNightMode(enabled: Boolean)</ID>
-    <ID>ReturnCount:CameraCaptureSessionManager.kt$CameraCaptureSessionManager$@SuppressLint("MissingPermission") fun switchCamera()</ID>
-    <ID>ReturnCount:CameraCaptureSessionManager.kt$CameraCaptureSessionManager$fun startFocusAndMetering(x: Float, y: Float)</ID>
     <ID>ReturnCount:CameraLaunchWidgetManager.kt$CameraLaunchWidgetManager$private fun prepareAndLaunch(photoAvailable: Boolean, videoAvailable: Boolean)</ID>
     <ID>ReturnCount:CameraOcrFlowManager.kt$CameraOcrFlowManager$private fun launchCaptureInternal()</ID>
     <ID>ReturnCount:CameraQuickCaptureLaunchManager.kt$CameraQuickCaptureLaunchManager$private fun launchCaptureIntent()</ID>
@@ -10563,6 +10561,7 @@
     <ID>ReturnCount:StreamingManifestSniffer.kt$StreamingManifestSniffer$private fun addIfManifest(out: MutableList&lt;HtmlMediaCandidate&gt;, raw: String?)</ID>
     <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun onPlay(source: StreamSourceEntity)</ID>
     <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun tryRestoreScroll(itemCount: Int)</ID>
+    <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun visibleInSection( recyclerView: RecyclerView, list: List&lt;StreamSourceEntity&gt;, ): List&lt;StreamSourceEntity&gt;</ID>
     <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun visibleSources(): List&lt;StreamSourceEntity&gt;</ID>
     <ID>ReturnCount:StructuredMediaSniffer.kt$StructuredMediaSniffer$fun sniffInstagramApiResponse(json: String, baseUri: String): List&lt;HtmlMediaCandidate&gt;</ID>
     <ID>ReturnCount:StructuredMediaSniffer.kt$StructuredMediaSniffer$private fun collectJsonObjects(payload: String): List&lt;JSONObject&gt;</ID>

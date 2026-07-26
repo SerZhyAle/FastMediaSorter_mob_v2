@@ -22,7 +22,9 @@ import javax.inject.Inject
 import timber.log.Timber
 
 @AndroidEntryPoint
-class MediaSettingsFragment : Fragment() {
+// S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
+// settings tab gets the landscape columns rather than only Management.
+class MediaSettingsFragment : BaseSettingsFragment() {
 
     /**
      * S0249 Phase 04: optional VR media section. Provided as `NoOpVrMediaSectionContract` on

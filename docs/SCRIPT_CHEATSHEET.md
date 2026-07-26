@@ -110,10 +110,11 @@ Appends a structured entry to the development changelog (dev/CHANGELOG.md).
 scripts/add_to_dev_log.ps1
   Appends a structured entry to the development changelog (dev/CHANGELOG.md).
   Params:
-    -FilePath     (req)  [String]
-    -Target       (req)  [String]
-    -Description  (req)  [String]
-    -Branch              [String] = ""
+    -FilePath        (req)  [String]
+    -Target          (req)  [String]
+    -Description     (req)  [String]
+    -Branch                 [String] = ""
+    -AllowDuplicate         [SwitchParameter]
 ```
 
 ### add_to_functionality_log.ps1
@@ -611,7 +612,7 @@ scripts/builders/build-wear-release.PS1
 scripts/builders/check-standard-fast.ps1
   Params:
     -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|Assemble}
-    -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy}
+    -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
     -Tests          [String]
     -Quiet          [SwitchParameter]
 ```
@@ -1224,6 +1225,17 @@ scripts/layout-dimen-migration/sort-resources-semantic.ps1
 
 ## scripts\quality
 
+### assert-16kb-alignment.ps1
+
+```
+scripts/quality/assert-16kb-alignment.ps1
+  Params:
+    -ScanRoot         [String[]]
+    -Readelf          [String]
+    -MinAlign         [Int32] = 16384
+  Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
+```
+
 ### assert-allfeatures-sync.ps1
 
 ```
@@ -1273,6 +1285,16 @@ scripts/quality/assert-dialog-cancel-style.ps1
 scripts/quality/assert-doc-icons-sync.ps1
   Params:
     -Gate         [SwitchParameter]
+```
+
+### assert-doc-pin-drift.ps1
+
+```
+scripts/quality/assert-doc-pin-drift.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - no drift (doc pins match Gradle).; 1 - drift found (FAIL / INCONSISTENT / MISSING), or the underlying checker could
 ```
 
 ### assert-em-dash.ps1
@@ -1577,6 +1599,27 @@ scripts/quality/measure-hotspots.ps1
     -Top           [Int32] = 15
 ```
 
+### reindex-settings.ps1
+Mandatory pre-release settings reindex - regenerate the settings search index mirror, then verify it is consistent with the app.
+
+```
+scripts/quality/reindex-settings.ps1
+  Mandatory pre-release settings reindex - regenerate the settings search index mirror, then verify it is consistent with the app.
+  Params:
+    -DryRun           [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - already fresh: nothing regenerated, verify gate green. Shippable.; 2 - drift regenerated: manifest/reference changed and are now fresh, but the
+```
+
+## scripts\quality.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality.tests/Run-Tests.ps1
+  (no param block)
+```
+
 ## scripts\quality\assert-detekt.tests
 
 ### Run-Tests.ps1
@@ -1610,6 +1653,13 @@ scripts/quality/lib/android-string-format.ps1
 
 ```
 scripts/quality/lib/changed-files-delta.ps1
+  (no param block)
+```
+
+### changed-files.ps1
+
+```
+scripts/quality/lib/changed-files.ps1
   (no param block)
 ```
 
@@ -2016,41 +2066,52 @@ scripts/spec_catalog/preview.tests/Run-Tests.ps1
 ```
 scripts/streams/collect-stream-candidates.ps1
   Params:
-    -Axis                            [String[]] = @('livetv', 'genres', 'geo', 'webcam')  {livetv|genres|geo|webcam}
-    -PerQuery                        [Int32] = 20
-    -LivenessTimeoutSec              [Int32] = 12
-    -Throttle                        [Int32] = 12
-    -SkipLiveness                    [SwitchParameter]
-    -SkipDeepSignal                  [SwitchParameter]
-    -PreviewOnly                     [SwitchParameter]
-    -CatalogOnly                     [SwitchParameter]
-    -PruneDead                       [SwitchParameter]
-    -Publish                         [SwitchParameter]
-    -PublishTag                      [String] = 'delivery-so-v1'
-    -AllowFaviconlessPublish         [SwitchParameter]
-    -WithFavicons                    [SwitchParameter]
-    -FaviconS2Fallback               [SwitchParameter] = $true
-    -AtlasPath                       [String] = 'delivery/stream-catalog/favicon-atlas.png'
-    -FaviconTimeoutSec               [Int32] = 8
-    -FaviconThrottle                 [Int32] = 16
-    -MaxAtlasBytes                   [Int32] = 3145728
-    -DeepSignal                      [SwitchParameter]
-    -Limit                           [Int32] = 0
-    -SignalBytes                     [Int32] = 16384
-    -SignalMinBytes                  [Int32] = 2048
-    -SignalTimeoutSec                [Int32] = 8
-    -ExistingCsv                     [String] = 'delivery/stream-catalog/streams.csv'
-    -OutDir                          [String] = 'temp'
-    -CatalogLivenessReport           [String] = 'temp/stream-catalog-liveness.csv'
-    -PruneStatuses                   [String[]] = @('dead')
-    -GenreTags                       [String[]] = @(
+    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam}
+    -PerQuery                         [Int32] = 20
+    -LivenessTimeoutSec               [Int32] = 12
+    -Throttle                         [Int32] = 12
+    -SkipLiveness                     [SwitchParameter]
+    -SkipDeepSignal                   [SwitchParameter]
+    -PreviewOnly                      [SwitchParameter]
+    -CatalogOnly                      [SwitchParameter]
+    -PruneDead                        [SwitchParameter]
+    -Publish                          [SwitchParameter]
+    -PublishTag                       [String] = 'delivery-so-v1'
+    -AllowFaviconlessPublish          [SwitchParameter]
+    -WithFavicons                     [SwitchParameter]
+    -FaviconS2Fallback                [SwitchParameter] = $true
+    -FaviconS2Only                    [SwitchParameter]
+    -AtlasPath                        [String] = 'delivery/stream-catalog/favicon-atlas.png'
+    -FaviconTimeoutSec                [Int32] = 8
+    -FaviconThrottle                  [Int32] = 16
+    -WithChannelPreviews              [SwitchParameter]
+    -PublishPreviewAtlas              [SwitchParameter]
+    -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'
+    -PreviewCoordsPath                [String] = 'temp/channel-preview-coords.json'
+    -PreviewFrameDir                  [String] = 'temp/channel-preview-frames'
+    -RefreshPreviewFrames             [SwitchParameter]
+    -PreviewCaptureTimeoutSec         [Int32] = 20
+    -PreviewThrottle                  [Int32] = 12
+    -PreviewLimit                     [Int32] = 0
+    -FfmpegPath                       [String] = ''
+    -MaxAtlasBytes                    [Int32] = 31457280
+    -DeepSignal                       [SwitchParameter]
+    -Limit                            [Int32] = 0
+    -SignalBytes                      [Int32] = 16384
+    -SignalMinBytes                   [Int32] = 2048
+    -SignalTimeoutSec                 [Int32] = 8
+    -ExistingCsv                      [String] = 'delivery/stream-catalog/streams.csv'
+    -OutDir                           [String] = 'temp'
+    -CatalogLivenessReport            [String] = 'temp/stream-catalog-liveness.csv'
+    -PruneStatuses                    [String[]] = @('dead')
+    -GenreTags                        [String[]] = @(
         'sports', 'hip-hop', 'rap', 'country', 'metal', 'folk', 'children', 'kids',
         'talk', 'comedy', 'blues', 'latin', 'gospel', 'punk', 'soul', 'funk'
     )
-    -GeoCountries                    [String[]] = @(
+    -GeoCountries                     [String[]] = @(
         'JP', 'KR', 'BR', 'MX', 'IN', 'AR', 'TR', 'ZA', 'NG', 'PL', 'SE', 'ID', 'TH', 'EG', 'SA'
     )
-    -LiveTvCategories                [String[]] = @(
+    -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
 ```

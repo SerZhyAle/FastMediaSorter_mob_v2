@@ -88,6 +88,22 @@ class StreamSourceAdapter(
         holder.bind(getItem(position), getItem(position).id == playingId)
     }
 
+    // S1169: a status- or pin-only change repaints just that affordance - no favicon re-decode or
+    // overflow-menu rebuild. Empty payloads fall through to the full bind.
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+            return
+        }
+        val item = getItem(position)
+        payloads.forEach { payload ->
+            when (payload) {
+                StreamAdapterPayloads.STATUS -> holder.bindStatusOnly(item.lastPlayOutcome)
+                StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
+            }
+        }
+    }
+
     override fun onViewRecycled(holder: VH) {
         // S0587/S0579: a recycled row must not keep spinning - cancel its rotation animator.
         holder.stopPlaybackAnimation()
@@ -261,6 +277,11 @@ class StreamSourceAdapter(
             binding.tvFaviconFlag.visibility = View.VISIBLE
         }
 
+        // S1169: partial-rebind entry points used by the payload path - repaint one affordance only.
+        fun bindStatusOnly(outcome: String?) = bindPlayStatus(outcome)
+
+        fun bindPinOnly(pinned: Boolean) = bindPinState(pinned)
+
         /**
          * S0593: local play-status bullet. Shape AND colour both encode the state (TalkBack reads the
          * contentDescription), so the meaning survives colour-blindness and greyscale: a hollow ring =
@@ -359,6 +380,10 @@ class StreamSourceAdapter(
 
             override fun areContentsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =
                 oldItem == newItem
+
+            // S1169: narrow a status- or pin-only change to a payload so the row does not full-rebind.
+            override fun getChangePayload(oldItem: StreamSourceEntity, newItem: StreamSourceEntity): Any? =
+                streamRowChangePayload(oldItem, newItem)
         }
     }
 }

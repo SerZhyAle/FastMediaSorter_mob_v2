@@ -5,6 +5,7 @@ import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
@@ -87,6 +88,60 @@ class LauncherRoleManager @Inject constructor(
         setComponentEnabled(component, enabled = true)
     }
 
+    /**
+     * S1107: records that onboarding asked for the HOME role, so the first-run Settings screen can issue
+     * the request from its non-finishing context.
+     *
+     * The intent that carries the user to Settings used to be the only carrier of this signal, and it kept
+     * getting lost: the first-run screen is recreated several times while theme and locale are applied, and
+     * whichever instance consumed the extra could be torn down before the system resolved it - four
+     * device runs, four different points of loss. A durable flag has no ordering to get wrong. It also
+     * survives process death and a user who backs out of Settings and returns later.
+     */
+    fun markRoleRequestPending() {
+        prefs().edit()
+            .putBoolean(KEY_ROLE_REQUEST_PENDING, true)
+            .putInt(KEY_ROLE_REQUEST_ATTEMPTS, 0)
+            .apply()
+    }
+
+    /**
+     * True while the onboarding request still needs to be issued. Already holding the role settles it, and
+     * so does exhausting [MAX_ROLE_REQUEST_ATTEMPTS] - on devices where the dialog cannot present at all
+     * (some emulators never launch it) retrying on every onResume would loop forever.
+     */
+    fun isRoleRequestPending(): Boolean {
+        val prefs = prefs()
+        if (!prefs.getBoolean(KEY_ROLE_REQUEST_PENDING, false)) return false
+        val roleHeld = isHomeRoleHeld()
+        // Already ours - drop the flag so later visits to Settings skip this check entirely.
+        if (roleHeld) clearRoleRequestPending()
+        return !roleHeld && prefs.getInt(KEY_ROLE_REQUEST_ATTEMPTS, 0) < MAX_ROLE_REQUEST_ATTEMPTS
+    }
+
+    /**
+     * Counts one issued request. Deliberately NOT the same as clearing: an attempt that dies before the
+     * system dialog appears leaves the flag set, so the next stable screen retries instead of silently
+     * dropping the user's opt-in. [clearRoleRequestPending] is what ends the cycle, and it runs once the
+     * dialog has actually returned a result.
+     */
+    fun recordRoleRequestAttempt() {
+        val prefs = prefs()
+        val attempts = prefs.getInt(KEY_ROLE_REQUEST_ATTEMPTS, 0)
+        prefs.edit().putInt(KEY_ROLE_REQUEST_ATTEMPTS, attempts + 1).apply()
+    }
+
+    /** Ends the onboarding request cycle: the dialog returned a verdict, or the role is already ours. */
+    fun clearRoleRequestPending() {
+        prefs().edit()
+            .remove(KEY_ROLE_REQUEST_PENDING)
+            .remove(KEY_ROLE_REQUEST_ATTEMPTS)
+            .apply()
+    }
+
+    private fun prefs(): SharedPreferences =
+        context.getSharedPreferences(PREFS_LAUNCHER_ROLE, Context.MODE_PRIVATE)
+
     /** Opens the system home-screen chooser - the only place the role can be reassigned. */
     fun openHomeChooser(activity: Activity) {
         val homeSettings = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -125,4 +180,14 @@ class LauncherRoleManager @Inject constructor(
 
     private fun homeIntent(): Intent =
         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+
+    private companion object {
+        const val PREFS_LAUNCHER_ROLE = "launcher_role_prefs"
+        const val KEY_ROLE_REQUEST_PENDING = "onboarding_role_request_pending"
+        const val KEY_ROLE_REQUEST_ATTEMPTS = "onboarding_role_request_attempts"
+
+        // Three stable screens' worth of retries. Enough to outlast the first-run recreation burst on a
+        // slow device, few enough that a device which never presents the dialog stops being pestered.
+        const val MAX_ROLE_REQUEST_ATTEMPTS = 3
+    }
 }

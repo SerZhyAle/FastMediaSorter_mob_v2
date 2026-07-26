@@ -6,12 +6,15 @@
 - [Timestamp every message](feedback_timestamp_in_chat.md) [HH:MM:SS] · [Writing style](feedback_writing_style.md) `..`/hyphen/ё (docs+UI only)
 - [Finish mechanical follow-ups](feedback_finish_mechanical_followups_in_context.md) - don't park a scoped mechanical tail · [Skill aliases](feedback_skill_aliases.md) - explicit table, no invented letters
 - [Universal Agent Kit](reference_universal_agent_kit.md) - public distillation; portability+leanness
+- [No paid/key third-party services](feedback_no_paid_or_key_services.md) - keyless first, provider behind a seam · [Weather gadget on Open-Meteo](project_weather_gadget_open_meteo.md) - S0426; non-commercial risk owner-accepted
 - [fms_companion subproject](project_fms_companion_subproject.md) - S0421 Go+Wails, OUT of repo P:\windows\fms_companion · [FMS Windows rebrand](project_fms_windows_rebrand.md) display-only; URLs/Store stay LITE
 - [.fmscfg contract v2 forward-compat](project_fmscfg_contract_v2_forward_compat.md) - S0988 producer-frozen + consumer-tolerant; accept schemaVersion 2
 
 ## Devices & release
-- [Test device Galaxy S21+](reference_test_device_galaxy_s21.md) - SM-G996U1, Android 15; not Wear · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md) - adb.ps1, not on PATH
+- [Test devices](reference_test_device_galaxy_s21.md) - S21+ blanket-authorized, S20 FE is the owner's working phone; check serial · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md) - adb.ps1, not on PATH
+- [Never grant system roles on owner phone](feedback_never_grant_system_roles_on_owner_phone.md) - decline role dialogs; re-read bounds before tapping an animating dialog
 - [setup_test_media.ps1](reference_setup_test_media.md) - seeds from c:\Common\test_media · [gh CLI location](reference_gh_cli_location.md) - C:\Program Files\GitHub CLI, not on PATH
+- [R8 mapping is per-build](project_r8_mapping_is_per_build.md) - Play-reported `ev.y` resolves to plausible nonsense against another build's mapping
 - [Play Console API read-only](reference_play_console_api_access.md) - CANNOT see review verdicts · [Play FGS precedent](project_play_release_in_review.md) - specialUse+mediaProjection ACCEPTED
 - [Release gate: no coverage regression](feedback_release_no_coverage_regression.md) - STOP if countries/age/device reach shrinks · [check OCR/translate versions](feedback_release_check_ocr_translate_versions.md)
 - [Device-reach implied screen.portrait](project_play_device_reach_screen_portrait.md) - orientation lock implies screen.* (S0918/S0934) · [Android XR distribution](project_android_xr_play_distribution.md) - standard covers XR; vr=dedicated track
@@ -19,10 +22,12 @@
 - [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md) - real device wipes config; FAIL=harness
 - [Emulator capture](reference_emulator_capture_family_testing.md) + [MediaProjection](reference_emulator_mediaprojection_capture.md) - cmd statusbar+aapt2; overlay not drivable
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md) - touch wedge; force scan; sheet taps skip
+- [Onboarding device-test gotchas](feedback_onboarding_device_test_gotchas.md) - pre-grant perms before walk; coords shift per recreate; HOME role dialog absent on AVD; S1136 storm gone (Phase A)
 - [Trigger widget-only on AVD](reference_trigger_widget_only_features_on_emulator.md) - am start blocked; self-uid widget tap
 - [Emulator mouse-wheel injection](reference_emulator_mouse_wheel_injection.md) - API35 `input mouse scroll --axis VSCROLL` = real ACTION_SCROLL (spec notes claiming "can't" are stale) · [Color theme switch](feedback_color_theme_device_switch.md) - via Settings UI+restart, not pref-swap
 
 ## Build, flavors, gates
+- [Don't release someone else's CODE.LOCK](feedback_code_lock_release_ownership.md) - post-change already freed yours; check lock-status reason first
 - [Fast checks](feedback_fast_checks_during_dev.md) + [no redundant flavor compile](feedback_no_redundant_flavor_compile.md) - src/main-only -> fc; fkn only on flavor touch · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
 - [Flavor isolation](feedback_flavor_isolation_strict.md) - flavor code in src/<flavor>/; no BuildConfig guards in src/main · [Don't infer arch from BuildConfig](feedback_dont_infer_from_buildconfig_names.md) - grep usage
 - [Push features to lowest flavor](feedback_push_features_to_lowest_flavor.md) - broadest legal; unclear->ask · [legacy+photos HAVE cloud](project_flavor_matrix_cloud_correction.md) - legacy=full, photos=cloud+net, lite=no-cloud
@@ -40,6 +45,7 @@
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
 - [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; "PASS [scoped] 0 file(s)"=blind (S1077)
+- [post-change detekt stale report](feedback_post_change_detekt_stale_report.md) - gate FAILs on cached detekt.txt; force :app_v2:detekt --rerun-tasks, then re-run
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) - after gate, add DON'T rule · [listener-symmetry gate per-file](project_listener_symmetry_gate_per_file.md) - co-locate remove token same-file
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) - fail-closed; Sxxxx only in BNUT probes · [Timber.e for real errors](feedback_log_levels.md) - fallbacks at Timber.i
 - [Settings docs sync Rule 22](feedback_settings_manifest_regen.md) - regen manifest+annotations+reference · [Doc-pin tooling ownership](feedback_doc_pin_tooling_ownership_split.md) - toolchain-pins vs check-doc-vs-gradle (S1075)
@@ -68,6 +74,7 @@
 - [VR inclusion hierarchy](project_vr_inclusion_hierarchy.md) - noLegal all-inclusive sideload-VR · [supportsVrPlayer noLegal-only](project_supportsvrplayer_nolegal_only.md) - gate on VrMediaSectionContract.isAvailable
 - [VR immersive re-entry](project_vr_immersive_reentry_hotspot.md) + [logcat trap](reference_vr_immersive_logcat_capture_trap.md) - recreate XrInstance per entry; adb logcat -b all
 - [Quest panel opaque](reference_quest_panel_not_introspectable.md) + [HUD pitfalls](project_vr_hud_quirks.md) - uiautomator sees vrshell only · [VR native 2 texture channels](project_vr_native_two_texture_channels.md) - queueFrame(main)+queueHud
+- [CameraCaptureSessionManager at 40-function ceiling](project_camera_session_manager_function_ceiling.md) - any new helper fails detekt; inline or go top-level
 - [Player progressBar owner](project_player_progressbar_single_owner.md) - PlayerLoadingIndicatorCoordinator · [Glide listener fires before view bind](project_glide_requestlistener_fires_before_view_bind.md) - use view.post{} (S1041)
 - [Shared-state audit tool](reference_shared_state_audit_tool.md) - audit-shared-state-writers.ps1 · [Camera capture permission-free](project_camera_capture_permission_constraint.md) - declaring CAMERA breaks ACTION_IMAGE_CAPTURE
 - [Headless capture + noHistory trap](project_headless_camera_capture_trampoline.md) - ImageCapture-only; noHistory loses result
@@ -103,5 +110,6 @@
 - [Verify build on device first](feedback_verify_build_on_device_before_diagnosing.md) - confirm NEW build installed; use dav · [Subagent skips final phase](feedback_subagent_impl_skips_final_phase.md) + [no git/build](feedback_parallel_agents_no_git_build.md)
 - [Concurrent /spec-all red tree](project_spec_all_concurrent_tree_red.md) - whole-tree fail may be sibling WIP · [Frozen app? check TracerPid](feedback_frozen_app_check_tracerpid.md) - GC ProfileSaver stall = LLDB ptrace
 - [Welcome process consolidation](feedback_welcome_process_consolidation.md) - owner wants ceremony cut · [Workflow vs 5h limit](feedback_workflow_session_limit_budget.md) - LOW parallelism, cap ~6-8; owner GO above
+- [Don't stop a loop on a context guess](feedback_dont_stop_loop_on_context_guess.md) - no meter exists; cut per-ticket cost, not the session
 - [Verify with full evidence](feedback_verify_full_evidence.md) - skeptics read verbatim; split vote -> read code · [No ellipsis edits in code spans](feedback_no_ellipsis_edits_in_verbatim_code_spans.md)
 - [Edit line-delete splice](feedback_edit_line_delete_splice.md) - old_string="\n..X" glues CRLF; match full next line

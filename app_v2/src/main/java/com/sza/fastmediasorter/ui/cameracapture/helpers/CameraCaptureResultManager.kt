@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.view.View
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.imageview.ShapeableImageView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
@@ -16,6 +18,8 @@ import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -45,13 +49,14 @@ class CameraCaptureResultManager(
     var lastSavedMediaType: MediaType? = null
         private set
 
+    private var highlightJob: Job? = null
+
     /**
      * S0566/ADR-2: persist one capture of a stay-open session to its public folder (photo ->
      * DCIM/Camera, video -> Movies) through the shared use-case, then surface the result as the
      * gallery thumbnail. The saver deletes the scratch file; the camera is never finished here.
      */
     fun persistMultiCapture(file: File, isVideo: Boolean) {
-        val name = file.name
         lifecycleScope.launch {
             val result = saveCapturedMedia(file, isVideo)
             if (activity.isFinishing || activity.isDestroyed) return@launch
@@ -61,11 +66,7 @@ class CameraCaptureResultManager(
                     lastSavedMediaType = if (isVideo) MediaType.VIDEO else MediaType.IMAGE
                     showGalleryThumbnail(result.savedPath)
                     updateSendToVisibility()
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.camera_capture_saved, name),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    flashSavedHighlight()
                 }
                 else -> {
                     // The saver only deletes the scratch file on success, so drop the failed shot's
@@ -80,6 +81,28 @@ class CameraCaptureResultManager(
     private fun showGalleryThumbnail(path: String) {
         galleryThumbnail.visibility = View.VISIBLE
         Glide.with(activity).load(File(path)).centerCrop().into(galleryThumbnail)
+    }
+
+    /**
+     * S1163: the system toast landed across the viewfinder in the system's own orientation, which read
+     * badly once the camera was turned. A save is confirmed instead on the surface that has just
+     * changed anyway - the last-shot thumbnail - by flashing its stroke. A burst cancels the pending
+     * reset rather than queueing, so the stroke can never be left lit.
+     */
+    private fun flashSavedHighlight() {
+        highlightJob?.cancel()
+        highlightJob = lifecycleScope.launch {
+            val density = galleryThumbnail.resources.displayMetrics.density
+            val accent = MaterialColors.getColor(galleryThumbnail, androidx.appcompat.R.attr.colorPrimary)
+            galleryThumbnail.strokeColor = ColorStateList.valueOf(accent)
+            galleryThumbnail.strokeWidth = HIGHLIGHT_STROKE_DP * density
+            delay(HIGHLIGHT_DURATION_MS)
+            // Restore the layout's resting outline (1dp / camera_capture_control_stroke) rather than
+            // clearing the stroke - criterion 3: the preview returns to its normal look, not stroke-less.
+            val resting = ContextCompat.getColor(galleryThumbnail.context, R.color.camera_capture_control_stroke)
+            galleryThumbnail.strokeColor = ColorStateList.valueOf(resting)
+            galleryThumbnail.strokeWidth = RESTING_STROKE_DP * density
+        }
     }
 
     fun updateSendToVisibility() {
@@ -134,5 +157,15 @@ class CameraCaptureResultManager(
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         runCatching { activity.startActivity(intent) }
             .onFailure { Timber.w(it, "CameraCaptureResultManager: failed to open last capture in player") }
+    }
+
+    companion object {
+        // Wide enough to read against a busy frame, brief enough not to sit over the viewfinder.
+        private const val HIGHLIGHT_STROKE_DP = 4f
+        private const val HIGHLIGHT_DURATION_MS = 500L
+
+        // The thumbnail's resting outline, matching activity_camera_capture.xml (btnGalleryThumbnail
+        // app:strokeWidth="1dp"); restored after the highlight flash so the preview returns to normal.
+        private const val RESTING_STROKE_DP = 1f
     }
 }

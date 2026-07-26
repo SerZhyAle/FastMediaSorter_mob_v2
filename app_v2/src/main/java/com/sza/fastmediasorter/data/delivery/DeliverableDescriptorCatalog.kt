@@ -105,13 +105,14 @@ object DeliverableDescriptorCatalog {
         )
     )
 
-    // Channel-preview atlas integrity pins (S1154). Placeholder zero/empty until the real binary is
-    // produced and published, then filled from its bytes.
-    // FINALIZED in Phase 06 from the published binary
-    private const val ATLAS_SHEET_SHA256 = ""
-    private const val ATLAS_SHEET_MIN_SIZE = 0L
-    private const val ATLAS_COORDS_SHA256 = ""
-    private const val ATLAS_COORDS_MIN_SIZE = 0L
+    // Channel-preview atlas integrity pins (S1154), taken from the 2026-07-26 build published to the
+    // mirror: 1881 tiles on an 8160x7560 sheet, produced by the offline packer
+    // (`collect-stream-candidates.ps1 -WithChannelPreviews`). Regenerating the atlas means a new
+    // element revision (-v2) plus new pins here, never a silent re-upload under the same name.
+    private const val ATLAS_SHEET_SHA256 = "7d3e6422ae1fa7ff251b9cd8db20316b72313ffb713d54bc18403111738424ca"
+    private const val ATLAS_SHEET_MIN_SIZE = 11_358_632L
+    private const val ATLAS_COORDS_SHA256 = "be60d35c838d14e584350c2403f22faaa4077a5f0176ed1ceb75e7df760259d9"
+    private const val ATLAS_COORDS_MIN_SIZE = 134_997L
 
     /**
      * Channel-preview atlas (S1154) - on-demand stream channel-preview sprite sheet + `url->index`

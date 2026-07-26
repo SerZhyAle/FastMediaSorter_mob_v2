@@ -4,7 +4,8 @@
   Collect, validate, and maintain delivery/stream-catalog/streams.csv.
 
 .DESCRIPTION
-  Default mode discovers free/publicly-listed streams from community/official sources, normalizes
+  Default mode discovers public broadcaster streams from direct official feeds and an approved
+  subset of the iptv-org index, normalizes
   them to the 17-column catalog schema, de-duplicates against the existing catalog, runs a fast
   liveness probe, writes review artifacts to the output dir, and appends the kept rows directly to
   delivery/stream-catalog/streams.csv.
@@ -38,14 +39,16 @@
   fast prowl; -SkipLiveness (no probing at all) skips both stages.
 
   Sources by axis:
-    livetv : iptv-org public index (VIDEO / Live TV); header-gated (referrer/UA) streams dropped.
+    official : curated direct HLS feeds published by broadcasters and public institutions.
+    livetv : approved iptv-org channels only; each channel id AND stream host must match the
+             official-source policy. Header-gated (referrer/UA) streams are dropped.
     genres : radio-browser community DB by exact tag (AUDIO), top by clickcount.
     geo    : radio-browser by country + iptv-org by country (under-represented regions).
     webcam : curated public 24/7 HLS webcams (weather, wildlife, beaches, zoo animals), liveness-filtered.
 
-  Inclusion policy: keep every reachable live channel that actually carries signal - including
-  grey-area restreams and -/- channels. Only defunct ('closed') and header-gated streams
-  (referrer/user_agent the app cannot supply) are dropped, since those cannot play.
+  Inclusion policy: retain only a reachable stream whose broadcaster provenance is explicit:
+  direct broadcaster/public-institution feed, or an iptv-org record that passes the maintained
+  official channel-and-host allowlist. Liveness confirms playback but never proves provenance.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1
@@ -58,11 +61,13 @@
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish   # just (re)upload current streams.csv
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewLimit 40   # S1154 atlas smoke run
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas   # full atlas build + upload
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('livetv', 'genres', 'geo', 'webcam')]
-    [string[]]$Axis = @('livetv', 'genres', 'geo', 'webcam'),
+    [ValidateSet('official', 'livetv', 'genres', 'geo', 'webcam')]
+    [string[]]$Axis = @('official', 'livetv', 'genres', 'geo', 'webcam'),
 
     [int]$PerQuery = 20,
     [int]$LivenessTimeoutSec = 12,
@@ -99,6 +104,23 @@ param(
     [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
     [int]$FaviconTimeoutSec = 8,
     [int]$FaviconThrottle = 16,
+
+    # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
+    # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
+    # the url->index sidecar. Off by default: a routine catalog refresh must never trigger a multi-hour
+    # capture run. The payload is published separately from stream-catalog.zip (own release assets).
+    [switch]$WithChannelPreviews,
+    [switch]$PublishPreviewAtlas,
+    [string]$PreviewAtlasPath = 'temp/channel-preview-atlas.webp',
+    [string]$PreviewCoordsPath = 'temp/channel-preview-coords.json',
+    # Captured frames are kept between runs so an interrupted capture resumes instead of restarting.
+    [string]$PreviewFrameDir = 'temp/channel-preview-frames',
+    [switch]$RefreshPreviewFrames,
+    [int]$PreviewCaptureTimeoutSec = 20,
+    [int]$PreviewThrottle = 12,
+    [int]$PreviewLimit = 0,
+    # Explicit ffmpeg binary; empty means auto-discovery (PATH, then the usual install roots).
+    [string]$FfmpegPath = '',
     # Atlas size ceiling enforced before publish. This must match the app-side import cap. Over the cap
     # -> publish CSV-only (atlas skipped), never an atlas the app would discard.
     [int]$MaxAtlasBytes = 31457280,
@@ -711,6 +733,46 @@ function Get-RadioBrowserStations {
 $script:IptvChannels = $null
 $script:IptvStreams = $null
 
+# iptv-org is an index, not a trust authority. A channel is eligible only when both its stable
+# channel id and the actual stream host are explicitly known to belong to the broadcaster or its
+# documented delivery CDN. Keep this deliberately small: adding a broadcaster is a reviewable
+# source-policy change, not an automatic result of liveness.
+$OfficialIptvSources = @{
+    'AlJazeera.qa' = @('getaj.net')
+    'AlJazeeraDocumentary.qa' = @('getaj.net')
+    'AlJazeeraMubasher.qa' = @('getaj.net')
+    'AlJazeeraMubasher24.qa' = @('getaj.net')
+    'AlJazeeraMubasherBroadcast2.qa' = @('getaj.net')
+    'BloombergTV.us' = @('bloomberg.com')
+    'CGTN.cn' = @('cgtn.com')
+    'CGTNArabic.cn' = @('cgtn.com')
+    'CGTNDocumentary.cn' = @('cgtn.com')
+    'CGTNFrench.cn' = @('cgtn.com')
+    'CGTNRussian.cn' = @('cgtn.com')
+    'CGTNSpanish.cn' = @('cgtn.com')
+    'EuronewsEnglish.fr' = @('cdn-euronews.akamaized.net')
+    'EuronewsFrench.fr' = @('cdn-euronews.akamaized.net')
+    'EuronewsGerman.fr' = @('cdn-euronews.akamaized.net')
+    'EuronewsItalian.fr' = @('cdn-euronews.akamaized.net')
+    'EuronewsPortuguese.fr' = @('cdn-euronews.akamaized.net')
+    'EuronewsSpanish.fr' = @('cdn-euronews.akamaized.net')
+    'France24.fr' = @('live.france24.com')
+    'NHKWorldJapan.jp' = @('nhkworld.jp')
+    'RTIndia.in' = @('rttv.com')
+    'RedBullTV.at' = @('rbmn-live.akamaized.net')
+}
+
+function Test-OfficialIptvSource {
+    param([string]$channelId, [string]$url)
+    if (-not $OfficialIptvSources.ContainsKey($channelId)) { return $false }
+    $streamHost = Get-Host2 $url
+    if ([string]::IsNullOrWhiteSpace($streamHost)) { return $false }
+    foreach ($allowedHost in $OfficialIptvSources[$channelId]) {
+        if ($streamHost -eq $allowedHost -or $streamHost.EndsWith(".$allowedHost")) { return $true }
+    }
+    return $false
+}
+
 function Initialize-Iptv {
     if ($null -ne $script:IptvChannels) { return }
     Write-Host '  downloading iptv-org channels.json + streams.json ..' -ForegroundColor DarkGray
@@ -734,13 +796,11 @@ function Get-IptvCandidates {
         if ($s.user_agent) { continue }
         $cid = $s.channel
         if ([string]::IsNullOrWhiteSpace($cid)) { continue }
-        if ($seenChannel.ContainsKey($cid)) { continue }
         $c = $script:IptvChannels[$cid]
         if ($null -eq $c) { continue }
-        # Inclusion policy: keep every reachable live channel, including -/- and grey-area
-        # restreams. Only 'closed' (defunct) and header-gated streams (referrer/user_agent, filtered
-        # above) are dropped, since those cannot actually play in the app.
         if ($c.closed) { continue }
+        if (-not (Test-OfficialIptvSource -channelId $cid -url $url)) { continue }
+        if ($seenChannel.ContainsKey($cid)) { continue }
 
         $cats = @($c.categories)
         if ($categories -and -not ($cats | Where-Object { $categories -contains $_ })) { continue }
@@ -755,11 +815,38 @@ function Get-IptvCandidates {
         $out += New-Candidate -axis $axis -category 'Live TV' -topic (Map-IptvTopic $primaryCat) `
             -name $name -url $url -mediaKind 'VIDEO' -protocol $proto -format $fmt -bitrate '' `
             -isLive $true -language $lang -country ($c.country) -homepage ($c.website) `
-            -sourceKind 'COMMUNITY' `
-            -licenseNote 'iptv-org public index, publicly listed free stream (verify broadcaster-official before promote)' `
-            -notes ("iptv-org; categories=$($cats -join '|'); quality=$($s.quality)") `
-            -confidence 'medium' -score 0
+            -sourceKind 'PUBLIC_BROADCASTER' `
+            -licenseNote 'Official broadcaster feed selected from the iptv-org index by channel and delivery-host allowlist' `
+            -notes ("iptv-org approved source; channel=$cid; categories=$($cats -join '|'); quality=$($s.quality)") `
+            -confidence 'high' -score 0
         if ($out.Count -ge ($PerQuery * 50)) { break }
+    }
+    return $out
+}
+
+function Get-OfficialTvSeeds {
+    param([string]$axis)
+    # Direct feeds are retained here even when iptv-org also lists them. This provides an
+    # independently attributable baseline if an index record disappears or its ordering changes.
+    $seeds = @(
+        @{ name = 'Red Bull TV'; topic = 'Sports'; url = 'https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8'; country = 'AT'; language = 'english'; homepage = 'https://www.redbull.com/int-en/channels/best-of-red-bull-stream'; source = 'PUBLIC_BROADCASTER'; note = 'Red Bull Media House public 24/7 HLS feed' }
+        @{ name = 'Bloomberg TV US'; topic = 'Business'; url = 'https://www.bloomberg.com/media-manifest/streams/us.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.bloomberg.com/live/us/btv'; source = 'PUBLIC_BROADCASTER'; note = 'Bloomberg public live HLS feed' }
+        @{ name = 'Bloomberg TV Europe'; topic = 'Business'; url = 'https://www.bloomberg.com/media-manifest/streams/eu.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.bloomberg.com/live/europe'; source = 'PUBLIC_BROADCASTER'; note = 'Bloomberg public live HLS feed' }
+        @{ name = 'Bloomberg TV Asia'; topic = 'Business'; url = 'https://www.bloomberg.com/media-manifest/streams/asia.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.bloomberg.com/live/asia'; source = 'PUBLIC_BROADCASTER'; note = 'Bloomberg public live HLS feed' }
+        @{ name = 'Euronews English'; topic = 'News'; url = 'https://cdn-euronews.akamaized.net/live/eds/euronews-en/25080/euronews-en.m3u8'; country = 'FR'; language = 'english'; homepage = 'https://www.euronews.com/live'; source = 'PUBLIC_BROADCASTER'; note = 'Euronews public live HLS feed' }
+        @{ name = 'DW (Deutsche Welle) English'; topic = 'News'; url = 'https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8'; country = 'DE'; language = 'english'; homepage = 'https://www.dw.com/en/live-tv/channel-english'; source = 'PUBLIC_BROADCASTER'; note = 'Deutsche Welle public live HLS feed' }
+        @{ name = 'France 24 English'; topic = 'News'; url = 'https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8'; country = 'FR'; language = 'english'; homepage = 'https://www.france24.com/en/live'; source = 'PUBLIC_BROADCASTER'; note = 'France 24 public live HLS feed' }
+        @{ name = 'Al Jazeera English'; topic = 'News'; url = 'https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8'; country = 'QA'; language = 'english'; homepage = 'https://www.aljazeera.com/live/'; source = 'PUBLIC_BROADCASTER'; note = 'Al Jazeera public live HLS feed' }
+        @{ name = 'CGTN English'; topic = 'News'; url = 'https://english-livebkali.cgtn.com/live/encgtn.m3u8'; country = 'CN'; language = 'english'; homepage = 'https://www.cgtn.com/tv'; source = 'PUBLIC_BROADCASTER'; note = 'CGTN public live HLS feed' }
+        @{ name = 'RT India'; topic = 'News'; url = 'https://rt-india.rttv.com/dvr/rtindia/playlist.m3u8'; country = 'IN'; language = 'english'; homepage = 'https://www.rt.com/'; source = 'PUBLIC_BROADCASTER'; note = 'RT public live HLS feed' }
+    )
+    $out = @()
+    foreach ($seed in $seeds) {
+        $out += New-Candidate -axis $axis -category 'Live TV' -topic $seed.topic -name $seed.name -url $seed.url `
+            -mediaKind 'VIDEO' -protocol 'HLS' -format 'm3u8' -bitrate '' -isLive $true `
+            -language $seed.language -country $seed.country -homepage $seed.homepage `
+            -sourceKind $seed.source -licenseNote $seed.note -notes 'direct official source' `
+            -confidence 'high' -score 0
     }
     return $out
 }
@@ -786,7 +873,6 @@ function Get-WebcamSeeds {
         @{ name = 'San Diego Zoo Elephant Cam'; url = 'https://elephants.hls.camzonecdn.com/CamzoneStreams/elephants/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live elephant camera' }
         @{ name = 'San Diego Zoo Giraffe Cam'; url = 'https://zssd-kijami.hls.camzonecdn.com/CamzoneStreams/zssd-kijami/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live giraffe camera' }
         @{ name = 'San Diego Zoo Condor Cam'; url = 'https://zssd-condorhd.hls.camzonecdn.com/CamzoneStreams/zssd-condorhd/Playlist.m3u8'; country = 'US'; language = 'english'; homepage = 'https://zoo.sandiegozoo.org/live-cams'; source = 'COMMUNITY'; note = 'San Diego Zoo public live condor camera' }
-        @{ name = 'NASA TV Public HD'; url = 'https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.nasa.gov/multimedia/nasatv/'; source = 'GOV'; note = 'NASA Public TV live space view' }
         @{ name = 'AccuWeather Network'; url = 'https://gpuserver3.tier1streams.com/AccuWeather/index.m3u8'; country = 'US'; language = 'english'; homepage = 'https://www.accuweather.com/'; source = 'COMMUNITY'; note = 'AccuWeather live weather network' }
     )
     $out = @()
@@ -996,6 +1082,272 @@ function Set-FaviconIndices {
     return $map.Count
 }
 
+# --- S1154 channel-preview atlas (offline packer, PHASE_06) -------------------------------------
+
+# Geometry contract paired with the app-side ChannelPreviewAtlasSlicer (TILE_W / TILE_H / COLS). The
+# app resolves a tile as col = index % COLS, row = index / COLS, so the packer must lay tiles out
+# identically or every preview drifts onto a neighbouring channel.
+$script:PreviewTileW = 240
+$script:PreviewTileH = 135
+$script:PreviewCols = 34
+# ADR-2 budget: one 8192x8192 sheet, so floor(8192 / 135) = 60 rows x 34 cols = 2040 tiles maximum.
+$script:PreviewMaxRows = 60
+
+# Resolve the ffmpeg binary used for frame capture and the PNG -> WebP encode. PATH first, then the
+# usual install roots; -FfmpegPath overrides everything. Cached for the run.
+function Get-FfmpegExe {
+    if ($script:FfmpegExe) { return $script:FfmpegExe }
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($FfmpegPath) { $candidates.Add($FfmpegPath) }
+    $onPath = (Get-Command ffmpeg -ErrorAction SilentlyContinue).Source
+    if ($onPath) { $candidates.Add($onPath) }
+    foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
+        $candidates.Add((Join-Path $root 'ffmpeg\bin\ffmpeg.exe'))
+        # Fallback for a dev box without a standalone ffmpeg: Virtual Desktop Streamer ships a full
+        # n7.x build (https/hls/libwebp all enabled), which is exactly what the capture needs.
+        $candidates.Add((Join-Path $root 'Virtual Desktop Streamer\ffmpeg.exe'))
+    }
+    $candidates.Add('C:\ffmpeg\bin\ffmpeg.exe')
+    if ($env:ProgramData) { $candidates.Add((Join-Path $env:ProgramData 'chocolatey\bin\ffmpeg.exe')) }
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path $c)) { $script:FfmpegExe = (Resolve-Path $c).Path; return $script:FfmpegExe }
+    }
+    throw 'ffmpeg not found on PATH or in the standard install roots - pass -FfmpegPath <ffmpeg.exe> (needed to capture channel frames and encode the WebP sheet).'
+}
+
+# gh is often installed but absent from PATH on the dev machine (e.g. C:\Program Files\GitHub CLI),
+# so resolve it the same way adb is auto-discovered before any release-asset upload.
+function Get-GhExe {
+    $ghExe = (Get-Command gh -ErrorAction SilentlyContinue).Source
+    if (-not $ghExe) {
+        foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
+            $cand = Join-Path $root 'GitHub CLI\gh.exe'
+            if (Test-Path $cand) { $ghExe = $cand; break }
+        }
+    }
+    if (-not $ghExe) { throw 'gh CLI not found on PATH or standard install locations - cannot upload the release asset (install GitHub CLI or upload the artifact manually).' }
+    return $ghExe
+}
+
+# Stable per-URL frame path, so an interrupted capture resumes: a URL that already has a frame on disk
+# is skipped on the next run unless -RefreshPreviewFrames is set.
+function Get-PreviewFrameFile {
+    param([string]$Url, [string]$Dir)
+    $sha = [System.Security.Cryptography.SHA1]::Create()
+    try { $hash = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Url)) } finally { $sha.Dispose() }
+    return (Join-Path $Dir (([System.BitConverter]::ToString($hash) -replace '-', '').ToLowerInvariant() + '.png'))
+}
+
+# Capture one 240x135 frame per row with ffmpeg (throttled, hard per-channel timeout) and return the
+# rows that produced a usable frame, in input order. Failures are normal - a dead/geo-locked channel
+# simply gets no preview tile.
+function Invoke-ChannelPreviewCapture {
+    param([Parameter(Mandatory = $true)][object[]]$Rows)
+
+    $ffmpeg = Get-FfmpegExe
+    if (-not (Test-Path $PreviewFrameDir)) { New-Item -ItemType Directory -Path $PreviewFrameDir -Force | Out-Null }
+    # Absolute: a -Parallel runspace does NOT inherit the caller's working directory, so a relative
+    # output path would make ffmpeg write somewhere else entirely (and every capture look failed).
+    $frameDir = (Resolve-Path $PreviewFrameDir).Path
+
+    $targets = [System.Collections.Generic.List[object]]::new()
+    $cached = 0
+    foreach ($row in $Rows) {
+        $file = Get-PreviewFrameFile -Url ([string]$row.url) -Dir $frameDir
+        if ($RefreshPreviewFrames -and (Test-Path $file)) { Remove-Item $file -Force }
+        if (Test-Path $file) { $cached++ }
+        $targets.Add([pscustomobject]@{ Url = [string]$row.url; File = $file; Pending = -not (Test-Path $file) })
+    }
+    $pending = @($targets | Where-Object { $_.Pending })
+    Write-Host ("Channel previews: ffmpeg {0}" -f $ffmpeg) -ForegroundColor DarkGray
+    Write-Host ("Channel previews: {0} channel(s), {1} already captured, {2} to capture (throttle {3}, timeout {4}s) .." -f `
+            $targets.Count, $cached, $pending.Count, $PreviewThrottle, $PreviewCaptureTimeoutSec) -ForegroundColor Yellow
+
+    $tileW = $script:PreviewTileW
+    $tileH = $script:PreviewTileH
+    $started = Get-Date
+    $done = 0
+    # Batched so a multi-hour run reports progress; -Parallel itself emits nothing until it returns.
+    $batchSize = 96
+    for ($offset = 0; $offset -lt $pending.Count; $offset += $batchSize) {
+        $batch = @($pending[$offset..([Math]::Min($offset + $batchSize, $pending.Count) - 1)])
+        $batch | ForEach-Object -ThrottleLimit $PreviewThrottle -Parallel {
+            $item = $_
+            $exe = $using:ffmpeg
+            $timeoutSec = $using:PreviewCaptureTimeoutSec
+            # Start-Process joins -ArgumentList WITHOUT quoting, so a UA containing spaces would split
+            # into extra arguments and every capture would fail. Keep this token space-free.
+            $agent = 'FastMediaSorter-catalog/1.0'
+            $vf = "scale={0}:{1}:force_original_aspect_ratio=increase,crop={0}:{1}" -f $using:tileW, $using:tileH
+            $errFile = $item.File + '.err'
+            $argList = @(
+                '-hide_banner', '-loglevel', 'error', '-y',
+                '-user_agent', $agent,
+                '-rw_timeout', ([string]($timeoutSec * 1000000)),
+                '-analyzeduration', '5000000', '-probesize', '5000000',
+                '-i', $item.Url,
+                # -update 1 is required for a single-file image2 output: without it ffmpeg treats the
+                # path as a sequence pattern and refuses to write.
+                '-frames:v', '1', '-update', '1', '-vf', $vf, '-f', 'image2', $item.File
+            )
+            try {
+                $proc = Start-Process -FilePath $exe -ArgumentList $argList -NoNewWindow -PassThru -RedirectStandardError $errFile
+                if (-not $proc.WaitForExit($timeoutSec * 1000)) {
+                    # A live stream never ends on its own: kill the whole tree when the frame did not land.
+                    try { $proc.Kill($true) } catch { }
+                    $proc.WaitForExit(3000) | Out-Null
+                }
+            }
+            catch { }
+            if ((Test-Path $item.File) -and (Get-Item $item.File).Length -eq 0) {
+                Remove-Item $item.File -Force -ErrorAction SilentlyContinue
+            }
+            # Keep ffmpeg's stderr only for a channel that produced no frame - that is the only case
+            # worth diagnosing later; a successful capture leaves no litter behind.
+            if ((Test-Path $errFile) -and (Test-Path $item.File)) {
+                Remove-Item $errFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+        $done += $batch.Count
+        $elapsed = (Get-Date) - $started
+        $rate = if ($elapsed.TotalSeconds -gt 0) { $done / $elapsed.TotalSeconds } else { 0 }
+        $etaSec = if ($rate -gt 0) { ($pending.Count - $done) / $rate } else { 0 }
+        Write-Host ("  captured {0}/{1} pending, elapsed {2}, eta {3}" -f `
+                $done, $pending.Count, (Format-DurationShort $elapsed), `
+            (Format-DurationShort ([TimeSpan]::FromSeconds([Math]::Round($etaSec))))) -ForegroundColor DarkGray
+    }
+
+    $withFrame = @($targets | Where-Object { (Test-Path $_.File) -and (Get-Item $_.File).Length -gt 0 })
+    Write-Host ("Channel previews: {0}/{1} channel(s) produced a frame." -f $withFrame.Count, $targets.Count) -ForegroundColor DarkGray
+    return $withFrame
+}
+
+# Pack the captured frames into the fixed-grid sheet, encode it to WebP, and write the url->index
+# sidecar. Returns the number of packed tiles. Tiles beyond the 2040-slot sheet capacity are dropped
+# (reported, never silently truncated).
+function Build-ChannelPreviewAtlas {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [string]$SheetPath = $PreviewAtlasPath,
+        [string]$CoordsFile = $PreviewCoordsPath
+    )
+
+    Add-Type -AssemblyName System.Drawing
+
+    $captured = Invoke-ChannelPreviewCapture -Rows $Rows
+    if ($captured.Count -eq 0) { throw 'No channel frames captured - atlas not written.' }
+
+    $cols = $script:PreviewCols
+    $tileW = $script:PreviewTileW
+    $tileH = $script:PreviewTileH
+    $maxSlots = $cols * $script:PreviewMaxRows
+    $packable = $captured
+    if ($packable.Count -gt $maxSlots) {
+        Write-Warning ("Channel previews: {0} frames exceed the {1}-slot sheet capacity; dropping the last {2}." -f `
+                $packable.Count, $maxSlots, ($packable.Count - $maxSlots))
+        $packable = @($packable[0..($maxSlots - 1)])
+    }
+
+    $rowsNeeded = [int][Math]::Ceiling($packable.Count / [double]$cols)
+    $sheetW = $cols * $tileW
+    $sheetH = $rowsNeeded * $tileH
+    $pngPath = [System.IO.Path]::ChangeExtension($SheetPath, '.png')
+    $parent = Split-Path -Parent $SheetPath
+    if ($parent -and -not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+
+    Write-Host ("Channel previews: packing {0} tile(s) into {1}x{2} .." -f $packable.Count, $sheetW, $sheetH) -ForegroundColor Yellow
+    $map = [ordered]@{}
+    $sheet = [System.Drawing.Bitmap]::new($sheetW, $sheetH)
+    $g = [System.Drawing.Graphics]::FromImage($sheet)
+    try {
+        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $g.Clear([System.Drawing.Color]::Black)
+        for ($i = 0; $i -lt $packable.Count; $i++) {
+            $col = $i % $cols
+            $rr = [int][Math]::Floor($i / $cols)
+            $dest = [System.Drawing.Rectangle]::new($col * $tileW, $rr * $tileH, $tileW, $tileH)
+            $tile = $null
+            try {
+                $tile = [System.Drawing.Image]::FromFile($packable[$i].File)
+                $g.DrawImage($tile, $dest)
+                $map[$packable[$i].Url] = $i
+            }
+            catch {
+                # A truncated frame file must not abort the whole sheet: leave the slot black and skip
+                # the url, so the app falls back to its own capture for that channel.
+                Write-Warning ("Channel previews: unreadable frame skipped ({0})" -f $packable[$i].Url)
+            }
+            finally { if ($tile) { $tile.Dispose() } }
+        }
+    }
+    finally {
+        $g.Dispose()
+        $sheet.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        $sheet.Dispose()
+    }
+
+    $ffmpeg = Get-FfmpegExe
+    Write-Host 'Channel previews: encoding WebP sheet ..' -ForegroundColor Yellow
+    & $ffmpeg -hide_banner -loglevel error -y -i $pngPath -c:v libwebp -preset picture -quality 80 -compression_level 6 $SheetPath
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $SheetPath)) { throw "ffmpeg WebP encode failed (exit $LASTEXITCODE)" }
+
+    Backup-IfExists -Path $CoordsFile | Out-Null
+    # -Compress keeps the sidecar small; the app parses it as a flat url -> index JSON object.
+    ($map | ConvertTo-Json -Compress -Depth 2) | Set-Content -Path $CoordsFile -Encoding utf8NoBOM
+
+    $sheetBytes = (Get-Item $SheetPath).Length
+    $coordsBytes = (Get-Item $CoordsFile).Length
+    Write-Host ''
+    Write-Host ("Channel-preview atlas: {0} tile(s), sheet {1}x{2}" -f $map.Count, $sheetW, $sheetH) -ForegroundColor Green
+    foreach ($f in @($SheetPath, $CoordsFile)) {
+        $h = (Get-FileHash -Algorithm SHA256 -Path $f).Hash.ToLowerInvariant()
+        Write-Host ("  {0}" -f (Resolve-Path $f).Path) -ForegroundColor Green
+        Write-Host ("    sha256 = {0}" -f $h) -ForegroundColor DarkGray
+        Write-Host ("    bytes  = {0:N0}" -f (Get-Item $f).Length) -ForegroundColor DarkGray
+    }
+    Write-Host ("  (sheet {0:N1} MB, sidecar {1:N1} KB) - paste both pins into DeliverableDescriptorCatalog.channelPreviewAtlas()" -f `
+        ($sheetBytes / 1MB), ($coordsBytes / 1KB)) -ForegroundColor DarkGray
+    return $map.Count
+}
+
+# Upload the atlas as its OWN release assets (never inside stream-catalog.zip): the payload has an
+# independent lifecycle and the app downloads the two files by their versioned asset names.
+function Invoke-PublishChannelPreviewAtlas {
+    param([string]$SheetPath = $PreviewAtlasPath, [string]$CoordsFile = $PreviewCoordsPath, [string]$Tag = $PublishTag)
+    foreach ($f in @($SheetPath, $CoordsFile)) {
+        if (-not (Test-Path $f)) { throw "Channel-preview atlas artifact missing for publish: $f (run with -WithChannelPreviews first)" }
+    }
+    $ghExe = Get-GhExe
+    # The remote asset name carries the element revision (-v1), matching DeliverableDescriptorCatalog's
+    # withRev(); the on-device file name stays unversioned.
+    $stageDir = 'temp/channel-preview-publish'
+    if (Test-Path $stageDir) { Remove-Item $stageDir -Recurse -Force }
+    New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
+    $sheetAsset = Join-Path $stageDir 'channel-preview-atlas-v1.webp'
+    $coordsAsset = Join-Path $stageDir 'channel-preview-coords-v1.json'
+    Copy-Item $SheetPath $sheetAsset -Force
+    Copy-Item $CoordsFile $coordsAsset -Force
+
+    Write-Host ("Publishing channel-preview atlas to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
+    & $ghExe release upload $Tag $sheetAsset $coordsAsset --clobber
+    if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
+    Write-Host ("Published channel-preview-atlas-v1.webp ({0:N1} MB) + channel-preview-coords-v1.json ({1:N1} KB) -> {2}." -f `
+        ((Get-Item $sheetAsset).Length / 1MB), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
+}
+
+# Entry point for -WithChannelPreviews: VIDEO rows of the shipped catalog, in catalog order.
+function Invoke-BuildChannelPreviewAtlasRun {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $videoRows = @(Import-Csv -Path $ExistingCsv | Where-Object { [string]$_.media_kind -eq 'VIDEO' })
+    if ($videoRows.Count -eq 0) { throw "No VIDEO rows in $ExistingCsv - nothing to preview." }
+    if ($PreviewLimit -gt 0 -and $videoRows.Count -gt $PreviewLimit) {
+        Write-Host ("Channel previews: limited to the first {0} of {1} VIDEO rows (-PreviewLimit)" -f $PreviewLimit, $videoRows.Count) -ForegroundColor DarkYellow
+        $videoRows = @($videoRows[0..($PreviewLimit - 1)])
+    }
+    Build-ChannelPreviewAtlas -Rows $videoRows | Out-Null
+}
+
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $allRows = @(Import-Csv -Path $ExistingCsv)
@@ -1103,17 +1455,7 @@ function Invoke-CatalogMaintenance {
 function Invoke-PublishCatalog {
     param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag, [string]$AtlasFile = $AtlasPath)
     if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
-    # gh is often installed but absent from PATH on the dev machine (e.g. C:\Program Files\GitHub CLI).
-    # Resolve via PATH first, then the standard install roots - mirrors the adb auto-discovery pattern -
-    # so a release-asset upload does not hard-fail on a PATH-only lookup.
-    $ghExe = (Get-Command gh -ErrorAction SilentlyContinue).Source
-    if (-not $ghExe) {
-        foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
-            $cand = Join-Path $root 'GitHub CLI\gh.exe'
-            if (Test-Path $cand) { $ghExe = $cand; break }
-        }
-    }
-    if (-not $ghExe) { throw 'gh CLI not found on PATH or standard install locations - cannot upload the release asset (install GitHub CLI or upload temp/stream-catalog.zip manually).' }
+    $ghExe = Get-GhExe
     if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
     $zip = 'temp/stream-catalog.zip'
     $rowCount = (Import-Csv $CsvPath).Count
@@ -1174,6 +1516,18 @@ function Invoke-PublishCatalog {
     Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }
 
+# S1154 PHASE_06: the atlas build is its own mode - it never runs as a side effect of discovery or
+# catalog maintenance (a capture pass costs hours and hits every live channel).
+if ($WithChannelPreviews) {
+    Invoke-BuildChannelPreviewAtlasRun
+    if ($PublishPreviewAtlas) { Invoke-PublishChannelPreviewAtlas }
+    return
+}
+if ($PublishPreviewAtlas) {
+    Invoke-PublishChannelPreviewAtlas
+    return
+}
+
 if ($CatalogOnly) {
     Invoke-CatalogMaintenance
     if ($Publish) { Invoke-PublishCatalog }
@@ -1182,6 +1536,13 @@ if ($CatalogOnly) {
 
 Write-Host "Collecting stream candidates [axis: $($Axis -join ', ')]" -ForegroundColor Cyan
 $all = [System.Collections.Generic.List[object]]::new()
+
+if ($Axis -contains 'official') {
+    Write-Host '* direct official broadcaster feeds ..' -ForegroundColor Yellow
+    $r = Get-OfficialTvSeeds -axis 'official'
+    Write-Host ("    official seeds: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
 
 if ($Axis -contains 'genres') {
     Write-Host '* radio-browser by genre tag ..' -ForegroundColor Yellow

@@ -81,6 +81,14 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun updateCellTarget(id: Long, target: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val source = cellDao.getById(id) ?: return@withContext false
+            if (source.target == target) return@withContext false
+            cellDao.update(source.copy(target = target))
+            true
+        }
+
     override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
         withContext(Dispatchers.IO) {
             val targetRow = rowIndex.coerceAtLeast(0)

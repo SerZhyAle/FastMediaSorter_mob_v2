@@ -63,6 +63,8 @@ class GesturePickerAdapter(
             itemView.findViewById<TextView>(R.id.tv_gesture_entry_title)?.setText(entry.labelRes)
             itemView.findViewById<TextView>(R.id.tv_gesture_entry_desc)?.text =
                 ctx.getString(entry.explanationRes)
+            itemView.findViewById<ImageView>(R.id.iv_gesture_entry_icon)
+                ?.setImageResource(entry.iconRes)
             val selected = entry.action == selectedAction
             itemView.isActivated = selected
             itemView.findViewById<ImageView>(R.id.item_check)?.visibility =

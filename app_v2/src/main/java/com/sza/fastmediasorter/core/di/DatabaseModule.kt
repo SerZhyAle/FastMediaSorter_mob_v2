@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_39_40
 import com.sza.fastmediasorter.data.local.db.MIGRATION_40_41
 import com.sza.fastmediasorter.data.local.db.MIGRATION_41_42
 import com.sza.fastmediasorter.data.local.db.MIGRATION_42_43
+import com.sza.fastmediasorter.data.local.db.MIGRATION_43_44
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
@@ -115,7 +116,8 @@ object DatabaseModule {
                 MIGRATION_39_40,
                 MIGRATION_40_41,
                 MIGRATION_41_42,
-                MIGRATION_42_43
+                MIGRATION_42_43,
+                MIGRATION_43_44
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent

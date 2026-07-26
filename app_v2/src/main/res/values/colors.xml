@@ -380,6 +380,10 @@
     <color name="camera_capture_text_shadow">#CC000000</color>
     <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
     <color name="camera_capture_slider_inactive">#66FFFFFF</color>
+    <!-- S1189: zoom preset pills. The native bounds (the device's own optical minimum and maximum,
+         before any software zoom) are amber so the user can see where real optics end. -->
+    <color name="camera_capture_zoom_step">#FFFFFFFF</color>
+    <color name="camera_capture_zoom_native_bound">#FFFFC107</color>
     <!-- S1066: ~50% black scrim over the parts of the shown frame outside the result frame (owner-chosen). -->
     <color name="camera_result_frame_scrim">#80000000</color>
 

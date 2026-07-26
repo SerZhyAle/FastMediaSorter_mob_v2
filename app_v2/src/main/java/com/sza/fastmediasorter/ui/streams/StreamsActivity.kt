@@ -21,6 +21,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore
@@ -104,6 +105,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S1152: persists the last active stream so the next cold start can resume it (mirrors media resume).
     @Inject
     lateinit var streamResumeStateRepository: StreamResumeStateRepository
+
+    // S1152: application-lifetime scope for the resume-record clear on exit. lifecycleScope is already
+    // cancelled by the time onDestroy runs, so a clear launched there would never reach the prefs.
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -321,10 +328,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
             onError = ::showStreamUnavailable,
             onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
-            // S1142: mirror the live now-playing track onto the active channel's grid tile.
-            onNowPlayingChanged = { track ->
-                gridAdapter.setNowPlaying(inlineAudio.playingId, track)
-                pinnedGridAdapter.setNowPlaying(inlineAudio.playingId, track)
+            // S1142: mirror the live now-playing track onto the active channel's grid tile. The id comes
+            // from the manager itself - reading it back via inlineAudio here crashed on the init-time emit
+            // (the lateinit is not yet assigned while the constructor runs).
+            onNowPlayingChanged = { id, track ->
+                gridAdapter.setNowPlaying(id, track)
+                pinnedGridAdapter.setNowPlaying(id, track)
             },
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
@@ -639,7 +648,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * favicon yields null and the manager falls back to the generic media-kind vector.
      */
     private fun onAddShortcut(source: StreamSourceEntity) {
-        Timber.d("S1067: pin shortcut requested for %s (faviconIndex=%s)", source.url, faviconCoords[source.url])
         lifecycleScope.launch {
             val iconTile = faviconCoords[source.url]?.let { faviconSlicer.tileFor(it) }
             val requested = StreamShortcutPinManager(this@StreamsActivity).requestPin(source, iconTile)
@@ -679,7 +687,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // row after the user exits the video player (audio focus had already silenced the sound). stop()
         // quiesces the player and fires onPlayingChanged(null), which clears the row indicator.
         inlineAudio.stop()
-        persistStreamResume(source)
+        // S1152: a video stream is never a resume candidate (owner decision 2026-07-26) - only radio,
+        // which actually keeps playing, is worth reopening. Starting a video also ends whatever radio
+        // record existed, since the radio was just stopped above.
+        clearStreamResume()
         // VIDEO / RTSP: open the existing fullscreen player. The stream URL is carried as the initial
         // path against the synthetic single-item resource id; the player classifies the scheme to a
         // stream ResourceType and routes it to the stream playback helper (S0565 Phase 04).
@@ -697,17 +708,19 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     /**
-     * S1152: record this stream as the last active one. Radio (AUDIO) resumes playing on next launch;
-     * a video stream is recorded but not auto-started (mirrors the network-video no-autoplay rule).
+     * S1152: record this radio station as the last active stream, so a cold start resumes it. Only
+     * AUDIO is ever recorded: video playback does not survive the process anyway, and recording it
+     * made every later launch reopen this screen for 48 h (owner report 2026-07-26).
      */
     private fun persistStreamResume(source: StreamSourceEntity) {
+        if (source.mediaKind != "AUDIO") return
         lifecycleScope.launch {
             streamResumeStateRepository.save(
                 StreamResumeState(
                     url = source.url,
                     title = source.title,
                     mediaKind = source.mediaKind,
-                    wasPlaying = source.mediaKind == "AUDIO",
+                    wasPlaying = true,
                     savedAt = System.currentTimeMillis()
                 )
             )
@@ -717,6 +730,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     /** S1152: drop the resume record when the user explicitly stops the current stream. */
     private fun clearStreamResume() {
         lifecycleScope.launch { streamResumeStateRepository.clear() }
+    }
+
+    /**
+     * S1152: leaving this screen without anything still playing means there is nothing to resume -
+     * drop the record so the next cold start opens the normal main screen. Runs on the application
+     * scope because lifecycleScope is already cancelled at onDestroy.
+     */
+    private fun clearStreamResumeOnExit() {
+        if (!::inlineAudio.isInitialized) return
+        if (keepBackgroundService || inlineAudio.isServiceAudioActive) return
+        Timber.d("S1152: exit with nothing playing - dropping stream resume record")
+        applicationScope.launch { streamResumeStateRepository.clear() }
     }
 
     /**
@@ -899,9 +924,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * selections to the ViewModel.
      */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, language, country, mediaKind, pinnedOnly ->
+        filterDialogManager.show(latestState) { category, topic, language, country, mediaKind, pinnedOnly ->
             viewModel.onFilter(
                 category = category,
+                topic = topic,
                 language = language,
                 country = country,
                 mediaKind = mediaKind,
@@ -913,6 +939,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     /** Marks an active filter on the filter button by a dot glyph (shape, not color alone). */
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
         val active = filter.category != null ||
+            filter.topic != null ||
             filter.language != null ||
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
@@ -1007,6 +1034,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onDestroy() {
         binding.rvStreams.removeOnScrollListener(streamScrollListener)
+        // S1152: read the playback state BEFORE inlineAudio is released below.
+        if (isFinishing) clearStreamResumeOnExit()
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
         if (::inlineAudio.isInitialized) {
             // S0577: on a background-continue exit, detach without stopping the service stream.

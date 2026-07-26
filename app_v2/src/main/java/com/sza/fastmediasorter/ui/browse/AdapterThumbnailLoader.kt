@@ -116,13 +116,18 @@ class AdapterThumbnailLoader(
             return null
         }
 
+        if (file.isDirectory) return null
+
+        val newKey = "${file.path}_${file.size}_${getDisableThumbnails()}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${getRefreshVersion()}"
+        if (newKey == lastLoadedKey) return null
+
         // AUDIO: extension bitmap only; cover art loads exclusively in Player
         if (file.type == MediaType.AUDIO) {
             val ext = file.name.substringAfterLast('.', "").uppercase()
             imageView.setImageBitmap(createExtensionBitmap(ext))
             applyPlaceholderStyle(imageView, file.type)
             Timber.v("loadThumbnail: AUDIO extension bitmap for ${file.name} ($ext)")
-            return null
+            return newKey
         }
 
         // TEXT and Office documents: extension bitmap
@@ -130,7 +135,7 @@ class AdapterThumbnailLoader(
             val ext = file.name.substringAfterLast('.', "").uppercase()
             imageView.setImageBitmap(createExtensionBitmap(ext))
             applyPlaceholderStyle(imageView, file.type)
-            return null
+            return newKey
         }
 
         // Binary files: custom generator or extension bitmap
@@ -144,13 +149,8 @@ class AdapterThumbnailLoader(
                 imageView.setImageBitmap(createExtensionBitmap(ext.uppercase()))
                 applyPlaceholderStyle(imageView, file.type)
             }
-            return null
+            return newKey
         }
-
-        if (file.isDirectory) return null
-
-        val newKey = "${file.path}_${file.size}_${getDisableThumbnails()}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${getRefreshVersion()}"
-        if (newKey == lastLoadedKey) return null
 
         val generatedPlaceholder = createPlaceholderDrawable(file, context.resources)
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP

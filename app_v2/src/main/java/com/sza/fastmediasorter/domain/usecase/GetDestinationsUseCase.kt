@@ -20,7 +20,7 @@ class GetDestinationsUseCase @Inject constructor(
         ) { resources, settings ->
             val limit = settings.maxRecipients
             resources
-                .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
+                .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly && !it.isHidden && !VirtualPathUtils.isVirtualPath(it.path) }
                 .sortedBy { it.destinationOrder }
                 .take(limit)
         }
@@ -32,7 +32,7 @@ class GetDestinationsUseCase @Inject constructor(
         val limit = settings.maxRecipients
         
         return allResources
-            .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && it.id != excludedResourceId && !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
+            .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && it.id != excludedResourceId && !it.isReadOnly && !it.isHidden && !VirtualPathUtils.isVirtualPath(it.path) }
             .sortedBy { it.destinationOrder }
             .take(limit)
     }

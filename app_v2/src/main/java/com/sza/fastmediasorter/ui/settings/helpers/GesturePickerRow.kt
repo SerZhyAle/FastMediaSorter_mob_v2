@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 
@@ -17,6 +18,7 @@ sealed class GesturePickerRow {
         val action: ScreenshotGestureAction,
         @StringRes val labelRes: Int,
         @StringRes val explanationRes: Int,
+        @DrawableRes val iconRes: Int,
         val enabled: Boolean,
     ) : GesturePickerRow()
 }

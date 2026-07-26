@@ -54,9 +54,12 @@ class StreamInlineAudioManager(
     // S0593: fired once per play when the stream actually starts playing (ground-truth "OK" outcome).
     // The Activity forwards it to the ViewModel, which records the green status for this source.
     private val onSuccess: (StreamSourceEntity) -> Unit = {},
-    // S1142: fired with the current now-playing track line (or null) so the Activity can mirror it onto
-    // the active channel's grid tile (the grid adapters have no metadata pipeline of their own).
-    private val onNowPlayingChanged: (track: String?) -> Unit = {},
+    // S1142: fired with this manager's own playing id and the current now-playing track line (or null)
+    // so the Activity can mirror it onto the active channel's grid tile (the grid adapters have no
+    // metadata pipeline of their own). The id is passed in rather than read back from the Activity's
+    // reference to this manager: the init-time StateFlow emit fires synchronously inside the constructor,
+    // before that lateinit field is assigned, so reading it back crashed (UninitializedPropertyAccess).
+    private val onNowPlayingChanged: (playingId: String?, track: String?) -> Unit = { _, _ -> },
 ) {
 
     private var currentSource: StreamSourceEntity? = null
@@ -146,8 +149,7 @@ class StreamInlineAudioManager(
         lifecycleOwner.collectOnLifecycle(nowPlaying) {
             renderTitle()
             val track = nowPlaying.value?.trackLine()
-            Timber.d("S1142: now-playing render inline+grid track=%s", track)
-            onNowPlayingChanged(track)
+            onNowPlayingChanged(playingId, track)
         }
     }
 
@@ -326,7 +328,6 @@ class StreamInlineAudioManager(
 
     private fun handleToleranceTimeout() {
         val source = currentSource ?: return
-        Timber.d("S1118: tolerance timeout hasSuccess=%b", hasSuccessfulPlayback)
         if (hasSuccessfulPlayback) {
             noSignalVisible = true
             renderTitle()
@@ -343,7 +344,6 @@ class StreamInlineAudioManager(
                 elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
 
     private fun scheduleLocalRetry() {
-        Timber.d("S1118: local retry attempt=%d", retryAttempt)
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)
             .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
         retryAttempt = (retryAttempt + 1).coerceAtMost(MAX_BACKOFF_SHIFT)

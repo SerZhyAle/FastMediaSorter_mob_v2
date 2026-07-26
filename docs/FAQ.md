@@ -391,6 +391,15 @@ If you expected new files to be copied but they weren't:
 
 ---
 
+## Weather block
+
+### Where does the weather come from?
+The desktop weather block uses **Open-Meteo.com** - a free, keyless weather service. Weather data by Open-Meteo.com (CC-BY 4.0).
+
+### Does the app track my location?
+**No.** The place is the one you type in yourself, and no location permission is requested. The block refreshes about every 20 minutes and shows the last reading with a "Last known" note when there is no connection. Tapping it opens the weather app of the device.
+
+---
 ## Still have questions?
 
 Didn't find an answer above, or something isn't working as described? **Please reach out** - every message gets read and most issues get fixed.

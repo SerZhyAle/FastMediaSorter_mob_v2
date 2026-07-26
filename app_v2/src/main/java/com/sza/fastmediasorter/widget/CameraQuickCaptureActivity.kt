@@ -17,8 +17,12 @@ import javax.inject.Inject
  *
  * Hosts the CAMERA runtime-permission launcher and the capture-result launcher, then forwards every
  * decision to [CameraQuickCaptureLaunchManager] (Rule 3 - the activity carries no business logic).
- * Declared with `Theme.FastMediaSorter.Transparent` + `noHistory`, so the user stays on the home
- * screen during permission/camera handoff.
+ * Declared with `Theme.FastMediaSorter.Transparent` + `excludeFromRecents`, so the user stays on the
+ * home screen during permission/camera handoff.
+ *
+ * S1174 - deliberately NOT `noHistory`: the opaque capture host stops this transparent trampoline, and
+ * the flag then finished it before the result arrived, dropping every capture. Keep every branch of the
+ * manager calling `finish()` so the invisible activity still cannot outlive the flow.
  */
 @AndroidEntryPoint
 class CameraQuickCaptureActivity : AppCompatActivity() {

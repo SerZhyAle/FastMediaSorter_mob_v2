@@ -118,7 +118,23 @@ class PlayerPlaybackCallbackImpl(
         )
         label.isVisible = true
     }
-    
+
+    /**
+     * S1158: the programme caption is deliberately not cleared where [streamWaitLabel] is - those two
+     * resets fire when playback becomes ready or buffering ends, and a programme name has to survive
+     * its own stream starting to play. The reset lives in `VideoPlayerManager.playVideo`.
+     */
+    override fun onStreamProgramName(name: String?) {
+        val label = binding.streamProgramLabel
+        val text = name?.trim().orEmpty()
+        if (text.isEmpty()) {
+            label.isVisible = false
+            return
+        }
+        label.text = text
+        label.isVisible = true
+    }
+
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
         val currentFile = viewModel.state.value.currentFile
         val isAudioFile = currentFile?.type == MediaType.AUDIO

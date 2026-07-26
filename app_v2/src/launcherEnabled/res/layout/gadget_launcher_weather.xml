@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0426: the weather gadget. Sized by the desktop grid like every gadget, so nothing here sets a
+     fixed height - the temperature autosizes into whatever the cell hands it. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/margin_small">
+
+        <ImageView
+            android:id="@+id/gadgetWeatherIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:maxWidth="48dp"
+            android:tint="?attr/colorOnSurface"
+            tools:ignore="UseAppTint"
+            tools:src="@drawable/ic_weather_partly_cloudy" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/gadgetWeatherTemperature"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autoSizeMaxTextSize="40sp"
+                android:autoSizeMinTextSize="12sp"
+                android:autoSizeTextType="uniform"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"
+                tools:ignore="UnusedAttribute"
+                tools:text="+21°" />
+
+            <TextView
+                android:id="@+id/gadgetWeatherPlace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                tools:text="Kyiv" />
+
+            <TextView
+                android:id="@+id/gadgetWeatherMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="Weather is unavailable right now"
+                tools:visibility="visible" />
+
+            <!-- CC-BY 4.0 obliges us to name the source; it is part of the gadget, not a debug label. -->
+            <TextView
+                android:id="@+id/gadgetWeatherAttribution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/launcher_gadget_weather_attribution"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="9sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</merge>

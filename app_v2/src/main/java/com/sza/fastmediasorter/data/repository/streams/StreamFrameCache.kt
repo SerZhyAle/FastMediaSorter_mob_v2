@@ -24,11 +24,10 @@ class StreamFrameCache @Inject constructor() {
 
     private val lock = Any()
 
-    // accessOrder = true so iteration order reflects LRU; the eldest is evicted past capacity.
-    private val entries = object : LinkedHashMap<String, Entry>(16, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Entry>): Boolean =
-            size > MAX_ENTRIES
-    }
+    // S1169: accessOrder = true so iteration order is LRU (eldest first). Eviction is by total byte
+    // footprint ([MAX_CACHE_BYTES]) rather than a fixed row count, so a still-visible tile is not
+    // evicted just because the catalog has many channels; [MAX_ENTRIES_BACKSTOP] only bounds map size.
+    private val entries = LinkedHashMap<String, Entry>(INITIAL_CAPACITY, LOAD_FACTOR, true)
 
     /**
      * S0784: always returns the last captured frame for [url] once one exists (live or restored), so a
@@ -50,9 +49,10 @@ class StreamFrameCache @Inject constructor() {
     /** True when any entry (live or restored) already holds [url] - skips a redundant disk pre-warm. */
     fun hasEntry(url: String): Boolean = synchronized(lock) { entries.containsKey(url) }
 
-    /** Stores/refreshes the live entry for [url], evicting the eldest beyond [MAX_ENTRIES]. */
+    /** Stores/refreshes the live entry for [url], evicting the eldest until within the byte budget. */
     fun put(url: String, bitmap: Bitmap) = synchronized(lock) {
         entries[url] = Entry(bitmap, SystemClock.elapsedRealtime(), live = true)
+        evictToBudget()
     }
 
     /**
@@ -62,6 +62,23 @@ class StreamFrameCache @Inject constructor() {
     fun putRestored(url: String, bitmap: Bitmap) = synchronized(lock) {
         if (entries.containsKey(url)) return
         entries[url] = Entry(bitmap, SystemClock.elapsedRealtime(), live = false)
+        evictToBudget()
+    }
+
+    /**
+     * S1169: evict least-recently-used entries until the total bitmap footprint is within
+     * [MAX_CACHE_BYTES] and the entry count is within [MAX_ENTRIES_BACKSTOP]. Iterates in access order
+     * (eldest first); the just-inserted entry sits at the tail, so it is never the one evicted. Caller
+     * holds [lock].
+     */
+    private fun evictToBudget() {
+        var total = entries.values.sumOf { it.bitmap.allocationByteCount.toLong() }
+        val iterator = entries.entries.iterator()
+        while (iterator.hasNext() && (total > MAX_CACHE_BYTES || entries.size > MAX_ENTRIES_BACKSTOP)) {
+            val entry = iterator.next()
+            total -= entry.value.bitmap.allocationByteCount.toLong()
+            iterator.remove()
+        }
     }
 
     fun clear() = synchronized(lock) {
@@ -73,6 +90,12 @@ class StreamFrameCache @Inject constructor() {
 
     private companion object {
         const val FRAME_TTL_MS = 60_000L
-        const val MAX_ENTRIES = 64
+        const val INITIAL_CAPACITY = 16
+        const val LOAD_FACTOR = 0.75f
+        // S1169: ~26 captured 640x360 RGB_565 frames (~460 KB each) of in-memory headroom, well over a
+        // typical visible window, expressed in bytes so it self-scales with the actual tile size.
+        const val MAX_CACHE_BYTES = 12L * 1024 * 1024
+        // Hard backstop on map size so a pathological run of tiny frames cannot grow it unbounded.
+        const val MAX_ENTRIES_BACKSTOP = 256
     }
 }

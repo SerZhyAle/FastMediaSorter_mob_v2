@@ -24,7 +24,7 @@ class StreamAtlasPromptManager(
     private val inventory: DeliverableInventory,
     private val scope: CoroutineScope,
 ) {
-    // Latched once an offer has been shown this session so a rapid re-import cannot stack Snackbars.
+    // Latched while an offer is on screen (or was accepted) so a rapid re-import cannot stack Snackbars.
     private var offered = false
 
     /** Offer the atlas download when it is not installed / in-flight and not already offered. */
@@ -36,8 +36,19 @@ class StreamAtlasPromptManager(
             if (status is ExtensionStatus.Installed || status is ExtensionStatus.Downloading) return@launch
             if (offered) return@launch
             offered = true
-            Snackbar.make(anchor, R.string.streams_atlas_prompt_message, Snackbar.LENGTH_LONG)
+            // INDEFINITE: the offer fires together with the "catalog updated" toast, and a timed
+            // Snackbar behind that toast was easy to miss entirely (owner report 2026-07-26). It now
+            // waits for a decision - accept, or swipe it away.
+            Snackbar.make(anchor, R.string.streams_atlas_prompt_message, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.streams_atlas_prompt_action) { startDownload(item) }
+                .addCallback(object : Snackbar.Callback() {
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        // Only an accepted offer stays latched. A swipe/replacement dismissal must not
+                        // silence the atlas for the rest of the session: every later catalog update
+                        // offers it again until it is actually installed.
+                        if (event != DISMISS_EVENT_ACTION) offered = false
+                    }
+                })
                 .show()
         }
     }

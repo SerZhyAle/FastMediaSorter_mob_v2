@@ -131,6 +131,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
     private lateinit var panelItemActions: MainPanelItemActionsManager
+
     // S0984: builds the "share SFTP access" dialog; lazy since only SFTP resources reach it.
     private val sftpShareManager by lazy { MainSftpShareManager(this) }
     private var startupFullyDrawnReported = false
@@ -615,6 +616,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun onDestroy() {
+        // Before super: the dialog's window must go while this Activity is still its valid host,
+        // otherwise a configuration recreate leaks it (S1197). lateinit, so guard - an early
+        // finish() can destroy the Activity before setupViews() ever assigns the helper.
+        if (::permissionsHelper.isInitialized) {
+            permissionsHelper.dismissPendingDialog()
+        }
         super.onDestroy()
 
         // Clear UnifiedFileCache when app closes (network file cache) (bitmap thumbnails remain in Glide cache) Skip cleanup if just recreating (rotation, theme change, etc)

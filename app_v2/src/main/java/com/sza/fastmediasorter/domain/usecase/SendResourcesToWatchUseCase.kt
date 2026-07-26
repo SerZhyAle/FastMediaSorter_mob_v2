@@ -30,7 +30,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
         if (nodes.isEmpty()) error("No watch connected")
 
         val allResources = resourceRepository.getAllResourcesSync()
-        val networkResources = allResources.filter { it.type in listOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP) }
+        // S1009: never push hidden resources to the watch (defense-in-depth; hidden resources are LOCAL today).
+        val networkResources = allResources.filter {
+            it.type in listOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP) && !it.isHidden
+        }
 
         var sent = 0
         var skipped = 0

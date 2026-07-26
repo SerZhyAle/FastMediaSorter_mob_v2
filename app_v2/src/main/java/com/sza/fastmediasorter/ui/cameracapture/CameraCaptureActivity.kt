@@ -278,6 +278,14 @@ class CameraCaptureActivity :
         // uninitialised; its symmetric enable() never fired either, so the disable is a safe skip.
         if (::orientationManager.isInitialized) orientationManager.disable()
         cancelCountdown()
+        // S1181: the camera is bound to this activity's lifecycle, so CameraX unbinds VideoCapture on
+        // ON_STOP and the recording finalizes with NO_VALID_DATA - the footage is lost. Stop it here,
+        // while the source is still live, so the file finalizes exactly as a shutter-tap stop would.
+        // onPause, not onStop: the order between our onStop and LifecycleCameraRepository's observer is
+        // not guaranteed, and onPause is reliably earlier than any ON_STOP dispatch.
+        if (::sessionManager.isInitialized && sessionManager.isRecording()) {
+            sessionManager.stopRecording()
+        }
         super.onPause()
     }
 
@@ -353,8 +361,12 @@ class CameraCaptureActivity :
         binding.btnCameraNight.setIconResource(
             if (flowManager.nightModeEnabled) R.drawable.ic_camera_night_on else R.drawable.ic_camera_night_off,
         )
+        // S1189: macro is reachable either by locking the active lens or by switching to dedicated
+        // close-focus optics; hiding it unless the ACTIVE lens can lock left the button missing on
+        // exactly the phones that have a real macro lens.
+        val macroReachable = capabilities.supportsMacro || capabilities.macroLensAvailable
         binding.btnCameraMacro.visibility =
-            if (capabilities.supportsMacro && !flowManager.isVideoMode) View.VISIBLE else View.GONE
+            if (macroReachable && !flowManager.isVideoMode) View.VISIBLE else View.GONE
         binding.btnCameraMacro.setIconResource(
             if (flowManager.macroEnabled) R.drawable.ic_camera_macro_on else R.drawable.ic_camera_macro_off,
         )

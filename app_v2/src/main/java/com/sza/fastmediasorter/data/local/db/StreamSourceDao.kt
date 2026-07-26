@@ -94,8 +94,17 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET lastPlayedAt = :atMillis WHERE id = :id")
     suspend fun markPlayed(id: String, atMillis: Long)
 
-    /** S0593: record the last local play outcome ("OK"/"FAIL") for the row status bullet. */
-    @Query("UPDATE stream_sources SET lastPlayOutcome = :outcome, lastPlayOutcomeAt = :atMillis WHERE id = :id")
+    /**
+     * S0593: record the last local play outcome ("OK"/"FAIL") for the row status bullet.
+     * S1169: conditional on a real value change - when the stored outcome already equals :outcome the
+     * UPDATE matches zero rows, so SQLite's update hook does not fire and Room does not re-emit
+     * observeAll(). This cuts the capture/probe -> DB write -> whole-catalog re-emit -> full rebind loop
+     * for a channel whose outcome is unchanged (e.g. a chronically dead tile already UNKNOWN).
+     */
+    @Query(
+        "UPDATE stream_sources SET lastPlayOutcome = :outcome, lastPlayOutcomeAt = :atMillis " +
+            "WHERE id = :id AND (lastPlayOutcome IS NULL OR lastPlayOutcome <> :outcome)"
+    )
     suspend fun markPlayOutcome(id: String, outcome: String, atMillis: Long)
 
     /** S0659: clear every channel's OK/FAIL status bullet. Channels themselves are untouched (no DELETE). */
@@ -116,6 +125,9 @@ interface StreamSourceDao {
     suspend fun deleteCatalogByUrls(urls: List<String>)
 
     /** S0570: refresh catalog metadata in place; sortIndex/pinned are preserved (not in the SET). */
+    // A Room @Query binds one named parameter per column, so the catalog columns cannot be folded into
+    // a single object here; the parameter count is inherent to the update surface.
+    @Suppress("LongParameterList")
     @Query(
         "UPDATE stream_sources SET title = :title, mediaKind = :mediaKind, category = :category, " +
             "topic = :topic, language = :language, country = :country, access = :access " +

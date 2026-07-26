@@ -100,6 +100,7 @@
                     android:id="@+id/headerOther"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_translate"
                     app:csh_title="@string/settings_category_other" />
 
                 <FrameLayout android:id="@+id/containerOther" android:layout_width="match_parent" android:layout_height="wrap_content" />

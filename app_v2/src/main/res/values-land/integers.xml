@@ -11,6 +11,9 @@
     <!-- S0999: two-column "Send file to.." list in landscape. -->
     <integer name="settings_send_commands_columns">2</integer>
 
+    <!-- S1161: collapsed settings groups pair up in landscape; expanded ones still span the row. -->
+    <integer name="settings_group_columns">2</integer>
+
     <!-- S0473: statistics grid span in landscape. -->
     <integer name="statistics_card_span">4</integer>
 </resources>

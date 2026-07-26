@@ -206,6 +206,7 @@ private class FakeResourceRepository : ResourceRepository {
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) = Unit
     override suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>) = Unit
     override suspend fun deleteResource(resourceId: Long) = Unit
+    override suspend fun deleteResourceIfHidden(resourceId: Long) = Unit
     override suspend fun deleteAllResources() = Unit
     override suspend fun testConnection(resource: MediaResource): Result<String> = Result.success("ok")
     override suspend fun updateIcon(resourceId: Long, iconId: String?) = Unit

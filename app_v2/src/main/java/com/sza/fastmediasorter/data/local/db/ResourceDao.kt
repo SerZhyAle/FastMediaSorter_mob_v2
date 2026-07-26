@@ -54,52 +54,22 @@ abstract class ResourceDao {
     @Query("UPDATE resources SET needs_sign_in = 0 WHERE credentialsId = :credentialsId")
     abstract suspend fun clearNeedsSignInForCredentials(credentialsId: String)
 
-    // --- FTS Table Operations ---
+    // --- Public Write Methods ---
 
-    @Query("INSERT INTO resources_fts(docid, name, path) VALUES (:docid, :name, :path)")
-    protected abstract suspend fun insertFts(docid: Long, name: String, path: String)
+    // S1159: `resources_fts` is an external-content FTS4 table, so Room emits its own
+    // BEFORE UPDATE/DELETE + AFTER INSERT/UPDATE content-sync triggers on `resources` (they are
+    // re-created in onPostMigrate, so upgraded databases have them too). The index is therefore
+    // maintained by the database itself - these writers must touch the content table only.
+    // Hand-rolled FTS statements here used to run *after* the content row had already been
+    // deleted/updated, which SQLite documents as undefined for external-content tables.
 
-    @Query("UPDATE resources_fts SET name = :name, path = :path WHERE docid = :docid")
-    protected abstract suspend fun updateFts(docid: Long, name: String, path: String)
+    open suspend fun insert(resource: ResourceEntity): Long = insertResource(resource)
 
-    @Query("DELETE FROM resources_fts WHERE docid = :docid")
-    protected abstract suspend fun deleteFts(docid: Long)
+    open suspend fun update(resource: ResourceEntity) = updateResource(resource)
 
-    @Query("DELETE FROM resources_fts")
-    protected abstract suspend fun deleteAllFts()
+    open suspend fun delete(resource: ResourceEntity) = deleteResource(resource)
 
-    // --- Public Transactional Methods ---
-
-    @Transaction
-    open suspend fun insert(resource: ResourceEntity): Long {
-        val id = insertResource(resource)
-        insertFts(id, resource.name, resource.path)
-        return id
-    }
-
-    @Transaction
-    open suspend fun update(resource: ResourceEntity) {
-        updateResource(resource)
-        updateFts(resource.id, resource.name, resource.path)
-    }
-
-    @Transaction
-    open suspend fun delete(resource: ResourceEntity) {
-        deleteResource(resource)
-        deleteFts(resource.id)
-    }
-
-    @Transaction
-    open suspend fun deleteByIdWithFts(id: Long) {
-        deleteById(id)
-        deleteFts(id)
-    }
-
-    @Transaction
-    open suspend fun deleteAll() {
-        deleteAllResources()
-        deleteAllFts()
-    }
+    open suspend fun deleteAll() = deleteAllResources()
 
     // --- Queries ---
     

@@ -32,14 +32,38 @@ data class CameraRuntimeCapabilities(
     val supportsHdrExtension: Boolean = false,
     val availableAspectRatios: List<Int> = emptyList(),
     val photoResolutions: List<Size> = emptyList(),
+    /**
+     * S1189: the subset of [photoResolutions] that only the sensor's high-resolution mode delivers.
+     * Choosing one of these is slower and heavier, so it stays an explicit user choice (ADR-4).
+     */
+    val highResolutionPhotoSizes: List<Size> = emptyList(),
     /** Native-ratio -> equivalent-zoom factor (this lens focal / main lens focal); 1.0 for the main lens. */
     val zoomMultiplier: Float = 1f,
     /** The active lens can focus close enough for a usable macro mode (heuristic on min focus distance). */
     val supportsMacro: Boolean = false,
+    /**
+     * S1189: some other lens of the same facing focuses close enough to serve as a macro lens. Most
+     * devices implement macro as dedicated optics rather than a focus lock on the main lens, so
+     * macro is offered when either this or [supportsMacro] holds.
+     */
+    val macroLensAvailable: Boolean = false,
     /** Closest focus distance in diopters (1/m) for macro; 0 when fixed-focus / unknown. */
     val macroFocusDistance: Float = 0f,
     /** Max native ratio reachable including digital crop beyond the lens optical/CameraX max (S0753). */
     val maxDisplayZoomRatio: Float = DEFAULT_ZOOM,
+    /**
+     * S1189: widest equivalent zoom reachable on this device across every offered lens, not just the
+     * bound one. Below 1 on a phone whose ultra-wide is a physical sub-lens - the value the system
+     * camera shows as 0.6x while the bound main lens still reports its own floor of 1.
+     */
+    val minEquivalentZoomRatio: Float = DEFAULT_ZOOM,
+    /**
+     * S1189: the active lens is the widest of several back lenses. False on a device with a single
+     * back camera, so that camera keeps reading as the plain wide lens rather than "ultra-wide".
+     */
+    val activeLensIsWidest: Boolean = false,
+    /** S1189: the active lens is the dedicated close-focus lens, so the label reads "macro". */
+    val activeLensIsMacro: Boolean = false,
 ) {
     /** A second lens to flip to exists. */
     val canSwitchLens: Boolean get() = availableLensFacings.size > 1
@@ -63,6 +87,9 @@ data class CameraRuntimeCapabilities(
         /** Drop a preset sitting above this fraction of the max - redundant with the max button. */
         const val NEAR_MAX_DROP_FACTOR = 0.85f
 
+        /** Zoom presets are displayed and compared to one decimal place. */
+        const val ZOOM_STEP_SCALE = 10f
+
         /** No-capability fallback used before the first successful bind. */
         val NONE = CameraRuntimeCapabilities()
 
@@ -85,16 +112,27 @@ data class CameraRuntimeCapabilities(
             // Desired presets in equivalent-zoom terms: below 1x only the lens minimum (minZoom), at/above
             // 1x the 1/3/5/10/20/30 steps, ending at the reachable maximum (S0754 owner feedback).
             val desiredEquiv = listOf(1f, 3f, 5f, 10f, 20f, 30f)
-            val candidates = desiredEquiv.map { it / mult } + minZoom + maxNative
+            // S1189: the device's own optical limits always get their own button - they are what marks
+            // where real optics end and software zoom begins.
+            val nativeBounds = listOf(minZoom, maxZoom).map(::roundToStep)
+            val candidates = desiredEquiv.map { it / mult } + minZoom + maxZoom + maxNative
             val presets = candidates
                 .filter { it in minZoom..maxNative }
-                .map { (it * 10f).toInt() / 10f }
+                .map(::roundToStep)
                 .distinct()
                 .sorted()
             // Adaptive count: drop a step just below the max (redundant with the max button) - e.g. when
             // the max is 3.3 the 3 step is dropped, like the new Samsung camera (S0753 device feedback).
             val ceiling = presets.lastOrNull() ?: return presets
-            return presets.filter { it == ceiling || it < ceiling * NEAR_MAX_DROP_FACTOR }
+            return presets.filter {
+                it in nativeBounds || it == ceiling || it < ceiling * NEAR_MAX_DROP_FACTOR
+            }
         }
+
+        /**
+         * S1189: presets are shown to one decimal, so anything comparing a preset against a lens
+         * limit has to compare at that same precision or the two never match.
+         */
+        fun roundToStep(value: Float): Float = (value * ZOOM_STEP_SCALE).toInt() / ZOOM_STEP_SCALE
     }
 }

@@ -105,6 +105,24 @@ class StreamGridAdapter(
         holder.bind(getItem(position))
     }
 
+    // S1169: a status- or pin-only change repaints just that affordance - no frame re-set, favicon
+    // re-decode, or overflow-menu rebuild. Empty payloads fall through to the full bind.
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+            return
+        }
+        val item = getItem(position)
+        payloads.forEach { payload ->
+            when (payload) {
+                StreamAdapterPayloads.STATUS -> {
+                    holder.bindStatusOnly(item.lastPlayOutcome)
+                }
+                StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
+            }
+        }
+    }
+
     override fun onViewRecycled(holder: VH) {
         holder.cancelFaviconLoad()
     }
@@ -283,6 +301,13 @@ class StreamGridAdapter(
             }
         }
 
+        // S1169: partial-rebind entry points used by the payload path - repaint one affordance only.
+        fun bindStatusOnly(outcome: String?) = bindPlayStatus(outcome)
+
+        fun bindPinOnly(pinned: Boolean) {
+            binding.tvPinBadge.isVisible = pinned
+        }
+
         /** S0701: same tri-state play-status mapping as [StreamSourceAdapter.bindPlayStatus]. */
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
@@ -324,6 +349,10 @@ class StreamGridAdapter(
 
             override fun areContentsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =
                 oldItem == newItem
+
+            // S1169: narrow a status- or pin-only change to a payload so the tile does not full-rebind.
+            override fun getChangePayload(oldItem: StreamSourceEntity, newItem: StreamSourceEntity): Any? =
+                streamRowChangePayload(oldItem, newItem)
         }
     }
 }

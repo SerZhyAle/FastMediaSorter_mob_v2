@@ -86,7 +86,6 @@ internal class ImageLoadingGlideListeners(
             val isAnimatable = resource is Animatable
             setCurrentIsAnimatedContent(isAnimatable)
             callback.setAnimatedBadgeVisible(isAnimatable)
-            Timber.d("S1026: image ready animatable=%s %s", isAnimatable, describeModel(model))
             // S0704: image ready - drop IMAGE_GLIDE and cancel its pending show + safety so a fast
             // load can never resurrect the spinner over the displayed image.
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)

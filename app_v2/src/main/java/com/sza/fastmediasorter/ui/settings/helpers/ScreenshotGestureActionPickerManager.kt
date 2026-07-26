@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker and maps actions to labels.
@@ -46,11 +47,13 @@ class ScreenshotGestureActionPickerManager(
         current: ScreenshotGestureAction,
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
+        val rows = buildRows()
+        Timber.d("S1166: gesture picker opened, rows=${rows.size}, current=$current")
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),
             lifecycleOwner = lifecycleOwner,
-            rows = buildRows(),
+            rows = rows,
             selectedAction = current,
             onPicked = onPicked,
         ).show()
@@ -76,6 +79,7 @@ class ScreenshotGestureActionPickerManager(
                                 action = action,
                                 labelRes = ScreenshotGestureActionCatalog.labelResFor(action),
                                 explanationRes = ScreenshotGestureActionCatalog.explanationResFor(action),
+                                iconRes = ScreenshotGestureActionCatalog.iconResFor(action),
                                 enabled = true,
                             ),
                         )

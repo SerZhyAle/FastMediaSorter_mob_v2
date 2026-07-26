@@ -885,12 +885,6 @@ Close the player and try again.</string>
     <!-- Audio Metadata -->
 
     <!-- Languages array -->
-    <string-array name="languages">
-        <item>English</item>
-        <item>Русский</item>
-        <item>Українська</item>
-    </string-array>
-
     <!-- Add Resource -->
     <string name="add_local_folder">Add Local Folder</string>
     <string name="local_folder">Local Folder</string>
@@ -2544,11 +2538,11 @@ Close the player and try again.</string>
     <string name="setting_group_system_apps_title">Operating system interaction</string>
     <string name="setting_subgroup_screen_gestures_title">Edge screen gestures</string>
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
-    <string name="setting_gesture_overlay_summary">Show a thin gesture strip on the left edge, over other apps</string>
+    <string name="setting_gesture_overlay_summary">Show up to 4 thin gesture strips at the screen edges, over other apps</string>
     <string name="setting_gesture_strip_visible_title">Show the gesture strip</string>
     <string name="setting_gesture_strip_visible_summary">Show a semi-transparent grey guide on the first 4 px; the rest stays transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
-    <string name="setting_gesture_overlay_help_message">A thin invisible strip sits on the left edge of the screen. To capture the current screen, swipe from the strip diagonally down and to the right (about 45°). The screenshot is saved to the chosen resource - by default, the device screenshots folder. Requires the \"Display over other apps\" permission. The strip covers the left edge from 10 to 75 percent of the height; the top corner is left free so it does not trigger by accident.</string>
+    <string name="setting_gesture_overlay_help_message">Up to four invisible strips sit at the screen edges: two on the left and two on the right, each covering the 10-40 percent or 60-90 percent band of the screen height. From a strip you swipe in one of three directions - up, down, or inward - and every swipe runs the action assigned to it: a screenshot, the camera, device control (flashlight, volume, brightness), opening an app, and more. Which zones are on, whether their guides are visible, and the action per direction are all set in &quot;Configure gestures&quot;. Requires the &quot;Display over other apps&quot; permission.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
     <string name="setting_screenshot_destination_default">Device screenshots folder (or Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Allow drawing over other apps to show the gesture strip</string>
@@ -3231,4 +3225,36 @@ Close the player and try again.</string>
     <string name="ext_channel_preview_atlas_desc">Shows a preview for video channels in grid mode before your first watch.</string>
     <string name="streams_atlas_prompt_message">Download channel previews so video channels show a picture before you play them?</string>
     <string name="streams_atlas_prompt_action">Download</string>
+    <string name="streams_filter_topic">Topic</string>
+    <string name="launcher_gadget_weather">Weather</string>
+    <string name="launcher_gadget_weather_actions">Weather. Tap to open the weather app, long press to change the place</string>
+    <string name="launcher_gadget_weather_no_location">Long press to choose a place</string>
+    <string name="launcher_gadget_weather_unavailable">Weather is unavailable right now</string>
+    <string name="launcher_gadget_weather_stale">Last known</string>
+    <string name="launcher_gadget_weather_attribution">Weather data by Open-Meteo.com</string>
+    <string name="launcher_weather_location_title">Choose a place</string>
+    <string name="launcher_weather_location_hint">City name</string>
+    <string name="launcher_weather_location_search">Search</string>
+    <string name="launcher_weather_location_empty">Nothing found. Try another spelling</string>
+    <string name="launcher_weather_location_searching">Searching..</string>
+    <string name="launcher_weather_location_failed">Could not reach the search service. Check the connection and try again</string>
+    <string name="launcher_app_shortcut_start_failed">This action isn\'t available any more.</string>
+    <string name="launcher_settings_lock_desktop_title">Lock desktop</string>
+    <string name="launcher_settings_wallpaper_title">Desktop wallpaper</string>
+    <string name="launcher_settings_wallpaper_branded">Waves and particles</string>
+    <string name="launcher_settings_wallpaper_none">Empty</string>
+    <string name="launcher_settings_wallpaper_image">My image</string>
+    <string name="launcher_settings_wallpaper_import_failed">Could not use this image</string>
+    <string name="sysinfo_section_cameras">Cameras</string>
+    <string name="sysinfo_field_camera_id">Camera</string>
+    <string name="sysinfo_field_camera_facing">Facing</string>
+    <string name="sysinfo_field_camera_physical_of">Physical lens of</string>
+    <string name="sysinfo_field_camera_focal">Focal lengths</string>
+    <string name="sysinfo_field_camera_zoom_range">Zoom range</string>
+    <string name="sysinfo_field_camera_focus_distance">Closest focus</string>
+    <string name="sysinfo_field_camera_max_photo">Largest photo size</string>
+    <string name="sysinfo_field_camera_max_photo_high_res">Largest photo size (high-res)</string>
+    <string name="camera_lens_macro">Macro</string>
+    <string name="camera_control_zoom_step">Zoom %1$s</string>
+    <string name="camera_control_zoom_step_native">Zoom %1$s, optical limit</string>
 </resources>

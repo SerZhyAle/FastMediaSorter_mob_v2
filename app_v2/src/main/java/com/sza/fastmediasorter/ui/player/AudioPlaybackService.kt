@@ -703,7 +703,6 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     private fun scheduleStreamRetry() {
-        Timber.d("S1118: service stream retry attempt=%d", streamRetryAttempt)
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl streamRetryAttempt)
             .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
         streamRetryAttempt = (streamRetryAttempt + 1).coerceAtMost(MAX_STREAM_BACKOFF_SHIFT)
@@ -763,7 +762,6 @@ class AudioPlaybackService : MediaSessionService() {
         try {
             p.replaceMediaItem(index, updated)
             lastIcyTitle = rawIcyTitle
-            Timber.d("S1142: pushed live ICY track to notification artist=%s title=%s", parsed.artist, parsed.title)
         } catch (e: IllegalStateException) {
             Timber.w(e, "AudioPlaybackService: live ICY metadata update skipped")
         }

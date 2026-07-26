@@ -96,8 +96,11 @@ class OverlayHostService : Service() {
             try {
                 val enabledZones = actionDispatcher.get().enabledZones()
                 val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
+                // S1162: resolve the slot actions here, where suspending is allowed - the hint has to
+                // render synchronously on touch-down.
+                val zoneActions = actionDispatcher.get().actionsForZones(enabledZones)
                 overlayManager.hide()
-                overlayManager.show(stripVisibleZones, enabledZones)
+                overlayManager.show(stripVisibleZones, enabledZones, zoneActions)
                 overlayVisible = true
             } catch (e: Exception) {
                 Timber.e(e, "OverlayHostService: failed to start overlay host")

@@ -213,14 +213,16 @@ class ResourceRepositoryImpl @Inject constructor(
         val entities = withContext(Dispatchers.IO) {
             resourceDao.getResourcesRaw(query)
         }
-        
+
         val credentials = credentialsRepository.getAllCredentials().first()
         val credMap = credentials.associateBy { it.credentialId }
-        
+
+        // S1009: hide ad-hoc local folders from browse (type/media/sort). The FTS name-search branch
+        // above stays unfiltered - resource search may surface hidden rows per owner decision.
         return entities.map { entity ->
             val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
             entity.toDomain(accountId)
-        }
+        }.filterNot { it.isHidden }
     }
 
     private fun getComparator(sortMode: SortMode): Comparator<MediaResource> {
@@ -276,6 +278,14 @@ class ResourceRepositoryImpl @Inject constructor(
     
     override suspend fun deleteResource(resourceId: Long) {
         resourceDao.deleteById(resourceId)
+    }
+
+    override suspend fun deleteResourceIfHidden(resourceId: Long) {
+        // S1009: only ad-hoc hidden rows may be auto-removed; a visible user resource is never touched.
+        val entity = resourceDao.getResourceByIdSync(resourceId) ?: return
+        if (entity.isHidden) {
+            resourceDao.deleteById(resourceId)
+        }
     }
     
     override suspend fun deleteAllResources() {
@@ -513,7 +523,8 @@ class ResourceRepositoryImpl @Inject constructor(
             hostKeyFingerprint = hostKeyFingerprint,
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from entity to domain.
             altAccessPaths = parseAltPaths(altAccessPaths), // S1006
-            accessNote = accessNote // S1014
+            accessNote = accessNote, // S1014
+            isHidden = isHidden // S1009: propagate hidden flag entity -> domain
         )
     }
 
@@ -573,7 +584,8 @@ class ResourceRepositoryImpl @Inject constructor(
             hostKeyFingerprint = hostKeyFingerprint,
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from domain to entity.
             altAccessPaths = serializeAltPaths(altAccessPaths), // S1006
-            accessNote = accessNote // S1014
+            accessNote = accessNote, // S1014
+            isHidden = isHidden // S1009: propagate hidden flag domain -> entity
         )
     }
 

@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * State holder for the "Трансляции" list screen. Observes the catalog and forwards user intents to
@@ -129,8 +130,8 @@ class StreamsViewModel @Inject constructor(
 
     /**
      * S0659: seed [_filter] from the persisted last session, else from the user defaults. Only sort and
-     * media-kind carry over; the catalog-derived facets (category/topic/language) stay at defaults. Skips
-     * if the user already changed the filter while the read was in flight.
+     * media-kind come from the user defaults; the catalog-derived facets are restored below (S0697).
+     * Skips if the user already changed the filter while the read was in flight.
      *
      * S1054: the free-text query is deliberately NOT restored - it stays empty on every open so the search
      * field and the applied text filter can never diverge (empty field + already-filtered list).
@@ -149,6 +150,7 @@ class StreamsViewModel @Inject constructor(
             // longer exists in the catalog simply yields an empty list with the filter shown active, so the
             // user can clear it - no crash, no silent wrong data.
             category = session.lastCategory,
+            topic = session.lastTopic,
             language = session.lastLanguage,
             country = session.lastCountry,
             pinnedOnly = session.lastPinnedOnly ?: false,
@@ -273,15 +275,18 @@ class StreamsViewModel @Inject constructor(
 
     fun onFilter(
         category: String? = null,
+        topic: String? = null,
         language: String? = null,
         country: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
+        Timber.d("S1168: onFilter topic=$topic category=$category")
         val previousKind = _filter.value.mediaKind
         _filter.update {
             it.copy(
                 category = category,
+                topic = topic,
                 language = language,
                 country = country,
                 mediaKind = mediaKind,
@@ -344,6 +349,7 @@ class StreamsViewModel @Inject constructor(
                 sort = filter.sort.name,
                 mediaFilter = filter.mediaKind.name,
                 category = filter.category,
+                topic = filter.topic,
                 language = filter.language,
                 country = filter.country,
                 pinnedOnly = filter.pinnedOnly,
@@ -475,7 +481,6 @@ class StreamsViewModel @Inject constructor(
                     // RTSP is a video transport, so it shares the "video" bucket.
                     MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
                 }
-                // topic stays ANDed: not exposed in the filter UI (the query box covers topic).
                 val topicHit = filter.topic == null || source.topic == filter.topic
                 // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
                 val pinnedHit = !filter.pinnedOnly || source.pinned

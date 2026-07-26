@@ -290,6 +290,8 @@ class CastMediaManagerImpl(
 
         proxyServer.serveFile(localFile)
         val castUrl = proxyServer.castUrl()
+        val mimeType = LocalCastProxyServer.mimeType(localFile)
+        Timber.d("S1155: cast local file mime=$mimeType name=${file.name}")
         // TODO(phase-06-deferred): apply panel single-eye crop to Cast output.
         // See PLAN/spec_panel-stereo-single-eye/PHASE_06__cast-feasibility.md.
         // Default Cast receiver decodes the original file natively; implementing the crop
@@ -298,7 +300,7 @@ class CastMediaManagerImpl(
         Timber.d("CastMediaManager: casting ${file.name} via $castUrl")
 
         withContext(Dispatchers.Main) {
-            loadMediaOnReceiver(file, castUrl)
+            loadMediaOnReceiver(file, castUrl, mimeType)
         }
     }
 
@@ -333,7 +335,7 @@ class CastMediaManagerImpl(
             }
     }
 
-    private fun loadMediaOnReceiver(file: MediaFile, url: String) {
+    private fun loadMediaOnReceiver(file: MediaFile, url: String, contentType: String) {
         val session = currentSession ?: return
         val remoteClient = session.remoteMediaClient ?: return
 
@@ -350,8 +352,11 @@ class CastMediaManagerImpl(
         ).apply {
             putString(MediaMetadata.KEY_TITLE, file.name)
         }
+        // The default Cast receiver requires a content type to pick its decode pipeline; omitting it
+        // makes remoteClient.load() fail with a null status message (S1155).
         val mediaInfo = MediaInfo.Builder(url)
             .setStreamType(streamType)
+            .setContentType(contentType)
             .setMetadata(metadata)
             .build()
         val request = MediaLoadRequestData.Builder()

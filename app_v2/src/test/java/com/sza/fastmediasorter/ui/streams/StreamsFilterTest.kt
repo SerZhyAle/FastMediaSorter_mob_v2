@@ -101,6 +101,33 @@ class StreamsFilterTest {
     }
 
     @Test
+    fun `topic alone isolates the sources carrying it`() {
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("cam1", category = "Live TV", topic = "Webcam"),
+                source("cam2", category = "Live TV", topic = "Webcam"),
+                source("channel", category = "Live TV", topic = "News"),
+                source("untagged", category = "Live TV"),
+            ),
+            StreamsFilter(topic = "Webcam"),
+        )
+        assertEquals(setOf("cam1", "cam2"), ids(result))
+    }
+
+    @Test
+    fun `both category and topic must match (AND)`() {
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("both", category = "Live TV", topic = "Webcam"),
+                source("catOnly", category = "Live TV", topic = "News"),
+                source("topicOnly", category = "Radio", topic = "Webcam"),
+            ),
+            StreamsFilter(category = "Live TV", topic = "Webcam"),
+        )
+        assertEquals(setOf("both"), ids(result))
+    }
+
+    @Test
     fun `an unset facet passes everything`() {
         val sources = listOf(
             source("a", category = "Live TV", language = "russian"),

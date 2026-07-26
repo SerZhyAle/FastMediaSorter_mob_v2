@@ -8,9 +8,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
@@ -31,14 +29,15 @@ import java.util.Locale
  *
  * Flow: resolve photo/video availability (settings + injected media capabilities + camera hardware)
  * -> CAMERA permission -> open the unified in-app camera host ([CameraCaptureActivity]) in switchable
- * mode when both modes are available (the user picks photo/video in-screen), otherwise fixed in the
- * single available mode (degenerate gating reused from S0563) -> persist the captured file to the
- * device public folders by its actual media kind via the shared [SaveCapturedMediaUseCase].
+ * multi-capture mode when both modes are available (the user picks photo/video in-screen), otherwise
+ * fixed in the single available mode (degenerate gating reused from S0563).
  *
- * Mirrors [com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager] (the overflow "Camera"
- * entry) for launch + save, and [CameraQuickCaptureLaunchManager] for the trampoline glue (toast,
- * scratch file, permission). It never binds to a sorting resource, so the save use case routes to the
- * public folders only.
+ * S1182: the host is always opened in multi-capture mode, where it saves every capture to its public
+ * folder itself (S0566/ADR-2) and returns RESULT_CANCELED on close. So this widget never saves and holds
+ * no [com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase] - [onCaptureResult] only drops the
+ * scratch bookkeeping, mirroring the `multiCapture` branch of
+ * [com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager]. Shares
+ * [CameraQuickCaptureLaunchManager]'s trampoline glue (toast, scratch dir, permission).
  *
  * @param launchCapture invoked with the prepared capture intent; the trampoline owns the
  *   `ActivityResultLauncher` and routes the result back via [onCaptureResult].
@@ -47,7 +46,6 @@ class CameraLaunchWidgetManager(
     private val activity: Activity,
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
-    private val saveCapturedMedia: SaveCapturedMediaUseCase,
     private val coroutineScope: CoroutineScope,
     // S0795: force the host into video mode (edge-gesture "start video recording"); default keeps the
     // widget's photo-preferred switchable behaviour.
@@ -77,39 +75,14 @@ class CameraLaunchWidgetManager(
         if (granted) launchCaptureIntent() else toastAndFinish(R.string.camera_permission_required)
     }
 
-    /** Result from [CameraCaptureActivity]: RESULT_OK means the host wrote the captured file. */
-    fun onCaptureResult(resultCode: Int, data: Intent?) {
-        val dir = pendingDir
-        val base = pendingBaseName
-        if (resultCode != Activity.RESULT_OK || dir == null || base == null) {
-            clearPending()
-            finish()
-            return
-        }
-        val mediaKind = CameraCaptureContract.readResultMediaKind(data)
-        val isVideo = mediaKind == CameraCaptureMode.VIDEO
-        val captured = CameraCaptureContract.readResultOutputPath(data)?.let { File(it) }
-            ?: File(dir, base + if (isVideo) ".mp4" else ".jpg")
-        if (!captured.exists()) {
-            clearPending()
-            toastAndFinish(R.string.camera_capture_error_session_expired)
-            return
-        }
-        coroutineScope.launch {
-            val saveResult = saveCapturedMedia(captured, isVideo)
-            pendingDir = null
-            pendingBaseName = null
-            withContext(Dispatchers.Main) {
-                when (saveResult) {
-                    is SaveResult.Success ->
-                        toast(activity.getString(R.string.camera_capture_saved, captured.name))
-                    SaveResult.Failure.Io -> toast(activity.getString(R.string.camera_capture_error_io))
-                    SaveResult.Failure.Generic ->
-                        toast(activity.getString(R.string.camera_capture_error_save_generic))
-                }
-                finish()
-            }
-        }
+    /**
+     * Result from [CameraCaptureActivity]. The host runs in multi-capture mode and has already saved
+     * every capture to its public folder (S0566/ADR-2), returning RESULT_CANCELED on close, so the
+     * widget saves nothing - it only drops the app-private scratch bookkeeping and finishes.
+     */
+    fun onCaptureResult() {
+        clearPending()
+        finish()
     }
 
     private fun prepareAndLaunch(photoAvailable: Boolean, videoAvailable: Boolean) {

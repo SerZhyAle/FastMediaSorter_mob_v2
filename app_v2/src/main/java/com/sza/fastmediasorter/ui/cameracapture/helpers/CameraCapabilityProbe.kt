@@ -7,11 +7,12 @@ import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Range
 import android.util.Size
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraInfo
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import timber.log.Timber
 
@@ -59,6 +60,44 @@ class CameraCapabilityProbe {
         return focalLengthOf(main)
     }
 
+    /**
+     * Same 1x reference, resolved over the expanded lens set (S1189). Distinct JVM name because both
+     * overloads erase to the same signature.
+     */
+    @JvmName("mainBackFocalLengthOfLenses")
+    fun mainBackFocalLength(lenses: List<CameraLensEntry>): Float {
+        val back = lenses.filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
+        val main = back.firstOrNull { runCatching { it.cameraInfo.hasFlashUnit() }.getOrDefault(false) }
+            ?: back.firstOrNull()
+            ?: return 0f
+        return if (main.focalLengthMm > 0f) main.focalLengthMm else focalLengthOf(main.cameraInfo)
+    }
+
+    /**
+     * S1189: the widest equivalent zoom the device can actually reach, taken over every offered back
+     * lens rather than the bound one. A lens whose own floor is 1x still contributes 0.6x when its
+     * focal length is 0.6 of the reference, which is precisely the case the bound-lens-only reading
+     * used to miss. Front lenses keep their native scale and are excluded.
+     */
+    fun minEquivalentZoom(lenses: List<CameraLensEntry>, referenceFocal: Float): Float {
+        if (referenceFocal <= 0f) return CameraRuntimeCapabilities.DEFAULT_ZOOM
+        val back = lenses.filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
+        val reachable = back.mapNotNull { lens ->
+            if (lens.focalLengthMm <= 0f) null else lens.minZoomRatio * (lens.focalLengthMm / referenceFocal)
+        }
+        return reachable.minOrNull() ?: CameraRuntimeCapabilities.DEFAULT_ZOOM
+    }
+
+    /**
+     * S1189: the lens of [facing] that focuses closest, when it clears the macro threshold. Hardware
+     * macro is normally a dedicated lens, so a device can offer real macro while the bound lens
+     * reports nothing usable.
+     */
+    fun macroLensFor(lenses: List<CameraLensEntry>, facing: Int): CameraLensEntry? =
+        lenses.filter { it.lensFacing == facing }
+            .maxByOrNull { it.minFocusDistanceDiopters }
+            ?.takeIf { it.minFocusDistanceDiopters >= MACRO_MIN_DIOPTERS }
+
     fun probe(
         camera: Camera,
         activeLensFacing: Int,
@@ -96,20 +135,18 @@ class CameraCapabilityProbe {
         val hardwareLevel = runCatching {
             camera2Info.getCameraCharacteristic(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
         }.getOrDefault(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY)
-        val isoRange = probeCharacteristic<Range<Int>>(camera2Info, CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
-        val shutterRangeNs = probeCharacteristic<Range<Long>>(camera2Info, CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
+        val isoRange = probeCharacteristic<Range<Int>>(
+            camera2Info,
+            CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE,
+        )
+        val shutterRangeNs = probeCharacteristic<Range<Long>>(
+            camera2Info,
+            CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE,
+        )
         val awbModes = probeCharacteristic<IntArray>(camera2Info, CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES)
             ?.toList()
             .orEmpty()
-        val photoResolutions = probeCharacteristic<StreamConfigurationMap>(
-            camera2Info,
-            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP,
-        )?.getOutputSizes(ImageFormat.JPEG)
-            ?.toList()
-            ?.distinctBy { "${it.width}x${it.height}" }
-            ?.sortedByDescending { it.width.toLong() * it.height.toLong() }
-            ?.take(MAX_RESOLUTION_OPTIONS)
-            .orEmpty()
+        val photoResolutions = photoResolutionsOf(camera2Info)
         val availableAspectRatios = photoResolutions
             .mapNotNull { size -> detectAspectRatio(size) }
             .distinct()
@@ -134,6 +171,7 @@ class CameraCapabilityProbe {
             awbModes = awbModes,
             availableAspectRatios = availableAspectRatios.ifEmpty { DEFAULT_ASPECT_RATIOS },
             photoResolutions = photoResolutions,
+            highResolutionPhotoSizes = highResolutionPhotoSizes(camera2Info),
             zoomMultiplier = multiplier,
             supportsMacro = supportsMacro,
             macroFocusDistance = minFocusDistance,
@@ -148,11 +186,46 @@ class CameraCapabilityProbe {
         )
     }
 
+    /**
+     * JPEG output sizes the lens offers, largest first and capped so the picker stays readable.
+     *
+     * S1189: merges the high-resolution set, where a large sensor declares its full frame - the
+     * ordinary set stops at sizes the device can stream at full capture rate, which is why the
+     * picker used to top out well below the advertised megapixels. The cap is safe because the list
+     * is sorted descending, so the sensor maximum is always the entry that survives it.
+     */
+    private fun photoResolutionsOf(camera2Info: Camera2CameraInfo): List<Size> {
+        val configs = probeCharacteristic<StreamConfigurationMap>(
+            camera2Info,
+            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP,
+        )
+        val standard = configs?.getOutputSizes(ImageFormat.JPEG)?.toList().orEmpty()
+        return (standard + highResolutionSizesOf(configs))
+            .distinctBy { "${it.width}x${it.height}" }
+            .sortedByDescending { it.width.toLong() * it.height.toLong() }
+            .take(MAX_RESOLUTION_OPTIONS)
+    }
+
+    /** S1189: the high-resolution JPEG set; available since API 23, so it carries no version gate. */
+    fun highResolutionSizesOf(configs: StreamConfigurationMap?): List<Size> =
+        runCatching { configs?.getHighResolutionOutputSizes(ImageFormat.JPEG)?.toList() }
+            .getOrNull()
+            .orEmpty()
+
+    /** S1189: the high-resolution subset of what this lens offers, for the opt-in full-frame path. */
+    fun highResolutionPhotoSizes(camera2Info: Camera2CameraInfo): List<Size> =
+        highResolutionSizesOf(
+            probeCharacteristic<StreamConfigurationMap>(
+                camera2Info,
+                CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP,
+            ),
+        )
+
     private fun detectAspectRatio(size: Size): Int? {
         val ratio = size.width.toFloat() / size.height.toFloat()
         return when {
-            kotlin.math.abs(ratio - (4f / 3f)) < ASPECT_RATIO_EPSILON -> AspectRatio.RATIO_4_3
-            kotlin.math.abs(ratio - (16f / 9f)) < ASPECT_RATIO_EPSILON -> AspectRatio.RATIO_16_9
+            kotlin.math.abs(ratio - FOUR_THREE) < ASPECT_RATIO_EPSILON -> AspectRatio.RATIO_4_3
+            kotlin.math.abs(ratio - SIXTEEN_NINE) < ASPECT_RATIO_EPSILON -> AspectRatio.RATIO_16_9
             else -> null
         }
     }
@@ -168,6 +241,8 @@ class CameraCapabilityProbe {
         // Min focus distance (diopters) for the macro heuristic: 10 dpt ~ focuses within ~10 cm.
         const val MACRO_MIN_DIOPTERS = 10f
         const val ASPECT_RATIO_EPSILON = 0.02f
+        const val FOUR_THREE = 4f / 3f
+        const val SIXTEEN_NINE = 16f / 9f
         const val MAX_RESOLUTION_OPTIONS = 6
         val DEFAULT_ASPECT_RATIOS = listOf(AspectRatio.RATIO_4_3, AspectRatio.RATIO_16_9)
         val MANUAL_SENSOR_LEVELS = setOf(

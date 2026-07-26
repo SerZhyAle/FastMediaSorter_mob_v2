@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -13,7 +14,8 @@ class GetResourcesUseCase @Inject constructor(
     private val repository: ResourceRepository
 ) {
     operator fun invoke(): Flow<List<MediaResource>> {
-        return repository.getAllResources()
+        // S1009: hidden ad-hoc resources (scheduled-op local folders) never render on visible surfaces.
+        return repository.getAllResources().map { list -> list.filterNot { it.isHidden } }
     }
 
     fun getByType(type: ResourceType): Flow<List<MediaResource>> {
