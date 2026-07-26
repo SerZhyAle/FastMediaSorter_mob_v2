@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -101,7 +100,6 @@ class LauncherResizeManager(
         preview?.let { container.removeView(it) }
         preview = null
         if (candW != baseW || candH != baseH) {
-            Timber.d("S1093: resize commit ${baseW}x$baseH -> ${candW}x$candH")
             viewModel.resizeCell(activeCellId, candW, candH)
         }
         return true

@@ -18,7 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S0675: owns all stream grid-mode behavior so [com.sza.fastmediasorter.ui.streams.StreamsActivity]
@@ -57,6 +56,11 @@ class StreamGridModeManager(
     private var refreshJob: Job? = null
     private var prewarmJob: Job? = null
 
+    // S1169: urls already disk-prewarmed (or attempted) during the current GRID session. A catalog
+    // resubmit only prewarms genuinely new urls instead of cancel-restarting the whole sweep from
+    // index 0 - the restart previously fired on every unrelated DB write and could never finish.
+    private val prewarmAttempted = mutableSetOf<String>()
+
     init {
         snapshotManager.onCaptured = { url -> gridAdapter.repaintUrl(url) }
         // S0700: a captured frame means the video stream is reachable here -> green; a failed decode -> red.
@@ -82,6 +86,7 @@ class StreamGridModeManager(
                 snapshotManager.cancelAll()
                 stopPeriodicRefresh()
                 stopPrewarm()
+                prewarmAttempted.clear()
                 swipeRefresh.isEnabled = false
                 swipeRefresh.isRefreshing = false
                 // S0692: render the list in multiple columns in landscape (1 in portrait). A
@@ -97,6 +102,9 @@ class StreamGridModeManager(
                 gridAdapter.submitList(currentList)
                 swipeRefresh.isEnabled = true
                 startPeriodicRefresh()
+                // Fresh GRID session: reset the attempted set and cancel any stale sweep, then prewarm.
+                stopPrewarm()
+                prewarmAttempted.clear()
                 prewarmPersistedFrames(currentList)
             }
         }
@@ -144,6 +152,7 @@ class StreamGridModeManager(
         snapshotManager.cancelAll()
         stopPeriodicRefresh()
         stopPrewarm()
+        prewarmAttempted.clear()
         swipeRefresh.isRefreshing = false
     }
 
@@ -154,16 +163,22 @@ class StreamGridModeManager(
      * the disk frame from clobbering a fresher live one. The frame is shown but not "fresh", so the bind's
      * own [StreamFrameSnapshotManager.request] still captures a current frame and overwrites it.
      */
+    // S1169: idempotent per GRID session - only urls not yet attempted are swept, so a resubmit does
+    // NOT cancel-restart the whole sweep. Each url is marked attempted before the suspend load, so a
+    // concurrent pass never double-loads it. stopPrewarm/clear happen only on GRID entry and on leave.
     // The early break on cancel plus per-item skip continues is the clearest shape for a cancellable,
     // re-checked prewarm; flattening it would hurt readability more than the extra jump statements do.
     @Suppress("LoopWithTooManyJumpStatements")
     private fun prewarmPersistedFrames(currentList: List<StreamSourceEntity>) {
-        stopPrewarm()
         if (currentMode != DisplayMode.GRID) return
+        val pending = currentList.filter {
+            isCaptureableVideo(it) && prewarmAttempted.add(it.url) && !cache.hasEntry(it.url)
+        }
+        if (pending.isEmpty()) return
         prewarmJob = lifecycleOwner.lifecycleScope.launch {
-            for (source in currentList) {
+            for (source in pending) {
                 if (!isActive || currentMode != DisplayMode.GRID) break
-                if (!isCaptureableVideo(source) || cache.hasEntry(source.url)) continue
+                if (cache.hasEntry(source.url)) continue
                 val bitmap = persistentStore.load(source.url) ?: continue
                 if (!isActive || currentMode != DisplayMode.GRID || cache.hasEntry(source.url)) continue
                 cache.putRestored(source.url, bitmap)

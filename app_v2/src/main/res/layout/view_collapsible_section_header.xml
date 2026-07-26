@@ -62,6 +62,8 @@
                 android:id="@+id/csh_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="3"
                 android:textSize="@dimen/collapsible_section_title_text_size"
                 android:textStyle="bold" />
 

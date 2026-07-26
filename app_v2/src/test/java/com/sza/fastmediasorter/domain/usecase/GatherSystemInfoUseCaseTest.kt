@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +16,11 @@ import org.robolectric.annotation.Config
 class GatherSystemInfoUseCaseTest {
 
     private val context: Context = RuntimeEnvironment.getApplication()
-    private val useCase = GatherSystemInfoUseCase(context, emptySet())
+    private val useCase = GatherSystemInfoUseCase(
+        context,
+        emptySet(),
+        GatherCameraDiagnosticsUseCase(context, CameraHardwareDataSource(context)),
+    )
 
     @Test
     fun `invoke returns non-blank summary`() {

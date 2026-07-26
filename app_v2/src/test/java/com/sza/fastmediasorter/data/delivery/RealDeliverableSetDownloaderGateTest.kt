@@ -121,4 +121,17 @@ class RealDeliverableSetDownloaderGateTest {
         // because AUDIO_VISUALIZATIONS is not a native code set).
         verify(exactly = 0) { installSourceProvider.isPlayInstall() }
     }
+
+    @Test
+    fun `channel preview atlas is never gated even on Play install`() = runTest {
+        // S1154: the atlas is a data payload (sheet + JSON sidecar), not executable `.so`, so the Play
+        // gate must not divert it - a Play install still resolves the descriptor on the unchanged path.
+        val progress = downloader(playInstall = true)
+            .download(DeliverableSet.CHANNEL_PREVIEW_ATLAS).toList()
+
+        val failed = progress.last() as DownloadProgress.Failed
+        assertEquals("no descriptor for ${DeliverableSet.CHANNEL_PREVIEW_ATLAS}", failed.reason)
+        coVerify(exactly = 1) { manifest.resolve(DeliverableSet.CHANNEL_PREVIEW_ATLAS) }
+        verify(exactly = 0) { installSourceProvider.isPlayInstall() }
+    }
 }

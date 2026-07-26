@@ -43,6 +43,7 @@ class StreamsSessionStore @Inject constructor(
         val lastSort: String?,
         val lastMediaFilter: String?,
         val lastCategory: String?,
+        val lastTopic: String?,
         val lastLanguage: String?,
         val lastCountry: String?,
         val lastPinnedOnly: Boolean?,
@@ -57,6 +58,7 @@ class StreamsSessionStore @Inject constructor(
             lastSort = prefs[KEY_LAST_SORT],
             lastMediaFilter = prefs[KEY_LAST_MEDIA_FILTER],
             lastCategory = prefs[KEY_LAST_CATEGORY],
+            lastTopic = prefs[KEY_LAST_TOPIC],
             lastLanguage = prefs[KEY_LAST_LANGUAGE],
             lastCountry = prefs[KEY_LAST_COUNTRY],
             lastPinnedOnly = prefs[KEY_LAST_PINNED_ONLY],
@@ -74,6 +76,7 @@ class StreamsSessionStore @Inject constructor(
         sort: String,
         mediaFilter: String,
         category: String?,
+        topic: String?,
         language: String?,
         country: String?,
         pinnedOnly: Boolean,
@@ -82,6 +85,7 @@ class StreamsSessionStore @Inject constructor(
             prefs[KEY_LAST_SORT] = sort
             prefs[KEY_LAST_MEDIA_FILTER] = mediaFilter
             if (category != null) prefs[KEY_LAST_CATEGORY] = category else prefs.remove(KEY_LAST_CATEGORY)
+            if (topic != null) prefs[KEY_LAST_TOPIC] = topic else prefs.remove(KEY_LAST_TOPIC)
             if (language != null) prefs[KEY_LAST_LANGUAGE] = language else prefs.remove(KEY_LAST_LANGUAGE)
             if (country != null) prefs[KEY_LAST_COUNTRY] = country else prefs.remove(KEY_LAST_COUNTRY)
             prefs[KEY_LAST_PINNED_ONLY] = pinnedOnly
@@ -111,6 +115,7 @@ class StreamsSessionStore @Inject constructor(
         val KEY_LAST_SORT = stringPreferencesKey("last_sort")
         val KEY_LAST_MEDIA_FILTER = stringPreferencesKey("last_media_filter")
         val KEY_LAST_CATEGORY = stringPreferencesKey("last_category")
+        val KEY_LAST_TOPIC = stringPreferencesKey("last_topic")
         val KEY_LAST_LANGUAGE = stringPreferencesKey("last_language")
         val KEY_LAST_COUNTRY = stringPreferencesKey("last_country")
         val KEY_LAST_PINNED_ONLY = booleanPreferencesKey("last_pinned_only")

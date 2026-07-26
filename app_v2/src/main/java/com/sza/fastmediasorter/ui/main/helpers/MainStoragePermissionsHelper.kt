@@ -6,13 +6,14 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
-import timber.log.Timber
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
+import timber.log.Timber
 
 /**
  * Encapsulates the storage permission startup flow: checks current state, asks once per session,
@@ -27,6 +28,10 @@ class MainStoragePermissionsHelper(
 ) {
 
     private var permissionCheckDoneThisSession = false
+
+    // Held so the host can close it on destroy: a shown dialog's window otherwise survives a
+    // configuration recreate and keeps the dead Activity alive (S1197).
+    private var rationaleDialog: AlertDialog? = null
 
     fun hasFullLocalPermissions(): Boolean = PermissionHelper.checkStoragePermissions(activity)
 
@@ -59,18 +64,31 @@ class MainStoragePermissionsHelper(
 
     private fun showStoragePermissionRequestDialog() {
         if (activity.isFinishing || activity.isDestroyed) return
+        // onSettingsResult() re-runs the startup check, which would otherwise stack a second
+        // rationale on top of the one already on screen.
+        if (rationaleDialog?.isShowing == true) return
         val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             activity.getString(R.string.permission_storage_rationale_r)
         } else {
             activity.getString(R.string.permission_storage_rationale)
         }
-        MaterialAlertDialogBuilder(activity)
+        rationaleDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.permissions_required_title)
             .setMessage(message)
             .setPositiveButton(R.string.grant_permissions) { _, _ -> launchStoragePermissionFlow() }
             .setNegativeButton(R.string.continue_anyway, null)
             .setCancelable(true)
+            .setOnDismissListener { rationaleDialog = null }
             .show()
+    }
+
+    /**
+     * Must be called from the host activity's `onDestroy`. Without it the rationale dialog's window
+     * outlives a configuration recreate and leaks the Activity (S1197).
+     */
+    fun dismissPendingDialog() {
+        rationaleDialog?.dismiss()
+        rationaleDialog = null
     }
 
     private fun launchStoragePermissionFlow() {

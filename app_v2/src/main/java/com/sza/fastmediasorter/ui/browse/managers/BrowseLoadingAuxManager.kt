@@ -234,7 +234,6 @@ class BrowseLoadingAuxManager(
         if (!isConnectivity || (!companion && resource.accessNote.isNullOrBlank())) {
             return null
         }
-        Timber.d("S1014: browse connect guidance for ${resource.type}, note=${!resource.accessNote.isNullOrBlank()}")
         return resource.accessNote?.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.error_companion_connect_guidance)
     }

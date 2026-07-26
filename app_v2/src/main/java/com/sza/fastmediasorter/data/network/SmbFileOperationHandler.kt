@@ -187,6 +187,11 @@ class SmbFileOperationHandler @Inject constructor(
         data class Success(val destFilePath: String) : MoveOutcome
         data class Failure(val error: String) : MoveOutcome
         data class PermissionRequired(val sourcePath: String, val destFilePath: String) : MoveOutcome
+
+        // S1180: a local source already moved+deleted by a concurrent scheduled op is gone by upload
+        // time. That is not a move failure - the file already reached the destination - so route it
+        // through buildMoveResult's skip path instead of errors, or overlapping ops report false moves.
+        data class Skipped(val fileName: String) : MoveOutcome
     }
 
     private suspend fun moveSmbToSmb(
@@ -256,31 +261,35 @@ class SmbFileOperationHandler @Inject constructor(
         fileName: String,
         progressCallback: ByteProgressCallback?
     ): MoveOutcome {
-        val uploadResult = uploadToSmb(File(sourcePath), destFilePath, progressCallback)
-        if (uploadResult !is SmbResult.Success) {
-            val error = "Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}"
-            return MoveOutcome.Failure(error)
+        // S1180: a concurrent scheduled op with an overlapping source folder may have already moved and
+        // deleted this local original. A vanished non-SAF source is that race, not a fault - skip it so
+        // overlapping ops do not report false "move failed" errors.
+        if (!sourcePath.startsWith("content:/") && !File(sourcePath).exists()) {
+            return MoveOutcome.Skipped(fileName)
         }
-        
-        // 2. Delete Source - may require permission on Android 11+
+
+        // Upload first, then delete the source - deletion may require permission on Android 11+.
         return try {
-            val deleteSuccess = if (sourcePath.startsWith("content:/")) {
-                deleteWithSaf(sourcePath)
+            val uploadResult = uploadToSmb(File(sourcePath), destFilePath, progressCallback)
+            if (uploadResult !is SmbResult.Success) {
+                MoveOutcome.Failure("Failed to upload $fileName: ${(uploadResult as SmbResult.Error).message}")
             } else {
-                deleteFile(sourcePath).isSuccess
-            }
-            
-            if (deleteSuccess) {
-                Timber.i("SMB executeMove: SUCCESS - moved $fileName")
-                MoveOutcome.Success(destFilePath)
-            } else {
-                val error = "Uploaded $fileName but failed to delete source at $sourcePath"
-                Timber.e("SMB executeMove: FAILED - $error")
-                MoveOutcome.Failure(error)
+                val deleteSuccess = if (sourcePath.startsWith("content:/")) {
+                    deleteWithSaf(sourcePath)
+                } else {
+                    deleteFile(sourcePath).isSuccess
+                }
+                if (deleteSuccess) {
+                    Timber.i("SMB executeMove: SUCCESS - moved $fileName")
+                    MoveOutcome.Success(destFilePath)
+                } else {
+                    val error = "Uploaded $fileName but failed to delete source at $sourcePath"
+                    Timber.e("SMB executeMove: FAILED - $error")
+                    MoveOutcome.Failure(error)
+                }
             }
         } catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
-            // File is already uploaded to SMB! 
-            // Don't throw yet - collect for batch delete after all uploads complete.
+            // File is already uploaded - collect for batch delete after all uploads complete.
             Timber.i("SMB executeMove: File uploaded, permission needed for delete - $fileName")
             MoveOutcome.PermissionRequired(sourcePath, destFilePath)
         }
@@ -308,7 +317,8 @@ class SmbFileOperationHandler @Inject constructor(
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
+            var skippedCount = 0
+
             // Collect files that need permission for batch delete after all uploads
             val pendingDeletePaths = mutableListOf<String>()
             val pendingDeleteDestPaths = mutableListOf<String>()
@@ -326,7 +336,7 @@ class SmbFileOperationHandler @Inject constructor(
                     sourcePath.startsWith("smb:", ignoreCase = true) -> {
                         moveSmbToSmb(sourcePath, destFilePath, fileName)
                     }
-                    sourcePath.startsWith("sftp:", ignoreCase = true) || 
+                    sourcePath.startsWith("sftp:", ignoreCase = true) ||
                     sourcePath.startsWith("ftp:", ignoreCase = true) -> {
                         moveBridgeToSmb(sourcePath, destFilePath, fileName, progressCallback)
                     }
@@ -349,6 +359,7 @@ class SmbFileOperationHandler @Inject constructor(
                         movedPaths.add(outcome.destFilePath)
                         successCount++
                     }
+                    is MoveOutcome.Skipped -> skippedCount++
                 }
             }
             
@@ -363,8 +374,8 @@ class SmbFileOperationHandler @Inject constructor(
                 // which will be caught by FileOperationUseCase and converted to PermissionRequired result
             }
             
-            Timber.i("SMB executeMove: Completed loop - successCount=$successCount, errors=${errors.size}, movedPaths=${movedPaths.size}")
-            return buildMoveResult(successCount, operation, movedPaths, errors)
+            Timber.i("SMB executeMove done - success=$successCount, skipped=$skippedCount, errors=${errors.size}")
+            return buildMoveResult(successCount, operation, movedPaths, errors, skippedCount)
         }
 
         // Optimization: If operation involves SMB, use SMB strategy directly

@@ -75,7 +75,6 @@ private class ClockGadgetView(context: Context) : LauncherGadgetView(context) {
 
     /** Long press opens the calendar at now; like the alarm intent, a missing app is a silent no-op. */
     private fun openCalendar(context: Context) {
-        Timber.d("S1094: clock long-press -> open calendar")
         val uri = CalendarContract.CONTENT_URI.buildUpon()
             .appendPath("time")
             .also { ContentUris.appendId(it, System.currentTimeMillis()) }

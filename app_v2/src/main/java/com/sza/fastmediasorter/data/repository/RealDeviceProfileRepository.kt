@@ -36,14 +36,16 @@ class RealDeviceProfileRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) : DeviceProfileRepository {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(
-        "${context.packageName}_preferences",
-        Context.MODE_PRIVATE
-    )
-    private val welcomePrefs: SharedPreferences = context.getSharedPreferences(
-        "welcome_prefs",
-        Context.MODE_PRIVATE
-    )
+    // S1153: lazy so getSharedPreferences (which loads+parses the XML off disk on first call) does
+    // not run in the constructor. This @Singleton is built during Activity field injection on the
+    // main thread at startup; both prefs are only ever touched inside initializeMigrationIfNeeded's
+    // Dispatchers.IO coroutine, so lazy init lands the disk load on IO, not the ctor thread.
+    private val prefs: SharedPreferences by lazy {
+        context.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
+    }
+    private val welcomePrefs: SharedPreferences by lazy {
+        context.getSharedPreferences("welcome_prefs", Context.MODE_PRIVATE)
+    }
 
     init {
         // On first run, handle migration or fresh install

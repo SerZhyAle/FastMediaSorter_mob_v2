@@ -55,6 +55,25 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         return settings.screenshotGestureAction(zone, direction)
     }
 
+    /**
+     * S1162: every slot of [zones] resolved from a single settings snapshot.
+     *
+     * The gesture hint has to render the moment a band is touched, and [actionFor] suspends - a touch
+     * handler cannot wait on it. Resolving twelve slots through [actionFor] would also re-read the
+     * settings twelve times for one overlay show.
+     */
+    suspend fun actionsForZones(
+        zones: Set<ScreenshotGestureZone>
+    ): Map<ScreenshotGestureZone, Map<ScreenshotGestureDirection, ScreenshotGestureAction>> {
+        if (zones.isEmpty()) return emptyMap()
+        val settings = settingsRepository.get().getSettings().first()
+        return zones.associateWith { zone ->
+            ScreenshotGestureDirection.entries.associateWith { direction ->
+                settings.screenshotGestureAction(zone, direction)
+            }
+        }
+    }
+
     /** S0847: the set of edge bands currently enabled - the overlay host shows a strip only for these. */
     suspend fun enabledZones(): Set<ScreenshotGestureZone> {
         val settings = settingsRepository.get().getSettings().first()

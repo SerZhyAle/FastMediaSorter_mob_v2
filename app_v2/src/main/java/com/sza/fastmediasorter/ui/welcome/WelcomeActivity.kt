@@ -107,11 +107,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     override fun setupViews() {
         // WelcomeActivity is the root task at this point, so Back minimises instead of exiting.
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                moveTaskToBack(true)
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    moveTaskToBack(true)
+                }
             }
-        })
+        )
 
         // Apply edge-to-edge insets: skip button below status bar, bottom nav above nav bar
         applyEdgeToEdgeInsets()
@@ -522,6 +525,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         if (requestLauncherRole) {
             launcherModeHandled = true
             launcherRoleManager.markAsHomeCandidate()
+            // The opt-in outlives this frame as a durable flag rather than an intent extra: the first-run
+            // Settings screen is recreated while theme and locale are applied, and an extra consumed by a
+            // doomed instance took the user's choice with it.
+            launcherRoleManager.markRoleRequestPending()
         }
         goToMainActivity(requestLauncherRole)
     }
@@ -542,7 +549,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             // auto-request the HOME role from that non-finishing context (reliable, unlike a dialog from
             // this finishing onboarding frame).
             val settingsIntent = if (requestLauncherRole) {
-                SettingsActivity.openLauncherSectionIntent(this, requestRole = true)
+                SettingsActivity.openLauncherSectionIntent(this)
             } else {
                 Intent(this, SettingsActivity::class.java)
             }

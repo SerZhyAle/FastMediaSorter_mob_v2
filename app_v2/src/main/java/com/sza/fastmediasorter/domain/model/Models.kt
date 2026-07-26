@@ -232,7 +232,8 @@ data class MediaResource(
     val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
     val needsSignIn: Boolean = false, // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
     val altAccessPaths: List<HostPort> = emptyList(), // S1006: reachable-endpoint fallback candidates (companion LAN + WAN); empty = single-path
-    val accessNote: String? = null // S1014: companion connectivity guidance shown on connection failure; null = none
+    val accessNote: String? = null, // S1014: companion connectivity guidance shown on connection failure; null = none
+    val isHidden: Boolean = false // S1009: resource hidden from visible surfaces (FK-only)
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

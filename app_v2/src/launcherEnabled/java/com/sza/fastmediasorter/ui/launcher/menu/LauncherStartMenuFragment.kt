@@ -19,10 +19,13 @@ import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentLauncherStartMenuBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManager
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -45,6 +48,12 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     @Inject
     lateinit var roleManager: LauncherRoleManager
 
+    @Inject
+    lateinit var queryAppShortcuts: QueryAppShortcutsUseCase
+
+    @Inject
+    lateinit var startAppShortcut: StartAppShortcutUseCase
+
     private val viewModel: LauncherHomeViewModel by activityViewModels()
 
     private var _binding: FragmentLauncherStartMenuBinding? = null
@@ -64,7 +73,19 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             viewModel.run(LauncherCellCommand.App(app.id))
             dismiss()
         },
+        // The sheet deliberately stays open: the popup anchors inside it, and dismissing the sheet
+        // would take its own anchor away.
+        onAppLongClick = { view, app ->
+            Timber.d("S0427: start-menu shortcuts requested for %s", app.id)
+            shortcutMenuManager.show(view, app.id)
+            true
+        },
     )
+
+    // AppItem.id is the package name, so the grid needs no extra lookup to reach the app's shortcuts.
+    private val shortcutMenuManager by lazy {
+        LauncherAppShortcutMenuManager(lifecycleScope, queryAppShortcuts, startAppShortcut)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -120,6 +141,9 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onDestroyView()
         exitDialog?.dismiss()
         exitDialog = null
+        // Same reason as the exit dialog: the popup is anchored to a view of this sheet and must not
+        // outlive it.
+        shortcutMenuManager.dismiss()
         _binding = null
     }
 
@@ -136,7 +160,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
                 )
             }
             appsAdapter.submitApps(apps)
-            Timber.d("S1089: all-apps grid shown with ${apps.size} labeled cells")
         }
     }
 

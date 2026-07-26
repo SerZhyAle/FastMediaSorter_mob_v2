@@ -6,6 +6,31 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
+    <!-- S1101: wallpaper layers, behind the grid. At most one is visible; both stay GONE for the "empty"
+         mode, and neither allocates anything until it is sized, so the idle cost of the unused layer is a
+         view object. Ids must exist in layout-land/ too (one ViewBinding, Rule 11). -->
+    <ImageView
+        android:id="@+id/launcherWallpaperImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
+        android:id="@+id/launcherWallpaperWaves"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
     <androidx.core.widget.NestedScrollView
@@ -37,7 +62,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Floats over the desktop only while editing; the Start-menu row is how edit mode is entered. -->
+    <!-- Floats over the desktop only while editing. Edit mode is entered from the Start-menu row or, since
+         S1090, by long-pressing empty desktop unless the desktop is locked in launcher settings. -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/launcherEditDone"
         android:layout_width="wrap_content"

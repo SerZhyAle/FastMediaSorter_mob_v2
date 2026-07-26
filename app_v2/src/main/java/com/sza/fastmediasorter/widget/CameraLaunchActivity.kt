@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -18,15 +17,17 @@ import javax.inject.Inject
  *
  * Hosts the CAMERA runtime-permission launcher and the capture-result launcher, then forwards every
  * decision to [CameraLaunchWidgetManager] (Rule 3 - the activity carries no business logic). Declared
- * with `Theme.FastMediaSorter.Transparent` + `noHistory`, so the user stays on the home screen during
- * the permission/camera handoff.
+ * with `Theme.FastMediaSorter.Transparent` + `excludeFromRecents`, so the user stays on the home screen
+ * during the permission/camera handoff.
+ *
+ * S1174 - deliberately NOT `noHistory`, same as the sibling quick-capture trampoline: the opaque capture
+ * host stops this transparent activity, and the flag then finished it before the result came back.
  */
 @AndroidEntryPoint
 class CameraLaunchActivity : AppCompatActivity() {
 
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var mediaCapabilities: MediaCapabilities
-    @Inject lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
 
     private lateinit var launchManager: CameraLaunchWidgetManager
 
@@ -36,7 +37,7 @@ class CameraLaunchActivity : AppCompatActivity() {
 
     private val captureLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result -> launchManager.onCaptureResult(result.resultCode, result.data) }
+    ) { launchManager.onCaptureResult() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +45,6 @@ class CameraLaunchActivity : AppCompatActivity() {
             activity = this,
             settingsRepository = settingsRepository,
             mediaCapabilities = mediaCapabilities,
-            saveCapturedMedia = saveCapturedMedia,
             coroutineScope = lifecycleScope,
             forceVideo = intent?.getBooleanExtra(EXTRA_FORCE_VIDEO, false) == true,
             requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },

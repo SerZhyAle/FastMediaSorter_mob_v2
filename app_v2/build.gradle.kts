@@ -558,6 +558,11 @@ android {
     // Both shared source-sets are mounted into every flavor that needs them; AGP does not
     // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
+        // S1009: expose the exported Room schemas as androidTest assets so MigrationTestHelper can
+        // load <db-fqcn>/<version>.json at runtime and validate the 43 -> 44 migration on device.
+        getByName("androidTest") {
+            assets.directories.add("schemas")
+        }
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
@@ -923,6 +928,13 @@ android {
         abortOnError = true
         checkReleaseBuilds = false
         disable += "InvalidPackage"
+        // S1193: measured, not assumed. Enabling MissingTranslation yields 27 findings, ALL of them in
+        // src/debug/res/values/strings_debug.xml - the debug menu, deliberately English-only and never
+        // shipped. Zero findings in any shipping source set. It also cannot act as a gate today:
+        // lintStandardDebug already fails on ~72 unbaselined errors unrelated to translations (first
+        // failure is MissingPermission), so nobody can run it green. Re-enable together with S1195,
+        // after marking the debug strings translatable="false". Parity is enforced meanwhile by
+        // post-change.ps1's strings-audit, which sweeps every key when no -KeyPrefix is given.
         disable += "MissingTranslation"
         disable += "NewApi"
         disable += "UnsafeOptInUsageError"
@@ -1168,9 +1180,13 @@ if (isNoLegalBuild) {
                     // nightly date and so does not supersede it. Freshest nightly adds ~7 days of
                     // upstream extractor maintenance at ship time. Needs an on-device link-download to
                     // verify extraction - pip resolve alone proves nothing (BlockNeedUserTest-shaped).
+                    // 2026-07-26 (pre-release refresh): bumped 2026.07.21.234255 → 2026.07.23.234303.
+                    // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
+                    // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
+                    // link-download to verify extraction.
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.21.234255/yt-dlp.tar.gz",
+                            "releases/download/2026.07.23.234303/yt-dlp.tar.gz",
                     )
                 }
             }

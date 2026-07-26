@@ -79,7 +79,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
-            binding, viewModel, scheduledViewModel, this, mediaCapabilities, notificationsPermissionLauncher
+            binding, viewModel, scheduledViewModel, this, mediaCapabilities,
+            notificationsPermissionLauncher, folderPickerLauncher
         ) { isUpdatingFromSettings }
     }
     private val captureManager by lazy {
@@ -146,6 +147,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val notificationsPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             scheduledManager.onResume()
+        }
+
+    // S1009: SAF folder picker for the scheduled-op local-folder source/target option. Must be created
+    // at field-init time (Fragment requirement for registerForActivityResult). Explicit type breaks the
+    // recursive inference with the lazy scheduledManager (which takes this launcher in its constructor).
+    private val folderPickerLauncher: androidx.activity.result.ActivityResultLauncher<android.net.Uri?> =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            scheduledManager.onFolderPicked(uri)
         }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

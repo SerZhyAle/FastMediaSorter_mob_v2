@@ -194,7 +194,10 @@ class CameraCaptureFlowManager(
         liveLinearZoom = capabilities.currentLinearZoom
         // S0753: a rebind for a night toggle keeps the icon on; a lens without NIGHT clears it.
         nightModeEnabled = session.nightMode && capabilities.supportsNightMode
-        macroEnabled = session.macroEnabled && capabilities.supportsMacro
+        // S1189: macro survives a rebind when the device offers it either way - a dedicated
+        // close-focus lens or a focus lock on the active one.
+        macroEnabled = session.macroEnabled &&
+            (capabilities.supportsMacro || capabilities.macroLensAvailable)
         host.renderCapabilities(capabilities)
     }
 
@@ -216,7 +219,7 @@ class CameraCaptureFlowManager(
 
     /** S0753: toggles macro (close focus) when the active lens supports it; returns the resulting state. */
     fun onMacroToggle(): Boolean {
-        if (!currentCapabilities.supportsMacro) return false
+        if (!currentCapabilities.supportsMacro && !currentCapabilities.macroLensAvailable) return false
         macroEnabled = !macroEnabled
         session.applyMacro(macroEnabled)
         return macroEnabled

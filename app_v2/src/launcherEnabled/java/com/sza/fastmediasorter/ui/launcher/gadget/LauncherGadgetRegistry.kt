@@ -13,12 +13,13 @@ import javax.inject.Singleton
 @Singleton
 class LauncherGadgetRegistry @Inject constructor(
     clock: ClockGadget,
+    weather: WeatherGadget,
     playlist: PlaylistGadget,
     streams: StreamsGadget,
     folderPreview: FolderPreviewGadget,
 ) {
 
-    private val gadgets: List<LauncherGadget> = listOf(clock, playlist, streams, folderPreview)
+    private val gadgets: List<LauncherGadget> = listOf(clock, weather, playlist, streams, folderPreview)
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
@@ -46,6 +47,7 @@ class LauncherGadgetRegistry @Inject constructor(
 
     companion object {
         const val KEY_CLOCK = "clock"
+        const val KEY_WEATHER = "weather"
         const val KEY_PLAYLIST = "playlist"
         const val KEY_STREAMS = "streams"
         const val KEY_FOLDER_PREVIEW = "folder_preview"

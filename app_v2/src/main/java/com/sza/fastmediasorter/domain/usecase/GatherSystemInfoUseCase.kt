@@ -52,6 +52,7 @@ import javax.inject.Inject
 class GatherSystemInfoUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val extendedDiagnosticsContributors: Set<@JvmSuppressWildcards ExtendedDiagnosticsContributor>,
+    private val cameraDiagnostics: GatherCameraDiagnosticsUseCase,
 ) {
 
     operator fun invoke(): SystemInfoReport {
@@ -101,6 +102,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             ),
         ),
         SystemInfoSection(label(R.string.sysinfo_section_hardware), hardwareFields()),
+        cameraSection(),
         SystemInfoSection(label(R.string.sysinfo_section_battery), batteryFields()),
         SystemInfoSection(label(R.string.sysinfo_section_memory), memoryFields()),
         SystemInfoSection(label(R.string.sysinfo_section_storage), storageFields()),
@@ -121,6 +123,12 @@ class GatherSystemInfoUseCase @Inject constructor(
         ),
         SystemInfoSection(label(R.string.sysinfo_section_system), systemFields()),
         SystemInfoSection(label(R.string.sysinfo_section_benchmark), benchmarkFields()),
+    )
+
+    /** A refused camera read degrades to an empty section, which the formatter drops entirely. */
+    private fun cameraSection(): SystemInfoSection = SystemInfoSection(
+        title = label(R.string.sysinfo_section_cameras),
+        fields = safeList { cameraDiagnostics().fields }.orEmpty(),
     )
 
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {

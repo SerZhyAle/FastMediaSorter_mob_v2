@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.app.Activity
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 
 /**
  * Synchronous mirror of [AppSettings.useCompactElements] used to pick the player controls
@@ -19,10 +20,17 @@ object PlayerLayoutModePrefs {
     private const val KEY_BIG_BUTTONS_MODE = "big_buttons_mode"
 
     fun isCompact(context: Context): Boolean {
-        val prefs = context.applicationContext
-            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
-        // Default mirrors AppSettings.useCompactElements default (= false, i.e. large/expanded).
-        return prefs.getBoolean(KEY_USE_COMPACT_ELEMENTS, false)
+        // S1153: accepted narrow StrictMode exception. This mirror read must be synchronous - it
+        // gates a theme overlay applied before super.onCreate/setContentView (DefaultTimeBar + dialog
+        // styles read their size attrs only once at inflate), so it cannot be deferred off the main
+        // thread the way the ticket's other startup reads were. Same treatment as the return-to-settings
+        // read (S1153 section 3). allowDiskIO is a pass-through in release (no StrictMode there).
+        return StrictModeHelper.allowDiskIO {
+            val prefs = context.applicationContext
+                .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            // Default mirrors AppSettings.useCompactElements default (= false, i.e. large/expanded).
+            prefs.getBoolean(KEY_USE_COMPACT_ELEMENTS, false)
+        }
     }
 
     fun setCompact(context: Context, useCompact: Boolean) {
@@ -34,10 +42,14 @@ object PlayerLayoutModePrefs {
     }
 
     fun isBigButtonsMode(context: Context): Boolean {
-        val prefs = context.applicationContext
-            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
-        // Default false - standard layout unless user enables Big Buttons Mode (ADR-2: read once at player init).
-        return prefs.getBoolean(KEY_BIG_BUTTONS_MODE, false)
+        // S1153: same accepted synchronous mirror read as isCompact - read once at player init before
+        // inflate, so wrap in allowDiskIO rather than defer. Fires on resume-to-player cold starts (S1152).
+        return StrictModeHelper.allowDiskIO {
+            val prefs = context.applicationContext
+                .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            // Default false - standard layout unless user enables Big Buttons Mode (ADR-2: read once at player init).
+            prefs.getBoolean(KEY_BIG_BUTTONS_MODE, false)
+        }
     }
 
     fun setBigButtonsMode(context: Context, enabled: Boolean) {

@@ -23,6 +23,9 @@
     The full-scan path (no -ChangedFiles) is unaffected by this helper.
 #>
 
+# S1184: shared -ChangedFiles CSV-splitting normalizer (Expand-ChangedFiles).
+. (Join-Path $PSScriptRoot 'changed-files.ps1')
+
 # Returns the HEAD version text of a repo-relative path, or '' if untracked / git unavailable.
 function Get-GitHeadText {
     param([Parameter(Mandatory)][string]$RepoRoot, [Parameter(Mandatory)][string]$RelPath)
@@ -47,7 +50,9 @@ function Measure-ChangedFileGrowth {
     $growth = 0
     $perFile = [System.Collections.Generic.List[object]]::new()
 
-    foreach ($cf in $ChangedFiles) {
+    # S1184: split a comma-joined -ChangedFiles into individual paths - pwsh -File binds a CSV as one
+    # array element, which would otherwise be treated as a single bogus path that Test-Path misses.
+    foreach ($cf in (Expand-ChangedFiles -ChangedFiles $ChangedFiles)) {
         if ([string]::IsNullOrWhiteSpace($cf)) { continue }
         $ext = [System.IO.Path]::GetExtension($cf)
         if ($Extensions -notcontains $ext) { continue }

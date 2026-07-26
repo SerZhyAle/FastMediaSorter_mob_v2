@@ -4,11 +4,13 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -41,6 +43,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 /** One-shot messages the home surface shows; the Activity resolves the string. */
@@ -108,7 +111,6 @@ class LauncherHomeViewModel @Inject constructor(
                 )
             }
         }
-        .onEach { Timber.d("S1097: recents strip -> %d item(s)", it.size) }
 
     val pinnedIcons: Flow<List<LauncherTaskbarIcon>> = pinsRepository.observePins()
         .map { pins ->
@@ -128,11 +130,46 @@ class LauncherHomeViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     /**
-     * Editing is an explicit mode the user enters and leaves (owner quiz 2026-07-17 - long-press was
-     * rejected: it collides with interactive gadgets and a remote has no long-press).
+     * Editing is an explicit mode the user enters and leaves. Long-press on the desktop was rejected as
+     * the *only* entry (owner quiz 2026-07-17: it collides with interactive gadgets and a remote has no
+     * long-press) and reinstated by S1090 as an *additional* one: the Start-menu row stays the remote-
+     * reachable path, the gesture is the discoverable one, and gadgets keep first claim on the press
+     * because the listener sits on the desktop container, not on its children.
      */
     private val _editMode = MutableStateFlow(false)
     val editMode: StateFlow<Boolean> = _editMode
+
+    /**
+     * S1090: when true the long-press gesture must not open edit mode. Deliberately does not gate
+     * [setEditMode] itself - the Start-menu row is an explicit action and stays reachable while locked,
+     * and a lock flipped mid-session does not eject the user from an open edit session.
+     */
+    val desktopLocked: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.launcherDesktopLocked }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * S1101: what the desktop draws behind its cells. Image mode degrades to the branded animation when
+     * the stored copy is gone (cleared app data, manual delete): a desktop that silently turns blank
+     * reads as a bug, and the branded default is always available. The existence probe is disk I/O, so
+     * the mapping runs off the main thread.
+     */
+    val wallpaper: StateFlow<LauncherWallpaper> = settingsRepository.getSettings()
+        .map { settings ->
+            when (settings.launcherWallpaperMode) {
+                AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
+                AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
+                    settings.launcherWallpaperImagePath
+                        .takeIf { it.isNotBlank() && File(it).isFile }
+                        ?.let { LauncherWallpaper.Image(it) }
+                        ?: LauncherWallpaper.Branded
+
+                else -> LauncherWallpaper.Branded
+            }
+        }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherWallpaper.Branded)
 
     /**
      * One-shot: true once the first-rotation hint has been shown, so it never repeats. Seeds the edit
@@ -218,6 +255,13 @@ class LauncherHomeViewModel @Inject constructor(
     fun resizeCell(id: Long, spanW: Int, spanH: Int) {
         viewModelScope.launch {
             desktopRepository.resizeCell(id, spanW, spanH)
+        }
+    }
+
+    /** S0426: repoints an existing cell - used when the weather gadget is given another place. */
+    fun updateCellTarget(id: Long, target: String) {
+        viewModelScope.launch {
+            desktopRepository.updateCellTarget(id, target)
         }
     }
 
@@ -317,7 +361,6 @@ class LauncherHomeViewModel @Inject constructor(
     fun requestStreamCell() {
         viewModelScope.launch {
             val hasChannels = observeStreams().first().isNotEmpty()
-            Timber.d("S1092: requestStreamCell hasChannels=$hasChannels")
             _events.send(
                 if (hasChannels) LauncherHomeEvent.OpenStreamPicker else LauncherHomeEvent.OpenStreamsSettings,
             )

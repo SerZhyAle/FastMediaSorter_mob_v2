@@ -11,6 +11,12 @@
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
 
+# The startup settings dump reflects every AppSettings field for support diagnostics. Retain fields
+# and their names while allowing R8 to optimize them; the class and its methods remain shrinkable.
+-keepclassmembers,allowoptimization class com.sza.fastmediasorter.domain.model.AppSettings {
+    <fields>;
+}
+
 # SMBJ and event bus system
 -keep class com.hierynomus.** { *; }
 -dontwarn com.hierynomus.**

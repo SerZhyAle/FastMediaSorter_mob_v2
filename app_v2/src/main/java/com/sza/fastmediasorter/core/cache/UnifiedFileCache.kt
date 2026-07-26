@@ -25,19 +25,22 @@ import javax.inject.Singleton
 class UnifiedFileCache @Inject constructor(
     private val context: Context
 ) {
-    private val cacheDir = File(context.cacheDir, "unified_network_cache")
-    
+    // S1153: lazy so neither context.cacheDir access nor the mkdirs() disk touch runs in the
+    // constructor. The singleton is built during Activity field injection on the main thread at
+    // startup; keeping the ctor pure removes that StrictMode disk-read/write. Every write path
+    // (putFile/getCacheFile) already ensures the dir exists before use, so lazy creation on first
+    // real (background) cache access is behaviour-preserving.
+    private val cacheDir: File by lazy {
+        File(context.cacheDir, "unified_network_cache").also {
+            if (!it.exists()) it.mkdirs()
+        }
+    }
+
     companion object {
         private const val MAX_CACHE_AGE_MS = 24 * 60 * 60 * 1000L // 24 hours
         private const val DEFAULT_MAX_CACHE_SIZE_BYTES = 500L * 1024 * 1024 // 500 MB (ML-006)
     }
-    
-    init {
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs()
-        }
-    }
-    
+
     /**
      * Get cached file if exists and valid.
      * 

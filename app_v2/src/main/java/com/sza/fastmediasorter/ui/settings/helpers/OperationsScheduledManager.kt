@@ -6,9 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,7 +20,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.ui.dialog.SchedOpPickSide
 import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
@@ -45,10 +49,16 @@ class OperationsScheduledManager(
     private val fragment: Fragment,
     private val mediaCapabilities: MediaCapabilities,
     private val notificationsPermissionLauncher: ActivityResultLauncher<String>,
+    private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
     private val isUpdatingFromSettings: () -> Boolean,
 ) {
 
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
+
+    // S1009: the currently shown scheduled-op dialog + which side requested a local-folder pick, so the
+    // SAF result (delivered to the fragment launcher) routes back to the right field.
+    private var currentDialog: ScheduledOperationDialog? = null
+    private var pendingPickSide: SchedOpPickSide? = null
 
     // S0998: debounces the list->toggle reconcile so the stateIn(emptyList) seed emit and the real
     // Room emit coalesce into one settled reconcile (no off->on flicker / double write on screen open).
@@ -190,30 +200,80 @@ class OperationsScheduledManager(
         )
         if (sourceId == -1L) return
         fragment.requireActivity().intent.removeExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID)
-        val allResources = viewModel.resources.value
-        val destinations = viewModel.destinations.value
-        ScheduledOperationDialog(
-            context = fragment.requireContext(),
-            resources = allResources,
-            destinations = destinations,
-            existing = null,
-            prefilledSourceId = sourceId,
-            mediaCapabilities = mediaCapabilities,
-            onSave = { op -> scheduledViewModel.upsert(op) }
-        ).show()
+        openScheduledOperationDialog(existing = null, prefilledSourceId = sourceId)
     }
 
     private fun showScheduledOperationDialog(existing: ScheduledOperation?) {
-        val allResources = viewModel.resources.value
-        val destinations = viewModel.destinations.value
-        ScheduledOperationDialog(
-            context = fragment.requireContext(),
-            resources = allResources,
-            destinations = destinations,
-            existing = existing,
-            mediaCapabilities = mediaCapabilities,
-            onSave = { op -> scheduledViewModel.upsert(op) }
-        ).show()
+        openScheduledOperationDialog(existing, prefilledSourceId = null)
+    }
+
+    /**
+     * S1009: build + show the dialog. Resolves any hidden FK (an ad-hoc local folder, filtered out of
+     * the visible lists) so an edited operation still displays and preserves it, hosts the SAF folder
+     * picker via the fragment launcher, and resolves staged folders on Save.
+     */
+    private fun openScheduledOperationDialog(existing: ScheduledOperation?, prefilledSourceId: Long?) {
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val resources = augmentWithHiddenFk(viewModel.resources.value, existing?.sourceResourceId)
+            val destinations = augmentWithHiddenFk(viewModel.destinations.value, existing?.targetResourceId)
+            val dialog = ScheduledOperationDialog(
+                context = fragment.requireContext(),
+                resources = resources,
+                destinations = destinations,
+                existing = existing,
+                prefilledSourceId = prefilledSourceId,
+                mediaCapabilities = mediaCapabilities,
+                onPickLocalFolder = { side ->
+                    pendingPickSide = side
+                    folderPickerLauncher.launch(null)
+                },
+                onSave = { draft -> scheduledViewModel.saveOperation(draft) },
+            )
+            currentDialog = dialog
+            // Drop the reference on dismiss so a dismissed dialog (and its Activity context) is not retained.
+            dialog.setOnDismissListener { currentDialog = null }
+            dialog.show()
+        }
+    }
+
+    /**
+     * S1009: receive a picked folder from the fragment SAF launcher. Persists the tree permission,
+     * checks writability (rejecting a non-writable receiver with a toast), then stages the folder into
+     * the currently shown dialog. A read-only source is allowed and forces COPY.
+     */
+    fun onFolderPicked(uri: Uri?) {
+        if (uri == null) return
+        val side = pendingPickSide ?: return
+        pendingPickSide = null
+        val context = fragment.requireContext()
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        } catch (e: SecurityException) {
+            Timber.w(e, "Could not persist folder permission for %s", uri)
+        }
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val path = uri.toString()
+            val writable = scheduledViewModel.isFolderWritable(path)
+            Timber.d("S1009: local folder picked, side=%s, writable=%s", side, writable)
+            if (side == SchedOpPickSide.TARGET && !writable) {
+                Toast.makeText(context, R.string.error_folder_not_writable, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            val name = DocumentFile.fromTreeUri(context, uri)?.name ?: uri.lastPathSegment ?: path
+            currentDialog?.onLocalFolderPicked(side, path, name, readOnly = !writable)
+        }
+    }
+
+    private suspend fun augmentWithHiddenFk(
+        visible: List<MediaResource>,
+        fkId: Long?,
+    ): List<MediaResource> {
+        if (fkId == null || visible.any { it.id == fkId }) return visible
+        val resolved = scheduledViewModel.resolveResourceById(fkId) ?: return visible
+        return listOf(resolved) + visible
     }
 
     private fun confirmDeleteScheduledOp(op: ScheduledOperation) {

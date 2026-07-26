@@ -138,6 +138,54 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- S1168: Topic sits directly under the Category column it refines (e.g. category "Live TV",
+         topic "Webcam"). Hidden by the dialog manager when the catalog carries no topics at all. -->
+    <LinearLayout
+        android:id="@+id/rowTopic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="@dimen/list_item_height"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/streams_filter_topic"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/toggler_desc_text_size" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTopicValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+    </LinearLayout>
+
     <!-- S0761: Country as a full-width third facet row under the Category + Language pair; mirrors the
          language column's label+chevron+value structure and picker wiring. -->
     <LinearLayout

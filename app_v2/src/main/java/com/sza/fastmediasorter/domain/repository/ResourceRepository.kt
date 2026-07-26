@@ -60,6 +60,9 @@ interface ResourceRepository {
     
     suspend fun deleteResource(resourceId: Long)
 
+    /** S1009: delete a resource only if it is `is_hidden`; FTS-safe. No-op for a visible resource. */
+    suspend fun deleteResourceIfHidden(resourceId: Long)
+
     suspend fun deleteAllResources()
 
     suspend fun testConnection(resource: MediaResource): Result<String>

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.content.Context
-import android.graphics.Color
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -13,6 +12,7 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
 
@@ -38,17 +38,41 @@ class CameraZoomControlsManager(
         val padH = (density * CHIP_SIDE_PADDING_DP).toInt()
         val padV = (density * CHIP_VERT_PADDING_DP).toInt()
         val spacing = (density * CHIP_SPACING_DP).toInt()
+        // S1189: the lens's own optical limits, at the same precision the presets are rounded to.
+        val nativeMin = CameraRuntimeCapabilities.roundToStep(capabilities.minZoomRatio)
+        val nativeMax = CameraRuntimeCapabilities.roundToStep(capabilities.maxZoomRatio)
+        Timber.d("S1189: presets=%s native=%.1f..%.1f", capabilities.zoomPresets, nativeMin, nativeMax)
         capabilities.zoomPresets.forEach { preset ->
+            val equivalent = preset * capabilities.zoomMultiplier
+            val isNativeBound = preset == nativeMin || preset == nativeMax
             // Custom see-through pill (the Material chip kept drawing an opaque light surface). The label
             // is the equivalent zoom (native ratio x lens multiplier), so an ultra-wide reads 0.5x.
             val pill = OutlinedTextView(context).apply {
-                text = formatZoomLabel(preset * capabilities.zoomMultiplier)
+                text = formatZoomLabel(equivalent)
                 tag = preset
-                contentDescription = context.getString(R.string.camera_control_zoom)
+                // S1189: the amber colour marks an optical limit, so the description says so too -
+                // the distinction must not be colour-only.
+                contentDescription = context.getString(
+                    if (isNativeBound) {
+                        R.string.camera_control_zoom_step_native
+                    } else {
+                        R.string.camera_control_zoom_step
+                    },
+                    formatZoomRatio(equivalent),
+                )
                 isClickable = true
                 isFocusable = true
                 gravity = Gravity.CENTER
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        if (isNativeBound) {
+                            R.color.camera_capture_zoom_native_bound
+                        } else {
+                            R.color.camera_capture_zoom_step
+                        },
+                    ),
+                )
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_TEXT_SP)
                 setPadding(padH, padV, padH, padV)
                 background = ContextCompat.getDrawable(context, R.drawable.bg_camera_zoom_chip)
@@ -83,12 +107,18 @@ class CameraZoomControlsManager(
         zoomValue.text = formatZoomRatio(liveZoomRatio * zoomMultiplier)
     }
 
-    /** Active-lens name next to the switch button (Ultra-wide / Wide / Tele / Front), by lens multiplier. */
+    /**
+     * Active-lens name next to the switch button.
+     *
+     * S1189: ranked inside the reachable lens set rather than guessed from a fixed multiplier
+     * threshold - the old thresholds mislabelled any device whose lens spacing did not match them,
+     * and could not name a macro lens at all.
+     */
     fun renderLensLabel(capabilities: CameraRuntimeCapabilities) {
         lensLabel.text = when {
             capabilities.isFront -> context.getString(R.string.camera_lens_front)
-            capabilities.zoomMultiplier < ULTRA_WIDE_MAX_MULTIPLIER ->
-                context.getString(R.string.camera_lens_ultrawide)
+            capabilities.activeLensIsMacro -> context.getString(R.string.camera_lens_macro)
+            capabilities.activeLensIsWidest -> context.getString(R.string.camera_lens_ultrawide)
             capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> context.getString(R.string.camera_lens_tele)
             else -> context.getString(R.string.camera_lens_wide)
         }
@@ -107,7 +137,6 @@ class CameraZoomControlsManager(
         const val CHIP_VERT_PADDING_DP = 4f
         const val CHIP_SPACING_DP = 6f
         const val CHIP_TEXT_SP = 11f
-        const val ULTRA_WIDE_MAX_MULTIPLIER = 0.8f
         const val TELE_MIN_MULTIPLIER = 1.5f
     }
 }

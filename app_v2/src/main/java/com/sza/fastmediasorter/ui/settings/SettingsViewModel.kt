@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -17,6 +18,8 @@ import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.LauncherWallpaperImport
+import com.sza.fastmediasorter.domain.usecase.launcher.StoreLauncherWallpaperUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
@@ -34,12 +37,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -77,7 +83,8 @@ class SettingsViewModel @Inject constructor(
     private val szaResourcesImporter: SzaResourcesImporter,
     private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase,
     private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase,
-    private val remoteSourceGate: RemoteSourceAvailabilityGate
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase
 ) : ViewModel() {
 
     /** S0994: companion import (SFTP) availability gates the publish-folders help link in settings. */
@@ -205,6 +212,42 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * S1101: switches the launcher desktop wallpaper to a mode that needs no user file. Leaving image
+     * mode drops the stored copy in the same step, so an abandoned wallpaper never keeps occupying
+     * private storage.
+     */
+    fun applyLauncherWallpaperMode(mode: String) {
+        val current = settings.value
+        if (current.launcherWallpaperMode == mode) return
+        updateSettings(current.copy(launcherWallpaperMode = mode, launcherWallpaperImagePath = ""))
+        viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
+    }
+
+    /**
+     * S1101: takes the picked image into private storage and switches to image mode only if the copy
+     * succeeded - a failed import leaves the previous wallpaper untouched rather than blanking it.
+     */
+    fun applyLauncherWallpaperImage(uri: Uri) {
+        viewModelScope.launch {
+            when (val stored = storeLauncherWallpaperUseCase(uri)) {
+                is LauncherWallpaperImport.Stored -> updateSettings(
+                    settings.value.copy(
+                        launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_IMAGE,
+                        launcherWallpaperImagePath = stored.absolutePath,
+                    )
+                )
+
+                LauncherWallpaperImport.Failed -> _launcherWallpaperImportFailed.send(Unit)
+            }
+        }
+    }
+
+    private val _launcherWallpaperImportFailed = Channel<Unit>(Channel.BUFFERED)
+
+    /** S1101: one message per failed wallpaper import, consumed by the launcher settings dialog. */
+    val launcherWallpaperImportFailed: Flow<Unit> = _launcherWallpaperImportFailed.receiveAsFlow()
 
     private fun applyScheduledOperationsToggle(enabled: Boolean) {
         viewModelScope.launch {

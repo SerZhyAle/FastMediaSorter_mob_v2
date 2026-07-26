@@ -186,9 +186,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "BUTTON",
-      "titleEn": "Add widget to home screen..",
-      "titleRu": "Добавить виджет на домашний экран..",
-      "titleUk": "Додати віджет на головний екран.."
+      "titleEn": "Add widget to the Android home screen..",
+      "titleRu": "Добавить виджет на домашний экран Android..",
+      "titleUk": "Додати віджет на домашній екран Android.."
     },
     {
       "key": "etMaxRecipients",

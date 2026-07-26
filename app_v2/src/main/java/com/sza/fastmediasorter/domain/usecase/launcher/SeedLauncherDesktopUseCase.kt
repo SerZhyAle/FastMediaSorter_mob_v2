@@ -67,7 +67,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 .mapValues { (_, availability) -> availability.availableInBuild }
 
             val items = LauncherStarterSets.itemsFor(profile, starterResources, routeAvailableInBuild)
-            Timber.d("S1091: seeding desktop with ${items.size} starter items")
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()
 

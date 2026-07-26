@@ -50,6 +50,13 @@ interface LauncherDesktopRepository {
     suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean
 
     /**
+     * Repoints a cell at new content without moving or resizing it. Geometry is untouched, so the
+     * no-overlap invariant cannot be violated and no overlap check is needed. Returns whether the cell
+     * existed.
+     */
+    suspend fun updateCellTarget(id: Long, target: String): Boolean
+
+    /**
      * Places [cells] only when this orientation has never been seeded and holds no cells.
      * Returns whether it seeded, so a profile change can never overwrite a desktop the user owns.
      */

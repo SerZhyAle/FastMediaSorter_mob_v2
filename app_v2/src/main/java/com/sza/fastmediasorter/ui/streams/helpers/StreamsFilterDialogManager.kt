@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -8,15 +9,16 @@ import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
+import timber.log.Timber
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of
  * dialog logic (Rule 3/5). Presents the All/Audio/Video media-kind toggle on top, then category and
- * language as two tappable columns plus a full-width country row (S0761); each opens a
+ * language as two tappable columns, then full-width topic (S1168) and country (S0761) rows; each opens a
  * [SearchableOptionPickerDialog]. "Clear filters" lives in the dialog button bar
  * (neutral) next to OK and resets in place without dismissing. Selections are applied live through
- * [onApply] (the ViewModel owns the actual filtering). Category options are flag-less; language options
- * carry a flag where the name resolves to a known language ([StreamLanguageOptionMapper]); country
+ * [onApply] (the ViewModel owns the actual filtering). Category and topic options are flag-less; language
+ * options carry a flag where the name resolves to a known language ([StreamLanguageOptionMapper]); country
  * options carry a flag from the ISO code ([StreamCountryOptionMapper]).
  */
 class StreamsFilterDialogManager(
@@ -27,6 +29,7 @@ class StreamsFilterDialogManager(
         state: StreamsViewModel.StreamsUiState,
         onApply: (
             category: String?,
+            topic: String?,
             language: String?,
             country: String?,
             mediaKind: StreamsViewModel.MediaKindFilter,
@@ -35,6 +38,7 @@ class StreamsFilterDialogManager(
     ) {
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
         var category = state.filter.category
+        var topic = state.filter.topic
         var language = state.filter.language
         var country = state.filter.country
         var mediaKind = state.filter.mediaKind
@@ -42,10 +46,14 @@ class StreamsFilterDialogManager(
 
         fun renderValues() {
             binding.tvCategoryValue.text = category ?: activity.getString(R.string.streams_filter_all)
+            binding.tvTopicValue.text = topic ?: activity.getString(R.string.streams_filter_all)
             binding.tvLanguageValue.text = languageLabel(language)
             binding.tvCountryValue.text = countryLabel(country)
         }
         renderValues()
+        // A catalog without topics would open an empty picker, so the row is hidden rather than dead.
+        binding.rowTopic.isVisible = state.facets.topics.isNotEmpty()
+        Timber.d("S1168: filter dialog opened, topics=${state.facets.topics.size}, selected=$topic")
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
         binding.checkPinnedOnly.isChecked = pinnedOnly
 
@@ -57,9 +65,22 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     category = picked?.id
                     renderValues()
-                    onApply(category, language, country, mediaKind, pinnedOnly)
+                    onApply(category, topic, language, country, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_category_picker")
+        }
+
+        binding.rowTopic.setOnClickListener {
+            SearchableOptionPickerDialog.newInstance(
+                title = activity.getString(R.string.streams_filter_topic),
+                options = StreamLanguageOptionMapper.categoryOptions(state.facets.topics),
+                selectedId = topic,
+                onPicked = { picked ->
+                    topic = picked?.id
+                    renderValues()
+                    onApply(category, topic, language, country, mediaKind, pinnedOnly)
+                },
+            ).show(activity.supportFragmentManager, "streams_topic_picker")
         }
 
         binding.rowLanguage.setOnClickListener {
@@ -70,7 +91,7 @@ class StreamsFilterDialogManager(
                 onPicked = { picked ->
                     language = picked?.id
                     renderValues()
-                    onApply(category, language, country, mediaKind, pinnedOnly)
+                    onApply(category, topic, language, country, mediaKind, pinnedOnly)
                 },
             ).show(activity.supportFragmentManager, "streams_language_picker")
         }
@@ -79,7 +100,7 @@ class StreamsFilterDialogManager(
             showCountryPicker(state.facets.countries, country) { picked ->
                 country = picked
                 renderValues()
-                onApply(category, language, country, mediaKind, pinnedOnly)
+                onApply(category, topic, language, country, mediaKind, pinnedOnly)
             }
         }
 
@@ -90,12 +111,12 @@ class StreamsFilterDialogManager(
                 binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
                 else -> StreamsViewModel.MediaKindFilter.ALL
             }
-            onApply(category, language, country, mediaKind, pinnedOnly)
+            onApply(category, topic, language, country, mediaKind, pinnedOnly)
         }
 
         binding.checkPinnedOnly.setOnCheckedChangeListener { _, isChecked ->
             pinnedOnly = isChecked
-            onApply(category, language, country, mediaKind, pinnedOnly)
+            onApply(category, topic, language, country, mediaKind, pinnedOnly)
         }
 
         val dialog = MaterialAlertDialogBuilder(activity)
@@ -108,6 +129,7 @@ class StreamsFilterDialogManager(
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
                 category = null
+                topic = null
                 language = null
                 country = null
                 mediaKind = StreamsViewModel.MediaKindFilter.ALL
@@ -115,7 +137,7 @@ class StreamsFilterDialogManager(
                 renderValues()
                 binding.toggleMediaKind.check(binding.btnMediaAll.id)
                 binding.checkPinnedOnly.isChecked = false
-                onApply(category, language, country, mediaKind, pinnedOnly)
+                onApply(category, topic, language, country, mediaKind, pinnedOnly)
             }
         }
         // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).

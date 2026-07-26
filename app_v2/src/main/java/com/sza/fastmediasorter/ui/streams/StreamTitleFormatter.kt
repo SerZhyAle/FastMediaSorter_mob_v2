@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.streams
 
+import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
+
 /**
  * S0691: stream catalog titles sometimes arrive duplicated as `Name (Name)` (the producer repeats the
  * channel name inside a parenthetical that elsewhere carries a distinguishing variant). When the
@@ -23,5 +25,17 @@ object StreamTitleFormatter {
         val head = trimmed.substring(0, open).trim()
         val paren = trimmed.substring(open + 2, trimmed.length - 1).trim()
         return if (head.isNotEmpty() && head.equals(paren, ignoreCase = true)) head else title
+    }
+
+    /**
+     * S1142: the unified now-playing line shared by the inline mini-control and the active grid tile
+     * (ADR-3/ADR-5). Reuses [display] for the station segment, then appends the live track as a single
+     * string `station - Artist - Title`. With no track (null [meta] or blank track line) the station is
+     * shown alone. The system notification still fills its separate Artist/Title fields from [meta].
+     */
+    fun nowPlayingLine(stationTitle: String, meta: NowPlayingMetadata?): String {
+        val station = display(stationTitle)
+        val track = meta?.trackLine()?.takeIf { it.isNotBlank() } ?: return station
+        return "$station - $track"
     }
 }

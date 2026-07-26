@@ -5,8 +5,12 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * One-shot first-run hint telling non-touch users (TV / D-pad / hardware keyboard) that F1 opens
@@ -21,14 +25,28 @@ object InputHelpFirstRunHint {
     fun shouldShow(isNonTouch: Boolean, alreadyShown: Boolean): Boolean = isNonTouch && !alreadyShown
 
     fun showIfNeeded(activity: AppCompatActivity) {
-        val prefs = activity.getSharedPreferences(
-            "${activity.packageName}_preferences",
-            Context.MODE_PRIVATE,
-        )
-        if (!shouldShow(isNonTouchDevice(activity), prefs.getBoolean(PREF_KEY, false))) return
-        prefs.edit().putBoolean(PREF_KEY, true).apply()
-        val root: View = activity.findViewById(android.R.id.content)
-        Snackbar.make(root, R.string.keybinding_f1_hint, Snackbar.LENGTH_LONG).show()
+        // isNonTouchDevice reads only PackageManager/Configuration (no disk); short-circuit here so
+        // touch-only phones never launch a coroutine.
+        val isNonTouch = isNonTouchDevice(activity)
+        if (!isNonTouch) return
+        // S1153: getSharedPreferences + getBoolean both touch disk. This ran on the main thread from
+        // a posted Runnable at startup, tripping StrictMode DiskRead. Read + set the watermark on IO,
+        // then show the Snackbar back on Main. lifecycleScope cancels on DESTROY; the isFinishing
+        // guard stops a Snackbar on a tearing-down Activity.
+        activity.lifecycleScope.launch {
+            val show = withContext(Dispatchers.IO) {
+                val prefs = activity.getSharedPreferences(
+                    "${activity.packageName}_preferences",
+                    Context.MODE_PRIVATE,
+                )
+                val decision = shouldShow(isNonTouch, prefs.getBoolean(PREF_KEY, false))
+                if (decision) prefs.edit().putBoolean(PREF_KEY, true).apply()
+                decision
+            }
+            if (!show || activity.isFinishing) return@launch
+            val root: View = activity.findViewById(android.R.id.content)
+            Snackbar.make(root, R.string.keybinding_f1_hint, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     private fun isNonTouchDevice(context: Context): Boolean {

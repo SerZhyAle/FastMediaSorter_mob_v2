@@ -1,6 +1,7 @@
 # FastMediaSorter v2 Agent Protocol
 
 ## 1. Source of Truth
+- Universal conventions (canon): SZA Unified Rules at `P:\WEB\sites.google.comsiteszaodua\Unified_Rules` (REFERENCE model, not mirrored). This repo is the reference the core was extracted from; per-repo overlay facts + channel matrix live in `Unified_Rules/contrib/fastmediasorter_mob_v2.md`. Canon wins for universal principles; fix them in a canon session.
 - Rules: `CLAUDE.md`, `.github/copilot-instructions.md`, `dev/PROJECT_OPERATIONS_INDEX.md`, `dev/AGENT_WORKFLOW.md`.
 - Stricter rules override. Import order: `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt/agent file.
 
@@ -15,6 +16,7 @@
 - Temp layout (CLAUDE.md Rule 10.1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/done/`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
 - No Activity logic (delegate to `helpers/*Manager.kt`).
 - Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. Reason: on Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles. Enforced by the global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1`.
+- No `.ps1` as a Bash command head (CLAUDE.md Rule 25): never run a PowerShell script directly in Bash (`./a.ps1 fk`, `.\a.ps1 d`, `scripts/foo.ps1`); Bash cannot execute a `.ps1` and the failure returns **exit 0**, so a broken build/check looks like it passed. Always `pwsh -NoProfile -File ./a.ps1 <cmd>` from the repo root (bare `pwsh` via the Git Bash shim). Enforced by the global PreToolUse hook `~/.claude/hooks/guard-ps1-in-bash.ps1`.
 - Timber only (no `Log.d()`). `Sxxxx` ticket ids only in `BlockNeedUserTest` temporary debug logs.
 - Strings: prefer `scripts/utils/set-android-string.ps1`.
 - Layouts: portrait edit requires landscape (`res/layout-land/`) edit.

@@ -28,6 +28,34 @@ class LocalCastProxyServer(private val context: Context) {
     companion object {
         private val CANDIDATE_PORTS = intArrayOf(8765, 8766, 8767)
         private const val ENDPOINT = "/cast-media"
+
+        /**
+         * Resolves the MIME content type for [file] by extension. Shared with the Cast manager so
+         * the [MediaInfo] content type and the bytes the proxy actually serves never diverge - the
+         * default Cast receiver rejects a load whose content type is absent or mismatched.
+         */
+        fun mimeType(file: File): String {
+            val ext = file.extension.lowercase()
+            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+                ?: when (ext) {
+                    "mp3" -> "audio/mpeg"
+                    "m4a" -> "audio/mp4"
+                    "ogg" -> "audio/ogg"
+                    "flac" -> "audio/flac"
+                    "wav" -> "audio/wav"
+                    "aac" -> "audio/aac"
+                    "mp4" -> "video/mp4"
+                    "mkv" -> "video/x-matroska"
+                    "webm" -> "video/webm"
+                    "avi" -> "video/x-msvideo"
+                    "mov" -> "video/quicktime"
+                    "gif" -> "image/gif"
+                    "jpg", "jpeg" -> "image/jpeg"
+                    "png" -> "image/png"
+                    "webp" -> "image/webp"
+                    else -> "application/octet-stream"
+                }
+        }
     }
 
     private var server: InternalServer? = null
@@ -122,26 +150,7 @@ class LocalCastProxyServer(private val context: Context) {
                     Response.Status.NOT_FOUND, MIME_PLAINTEXT, "no file"
                 )
             }
-            val ext = file.extension.lowercase()
-            val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-                ?: when (ext) {
-                    "mp3" -> "audio/mpeg"
-                    "m4a" -> "audio/mp4"
-                    "ogg" -> "audio/ogg"
-                    "flac" -> "audio/flac"
-                    "wav" -> "audio/wav"
-                    "aac" -> "audio/aac"
-                    "mp4" -> "video/mp4"
-                    "mkv" -> "video/x-matroska"
-                    "webm" -> "video/webm"
-                    "avi" -> "video/x-msvideo"
-                    "mov" -> "video/quicktime"
-                    "gif" -> "image/gif"
-                    "jpg", "jpeg" -> "image/jpeg"
-                    "png" -> "image/png"
-                    "webp" -> "image/webp"
-                    else -> "application/octet-stream"
-                }
+            val mime = mimeType(file)
             Timber.d("LocalCastProxyServer: serving ${file.name} ($mime, ${file.length()} bytes)")
             return newChunkedResponse(Response.Status.OK, mime, file.inputStream())
         }

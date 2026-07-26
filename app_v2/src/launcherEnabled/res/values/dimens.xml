@@ -26,4 +26,8 @@
     <!-- S0404: the remove badge on a cell in edit mode. Small on purpose - it overlays the cell's own
          content, and the cell can be as little as ~63dp across at the highest density factor. -->
     <dimen name="launcher_edit_badge_size">24dp</dimen>
+
+    <!-- S0427: floor width of the quick-actions popup. A desktop cell can be ~63dp across, and a popup
+         that narrow would ellipsize every action label to two words. -->
+    <dimen name="launcher_shortcut_popup_width">220dp</dimen>
 </resources>

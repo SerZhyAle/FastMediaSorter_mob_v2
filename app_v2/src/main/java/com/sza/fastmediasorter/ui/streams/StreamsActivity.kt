@@ -21,16 +21,21 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.databinding.ActivityStreamsBinding
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
+import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.StreamResumeState
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -39,6 +44,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
+import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -47,6 +53,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,6 +81,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var faviconAtlasStore: FaviconAtlasStore
 
+    // S1154: on-demand channel-preview atlas store (sheet + url->index sidecar under the delivery dir).
+    @Inject
+    lateinit var channelPreviewAtlasStore: ChannelPreviewAtlasStore
+
+    // S1154: routes the post-import atlas-download offer through the real WorkManager delivery path.
+    @Inject
+    lateinit var deliverableInventory: DeliverableInventory
+
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
     @Inject
@@ -87,6 +102,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var streamFrameIngestor: StreamFrameIngestor
 
+    // S1152: persists the last active stream so the next cold start can resume it (mirrors media resume).
+    @Inject
+    lateinit var streamResumeStateRepository: StreamResumeStateRepository
+
+    // S1152: application-lifetime scope for the resume-record clear on exit. lifecycleScope is already
+    // cancelled by the time onDestroy runs, so a clear launched there would never reach the prefs.
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
+
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -95,6 +120,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // after import is visible to the bind callbacks without further synchronisation.
     @Volatile
     private var faviconCoords: Map<String, Int> = emptyMap()
+
+    // S1154: per-tile region-decode slicer for the channel-preview atlas (never decodes the full sheet).
+    private val atlasSlicer by lazy { ChannelPreviewAtlasSlicer { channelPreviewAtlasStore.atlasFile() } }
+
+    // S1154: url->tile-index map for the atlas preview; volatile for the same reason as faviconCoords.
+    @Volatile
+    private var atlasPreviewCoords: Map<String, Int> = emptyMap()
+
+    // S1154: post-import "download the preview atlas?" offer. Lazy so it is built after Hilt injection.
+    private val streamAtlasPromptManager by lazy {
+        StreamAtlasPromptManager(deliverableInventory, lifecycleScope, ::reloadAtlasPreviews)
+    }
 
     private val streamPlayerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -107,6 +144,26 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private val adapter = StreamSourceAdapter(
+        onPlay = ::onPlay,
+        onPin = { viewModel.onPin(it) },
+        onRemove = ::confirmRemove,
+        onMoveUp = { viewModel.onMovePinned(it, PinnedStreamMove.UP) },
+        onMoveDown = { viewModel.onMovePinned(it, PinnedStreamMove.DOWN) },
+        onMoveToTop = { viewModel.onMovePinned(it, PinnedStreamMove.TO_TOP) },
+        onAddShortcut = ::onAddShortcut,
+        onEdit = ::showEditDialog,
+        onShareLink = ::onShareLink,
+        onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+        favoritesEnabled = { viewModel.settings.value.enableFavorites },
+        isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
+        faviconResolver = { url -> faviconCoords[url] },
+        faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+        faviconScope = lifecycleScope,
+    )
+
+    // S1141: pinned-section list adapter - identical wiring to [adapter]. A RecyclerView adapter cannot be
+    // attached to two RecyclerViews, so the top section needs its own instance.
+    private val pinnedAdapter = StreamSourceAdapter(
         onPlay = ::onPlay,
         onPin = { viewModel.onPin(it) },
         onRemove = ::confirmRemove,
@@ -158,11 +215,55 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
             faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
+            faviconScope = lifecycleScope,
+        )
+    }
+
+    // S1141: pinned-section snapshot engine + grid adapter, mirroring the main-section pair but bound to
+    // the second off-screen capture host (binding.streamCaptureHostPinned) so the two engines never share
+    // one TextureView. The frame cache is keyed by url and a channel is pinned XOR unpinned, so the two
+    // sections' cache entries never collide.
+    private val pinnedSnapshotManager by lazy {
+        StreamFrameSnapshotManager(
+            applicationContext,
+            streamFrameCache,
+            lifecycleScope,
+            streamFrameIngestor,
+            hostProvider = { binding.streamCaptureHostPinned },
+        )
+    }
+
+    private val pinnedGridAdapter by lazy {
+        StreamGridAdapter(
+            onPlay = ::onPlay,
+            onPin = { viewModel.onPin(it) },
+            onRemove = ::confirmRemove,
+            onMoveUp = { viewModel.onMovePinned(it, PinnedStreamMove.UP) },
+            onMoveDown = { viewModel.onMovePinned(it, PinnedStreamMove.DOWN) },
+            onMoveToTop = { viewModel.onMovePinned(it, PinnedStreamMove.TO_TOP) },
+            onAddShortcut = ::onAddShortcut,
+            onEdit = ::showEditDialog,
+            onShareLink = ::onShareLink,
+            onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
+            favoritesEnabled = { viewModel.settings.value.enableFavorites },
+            isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
+            frameProvider = streamFrameCache::get,
+            requestCapture = pinnedSnapshotManager::request,
+            faviconResolver = { url -> faviconCoords[url] },
+            faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            atlasPreviewLoader = { url -> atlasPreviewCoords[url]?.let { atlasSlicer.tileFor(it) } },
             faviconScope = lifecycleScope,
         )
     }
 
     private lateinit var gridModeManager: StreamGridModeManager
+
+    private lateinit var pinnedGridModeManager: StreamGridModeManager
+
+    // S1141: splits the ordered sources into pinned/unpinned, drives both section grid managers, and
+    // auto-hides the pinned section when nothing is pinned.
+    private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
 
@@ -218,9 +319,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             titleView = binding.tvMiniTitle,
             playStopButton = binding.btnMiniPlayStop,
             audioController = AudioServiceController(this),
-            onPlayingChanged = adapter::setPlayingId,
+            // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both list
+            // adapters - only the section holding it repaints, the other no-ops. S1142: the grid adapters
+            // now also carry the active tile's now-playing track, so a new play/stop resets it there too.
+            onPlayingChanged = { id ->
+                adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
+                gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
+            },
             onError = ::showStreamUnavailable,
             onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
+            // S1142: mirror the live now-playing track onto the active channel's grid tile. The id comes
+            // from the manager itself - reading it back via inlineAudio here crashed on the init-time emit
+            // (the lateinit is not yet assigned while the constructor runs).
+            onNowPlayingChanged = { id, track ->
+                gridAdapter.setNowPlaying(id, track)
+                pinnedGridAdapter.setNowPlaying(id, track)
+            },
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
         inlineAudio.applyWindowInsets()
@@ -253,6 +367,36 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onToggleIconChanged = ::updateDisplayToggleIcon,
             // S0700: grid frame capture reports reachability (green/amber, never red; not a play).
             onStreamOutcome = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
+        )
+
+        // S1141: pinned-section RecyclerView + its own grid-mode manager. The display-toggle icon is
+        // owned by the main manager (shared toolbar action), so the pinned manager gets a no-op icon hook.
+        binding.rvStreamsPinned.layoutManager = LinearLayoutManager(this)
+        binding.rvStreamsPinned.adapter = pinnedAdapter
+
+        pinnedGridModeManager = StreamGridModeManager(
+            recyclerView = binding.rvStreamsPinned,
+            swipeRefresh = binding.swipeStreamsPinned,
+            listAdapter = pinnedAdapter,
+            gridAdapter = pinnedGridAdapter,
+            snapshotManager = pinnedSnapshotManager,
+            cache = streamFrameCache,
+            persistentStore = streamFramePersistentStore,
+            lifecycleOwner = this,
+            resources = resources,
+            onToggleIconChanged = { },
+            onStreamOutcome = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
+        )
+
+        sectionsManager = StreamsSectionsManager(
+            pinnedSection = binding.streamsPinnedSection,
+            pinnedHeader = binding.streamsPinnedHeader,
+            pinnedChevron = binding.ivPinnedChevron,
+            mainSection = binding.streamsMainSection,
+            mainHeader = binding.streamsMainHeader,
+            mainChevron = binding.ivMainChevron,
+            pinnedGridMode = pinnedGridModeManager,
+            mainGridMode = gridModeManager,
         )
 
         binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
@@ -312,8 +456,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun loadFaviconCoords() {
         lifecycleScope.launch {
             faviconCoords = faviconAtlasStore.coords()
+            // S1154: load the atlas-preview coords on the same pass so a VIDEO tile can show its preview.
+            atlasPreviewCoords = channelPreviewAtlasStore.coords()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
+    }
+
+    /**
+     * S1154: the channel-preview atlas just landed on disk (download finished, or it was installed from
+     * the Extensions Manager while this screen was in the background). The url->index map is read once
+     * at setup, so without this reload the freshly installed atlas would only start showing previews
+     * after the screen is reopened.
+     */
+    private suspend fun reloadAtlasPreviews() {
+        atlasSlicer.invalidate()
+        atlasPreviewCoords = channelPreviewAtlasStore.coords()
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
     }
 
     /**
@@ -324,6 +482,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         lifecycleScope.launch {
             faviconSlicer.invalidate()
             faviconCoords = faviconAtlasStore.coords()
+            // S1154: a re-import may have replaced the atlas payload too; drop the decoder and reload.
+            atlasSlicer.invalidate()
+            atlasPreviewCoords = channelPreviewAtlasStore.coords()
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         }
     }
@@ -364,23 +525,19 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
-            // S0675: a mode change swaps adapter + layout once; otherwise just keep the active adapter's
-            // list current. The list adapter keeps its scroll-button callback in LIST mode.
+            // S1141: the sections manager splits sources into pinned/unpinned and drives both section
+            // grid managers; a mode change swaps adapter + layout once, otherwise it keeps both lists
+            // current. The pinned section auto-hides when nothing is pinned.
             if (state.displayMode != appliedDisplayMode) {
                 appliedDisplayMode = state.displayMode
-                gridModeManager.applyMode(state.displayMode, state.sources)
-                // The manager's swap re-submits the list without the scroll-button callback; refresh once.
-                if (state.displayMode == DisplayMode.LIST && ::scrollButtons.isInitialized) {
-                    binding.rvStreams.post { scrollButtons.updateVisibility() }
-                }
-            } else if (state.displayMode == DisplayMode.LIST) {
-                adapter.submitList(state.sources) {
-                    // S0587: recompute scroll-button visibility once the new list is laid out
-                    // (filter/sort/search change the row count).
-                    if (::scrollButtons.isInitialized) scrollButtons.updateVisibility()
-                }
+                sectionsManager.applyMode(state.displayMode, state.sources)
             } else {
-                gridModeManager.submitCurrentList(state.sources)
+                sectionsManager.submitList(state.sources)
+            }
+            // S0587: recompute the main list's scroll-button visibility after the section split re-submits
+            // (filter/sort/search change the unpinned row count). Scroll buttons target the main list only.
+            if (state.displayMode == DisplayMode.LIST && ::scrollButtons.isInitialized) {
+                binding.rvStreams.post { scrollButtons.updateVisibility() }
             }
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
@@ -412,6 +569,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
+                    // S1154: offer the channel-preview atlas download when it is not already installed.
+                    streamAtlasPromptManager.maybeOffer(binding.rvStreams)
                 }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
                 is StreamsViewModel.StreamsEvent.RestoreScroll -> {
@@ -442,24 +601,37 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         val visible = visibleSources()
         if (visible.isEmpty()) return
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
-        if (latestState.displayMode == DisplayMode.GRID && ::gridModeManager.isInitialized) {
+        if (latestState.displayMode == DisplayMode.GRID && ::sectionsManager.isInitialized) {
             // Grid: the frame capture both renders the thumbnail and reports the VIDEO tile's status, so only
             // AUDIO tiles need the lightweight surfaceless probe - avoids two decoders racing per video tile.
+            // S1141: refresh both sections' visible tiles.
             gridModeManager.refreshVisibleFrames()
+            pinnedGridModeManager.refreshVisibleFrames()
             healthProbe.start(visible.filter { it.mediaKind == "AUDIO" })
         } else {
             healthProbe.start(visible)
         }
     }
 
-    /** S0700: the rows/tiles currently on screen - the probe scope - read from the active layout manager. */
+    /**
+     * S0700/S1141: the rows/tiles currently on screen - the probe scope - across both sections. Each
+     * RecyclerView's visible positions index into its own sublist (pinned rows vs unpinned rows); a
+     * channel is pinned XOR unpinned, so concatenating the two visible sublists needs no dedup.
+     */
     private fun visibleSources(): List<StreamSourceEntity> {
-        val layoutManager = binding.rvStreams.layoutManager as? LinearLayoutManager ?: return emptyList()
+        val (pinned, unpinned) = latestState.sources.partition { it.pinned }
+        return visibleInSection(binding.rvStreamsPinned, pinned) + visibleInSection(binding.rvStreams, unpinned)
+    }
+
+    private fun visibleInSection(
+        recyclerView: RecyclerView,
+        list: List<StreamSourceEntity>,
+    ): List<StreamSourceEntity> {
+        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return emptyList()
         val first = layoutManager.findFirstVisibleItemPosition()
         val last = layoutManager.findLastVisibleItemPosition()
         if (first < 0 || last < 0) return emptyList()
-        val sources = latestState.sources
-        return (first..last).mapNotNull { sources.getOrNull(it) }
+        return (first..last).mapNotNull { list.getOrNull(it) }
     }
 
     /** S0700: stop the reachability sweep so it never fights a user interaction or runs after the user moved on. */
@@ -488,7 +660,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * favicon yields null and the manager falls back to the generic media-kind vector.
      */
     private fun onAddShortcut(source: StreamSourceEntity) {
-        Timber.d("S1067: pin shortcut requested for %s (faviconIndex=%s)", source.url, faviconCoords[source.url])
         lifecycleScope.launch {
             val iconTile = faviconCoords[source.url]?.let { faviconSlicer.tileFor(it) }
             val requested = StreamShortcutPinManager(this@StreamsActivity).requestPin(source, iconTile)
@@ -506,6 +677,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
         if (source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id) {
             inlineAudio.stop()
+            // S1152: an explicit user stop clears the resume record so the next launch does not re-play it.
+            clearStreamResume()
             return
         }
         // S0711: starting any stream needs at least one active transport. Refuse fast (no spinner, no
@@ -517,8 +690,19 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         if (source.mediaKind == "AUDIO") {
             inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+            persistStreamResume(source)
             return
         }
+        // S1151: switching from inline radio to a video stream must fully stop the radio first. onStop
+        // leaves ON-mode (background-service) playback alive by design, so without this the service player
+        // keeps owning currentSource and the list keeps the animated "now playing" note next to the radio
+        // row after the user exits the video player (audio focus had already silenced the sound). stop()
+        // quiesces the player and fires onPlayingChanged(null), which clears the row indicator.
+        inlineAudio.stop()
+        // S1152: a video stream is never a resume candidate (owner decision 2026-07-26) - only radio,
+        // which actually keeps playing, is worth reopening. Starting a video also ends whatever radio
+        // record existed, since the radio was just stopped above.
+        clearStreamResume()
         // VIDEO / RTSP: open the existing fullscreen player. The stream URL is carried as the initial
         // path against the synthetic single-item resource id; the player classifies the scheme to a
         // stream ResourceType and routes it to the stream playback helper (S0565 Phase 04).
@@ -533,6 +717,43 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 enterFullscreen = true,
             )
         )
+    }
+
+    /**
+     * S1152: record this radio station as the last active stream, so a cold start resumes it. Only
+     * AUDIO is ever recorded: video playback does not survive the process anyway, and recording it
+     * made every later launch reopen this screen for 48 h (owner report 2026-07-26).
+     */
+    private fun persistStreamResume(source: StreamSourceEntity) {
+        if (source.mediaKind != "AUDIO") return
+        lifecycleScope.launch {
+            streamResumeStateRepository.save(
+                StreamResumeState(
+                    url = source.url,
+                    title = source.title,
+                    mediaKind = source.mediaKind,
+                    wasPlaying = true,
+                    savedAt = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+
+    /** S1152: drop the resume record when the user explicitly stops the current stream. */
+    private fun clearStreamResume() {
+        lifecycleScope.launch { streamResumeStateRepository.clear() }
+    }
+
+    /**
+     * S1152: leaving this screen without anything still playing means there is nothing to resume -
+     * drop the record so the next cold start opens the normal main screen. Runs on the application
+     * scope because lifecycleScope is already cancelled at onDestroy.
+     */
+    private fun clearStreamResumeOnExit() {
+        if (!::inlineAudio.isInitialized) return
+        if (keepBackgroundService || inlineAudio.isServiceAudioActive) return
+        Timber.d("S1152: exit with nothing playing - dropping stream resume record")
+        applicationScope.launch { streamResumeStateRepository.clear() }
     }
 
     /**
@@ -645,14 +866,27 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         dialogBinding.tilTitle.isVisible = true
         dialogBinding.etUrl.setText(source.url)
         dialogBinding.etTitle.setText(source.title)
+        // S1145: the type override is edit-only; pre-select it from the channel's current kind.
+        dialogBinding.mediaKindContainer.isVisible = true
+        when (viewModel.resolveEditKindOption(source)) {
+            "AUDIO" -> dialogBinding.toggleMediaKind.check(R.id.btnKindAudio)
+            "VIDEO" -> dialogBinding.toggleMediaKind.check(R.id.btnKindVideo)
+            else -> dialogBinding.toggleMediaKind.check(R.id.btnKindAuto)
+        }
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.streams_edit_dialog_title)
             .setView(dialogBinding.root)
             .setPositiveButton(android.R.string.ok) { _, _ ->
+                val kindOverride = when (dialogBinding.toggleMediaKind.checkedButtonId) {
+                    R.id.btnKindAudio -> "AUDIO"
+                    R.id.btnKindVideo -> "VIDEO"
+                    else -> null
+                }
                 viewModel.onEdit(
                     source,
                     dialogBinding.etUrl.text?.toString().orEmpty().trim(),
                     dialogBinding.etTitle.text?.toString(),
+                    kindOverride,
                 )
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -702,9 +936,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * selections to the ViewModel.
      */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, language, country, mediaKind, pinnedOnly ->
+        filterDialogManager.show(latestState) { category, topic, language, country, mediaKind, pinnedOnly ->
             viewModel.onFilter(
                 category = category,
+                topic = topic,
                 language = language,
                 country = country,
                 mediaKind = mediaKind,
@@ -716,6 +951,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     /** Marks an active filter on the filter button by a dot glyph (shape, not color alone). */
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
         val active = filter.category != null ||
+            filter.topic != null ||
             filter.language != null ||
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
@@ -777,12 +1013,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         super.onConfigurationChanged(newConfig)
         // S0692: this Activity handles orientation config changes itself (manifest configChanges), so the
         // list/grid column span must be recomputed here rather than via an Activity recreate.
-        if (::gridModeManager.isInitialized) gridModeManager.onConfigurationChanged()
+        if (::sectionsManager.isInitialized) sectionsManager.onConfigurationChanged()
         // S0940: relocate the search/filter/sort group between header (landscape) and the below-toolbar
         // bar (portrait) live on rotation, since the window is not recreated here.
         if (::controlsPlacement.isInitialized) {
             val landscape = newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
             controlsPlacement.applyForOrientation(landscape)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
+        // the background - pick it up on return instead of waiting for the next catalog import.
+        if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.atlasFile() != null) {
+            lifecycleScope.launch { reloadAtlasPreviews() }
         }
     }
 
@@ -799,16 +1044,19 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (::inlineAudio.isInitialized && inlineAudio.isLocalPlaybackActive) {
             inlineAudio.stop()
         }
-        // S0675: never run frame captures while backgrounded - cancel in-flight snapshots + the timer.
-        if (::gridModeManager.isInitialized) {
-            gridModeManager.stop()
-            snapshotManager.cancelAll()
+        // S0675/S1141: never run frame captures while backgrounded - stop both sections' snapshot engines
+        // + timers. sectionsManager.stop() forwards to each grid manager, and each grid manager's stop()
+        // cancels its own snapshot engine.
+        if (::sectionsManager.isInitialized) {
+            sectionsManager.stop()
         }
         super.onStop()
     }
 
     override fun onDestroy() {
         binding.rvStreams.removeOnScrollListener(streamScrollListener)
+        // S1152: read the playback state BEFORE inlineAudio is released below.
+        if (isFinishing) clearStreamResumeOnExit()
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
         if (::inlineAudio.isInitialized) {
             // S0577: on a background-continue exit, detach without stopping the service stream.

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
@@ -7,10 +8,12 @@ import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.HttpCookie
@@ -21,6 +24,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthSessionRepositoryImpl @Inject constructor(
     private val store: EncryptedCookieStore,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : AuthSessionRepository {
 
     private val accountFlow = MutableStateFlow<List<AuthAccountDomain>>(emptyList())
@@ -30,8 +34,16 @@ class AuthSessionRepositoryImpl @Inject constructor(
     private val legacyFlow = MutableStateFlow<List<AuthSessionDomain>>(emptyList())
 
     init {
-        store.migrateIfNeeded(LEGACY_DISPLAY_NAME)
-        refreshFlows()
+        // S1153: the one-time legacy migration + initial flow snapshot both read the encrypted
+        // prefs from disk. This singleton is built during Activity field injection on the main
+        // thread at startup, so doing it in the ctor tripped StrictMode DiskRead. Defer onto the
+        // app-scope IO scope; the StateFlows start empty and populate reactively a moment later
+        // (observers already collect them). migrateIfNeeded is idempotent + volatile-guarded, so
+        // the tiny startup window before it completes is safe.
+        appScope.launch {
+            store.migrateIfNeeded(LEGACY_DISPLAY_NAME)
+            refreshFlows()
+        }
     }
 
     override fun observeAccounts(): Flow<List<AuthAccountDomain>> = accountFlow.asStateFlow()

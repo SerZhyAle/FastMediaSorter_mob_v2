@@ -46,7 +46,9 @@ class HomeWidgetCatalog @Inject constructor(
         HomeWidgetEntry(
             providerClass = CalculatorWidgetProvider::class.java,
             labelRes = R.string.widget_calculator_label,
-            iconRes = R.drawable.ic_widget_calculator,
+            // S1165: the plain glyph is white-filled (invisible on the light picker dialog); the accent
+            // variant (#4F46E5) is the one the system shows on the home screen, so the row matches it.
+            iconRes = R.drawable.ic_widget_calculator_accent,
             descriptionRes = R.string.widget_calculator_description,
         ),
         HomeWidgetEntry(

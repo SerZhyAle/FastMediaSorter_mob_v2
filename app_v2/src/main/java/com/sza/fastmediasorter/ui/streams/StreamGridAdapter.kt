@@ -45,6 +45,7 @@ import timber.log.Timber
  * and a pinned tile shows a small red top-left badge - a non-clickable indicator, since pin state is only
  * changed through the menu.
  */
+@Suppress("LongParameterList")
 class StreamGridAdapter(
     private val onPlay: (StreamSourceEntity) -> Unit,
     private val onPin: (StreamSourceEntity) -> Unit,
@@ -66,8 +67,34 @@ class StreamGridAdapter(
     private val requestCapture: (url: String) -> Unit,
     private val faviconResolver: (String) -> Int? = { null },
     private val faviconTileLoader: suspend (Int) -> Bitmap? = { null },
+    // S1154: atlas-preview tier - resolves a channel-preview tile for a VIDEO url with no captured
+    // frame, sitting between the captured frame (wins) and the favicon fallback. Null falls through.
+    private val atlasPreviewLoader: suspend (url: String) -> Bitmap? = { null },
     private val faviconScope: CoroutineScope? = null,
 ) : ListAdapter<StreamSourceEntity, StreamGridAdapter.VH>(DIFF) {
+
+    // S1142: id of the channel currently playing inline and its live now-playing track line. Only the
+    // active tile renders the track; inactive tiles show the station name (ADR-4).
+    private var playingId: String? = null
+    private var nowPlayingLine: String? = null
+
+    /**
+     * Update the active channel + its now-playing track and repaint only the affected tiles (mirrors
+     * [StreamSourceAdapter.setPlayingId] - no full rebind). Passing a null [track] clears the line.
+     */
+    fun setNowPlaying(id: String?, track: String?) {
+        if (playingId == id && nowPlayingLine == track) return
+        val previousIndex = currentList.indexOfFirst { it.id == playingId }
+        playingId = id
+        nowPlayingLine = track
+        if (previousIndex != RecyclerView.NO_POSITION && previousIndex >= 0) {
+            notifyItemChanged(previousIndex)
+        }
+        val currentIndex = currentList.indexOfFirst { it.id == id }
+        if (currentIndex != RecyclerView.NO_POSITION && currentIndex >= 0 && currentIndex != previousIndex) {
+            notifyItemChanged(currentIndex)
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = ItemStreamGridCellBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -76,6 +103,24 @@ class StreamGridAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.bind(getItem(position))
+    }
+
+    // S1169: a status- or pin-only change repaints just that affordance - no frame re-set, favicon
+    // re-decode, or overflow-menu rebuild. Empty payloads fall through to the full bind.
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+            return
+        }
+        val item = getItem(position)
+        payloads.forEach { payload ->
+            when (payload) {
+                StreamAdapterPayloads.STATUS -> {
+                    holder.bindStatusOnly(item.lastPlayOutcome)
+                }
+                StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
+            }
+        }
     }
 
     override fun onViewRecycled(holder: VH) {
@@ -102,7 +147,10 @@ class StreamGridAdapter(
             val context = binding.root.context
             boundUrl = source.url
             cancelFaviconLoad()
-            binding.tvTitle.text = StreamTitleFormatter.display(source.title)
+            // S1142: the active tile shows `station - track`; inactive tiles show the station name only.
+            val stationTitle = StreamTitleFormatter.display(source.title)
+            val activeTrack = nowPlayingLine?.takeIf { source.id == playingId && it.isNotBlank() }
+            binding.tvTitle.text = if (activeTrack != null) "$stationTitle - $activeTrack" else stationTitle
             bindPlayStatus(source.lastPlayOutcome)
             // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
             binding.tvPinBadge.isVisible = source.pinned
@@ -123,12 +171,20 @@ class StreamGridAdapter(
             } else {
                 binding.ivFrame.setImageBitmap(null)
                 binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
-                bindFavicon(source.url)
                 if (isCaptureableVideo(source)) {
+                    // S1154: try the atlas preview first (VIDEO only); it falls through to the favicon
+                    // when no atlas tile exists for this url.
+                    bindAtlasPreview(source.url, source.title)
                     // S0700: capture is offscreen (no cell surface); the bound-url guard now lives in
                     // repaintUrl, so a recycled tile never receives another url's frame.
                     requestCapture(source.url)
+                } else {
+                    bindFavicon(source.url)
                 }
+            }
+            // S1142: TalkBack should announce the live track on the active tile (§3.2 accessibility).
+            if (activeTrack != null) {
+                binding.root.contentDescription = "${binding.root.contentDescription} - $activeTrack"
             }
         }
 
@@ -223,6 +279,35 @@ class StreamGridAdapter(
             }
         }
 
+        /**
+         * S1154: atlas-preview tier for a VIDEO tile with no captured frame. Reuses the favicon
+         * scope/job + boundUrl guard so a recycled tile is never painted with a stale atlas tile. A
+         * null result (no atlas or url not in it) falls through to the favicon path.
+         */
+        private fun bindAtlasPreview(url: String, title: String) {
+            val scope = faviconScope ?: return bindFavicon(url)
+            faviconJob = scope.launch {
+                val tile = atlasPreviewLoader(url)
+                if (boundUrl != url) return@launch
+                if (tile != null) {
+                    Timber.d("S1154: grid atlas-preview tile applied")
+                    binding.ivFrame.setImageBitmap(tile)
+                    // The tile is a real preview, so the cell is no longer "no frame".
+                    binding.root.contentDescription =
+                        binding.root.context.getString(R.string.streams_grid_cell_cd, title)
+                } else {
+                    bindFavicon(url)
+                }
+            }
+        }
+
+        // S1169: partial-rebind entry points used by the payload path - repaint one affordance only.
+        fun bindStatusOnly(outcome: String?) = bindPlayStatus(outcome)
+
+        fun bindPinOnly(pinned: Boolean) {
+            binding.tvPinBadge.isVisible = pinned
+        }
+
         /** S0701: same tri-state play-status mapping as [StreamSourceAdapter.bindPlayStatus]. */
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
@@ -264,6 +349,10 @@ class StreamGridAdapter(
 
             override fun areContentsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =
                 oldItem == newItem
+
+            // S1169: narrow a status- or pin-only change to a payload so the tile does not full-rebind.
+            override fun getChangePayload(oldItem: StreamSourceEntity, newItem: StreamSourceEntity): Any? =
+                streamRowChangePayload(oldItem, newItem)
         }
     }
 }

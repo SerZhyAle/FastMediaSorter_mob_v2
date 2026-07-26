@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
-import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * State holder for the "Трансляции" list screen. Observes the catalog and forwards user intents to
@@ -81,9 +81,6 @@ class StreamsViewModel @Inject constructor(
     private val networkContextAnalyzer: NetworkContextAnalyzer,
     // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
     private val streamFramePersistentStore: StreamFramePersistentStore,
-    // S1145: derive whether a channel's stored kind still matches auto-classification, so the edit
-    // dialog's type picker opens on "Auto" vs an explicit override without the Activity classifying.
-    private val mediaKindClassifier: StreamMediaKindClassifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -133,8 +130,8 @@ class StreamsViewModel @Inject constructor(
 
     /**
      * S0659: seed [_filter] from the persisted last session, else from the user defaults. Only sort and
-     * media-kind carry over; the catalog-derived facets (category/topic/language) stay at defaults. Skips
-     * if the user already changed the filter while the read was in flight.
+     * media-kind come from the user defaults; the catalog-derived facets are restored below (S0697).
+     * Skips if the user already changed the filter while the read was in flight.
      *
      * S1054: the free-text query is deliberately NOT restored - it stays empty on every open so the search
      * field and the applied text filter can never diverge (empty field + already-filtered list).
@@ -153,6 +150,7 @@ class StreamsViewModel @Inject constructor(
             // longer exists in the catalog simply yields an empty list with the filter shown active, so the
             // user can clear it - no crash, no silent wrong data.
             category = session.lastCategory,
+            topic = session.lastTopic,
             language = session.lastLanguage,
             country = session.lastCountry,
             pinnedOnly = session.lastPinnedOnly ?: false,
@@ -186,11 +184,18 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S1147: add a manual channel. Invalid-url and duplicate-url surface a one-shot message; success
+     * stays silent (Room re-renders the list). The duplicate guard replaces the former unhandled
+     * SQLiteConstraintException crash when the url already exists.
+     */
     fun onAdd(url: String, title: String?) = viewModelScope.launch {
         when (addStreamSource(url, title)) {
             AddStreamSourceUseCase.AddResult.InvalidUrl ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
-            else -> Unit
+            AddStreamSourceUseCase.AddResult.Duplicate ->
+                _events.send(StreamsEvent.Message(R.string.streams_error_duplicate_url))
+            AddStreamSourceUseCase.AddResult.Success -> Unit
         }
     }
 
@@ -212,15 +217,17 @@ class StreamsViewModel @Inject constructor(
         }
 
     /**
-     * S1145: which type-picker option the edit dialog should pre-select for [source]. "AUTO" when the
-     * stored kind still equals what auto-classification derives (so an untouched rtsp channel re-derives
-     * to RTSP on save); otherwise the explicit "AUDIO", or "VIDEO" (covering VIDEO and RTSP, which both
-     * route to the video player). The classification decision stays here, not in the Activity.
+     * S1145: which type-picker option the edit dialog should pre-select for [source]. The picker mirrors
+     * the stored kind directly - AUDIO -> "AUDIO", VIDEO -> "VIDEO" - so an explicit choice stays visible
+     * on reopen even when it coincides with what auto-classification would derive (the earlier
+     * classify-comparison collapsed such a choice back to "AUTO", failing the persist acceptance). RTSP
+     * has no explicit picker option and maps to "AUTO", so an untouched rtsp channel still re-derives to
+     * RTSP on save (override = null); "AUTO" also stays available to re-derive AUDIO/VIDEO on demand.
      */
-    fun resolveEditKindOption(source: StreamSourceEntity): String = when {
-        source.mediaKind == mediaKindClassifier.classify(source.url) -> "AUTO"
-        source.mediaKind == "AUDIO" -> "AUDIO"
-        else -> "VIDEO"
+    fun resolveEditKindOption(source: StreamSourceEntity): String = when (source.mediaKind) {
+        "AUDIO" -> "AUDIO"
+        "VIDEO" -> "VIDEO"
+        else -> "AUTO"
     }
 
     fun onImport(listUrl: String) = viewModelScope.launch {
@@ -268,21 +275,48 @@ class StreamsViewModel @Inject constructor(
 
     fun onFilter(
         category: String? = null,
+        topic: String? = null,
         language: String? = null,
         country: String? = null,
         mediaKind: MediaKindFilter = MediaKindFilter.ALL,
         pinnedOnly: Boolean = false,
     ) {
+        Timber.d("S1168: onFilter topic=$topic category=$category")
+        val previousKind = _filter.value.mediaKind
         _filter.update {
             it.copy(
                 category = category,
+                topic = topic,
                 language = language,
                 country = country,
                 mediaKind = mediaKind,
                 pinnedOnly = pinnedOnly,
             )
         }
+        applyVideoFilterDisplayMode(previousKind, mediaKind)
         persistSession()
+    }
+
+    // S1154: video previews are only meaningful in GRID, so entering the VIDEO filter auto-switches to
+    // GRID and remembers the prior mode; leaving VIDEO restores it. The auto mode is never persisted as
+    // the user's default (only onToggleDisplayMode writes it), so a manual LIST choice is never lost.
+    private var modeBeforeVideoFilter: DisplayMode? = null
+
+    private fun applyVideoFilterDisplayMode(previousKind: MediaKindFilter, newKind: MediaKindFilter) {
+        val enteringVideo = newKind == MediaKindFilter.VIDEO && previousKind != MediaKindFilter.VIDEO
+        val leavingVideo = previousKind == MediaKindFilter.VIDEO && newKind != MediaKindFilter.VIDEO
+        when {
+            enteringVideo -> {
+                modeBeforeVideoFilter = _state.value.displayMode
+                if (_state.value.displayMode != DisplayMode.GRID) {
+                    _state.update { it.copy(displayMode = DisplayMode.GRID) }
+                }
+            }
+            leavingVideo -> {
+                modeBeforeVideoFilter?.let { restore -> _state.update { it.copy(displayMode = restore) } }
+                modeBeforeVideoFilter = null
+            }
+        }
     }
 
     fun onSort(mode: SortMode) {
@@ -294,6 +328,11 @@ class StreamsViewModel @Inject constructor(
     fun onToggleDisplayMode() {
         val newMode = if (_state.value.displayMode == DisplayMode.GRID) DisplayMode.LIST else DisplayMode.GRID
         _state.update { it.copy(displayMode = newMode) }
+        // S1154: a deliberate switch while the VIDEO filter is active becomes the new restore baseline,
+        // so leaving the filter does not clobber the in-filter choice with the pre-video mode.
+        if (_filter.value.mediaKind == MediaKindFilter.VIDEO && modeBeforeVideoFilter != null) {
+            modeBeforeVideoFilter = newMode
+        }
         viewModelScope.launch { sessionStore.writeDisplayMode(newMode.name) }
     }
 
@@ -310,6 +349,7 @@ class StreamsViewModel @Inject constructor(
                 sort = filter.sort.name,
                 mediaFilter = filter.mediaKind.name,
                 category = filter.category,
+                topic = filter.topic,
                 language = filter.language,
                 country = filter.country,
                 pinnedOnly = filter.pinnedOnly,
@@ -441,7 +481,6 @@ class StreamsViewModel @Inject constructor(
                     // RTSP is a video transport, so it shares the "video" bucket.
                     MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
                 }
-                // topic stays ANDed: not exposed in the filter UI (the query box covers topic).
                 val topicHit = filter.topic == null || source.topic == filter.topic
                 // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
                 val pinnedHit = !filter.pinnedOnly || source.pinned

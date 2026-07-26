@@ -306,7 +306,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // fall back to the helper's manual scroll of the explicit/focused container (S0289 case).
         if (!isFinger && _binding != null && event.actionMasked == MotionEvent.ACTION_SCROLL) {
             val nativeConsumed = super.dispatchGenericMotionEvent(event)
-            Timber.d("S0996: wheel native-first superConsumed=%b", nativeConsumed)
             if (nativeConsumed) return true
             return activityMouseDispatchHelper.handleGenericMotionEvent(event)
         }

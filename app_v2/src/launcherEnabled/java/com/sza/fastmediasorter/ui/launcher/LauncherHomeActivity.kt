@@ -10,6 +10,7 @@ import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -21,6 +22,8 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.InternalRoutePickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFragment
@@ -29,7 +32,9 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
@@ -38,10 +43,12 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -61,6 +68,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
+    @Inject
+    lateinit var queryAppShortcuts: QueryAppShortcutsUseCase
+
+    @Inject
+    lateinit var startAppShortcut: StartAppShortcutUseCase
+
     private val cellBinder = LauncherCellViewBinder(
         onCellClick = { viewModel.onCellTapped(it) },
         onEmptySlotClick = { row, col -> openContentPicker(row, col) },
@@ -71,13 +84,23 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // resizeManager is lateinit for the same reason: a resize handle only exists on a gadget cell in
         // edit mode, rendered after setupViews() has built the manager.
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
+        onCellLongPress = { view, cellUi -> showAppShortcuts(view, cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
 
     private lateinit var editModeManager: LauncherEditModeManager
 
+    // S1101: created in setupViews() like the other managers; onStart/onStop forward the foreground edges.
+    private lateinit var wallpaperManager: LauncherWallpaperManager
+
     private lateinit var resizeManager: LauncherResizeManager
+
+    // Built lazily on the first long press: the injected use cases are not available while the field
+    // initialisers of this class run, and most Home visits never open the popup at all.
+    private val shortcutMenuManager by lazy {
+        LauncherAppShortcutMenuManager(lifecycleScope, queryAppShortcuts, startAppShortcut)
+    }
 
     /** Tracks the last orientation so the one-shot rotation hint fires only on an actual flip. */
     private var lastOrientation: LauncherOrientation = LauncherOrientation.PORTRAIT
@@ -126,6 +149,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             viewModel = viewModel,
         )
         editModeManager.attach()
+        wallpaperManager = LauncherWallpaperManager(
+            lifecycleOwner = this,
+            imageLayer = binding.launcherWallpaperImage,
+            wavesLayer = binding.launcherWallpaperWaves,
+            viewModel = viewModel,
+        )
+        wallpaperManager.attach()
+        // setupViews() is posted by BaseActivity, so onStart() has already run for this instance and the
+        // manager would otherwise sit paused until the next foreground edge.
+        wallpaperManager.onStart()
         resizeManager = LauncherResizeManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
@@ -201,27 +234,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             if (operationId <= 0L) return@setFragmentResultListener
             addShortcut(LauncherCellCommand.ScheduledOp(operationId))
         }
-        supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_SHORTCUT, this) { _, bundle ->
-            val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
-            openPicker(
-                LauncherResourceModePickerDialogFragment.newInstance(resourceId),
-                LauncherResourceModePickerDialogFragment.TAG,
-            )
-        }
-        supportFragmentManager.setFragmentResultListener(
-            LauncherResourceModePickerDialogFragment.RESULT_KEY,
-            this,
-        ) { _, bundle ->
-            val resourceId = bundle.getLong(LauncherResourceModePickerDialogFragment.RESULT_RESOURCE_ID)
-            val modeName = bundle.getString(LauncherResourceModePickerDialogFragment.RESULT_MODE)
-            val mode = LauncherResourceMode.entries.firstOrNull { it.name == modeName }
-                ?: return@setFragmentResultListener
-            addShortcut(LauncherCellCommand.Resource(resourceId, mode))
-        }
-        supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_GADGET, this) { _, bundle ->
-            val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
-            placeGadget(pendingGadgetKey ?: return@setFragmentResultListener, resourceId)
-        }
+        registerResourceListeners()
+        registerWeatherLocationListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
         // app pinned to the bar is never mistaken for an app dropped on a cell (both share the picker).
         supportFragmentManager.setFragmentResultListener(REQ_PIN_APP, this) { _, bundle ->
@@ -277,6 +291,35 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         viewModel.onHomeResumed()
     }
 
+    /**
+     * S0427: expands an installed app's published quick actions. Only an app cell has them, and only at
+     * rest - in edit mode the same gesture belongs to the drag that rearranges the desktop.
+     */
+    private fun showAppShortcuts(view: View, cellUi: LauncherCellUi): Boolean {
+        if (viewModel.editMode.value) return false
+        val command = LauncherCellCommand.decode(cellUi.cell.target)
+        if (command !is LauncherCellCommand.App) return false
+        Timber.d("S0427: app shortcuts requested for %s", command.packageName)
+        shortcutMenuManager.show(view, command.packageName)
+        return true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Guarded: onStart fires before BaseActivity's posted setupViews() on the very first pass, which
+        // is where the manager is created - that pass starts it itself.
+        if (::wallpaperManager.isInitialized) wallpaperManager.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Symmetric with the long press that opened it: a popup must not survive the surface leaving
+        // the foreground, or it reappears over whatever the user opened next.
+        shortcutMenuManager.dismiss()
+        // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
+        if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
+    }
+
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         applyGridGeometry()
         val now = currentOrientation()
@@ -298,7 +341,19 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             container.addView(unavailableGadgetView(container))
             return
         }
-        container.addView(gadget.createView(container, gadgetHost, decoded.second))
+        val view = gadget.createView(container, gadgetHost, decoded.second)
+        if (decoded.first == LauncherGadgetRegistry.KEY_WEATHER) {
+            // The cell id lives here, not inside the gadget, so re-pointing a weather cell is wired at
+            // the host rather than by handing every gadget its row in the database.
+            view.setOnLongClickListener {
+                openPicker(
+                    LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION, cellUi.cell.id),
+                    LauncherWeatherLocationDialogFragment.TAG,
+                )
+                true
+            }
+        }
+        container.addView(view)
     }
 
     /**
@@ -359,15 +414,23 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             return
         }
         val gadget = gadgetRegistry.byKey(gadgetKey) ?: return
-        if (gadget.requiresResourceParam) {
-            pendingGadgetKey = gadgetKey
-            val filter = if (gadgetKey == LauncherGadgetRegistry.KEY_PLAYLIST) MediaType.AUDIO else null
-            openPicker(
-                ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_GADGET, filter),
-                ResourcePickerDialogFragment.TAG,
+        when {
+            // The weather gadget's param is a place, not a registered resource, so it has its own picker.
+            gadgetKey == LauncherGadgetRegistry.KEY_WEATHER -> openPicker(
+                LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION),
+                LauncherWeatherLocationDialogFragment.TAG,
             )
-        } else {
-            placeGadget(gadgetKey, resourceId = null)
+
+            gadget.requiresResourceParam -> {
+                pendingGadgetKey = gadgetKey
+                val filter = if (gadgetKey == LauncherGadgetRegistry.KEY_PLAYLIST) MediaType.AUDIO else null
+                openPicker(
+                    ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_GADGET, filter),
+                    ResourcePickerDialogFragment.TAG,
+                )
+            }
+
+            else -> placeGadget(gadgetKey, resourceId = null)
         }
     }
 
@@ -381,6 +444,65 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             spanW = gadget.defaultSpanW,
             spanH = gadget.defaultSpanH,
             rememberFileListResourceId = resourceId,
+        )
+    }
+
+    /** The resource chain: pick a resource, then its mode for a shortcut, or hand it to a gadget. */
+    private fun registerResourceListeners() {
+        supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_SHORTCUT, this) { _, bundle ->
+            val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
+            openPicker(
+                LauncherResourceModePickerDialogFragment.newInstance(resourceId),
+                LauncherResourceModePickerDialogFragment.TAG,
+            )
+        }
+        supportFragmentManager.setFragmentResultListener(
+            LauncherResourceModePickerDialogFragment.RESULT_KEY,
+            this,
+        ) { _, bundle ->
+            val resourceId = bundle.getLong(LauncherResourceModePickerDialogFragment.RESULT_RESOURCE_ID)
+            val modeName = bundle.getString(LauncherResourceModePickerDialogFragment.RESULT_MODE)
+            val mode = LauncherResourceMode.entries.firstOrNull { it.name == modeName }
+                ?: return@setFragmentResultListener
+            addShortcut(LauncherCellCommand.Resource(resourceId, mode))
+        }
+        supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_GADGET, this) { _, bundle ->
+            val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
+            placeGadget(pendingGadgetKey ?: return@setFragmentResultListener, resourceId)
+        }
+    }
+
+    /** One result key, two flows: a new cell has no id yet, an existing one is repointed in place. */
+    private fun registerWeatherLocationListener() {
+        supportFragmentManager.setFragmentResultListener(REQ_WEATHER_LOCATION, this) { _, bundle ->
+            val encoded = bundle.getString(LauncherWeatherLocationDialogFragment.RESULT_LOCATION)
+                ?: return@setFragmentResultListener
+            val cellId = bundle.getLong(
+                LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
+                LauncherWeatherLocationDialogFragment.NO_CELL_ID,
+            )
+            Timber.d("S0426: weather place picked for cell %d", cellId)
+            if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
+                placeWeatherGadget(encoded)
+            } else {
+                viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encoded),
+                )
+            }
+        }
+    }
+
+    /** The weather gadget carries its place in the target, so it bypasses [placeGadget]'s resource id. */
+    private fun placeWeatherGadget(encodedLocation: String) {
+        val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_WEATHER) ?: return
+        viewModel.addCell(
+            rowIndex = pendingRow,
+            colIndex = pendingCol,
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encodedLocation),
+            spanW = gadget.defaultSpanW,
+            spanH = gadget.defaultSpanH,
         )
     }
 
@@ -460,5 +582,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         const val REQ_RESOURCE_SHORTCUT = "launcher_add_resource_shortcut"
         const val REQ_RESOURCE_GADGET = "launcher_add_resource_gadget"
         const val REQ_PIN_APP = "launcher_pin_app"
+        const val REQ_WEATHER_LOCATION = "launcher_weather_location"
     }
 }

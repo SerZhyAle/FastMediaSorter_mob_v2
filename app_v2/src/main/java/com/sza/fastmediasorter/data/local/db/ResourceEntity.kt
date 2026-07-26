@@ -107,5 +107,9 @@ data class ResourceEntity(
 
     // S1014: companion connectivity guidance (accessNote); shown on connection failure. null = none.
     @ColumnInfo(name = "access_note", defaultValue = "NULL")
-    val accessNote: String? = null
+    val accessNote: String? = null,
+
+    // S1009: ad-hoc local-folder resource hidden from visible surfaces; FK still resolves. defaultValue="0" so the exported schema hash matches.
+    @ColumnInfo(name = "is_hidden", defaultValue = "0")
+    val isHidden: Boolean = false
 )

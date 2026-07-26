@@ -15,7 +15,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -35,7 +34,6 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,7 +43,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlaybackSettingsFragment : Fragment() {
+// S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
+// settings tab gets the landscape columns rather than only Management.
+class PlaybackSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
@@ -60,8 +60,6 @@ class PlaybackSettingsFragment : Fragment() {
 
     // S0452: dynamic "Send file to.." rows keyed by ShareTarget.id, refreshed in observeData.
     private val sendCommandRows = mutableMapOf<String, SettingsToggleRow>()
-
-    private var isUpdatingFromSettings = false
 
     // S0439: player rotation toggle is hidden on devices without an orientation sensor.
     private val hasAccelerometer: Boolean by lazy {
@@ -99,8 +97,9 @@ class PlaybackSettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // Row stacking now runs in BaseSettingsFragment, before the group cards are moved into the grid.
+        // Repeating it here would re-stack an already re-parented tree.
         super.onViewCreated(view, savedInstanceState)
-        (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         try {
             setupViews()
             setupBackgroundAudioSection()

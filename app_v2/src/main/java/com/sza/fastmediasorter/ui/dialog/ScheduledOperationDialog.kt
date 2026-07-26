@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
@@ -27,6 +28,9 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/** S1009: which scheduled-op field an ad-hoc local-folder pick targets. */
+enum class SchedOpPickSide { SOURCE, TARGET }
+
 class ScheduledOperationDialog(
     context: Context,
     private val resources: List<MediaResource>,
@@ -34,10 +38,19 @@ class ScheduledOperationDialog(
     private val existing: ScheduledOperation? = null,
     private val prefilledSourceId: Long? = null,
     private val mediaCapabilities: MediaCapabilities,
-    private val onSave: (ScheduledOperation) -> Unit
+    private val onPickLocalFolder: (SchedOpPickSide) -> Unit,
+    private val onSave: (ScheduledOperationDraft) -> Unit
 ) : Dialog(context) {
 
     private lateinit var b: DialogScheduledOperationBinding
+
+    // S1009: a staged ad-hoc local folder pick per side; resolved to a resource id on Save (never at
+    // pick time, to avoid orphaning a hidden resource when the dialog is cancelled).
+    private var stagedSourceFolderPath: String? = null
+    private var stagedSourceFolderName: String? = null
+    private var stagedSourceReadOnly: Boolean = false
+    private var stagedTargetFolderPath: String? = null
+    private var stagedTargetFolderName: String? = null
 
     // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
     private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
@@ -70,12 +83,17 @@ class ScheduledOperationDialog(
     }
 
     private fun setupDropdowns() {
-        // Source resources - detect read-only on selection
-        val sourceNames = resources.map { it.name }
+        // Source - "Local folder" first (index 0), then registered resources; detect read-only on selection.
+        val localFolderLabel = context.getString(R.string.local_folder)
+        val sourceNames = listOf(localFolderLabel) + resources.map { it.name }
         b.actvSource.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, sourceNames))
         b.actvSource.setOnItemClickListener { _, _, pos, _ ->
-            val selected = resources.getOrNull(pos)
-            applyReadOnlySourceConstraint(selected)
+            if (pos == 0) {
+                onPickLocalFolder(SchedOpPickSide.SOURCE)
+            } else {
+                clearStagedSource()
+                applyReadOnlySourceConstraint(resources.getOrNull(pos - 1))
+            }
         }
 
         // Operations
@@ -93,9 +111,12 @@ class ScheduledOperationDialog(
         }
         b.actvOperation.setText(opLabels[0], false)
 
-        // Target (destinations only) - auto-fill if exactly one option
-        val destNames = destinations.map { it.name }
+        // Target - "Local folder" first (index 0), then destinations; auto-fill if exactly one dest.
+        val destNames = listOf(localFolderLabel) + destinations.map { it.name }
         b.actvTarget.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, destNames))
+        b.actvTarget.setOnItemClickListener { _, _, pos, _ ->
+            if (pos == 0) onPickLocalFolder(SchedOpPickSide.TARGET) else clearStagedTarget()
+        }
         if (destinations.size == 1 && existing == null) {
             b.actvTarget.setText(destinations[0].name, false)
         }
@@ -273,7 +294,11 @@ class ScheduledOperationDialog(
     }
 
     private fun applyReadOnlySourceConstraint(source: MediaResource?) {
-        val isReadOnly = source?.isReadOnly == true
+        applyReadOnlyState(source?.isReadOnly == true)
+    }
+
+    /** Forces COPY + reveals the target when the chosen source cannot be written (read-only or SAF-RO). */
+    private fun applyReadOnlyState(isReadOnly: Boolean) {
         b.tvReadOnlySourceHint.visibility = if (isReadOnly) View.VISIBLE else View.GONE
         if (isReadOnly) {
             val copyLabel = context.getString(R.string.scheduled_ops_op_copy)
@@ -284,6 +309,38 @@ class ScheduledOperationDialog(
         } else {
             b.actvOperation.isEnabled = true
         }
+    }
+
+    /**
+     * S1009: receive a staged ad-hoc local folder from the host SAF picker and reflect it in the field.
+     * A read-only source forces COPY; a non-writable receiver is rejected by the host before it reaches here.
+     */
+    fun onLocalFolderPicked(side: SchedOpPickSide, folderPath: String, folderName: String, readOnly: Boolean) {
+        when (side) {
+            SchedOpPickSide.SOURCE -> {
+                stagedSourceFolderPath = folderPath
+                stagedSourceFolderName = folderName
+                stagedSourceReadOnly = readOnly
+                b.actvSource.setText(folderName, false)
+                applyReadOnlyState(readOnly)
+            }
+            SchedOpPickSide.TARGET -> {
+                stagedTargetFolderPath = folderPath
+                stagedTargetFolderName = folderName
+                b.actvTarget.setText(folderName, false)
+            }
+        }
+    }
+
+    private fun clearStagedSource() {
+        stagedSourceFolderPath = null
+        stagedSourceFolderName = null
+        stagedSourceReadOnly = false
+    }
+
+    private fun clearStagedTarget() {
+        stagedTargetFolderPath = null
+        stagedTargetFolderName = null
     }
 
     private fun setupNextRunPreview() {
@@ -374,12 +431,19 @@ class ScheduledOperationDialog(
     }
 
     private fun trySave() {
-        val sourceIdx = resources.indexOfFirst { it.name == b.actvSource.text.toString() }
-        if (sourceIdx < 0) {
-            Toast.makeText(context, R.string.scheduled_ops_source, Toast.LENGTH_SHORT).show()
-            return
+        val stagedSource = stagedSourceFolderPath
+        val sourceId: Long
+        if (stagedSource != null) {
+            // Host resolves the staged folder to a reused-visible or newly created hidden id on Save.
+            sourceId = existing?.sourceResourceId ?: 0L
+        } else {
+            val sourceIdx = resources.indexOfFirst { it.name == b.actvSource.text.toString() }
+            if (sourceIdx < 0) {
+                Toast.makeText(context, R.string.scheduled_ops_source, Toast.LENGTH_SHORT).show()
+                return
+            }
+            sourceId = resources[sourceIdx].id
         }
-        val sourceResource = resources[sourceIdx]
 
         val opText = b.actvOperation.text.toString()
         val opType = when (opText) {
@@ -389,7 +453,8 @@ class ScheduledOperationDialog(
         }
 
         var targetId: Long? = null
-        if (opType != ScheduledOpType.DELETE) {
+        val stagedTarget = if (opType != ScheduledOpType.DELETE) stagedTargetFolderPath else null
+        if (opType != ScheduledOpType.DELETE && stagedTarget == null) {
             val destIdx = destinations.indexOfFirst { it.name == b.actvTarget.text.toString() }
             if (destIdx < 0) {
                 Toast.makeText(context, R.string.scheduled_ops_target, Toast.LENGTH_SHORT).show()
@@ -429,7 +494,7 @@ class ScheduledOperationDialog(
         val op = ScheduledOperation(
             id = existing?.id ?: 0L,
             isEnabled = existing?.isEnabled ?: true,
-            sourceResourceId = sourceResource.id,
+            sourceResourceId = sourceId,
             operationType = opType,
             targetResourceId = targetId,
             fileTypeMask = fileTypeMask,
@@ -444,7 +509,16 @@ class ScheduledOperationDialog(
             lastRunStatus = existing?.lastRunStatus,
             workerId = existing?.workerId
         )
-        onSave(op)
+        onSave(
+            ScheduledOperationDraft(
+                operation = op,
+                sourceFolderPath = stagedSource,
+                sourceFolderName = stagedSourceFolderName,
+                sourceFolderReadOnly = stagedSourceReadOnly,
+                targetFolderPath = stagedTarget,
+                targetFolderName = stagedTargetFolderName,
+            )
+        )
         dismiss()
     }
 }

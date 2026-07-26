@@ -67,9 +67,9 @@ class ResourceDaoTest {
     }
 
     @Test
-    fun `deleteByIdWithFts removes the row and its FTS entry`() = runTest {
+    fun `deleteById removes the row and its FTS entry`() = runTest {
         val id = dao.insert(resource(name = "Doomed"))
-        dao.deleteByIdWithFts(id)
+        dao.deleteById(id)
 
         assertNull(dao.getResourceByIdSync(id))
         assertTrue(dao.searchResourcesFts("Doomed").isEmpty())

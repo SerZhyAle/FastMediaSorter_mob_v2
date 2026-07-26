@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0756: pinned stream channels on the main-window streams panel. Each chip shows a favicon thumbnail
@@ -38,11 +39,13 @@ class StreamPanelChannelAdapter(
     fun setShowLabels(value: Boolean) {
         if (showLabels == value) return
         showLabels = value
-        notifyDataSetChanged()
+        // S1169: repaint only the label/favicon slot via a payload - a full-list refresh blanked
+        // and re-decoded every chip on each rotation (bind used to pre-clear the image).
+        notifyItemRangeChanged(0, itemCount, PAYLOAD_LABELS)
     }
 
     /** Re-binds visible chips once the favicon coords/atlas finish loading after the list was shown. */
-    fun refreshFavicons() = notifyDataSetChanged()
+    fun refreshFavicons() = notifyItemRangeChanged(0, itemCount, PAYLOAD_LABELS)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = ItemMainStreamChannelBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -50,6 +53,15 @@ class StreamPanelChannelAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
+
+    // S1169: PAYLOAD_LABELS re-applies only label visibility + favicon without resetting click listeners.
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains(PAYLOAD_LABELS)) {
+            holder.applyLabelsAndFavicon(getItem(position))
+        } else {
+            onBindViewHolder(holder, position)
+        }
+    }
 
     override fun onViewRecycled(holder: VH) {
         holder.cancelFaviconLoad()
@@ -73,21 +85,31 @@ class StreamPanelChannelAdapter(
                 onChannelOverflow(source, binding.channelRoot)
                 true
             }
-            binding.btnChannelMenu.visibility = if (showLabels) View.VISIBLE else View.GONE
             binding.btnChannelMenu.setOnClickListener { onChannelOverflow(source, binding.btnChannelMenu) }
-            binding.tvChannelLabel.text = fullTitle.take(SHORT_NAME_MAX_CHARS)
+            applyLabelsAndFavicon(source, fullTitle)
+        }
 
+        /**
+         * S1169: label-visibility + favicon slot only, no click-listener reset. Called by the full [bind]
+         * and by the PAYLOAD_LABELS partial rebind. The image is NOT pre-cleared: a chip keeps its current
+         * favicon until the async tile lands (guarded by [boundUrl]), so a rotation never blanks it.
+         */
+        fun applyLabelsAndFavicon(
+            source: StreamSourceEntity,
+            fullTitle: String = StreamTitleFormatter.display(source.title),
+        ) {
             boundUrl = source.url
             cancelFaviconLoad()
-            binding.ivChannelFavicon.setImageDrawable(null)
+            binding.btnChannelMenu.visibility = if (showLabels) View.VISIBLE else View.GONE
+            binding.tvChannelLabel.text = fullTitle.take(SHORT_NAME_MAX_CHARS)
             val index = faviconResolver(source.url)
-
             if (showLabels) {
                 // Wide window: thumbnail (if any) plus the short label.
                 binding.tvChannelLabel.visibility = View.VISIBLE
                 loadFavicon(index, source.url, fallbackToLabel = false)
             } else if (index == null) {
                 // Compact window, no favicon: fall back to the short label so the chip is identifiable.
+                binding.ivChannelFavicon.setImageDrawable(null)
                 binding.ivChannelFavicon.visibility = View.GONE
                 binding.tvChannelLabel.visibility = View.VISIBLE
             } else {
@@ -120,6 +142,9 @@ class StreamPanelChannelAdapter(
 
     private companion object {
         const val SHORT_NAME_MAX_CHARS = 10
+
+        // S1169: partial-rebind payload for a label/favicon refresh (rotation / atlas load).
+        const val PAYLOAD_LABELS = "panel_labels"
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

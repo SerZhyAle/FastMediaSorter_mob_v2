@@ -272,13 +272,16 @@ else {
 }
 
 if ($runsStringsAudit) {
-    if (-not [string]::IsNullOrWhiteSpace($KeyPrefix)) {
-        Invoke-Step "strings-audit" {
-            & $pwsh -NoProfile -File (Join-Path $root "scripts/check_strings_localized.ps1") -Module $Module -KeyPrefix $KeyPrefix
-        }
-    }
-    else {
-        Skip-Step "strings-audit" "ChangeType $resolvedChangeType requires -KeyPrefix"
+    # S1193: an absent -KeyPrefix used to SKIP this step, so the parity gate only ran when a caller
+    # happened to pass a prefix. Nobody ever swept the whole catalog, and 21 keys reached the shipping
+    # app untranslated. No prefix now means audit everything, not audit nothing.
+    $auditPrefix = if ([string]::IsNullOrWhiteSpace($KeyPrefix)) { '*' } else { $KeyPrefix }
+    # A strings edit under src/<flavor>/res must be audited against that flavor's locale dirs. Auditing
+    # main instead would report a clean pass over files the change never touched.
+    $auditSourceSet = if ($File -match '[\\/]src[\\/]([^\\/]+)[\\/]res[\\/]') { $Matches[1] } else { 'main' }
+    Invoke-Step "strings-audit" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/check_strings_localized.ps1") `
+            -Module $Module -SourceSet $auditSourceSet -KeyPrefix $auditPrefix
     }
 }
 else {

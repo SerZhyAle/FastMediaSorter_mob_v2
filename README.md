@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.7221.704 (July 2026)
+## What's New in v2.60.7260.252 (July 2026)
 
 **New:**
-Home-screen launcher with resizable gadgets, a working clock and a scrollable app grid, a seeded launcher desktop with richer cell actions, adaptive stream quality step-down under stalls, watched-frame stream thumbnails.
+Desktop wallpaper of your own, weather gadget without location permission, desktop edit lock, app quick actions from a long press, now-playing metadata and on-air programme for streams, stream topic filter, channel preview atlas, pinned streams section, radio resume on next launch, full camera hardware with macro and sensor resolution, camera report in System info, two-column landscape settings, local folder in scheduled operations.
 
 **Fixed:**
-Stream-aware playback controls, readable quick-launch tile icons on the light theme, readable VR input labels in keybindings, empty channel picker opens Streams settings.
+Duplicate stream URL no longer crashes, manual stream keeps its chosen Audio or Video type, flicker-free stream thumbnails.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

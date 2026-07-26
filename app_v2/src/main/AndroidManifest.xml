@@ -499,8 +499,12 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_quick_capture_info" />
         </receiver>
 
-        <!-- Quick Camera Capture: transparent trampoline that hosts the capture flow from a widget tap (S0369) -->
-        <activity android:name=".widget.CameraQuickCaptureActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+        <!-- Quick Camera Capture: transparent trampoline that hosts the capture flow from a widget tap (S0369).
+             S1174: no android:noHistory - the opaque CameraCaptureActivity stops this transparent trampoline,
+             and noHistory then finished it before RESULT_OK came back, so every capture was silently dropped.
+             Same failure PhotoCaptureLaunchActivity hit (S0790). Every terminal branch calls finish(), and
+             excludeFromRecents keeps it out of the recents list. -->
+        <activity android:name=".widget.CameraQuickCaptureActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
 
         <!-- Camera Launch Widget (S0568): config-less, opens the unified in-app camera (photo/video)
              and saves captures to the device public folders. Present wherever the in-app camera is
@@ -512,8 +516,10 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/camera_launch_widget_info" />
         </receiver>
 
-        <!-- Camera Launch: transparent trampoline that opens the unified camera from a widget tap (S0568) -->
-        <activity android:name=".widget.CameraLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+        <!-- Camera Launch: transparent trampoline that opens the unified camera from a widget tap (S0568).
+             S1174: no android:noHistory, for the same reason as the sibling quick-capture trampoline above -
+             it awaits a result from the opaque CameraCaptureActivity, which noHistory made undeliverable. -->
+        <activity android:name=".widget.CameraLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
 
         <!-- Take-photo edge-gesture trampoline (S0790-S0794): headless CameraX capture in this activity's
              own lifecycle, then saves/routes the photo. No android:noHistory here (unlike the sibling

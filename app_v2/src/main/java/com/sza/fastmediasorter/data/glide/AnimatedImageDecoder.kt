@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
+import com.bumptech.glide.load.resource.gif.GifOptions
 import com.bumptech.glide.util.ByteBufferUtil
 import timber.log.Timber
 import java.io.IOException
@@ -28,6 +29,7 @@ import java.nio.ByteBuffer
 internal class AnimatedImageByteBufferDecoder : ResourceDecoder<ByteBuffer, Drawable> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
+        if (isAnimationDisabled(options)) return false
         val probe = source.duplicate()
         val length = minOf(probe.remaining(), AnimatedImageHeaderSniffer.HEADER_PROBE_BYTES)
         val header = ByteArray(length)
@@ -47,6 +49,7 @@ internal class AnimatedImageByteBufferDecoder : ResourceDecoder<ByteBuffer, Draw
 internal class AnimatedImageStreamDecoder : ResourceDecoder<InputStream, Drawable> {
 
     override fun handles(source: InputStream, options: Options): Boolean {
+        if (isAnimationDisabled(options)) return false
         val header = ByteArray(AnimatedImageHeaderSniffer.HEADER_PROBE_BYTES)
         var read = 0
         while (read < header.size) {
@@ -68,15 +71,32 @@ internal class AnimatedImageStreamDecoder : ResourceDecoder<InputStream, Drawabl
     }
 }
 
+/**
+ * S1026: a caller that asked for a still (`dontAnimate()`, which every thumbnail request uses) must
+ * not receive an [android.graphics.drawable.AnimatedImageDrawable] - Glide's DrawableToBitmapConverter
+ * refuses Animatable drawables outright, so the whole load fails instead of degrading to a first
+ * frame. Declining here hands the file back to the built-in downsampler, which decodes that frame.
+ */
+private fun isAnimationDisabled(options: Options): Boolean {
+    val disabled = options.get(GifOptions.DISABLE_ANIMATION) == true
+    if (disabled) Timber.d("S1026: declined animated decode, request asked for a still")
+    return disabled
+}
+
 @RequiresApi(Build.VERSION_CODES.P)
 private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int, height: Int): Resource<Drawable>? =
     try {
         val drawable = ImageDecoder.decodeDrawable(imageSource) { decoder, info, _ ->
+            // S1026: ALLOCATOR_DEFAULT yields a HARDWARE-backed drawable, and Glide's transform /
+            // cache-encode step then dies on "Cannot create a mutable Bitmap with config: HARDWARE".
+            // Software allocation costs heap but is the only config those steps can copy.
+            decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
             val sample = AnimatedImageHeaderSniffer.sampleSize(
                 info.size.width, info.size.height, width, height,
             )
             if (sample > 1) decoder.setTargetSampleSize(sample)
         }
+        Timber.d("S1026: decoded animated drawable software-allocated, animatable=${drawable is Animatable}")
         AnimatedImageDrawableResource(drawable)
     } catch (e: IOException) {
         // Corrupt/partial animated file - let Glide surface the load failure, don't crash decode.

@@ -237,11 +237,9 @@ object NetworkErrorClassifier {
      */
     private fun sshOutcome(throwable: Throwable): NetworkException? = when {
         throwable.messageContains("hostkey", "host key", "host-key") -> {
-            Timber.d("S1055: classified host-key change on live SFTP path")
             NetworkHostKeyChangedException("Server host key changed: ${throwable.message}", throwable)
         }
         throwable.messageContains("auth fail", "auth cancel", "userauth") -> {
-            Timber.d("S1055: classified SSH auth failure on live SFTP path")
             NetworkAccessDeniedException("SFTP auth failed: ${throwable.message}", throwable)
         }
         else -> null

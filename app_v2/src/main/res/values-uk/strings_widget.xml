@@ -33,7 +33,7 @@
     <string name="widget_resource_not_configured">Натисніть для налаштування</string>
     <string name="widget_select_resource">Виберіть ресурс</string>
     <string name="widget_unlock_screen_prompt">Розблокуйте екран для додавання віджета</string>
-    <string name="settings_add_home_widget_title">Додати віджет на головний екран..</string>
+    <string name="settings_add_home_widget_title">Додати віджет на домашній екран Android..</string>
     <string name="widget_picker_dialog_title">Виберіть віджет</string>
     <!-- S0353 Scheduled Tasks widget -->
     <string name="widget_scheduled_tasks_label">Завдання за розкладом</string>

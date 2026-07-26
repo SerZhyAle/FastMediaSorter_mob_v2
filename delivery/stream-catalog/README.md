@@ -37,8 +37,47 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 > a catalog whose `favicon_index` column points at a missing atlas: the app receives `atlasPng=null`,
 > `FaviconAtlasStore.write(null, coords)` wipes the atlas, and **every** channel loses its favicon
 > app-wide (S0785 2026-07-03; recurred 2026-07-12). The command above (`Invoke-PublishCatalog`) carries
-> the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 3 MiB) and refuses
+> the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 30 MiB) and refuses
 > to publish a `favicon_index` CSV with no atlas. `-SkipLiveness` skips the URL probe without touching the CSV.
+
+## Channel preview atlas (separate release asset)
+
+The **channel-preview atlas** is an optional companion to the catalog: a single sprite sheet of
+per-channel preview frames that the app shows for a VIDEO channel in grid mode before the user's first
+watch. It is published as its **own** versioned release asset - NOT bundled inside `stream-catalog.zip` -
+because it is large (20-50 MB) and has an independent lifecycle from the CSV.
+
+```
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-atlas-v1.webp
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-coords-v1.json
+```
+
+The `-v1` suffix is the element revision: a rebuilt atlas that is not tile-compatible is published
+under a new suffix, so an older app keeps resolving the payload it was pinned against.
+
+Slicing contract (a third-party consumer of this catalog can crop the same tiles):
+
+- One sheet, at most `8192 x 8192` px (the 2026-07-26 build is `8160 x 7560` with 1881 tiles), holding
+  a fixed grid of `240 x 135` tiles, `34` columns per row.
+- A tile's ordinal maps to its cell by `col = index % 34`, `row = index / 34`; its pixel rect is
+  `left = col * 240`, `top = row * 135`, `right = left + 240`, `bottom = top + 135`. Equivalently
+  `index = row * 34 + col`.
+- Only VIDEO channels have a tile; audio/radio rows are skipped by the packer. A channel that did not
+  answer during the capture pass also has no tile (196 of 2077 in the 2026-07-26 build).
+- Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas`
+  (needs `ffmpeg` and `gh`; captured frames are cached under `temp/channel-preview-frames/`, so an
+  interrupted pass resumes instead of recapturing).
+
+Sidecar `channel-preview-coords.json` - a flat JSON object mapping each channel `url` to its zero-based
+tile `index` (keyed by `url`, the stable per-channel key, mirroring the favicon sidecar):
+
+```
+{ "https://chan/a.m3u8": 0, "https://chan/b.m3u8": 33, "https://chan/c.m3u8": 68 }
+```
+
+Non-integer values are skipped defensively; an absent sidecar means "no atlas installed" (every tile
+falls back to the favicon). The tile geometry above is the shared invariant between the offline packer
+and the on-device slicer - changing it on one side without the other drifts every rect.
 
 ## File: `streams.csv`
 
@@ -70,12 +109,26 @@ then `name`.
 
 ## Inclusion policy
 
-The catalog ships **every reachable live channel that actually carries signal**. There is no
-legal-scope / "grey-area" filter: community radio, official broadcaster feeds, vendor TEST streams,
-Creative-Commons / public-domain media, grey-area IPTV restreams and -/- channels are all kept,
-as long as the stream responds with real media bytes.
+The catalog accepts a live TV stream only when it has both a playable signal and explicit source
+provenance. Liveness is necessary but not sufficient: a responsive restream is not promoted merely
+because it answers an HLS request.
 
-The only entries dropped are ones that cannot actually play:
+Allowed live TV sources are:
+
+- Direct public HLS feeds published by the broadcaster or public institution, including Red Bull TV,
+  Bloomberg TV, Euronews, DW, France 24, Al Jazeera, CGTN and RT India. NASA Live is admitted only
+  when its current official event feed passes the same segment-level signal check.
+- A deliberately small subset of [iptv-org](https://github.com/iptv-org/iptv), where both the stable
+  channel id and actual delivery host are in the collector's official-source allowlist. The index is
+  a discovery aid, not proof that every listed stream is authorised.
+- Other direct broadcaster sites after a maintainer verifies that the page and HLS delivery host
+  belong to the same broadcaster or its documented CDN.
+
+The collector does not import grey-area IPTV restreams, anonymous IP-address streams, or an
+unreviewed iptv-org entry. Existing catalog rows are not retroactively deleted by discovery; review
+them separately before any future curated rebuild.
+
+The collector also drops entries that cannot actually play:
 
 - defunct channels (`closed` in the iptv-org index),
 - header-gated streams that require a `referrer` / `User-Agent` the app cannot supply,
@@ -89,18 +142,16 @@ may play for a user in their own country. They carry the `access=geo` tag so the
 "may be region-locked" hint instead of a bare failure.
 
 Sources: [radio-browser.info](https://www.radio-browser.info/) community radio,
-[SomaFM](https://somafm.com/) listener-supported radio, official broadcaster / government live feeds
-(NASA TV, DW, France 24, Al Jazeera, Euronews, NHK World-Japan, TRT World, Arirang, RTVE 24h, Current
-Time (RFE/RL), Red Bull TV, ..), vendor TEST/sample streams (Apple, Mux, Unified Streaming, Bitmovin,
-DASH-IF, Akamai, Wowza demo), Creative-Commons / public-domain media (Blender open movies, Big Buck
-Bunny, Tears of Steel, Sintel via Blender / Internet Archive / Google sample bucket), and the iptv-org
-public Live TV index (incl. grey-area restreams and - channels).
+[SomaFM](https://somafm.com/) listener-supported radio, verified official broadcaster / government live
+feeds, vendor TEST/sample streams, and Creative-Commons / public-domain media. iptv-org is used only
+through the official-source allowlist described above.
 
 ## Maintenance: unified collector
 
 `scripts/streams/collect-stream-candidates.ps1` is now the single entrypoint for both:
 
-- discovering + validating new legal/public streams and appending them to `streams.csv`
+- discovering + validating direct official streams and approved iptv-org records, then appending
+  them to `streams.csv`
 - probing the current catalog and pruning confirmed-dead rows when requested
 
 ```
@@ -196,10 +247,9 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
   recommended for a publish.
 - After pruning, re-publish the release asset with the guarded packer (see Hosting above).
 
-## Inventory (snapshot 2026-07-19, post-S1117 deep-signal prune)
+## Inventory (snapshot 2026-07-23, post-webcam replenishment)
 
-- Total: **2182** streams - VIDEO 1846, AUDIO 335, RTSP 1. The bulk of the VIDEO rows come from the
-  iptv-org public Live TV index; run a full-catalog deep-signal sweep before each publish.
+- Total: **2361** streams. The catalog includes live TV, public webcams under topic `Webcam`, radio, and test streams.
 - Region-locked (`access=geo`): **42** kept + tagged (national broadcasters 403/451 from the build
   machine - CBS, Cubavision, DR1, Puls 2, ..).
 - A full-catalog deep-signal prune removed the accumulated ballast: 375 hard-dead first, then 134

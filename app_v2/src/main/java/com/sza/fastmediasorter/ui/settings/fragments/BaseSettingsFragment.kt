@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,16 +11,39 @@ import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+import com.sza.fastmediasorter.ui.common.widget.SettingsGroupsGridLayout
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import com.sza.fastmediasorter.ui.settings.helpers.SettingsGroupColumnsManager
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
+import timber.log.Timber
 
 abstract class BaseSettingsFragment : Fragment() {
 
     protected var isUpdatingFromSettings: Boolean = false
 
+    private var groupsGrid: SettingsGroupsGridLayout? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Row stacking rewrites LinearLayout orientation inside group bodies and must see the
+        // original tree, so it runs before the group cards are moved into the grid.
         (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
+        groupsGrid = (view as? ViewGroup)?.let(SettingsGroupColumnsManager::install)
+        Timber.d("S1161: ${javaClass.simpleName} groups grid installed=${groupsGrid != null}")
+    }
+
+    /**
+     * SettingsActivity absorbs rotation via android:configChanges, so `layout-land` never re-applies
+     * and the grid must be told to re-measure - it re-reads the column count on the next pass.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        groupsGrid?.requestLayout()
+    }
+
+    override fun onDestroyView() {
+        groupsGrid = null
+        super.onDestroyView()
     }
 
     protected inline fun withSettingsUpdate(block: () -> Unit) {

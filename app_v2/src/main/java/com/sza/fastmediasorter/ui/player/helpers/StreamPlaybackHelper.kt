@@ -92,7 +92,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
 
     val player = builder.build()
     exoPlayer = player
-    Timber.d("S1125: stream renderers-factory attached fallback+extension rtsp=%b", isRtsp)
     // S1128: quality step-down policy for this http(s) session, fed by onTracksChanged (rendition
     // inventory) and the post-first-frame stall signal below; applies its cap through trackSelector.
     activeStreamTrackSelector = trackSelector
@@ -331,7 +330,6 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 ) ?: return@launch
                 val adopted = streamFrameIngestor?.ingest(path, bitmap) == true
                 if (adopted && exoPlayer === sessionPlayer && currentFilePath == path) {
-                    Timber.d("S1129: fullscreen stream frame adopted url=%s", path)
                     onStreamFrameIngested?.invoke(path)
                 }
             }
@@ -346,6 +344,7 @@ private fun VideoPlayerManager.streamPlaybackListener(
                         val nowPlaying = entry.title?.takeIf { it.isNotBlank() } ?: continue
                         Timber.i("Stream ICY now-playing: %s", nowPlaying)
                         updateNowPlayingTitle(nowPlaying)
+                        playerCallback.onStreamProgramName(nowPlaying)
                     }
                     else -> Unit
                 }

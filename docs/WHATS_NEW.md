@@ -6,7 +6,37 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7221.704** (July 2026)
+**Current release: 2.60.7260.252** (July 2026)
+
+> Changes since version 2.60.7221.704
+
+---
+
+## What's New
+
+- **Desktop wallpaper** - the branded animation, a flat surface, or your own picture.
+- **Weather gadget** - current conditions for a place you name, no location permission.
+- **Desktop edit lock** - long-press to edit the desktop, lock it when finished.
+- **App quick actions** - long-press an app to run its published shortcuts.
+- **Now-playing for streams** - artist, title and the programme on air.
+- **Stream topic filter** - isolate a catalog rubric such as Webcam in the list.
+- **Channel preview atlas** - video channels show a preview before the first watch.
+- **Pinned streams section** - pinned channels get their own collapsible section on top.
+- **Radio resume** - a station playing at exit starts again on the next launch.
+- **Full camera hardware** - every physical lens, true zoom floor, macro, full resolution.
+- **Camera report in System info** - diagnose a camera problem from the phone itself.
+- **Two-column settings in landscape** - collapsed groups pair up, expanded ones stay wide.
+- **Local folder in scheduled operations** - use an ad-hoc folder without registering it.
+
+## What's Fixed
+
+- Adding a stream URL that already exists no longer crashes.
+- Manual stream edits keep the chosen Audio or Video type.
+- Stream thumbnails no longer flicker or re-probe unreachable channels.
+
+---
+
+## Previous Release: 2.60.7221.704 (July 2026)
 
 > Changes since version 2.60.7191.740
 

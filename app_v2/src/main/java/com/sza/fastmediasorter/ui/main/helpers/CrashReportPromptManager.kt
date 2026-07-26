@@ -22,13 +22,23 @@ import java.io.File
  */
 class CrashReportPromptManager(private val activity: Activity) {
 
-    fun maybeShowPrompt() {
-        val crashFile = LoggingHelper.getLatestCrashFile() ?: return
+    /**
+     * IO-safe: list the log dir for the newest not-yet-handled crash file and claim it by writing the
+     * "handled" watermark up front, so a dismissed or backgrounded prompt never re-offers this crash.
+     * Returns the file to prompt for, or null. Split from [showPrompt] (S1153) so the directory
+     * listing runs off the main thread; render the result on Main via [showPrompt].
+     */
+    fun findPendingCrash(): File? {
+        val crashFile = LoggingHelper.getLatestCrashFile() ?: return null
         val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        if (prefs.getString(KEY_LAST_HANDLED, null) == crashFile.name) return
-        // Mark handled before showing so a dismiss or a backgrounded prompt never re-offers this crash.
+        if (prefs.getString(KEY_LAST_HANDLED, null) == crashFile.name) return null
         prefs.edit().putString(KEY_LAST_HANDLED, crashFile.name).apply()
+        return crashFile
+    }
 
+    /** Main-thread: show the crash-report prompt for the file claimed by [findPendingCrash]. */
+    fun showPrompt(crashFile: File) {
+        if (activity.isFinishing) return
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.crash_prompt_title)
             .setMessage(R.string.crash_prompt_message)

@@ -67,19 +67,31 @@ object DatabaseResetNotice {
         return if (copiedAny) dir.absolutePath else null
     }
 
-    /** If a reset happened, show an explanatory dialog and clear the notice. Call from the first Activity. */
-    fun showIfPending(activity: Activity) {
-        val p = prefs(activity)
-        if (!p.getBoolean(KEY_PENDING, false) || activity.isFinishing) return
+    /** Payload of a pending reset notice, consumed (and cleared) by [consumePending]. */
+    data class PendingReset(val reason: String, val backupPath: String?)
+
+    /**
+     * IO-safe: read the pending reset notice and clear it (consume-once). Returns null when nothing
+     * is pending. Split from the dialog step (S1153) so the SharedPreferences read runs off the main
+     * thread; render the returned payload on Main via [showNotice].
+     */
+    fun consumePending(context: Context): PendingReset? {
+        val p = prefs(context)
+        if (!p.getBoolean(KEY_PENDING, false)) return null
         val reason = p.getString(KEY_REASON, null) ?: "unknown"
         val backup = p.getString(KEY_BACKUP, null)
         p.edit().clear().apply()
+        return PendingReset(reason, backup)
+    }
 
+    /** Main-thread: render the reset notice consumed by [consumePending]. */
+    fun showNotice(activity: Activity, notice: PendingReset) {
+        if (activity.isFinishing) return
         val message = buildString {
-            append(activity.getString(R.string.database_reset_dialog_message, reason))
-            if (!backup.isNullOrBlank()) {
+            append(activity.getString(R.string.database_reset_dialog_message, notice.reason))
+            if (!notice.backupPath.isNullOrBlank()) {
                 append("\n\n")
-                append(activity.getString(R.string.database_reset_backup_note, backup))
+                append(activity.getString(R.string.database_reset_backup_note, notice.backupPath))
             }
         }
         try {

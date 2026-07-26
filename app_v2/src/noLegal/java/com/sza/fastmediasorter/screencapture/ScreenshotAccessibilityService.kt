@@ -149,13 +149,16 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         serviceScope.launch {
             val enabledZones = actionDispatcher.get().enabledZones()
             val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
+            // S1162: resolve the slot actions here, where suspending is allowed - the hint has to
+            // render synchronously on touch-down.
+            val zoneActions = actionDispatcher.get().actionsForZones(enabledZones)
             overlayManager?.hide()
             val manager = ScreenGestureOverlayManager(
                 context = this@ScreenshotAccessibilityService,
                 overlayWindowType = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 onGestureMatched = { zone, direction -> captureNow(zone, direction) }
             )
-            manager.show(stripVisibleZones, enabledZones)
+            manager.show(stripVisibleZones, enabledZones, zoneActions)
             overlayManager = manager
         }
     }

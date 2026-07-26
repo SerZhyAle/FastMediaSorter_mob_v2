@@ -9,7 +9,6 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
@@ -47,14 +46,16 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
-import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
-class GeneralSettingsFragment : Fragment() {
+// S1161: extends BaseSettingsFragment so the two-column grid for collapsed groups is installed here too.
+// Three of the four top-level tabs extended Fragment directly, so the landscape columns reached only
+// Management - the rule is meant to hold on every tab, including a build's own extension tabs.
+class GeneralSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsGeneralBinding? = null
     private val binding get() = _binding!!
@@ -140,6 +141,9 @@ class GeneralSettingsFragment : Fragment() {
     // chooser can return after a tab swap nulls _binding, so guard before touching the view.
     private val launcherRoleLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            // S1107: the dialog has given its verdict, so the onboarding request is settled either way -
+            // clear it even when the view is gone, or a declined request would re-prompt on the next visit.
+            launcherRoleManager.clearRoleRequestPending()
             if (_binding != null) launcherHelper.refreshState()
         }
 
@@ -240,8 +244,9 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // Row stacking now runs in BaseSettingsFragment, before the group cards are moved into the grid.
+        // Repeating it here would re-stack an already re-parented tree.
         super.onViewCreated(view, savedInstanceState)
-        (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         setupGmsBanner()
         setupSavedAuthorizationsRow()
         logHelper.setupVersionInfo()
