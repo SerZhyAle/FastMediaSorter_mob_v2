@@ -19,7 +19,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 
 - The app installed (any flavor)
 - A folder full of files to organize (e.g. Downloads)
-- 2–5 minutes to configure Quick Sort just once
+- 2-5 minutes to configure Quick Sort just once
 
 ---
 

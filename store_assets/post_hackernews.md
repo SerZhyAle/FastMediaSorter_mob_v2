@@ -7,7 +7,7 @@ NOTE: HN Show HN is title + URL only. The "post" is really the first comment you
 
 ---
 SUBMISSION TITLE:
-Show HN: FastMediaSorter – Android file manager with native SMB/SFTP/FTP + cloud in one app
+Show HN: FastMediaSorter - Android file manager with native SMB/SFTP/FTP + cloud in one app
 
 SUBMISSION URL:
 https://github.com/SerZhyAle/FastMediaSorter_mob_v2

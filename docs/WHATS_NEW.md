@@ -772,7 +772,7 @@ permalink: /docs/WHATS_NEW.html
 - RANDOM sort not reshuffling on repeated taps
 - Camera upload failing on network resources (SMB / FTP / SFTP)
 - ScheduledOperationsWorker freeze on WAKE_LOCK race condition
-- Print crash on Android 8 (API 26–27)
+- Print crash on Android 8 (API 26-27)
 - SMB scan errors now shown as a Snackbar with error count instead of being silently discarded
 - WebView for EPUB now created lazily (prevents OOM on low-memory devices)
 - ExoPlayer recreated every 4 tracks to prevent native heap OOM in long sessions

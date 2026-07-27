@@ -9,13 +9,13 @@ All screenshots go to: `docs/howto/screenshots/`
 | File name | Scenario | Step | What must be visible on screen | Source |
 |-----------|----------|------|-------------------------------|--------|
 | `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add (⊕)** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
-| `screenshot-smb-step2.png` | SMB Setup | 2 | "Add Resource" type selection screen with options list (Local, SMB, SFTP, Cloud…) | 📸 Phone/tablet |
+| `screenshot-smb-step2.png` | SMB Setup | 2 | "Add Resource" type selection screen with options list (Local, SMB, SFTP, Cloud..) | 📸 Phone/tablet |
 | `screenshot-smb-step3.png` | SMB Setup | 3 | SMB form with **IP address entered manually** in the Server field (e.g. `192.168.1.100`) and Share name filled (e.g. `Photos`); no scan used | 📸 Phone/tablet |
 | `screenshot-smb-step4.png` | SMB Setup | 4 | Green **"Connection successful"** toast or banner after Test Connection | 📸 Phone/tablet (needs real SMB) |
 | `screenshot-smb-step5.png` | SMB Setup | 5 | Main screen with the new SMB resource card visible (SMB badge on card) | ♻️ Rename `Screenshot_20260415_012148.png` |
 | `screenshot-dl-step1.png` | Download Organizer | 1 | Main screen with a **Downloads** resource card just added; Local badge visible | 📸 Phone/tablet |
 | `screenshot-dl-step3.png` | Download Organizer | 3 | **Settings → Operations** tab, Quick Sort section visible | ♻️ Rename `Screenshot_20260415_012410.png` |
-| `screenshot-dl-step4.png` | Download Organizer | 4 | Quick Sort configuration list with 3–4 folders, each with a numbered color badge (1, 2, 3…) | 📸 Phone/tablet |
+| `screenshot-dl-step4.png` | Download Organizer | 4 | Quick Sort configuration list with 3-4 folders, each with a numbered color badge (1, 2, 3..) | 📸 Phone/tablet |
 | `screenshot-dl-step5.png` | Download Organizer | 5 | Browse screen showing the Downloads folder file list | ♻️ Rename `Screenshot_20260415_012249.png` |
 | `screenshot-dl-step6.png` | Download Organizer | 6 | Full-screen file viewer with **command panel visible at bottom**; numbered color buttons (1, 2, 3) clearly shown | 📸 Phone/tablet |
 | `screenshot-dl-step7.png` | Download Organizer | 7 | **Settings → Playback → Touch Zones** section visible | ♻️ Rename `Screenshot_20260415_012354.png` |

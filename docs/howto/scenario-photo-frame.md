@@ -57,7 +57,7 @@ Set these options:
 
 | Setting | Recommended value | Why |
 |---------|------------------|-----|
-| **Slideshow Interval** | 5–10 seconds | 5 s = lively family album feel; 10 s = calm, good for art photos or big groups where you want time to recognize everyone |
+| **Slideshow Interval** | 5-10 seconds | 5 s = lively family album feel; 10 s = calm, good for art photos or big groups where you want time to recognize everyone |
 | **Include Subfolders** | ON | Shows photos from all subfolders - great if you organize by year/album |
 | **Sort mode** | Date Taken (newest first) or Random | Random = more variety daily; Date = newest photos appear first |
 | **Supported Types** | Images only | Remove Video and Audio - otherwise video files will play too, interrupting the slideshow flow |

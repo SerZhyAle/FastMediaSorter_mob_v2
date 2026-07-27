@@ -53,7 +53,7 @@
 
 ### 2.5 Progress / loading
 
-- Short, calm status. No bureaucratic "Processing…" if a more specific phrase fits.
+- Short, calm status. No bureaucratic "Processing.." if a more specific phrase fits.
 - Examples:
   - ✓ "Loading files.."
   - ✓ "Scanning.."

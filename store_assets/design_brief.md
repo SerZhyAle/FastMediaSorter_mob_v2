@@ -10,7 +10,7 @@
 
 **Format:** PNG, 32-bit RGBA, transparent background
 **Style:** Symbol-only - no text, no wordmark inside the icon
-**Core motif:** Rising arrows (upward/diagonal, 2–3 arrows) in a blue gradient
+**Core motif:** Rising arrows (upward/diagonal, 2-3 arrows) in a blue gradient
   - Base colour: #1565C0 (deep blue)
   - Highlight colour: #42A5F5 (light blue)
   - Arrow direction: bottom-left → top-right (growth, sorting, upward movement)

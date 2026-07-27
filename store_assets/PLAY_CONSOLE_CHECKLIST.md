@@ -23,7 +23,7 @@ Check each item only after the change is confirmed in the Console UI.
 
 - [ ] App icon uploaded: `store_assets/icon_512.png` (512 × 512 px)
 - [ ] Feature graphic uploaded: `store_assets/feature_graphic_1024x500.png` (1024 × 500 px)
-- [ ] 6 screenshots uploaded for EN locale (slots 1–6 per `design_brief.md` sequence)
+- [ ] 6 screenshots uploaded for EN locale (slots 1-6 per `design_brief.md` sequence)
 - [ ] 6 screenshots uploaded for RU locale
 - [ ] 6 screenshots uploaded for UK locale
 - [ ] Screenshot slot 1 shows sorting-in-action (NOT the Settings screen)
