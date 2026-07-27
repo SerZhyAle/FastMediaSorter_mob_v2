@@ -1,0 +1,8 @@
+• Per-channel track memory - a stream keeps the audio track and subtitles you chose.
+• Stream track languages - set a default audio and subtitle language for streams.
+• Stream tile artwork - every channel tile shows a picture.
+• Station logos - channels without a preview show their station logo.
+• Extension updates - a downloadable extension offers its newer version.
+
+
+• Declining the home-screen role no longer leaves the request unresolved.
