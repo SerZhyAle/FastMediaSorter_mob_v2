@@ -23404,3 +23404,4 @@ Format: | datetime | file | target | description |
 | 2026-07-27 02:55:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamPlaybackHelper.kt` | `spec-all` | S1144: seat channel preference and stream defaults before prepare() [branch: DEBUG-v029] |
 | 2026-07-27 02:55:41 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerStateEndedTest.kt` | `spec-all` | S1144: follow the VideoPlayerStoreDependencies constructor change [branch: DEBUG-v029] |
 | 2026-07-27 02:55:41 | `docs/settings/settings-annotations.json` | `spec-all` | S1144: annotate the two new Streams settings rows (Rule 22) [branch: DEBUG-v029] |
+| 2026-07-27 04:23:04 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.7270.415 - plateau merge from DEBUG-v029 [branch: DEBUG-v029] |
