@@ -907,11 +907,9 @@ android {
         }
     }
     
-    // APK Size Optimization: Keep only English, Russian, Ukrainian locales
-    // Replaces the deprecated resourceConfigurations in defaultConfig
-    androidResources {
-        localeFilters += listOf("en", "ru", "uk")
-    }
+    // S1190: no locale filter here on purpose. The package carries every locale declared in
+    // res/xml/locales_config.xml; the store channel trims it back through Play language splits, the
+    // direct APK and the non-Play editions deliberately carry all of them.
 
     // Force 16 KB page alignment for all native libraries
     // This is critical for Android 15+ devices with 16 KB page size

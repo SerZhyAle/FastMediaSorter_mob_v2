@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
@@ -242,7 +243,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow)
                 ),
                 showLanguagePicker = true,
-                onLanguageSelected = ::onWelcomeLanguageSelected,
+                onLanguagePickerRequested = ::showWelcomeLanguagePicker,
                 showThemePicker = true,
                 onThemeSelected = ::onWelcomeThemeSelected,
                 showLauncherModeToggle = launcherModeContract.isAvailableInBuild,
@@ -476,6 +477,19 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun applyPageBackground() {
         val backgroundIndex = currentPage.coerceIn(0, pageBackgrounds.lastIndex)
         binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
+    }
+
+    /**
+     * S1190: the interface language is chosen from the same searchable picker the settings screen uses,
+     * so the Welcome page no longer caps the choice at the three languages a button strip could hold.
+     */
+    private fun showWelcomeLanguagePicker() {
+        val currentCode = LocaleHelper.getLanguage(this)
+        SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentCode) { language ->
+            if (language.code != currentCode) {
+                onWelcomeLanguageSelected(language.code)
+            }
+        }.show(supportFragmentManager, SearchableLanguagePickerDialog.TAG)
     }
 
     @Suppress("DEPRECATION")

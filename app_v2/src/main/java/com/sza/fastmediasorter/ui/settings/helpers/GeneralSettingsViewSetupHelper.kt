@@ -24,6 +24,8 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
@@ -51,7 +53,7 @@ class GeneralSettingsViewSetupHelper(
     private var lastCommittedDefaultPassword: String = ""
 
     fun setup() {
-        setupLanguageSpinner()
+        setupLanguageRow()
         setupSwitches()
         setupStatisticsRow()
         setupRemoteSources()
@@ -65,26 +67,20 @@ class GeneralSettingsViewSetupHelper(
         setupActionButtons()
     }
 
-    // S0567: spinnerLanguage migrated from raw Spinner to SettingsDropdownRow (ADR-1).
-    private fun setupLanguageSpinner() {
-        val languages = listOf<CharSequence>(
-            fragment.getString(R.string.language_default),
-            fragment.getString(R.string.language_english),
-            fragment.getString(R.string.language_russian),
-            fragment.getString(R.string.language_ukrainian)
-        )
-        setIsUpdatingSpinner(true)
-        binding.spinnerLanguage.setEntries(languages)
-        binding.spinnerLanguage.setSelection(languageSelectionToPosition(currentLanguageSelectionCode()))
-        binding.spinnerLanguage.setOnItemSelectedListener { position ->
-            if (getIsUpdatingSpinner()) return@setOnItemSelectedListener
-            val newLanguageCode = positionToLanguageSelection(position)
-            val currentLanguageCode = currentLanguageSelectionCode()
-            if (newLanguageCode != currentLanguageCode) {
-                showRestartDialog(currentLanguageCode, newLanguageCode)
+    // S0567: raw Spinner -> SettingsDropdownRow. S1190: -> SettingsSelectionRow, because the interface
+    // language set is now whatever locales_config.xml declares and no longer fits an inline dropdown.
+    private fun setupLanguageRow() {
+        binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), currentLanguageSelectionCode()))
+        binding.rowLanguage.setOnRowClickListener { showLanguagePicker() }
+    }
+
+    private fun showLanguagePicker() {
+        val currentLanguageCode = currentLanguageSelectionCode()
+        SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentLanguageCode) { language ->
+            if (language.code != currentLanguageCode) {
+                showRestartDialog(language.code)
             }
-        }
-        binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
+        }.show(fragment.childFragmentManager, SearchableLanguagePickerDialog.TAG)
     }
 
     private fun setupSwitches() {
@@ -633,20 +629,6 @@ class GeneralSettingsViewSetupHelper(
         cacheHelper.updateCacheSize()
     }
 
-    private fun positionToLanguageSelection(position: Int): String = when (position) {
-        1 -> "en"
-        2 -> "ru"
-        3 -> "uk"
-        else -> LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
-    }
-
-    private fun languageSelectionToPosition(languageCode: String): Int = when {
-        LocaleHelper.isFollowSystemLanguage(languageCode) -> 0
-        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "ru" -> 2
-        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "uk" -> 3
-        else -> 1
-    }
-
     private fun currentLanguageSelectionCode(): String {
         return if (LocaleHelper.isFollowingSystemLanguage(fragment.requireContext())) {
             LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
@@ -655,16 +637,8 @@ class GeneralSettingsViewSetupHelper(
         }
     }
 
-    private fun languageDisplayName(languageCode: String): String {
-        return if (LocaleHelper.isFollowSystemLanguage(languageCode)) {
-            fragment.getString(R.string.language_default)
-        } else {
-            LocaleHelper.getLanguageName(languageCode)
-        }
-    }
-
-    private fun showRestartDialog(previousLanguageCode: String, newLanguageCode: String) {
-        val languageName = languageDisplayName(newLanguageCode)
+    private fun showRestartDialog(newLanguageCode: String) {
+        val languageName = UiLanguagePickerItems.label(fragment.requireContext(), newLanguageCode)
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_message, languageName))
@@ -674,12 +648,9 @@ class GeneralSettingsViewSetupHelper(
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
             }
-            .setNegativeButton(R.string.cancel) { dialog, _ ->
-                setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languageSelectionToPosition(previousLanguageCode))
-                binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
-                dialog.dismiss()
-            }
+            // Declining needs no restore: the row keeps showing the language still in effect, because
+            // its value only changes once the observer sees the saved setting.
+            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
             .show()
     }

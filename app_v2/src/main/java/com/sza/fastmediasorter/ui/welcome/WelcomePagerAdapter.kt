@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.databinding.PageWelcomeFunctionalityBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeNetworksBinding
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeProfilesBinding
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
@@ -195,30 +196,14 @@ class WelcomePagerAdapter(
             bindDetails(binding.tvDetails, page)
             populateFeatureGrid(binding.gridFeatures, page.featureCards)
 
-            // Language picker wiring
+            // S1190: language wiring. The control only reports the tap - the Activity owns the picker,
+            // because choosing a language recreates it and an adapter cannot survive that.
             if (page.showLanguagePicker) {
-                binding.layoutLanguagePicker.visibility = View.VISIBLE
-                binding.layoutLanguagePicker.clearOnButtonCheckedListeners()
-                val currentLang = LocaleHelper.getLanguage(binding.root.context)
-                val initialId = when (currentLang) {
-                    "ru" -> R.id.btnLangRu
-                    "uk" -> R.id.btnLangUk
-                    else -> R.id.btnLangEn
-                }
-                binding.layoutLanguagePicker.check(initialId)
-                binding.layoutLanguagePicker.addOnButtonCheckedListener { _, checkedId, isChecked ->
-                    if (!isChecked) return@addOnButtonCheckedListener
-                    val code = when (checkedId) {
-                        R.id.btnLangRu -> "ru"
-                        R.id.btnLangUk -> "uk"
-                        else -> "en"
-                    }
-                    if (code != LocaleHelper.getLanguage(binding.root.context)) {
-                        page.onLanguageSelected?.invoke(code)
-                    }
-                }
+                binding.btnWelcomeLanguage.visibility = View.VISIBLE
+                binding.btnWelcomeLanguage.text = UiLanguagePickerItems.label(context, LocaleHelper.getLanguage(context))
+                binding.btnWelcomeLanguage.setOnClickListener { page.onLanguagePickerRequested?.invoke() }
             } else {
-                binding.layoutLanguagePicker.visibility = View.GONE
+                binding.btnWelcomeLanguage.visibility = View.GONE
             }
 
             // Theme picker wiring: mirrors the language picker. Pre-checks the button for the current
@@ -351,10 +336,10 @@ data class WelcomePage(
     /** Called with the MIME type when the user taps a type-specific default-player button. */
     val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList(),
-    /** Show the language picker strip. Only set on the first Welcome page. */
+    /** Show the interface-language control. Only set on the first Welcome page. */
     val showLanguagePicker: Boolean = false,
-    /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
-    val onLanguageSelected: ((code: String) -> Unit)? = null,
+    /** Invoked when the user taps that control; the host opens the searchable picker. */
+    val onLanguagePickerRequested: (() -> Unit)? = null,
     /** Show the colour-theme picker strip (Auto/Light/Dark). Only set on the first Welcome page. */
     val showThemePicker: Boolean = false,
     /** Invoked with "AUTO"|"LIGHT"|"DARK" when the user taps a theme button. */

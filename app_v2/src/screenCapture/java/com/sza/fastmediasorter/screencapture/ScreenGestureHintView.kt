@@ -11,6 +11,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 
 /**
@@ -39,24 +41,65 @@ class ScreenGestureHintView(context: Context) : LinearLayout(context) {
 
     private val selectedBackground = roundedRect(ROW_SELECTED_COLOR, ROW_CORNER_RADIUS_DP)
 
-    init {
+    private val rowsContainer = LinearLayout(context).apply {
         orientation = VERTICAL
+        layoutParams = LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    /** S1210: the "do nothing" target. Sized for a finger, not for the glyph - it is a drop zone. */
+    private val cancelTarget = ImageView(context).apply {
+        setImageResource(R.drawable.ic_cancel)
+        imageTintList = ColorStateList.valueOf(CONTENT_COLOR)
+        val inset = dp(CANCEL_ICON_INSET_DP)
+        setPadding(inset, inset, inset, inset)
+        val size = dp(CANCEL_TARGET_SIZE_DP)
+        layoutParams = LayoutParams(size, size)
+    }
+
+    /**
+     * S1210: how deep the cancel target reaches, measured from the panel's edge-facing side and
+     * including the panel padding in front of it. The touch handler maps a finger this shallow onto
+     * cancel, so it must be the same number the target is laid out with - not a second formula.
+     */
+    val cancelTargetExtentPx: Int = dp(PANEL_PADDING_DP) + dp(CANCEL_TARGET_SIZE_DP)
+
+    init {
+        gravity = Gravity.CENTER
         background = roundedRect(PANEL_COLOR, PANEL_CORNER_RADIUS_DP)
         val padding = dp(PANEL_PADDING_DP)
         setPadding(padding, padding, padding, padding)
     }
 
-    /** Rebuilds the rows. The view is created per gesture, so this runs once per hint. */
-    fun bind(rows: List<HintRow>) {
+    /**
+     * Rebuilds the panel. The view is created per gesture, so this runs once per hint.
+     *
+     * [axis] is the axis the band's own edge runs across, and [farEdge] tells which of that axis' two
+     * edges the band sits on. Together they place the cancel target on the side facing the screen edge:
+     * the panel is anchored by its edge-facing side, which is the leading one for a near-edge band and
+     * the trailing one for a far-edge band.
+     */
+    fun bind(rows: List<HintRow>, axis: EdgeGestureAxis, farEdge: Boolean) {
+        orientation = if (axis == EdgeGestureAxis.VERTICAL) HORIZONTAL else VERTICAL
         removeAllViews()
+        rowsContainer.removeAllViews()
         rowContainers.clear()
         highlighted = null
         rows.forEach { row -> addRow(row) }
+        if (farEdge) {
+            addView(rowsContainer)
+            addView(cancelTarget)
+        } else {
+            addView(cancelTarget)
+            addView(rowsContainer)
+        }
         applyHighlight()
     }
 
     /**
-     * Marks [direction] as the one that would fire, or clears the selection when null.
+     * Marks [direction] as the one that would fire on lift; null lights the cancel target instead.
+     *
+     * S1210: there is no "nothing selected" state - a finger that has not reached any direction is on
+     * the cancel target, so the panel always shows exactly one lit item.
      *
      * Runs on every touch move, so it exits early on a no-op and reuses the two background instances
      * built in the constructor instead of allocating per call.
@@ -75,6 +118,9 @@ class ScreenGestureHintView(context: Context) : LinearLayout(context) {
             container.background = if (selected) selectedBackground else null
             container.alpha = if (selected) ALPHA_SELECTED else ALPHA_UNSELECTED
         }
+        val cancelSelected = highlighted == null
+        cancelTarget.background = if (cancelSelected) selectedBackground else null
+        cancelTarget.alpha = if (cancelSelected) ALPHA_SELECTED else ALPHA_UNSELECTED
     }
 
     private fun addRow(row: HintRow) {
@@ -102,7 +148,7 @@ class ScreenGestureHintView(context: Context) : LinearLayout(context) {
             addView(label)
             layoutParams = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
-        addView(container)
+        rowsContainer.addView(container)
         rowContainers[row.direction] = container
     }
 
@@ -127,6 +173,8 @@ class ScreenGestureHintView(context: Context) : LinearLayout(context) {
         private const val ROW_PADDING_VERTICAL_DP = 6f
         private const val ICON_SIZE_DP = 22f
         private const val ICON_LABEL_GAP_DP = 8f
+        private const val CANCEL_TARGET_SIZE_DP = 48f
+        private const val CANCEL_ICON_INSET_DP = 10f
         private const val LABEL_TEXT_SIZE_SP = 13f
         private const val LABEL_MAX_LINES = 2
 

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -27,18 +28,17 @@ class GeneralSettingsObserversHelper(
 
     fun observeData() {
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
-            val languagePosition = when {
-                LocaleHelper.isFollowingSystemLanguage(fragment.requireContext()) -> 0
-                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "ru" -> 2
-                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "uk" -> 3
-                else -> 1
+            // S1190: the language row shows a value, not a position - the set of languages is data now.
+            // "Following the system" is read from the platform, not from the stored setting, because
+            // clearing the per-app language leaves the stored value behind.
+            val languageSelectionCode = if (LocaleHelper.isFollowingSystemLanguage(fragment.requireContext())) {
+                LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+            } else {
+                settings.language
             }
-            // S0567: spinnerLanguage is now a SettingsDropdownRow (getSelectedIndex/setSelection).
-            if (binding.spinnerLanguage.getSelectedIndex() != languagePosition) {
-                setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languagePosition)
-                binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
-            }
+            binding.rowLanguage.setValue(
+                UiLanguagePickerItems.label(fragment.requireContext(), languageSelectionCode)
+            )
 
             setIsUpdatingSpinner(true)
 

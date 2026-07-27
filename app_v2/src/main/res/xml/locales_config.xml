@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1190: the single declaration of the languages the interface supports. Kotlin reads it through
+  UiLanguageCatalog and the localization scripts parse this same file, so a new language is added
+  here and nowhere else. Chinese is pinned to the simplified script: simplified and traditional are
+  mutually unreadable, so the variant cannot be left implicit.
+-->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en"/>
+    <locale android:name="zh-Hans"/>
+    <locale android:name="hi"/>
+    <locale android:name="es"/>
+    <locale android:name="fr"/>
+    <locale android:name="ar"/>
+    <locale android:name="bn"/>
+    <locale android:name="pt"/>
     <locale android:name="ru"/>
+    <locale android:name="ur"/>
     <locale android:name="uk"/>
+    <locale android:name="de"/>
+    <locale android:name="it"/>
 </locale-config>

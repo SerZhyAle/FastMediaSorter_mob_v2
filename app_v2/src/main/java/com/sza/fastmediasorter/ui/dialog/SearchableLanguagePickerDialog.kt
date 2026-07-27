@@ -54,15 +54,22 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         _binding = DialogSearchableLanguagePickerBinding.inflate(layoutInflater)
         setupViews()
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (mode == Mode.SOURCE) R.string.translation_source_language_and_ocr else R.string.translation_target_language)
+            .setTitle(titleRes())
             .setView(binding.root)
             .create()
+    }
+
+    private fun titleRes(): Int = when (mode) {
+        Mode.SOURCE -> R.string.translation_source_language_and_ocr
+        Mode.TARGET -> R.string.translation_target_language
+        Mode.UI_LANGUAGE -> R.string.language
     }
 
     private fun setupViews() {
         val languages = when (mode) {
             Mode.SOURCE -> TranslationLanguageCatalog.buildSourceLanguageList(interfaceLanguage)
             Mode.TARGET -> TranslationLanguageCatalog.buildTargetLanguageList(interfaceLanguage)
+            Mode.UI_LANGUAGE -> UiLanguagePickerItems.build(requireContext())
         }
 
         languageAdapter = LanguageAdapter(
@@ -106,7 +113,10 @@ class SearchableLanguagePickerDialog : DialogFragment() {
 
     enum class Mode {
         SOURCE,
-        TARGET
+        TARGET,
+
+        /** S1190: the app's own interface language, sourced from `locales_config.xml`. */
+        UI_LANGUAGE
     }
 
     companion object {
@@ -115,6 +125,20 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         private const val ARG_SELECTED_CODE = "arg_selected_code"
         private const val ARG_MODE = "arg_mode"
         private const val ARG_INTERFACE_LANGUAGE = "arg_interface_language"
+
+        /**
+         * Interface-language picker. [selectedCode] is a declared language tag or
+         * [com.sza.fastmediasorter.core.util.LocaleHelper.FOLLOW_SYSTEM_LANGUAGE].
+         */
+        fun newInstanceForUiLanguage(
+            selectedCode: String,
+            onLanguageSelected: (LanguageItem) -> Unit
+        ): SearchableLanguagePickerDialog = newInstance(
+            selectedCode = selectedCode,
+            mode = Mode.UI_LANGUAGE,
+            interfaceLanguage = selectedCode,
+            onLanguageSelected = onLanguageSelected
+        )
 
         fun newInstance(
             selectedCode: String,
@@ -188,10 +212,11 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         ) : RecyclerView.ViewHolder(binding.root) {
 
             fun bind(item: LanguageItem, selected: Boolean) {
-                val label = TranslationLanguageCatalog.formatLanguage(item)
+                val name = item.displayName()
+                val label = if (item.flagEmoji.isBlank()) name else "${item.flagEmoji} $name"
                 val capabilityLabel = item.capabilityLabel(binding.root.context, mode)
                 LanguageFlagFormatter.applyFlagGlyph(binding.tvLanguageFlag, item)
-                binding.tvLanguageName.text = "${item.localizedName} (${item.nativeName})"
+                binding.tvLanguageName.text = name
                 binding.tvLanguageCapabilities.text = capabilityLabel
                 binding.tvLanguageCapabilities.isVisible = capabilityLabel.isNotBlank()
                 binding.root.isSelected = selected
@@ -214,6 +239,16 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                     }
                 }
             }
+
+            // "German (Deutsch)", but a single name when both spellings coincide - the interface-language
+            // list contains rows ("Default", English while the app is English) where the doubled form
+            // would read as a defect.
+            private fun LanguageItem.displayName(): String =
+                if (localizedName.equals(nativeName, ignoreCase = true)) {
+                    localizedName
+                } else {
+                    "$localizedName ($nativeName)"
+                }
 
             private fun LanguageItem.capabilityLabel(context: Context, mode: Mode): String {
                 return capabilities

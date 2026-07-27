@@ -44,6 +44,7 @@
 ## detekt / gates / logging
 - [detekt gate](project_detekt_gate_in_post_change.md) + [dirty tree](feedback_detekt_gate_dirty_tree.md) + [-ScopeToFile](feedback_closure_on_dirty_tree.md) - ratchet; -ScopeToFile diff-scopes
 - [detekt-clean authoring](feedback_write_detekt_clean_first_time.md) + [baseline resurface](feedback_detekt_baseline_signature_resurface.md) + [ktlint imports](project_detekt_ktlint_import_layout.md) - log<=120; +1 ctor=NEW
+- [Scoped detekt flags shifted pre-existing findings](feedback_detekt_scoped_gate_line_shift.md) - your inserts move line numbers; fix every finding the report lists for that file
 - [Hand-edited baseline ignored](project_detekt_baseline_hand_edit_daemon_stale.md) + [scoped debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) - warm daemon stale; "PASS [scoped] 0 file(s)"=blind (S1077)
 - [Stale test-results XML](feedback_stale_test_results_xml.md) - survives failed/killed runs; check BUILD verdict + mtime, never "not in FAILED list"
 - [post-change detekt stale report](feedback_post_change_detekt_stale_report.md) - gate FAILs on cached detekt.txt; force :app_v2:detekt --rerun-tasks, then re-run

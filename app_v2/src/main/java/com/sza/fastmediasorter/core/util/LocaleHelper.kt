@@ -32,9 +32,6 @@ object LocaleHelper {
     private const val PREF_RETURN_TO_SETTINGS = "return_to_settings"
     private const val PREF_PENDING_CACHE_SIZE_TOAST_MB = "pending_cache_size_toast_mb"
 
-    /** Languages the app fully supports beyond English. */
-    private val SUPPORTED_NON_DEFAULT_LANGUAGES = setOf("ru", "uk")
-
     /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
 
@@ -45,14 +42,15 @@ object LocaleHelper {
             normalized == LEGACY_DEFAULT_LANGUAGE
     }
 
+    /**
+     * S1190: the supported set comes from [UiLanguageCatalog] - the declaration in `locales_config.xml` -
+     * so a new language needs no edit here. The returned value is the declared tag, which may carry a
+     * script subtag (`zh-Hans`), not the caller's spelling.
+     */
     fun resolveSupportedLanguageCode(languageCode: String?): String {
-        val normalized = languageCode?.trim()?.lowercase(Locale.ROOT)
-        return when {
-            isFollowSystemLanguage(normalized) -> detectSystemLanguage()
-            normalized == DEFAULT_LANGUAGE -> DEFAULT_LANGUAGE
-            normalized != null && normalized in SUPPORTED_NON_DEFAULT_LANGUAGES -> normalized
-            else -> DEFAULT_LANGUAGE
-        }
+        val normalized = languageCode?.trim()
+        if (isFollowSystemLanguage(normalized)) return detectSystemLanguage()
+        return UiLanguageCatalog.resolveTag(normalized) ?: DEFAULT_LANGUAGE
     }
 
     fun isFollowingSystemLanguage(context: Context): Boolean = StrictModeHelper.allowDiskReads {
@@ -76,14 +74,17 @@ object LocaleHelper {
     }
 
     /**
-     * Detect the system (OS) display language and map it to one of the app's supported languages.
-     * Returns "ru" or "uk" if the OS is set to that language; falls back to "en" for everything else.
+     * Detect the system (OS) display language and map it to one of the app's supported languages;
+     * anything outside the declared set falls back to English.
+     *
+     * Resolves through [UiLanguageCatalog] directly rather than through [resolveSupportedLanguageCode]:
+     * a device reporting a blank language would otherwise bounce between the two functions forever.
      */
     fun detectSystemLanguage(): String {
         // Locale.setDefault() is overridden by the app locale, so Resources.getSystem() is the
         // only stable source for the device language while the process is already localized.
-        val systemLang = Resources.getSystem().configuration.locales[0].language
-        return resolveSupportedLanguageCode(systemLang)
+        val systemLang = Resources.getSystem().configuration.locales[0].toLanguageTag()
+        return UiLanguageCatalog.resolveTag(systemLang) ?: DEFAULT_LANGUAGE
     }
 
     /**
@@ -97,6 +98,10 @@ object LocaleHelper {
      *  4. English as final fallback.
      */
     fun getLanguage(context: Context): String = StrictModeHelper.allowDiskReads {
+        // S1190: this runs as the default argument of applyLocale, i.e. before applyLocale's own body,
+        // so the catalog has to be ready here too - otherwise the very first resolution of the session
+        // would see an empty catalog and cache English.
+        UiLanguageCatalog.ensureInitialized(context)
         cachedLanguageCode?.let { cached ->
             if (!isFollowingSystemLanguageInternal(context)) {
                 Timber.d("LocaleHelper: Read language from cache: $cached")
@@ -205,6 +210,9 @@ object LocaleHelper {
      * Should be called in attachBaseContext() or onCreate()
      */
     fun applyLocale(context: Context, languageCode: String = getLanguage(context)): Context {
+        // S1190: earliest point in the process that resolves a language, so the catalog is parsed here
+        // and every later caller can read it without carrying a Context.
+        UiLanguageCatalog.ensureInitialized(context)
         val resolvedLanguageCode = resolveSupportedLanguageCode(languageCode)
         if (BuildConfig.DEBUG) {
             val t0 = SystemClock.uptimeMillis()
@@ -224,7 +232,9 @@ object LocaleHelper {
         }
         Timber.d("LocaleHelper: Applying locale: $resolvedLanguageCode")
         
-        val locale = Locale(resolvedLanguageCode)
+        // forLanguageTag, not the Locale(String) constructor: a declared tag may carry a script subtag
+        // ("zh-Hans"), which the constructor would take for a language code of its own.
+        val locale = Locale.forLanguageTag(resolvedLanguageCode)
         Locale.setDefault(locale)
 
         val config = Configuration(context.resources.configuration)
@@ -308,27 +318,13 @@ object LocaleHelper {
         activity.finish()
     }
 
-    /**
-     * Get language name for display
-     */
-    fun getLanguageName(languageCode: String): String {
-        return when (resolveSupportedLanguageCode(languageCode)) {
-            "en" -> "English"
-            "ru" -> "Русский"
-            "uk" -> "Українська"
-            else -> "English"
-        }
-    }
+    /** The language's own name, taken from the catalog rather than from a list that has to be extended. */
+    fun getLanguageName(languageCode: String): String =
+        UiLanguageCatalog.displayName(resolveSupportedLanguageCode(languageCode))
 
-    /**
-     * Get language index for spinner
-     */
+    /** Position of the language within the declared order; 0 (English) when it is not declared. */
     fun getLanguageIndex(languageCode: String): Int {
-        return when (resolveSupportedLanguageCode(languageCode)) {
-            "en" -> 0
-            "ru" -> 1
-            "uk" -> 2
-            else -> 0
-        }
+        val resolved = resolveSupportedLanguageCode(languageCode)
+        return UiLanguageCatalog.supportedTags.indexOf(resolved).coerceAtLeast(0)
     }
 }

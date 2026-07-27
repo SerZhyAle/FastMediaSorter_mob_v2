@@ -14,7 +14,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Helper for initializing Timber logging with file support.
@@ -170,6 +172,7 @@ object LoggingHelper {
             fileLoggingTree = fileTree
             Timber.plant(fileTree)
         }
+        Timber.d("S1203: file logging planted, writes queued off the calling thread")
     }
     
     /**
@@ -203,9 +206,23 @@ object LoggingHelper {
         private fun formatTs(d: Date): String = dateFormat.get()!!.format(d)
         private fun formatFileName(d: Date): String = fileNameFormat.get()!!.format(d)
         private val debugMirrorFileName = "fastmediasorter_debug_live.log"
-        private val debugMirrorScheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
-            Thread(runnable, "fms-log-mirror").apply { isDaemon = true }
+
+        /**
+         * S1203: one thread owns both the file append and the 10-second debug mirror.
+         *
+         * They used to run on two different threads that serialised on this object's monitor, so a
+         * caller appending a single line waited out an entire mirror copy - on a slow emulator that
+         * froze the main thread long enough to raise repeated ANRs. Sharing one FIFO executor means
+         * the two never contend for the monitor at all.
+         */
+        private val logIoExecutor = Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "fms-log-io").apply { isDaemon = true }
         }
+
+        // Callers no longer block on the write, so nothing throttles them either. These bound the
+        // queue that replaced that backpressure and keep the loss visible instead of silent.
+        private val pendingWrites = AtomicInteger(0)
+        private val droppedWrites = AtomicInteger(0)
         
         @Volatile
         private var currentLogFile: File? = null
@@ -258,8 +275,10 @@ object LoggingHelper {
                     if (targetChanged) {
                         val sanitizedTarget = com.sza.fastmediasorter.core.security.SecretMasker
                             .sanitize(newMirrorFile.absolutePath)
+                        val notice =
+                            "${formatTs(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget"
                         synchronized(this) {
-                            printWriter?.println("${formatTs(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget")
+                            printWriter?.println(notice)
                             printWriter?.flush()
                         }
                         flushDebugMirrorDelta()
@@ -272,6 +291,33 @@ object LoggingHelper {
         
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
             if (priority < minPriority) return  // Skip below threshold (e.g. VERBOSE/DEBUG in release)
+            // S1203: the timestamp is taken on the calling thread so the file keeps call order rather
+            // than drain order; sanitising, formatting and the write itself all move to the log I/O
+            // thread, so no Timber call can put a caller on the disk or on the mirror's monitor.
+            val timestamp = formatTs(Date())
+            if (pendingWrites.incrementAndGet() > MAX_PENDING_WRITES) {
+                pendingWrites.decrementAndGet()
+                droppedWrites.incrementAndGet()
+                return
+            }
+            try {
+                logIoExecutor.execute {
+                    try {
+                        writeEntry(timestamp, priority, tag, message, t)
+                    } finally {
+                        pendingWrites.decrementAndGet()
+                    }
+                }
+            } catch (_: RejectedExecutionException) {
+                // The executor is shutting down with the process; account for the lost line rather
+                // than let a logging call take the app down on its way out.
+                pendingWrites.decrementAndGet()
+                droppedWrites.incrementAndGet()
+            }
+        }
+
+        /** Runs on the log I/O thread: formats one queued entry and appends it to the session file. */
+        private fun writeEntry(timestamp: String, priority: Int, tag: String?, message: String, t: Throwable?) {
             // Wrap file I/O in StrictModeHelper to avoid violations
             // File logging is an expected debug operation, not a bug
             // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()
@@ -296,8 +342,6 @@ object LoggingHelper {
                         else -> '?'
                     }
                     
-                    val timestamp = formatTs(Date())
-                    
                     synchronized(this) {
                         // Check if file needs rotation
                         currentLogFile?.let { file ->
@@ -307,7 +351,8 @@ object LoggingHelper {
                                 openNewLogFile()
                             }
                         }
-                        
+                        reportDroppedWrites(timestamp)
+
                         if (effectivePriority == android.util.Log.WARN) {
                             // Warnings: single line, compact exception info
                             var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $sanitizedMessage"
@@ -330,6 +375,36 @@ object LoggingHelper {
                 } catch (e: Exception) {
                     // Silently fail - don't cause app crash due to logging
                 }
+            }
+        }
+
+        /**
+         * S1203: announces the entries the queue cap had to drop, so a burst that outran the disk
+         * leaves a mark in the log instead of a silent gap. Caller holds the file monitor.
+         */
+        private fun reportDroppedWrites(timestamp: String) {
+            val dropped = droppedWrites.getAndSet(0)
+            if (dropped > 0) {
+                printWriter?.println("$timestamp W/FileLoggingTree: dropped $dropped entries - log queue full")
+            }
+        }
+
+        /**
+         * S1203: blocks until everything queued before this call has reached the file. The executor is
+         * single-threaded and FIFO, so an empty task finishing means every earlier one already did.
+         */
+        private fun flushPendingWrites() {
+            val drained = try {
+                logIoExecutor.submit { }
+            } catch (_: RejectedExecutionException) {
+                return
+            }
+            try {
+                drained.get(FLUSH_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            } catch (_: Exception) {
+                // A crash dump must never hang on a stuck log queue: abandon the tail and let the
+                // crash file be written anyway.
+                drained.cancel(true)
             }
         }
 
@@ -364,7 +439,7 @@ object LoggingHelper {
         }
 
         private fun startDebugMirrorScheduler() {
-            debugMirrorScheduler.scheduleAtFixedRate(
+            logIoExecutor.scheduleAtFixedRate(
                 {
                     StrictModeHelper.allowDiskIO {
                         flushDebugMirrorDelta()
@@ -467,6 +542,9 @@ object LoggingHelper {
          */
         fun writeCrashSynchronously(thread: Thread, throwable: Throwable) {
             try {
+                // S1203: entries queued moments before the crash are still on the log I/O thread;
+                // drain them first so the session log ends where the crash actually happened.
+                flushPendingWrites()
                 val now = Date()
                 val timestamp = formatTs(now)
                 val crashFile = File(logDir, "fastmediasorter_crash_${formatFileName(now)}.log")
@@ -505,6 +583,15 @@ object LoggingHelper {
             return logDir.listFiles { file ->
                 file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
             }?.sortedByDescending { it.lastModified() } ?: emptyList()
+        }
+
+        private companion object {
+            // S1203: deep enough that ordinary bursts never reach it, shallow enough that a runaway
+            // logger cannot grow the queue without bound now that callers no longer wait on a write.
+            const val MAX_PENDING_WRITES = 4096
+
+            // How long the crash path waits for the queue before giving up on its tail.
+            const val FLUSH_TIMEOUT_SECONDS = 2L
         }
     }
 }

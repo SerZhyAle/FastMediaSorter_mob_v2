@@ -39,16 +39,15 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <!-- Language (entries are built in code by GeneralSettingsViewSetupHelper).
-                             Compact fixed field width keeps the short value from stretching; rows pack to the left. -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                            android:id="@+id/spinnerLanguage"
+                        <!-- Language (S1190: SettingsDropdownRow -> SettingsSelectionRow; the row opens the
+                             searchable picker). Wrap width keeps it packed to the left beside the theme row. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowLanguage"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/margin_large"
-                            app:sdr_inline="true"
-                            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-                            app:sdr_title="@string/language" />
+                            app:ssr_inline="true"
+                            app:ssr_title="@string/language" />
 
                         <!-- Color theme (S0328). -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow

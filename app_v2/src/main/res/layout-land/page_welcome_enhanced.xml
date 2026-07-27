@@ -74,53 +74,23 @@
                     android:alpha="0.85"
                     tools:text="Go beyond simple media viewing." />
 
-                <!-- Language picker: visible only on the first Welcome page -->
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/layoutLanguagePicker"
+                <!-- Language: visible only on the first Welcome page. S1190 replaced the three-position
+                     switch - the interface language set is data now and no longer fits a fixed strip, so
+                     this control shows the current language and opens the searchable picker. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnWelcomeLanguage"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:focusable="true"
+                    android:clickable="true"
                     android:visibility="gone"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLangEn"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:focusable="true"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minHeight="48dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="English"
-                        android:contentDescription="@string/welcome_language_picker_hint" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLangRu"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:focusable="true"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minHeight="48dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="Русский"
-                        android:contentDescription="@string/welcome_language_picker_hint" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLangUk"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:focusable="true"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minHeight="48dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="Українська"
-                        android:contentDescription="@string/welcome_language_picker_hint" />
-
-                </com.google.android.material.button.MaterialButtonToggleGroup>
+                    android:contentDescription="@string/welcome_language_picker_hint"
+                    tools:text="English" />
 
                 <!-- Theme picker: visible only on the first Welcome page. Mirrors the language picker
                      (styling, focusability) and recreates the activity immediately after a selection
