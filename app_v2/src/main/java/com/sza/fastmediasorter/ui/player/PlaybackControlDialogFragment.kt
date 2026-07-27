@@ -13,10 +13,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
+import com.sza.fastmediasorter.di.StreamTrackPreferenceEntryPoint
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -80,6 +84,27 @@ class PlaybackControlDialogFragment : DialogFragment() {
             requireContext().applicationContext,
             MediaCapabilitiesEntryPoint::class.java
         ).mediaCapabilities().supportsVrMediaControls
+    }
+
+    // S1144 (ADR-9): this dialog is not an @AndroidEntryPoint, so the use case is resolved the same way
+    // supportsVrMediaControls above resolves its own dependency.
+    private val streamTrackPreferenceUseCase: StreamTrackPreferenceUseCase by lazy {
+        EntryPointAccessors.fromApplication(
+            requireContext().applicationContext,
+            StreamTrackPreferenceEntryPoint::class.java
+        ).streamTrackPreferenceUseCase()
+    }
+
+    /**
+     * S1144: persists a manual track pick against the playing channel. No-op for local playback and for
+     * a stream whose URL is not knowable right now - remembering is a convenience, never a precondition
+     * for the selection the user just made.
+     */
+    private fun rememberStreamTrackPick(write: suspend (String) -> Unit) {
+        if (!sourceIsStream) return
+        val url = host().currentMediaFile.value?.path ?: return
+        Timber.d("S1144: remembering track pick for channel $url")
+        viewLifecycleOwner.lifecycleScope.launch { write(url) }
     }
 
     private val activeSections: List<ControlSection>
@@ -368,6 +393,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isFocusableInTouchMode = false
                 setOnClickListener {
                     handle.selectAudioTrack(track.groupIndex, track.trackIndex)
+                    rememberStreamTrackPick { url ->
+                        streamTrackPreferenceUseCase.writeAudio(url, track.language)
+                    }
                     refreshAudioTab()
                 }
             }
@@ -394,6 +422,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
             setOnClickListener {
                 val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
                 handle.selectSubtitleTrack(groupIndex, -1)
+                rememberStreamTrackPick { url ->
+                    streamTrackPreferenceUseCase.writeSubtitle(url, null, false)
+                }
                 refreshSubtitleTab()
             }
         }
@@ -408,6 +439,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isFocusableInTouchMode = false
                 setOnClickListener {
                     handle.selectSubtitleTrack(track.groupIndex, track.trackIndex)
+                    rememberStreamTrackPick { url ->
+                        streamTrackPreferenceUseCase.writeSubtitle(url, track.language, true)
+                    }
                     refreshSubtitleTab()
                 }
             }

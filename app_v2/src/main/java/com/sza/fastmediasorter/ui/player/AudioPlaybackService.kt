@@ -762,6 +762,7 @@ class AudioPlaybackService : MediaSessionService() {
         try {
             p.replaceMediaItem(index, updated)
             lastIcyTitle = rawIcyTitle
+            Timber.d("S1142: live ICY pushed, artist=${parsed.artist} title=${parsed.title}")
         } catch (e: IllegalStateException) {
             Timber.w(e, "AudioPlaybackService: live ICY metadata update skipped")
         }

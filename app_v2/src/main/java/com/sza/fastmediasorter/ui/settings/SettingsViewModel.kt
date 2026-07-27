@@ -390,7 +390,11 @@ class SettingsViewModel @Inject constructor(
                 enableStreams = defaults.enableStreams,
                 streamsDefaultSort = defaults.streamsDefaultSort,
                 streamsDefaultMediaFilter = defaults.streamsDefaultMediaFilter,
-                streamsCatalogRefreshPolicy = defaults.streamsCatalogRefreshPolicy
+                streamsCatalogRefreshPolicy = defaults.streamsCatalogRefreshPolicy,
+                // S1144: the stream track-language defaults live in the same section, so a Media reset
+                // must clear them too - the omission above is exactly the bug the S0659 comment records.
+                streamsDefaultAudioLanguage = defaults.streamsDefaultAudioLanguage,
+                streamsDefaultSubtitleLanguage = defaults.streamsDefaultSubtitleLanguage
             )
         )
     }

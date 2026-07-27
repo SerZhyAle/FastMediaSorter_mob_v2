@@ -3213,4 +3213,9 @@
     <string name="streams_logo_prompt_message">Завантажити логотипи станцій, щоб канали без прев\'ю показували свій логотип?</string>
     <string name="ext_status_update_available">Є оновлення</string>
     <string name="streams_atlas_update_prompt_message">Для цих каналів з\'явилися свіжіші зображення. Завантажити?</string>
+    <string name="settings_streams_default_audio_language">Мова аудіо для трансляцій</string>
+    <string name="settings_streams_default_subtitle_language">Мова субтитрів для трансляцій</string>
+    <string name="stream_channel_audio_language">Мова аудіо</string>
+    <string name="stream_channel_subtitle_language">Мова субтитрів</string>
+    <string name="stream_channel_subtitles_on">Увімкнені</string>
 </resources>

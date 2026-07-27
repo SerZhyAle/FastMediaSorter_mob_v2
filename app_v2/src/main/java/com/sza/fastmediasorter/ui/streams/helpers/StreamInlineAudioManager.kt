@@ -115,6 +115,7 @@ class StreamInlineAudioManager(
                 val entry = metadata.get(i)
                 if (entry is IcyInfo) {
                     nowPlaying.value = entry.title?.takeIf { it.isNotBlank() }?.let(NowPlayingMetadata::parse)
+                    Timber.d("S1142: inline local ICY, nowPlaying=${nowPlaying.value}")
                 }
             }
         }
@@ -130,6 +131,7 @@ class StreamInlineAudioManager(
             } else {
                 null
             }
+            Timber.d("S1142: inline service metadata, nowPlaying=${nowPlaying.value}")
         }
 
         override fun onPlayerError(error: PlaybackException) {

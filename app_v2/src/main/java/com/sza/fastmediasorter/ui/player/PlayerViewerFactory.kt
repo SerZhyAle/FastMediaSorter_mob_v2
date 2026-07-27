@@ -46,6 +46,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             storeDependencies = VideoPlayerStoreDependencies(
                 playbackPositionRepository = activity.playbackPositionRepository,
                 settingsRepository = activity.settingsRepository,
+                streamTrackPreferenceUseCase = activity.streamTrackPreferenceUseCase,
             ),
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }

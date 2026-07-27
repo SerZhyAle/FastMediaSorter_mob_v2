@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 
 data class VideoPlayerHostDependencies(
@@ -47,4 +48,7 @@ data class VideoPlayerNetworkDependencies(
 data class VideoPlayerStoreDependencies(
     val playbackPositionRepository: PlaybackPositionRepository,
     val settingsRepository: SettingsRepository,
+    // S1144 (ADR-6): VideoPlayerManager is built by hand, outside the Hilt graph, so the per-channel
+    // track preference travels the same bundle route as the two repositories above.
+    val streamTrackPreferenceUseCase: StreamTrackPreferenceUseCase,
 )

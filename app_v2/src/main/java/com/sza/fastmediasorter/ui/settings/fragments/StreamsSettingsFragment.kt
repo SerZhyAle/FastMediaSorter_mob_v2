@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsStreamsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
+import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
@@ -76,6 +77,15 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                 getString(R.string.settings_streams_catalog_refresh_wifi),
             )
         )
+        // S1144: same option list for both language rows; order must match StreamTrackLanguage.entries.
+        val languageEntries = listOf(
+            getString(R.string.language_default),
+            getString(R.string.language_english),
+            getString(R.string.language_russian),
+            getString(R.string.language_ukrainian),
+        )
+        binding.rowDefaultAudioLanguage.setEntries(languageEntries)
+        binding.rowDefaultSubtitleLanguage.setEntries(languageEntries)
 
         bindDropdown(binding.rowDefaultSort) {
             viewModel.updateSettings(
@@ -92,6 +102,16 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                 viewModel.settings.value.copy(streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.entries[it])
             )
         }
+        bindDropdown(binding.rowDefaultAudioLanguage) {
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(streamsDefaultAudioLanguage = StreamTrackLanguage.entries[it])
+            )
+        }
+        bindDropdown(binding.rowDefaultSubtitleLanguage) {
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(streamsDefaultSubtitleLanguage = StreamTrackLanguage.entries[it])
+            )
+        }
 
         binding.btnClearPlayStatuses.setOnClickListener { confirmClearPlayStatuses() }
 
@@ -102,6 +122,11 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)
                 setDropdownSelection(binding.rowDefaultMediaFilter, settings.streamsDefaultMediaFilter.ordinal)
                 setDropdownSelection(binding.rowCatalogRefresh, settings.streamsCatalogRefreshPolicy.ordinal)
+                setDropdownSelection(binding.rowDefaultAudioLanguage, settings.streamsDefaultAudioLanguage.ordinal)
+                setDropdownSelection(
+                    binding.rowDefaultSubtitleLanguage,
+                    settings.streamsDefaultSubtitleLanguage.ordinal
+                )
             }
             // S0578/S0659: the defaults group, clear action and shortcut all follow the master toggle -
             // hidden when Streams is off so the section stays compact while the feature is disabled.

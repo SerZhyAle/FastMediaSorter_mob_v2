@@ -175,6 +175,7 @@ class ScreenGestureOverlayManager(
         }
         windowManager.addView(view, params)
         hintView = view
+        Timber.d("S1162: hint shown for zone=${zone.name} rows=${rows.size}")
     }
 
     private fun hideHint() {
@@ -375,6 +376,7 @@ class ScreenGestureOverlayManager(
                     // taking the hint down is how that cancellation becomes visible before the lift.
                     gestureCancelled = true
                     hideHint()
+                    Timber.d("S1162: gesture cancelled by return to edge, zone=${zone.name}")
                     return false
                 }
                 val angle = Math.toDegrees(atan2(dy, inwardDx).toDouble())

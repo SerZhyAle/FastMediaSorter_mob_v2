@@ -3262,4 +3262,9 @@ Close the player and try again.</string>
     <string name="streams_logo_prompt_message">Download station logos so channels without a preview show their own logo?</string>
     <string name="ext_status_update_available">Update ready</string>
     <string name="streams_atlas_update_prompt_message">Newer pictures are available for these channels. Download them?</string>
+    <string name="settings_streams_default_audio_language">Audio language for streams</string>
+    <string name="settings_streams_default_subtitle_language">Subtitle language for streams</string>
+    <string name="stream_channel_audio_language">Audio language</string>
+    <string name="stream_channel_subtitle_language">Subtitle language</string>
+    <string name="stream_channel_subtitles_on">On</string>
 </resources>

@@ -411,6 +411,10 @@ class PlayerActivity :
     // (video/image/pdf) via PlayerViewerFactory and PlayerManagerInitializer.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
 
+    // S1144 (ADR-6): per-channel track preference, forwarded into VideoPlayerManager the same way.
+    @Inject lateinit var streamTrackPreferenceUseCase:
+        com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
+
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
     @Inject lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
 

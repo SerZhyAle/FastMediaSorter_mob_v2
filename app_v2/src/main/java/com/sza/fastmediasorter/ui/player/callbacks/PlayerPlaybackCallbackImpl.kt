@@ -127,6 +127,7 @@ class PlayerPlaybackCallbackImpl(
     override fun onStreamProgramName(name: String?) {
         val label = binding.streamProgramLabel
         val text = name?.trim().orEmpty()
+        Timber.d("S1158: programme caption text='$text' visible=${text.isNotEmpty()}")
         if (text.isEmpty()) {
             label.isVisible = false
             return

@@ -151,8 +151,10 @@ _Available in: Standard, Legacy_
 | Clear play marks | Clears the green and red play marks on all channels. The channels themselves stay. |
 | Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
 | Updating the channel list | Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi. |
+| Audio language for streams | Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
 | Default order | Sets the order channels appear in when you open the Streams screen. |
+| Subtitle language for streams | Picks the subtitle language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 | Ultra-smart stream buffering | Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback. |
 

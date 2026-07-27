@@ -74,6 +74,7 @@ class VideoPlayerManagerStateEndedTest {
             storeDependencies = VideoPlayerStoreDependencies(
                 playbackPositionRepository = mockRepo,
                 settingsRepository = mockSettings,
+                streamTrackPreferenceUseCase = mockk(relaxed = true),
             ),
         )
     }

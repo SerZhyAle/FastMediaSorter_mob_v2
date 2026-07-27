@@ -10,7 +10,15 @@ internal class PlayerActivityVideoHandle(
 ) : VideoPlayerHandle {
     override fun getAvailableAudioTracks(): List<VideoTrackSelectionManager.TrackInfo> =
         videoPlayerManagerProvider()?.getAvailableAudioTracks()
-            ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+            ?.map {
+                VideoTrackSelectionManager.TrackInfo(
+                    it.groupIndex,
+                    it.trackIndex,
+                    it.label,
+                    it.isSelected,
+                    it.language
+                )
+            }
             ?: emptyList()
 
     override fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
@@ -18,7 +26,15 @@ internal class PlayerActivityVideoHandle(
 
     override fun getAvailableSubtitleTracks(): List<VideoTrackSelectionManager.TrackInfo> =
         videoPlayerManagerProvider()?.getAvailableSubtitleTracks()
-            ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+            ?.map {
+                VideoTrackSelectionManager.TrackInfo(
+                    it.groupIndex,
+                    it.trackIndex,
+                    it.label,
+                    it.isSelected,
+                    it.language
+                )
+            }
             ?: emptyList()
 
     override fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) =

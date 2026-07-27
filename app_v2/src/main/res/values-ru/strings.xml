@@ -3228,4 +3228,9 @@
     <string name="streams_logo_prompt_message">Скачать логотипы станций, чтобы каналы без превью показывали свой логотип?</string>
     <string name="ext_status_update_available">Есть обновление</string>
     <string name="streams_atlas_update_prompt_message">Для этих каналов появились более свежие картинки. Скачать?</string>
+    <string name="settings_streams_default_audio_language">Язык аудио для трансляций</string>
+    <string name="settings_streams_default_subtitle_language">Язык субтитров для трансляций</string>
+    <string name="stream_channel_audio_language">Язык аудио</string>
+    <string name="stream_channel_subtitle_language">Язык субтитров</string>
+    <string name="stream_channel_subtitles_on">Включены</string>
 </resources>

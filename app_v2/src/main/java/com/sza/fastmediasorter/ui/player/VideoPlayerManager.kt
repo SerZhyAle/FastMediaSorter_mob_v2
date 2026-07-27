@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
@@ -117,6 +118,10 @@ class VideoPlayerManager(
     internal val playbackPositionRepository: PlaybackPositionRepository =
         storeDependencies.playbackPositionRepository
     internal val settingsRepository: SettingsRepository = storeDependencies.settingsRepository
+
+    // S1144 (ADR-6): read by the stream-start path to overlay the channel's remembered track languages.
+    internal val streamTrackPreferenceUseCase: StreamTrackPreferenceUseCase =
+        storeDependencies.streamTrackPreferenceUseCase
 
     // ═══════════════════════════════════════════════════════════════════════
     // Callback interface
@@ -249,7 +254,9 @@ class VideoPlayerManager(
         )
     )
 
-    private val trackSelectionManager = VideoTrackSelectionManager(
+    // S1144: internal so the stream-start extension in StreamPlaybackHelper can seat the channel
+    // preference on it before prepare().
+    internal val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
         getPlayerView = { currentPlayerView }
     )
@@ -710,6 +717,10 @@ class VideoPlayerManager(
         // S1158: every new file and every new channel passes through here, so this is the one point
         // where the previously announced programme name is guaranteed to be stale.
         playerCallback.onStreamProgramName(null)
+        // S1144: same reasoning for the remembered channel track languages - the stream-start path
+        // re-seats them, so anything left here belongs to the previous item.
+        trackSelectionManager.channelPreference = null
+        trackSelectionManager.streamDefaults = null
         // S0893: remembered so onStart() can recreate playback after an API24+ onStop release.
         lastResourceType = resourceType
         lastCredentialsId = credentialsId
@@ -818,7 +829,10 @@ class VideoPlayerManager(
         val groupIndex: Int,
         val trackIndex: Int,
         val label: String,
-        val isSelected: Boolean
+        val isSelected: Boolean,
+        // S1144 (ADR-8): mirrors VideoTrackSelectionManager.TrackInfo. The two classes are separate by
+        // history; a field added to one but not the other silently breaks the mappers between them.
+        val language: String? = null
     )
 
     fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) =

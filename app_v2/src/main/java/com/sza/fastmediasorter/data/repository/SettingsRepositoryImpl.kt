@@ -390,6 +390,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
                     showStreamsPanelInMainWindow = streams.showStreamsPanelInMainWindow,
                     streamsSmartBuffering = streams.streamsSmartBuffering,
+                    streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
+                    streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,

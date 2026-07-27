@@ -39,7 +39,9 @@ import com.sza.fastmediasorter.domain.model.StreamResumeState
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -107,6 +109,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     @Inject
     lateinit var streamFrameIngestor: StreamFrameIngestor
+
+    // S1144: per-channel audio/subtitle preference, edited from the add/edit channel dialog.
+    @Inject
+    lateinit var streamTrackPreferenceUseCase:
+        com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 
     // S1152: persists the last active stream so the next cold start can resume it (mirrors media resume).
     @Inject
@@ -897,12 +904,71 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         dialog.show()
     }
 
+    /**
+     * S1144: fills the three per-channel track rows and returns a writer that persists whatever the user
+     * left selected. Index 0 is always "Default" = no per-channel preference, so the channel keeps
+     * following the global stream defaults. [existing] is null in add mode, where there is nothing stored yet.
+     */
+    private fun bindChannelTrackPreference(
+        binding: DialogAddStreamBinding,
+        existing: StreamTrackPreferenceUseCase.TrackPreference?
+    ): (String) -> Unit {
+        val languages = listOf(
+            getString(R.string.language_default),
+            getString(R.string.language_english),
+            getString(R.string.language_russian),
+            getString(R.string.language_ukrainian),
+        )
+        val subtitleStates = listOf(
+            getString(R.string.language_default),
+            getString(R.string.stream_channel_subtitles_on),
+            getString(R.string.subtitle_off),
+        )
+        binding.rowChannelAudioLanguage.setEntries(languages)
+        binding.rowChannelSubtitleLanguage.setEntries(languages)
+        binding.rowChannelSubtitles.setEntries(subtitleStates)
+        binding.rowChannelAudioLanguage.setSelection(
+            StreamTrackLanguage.fromIsoCode(existing?.audioLang).ordinal
+        )
+        binding.rowChannelSubtitleLanguage.setSelection(
+            StreamTrackLanguage.fromIsoCode(existing?.subtitleLang).ordinal
+        )
+        binding.rowChannelSubtitles.setSelection(
+            when (existing?.subtitlesEnabled) {
+                true -> 1
+                false -> 2
+                null -> 0
+            }
+        )
+
+        return { url ->
+            val audioIso = StreamTrackLanguage.entries[binding.rowChannelAudioLanguage.getSelectedIndex()
+                .coerceAtLeast(0)].isoCodeOrNull()
+            val subtitleIso = StreamTrackLanguage.entries[binding.rowChannelSubtitleLanguage.getSelectedIndex()
+                .coerceAtLeast(0)].isoCodeOrNull()
+            val subtitlesEnabled = when (binding.rowChannelSubtitles.getSelectedIndex()) {
+                1 -> true
+                2 -> false
+                else -> null
+            }
+            Timber.d("S1144: channel dialog wrote audio=$audioIso sub=$subtitleIso on=$subtitlesEnabled")
+            lifecycleScope.launch {
+                streamTrackPreferenceUseCase.writeAudio(url, audioIso)
+                streamTrackPreferenceUseCase.writeSubtitle(url, subtitleIso, subtitlesEnabled)
+            }
+        }
+    }
+
     private fun showSourceDialog(isImport: Boolean) {
         val dialogBinding = DialogAddStreamBinding.inflate(layoutInflater)
         dialogBinding.tilUrl.hint = getString(
             if (isImport) R.string.streams_import_url_hint else R.string.streams_add_url_hint
         )
         dialogBinding.tilTitle.isVisible = !isImport
+        // S1144: an import pulls in a whole playlist, so there is no single channel to attach a track
+        // preference to - the rows are shown for a manual add only.
+        dialogBinding.trackPreferenceContainer.isVisible = !isImport
+        val writeTrackPreference = bindChannelTrackPreference(dialogBinding, existing = null)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (isImport) R.string.streams_import else R.string.streams_add)
             .setView(dialogBinding.root)
@@ -912,6 +978,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     viewModel.onImport(url)
                 } else {
                     viewModel.onAdd(url, dialogBinding.etTitle.text?.toString())
+                    if (url.isNotEmpty()) writeTrackPreference(url)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -940,6 +1007,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             "VIDEO" -> dialogBinding.toggleMediaKind.check(R.id.btnKindVideo)
             else -> dialogBinding.toggleMediaKind.check(R.id.btnKindAuto)
         }
+        // S1144: pre-fill the channel's stored track preference; the read is async, so the rows are
+        // bound with what is on disk as soon as it arrives rather than blocking the dialog.
+        var writeTrackPreference: (String) -> Unit = bindChannelTrackPreference(dialogBinding, null)
+        lifecycleScope.launch {
+            val stored = streamTrackPreferenceUseCase.read(source.url)
+            writeTrackPreference = bindChannelTrackPreference(dialogBinding, stored)
+        }
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.streams_edit_dialog_title)
             .setView(dialogBinding.root)
@@ -949,12 +1023,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     R.id.btnKindVideo -> "VIDEO"
                     else -> null
                 }
+                val editedUrl = dialogBinding.etUrl.text?.toString().orEmpty().trim()
                 viewModel.onEdit(
                     source,
-                    dialogBinding.etUrl.text?.toString().orEmpty().trim(),
+                    editedUrl,
                     dialogBinding.etTitle.text?.toString(),
                     kindOverride,
                 )
+                // The preference is keyed by URL, so it follows whatever URL the row ends up with.
+                if (editedUrl.isNotEmpty()) writeTrackPreference(editedUrl)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .create()

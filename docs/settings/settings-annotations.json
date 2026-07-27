@@ -9,90 +9,105 @@
     "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
     "uk": "Задає кількість одночасних мережевих підключень при доступі до віддалених ресурсів."
   },
+  "actvPrefetchCache": {
+    "en": "Sets how much upcoming video is pre-cached during playback to reduce buffering.",
+    "ru": "Задаёт объём заранее кэшируемого видео при воспроизведении, чтобы уменьшить буферизацию.",
+    "uk": "Задає обсяг заздалегідь кешованого відео під час відтворення, щоб зменшити буферизацію."
+  },
   "actvSyncInterval": {
     "en": "Sets how often, in minutes, the app checks remote resources during background sync.",
     "ru": "Задаёт, как часто (в минутах) приложение проверяет удалённые ресурсы при фоновой синхронизации.",
     "uk": "Задає, як часто (у хвилинах) застосунок перевіряє віддалені ресурси під час фонової синхронізації."
-  },
-  "etSlideshowInterval": {
-    "en": "Sets the default number of seconds each slide is shown during a slideshow.",
-    "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
-    "uk": "Задає кількість секунд за замовчуванням, протягом яких показується кожен слайд у слайдшоу."
-  },
-  "btnSelectPhotosSource": {
-    "en": "Chooses the folder or resource used as the photo source during audio playback.",
-    "ru": "Выбирает папку или ресурс, откуда берутся фото при воспроизведении аудио.",
-    "uk": "Вибирає теку або ресурс, звідки беруться фото під час відтворення аудіо."
-  },
-  "btnSetDefaultAudioPlayer": {
-    "en": "Registers this app as the default handler for audio files on the device.",
-    "ru": "Назначает приложение обработчиком аудиофайлов по умолчанию.",
-    "uk": "Призначає застосунок типовим обробником аудіофайлів на пристрої."
-  },
-  "rowEnablePersistentAudioPlayback": {
-    "en": "Keeps audio playing when you leave the app or lock the screen.",
-    "ru": "Продолжает воспроизведение аудио при сворачивании приложения или блокировке экрана.",
-    "uk": "Продовжує відтворення аудіо при згортанні застосунку або блокуванні екрана."
-  },
-  "rowEnablePhotosDuringAudio": {
-    "en": "Displays random photos from the selected source while audio is playing.",
-    "ru": "Показывает случайные фото из выбранного источника во время воспроизведения аудио.",
-    "uk": "Показує випадкові фото з вибраного джерела під час відтворення аудіо."
-  },
-  "rowSaveAudioMetadataLocally": {
-    "en": "Caches downloaded track metadata and cover art on the device to avoid re-fetching.",
-    "ru": "Кэширует загруженные метаданные треков и обложки, чтобы не скачивать их повторно.",
-    "uk": "Кешує завантажені метадані треків і обкладинки, щоб не завантажувати їх повторно."
-  },
-  "rowSearchAudioCoversOnline": {
-    "en": "Fetches missing cover art from the internet when a local cover is not found.",
-    "ru": "Загружает недостающие обложки из интернета, если локальная обложка не найдена.",
-    "uk": "Завантажує відсутні обкладинки з інтернету, якщо локальну обкладинку не знайдено."
-  },
-  "rowSearchCoversOnlyWifi": {
-    "en": "Restricts online cover art search to Wi-Fi connections only, saving mobile data.",
-    "ru": "Ограничивает поиск обложек в интернете соединением по Wi-Fi, чтобы не тратить мобильный трафик.",
-    "uk": "Обмежує пошук обкладинок онлайн з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
-  },
-  "rowShowNowPlayingPanel": {
-    "en": "Shows a persistent now-playing panel at the bottom of the file browser.",
-    "ru": "Показывает постоянную панель текущего трека внизу браузера файлов.",
-    "uk": "Показує постійну панель поточного треку внизу браузера файлів."
-  },
-  "rowSupportAudio": {
-    "en": "Enables audio file support so audio tracks appear in the file browser and can be played.",
-    "ru": "Включает поддержку аудиофайлов: треки отображаются в браузере файлов и доступны для воспроизведения.",
-    "uk": "Вмикає підтримку аудіофайлів: треки відображаються в браузері файлів і доступні для відтворення."
   },
   "btnAddDestination": {
     "en": "Adds a new Quick Sort destination folder to the list.",
     "ru": "Добавляет новую папку назначения для быстрой сортировки.",
     "uk": "Додає нову теку призначення для швидкого сортування."
   },
-  "btnResetOperationsSection": {
-    "en": "Restores all Management settings in this section to their factory defaults.",
-    "ru": "Возвращает все настройки управления в этом разделе к заводским значениям.",
-    "uk": "Повертає всі налаштування управління в цьому розділі до заводських значень."
+  "btnAutoCalculateCache": {
+    "en": "Automatically calculates and sets the recommended cache size based on available storage.",
+    "ru": "Автоматически рассчитывает и задаёт рекомендуемый размер кэша на основе доступного хранилища.",
+    "uk": "Автоматично розраховує і задає рекомендований розмір кешу на основі доступного сховища."
   },
-  "btnSelectCameraPhotosDest": {
-    "en": "Selects the destination resource where camera photos are saved.",
-    "ru": "Выбирает ресурс-назначение для сохранения снятых фото.",
-    "uk": "Вибирає ресурс призначення для збереження знятих фото."
+  "btnBackup": {
+    "en": "Backs up all app settings to your Google Drive account.",
+    "ru": "Создаёт резервную копию всех настроек приложения в аккаунте Google Drive.",
+    "uk": "Створює резервну копію всіх налаштувань застосунку в акаунті Google Drive."
   },
-  "btnSelectMicRecordingDest": {
-    "en": "Selects the destination resource where microphone recordings are saved.",
-    "ru": "Выбирает ресурс-назначение для сохранения записей с микрофона.",
-    "uk": "Вибирає ресурс призначення для збереження записів із мікрофона."
+  "btnClearCache": {
+    "en": "Deletes all locally cached thumbnails and metadata to free up storage.",
+    "ru": "Удаляет все локально кэшированные миниатюры и метаданные для освобождения места.",
+    "uk": "Видаляє всі локально кешовані мініатюри та метадані для звільнення місця."
   },
-  "btnSelectScreenRecordingDest": {
-    "en": "Selects the destination resource where screen recordings are saved.",
-    "ru": "Выбирает ресурс-назначение для сохранения записей экрана.",
-    "uk": "Вибирає ресурс призначення для збереження записів екрана."
+  "btnClearPlayStatuses": {
+    "en": "Clears the green and red play marks on all channels. The channels themselves stay.",
+    "ru": "Очищает зелёные и красные отметки воспроизведения на всех каналах. Сами каналы остаются.",
+    "uk": "Очищає зелені та червоні позначки відтворення на всіх каналах. Самі канали залишаються."
   },
-  "btnSelectVideoRecordingDest": {
-    "en": "Selects the destination resource where video recordings are saved.",
-    "ru": "Выбирает ресурс-назначение для сохранения записанных видеофайлов.",
-    "uk": "Вибирає ресурс призначення для збереження записаних відеофайлів."
+  "btnClearSnapshotResource": {
+    "en": "Clears the currently selected snapshot destination resource.",
+    "ru": "Очищает выбранный ресурс-назначение для снимков видеокадров.",
+    "uk": "Очищає вибраний ресурс призначення для знімків відеокадрів."
+  },
+  "btnClearStreamingCache": {
+    "en": "Deletes temporary files buffered during streaming playback.",
+    "ru": "Удаляет временные файлы, накопленные при потоковом воспроизведении.",
+    "uk": "Видаляє тимчасові файли, накопичені під час потокового відтворення."
+  },
+  "btnCompanionPublishGuide": {
+    "en": "Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan).",
+    "ru": "Открывает PC-инструкцию по публикации папок для Android через SFTP (companion-импорт / скан QR).",
+    "uk": "Відкриває PC-інструкцію з публікації тек для Android через SFTP (companion-імпорт / скан QR)."
+  },
+  "btnDownloadableExtensions": {
+    "en": "Opens the downloadable extensions manager where you can install optional feature modules.",
+    "ru": "Открывает менеджер загружаемых расширений для установки дополнительных модулей.",
+    "uk": "Відкриває менеджер додаткових модулів для встановлення опціональних розширень."
+  },
+  "btnExportFavorites": {
+    "en": "Exports your saved favorites list to a file you can back up or transfer.",
+    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса.",
+    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення."
+  },
+  "btnExportResources": {
+    "en": "Saves all configured resources (folders, network connections) to an export file.",
+    "ru": "Сохраняет все настроенные ресурсы (папки, сетевые подключения) в файл экспорта.",
+    "uk": "Зберігає всі налаштовані ресурси (теки, мережеві підключення) у файл експорту."
+  },
+  "btnExportSettings": {
+    "en": "Saves all app settings to a file so you can restore or transfer them later.",
+    "ru": "Сохраняет все настройки приложения в файл для последующего восстановления или переноса.",
+    "uk": "Зберігає всі налаштування застосунку у файл для подальшого відновлення або перенесення."
+  },
+  "btnHowToGuides": {
+    "en": "Opens step-by-step how-to guides for the app's main features.",
+    "ru": "Открывает пошаговые инструкции по основным функциям приложения.",
+    "uk": "Відкриває покрокові інструкції з основних функцій застосунку."
+  },
+  "btnImportFavorites": {
+    "en": "Imports a previously exported favorites list from a file.",
+    "ru": "Импортирует ранее экспортированный список избранного из файла.",
+    "uk": "Імпортує раніше експортований список обраного з файлу."
+  },
+  "btnImportResources": {
+    "en": "Imports previously exported resources (folders, network connections) from a file.",
+    "ru": "Импортирует ранее экспортированные ресурсы (папки, сетевые подключения) из файла.",
+    "uk": "Імпортує раніше експортовані ресурси (теки, мережеві підключення) з файлу."
+  },
+  "btnImportSettings": {
+    "en": "Loads app settings from a previously exported file, replacing the current configuration.",
+    "ru": "Загружает настройки из ранее экспортированного файла, заменяя текущую конфигурацию.",
+    "uk": "Завантажує налаштування з раніше експортованого файлу, замінюючи поточну конфігурацію."
+  },
+  "btnImportTestCredentials": {
+    "en": "Imports a predefined test configuration used for QA and integration testing.",
+    "ru": "Импортирует предустановленную тестовую конфигурацию для QA и интеграционного тестирования.",
+    "uk": "Імпортує заздалегідь визначену тестову конфігурацію для QA та інтеграційного тестування."
+  },
+  "btnIntegrationTests": {
+    "en": "Runs the app's built-in integration test suite.",
+    "ru": "Запускает встроенный набор интеграционных тестов приложения.",
+    "uk": "Запускає вбудований набір інтеграційних тестів застосунку."
   },
   "btnOpenAccessibilitySettings": {
     "en": "Opens the Android accessibility settings, where you grant the service that powers silent screenshot capture via the edge gesture. Shown only where the silent-capture method is available.",
@@ -104,50 +119,280 @@
     "ru": "Открывает диалог «Приложение по умолчанию», где можно назначить это приложение обработчиком изображений, аудио, видео и документов по умолчанию.",
     "uk": "Відкриває діалог «Застосунок за замовчуванням», де можна призначити цей застосунок обробником зображень, аудіо, відео та документів за замовчуванням."
   },
+  "btnOpenEdgeGestureConfig": {
+    "en": "Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on.",
+    "ru": "Открывает диалог настройки краевых жестов: интерактивная схема зон, вкладки по зонам (направления + видимость полосы) и общие настройки жестов. Активна только при включённом оверлее жестов.",
+    "uk": "Відкриває діалог налаштування краєвих жестів: інтерактивна схема зон, вкладки за зонами (напрямки + видимість смуги) та загальні налаштування жестів. Активна лише за ввімкненого оверлея жестів."
+  },
+  "btnOpenSourceLicenses": {
+    "en": "Shows the licenses for open-source libraries used in the app.",
+    "ru": "Показывает лицензии библиотек с открытым исходным кодом, используемых в приложении.",
+    "uk": "Показує ліцензії бібліотек із відкритим вихідним кодом, що використовуються в застосунку."
+  },
+  "btnOpenWelcome": {
+    "en": "Reopens the welcome tutorial screen shown on first launch.",
+    "ru": "Повторно открывает вводный экран, который показывается при первом запуске.",
+    "uk": "Повторно відкриває вступний екран, що показується при першому запуску."
+  },
+  "btnPermissionsManagement": {
+    "en": "Opens the permissions and access management screen where you can review and adjust what the app can access.",
+    "ru": "Открывает экран управления разрешениями и доступом для просмотра и изменения прав приложения.",
+    "uk": "Відкриває екран управління дозволами та доступом для перегляду і зміни прав застосунку."
+  },
+  "btnPrivacyPolicy": {
+    "en": "Opens the app's privacy policy.",
+    "ru": "Открывает политику конфиденциальности приложения.",
+    "uk": "Відкриває політику конфіденційності застосунку."
+  },
+  "btnResetGeneralSection": {
+    "en": "Restores all General section settings to their factory defaults.",
+    "ru": "Возвращает все настройки раздела «Общие» к заводским значениям.",
+    "uk": "Повертає всі налаштування розділу «Загальні» до заводських значень."
+  },
+  "btnResetOperationsSection": {
+    "en": "Restores all Management settings in this section to their factory defaults.",
+    "ru": "Возвращает все настройки управления в этом разделе к заводским значениям.",
+    "uk": "Повертає всі налаштування управління в цьому розділі до заводських значень."
+  },
+  "btnResetPlaybackSection": {
+    "en": "Restores all Player settings in this section to their factory defaults.",
+    "ru": "Возвращает все настройки плеера в этом разделе к заводским значениям.",
+    "uk": "Повертає всі налаштування плеєра в цьому розділі до заводських значень."
+  },
+  "btnResetSettings": {
+    "en": "Resets all app settings across every section to factory defaults.",
+    "ru": "Сбрасывает все настройки приложения во всех разделах до заводских значений.",
+    "uk": "Скидає всі налаштування застосунку в усіх розділах до заводських значень."
+  },
+  "btnResetSmbConnections": {
+    "en": "Clears all saved SMB network connection credentials and configurations.",
+    "ru": "Удаляет все сохранённые учётные данные и конфигурации SMB-подключений.",
+    "uk": "Видаляє всі збережені облікові дані та конфігурації SMB-підключень."
+  },
+  "btnRestore": {
+    "en": "Restores app settings from a backup stored in your Google Drive account.",
+    "ru": "Восстанавливает настройки приложения из резервной копии в аккаунте Google Drive.",
+    "uk": "Відновлює налаштування застосунку з резервної копії в акаунті Google Drive."
+  },
+  "btnSaveLogs": {
+    "en": "Saves the current debug log to a file on the device for sharing or inspection.",
+    "ru": "Сохраняет текущий журнал отладки в файл на устройстве для отправки или анализа.",
+    "uk": "Зберігає поточний журнал налагодження у файл на пристрої для надсилання або аналізу."
+  },
+  "btnSelectCameraPhotosDest": {
+    "en": "Selects the destination resource where camera photos are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения снятых фото.",
+    "uk": "Вибирає ресурс призначення для збереження знятих фото."
+  },
+  "btnSelectLinkAutodownloadResource": {
+    "en": "Chooses the destination resource where files from incoming links are downloaded automatically.",
+    "ru": "Выбирает ресурс назначения, куда автоматически загружаются файлы из входящих ссылок.",
+    "uk": "Вибирає ресурс призначення, куди автоматично завантажуються файли з вхідних посилань."
+  },
+  "btnSelectMicRecordingDest": {
+    "en": "Selects the destination resource where microphone recordings are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения записей с микрофона.",
+    "uk": "Вибирає ресурс призначення для збереження записів із мікрофона."
+  },
+  "btnSelectMusicSource": {
+    "en": "Selects the folder or resource used as the music source during slideshow playback.",
+    "ru": "Выбирает папку или ресурс, откуда берётся музыка при воспроизведении слайдшоу.",
+    "uk": "Вибирає теку або ресурс, звідки береться музика під час відтворення слайдшоу."
+  },
+  "btnSelectPhotosSource": {
+    "en": "Chooses the folder or resource used as the photo source during audio playback.",
+    "ru": "Выбирает папку или ресурс, откуда берутся фото при воспроизведении аудио.",
+    "uk": "Вибирає теку або ресурс, звідки беруться фото під час відтворення аудіо."
+  },
+  "btnSelectScreenRecordingDest": {
+    "en": "Selects the destination resource where screen recordings are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения записей экрана.",
+    "uk": "Вибирає ресурс призначення для збереження записів екрана."
+  },
+  "btnSelectSnapshotResource": {
+    "en": "Selects the destination resource where video frame snapshots are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения снимков кадров видео.",
+    "uk": "Вибирає ресурс призначення для збереження знімків кадрів відео."
+  },
+  "btnSelectVideoRecordingDest": {
+    "en": "Selects the destination resource where video recordings are saved.",
+    "ru": "Выбирает ресурс-назначение для сохранения записанных видеофайлов.",
+    "uk": "Вибирає ресурс призначення для збереження записаних відеофайлів."
+  },
+  "btnSetDefaultAudioPlayer": {
+    "en": "Registers this app as the default handler for audio files on the device.",
+    "ru": "Назначает приложение обработчиком аудиофайлов по умолчанию.",
+    "uk": "Призначає застосунок типовим обробником аудіофайлів на пристрої."
+  },
+  "btnSetDefaultDocsViewer": {
+    "en": "Registers this app as the default handler for document files on the device.",
+    "ru": "Назначает приложение обработчиком документов по умолчанию на устройстве.",
+    "uk": "Призначає застосунок типовим обробником документів на пристрої."
+  },
+  "btnSetDefaultImageViewer": {
+    "en": "Registers this app as the default handler for image files on the device.",
+    "ru": "Назначает приложение просмотрщиком изображений по умолчанию на устройстве.",
+    "uk": "Призначає застосунок типовим переглядачем зображень на пристрої."
+  },
+  "btnSetDefaultVideoPlayer": {
+    "en": "Registers this app as the default handler for video files on the device.",
+    "ru": "Назначает приложение видеоплеером по умолчанию на устройстве.",
+    "uk": "Призначає застосунок типовим відеоплеєром на пристрої."
+  },
+  "btnShareLogs": {
+    "en": "Shares the current debug log via the system share sheet.",
+    "ru": "Отправляет текущий журнал отладки через системное меню «Поделиться».",
+    "uk": "Надсилає поточний журнал налагодження через системне меню «Поділитися»."
+  },
+  "btnShowHintNow": {
+    "en": "Schedules the touch zones hint to appear the next time the player opens.",
+    "ru": "Планирует показ подсказки по сенсорным зонам при следующем открытии плеера.",
+    "uk": "Планує показ підказки по сенсорних зонах при наступному відкритті плеєра."
+  },
+  "btnShowLog": {
+    "en": "Opens the full app log for review within the app.",
+    "ru": "Открывает полный журнал приложения для просмотра внутри приложения.",
+    "uk": "Відкриває повний журнал застосунку для перегляду всередині застосунку."
+  },
+  "btnShowSessionLog": {
+    "en": "Opens the log for the current app session only.",
+    "ru": "Открывает журнал только для текущей сессии приложения.",
+    "uk": "Відкриває журнал лише для поточної сесії застосунку."
+  },
+  "btnStreams": {
+    "en": "Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them.",
+    "ru": "Открывает экран Трансляции для интернет-аудио, видео и RTSP-источников, где можно добавить или импортировать трансляции и воспроизвести их.",
+    "uk": "Відкриває екран Трансляції для інтернет-аудіо, відео та RTSP-джерел, де можна додати або імпортувати трансляції та відтворити їх."
+  },
+  "btnSyncNow": {
+    "en": "Triggers an immediate manual sync with configured remote resources.",
+    "ru": "Запускает немедленную ручную синхронизацию с настроенными удалёнными ресурсами.",
+    "uk": "Запускає негайну ручну синхронізацію з налаштованими віддаленими ресурсами."
+  },
+  "btnSystemInfo": {
+    "en": "Displays device and app version information useful for troubleshooting.",
+    "ru": "Показывает информацию об устройстве и версии приложения, полезную при отладке.",
+    "uk": "Показує інформацію про пристрій і версію застосунку, корисну при налагодженні."
+  },
+  "btnTakeScreenshotNow": {
+    "en": "Takes a screenshot of the app right away using the built-in capture flow.",
+    "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",
+    "uk": "Одразу робить знімок екрана застосунку через вбудований механізм захоплення."
+  },
+  "btnTranslationPrewarmRetry": {
+    "en": "Retries initializing the translation engine if the previous attempt failed.",
+    "ru": "Повторяет попытку инициализации движка перевода после предыдущего сбоя.",
+    "uk": "Повторює спробу ініціалізації рушія перекладу після попереднього збою."
+  },
+  "btnUserGuide": {
+    "en": "Opens the full user guide for the app.",
+    "ru": "Открывает полное руководство пользователя приложения.",
+    "uk": "Відкриває повне керівництво користувача застосунку."
+  },
+  "btnWearCompanion": {
+    "en": "Opens settings for the Wear OS companion app pairing and configuration.",
+    "ru": "Открывает настройки сопряжения и конфигурации Wear OS-компаньона.",
+    "uk": "Відкриває налаштування з'єднання та конфігурації Wear OS-супутника."
+  },
+  "buttonAddHomeWidget": {
+    "en": "Launches the widget picker so you can add an app widget to the home screen.",
+    "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
+    "uk": "Відкриває вибір віджетів для додавання віджету застосунку на головний екран."
+  },
+  "etIconSize": {
+    "en": "Sets the thumbnail icon size in pixels for grid view.",
+    "ru": "Задаёт размер иконок-миниатюр в пикселях для режима отображения сеткой.",
+    "uk": "Задає розмір іконок-мініатюр у пікселях для режиму відображення сіткою."
+  },
   "etMaxRecipients": {
     "en": "Sets the maximum number of recipients (1-30) when sharing files.",
     "ru": "Задаёт максимальное количество получателей (1-30) при отправке файлов.",
     "uk": "Задає максимальну кількість отримувачів (1-30) при надсиланні файлів."
+  },
+  "etSlideshowInterval": {
+    "en": "Sets the default number of seconds each slide is shown during a slideshow.",
+    "ru": "Задаёт количество секунд по умолчанию, в течение которых показывается каждый слайд в слайдшоу.",
+    "uk": "Задає кількість секунд за замовчуванням, протягом яких показується кожен слайд у слайдшоу."
   },
   "headerAdditionalPrograms": {
     "en": "Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game.",
     "ru": "Настройки дополнительных программ и сценариев: перевод текста с камеры, калькулятор и мини-игра.",
     "uk": "Налаштування додаткових програм і сценаріїв: переклад тексту з камери, калькулятор та міні-гра."
   },
+  "headerAppData": {
+    "en": "Settings for backing up, restoring, and exporting app data and configuration.",
+    "ru": "Настройки резервного копирования, восстановления и экспорта данных и конфигурации приложения.",
+    "uk": "Налаштування резервного копіювання, відновлення й експорту даних і конфігурації застосунку."
+  },
+  "headerAuthorization": {
+    "en": "Settings for linked accounts and authorization with cloud and remote services.",
+    "ru": "Настройки подключённых аккаунтов и авторизации в облачных и удалённых сервисах.",
+    "uk": "Налаштування підключених акаунтів та авторизації в хмарних і віддалених сервісах."
+  },
+  "headerBackgroundAudio": {
+    "en": "Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar.",
+    "ru": "Настройки фонового воспроизведения аудио - продолжение в фоне, поведение при выходе из плеера или трансляций и панель «сейчас играет».",
+    "uk": "Налаштування фонового відтворення аудіо - продовження у фоні, поведінка при виході з плеєра або трансляцій і панель «зараз грає»."
+  },
   "headerBehaviour": {
     "en": "Settings that control how the app behaves and what operations are allowed.",
     "ru": "Настройки поведения приложения и разрешённых операций.",
     "uk": "Налаштування поведінки застосунку і дозволених операцій."
-  },
-  "headerCopyMove": {
-    "en": "Settings that control what happens when files are copied, moved, or a name conflict occurs.",
-    "ru": "Настройки, определяющие поведение при копировании, перемещении и конфликтах имён.",
-    "uk": "Налаштування поведінки при копіюванні, переміщенні та конфліктах імен."
-  },
-  "headerDestinations": {
-    "en": "Folders and resources used as Quick Sort targets when sorting files.",
-    "ru": "Папки и ресурсы, используемые как назначения при быстрой сортировке файлов.",
-    "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
   "headerCameraPhotos": {
     "en": "Settings for taking photos with the in-app camera and choosing where captured photos are saved.",
     "ru": "Настройки съёмки фото встроенной камерой и выбора папки для сохранения снимков.",
     "uk": "Налаштування зйомки фото вбудованою камерою та вибору теки для збереження знімків."
   },
-  "headerVideoCapture": {
-    "en": "Settings for recording video with the in-app camera and choosing where recordings are saved.",
-    "ru": "Настройки записи видео встроенной камерой и выбора папки для сохранения записей.",
-    "uk": "Налаштування запису відео вбудованою камерою та вибору теки для збереження записів."
+  "headerCopyMove": {
+    "en": "Settings that control what happens when files are copied, moved, or a name conflict occurs.",
+    "ru": "Настройки, определяющие поведение при копировании, перемещении и конфликтах имён.",
+    "uk": "Налаштування поведінки при копіюванні, переміщенні та конфліктах імен."
+  },
+  "headerDebugSettings": {
+    "en": "Tools for viewing logs, running integration tests, and diagnosing app issues.",
+    "ru": "Инструменты для просмотра журналов, запуска интеграционных тестов и диагностики проблем.",
+    "uk": "Інструменти для перегляду журналів, запуску інтеграційних тестів і діагностики проблем."
+  },
+  "headerDestinations": {
+    "en": "Folders and resources used as Quick Sort targets when sorting files.",
+    "ru": "Папки и ресурсы, используемые как назначения при быстрой сортировке файлов.",
+    "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
+  },
+  "headerFileBrowser": {
+    "en": "Settings that control the layout and behavior of the file browser.",
+    "ru": "Настройки, управляющие внешним видом и поведением браузера файлов.",
+    "uk": "Налаштування, що керують виглядом і поведінкою браузера файлів."
+  },
+  "headerFileOperations": {
+    "en": "Settings for deleting and renaming files while inside the player.",
+    "ru": "Настройки удаления и переименования файлов при работе в плеере.",
+    "uk": "Налаштування видалення й перейменування файлів під час роботи в плеєрі."
+  },
+  "headerInterface": {
+    "en": "Settings that control the overall look and interaction style of the app.",
+    "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
+    "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
+  },
+  "headerMainWindowInterface": {
+    "en": "Settings that control which optional panels and menus appear on the main window.",
+    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
+    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються на головному вікні."
   },
   "headerMicRecording": {
     "en": "Settings for recording voice notes with the microphone and choosing where recordings are saved.",
     "ru": "Настройки записи с микрофона (диктофон) и выбора папки для сохранения записей.",
     "uk": "Налаштування запису з мікрофона (диктофон) та вибору теки для збереження записів."
   },
-  "headerScreenRecording": {
-    "en": "Settings for recording video of the screen and choosing where recordings are saved.",
-    "ru": "Настройки записи видео с экрана и выбора папки для сохранения записей.",
-    "uk": "Налаштування запису відео з екрана та вибору теки для збереження записів."
+  "headerPlayerUI": {
+    "en": "Settings for the player's visual interface, control buttons, and command layout.",
+    "ru": "Настройки визуального интерфейса плеера, кнопок управления и раскладки команд.",
+    "uk": "Налаштування візуального інтерфейсу плеєра, кнопок керування і розкладки команд."
+  },
+  "headerRemoteSources": {
+    "en": "Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage.",
+    "ru": "Настройки подключения к удалённым источникам файлов: SMB-ресурсам, FTP/SFTP-серверам и облачному хранилищу.",
+    "uk": "Налаштування підключення до віддалених джерел файлів: SMB-ресурсів, FTP/SFTP-серверів і хмарного сховища."
   },
   "headerSafety": {
     "en": "Settings that control how files are deleted and whether a trash folder is used.",
@@ -164,10 +409,80 @@
     "ru": "Настройки жестов, активируемых свайпом с левого края экрана.",
     "uk": "Налаштування жестів, що активуються свайпом з лівого краю екрана."
   },
+  "headerScreenRecording": {
+    "en": "Settings for recording video of the screen and choosing where recordings are saved.",
+    "ru": "Настройки записи видео с экрана и выбора папки для сохранения записей.",
+    "uk": "Налаштування запису відео з екрана та вибору теки для збереження записів."
+  },
+  "headerSendCommands": {
+    "en": "Settings for the \"Send file to..\" commands shown in the player.",
+    "ru": "Настройки команд «Отправить файл в..», доступных в плеере.",
+    "uk": "Налаштування команд «Надіслати файл у..», доступних у плеєрі."
+  },
+  "headerSortingSlideshow": {
+    "en": "Settings for file sort order, slideshow behavior, and playback sequence.",
+    "ru": "Настройки порядка сортировки файлов, поведения слайдшоу и последовательности воспроизведения.",
+    "uk": "Налаштування порядку сортування файлів, поведінки слайдшоу й послідовності відтворення."
+  },
+  "headerSystem": {
+    "en": "Settings for background sync, network connection limits, and local cache management.",
+    "ru": "Настройки фоновой синхронизации, сетевых подключений и управления локальным кэшем.",
+    "uk": "Налаштування фонової синхронізації, мережевих підключень і управління локальним кешем."
+  },
   "headerSystemApps": {
     "en": "Settings that control how the app integrates with the Android operating system.",
     "ru": "Настройки взаимодействия приложения с операционной системой Android.",
     "uk": "Налаштування взаємодії застосунку з операційною системою Android."
+  },
+  "headerTouchZones": {
+    "en": "Settings for the player's tap-zone layout and on-screen usage hints.",
+    "ru": "Настройки раскладки зон касания плеера и экранных подсказок по использованию.",
+    "uk": "Налаштування розкладки зон дотику плеєра й екранних підказок щодо використання."
+  },
+  "headerVideoCapture": {
+    "en": "Settings for recording video with the in-app camera and choosing where recordings are saved.",
+    "ru": "Настройки записи видео встроенной камерой и выбора папки для сохранения записей.",
+    "uk": "Налаштування запису відео вбудованою камерою та вибору теки для збереження записів."
+  },
+  "layoutExtensionsManager": {
+    "en": "Manages downloadable OCR and translation components.",
+    "ru": "Управляет загружаемыми компонентами OCR и перевода.",
+    "uk": "Керує завантажуваними компонентами OCR та перекладу."
+  },
+  "rowAllFiles": {
+    "en": "Grants access to all files on the device, including system folders (requires All Files permission).",
+    "ru": "Открывает доступ ко всем файлам на устройстве, включая системные папки (требует разрешения «Все файлы»).",
+    "uk": "Відкриває доступ до всіх файлів на пристрої, включно з системними теками (потребує дозволу «Всі файли»)."
+  },
+  "rowAllowDelete": {
+    "en": "Allows deleting the current file directly from inside the player.",
+    "ru": "Разрешает удалять текущий файл непосредственно из плеера.",
+    "uk": "Дозволяє видаляти поточний файл безпосередньо з плеєра."
+  },
+  "rowAllowRename": {
+    "en": "Allows renaming the current file directly from inside the player.",
+    "ru": "Разрешает переименовывать текущий файл непосредственно из плеера.",
+    "uk": "Дозволяє перейменовувати поточний файл безпосередньо з плеєра."
+  },
+  "rowAllowSeparateWindow": {
+    "en": "Allows opening additional app windows in multi-window or split-screen mode.",
+    "ru": "Разрешает открывать дополнительные окна приложения в многооконном или разделённом режиме.",
+    "uk": "Дозволяє відкривати додаткові вікна застосунку в багатовіконному або розділеному режимі."
+  },
+  "rowAlwaysShowTouchZones": {
+    "en": "Keeps the touch zone grid permanently visible over the player instead of showing it only on tap.",
+    "ru": "Постоянно отображает сетку сенсорных зон поверх плеера вместо показа только по касанию.",
+    "uk": "Постійно відображає сітку сенсорних зон поверх плеєра замість показу лише при дотику."
+  },
+  "rowAudioEmptyStateMode": {
+    "en": "Chooses what is shown in place of missing album cover art during audio playback.",
+    "ru": "Выбирает, что показывать вместо отсутствующей обложки альбома при воспроизведении аудио.",
+    "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
+  },
+  "rowBigButtonsMode": {
+    "en": "Enlarges the player control buttons for easier tapping on large or touch-only screens.",
+    "ru": "Увеличивает кнопки управления плеером для удобства нажатия на больших экранах или при сенсорном управлении.",
+    "uk": "Збільшує кнопки керування плеєром для зручного натискання на великих або сенсорних екранах."
   },
   "rowCameraAskFilename": {
     "en": "Prompts you to enter a name for each photo immediately after it is captured.",
@@ -204,30 +519,95 @@
     "ru": "Включает встроенную кнопку камеры для съёмки фото прямо в приложении.",
     "uk": "Вмикає вбудовану кнопку камери для зйомки фото безпосередньо в застосунку."
   },
+  "rowCatalogRefresh": {
+    "en": "Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi.",
+    "ru": "Выбирает, когда приложение обновляет список каналов - только по запросу, предлагая обновление при открытии «Трансляций», или автоматически по Wi-Fi.",
+    "uk": "Вибирає, коли застосунок оновлює список каналів - лише на запит, пропонуючи оновлення при відкритті «Трансляцій», або автоматично по Wi-Fi."
+  },
+  "rowCompactElements": {
+    "en": "Reduces the padding and size of all list elements globally, fitting more items on screen.",
+    "ru": "Глобально уменьшает отступы и размер элементов списков, чтобы на экране помещалось больше элементов.",
+    "uk": "Глобально зменшує відступи і розмір елементів списків, щоб на екрані вміщалося більше елементів."
+  },
   "rowConfirmDelete": {
-    "en": "Shows a confirmation dialog before permanently deleting a file in the file browser.",
-    "ru": "Показывает диалог подтверждения перед окончательным удалением файла в браузере.",
-    "uk": "Показує діалог підтвердження перед остаточним видаленням файлу в браузері."
+    "en": "Shows a confirmation dialog before deleting a file from inside the player.",
+    "ru": "Показывает диалог подтверждения перед удалением файла из плеера.",
+    "uk": "Показує діалог підтвердження перед видаленням файлу з плеєра."
   },
   "rowConfirmMove": {
     "en": "Shows a confirmation dialog before moving a file to a different destination.",
     "ru": "Показывает диалог подтверждения перед перемещением файла в другое место.",
     "uk": "Показує діалог підтвердження перед переміщенням файлу в інше місце."
   },
+  "rowControlsKeybindings": {
+    "en": "Opens the controls and key-binding configuration for navigation and playback.",
+    "ru": "Открывает настройку управления и привязок клавиш для навигации и воспроизведения.",
+    "uk": "Відкриває налаштування керування та прив'язок клавіш для навігації та відтворення."
+  },
+  "rowCropImagesToFullscreen": {
+    "en": "Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing.",
+    "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
+    "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
+  },
+  "rowDefaultAudioLanguage": {
+    "en": "Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice.",
+    "ru": "Выбирает язык аудио, который приложение предпочтёт, если в трансляции несколько дорожек. Канал, которому вы задали язык вручную, сохраняет свой выбор.",
+    "uk": "Обирає мову аудіо, якій застосунок віддасть перевагу, якщо в трансляції кілька доріжок. Канал, якому ви задали мову вручну, зберігає власний вибір."
+  },
+  "rowDefaultGridMode": {
+    "en": "Opens the file browser in grid view by default instead of list view.",
+    "ru": "Открывает браузер файлов сеткой по умолчанию вместо режима списка.",
+    "uk": "Відкриває браузер файлів сіткою за замовчуванням замість режиму списку."
+  },
+  "rowDefaultMediaFilter": {
+    "en": "Sets which channels the Streams screen shows by default - all of them, only audio, or only video.",
+    "ru": "Задаёт, какие каналы экран «Трансляции» показывает по умолчанию - все, только аудио или только видео.",
+    "uk": "Задає, які канали екран «Трансляції» показує за замовчуванням - усі, лише аудіо або лише відео."
+  },
   "rowDefaultRememberFileList": {
     "en": "Pre-enables the \"remember file list\" option for newly added resources by default.",
     "ru": "По умолчанию включает опцию «запоминать список файлов» для новых добавляемых ресурсов.",
     "uk": "За замовчуванням вмикає опцію «запам'ятовувати список файлів» для нових доданих ресурсів."
+  },
+  "rowDefaultSort": {
+    "en": "Sets the order channels appear in when you open the Streams screen.",
+    "ru": "Задаёт порядок, в котором каналы показываются при открытии экрана «Трансляции».",
+    "uk": "Задає порядок, у якому канали показуються при відкритті екрана «Трансляції»."
+  },
+  "rowDefaultSubtitleLanguage": {
+    "en": "Picks the subtitle language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice.",
+    "ru": "Выбирает язык субтитров, который приложение предпочтёт, если в трансляции несколько дорожек. Канал, которому вы задали язык вручную, сохраняет свой выбор.",
+    "uk": "Обирає мову субтитрів, якій застосунок віддасть перевагу, якщо в трансляції кілька доріжок. Канал, якому ви задали мову вручну, зберігає власний вибір."
   },
   "rowDetailedErrors": {
     "en": "Shows technical error details (codes and context) alongside the human-readable message.",
     "ru": "Показывает технические подробности ошибок (коды и контекст) вместе с понятным описанием.",
     "uk": "Показує технічні подробиці помилок (коди та контекст) разом із зрозумілим описом."
   },
+  "rowDeviceProfile": {
+    "en": "Selects the device profile that adapts the interface and controls to your device type.",
+    "ru": "Выбирает профиль устройства, адаптирующий интерфейс и элементы управления под тип устройства.",
+    "uk": "Вибирає профіль пристрою, що адаптує інтерфейс та елементи керування під тип пристрою."
+  },
+  "rowDisableNineZone": {
+    "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
+    "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
+    "uk": "Вимикає 9-зонову сенсорну сітку; повноекранний плеєр переходить на спрощену розкладку з 3 зон (попередній / зум / наступний) з областю командної панелі біля лівого краю."
+  },
+  "rowDynamicBackground": {
+    "en": "Extends the image edges into a blurred background to fill the screen without cropping.",
+    "ru": "Расширяет края изображения размытым фоном для заполнения экрана без обрезки.",
+    "uk": "Розширює краї зображення розмитим фоном для заповнення екрана без обрізання."
+  },
   "rowEmbeddedGame": {
     "en": "Enables the hidden mini-game built into the app.",
     "ru": "Включает встроенную в приложение мини-игру.",
     "uk": "Вмикає вбудовану в застосунок мінігру."
+  },
+  "rowEnableBackgroundSync": {
+    "en": "Lets the app sync remote resources in the background when the device is idle.",
+    "ru": "Позволяет приложению синхронизировать удалённые ресурсы в фоне, когда устройство не используется.",
+    "uk": "Дозволяє застосунку синхронізувати віддалені ресурси у фоні, коли пристрій не використовується."
   },
   "rowEnableCalculator": {
     "en": "Enables a quick-access calculator within the app.",
@@ -239,10 +619,35 @@
     "ru": "Разрешает копировать файлы в назначения быстрой сортировки.",
     "uk": "Дозволяє копіювати файли до призначень швидкого сортування."
   },
+  "rowEnableFavorites": {
+    "en": "Enables the Favorites feature so you can mark and quickly access starred files.",
+    "ru": "Включает функцию «Избранное» для пометки и быстрого доступа к отмеченным файлам.",
+    "uk": "Вмикає функцію «Обране» для позначення та швидкого доступу до відзначених файлів."
+  },
   "rowEnableMoving": {
     "en": "Allows files to be moved to Quick Sort destinations.",
     "ru": "Разрешает перемещать файлы в назначения быстрой сортировки.",
     "uk": "Дозволяє переміщати файли до призначень швидкого сортування."
+  },
+  "rowEnableOcr": {
+    "en": "Enables on-device text recognition (OCR) so you can extract text from images.",
+    "ru": "Включает распознавание текста на устройстве (OCR) для извлечения текста из изображений.",
+    "uk": "Вмикає розпізнавання тексту на пристрої (OCR) для витягування тексту із зображень."
+  },
+  "rowEnablePersistentAudioPlayback": {
+    "en": "Keeps audio playing when you leave the app or lock the screen.",
+    "ru": "Продолжает воспроизведение аудио при сворачивании приложения или блокировке экрана.",
+    "uk": "Продовжує відтворення аудіо при згортанні застосунку або блокуванні екрана."
+  },
+  "rowEnablePhotosDuringAudio": {
+    "en": "Displays random photos from the selected source while audio is playing.",
+    "ru": "Показывает случайные фото из выбранного источника во время воспроизведения аудио.",
+    "uk": "Показує випадкові фото з вибраного джерела під час відтворення аудіо."
+  },
+  "rowEnablePip": {
+    "en": "Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player.",
+    "ru": "Включает режим «Картинка в картинке», позволяя продолжить просмотр в плавающем окне при выходе из плеера.",
+    "uk": "Вмикає режим «Картинка в картинці», дозволяючи продовжити перегляд у плаваючому вікні при виході з плеєра."
   },
   "rowEnableSafeMode": {
     "en": "Activates Safe Mode, which restricts destructive operations to prevent accidental file loss.",
@@ -254,10 +659,40 @@
     "ru": "Включает планировщик для автоматического выполнения настроенных операций в заданное время.",
     "uk": "Вмикає планувальник для автоматичного виконання налаштованих операцій у заданий час."
   },
+  "rowEnableStatistics": {
+    "en": "Enables anonymous usage statistics collection to help improve the app.",
+    "ru": "Включает сбор анонимной статистики использования для улучшения приложения.",
+    "uk": "Вмикає збір анонімної статистики використання для вдосконалення застосунку."
+  },
+  "rowEnableStreams": {
+    "en": "Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen.",
+    "ru": "Главный переключатель функции «Трансляции». Когда выключен, пункт «Трансляции» скрыт из главного меню и приветственного экрана.",
+    "uk": "Головний перемикач функції «Трансляції». Коли вимкнено, пункт «Трансляції» приховано з головного меню та вітального екрана."
+  },
+  "rowEnableThumbnailPreload": {
+    "en": "Preloads thumbnails for files ahead of scrolling so the grid loads faster.",
+    "ru": "Предварительно загружает миниатюры файлов при прокрутке, чтобы сетка открывалась быстрее.",
+    "uk": "Попередньо завантажує мініатюри файлів при прокручуванні, щоб сітка відкривалася швидше."
+  },
+  "rowEnableTranslation": {
+    "en": "Enables on-device text translation of recognized text.",
+    "ru": "Включает перевод распознанного текста прямо на устройстве.",
+    "uk": "Вмикає переклад розпізнаного тексту безпосередньо на пристрої."
+  },
+  "rowFileOpsInOverflowMenu": {
+    "en": "Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons.",
+    "ru": "Перемещает операции с файлами (копирование, перемещение, удаление) в меню ⋮ вместо отдельных кнопок.",
+    "uk": "Переміщає операції з файлами (копіювання, переміщення, видалення) до меню ⋮ замість окремих кнопок."
+  },
   "rowFollowSystemRotation": {
     "en": "When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock.",
     "ru": "Когда включено, все окна приложения, кроме плеера, следуют системному авто-повороту; когда выключено, они поворачиваются по датчику устройства независимо от блокировки ОС.",
     "uk": "Коли увімкнено, усі вікна застосунку, крім плеєра, слідують системному авто-повороту; коли вимкнено, вони повертаються за датчиком пристрою незалежно від блокування ОС."
+  },
+  "rowFollowSystemRotationPlayer": {
+    "en": "Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle.",
+    "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
+    "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
   },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",
@@ -269,10 +704,30 @@
     "ru": "Автоматически переходит к следующему файлу в списке после завершения копирования.",
     "uk": "Автоматично переходить до наступного файлу в списку після завершення копіювання."
   },
+  "rowHideGridActionButtons": {
+    "en": "Hides the quick action buttons overlaid on thumbnails in grid view.",
+    "ru": "Скрывает кнопки быстрых действий, отображаемые поверх миниатюр в режиме сетки.",
+    "uk": "Приховує кнопки швидких дій, що відображаються поверх мініатюр у режимі сітки."
+  },
+  "rowHideSystemUiInFullscreen": {
+    "en": "Hides the status bar and navigation bar when the player is in fullscreen mode.",
+    "ru": "Скрывает строку состояния и навигационную панель в полноэкранном режиме плеера.",
+    "uk": "Приховує рядок стану та панель навігації в повноекранному режимі плеєра."
+  },
   "rowKeepScreenOnPlayer": {
     "en": "Prevents the screen from turning off while the media player is active.",
     "ru": "Не даёт экрану отключаться во время работы медиаплеера.",
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
+  },
+  "rowLauncherModeEnabled": {
+    "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
+    "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
+    "uk": "Робить застосунок домашнім екраном пристрою - кнопка «Додому» відкриває ваш робочий стіл."
+  },
+  "rowLauncherSettings": {
+    "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
+    "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
+    "uk": "Відкриває діалог налаштувань системного лаунчера для налаштування робочого столу, панелі задач і щільності сітки."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",
@@ -284,6 +739,11 @@
     "ru": "Открывает скачанный файл в плеере сразу после завершения автоматической загрузки.",
     "uk": "Відкриває завантажений файл у плеєрі одразу після завершення автоматичного завантаження."
   },
+  "rowLoadFullSizeImages": {
+    "en": "Loads images at their original resolution instead of downsampling them for display.",
+    "ru": "Загружает изображения в оригинальном разрешении без уменьшения для отображения.",
+    "uk": "Завантажує зображення в оригінальному розрізненні без зменшення для відображення."
+  },
   "rowMicRecordingAskFilename": {
     "en": "Prompts you to enter a filename before each microphone recording starts.",
     "ru": "Предлагает ввести имя файла перед началом каждой записи с микрофона.",
@@ -294,10 +754,30 @@
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
   },
-  "rowScreenRecordingEnabled": {
-    "en": "Enables the built-in screen video recording feature.",
-    "ru": "Включает встроенную функцию видеозаписи экрана.",
-    "uk": "Вмикає вбудовану функцію відеозапису екрана."
+  "rowOcrEngineType": {
+    "en": "Selects which on-device text-recognition engine is used for OCR.",
+    "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
+    "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
+  },
+  "rowOcrFontFamily": {
+    "en": "Sets the font family used to display recognized OCR text.",
+    "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
+    "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+  },
+  "rowOcrFontSize": {
+    "en": "Sets the font size used to display recognized OCR text.",
+    "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
+    "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
+  },
+  "rowOpenStatistics": {
+    "en": "Opens the usage statistics screen.",
+    "ru": "Открывает экран статистики использования.",
+    "uk": "Відкриває екран статистики використання."
+  },
+  "rowOpenVideoInFullscreen": {
+    "en": "Launches video playback straight into fullscreen mode when a video is opened from Browse.",
+    "ru": "Запускает воспроизведение видео сразу в полноэкранном режиме при открытии из браузера файлов.",
+    "uk": "Запускає відтворення відео одразу в повноекранному режимі при відкритті з браузера файлів."
   },
   "rowOverwriteOnCopy": {
     "en": "Overwrites the existing file at the destination when a name conflict occurs during copying.",
@@ -309,380 +789,135 @@
     "ru": "Перезаписывает существующий файл в назначении при конфликте имён во время перемещения.",
     "uk": "Перезаписує наявний файл у призначенні при конфлікті імен під час переміщення."
   },
+  "rowPaddleOcrModel": {
+    "en": "Selects which PaddleOCR model is used for text recognition.",
+    "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
+    "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
+  },
+  "rowPanelStereoSingleEye": {
+    "en": "Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing.",
+    "ru": "Отображает 3D-контент (side-by-side) с перспективой одного глаза для обычного просмотра без VR.",
+    "uk": "Відображає 3D-контент (side-by-side) з перспективою одного ока для звичайного перегляду без VR."
+  },
+  "rowPlayToEnd": {
+    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
+    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
+    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
+  },
+  "rowPlayerShowFps": {
+    "en": "Displays the current frames-per-second counter over the video while it is playing.",
+    "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
+    "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
+  },
   "rowPreventSleep": {
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
     "ru": "Не даёт устройству уйти в спящий режим, пока приложение активно на переднем плане.",
     "uk": "Не дає пристрою перейти в сплячий режим, поки застосунок активний на передньому плані."
-  },
-  "rowResumeOnNextLaunch": {
-    "en": "Resumes playback from where it was stopped the next time you open the app.",
-    "ru": "Возобновляет воспроизведение с места остановки при следующем открытии приложения.",
-    "uk": "Відновлює відтворення з місця зупинки при наступному відкритті застосунку."
-  },
-  "rowUseTrash": {
-    "en": "Moves deleted files to a .trash folder instead of removing them immediately.",
-    "ru": "Перемещает удалённые файлы в папку .trash вместо немедленного удаления.",
-    "uk": "Переміщає видалені файли до теки .trash замість негайного видалення."
-  },
-  "rowVideoCaptureEnabled": {
-    "en": "Enables the built-in video recording feature.",
-    "ru": "Включает встроенную функцию записи видео.",
-    "uk": "Вмикає вбудовану функцію запису відео."
-  },
-  "rowVideoCaptureOpenInPlayer": {
-    "en": "Opens the recorded video in the player immediately after recording stops.",
-    "ru": "Открывает записанное видео в плеере сразу после остановки записи.",
-    "uk": "Відкриває записане відео в плеєрі одразу після зупинки запису."
-  },
-  "btnSetDefaultDocsViewer": {
-    "en": "Registers this app as the default handler for document files on the device.",
-    "ru": "Назначает приложение обработчиком документов по умолчанию на устройстве.",
-    "uk": "Призначає застосунок типовим обробником документів на пристрої."
-  },
-  "rowShowPdfThumbnails": {
-    "en": "Generates preview thumbnails for large PDF files - slower but more informative in the file browser.",
-    "ru": "Создаёт миниатюры для больших PDF-файлов - медленнее, но нагляднее в браузере файлов.",
-    "uk": "Створює мініатюри для великих PDF-файлів - повільніше, але наочніше в браузері файлів."
-  },
-  "rowShowTextLineNumbers": {
-    "en": "Displays line numbers in the margin when viewing text files.",
-    "ru": "Показывает номера строк в поле слева при просмотре текстовых файлов.",
-    "uk": "Показує номери рядків у полі зліва при перегляді текстових файлів."
-  },
-  "rowSupportEpub": {
-    "en": "Enables viewing of EPUB e-book files in the built-in reader.",
-    "ru": "Включает просмотр файлов EPUB во встроенном ридере.",
-    "uk": "Вмикає перегляд файлів EPUB у вбудованому рідері."
-  },
-  "rowSupportOfficeDocuments": {
-    "en": "Enables viewing of Word, Excel, PowerPoint, and other Office-format documents.",
-    "ru": "Включает просмотр документов Word, Excel, PowerPoint и других форматов Office.",
-    "uk": "Вмикає перегляд документів Word, Excel, PowerPoint та інших форматів Office."
-  },
-  "rowSupportPdf": {
-    "en": "Enables viewing of PDF files in the built-in document viewer.",
-    "ru": "Включает просмотр PDF-файлов во встроенном просмотрщике документов.",
-    "uk": "Вмикає перегляд PDF-файлів у вбудованому переглядачі документів."
-  },
-  "rowSupportText": {
-    "en": "Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer.",
-    "ru": "Включает просмотр текстовых файлов (.txt, .md, .log, .json, .xml) во встроенном просмотрщике.",
-    "uk": "Вмикає перегляд текстових файлів (.txt, .md, .log, .json, .xml) у вбудованому переглядачі."
-  },
-  "btnAutoCalculateCache": {
-    "en": "Automatically calculates and sets the recommended cache size based on available storage.",
-    "ru": "Автоматически рассчитывает и задаёт рекомендуемый размер кэша на основе доступного хранилища.",
-    "uk": "Автоматично розраховує і задає рекомендований розмір кешу на основі доступного сховища."
-  },
-  "btnBackup": {
-    "en": "Backs up all app settings to your Google Drive account.",
-    "ru": "Создаёт резервную копию всех настроек приложения в аккаунте Google Drive.",
-    "uk": "Створює резервну копію всіх налаштувань застосунку в акаунті Google Drive."
-  },
-  "btnClearCache": {
-    "en": "Deletes all locally cached thumbnails and metadata to free up storage.",
-    "ru": "Удаляет все локально кэшированные миниатюры и метаданные для освобождения места.",
-    "uk": "Видаляє всі локально кешовані мініатюри та метадані для звільнення місця."
-  },
-  "btnClearStreamingCache": {
-    "en": "Deletes temporary files buffered during streaming playback.",
-    "ru": "Удаляет временные файлы, накопленные при потоковом воспроизведении.",
-    "uk": "Видаляє тимчасові файли, накопичені під час потокового відтворення."
-  },
-  "btnDownloadableExtensions": {
-    "en": "Opens the downloadable extensions manager where you can install optional feature modules.",
-    "ru": "Открывает менеджер загружаемых расширений для установки дополнительных модулей.",
-    "uk": "Відкриває менеджер додаткових модулів для встановлення опціональних розширень."
-  },
-  "btnExportFavorites": {
-    "en": "Exports your saved favorites list to a file you can back up or transfer.",
-    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса.",
-    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення."
-  },
-  "btnExportResources": {
-    "en": "Saves all configured resources (folders, network connections) to an export file.",
-    "ru": "Сохраняет все настроенные ресурсы (папки, сетевые подключения) в файл экспорта.",
-    "uk": "Зберігає всі налаштовані ресурси (теки, мережеві підключення) у файл експорту."
-  },
-  "btnExportSettings": {
-    "en": "Saves all app settings to a file so you can restore or transfer them later.",
-    "ru": "Сохраняет все настройки приложения в файл для последующего восстановления или переноса.",
-    "uk": "Зберігає всі налаштування застосунку у файл для подальшого відновлення або перенесення."
-  },
-  "btnCompanionPublishGuide": {
-    "en": "Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan).",
-    "ru": "Открывает PC-инструкцию по публикации папок для Android через SFTP (companion-импорт / скан QR).",
-    "uk": "Відкриває PC-інструкцію з публікації тек для Android через SFTP (companion-імпорт / скан QR)."
-  },
-  "btnHowToGuides": {
-    "en": "Opens step-by-step how-to guides for the app's main features.",
-    "ru": "Открывает пошаговые инструкции по основным функциям приложения.",
-    "uk": "Відкриває покрокові інструкції з основних функцій застосунку."
-  },
-  "btnImportFavorites": {
-    "en": "Imports a previously exported favorites list from a file.",
-    "ru": "Импортирует ранее экспортированный список избранного из файла.",
-    "uk": "Імпортує раніше експортований список обраного з файлу."
-  },
-  "btnImportResources": {
-    "en": "Imports previously exported resources (folders, network connections) from a file.",
-    "ru": "Импортирует ранее экспортированные ресурсы (папки, сетевые подключения) из файла.",
-    "uk": "Імпортує раніше експортовані ресурси (теки, мережеві підключення) з файлу."
-  },
-  "btnImportSettings": {
-    "en": "Loads app settings from a previously exported file, replacing the current configuration.",
-    "ru": "Загружает настройки из ранее экспортированного файла, заменяя текущую конфигурацию.",
-    "uk": "Завантажує налаштування з раніше експортованого файлу, замінюючи поточну конфігурацію."
-  },
-  "btnImportTestCredentials": {
-    "en": "Imports a predefined test configuration used for QA and integration testing.",
-    "ru": "Импортирует предустановленную тестовую конфигурацию для QA и интеграционного тестирования.",
-    "uk": "Імпортує заздалегідь визначену тестову конфігурацію для QA та інтеграційного тестування."
-  },
-  "btnIntegrationTests": {
-    "en": "Runs the app's built-in integration test suite.",
-    "ru": "Запускает встроенный набор интеграционных тестов приложения.",
-    "uk": "Запускає вбудований набір інтеграційних тестів застосунку."
-  },
-  "btnOpenSourceLicenses": {
-    "en": "Shows the licenses for open-source libraries used in the app.",
-    "ru": "Показывает лицензии библиотек с открытым исходным кодом, используемых в приложении.",
-    "uk": "Показує ліцензії бібліотек із відкритим вихідним кодом, що використовуються в застосунку."
-  },
-  "btnOpenWelcome": {
-    "en": "Reopens the welcome tutorial screen shown on first launch.",
-    "ru": "Повторно открывает вводный экран, который показывается при первом запуске.",
-    "uk": "Повторно відкриває вступний екран, що показується при першому запуску."
-  },
-  "btnPermissionsManagement": {
-    "en": "Opens the permissions and access management screen where you can review and adjust what the app can access.",
-    "ru": "Открывает экран управления разрешениями и доступом для просмотра и изменения прав приложения.",
-    "uk": "Відкриває екран управління дозволами та доступом для перегляду і зміни прав застосунку."
-  },
-  "btnStreams": {
-    "en": "Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them.",
-    "ru": "Открывает экран Трансляции для интернет-аудио, видео и RTSP-источников, где можно добавить или импортировать трансляции и воспроизвести их.",
-    "uk": "Відкриває екран Трансляції для інтернет-аудіо, відео та RTSP-джерел, де можна додати або імпортувати трансляції та відтворити їх."
-  },
-  "rowEnableStreams": {
-    "en": "Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen.",
-    "ru": "Главный переключатель функции «Трансляции». Когда выключен, пункт «Трансляции» скрыт из главного меню и приветственного экрана.",
-    "uk": "Головний перемикач функції «Трансляції». Коли вимкнено, пункт «Трансляції» приховано з головного меню та вітального екрана."
-  },
-  "rowDefaultSort": {
-    "en": "Sets the order channels appear in when you open the Streams screen.",
-    "ru": "Задаёт порядок, в котором каналы показываются при открытии экрана «Трансляции».",
-    "uk": "Задає порядок, у якому канали показуються при відкритті екрана «Трансляції»."
-  },
-  "rowDefaultMediaFilter": {
-    "en": "Sets which channels the Streams screen shows by default - all of them, only audio, or only video.",
-    "ru": "Задаёт, какие каналы экран «Трансляции» показывает по умолчанию - все, только аудио или только видео.",
-    "uk": "Задає, які канали екран «Трансляції» показує за замовчуванням - усі, лише аудіо або лише відео."
-  },
-  "rowCatalogRefresh": {
-    "en": "Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi.",
-    "ru": "Выбирает, когда приложение обновляет список каналов - только по запросу, предлагая обновление при открытии «Трансляций», или автоматически по Wi-Fi.",
-    "uk": "Вибирає, коли застосунок оновлює список каналів - лише на запит, пропонуючи оновлення при відкритті «Трансляцій», або автоматично по Wi-Fi."
-  },
-  "rowSmartBuffering": {
-    "en": "Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback.",
-    "ru": "Делает радио устойчивее при слабой связи: ждёт на пару секунд дольше перед стартом ради большего запаса и тихо переподключается после коротких обрывов вместо остановки. Выключено - обычное стандартное воспроизведение.",
-    "uk": "Робить радіо стійкішим за слабкого звʼязку: чекає на кілька секунд довше перед стартом заради більшого запасу й тихо перепідключається після коротких обривів замість зупинки. Вимкнено - звичайне стандартне відтворення."
-  },
-  "btnClearPlayStatuses": {
-    "en": "Clears the green and red play marks on all channels. The channels themselves stay.",
-    "ru": "Очищает зелёные и красные отметки воспроизведения на всех каналах. Сами каналы остаются.",
-    "uk": "Очищає зелені та червоні позначки відтворення на всіх каналах. Самі канали залишаються."
-  },
-  "btnTakeScreenshotNow": {
-    "en": "Takes a screenshot of the app right away using the built-in capture flow.",
-    "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",
-    "uk": "Одразу робить знімок екрана застосунку через вбудований механізм захоплення."
-  },
-  "btnPrivacyPolicy": {
-    "en": "Opens the app's privacy policy.",
-    "ru": "Открывает политику конфиденциальности приложения.",
-    "uk": "Відкриває політику конфіденційності застосунку."
-  },
-  "btnResetGeneralSection": {
-    "en": "Restores all General section settings to their factory defaults.",
-    "ru": "Возвращает все настройки раздела «Общие» к заводским значениям.",
-    "uk": "Повертає всі налаштування розділу «Загальні» до заводських значень."
-  },
-  "btnResetSettings": {
-    "en": "Resets all app settings across every section to factory defaults.",
-    "ru": "Сбрасывает все настройки приложения во всех разделах до заводских значений.",
-    "uk": "Скидає всі налаштування застосунку в усіх розділах до заводських значень."
-  },
-  "btnResetSmbConnections": {
-    "en": "Clears all saved SMB network connection credentials and configurations.",
-    "ru": "Удаляет все сохранённые учётные данные и конфигурации SMB-подключений.",
-    "uk": "Видаляє всі збережені облікові дані та конфігурації SMB-підключень."
-  },
-  "btnRestore": {
-    "en": "Restores app settings from a backup stored in your Google Drive account.",
-    "ru": "Восстанавливает настройки приложения из резервной копии в аккаунте Google Drive.",
-    "uk": "Відновлює налаштування застосунку з резервної копії в акаунті Google Drive."
-  },
-  "btnSaveLogs": {
-    "en": "Saves the current debug log to a file on the device for sharing or inspection.",
-    "ru": "Сохраняет текущий журнал отладки в файл на устройстве для отправки или анализа.",
-    "uk": "Зберігає поточний журнал налагодження у файл на пристрої для надсилання або аналізу."
-  },
-  "btnShareLogs": {
-    "en": "Shares the current debug log via the system share sheet.",
-    "ru": "Отправляет текущий журнал отладки через системное меню «Поделиться».",
-    "uk": "Надсилає поточний журнал налагодження через системне меню «Поділитися»."
-  },
-  "btnShowLog": {
-    "en": "Opens the full app log for review within the app.",
-    "ru": "Открывает полный журнал приложения для просмотра внутри приложения.",
-    "uk": "Відкриває повний журнал застосунку для перегляду всередині застосунку."
-  },
-  "btnShowSessionLog": {
-    "en": "Opens the log for the current app session only.",
-    "ru": "Открывает журнал только для текущей сессии приложения.",
-    "uk": "Відкриває журнал лише для поточної сесії застосунку."
-  },
-  "btnSyncNow": {
-    "en": "Triggers an immediate manual sync with configured remote resources.",
-    "ru": "Запускает немедленную ручную синхронизацию с настроенными удалёнными ресурсами.",
-    "uk": "Запускає негайну ручну синхронізацію з налаштованими віддаленими ресурсами."
-  },
-  "btnSystemInfo": {
-    "en": "Displays device and app version information useful for troubleshooting.",
-    "ru": "Показывает информацию об устройстве и версии приложения, полезную при отладке.",
-    "uk": "Показує інформацію про пристрій і версію застосунку, корисну при налагодженні."
-  },
-  "btnUserGuide": {
-    "en": "Opens the full user guide for the app.",
-    "ru": "Открывает полное руководство пользователя приложения.",
-    "uk": "Відкриває повне керівництво користувача застосунку."
-  },
-  "btnWearCompanion": {
-    "en": "Opens settings for the Wear OS companion app pairing and configuration.",
-    "ru": "Открывает настройки сопряжения и конфигурации Wear OS-компаньона.",
-    "uk": "Відкриває налаштування з'єднання та конфігурації Wear OS-супутника."
-  },
-  "buttonAddHomeWidget": {
-    "en": "Launches the widget picker so you can add an app widget to the home screen.",
-    "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
-    "uk": "Відкриває вибір віджетів для додавання віджету застосунку на головний екран."
-  },
-  "etIconSize": {
-    "en": "Sets the thumbnail icon size in pixels for grid view.",
-    "ru": "Задаёт размер иконок-миниатюр в пикселях для режима отображения сеткой.",
-    "uk": "Задає розмір іконок-мініатюр у пікселях для режиму відображення сіткою."
-  },
-  "headerAppData": {
-    "en": "Settings for backing up, restoring, and exporting app data and configuration.",
-    "ru": "Настройки резервного копирования, восстановления и экспорта данных и конфигурации приложения.",
-    "uk": "Налаштування резервного копіювання, відновлення й експорту даних і конфігурації застосунку."
-  },
-  "headerAuthorization": {
-    "en": "Settings for linked accounts and authorization with cloud and remote services.",
-    "ru": "Настройки подключённых аккаунтов и авторизации в облачных и удалённых сервисах.",
-    "uk": "Налаштування підключених акаунтів та авторизації в хмарних і віддалених сервісах."
-  },
-  "headerDebugSettings": {
-    "en": "Tools for viewing logs, running integration tests, and diagnosing app issues.",
-    "ru": "Инструменты для просмотра журналов, запуска интеграционных тестов и диагностики проблем.",
-    "uk": "Інструменти для перегляду журналів, запуску інтеграційних тестів і діагностики проблем."
-  },
-  "headerFileBrowser": {
-    "en": "Settings that control the layout and behavior of the file browser.",
-    "ru": "Настройки, управляющие внешним видом и поведением браузера файлов.",
-    "uk": "Налаштування, що керують виглядом і поведінкою браузера файлів."
-  },
-  "headerInterface": {
-    "en": "Settings that control the overall look and interaction style of the app.",
-    "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
-    "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
-  },
-  "headerMainWindowInterface": {
-    "en": "Settings that control which optional panels and menus appear on the main window.",
-    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
-    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються на головному вікні."
-  },
-  "headerRemoteSources": {
-    "en": "Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage.",
-    "ru": "Настройки подключения к удалённым источникам файлов: SMB-ресурсам, FTP/SFTP-серверам и облачному хранилищу.",
-    "uk": "Налаштування підключення до віддалених джерел файлів: SMB-ресурсів, FTP/SFTP-серверів і хмарного сховища."
-  },
-  "headerSystem": {
-    "en": "Settings for background sync, network connection limits, and local cache management.",
-    "ru": "Настройки фоновой синхронизации, сетевых подключений и управления локальным кэшем.",
-    "uk": "Налаштування фонової синхронізації, мережевих підключень і управління локальним кешем."
-  },
-  "rowAllFiles": {
-    "en": "Grants access to all files on the device, including system folders (requires All Files permission).",
-    "ru": "Открывает доступ ко всем файлам на устройстве, включая системные папки (требует разрешения «Все файлы»).",
-    "uk": "Відкриває доступ до всіх файлів на пристрої, включно з системними теками (потребує дозволу «Всі файли»)."
-  },
-  "rowAllowSeparateWindow": {
-    "en": "Allows opening additional app windows in multi-window or split-screen mode.",
-    "ru": "Разрешает открывать дополнительные окна приложения в многооконном или разделённом режиме.",
-    "uk": "Дозволяє відкривати додаткові вікна застосунку в багатовіконному або розділеному режимі."
-  },
-  "rowCompactElements": {
-    "en": "Reduces the padding and size of all list elements globally, fitting more items on screen.",
-    "ru": "Глобально уменьшает отступы и размер элементов списков, чтобы на экране помещалось больше элементов.",
-    "uk": "Глобально зменшує відступи і розмір елементів списків, щоб на екрані вміщалося більше елементів."
-  },
-  "rowDefaultGridMode": {
-    "en": "Opens the file browser in grid view by default instead of list view.",
-    "ru": "Открывает браузер файлов сеткой по умолчанию вместо режима списка.",
-    "uk": "Відкриває браузер файлів сіткою за замовчуванням замість режиму списку."
-  },
-  "rowEnableBackgroundSync": {
-    "en": "Lets the app sync remote resources in the background when the device is idle.",
-    "ru": "Позволяет приложению синхронизировать удалённые ресурсы в фоне, когда устройство не используется.",
-    "uk": "Дозволяє застосунку синхронізувати віддалені ресурси у фоні, коли пристрій не використовується."
-  },
-  "rowEnableFavorites": {
-    "en": "Enables the Favorites feature so you can mark and quickly access starred files.",
-    "ru": "Включает функцию «Избранное» для пометки и быстрого доступа к отмеченным файлам.",
-    "uk": "Вмикає функцію «Обране» для позначення та швидкого доступу до відзначених файлів."
-  },
-  "rowEnableStatistics": {
-    "en": "Enables anonymous usage statistics collection to help improve the app.",
-    "ru": "Включает сбор анонимной статистики использования для улучшения приложения.",
-    "uk": "Вмикає збір анонімної статистики використання для вдосконалення застосунку."
-  },
-  "rowSecureSensitiveScreens": {
-    "en": "Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default.",
-    "ru": "Блокирует скриншоты и превью в списке недавних на экранах с паролями (добавление/редактирование ресурса, учётные данные в настройках, WebView входа и QR с учётными данными). Включено по умолчанию.",
-    "uk": "Блокує знімки екрана та прев'ю в списку нещодавніх на екранах з паролями (додавання/редагування ресурсу, облікові дані в налаштуваннях, WebView входу та QR з обліковими даними). Увімкнено за замовчуванням."
-  },
-  "rowEnableThumbnailPreload": {
-    "en": "Preloads thumbnails for files ahead of scrolling so the grid loads faster.",
-    "ru": "Предварительно загружает миниатюры файлов при прокрутке, чтобы сетка открывалась быстрее.",
-    "uk": "Попередньо завантажує мініатюри файлів при прокручуванні, щоб сітка відкривалася швидше."
-  },
-  "rowFileOpsInOverflowMenu": {
-    "en": "Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons.",
-    "ru": "Перемещает операции с файлами (копирование, перемещение, удаление) в меню ⋮ вместо отдельных кнопок.",
-    "uk": "Переміщає операції з файлами (копіювання, переміщення, видалення) до меню ⋮ замість окремих кнопок."
-  },
-  "rowHideGridActionButtons": {
-    "en": "Hides the quick action buttons overlaid on thumbnails in grid view.",
-    "ru": "Скрывает кнопки быстрых действий, отображаемые поверх миниатюр в режиме сетки.",
-    "uk": "Приховує кнопки швидких дій, що відображаються поверх мініатюр у режимі сітки."
   },
   "rowResourceOpsInOverflowMenu": {
     "en": "Moves resource-level actions (add, edit, remove resource) into the overflow menu.",
     "ru": "Перемещает операции с ресурсами (добавить, изменить, удалить ресурс) в меню ⋮.",
     "uk": "Переміщає операції з ресурсами (додати, змінити, видалити ресурс) до меню ⋮."
   },
+  "rowResumeOnNextLaunch": {
+    "en": "Resumes playback from where it was stopped the next time you open the app.",
+    "ru": "Возобновляет воспроизведение с места остановки при следующем открытии приложения.",
+    "uk": "Відновлює відтворення з місця зупинки при наступному відкритті застосунку."
+  },
+  "rowSaveAudioMetadataLocally": {
+    "en": "Caches downloaded track metadata and cover art on the device to avoid re-fetching.",
+    "ru": "Кэширует загруженные метаданные треков и обложки, чтобы не скачивать их повторно.",
+    "uk": "Кешує завантажені метадані треків і обкладинки, щоб не завантажувати їх повторно."
+  },
+  "rowScreenRecordingEnabled": {
+    "en": "Enables the built-in screen video recording feature.",
+    "ru": "Включает встроенную функцию видеозаписи экрана.",
+    "uk": "Вмикає вбудовану функцію відеозапису екрана."
+  },
+  "rowSearchAudioCoversOnline": {
+    "en": "Fetches missing cover art from the internet when a local cover is not found.",
+    "ru": "Загружает недостающие обложки из интернета, если локальная обложка не найдена.",
+    "uk": "Завантажує відсутні обкладинки з інтернету, якщо локальну обкладинку не знайдено."
+  },
+  "rowSearchCoversOnlyWifi": {
+    "en": "Restricts online cover art search to Wi-Fi connections only, saving mobile data.",
+    "ru": "Ограничивает поиск обложек в интернете соединением по Wi-Fi, чтобы не тратить мобильный трафик.",
+    "uk": "Обмежує пошук обкладинок онлайн з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
+  },
+  "rowSecureSensitiveScreens": {
+    "en": "Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default.",
+    "ru": "Блокирует скриншоты и превью в списке недавних на экранах с паролями (добавление/редактирование ресурса, учётные данные в настройках, WebView входа и QR с учётными данными). Включено по умолчанию.",
+    "uk": "Блокує знімки екрана та прев'ю в списку нещодавніх на екранах з паролями (додавання/редагування ресурсу, облікові дані в налаштуваннях, WebView входу та QR з обліковими даними). Увімкнено за замовчуванням."
+  },
+  "rowShowBlackScreenButton": {
+    "en": "Shows a button in the player that blanks the screen while audio continues playing.",
+    "ru": "Показывает кнопку в плеере, которая гасит экран при продолжающемся воспроизведении аудио.",
+    "uk": "Показує кнопку в плеєрі, яка гасить екран при продовженні відтворення аудіо."
+  },
+  "rowShowCommandPanel": {
+    "en": "Keeps the player command panel visible by default instead of hiding it after a timeout.",
+    "ru": "По умолчанию держит панель команд плеера видимой, не скрывая её по таймауту.",
+    "uk": "За замовчуванням тримає панель команд плеєра видимою, не приховуючи її за таймаутом."
+  },
   "rowShowHiddenFiles": {
     "en": "Shows files and folders whose names begin with a dot (hidden by convention).",
     "ru": "Показывает файлы и папки, имена которых начинаются с точки (скрытые по соглашению).",
     "uk": "Показує файли та теки, імена яких починаються з крапки (приховані за угодою)."
   },
+  "rowShowNowPlayingPanel": {
+    "en": "Shows a persistent now-playing panel at the bottom of the file browser.",
+    "ru": "Показывает постоянную панель текущего трека внизу браузера файлов.",
+    "uk": "Показує постійну панель поточного треку внизу браузера файлів."
+  },
+  "rowShowPdfThumbnails": {
+    "en": "Generates preview thumbnails for large PDF files - slower but more informative in the file browser.",
+    "ru": "Создаёт миниатюры для больших PDF-файлов - медленнее, но нагляднее в браузере файлов.",
+    "uk": "Створює мініатюри для великих PDF-файлів - повільніше, але наочніше в браузері файлів."
+  },
+  "rowShowPlayerHint": {
+    "en": "Shows an overlay hint explaining the touch zones the first time the player opens.",
+    "ru": "Показывает подсказку с пояснением сенсорных зон при первом открытии плеера.",
+    "uk": "Показує підказку з поясненням сенсорних зон при першому відкритті плеєра."
+  },
+  "rowShowProgramsPanel": {
+    "en": "Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu.",
+    "ru": "Показывает горизонтальную панель программ и сценариев над списком ресурсов в основном окне, дублируя меню программ.",
+    "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів у головному вікні, дублюючи меню програм."
+  },
+  "rowShowStreamsPanel": {
+    "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
+    "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
+    "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів у головному вікні, із переходом до розділу трансляцій."
+  },
   "rowShowSubfoldersAsItems": {
     "en": "Lists subfolders as individual items in the file browser instead of navigating into them directly.",
     "ru": "Отображает подпапки как отдельные элементы в браузере файлов, не переходя в них автоматически.",
     "uk": "Відображає підтеки як окремі елементи в браузері файлів, не переходячи в них автоматично."
+  },
+  "rowShowTextLineNumbers": {
+    "en": "Displays line numbers in the margin when viewing text files.",
+    "ru": "Показывает номера строк в поле слева при просмотре текстовых файлов.",
+    "uk": "Показує номери рядків у полі зліва при перегляді текстових файлів."
+  },
+  "rowShowVideoThumbnails": {
+    "en": "Generates and displays thumbnail previews for video files in the file browser.",
+    "ru": "Создаёт и показывает миниатюры для видеофайлов в браузере файлов.",
+    "uk": "Створює і показує мініатюри для відеофайлів у браузері файлів."
+  },
+  "rowSlideshowBackgroundMusic": {
+    "en": "Plays music from the selected music source in the background during a slideshow.",
+    "ru": "Воспроизводит музыку из выбранного источника в фоне во время слайдшоу.",
+    "uk": "Відтворює музику з вибраного джерела у фоні під час слайдшоу."
+  },
+  "rowSmallControls": {
+    "en": "Uses smaller, more compact player control buttons to save screen space.",
+    "ru": "Использует меньшие компактные кнопки управления плеером для экономии места на экране.",
+    "uk": "Використовує менші компактні кнопки керування плеєром для економії місця на екрані."
+  },
+  "rowSmartBuffering": {
+    "en": "Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback.",
+    "ru": "Делает радио устойчивее при слабой связи: ждёт на пару секунд дольше перед стартом ради большего запаса и тихо переподключается после коротких обрывов вместо остановки. Выключено - обычное стандартное воспроизведение.",
+    "uk": "Робить радіо стійкішим за слабкого звʼязку: чекає на кілька секунд довше перед стартом заради більшого запасу й тихо перепідключається після коротких обривів замість зупинки. Вимкнено - звичайне стандартне відтворення."
   },
   "rowSourceCloud": {
     "en": "Enables adding cloud storage (Google Drive, etc.) as remote resources.",
@@ -699,40 +934,15 @@
     "ru": "Включает возможность добавлять SMB-ресурсы локальной сети (NAS, ПК) как удалённые ресурсы.",
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
   },
-  "rowThumbnailPreloadWifiOnly": {
-    "en": "Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data.",
-    "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
-    "uk": "Обмежує попереднє завантаження мініатюр з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
+  "rowSupportAudio": {
+    "en": "Enables audio file support so audio tracks appear in the file browser and can be played.",
+    "ru": "Включает поддержку аудиофайлов: треки отображаются в браузере файлов и доступны для воспроизведения.",
+    "uk": "Вмикає підтримку аудіофайлів: треки відображаються в браузері файлів і доступні для відтворення."
   },
-  "btnSelectMusicSource": {
-    "en": "Selects the folder or resource used as the music source during slideshow playback.",
-    "ru": "Выбирает папку или ресурс, откуда берётся музыка при воспроизведении слайдшоу.",
-    "uk": "Вибирає теку або ресурс, звідки береться музика під час відтворення слайдшоу."
-  },
-  "btnSetDefaultImageViewer": {
-    "en": "Registers this app as the default handler for image files on the device.",
-    "ru": "Назначает приложение просмотрщиком изображений по умолчанию на устройстве.",
-    "uk": "Призначає застосунок типовим переглядачем зображень на пристрої."
-  },
-  "rowCropImagesToFullscreen": {
-    "en": "Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing.",
-    "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
-    "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
-  },
-  "rowDynamicBackground": {
-    "en": "Extends the image edges into a blurred background to fill the screen without cropping.",
-    "ru": "Расширяет края изображения размытым фоном для заполнения экрана без обрезки.",
-    "uk": "Розширює краї зображення розмитим фоном для заповнення екрана без обрізання."
-  },
-  "rowLoadFullSizeImages": {
-    "en": "Loads images at their original resolution instead of downsampling them for display.",
-    "ru": "Загружает изображения в оригинальном разрешении без уменьшения для отображения.",
-    "uk": "Завантажує зображення в оригінальному розрізненні без зменшення для відображення."
-  },
-  "rowSlideshowBackgroundMusic": {
-    "en": "Plays music from the selected music source in the background during a slideshow.",
-    "ru": "Воспроизводит музыку из выбранного источника в фоне во время слайдшоу.",
-    "uk": "Відтворює музику з вибраного джерела у фоні під час слайдшоу."
+  "rowSupportEpub": {
+    "en": "Enables viewing of EPUB e-book files in the built-in reader.",
+    "ru": "Включает просмотр файлов EPUB во встроенном ридере.",
+    "uk": "Вмикає перегляд файлів EPUB у вбудованому рідері."
   },
   "rowSupportGifs": {
     "en": "Enables animated GIF playback in the image viewer.",
@@ -744,60 +954,75 @@
     "ru": "Включает поддержку статичных форматов изображений (JPEG, PNG, WebP и др.) в браузере и просмотрщике.",
     "uk": "Вмикає підтримку статичних форматів зображень (JPEG, PNG, WebP тощо) у браузері та переглядачі."
   },
-  "btnTranslationPrewarmRetry": {
-    "en": "Retries initializing the translation engine if the previous attempt failed.",
-    "ru": "Повторяет попытку инициализации движка перевода после предыдущего сбоя.",
-    "uk": "Повторює спробу ініціалізації рушія перекладу після попереднього збою."
+  "rowSupportOfficeDocuments": {
+    "en": "Enables viewing of Word, Excel, PowerPoint, and other Office-format documents.",
+    "ru": "Включает просмотр документов Word, Excel, PowerPoint и других форматов Office.",
+    "uk": "Вмикає перегляд документів Word, Excel, PowerPoint та інших форматів Office."
   },
-  "rowEnableOcr": {
-    "en": "Enables on-device text recognition (OCR) so you can extract text from images.",
-    "ru": "Включает распознавание текста на устройстве (OCR) для извлечения текста из изображений.",
-    "uk": "Вмикає розпізнавання тексту на пристрої (OCR) для витягування тексту із зображень."
+  "rowSupportPdf": {
+    "en": "Enables viewing of PDF files in the built-in document viewer.",
+    "ru": "Включает просмотр PDF-файлов во встроенном просмотрщике документов.",
+    "uk": "Вмикає перегляд PDF-файлів у вбудованому переглядачі документів."
   },
-  "rowEnableTranslation": {
-    "en": "Enables on-device text translation of recognized text.",
-    "ru": "Включает перевод распознанного текста прямо на устройстве.",
-    "uk": "Вмикає переклад розпізнаного тексту безпосередньо на пристрої."
+  "rowSupportText": {
+    "en": "Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer.",
+    "ru": "Включает просмотр текстовых файлов (.txt, .md, .log, .json, .xml) во встроенном просмотрщике.",
+    "uk": "Вмикає перегляд текстових файлів (.txt, .md, .log, .json, .xml) у вбудованому переглядачі."
+  },
+  "rowSupportVideos": {
+    "en": "Enables video file support so videos appear in the file browser and can be played.",
+    "ru": "Включает поддержку видеофайлов: видео отображаются в браузере файлов и доступны для воспроизведения.",
+    "uk": "Вмикає підтримку відеофайлів: відео відображаються в браузері файлів і доступні для відтворення."
+  },
+  "rowThumbnailPreloadWifiOnly": {
+    "en": "Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data.",
+    "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
+    "uk": "Обмежує попереднє завантаження мініатюр з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
   },
   "rowTranslationLensStyle": {
     "en": "Displays translation results in overlay blocks on top of the image instead of a separate panel.",
     "ru": "Показывает результаты перевода в виде блоков поверх изображения вместо отдельной панели.",
     "uk": "Показує результати перекладу у вигляді блоків поверх зображення замість окремої панелі."
   },
-  "rowOcrEngineType": {
-    "en": "Selects which on-device text-recognition engine is used for OCR.",
-    "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
-    "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
+  "rowUseTrash": {
+    "en": "Moves deleted files to a .trash folder instead of removing them immediately.",
+    "ru": "Перемещает удалённые файлы в папку .trash вместо немедленного удаления.",
+    "uk": "Переміщає видалені файли до теки .trash замість негайного видалення."
   },
-  "rowPaddleOcrModel": {
-    "en": "Selects which PaddleOCR model is used for text recognition.",
-    "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
-    "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
+  "rowVideoCaptureEnabled": {
+    "en": "Enables the built-in video recording feature.",
+    "ru": "Включает встроенную функцию записи видео.",
+    "uk": "Вмикає вбудовану функцію запису відео."
   },
-  "rowOcrFontSize": {
-    "en": "Sets the font size used to display recognized OCR text.",
-    "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
-    "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
+  "rowVideoCaptureOpenInPlayer": {
+    "en": "Opens the recorded video in the player immediately after recording stops.",
+    "ru": "Открывает записанное видео в плеере сразу после остановки записи.",
+    "uk": "Відкриває записане відео в плеєрі одразу після зупинки запису."
   },
-  "rowOcrFontFamily": {
-    "en": "Sets the font family used to display recognized OCR text.",
-    "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
-    "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+  "rowVideoFrameCopyToClipboard": {
+    "en": "Automatically copies the captured video frame snapshot to the clipboard.",
+    "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
+    "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
   },
-  "rowAudioEmptyStateMode": {
-    "en": "Chooses what is shown in place of missing album cover art during audio playback.",
-    "ru": "Выбирает, что показывать вместо отсутствующей обложки альбома при воспроизведении аудио.",
-    "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
+  "row_saved_authorizations": {
+    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
+    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
+    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
   },
-  "rowControlsKeybindings": {
-    "en": "Opens the controls and key-binding configuration for navigation and playback.",
-    "ru": "Открывает настройку управления и привязок клавиш для навигации и воспроизведения.",
-    "uk": "Відкриває налаштування керування та прив'язок клавіш для навігації та відтворення."
+  "spinnerColorTheme": {
+    "en": "Selects the color theme applied across the app interface.",
+    "ru": "Выбирает цветовую тему интерфейса приложения.",
+    "uk": "Вибирає колірну тему інтерфейсу застосунку."
   },
-  "layoutExtensionsManager": {
-    "en": "Manages downloadable OCR and translation components.",
-    "ru": "Управляет загружаемыми компонентами OCR и перевода.",
-    "uk": "Керує завантажуваними компонентами OCR та перекладу."
+  "spinnerLanguage": {
+    "en": "Selects the language used for the app interface.",
+    "ru": "Выбирает язык интерфейса приложения.",
+    "uk": "Вибирає мову інтерфейсу застосунку."
+  },
+  "spinnerSortMode": {
+    "en": "Sets the default order in which files are sorted when a folder opens.",
+    "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
+    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
   },
   "spinnerTranslationSourceLanguage": {
     "en": "Chooses the source language that recognized text is translated from.",
@@ -808,225 +1033,5 @@
     "en": "Chooses the target language that recognized text is translated into.",
     "ru": "Выбирает язык, на который переводится распознанный текст.",
     "uk": "Вибирає мову, якою перекладається розпізнаний текст."
-  },
-  "btnResetPlaybackSection": {
-    "en": "Restores all Player settings in this section to their factory defaults.",
-    "ru": "Возвращает все настройки плеера в этом разделе к заводским значениям.",
-    "uk": "Повертає всі налаштування плеєра в цьому розділі до заводських значень."
-  },
-  "btnShowHintNow": {
-    "en": "Schedules the touch zones hint to appear the next time the player opens.",
-    "ru": "Планирует показ подсказки по сенсорным зонам при следующем открытии плеера.",
-    "uk": "Планує показ підказки по сенсорних зонах при наступному відкритті плеєра."
-  },
-  "headerFileOperations": {
-    "en": "Settings for deleting and renaming files while inside the player.",
-    "ru": "Настройки удаления и переименования файлов при работе в плеере.",
-    "uk": "Налаштування видалення й перейменування файлів під час роботи в плеєрі."
-  },
-  "headerBackgroundAudio": {
-    "en": "Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar.",
-    "ru": "Настройки фонового воспроизведения аудио - продолжение в фоне, поведение при выходе из плеера или трансляций и панель «сейчас играет».",
-    "uk": "Налаштування фонового відтворення аудіо - продовження у фоні, поведінка при виході з плеєра або трансляцій і панель «зараз грає»."
-  },
-  "headerPlayerUI": {
-    "en": "Settings for the player's visual interface, control buttons, and command layout.",
-    "ru": "Настройки визуального интерфейса плеера, кнопок управления и раскладки команд.",
-    "uk": "Налаштування візуального інтерфейсу плеєра, кнопок керування і розкладки команд."
-  },
-  "headerSendCommands": {
-    "en": "Settings for the \"Send file to..\" commands shown in the player.",
-    "ru": "Настройки команд «Отправить файл в..», доступных в плеере.",
-    "uk": "Налаштування команд «Надіслати файл у..», доступних у плеєрі."
-  },
-  "headerSortingSlideshow": {
-    "en": "Settings for file sort order, slideshow behavior, and playback sequence.",
-    "ru": "Настройки порядка сортировки файлов, поведения слайдшоу и последовательности воспроизведения.",
-    "uk": "Налаштування порядку сортування файлів, поведінки слайдшоу й послідовності відтворення."
-  },
-  "headerTouchZones": {
-    "en": "Settings for the player's tap-zone layout and on-screen usage hints.",
-    "ru": "Настройки раскладки зон касания плеера и экранных подсказок по использованию.",
-    "uk": "Налаштування розкладки зон дотику плеєра й екранних підказок щодо використання."
-  },
-  "rowAllowDelete": {
-    "en": "Allows deleting the current file directly from inside the player.",
-    "ru": "Разрешает удалять текущий файл непосредственно из плеера.",
-    "uk": "Дозволяє видаляти поточний файл безпосередньо з плеєра."
-  },
-  "rowAllowRename": {
-    "en": "Allows renaming the current file directly from inside the player.",
-    "ru": "Разрешает переименовывать текущий файл непосредственно из плеера.",
-    "uk": "Дозволяє перейменовувати поточний файл безпосередньо з плеєра."
-  },
-  "rowAlwaysShowTouchZones": {
-    "en": "Keeps the touch zone grid permanently visible over the player instead of showing it only on tap.",
-    "ru": "Постоянно отображает сетку сенсорных зон поверх плеера вместо показа только по касанию.",
-    "uk": "Постійно відображає сітку сенсорних зон поверх плеєра замість показу лише при дотику."
-  },
-  "rowBigButtonsMode": {
-    "en": "Enlarges the player control buttons for easier tapping on large or touch-only screens.",
-    "ru": "Увеличивает кнопки управления плеером для удобства нажатия на больших экранах или при сенсорном управлении.",
-    "uk": "Збільшує кнопки керування плеєром для зручного натискання на великих або сенсорних екранах."
-  },
-  "rowConfirmDelete": {
-    "en": "Shows a confirmation dialog before deleting a file from inside the player.",
-    "ru": "Показывает диалог подтверждения перед удалением файла из плеера.",
-    "uk": "Показує діалог підтвердження перед видаленням файлу з плеєра."
-  },
-  "rowDisableNineZone": {
-    "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
-    "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
-    "uk": "Вимикає 9-зонову сенсорну сітку; повноекранний плеєр переходить на спрощену розкладку з 3 зон (попередній / зум / наступний) з областю командної панелі біля лівого краю."
-  },
-  "rowEnablePip": {
-    "en": "Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player.",
-    "ru": "Включает режим «Картинка в картинке», позволяя продолжить просмотр в плавающем окне при выходе из плеера.",
-    "uk": "Вмикає режим «Картинка в картинці», дозволяючи продовжити перегляд у плаваючому вікні при виході з плеєра."
-  },
-  "rowFollowSystemRotationPlayer": {
-    "en": "Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle.",
-    "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
-    "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
-  },
-  "rowHideSystemUiInFullscreen": {
-    "en": "Hides the status bar and navigation bar when the player is in fullscreen mode.",
-    "ru": "Скрывает строку состояния и навигационную панель в полноэкранном режиме плеера.",
-    "uk": "Приховує рядок стану та панель навігації в повноекранному режимі плеєра."
-  },
-  "rowPanelStereoSingleEye": {
-    "en": "Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing.",
-    "ru": "Отображает 3D-контент (side-by-side) с перспективой одного глаза для обычного просмотра без VR.",
-    "uk": "Відображає 3D-контент (side-by-side) з перспективою одного ока для звичайного перегляду без VR."
-  },
-  "rowPlayToEnd": {
-    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
-    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
-    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
-  },
-  "rowShowBlackScreenButton": {
-    "en": "Shows a button in the player that blanks the screen while audio continues playing.",
-    "ru": "Показывает кнопку в плеере, которая гасит экран при продолжающемся воспроизведении аудио.",
-    "uk": "Показує кнопку в плеєрі, яка гасить екран при продовженні відтворення аудіо."
-  },
-  "rowShowCommandPanel": {
-    "en": "Keeps the player command panel visible by default instead of hiding it after a timeout.",
-    "ru": "По умолчанию держит панель команд плеера видимой, не скрывая её по таймауту.",
-    "uk": "За замовчуванням тримає панель команд плеєра видимою, не приховуючи її за таймаутом."
-  },
-  "rowShowPlayerHint": {
-    "en": "Shows an overlay hint explaining the touch zones the first time the player opens.",
-    "ru": "Показывает подсказку с пояснением сенсорных зон при первом открытии плеера.",
-    "uk": "Показує підказку з поясненням сенсорних зон при першому відкритті плеєра."
-  },
-  "rowSmallControls": {
-    "en": "Uses smaller, more compact player control buttons to save screen space.",
-    "ru": "Использует меньшие компактные кнопки управления плеером для экономии места на экране.",
-    "uk": "Використовує менші компактні кнопки керування плеєром для економії місця на екрані."
-  },
-  "btnClearSnapshotResource": {
-    "en": "Clears the currently selected snapshot destination resource.",
-    "ru": "Очищает выбранный ресурс-назначение для снимков видеокадров.",
-    "uk": "Очищає вибраний ресурс призначення для знімків відеокадрів."
-  },
-  "btnSelectSnapshotResource": {
-    "en": "Selects the destination resource where video frame snapshots are saved.",
-    "ru": "Выбирает ресурс-назначение для сохранения снимков кадров видео.",
-    "uk": "Вибирає ресурс призначення для збереження знімків кадрів відео."
-  },
-  "btnSetDefaultVideoPlayer": {
-    "en": "Registers this app as the default handler for video files on the device.",
-    "ru": "Назначает приложение видеоплеером по умолчанию на устройстве.",
-    "uk": "Призначає застосунок типовим відеоплеєром на пристрої."
-  },
-  "rowOpenVideoInFullscreen": {
-    "en": "Launches video playback straight into fullscreen mode when a video is opened from Browse.",
-    "ru": "Запускает воспроизведение видео сразу в полноэкранном режиме при открытии из браузера файлов.",
-    "uk": "Запускає відтворення відео одразу в повноекранному режимі при відкритті з браузера файлів."
-  },
-  "rowPlayerShowFps": {
-    "en": "Displays the current frames-per-second counter over the video while it is playing.",
-    "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
-    "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
-  },
-  "rowShowVideoThumbnails": {
-    "en": "Generates and displays thumbnail previews for video files in the file browser.",
-    "ru": "Создаёт и показывает миниатюры для видеофайлов в браузере файлов.",
-    "uk": "Створює і показує мініатюри для відеофайлів у браузері файлів."
-  },
-  "rowSupportVideos": {
-    "en": "Enables video file support so videos appear in the file browser and can be played.",
-    "ru": "Включает поддержку видеофайлов: видео отображаются в браузере файлов и доступны для воспроизведения.",
-    "uk": "Вмикає підтримку відеофайлів: відео відображаються в браузері файлів і доступні для відтворення."
-  },
-  "rowVideoFrameCopyToClipboard": {
-    "en": "Automatically copies the captured video frame snapshot to the clipboard.",
-    "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
-    "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
-  },
-  "spinnerLanguage": {
-    "en": "Selects the language used for the app interface.",
-    "ru": "Выбирает язык интерфейса приложения.",
-    "uk": "Вибирає мову інтерфейсу застосунку."
-  },
-  "spinnerColorTheme": {
-    "en": "Selects the color theme applied across the app interface.",
-    "ru": "Выбирает цветовую тему интерфейса приложения.",
-    "uk": "Вибирає колірну тему інтерфейсу застосунку."
-  },
-  "actvPrefetchCache": {
-    "en": "Sets how much upcoming video is pre-cached during playback to reduce buffering.",
-    "ru": "Задаёт объём заранее кэшируемого видео при воспроизведении, чтобы уменьшить буферизацию.",
-    "uk": "Задає обсяг заздалегідь кешованого відео під час відтворення, щоб зменшити буферизацію."
-  },
-  "spinnerSortMode": {
-    "en": "Sets the default order in which files are sorted when a folder opens.",
-    "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
-    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
-  },
-  "rowDeviceProfile": {
-    "en": "Selects the device profile that adapts the interface and controls to your device type.",
-    "ru": "Выбирает профиль устройства, адаптирующий интерфейс и элементы управления под тип устройства.",
-    "uk": "Вибирає профіль пристрою, що адаптує інтерфейс та елементи керування під тип пристрою."
-  },
-  "row_saved_authorizations": {
-    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
-    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
-    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
-  },
-  "rowOpenStatistics": {
-    "en": "Opens the usage statistics screen.",
-    "ru": "Открывает экран статистики использования.",
-    "uk": "Відкриває екран статистики використання."
-  },
-  "btnSelectLinkAutodownloadResource": {
-    "en": "Chooses the destination resource where files from incoming links are downloaded automatically.",
-    "ru": "Выбирает ресурс назначения, куда автоматически загружаются файлы из входящих ссылок.",
-    "uk": "Вибирає ресурс призначення, куди автоматично завантажуються файли з вхідних посилань."
-  },
-  "btnOpenEdgeGestureConfig": {
-    "en": "Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on.",
-    "ru": "Открывает диалог настройки краевых жестов: интерактивная схема зон, вкладки по зонам (направления + видимость полосы) и общие настройки жестов. Активна только при включённом оверлее жестов.",
-    "uk": "Відкриває діалог налаштування краєвих жестів: інтерактивна схема зон, вкладки за зонами (напрямки + видимість смуги) та загальні налаштування жестів. Активна лише за ввімкненого оверлея жестів."
-  },
-  "rowShowProgramsPanel": {
-    "en": "Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu.",
-    "ru": "Показывает горизонтальную панель программ и сценариев над списком ресурсов в основном окне, дублируя меню программ.",
-    "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів у головному вікні, дублюючи меню програм."
-  },
-  "rowShowStreamsPanel": {
-    "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
-    "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
-    "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів у головному вікні, із переходом до розділу трансляцій."
-  },
-  "rowLauncherModeEnabled": {
-    "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
-    "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
-    "uk": "Робить застосунок домашнім екраном пристрою - кнопка «Додому» відкриває ваш робочий стіл."
-  },
-  "rowLauncherSettings": {
-    "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
-    "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
-    "uk": "Відкриває діалог налаштувань системного лаунчера для налаштування робочого столу, панелі задач і щільності сітки."
   }
 }

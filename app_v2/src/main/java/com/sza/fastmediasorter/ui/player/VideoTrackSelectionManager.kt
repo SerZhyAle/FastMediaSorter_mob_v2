@@ -9,6 +9,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import timber.log.Timber
 
@@ -25,8 +26,29 @@ class VideoTrackSelectionManager(
         val groupIndex: Int,
         val trackIndex: Int,
         val label: String,
-        val isSelected: Boolean
+        val isSelected: Boolean,
+        // S1144 (ADR-8): kept as a field so the write-back can persist the picked language without
+        // re-walking Tracks - it is already read here to build [label].
+        val language: String? = null
     )
+
+    /**
+     * S1144 (ADR-4): the playing channel's remembered track languages, seated by the stream-start path
+     * and cleared on every new item. Null means "no per-channel preference" and the global default wins.
+     * Held as a property rather than a parameter because [applyTrackSelection] is reached from several
+     * call sites that know nothing about streams.
+     */
+    var channelPreference: StreamTrackPreferenceUseCase.TrackPreference? = null
+
+    /**
+     * S1144 (phase 04): the global stream defaults from `AppSettings`, seated by the stream-start path.
+     * They sit between the per-channel preference (wins) and the generic player settings (fallback), so a
+     * user who set "Russian audio for streams" gets it on every channel that has no pick of its own.
+     */
+    var streamDefaults: StreamDefaults? = null
+
+    /** Global stream track defaults; null members mean "no stream-specific default, use player settings". */
+    data class StreamDefaults(val audioIso: String?, val subtitleIso: String?)
 
     fun applyTrackSelection(
         player: ExoPlayer,
@@ -34,8 +56,11 @@ class VideoTrackSelectionManager(
         appLanguage: String
     ) {
         var paramsBuilder = player.trackSelectionParameters.buildUpon()
+        val preference = channelPreference
 
-        val preferredAudioLang = when (settings.audioLanguage) {
+        val preferredAudioLang = preference?.audioLang
+            ?: streamDefaults?.audioIso
+            ?: when (settings.audioLanguage) {
             PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
             PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
             PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
@@ -44,8 +69,10 @@ class VideoTrackSelectionManager(
         paramsBuilder = paramsBuilder.setPreferredAudioLanguage(preferredAudioLang)
         Timber.d("VideoTrackSelectionManager: Set preferred audio language to $preferredAudioLang")
 
-        if (settings.showSubtitles) {
-            val preferredSubtitleLang = when (settings.subtitleLanguage) {
+        if (preference?.subtitlesEnabled ?: settings.showSubtitles) {
+            val preferredSubtitleLang = preference?.subtitleLang
+                ?: streamDefaults?.subtitleIso
+                ?: when (settings.subtitleLanguage) {
                 PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
                 PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
                 PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
@@ -64,6 +91,7 @@ class VideoTrackSelectionManager(
         }
 
         player.trackSelectionParameters = paramsBuilder.build()
+        Timber.d("S1144: applied audio=$preferredAudioLang channelPref=${preference != null}")
     }
 
     fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) {
@@ -139,7 +167,15 @@ class VideoTrackSelectionManager(
                     "Track $trackNumber"
                 }
                 val label = if (isSupported) baseLabel else "$baseLabel ⚠ Unsupported"
-                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
+                result.add(
+                    TrackInfo(
+                        groupIndex,
+                        trackIndex,
+                        label,
+                        group.isTrackSelected(trackIndex),
+                        format.language
+                    )
+                )
                 trackNumber++
             }
         }
@@ -162,7 +198,15 @@ class VideoTrackSelectionManager(
                 } else {
                     "Track $trackNumber"
                 }
-                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
+                result.add(
+                    TrackInfo(
+                        groupIndex,
+                        trackIndex,
+                        label,
+                        group.isTrackSelected(trackIndex),
+                        format.language
+                    )
+                )
                 trackNumber++
             }
         }

@@ -18,7 +18,9 @@ import androidx.media3.extractor.metadata.icy.IcyHeaders
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -129,6 +131,23 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
             .build()
         player.setMediaItem(mediaItem)
     }
+    // S1144 (ADR-4/ADR-6): seat the channel's remembered track languages before prepare so the first
+    // track selection already honours them; null leaves the global default in charge. This function is
+    // already suspending, so the DAO read needs no extra scope.
+    trackSelectionManager.channelPreference = streamTrackPreferenceUseCase.read(path)
+    // S1144 (phase 04): stream-wide defaults sit under the per-channel pick and over the generic
+    // player settings, so both are seated together and cleared together in playVideo.
+    val streamSettings = settingsRepository.getSettings().first()
+    trackSelectionManager.streamDefaults = VideoTrackSelectionManager.StreamDefaults(
+        audioIso = streamSettings.streamsDefaultAudioLanguage.isoCodeOrNull(),
+        subtitleIso = streamSettings.streamsDefaultSubtitleLanguage.isoCodeOrNull()
+    )
+    Timber.d(
+        "S1144: seated channel=%s defaults=%s",
+        trackSelectionManager.channelPreference,
+        trackSelectionManager.streamDefaults
+    )
+
     // S1127: open the time-to-first-frame window exactly at prepare, so TTFF excludes setup work above.
     diagnostics.onPrepared()
     player.prepare()

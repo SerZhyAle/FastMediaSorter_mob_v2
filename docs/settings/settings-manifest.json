@@ -1941,6 +1941,16 @@
       "titleUk": "Оновлення списку каналів"
     },
     {
+      "key": "rowDefaultAudioLanguage",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Audio language for streams",
+      "titleRu": "Язык аудио для трансляций",
+      "titleUk": "Мова аудіо для трансляцій"
+    },
+    {
       "key": "rowDefaultMediaFilter",
       "sectionId": "streams",
       "destination": "MEDIA",
@@ -1959,6 +1969,16 @@
       "titleEn": "Default order",
       "titleRu": "Порядок по умолчанию",
       "titleUk": "Порядок за замовчуванням"
+    },
+    {
+      "key": "rowDefaultSubtitleLanguage",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Subtitle language for streams",
+      "titleRu": "Язык субтитров для трансляций",
+      "titleUk": "Мова субтитрів для трансляцій"
     },
     {
       "key": "rowEnableStreams",

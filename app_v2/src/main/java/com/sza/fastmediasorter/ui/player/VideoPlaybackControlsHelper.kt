@@ -145,11 +145,15 @@ internal class VideoPlaybackControlsHelper(
 
     fun getAvailableAudioTracks(): List<VideoPlayerManager.TrackInfo> =
         trackSelectionManager.getAvailableAudioTracks()
-            .map { VideoPlayerManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+            .map {
+                VideoPlayerManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected, it.language)
+            }
 
     fun getAvailableSubtitleTracks(): List<VideoPlayerManager.TrackInfo> =
         trackSelectionManager.getAvailableSubtitleTracks()
-            .map { VideoPlayerManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+            .map {
+                VideoPlayerManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected, it.language)
+            }
 
     fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
         trackSelectionManager.selectAudioTrack(groupIndex, trackIndex)

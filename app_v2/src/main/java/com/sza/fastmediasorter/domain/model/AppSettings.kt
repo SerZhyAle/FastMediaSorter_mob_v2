@@ -100,6 +100,9 @@ data class AppSettings(
     val streamsDefaultSort: StreamDefaultSort = StreamDefaultSort.NAME,
     val streamsDefaultMediaFilter: StreamMediaTypeFilter = StreamMediaTypeFilter.ALL,
     val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.ON_OPEN,
+    // S1144: global default track languages for streams; a per-channel preference overrides them (ADR-4).
+    val streamsDefaultAudioLanguage: StreamTrackLanguage = StreamTrackLanguage.DEFAULT,
+    val streamsDefaultSubtitleLanguage: StreamTrackLanguage = StreamTrackLanguage.DEFAULT,
     // S0756: show pinned stream channels as a horizontal panel on the main window (entry button + pinned
     // channels in pin order). Default OFF; effective only when [enableStreams] is on and the flavor ships Streams.
     val showStreamsPanelInMainWindow: Boolean = false,

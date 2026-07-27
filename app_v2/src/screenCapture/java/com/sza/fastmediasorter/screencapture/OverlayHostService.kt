@@ -102,6 +102,7 @@ class OverlayHostService : Service() {
                 overlayManager.hide()
                 overlayManager.show(stripVisibleZones, enabledZones, zoneActions)
                 overlayVisible = true
+                Timber.d("S1162: overlay host resolved actions for ${zoneActions.size} zone(s)")
             } catch (e: Exception) {
                 Timber.e(e, "OverlayHostService: failed to start overlay host")
                 stopOverlayHost()

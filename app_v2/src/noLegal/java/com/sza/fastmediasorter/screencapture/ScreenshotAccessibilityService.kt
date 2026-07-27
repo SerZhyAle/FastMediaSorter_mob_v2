@@ -160,6 +160,7 @@ class ScreenshotAccessibilityService : AccessibilityService() {
             )
             manager.show(stripVisibleZones, enabledZones, zoneActions)
             overlayManager = manager
+            Timber.d("S1162: a11y host resolved actions for ${zoneActions.size} zone(s)")
         }
     }
 

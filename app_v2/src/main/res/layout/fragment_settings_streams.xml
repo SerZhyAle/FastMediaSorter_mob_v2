@@ -59,6 +59,28 @@
             app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/settings_streams_catalog_refresh" />
 
+        <!-- S1144: global default track languages for streams. A channel that remembers its own pick
+             overrides these for itself only (ADR-4). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultAudioLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            app:sdr_inline="true"
+            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/settings_streams_default_audio_language" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultSubtitleLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            app:sdr_inline="true"
+            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_title="@string/settings_streams_default_subtitle_language" />
+
         <!-- S1148: opt-in resilient radio buffering (bigger start cushion + silent reconnects). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSmartBuffering"
