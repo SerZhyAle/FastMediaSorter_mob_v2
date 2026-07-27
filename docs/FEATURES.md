@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-26*
+*Last updated: 2026-07-27*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -54,8 +54,9 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Pinned streams on the main window** `[Standard / Legacy / noLegal]`: Put favorite live channels directly above the resource list for one-tap access from the home screen of the app.
 - **Smarter stream playback** `[Standard / Legacy / VR]`: Streams step down to a lighter quality automatically when the connection keeps stalling, and the frame you were watching becomes the channel's thumbnail.
 - **See what is on air right now** `[Standard / Legacy / noLegal / VR]`: Radio shows the artist and title, video channels show the programme currently broadcasting, and both reach the notification and the lock screen.
-- **Find a channel without scrolling** `[Standard / Legacy / noLegal / VR]`: Filter by topic alongside category, language, and country, recognise a video channel from a downloadable preview atlas before the first watch, and keep pinned channels in their own collapsible section.
+- **Find a channel without scrolling** `[Standard / Legacy / noLegal / VR]`: Filter by topic alongside category, language, and country, recognise a video channel from a downloadable preview atlas before the first watch, fall back to the station logo where no preview exists, and keep pinned channels in their own collapsible section.
 - **Radio picks itself back up** `[Standard / Legacy / noLegal / VR]`: A station that was playing when you closed the app starts again on the next launch.
+- **Each channel remembers its tracks** `[Standard / Legacy / noLegal / VR]`: Pick an audio track or subtitles once and that channel opens the same way next time, with a default audio and subtitle language for every other stream.
 
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
