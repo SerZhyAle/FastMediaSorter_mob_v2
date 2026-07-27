@@ -58,10 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.7260.335 (July 2026) - Fix Release
+## What's New in v2.60.7270.415 (July 2026)
+
+**New:**
+Per-channel track memory, stream track languages, stream tile artwork, station logos, extension updates.
 
 **Fixed:**
-Refreshing Favorites no longer records a false storage sync error in the diagnostic log.
+Declining the home-screen role no longer leaves the request unresolved.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

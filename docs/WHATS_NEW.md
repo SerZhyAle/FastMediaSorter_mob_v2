@@ -6,7 +6,27 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7260.335** (July 2026) - Fix Release
+**Current release: 2.60.7270.415** (July 2026)
+
+> Changes since version 2.60.7260.335
+
+---
+
+## What's New
+
+- **Per-channel track memory** - a stream keeps the audio track and subtitles you chose.
+- **Stream track languages** - set a default audio and subtitle language for streams.
+- **Stream tile artwork** - every channel tile shows a picture.
+- **Station logos** - channels without a preview show their station logo.
+- **Extension updates** - a downloadable extension offers its newer version.
+
+## What's Fixed
+
+- Declining the home-screen role no longer leaves the request unresolved.
+
+---
+
+## Previous Release: 2.60.7260.335 (July 2026) - Fix Release
 
 > Fix: false storage-sync error when refreshing Favorites
 
